@@ -1,0 +1,11 @@
+.DS_Store
+.Makefile.swp
+*.o
+*.a
+tests/suites.c
+tests/suites.h
+tests/test
+tests/test_*.*
+contribs/lua-5.2.1/src/lua
+contribs/lua-5.2.1/src/luac
+contribs/makeheaders/makeheaders
