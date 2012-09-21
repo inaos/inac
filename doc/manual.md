@@ -2,6 +2,10 @@
 
 ## Getting started
 
+### How to build
+
+## Portable
+
 ## Datatypes
 
 
