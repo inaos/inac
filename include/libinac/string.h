@@ -13,11 +13,11 @@
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
@@ -31,7 +31,7 @@
 
 /* string type (hiding a pointer!)  */
 typedef char * ina_str_t;
- 
+
 /*
  * Memory
  */
@@ -64,47 +64,47 @@ INA_API(const char *) ina_str_cstr(const ina_str_t s);
  */
 INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t);
 /*
- * Copies at most count characters of the byte string pointed to by src 
+ * Copies at most count characters of the byte string pointed to by src
  * (including the terminating null character) to character array pointed to by
  * dest.
  * If count is reached before the entire string src was copied, the resulting
  * character array is not null-terminated.
- * If, after copying the terminating null character from src, count is not 
- * reached, additional null characters are written to dest until the total of 
- * count characters have been written. 
+ * If, after copying the terminating null character from src, count is not
+ * reached, additional null characters are written to dest until the total of
+ * count characters have been written.
  * If the strings overlap, the behavior is undefined.
- * 
+ *
  * Parameters
- * dest	 -   pointer to the character array to copy to
- * src	 -   pointer to the byte string to copy from
+ * dest  -   pointer to the character array to copy to
+ * src   -   pointer to the byte string to copy from
  * count -   maximum number of characters to copy
  *
- * Return value
+ * Returns value
  * dest
  */
 INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t, size_t count);
 /*
- * Appends a byte string pointed to by src to a byte string pointed to by dest. 
- * The resulting byte string is null-terminated. If the strings overlap, the 
+ * Appends a byte string pointed to by src to a byte string pointed to by dest.
+ * The resulting byte string is null-terminated. If the strings overlap, the
  * behavior is undefined.
- * 
- * Parameters
- * dest	 -	 pointer to the null-terminated byte string to append to
- * src	 -	 pointer to the null-terminated byte string to copy from
- * 
+ *
+ * Parameter:
+ * dest  -  pointer to the null-terminated byte string to append to
+ * src   -  pointer to the null-terminated byte string to copy from
+ *
  * Return value
  * dest
  */
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t);
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
- * At most count characters are copied. The resulting byte string is 
+ * At most count characters are copied. The resulting byte string is
  * null-terminated. If the strings overlap, the behavior is undefined.
  *
- * Parameters
- * dest  -	 pointer to the null-terminated byte string to append to
- * src	 -	 pointer to the null-terminated byte string to copy from
- * count -	 maximum number of characters to copy
+ * Parameters:
+ * dest  - pointer to the null-terminated byte string to append to
+ * src   - pointer to the null-terminated byte string to copy from
+ * count - maximum number of characters to copy
  *
  * Return value
  * dest
@@ -114,57 +114,58 @@ INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t, size_t);
 /*
  * String examinations
  */
- 
+
 /*
  * Returns the length of the given byte string.
  *
- * Parameters
- * s	 -	 pointer to the null-terminated byte string to be examined
- * 
+ * Parameters:
+ * s  - pointer to the null-terminated byte string to be examined
+ *
  * Return value
  * The length of the null-terminated string s.
  */
 INA_API(size_t) ina_str_len(ina_str_t s);
 
 /*
- * Compares two null-terminated byte strings. The comparison is done 
+ * Compares two null-terminated byte strings. The comparison is done
  * lexicographically.
  * Parameters
- * lhs, rhs	 -	pointers to the null-terminated byte strings to compare
- * 
+ * lhs, rhs -  pointers to the null-terminated byte strings to compare
+ *
  * Return value:
  * Negative value if lhs is less than rhs.
- * INA_RC_OK​ if lhs is equal to rhs.
+ * INA_RC_OK if lhs is equal to rhs.
  * Positive value if lhs is greater than rhs.
  */
 INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
 /*
- * Compares at most count characters of two null-terminated byte strings. 
+ * Compares at most count characters of two null-terminated byte strings.
  * The comparison is done lexicographically.
- * 
+ *
  * Parameters
- * lhs, rhs	 -	 pointers to the null-terminated byte strings to compare
- * count	 -	 maximum number of characters to compare
+ * lhs, rhs  -  pointers to the null-terminated byte strings to compare
+ * count     -  maximum number of characters to compare
  *
  * Return value
  * Negative value if lhs is less than rhs.
- * INA_RC_OK​ if lhs is equal to rhs.
+ * INA_RC_OK  if lhs is equal to rhs.
  * Positive value if lhs is greater than rhs.
  */
 INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t count);
 
 /*
- * Returns text version of the error code errnum. errnum is usually acquired 
- * from the errno variable, however the function accepts any value of type int. 
+ * Returns text version of the error code errnum. errnum is usually acquired
+ * from the errno variable, however the function accepts any value of type int
  * The message is locale-specific.
- * The returned byte string must not be modified by the program, but may be 
+ * The returned byte string must not be modified by the program, but may be
  * overwritten by a subsequent call to the strerror function.
- * 
+ *
  * Parameters
- * errnum	 -	 integral value referring to a error code
+ * errnum  - integral value referring to a error code
+ *
  * Return value
  * Pointer to a null-terminated byte string corresponding to the error code errnum.
  */
-INA_API(int_str_t) ina_str_errmsg(ina_rc_t);
+INA_API(int_str_t) ina_str_errmsg(int errnum);
 
 #endif
