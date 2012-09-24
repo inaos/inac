@@ -117,6 +117,13 @@ CPU is defined by the `INA_CPU_STRING` macro.
 
 ### Misc macros
 
+## Memory handling
+
+## String handling
+
+## Error handling
+
+
 
 
 
