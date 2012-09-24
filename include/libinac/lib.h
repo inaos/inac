@@ -36,9 +36,10 @@
 #include <libinac/string.h>
 #include <libinac/error.h>
 
-
-INA_API(ina_rc_t) ina_init(void);
+INA_API(ina_rc_t) ina_initapp(int argc, char const* const** argv);
+INA_API(ina_rc_t) ina_initlib(void);
 INA_API(ina_rc_t) ina_exit(void);
+
 
 #endif
 
