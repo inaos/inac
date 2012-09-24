@@ -8,15 +8,12 @@ bstring:
 	$(MAKE) -C bstring
 	
 test: all
-	$(MAKE) test -C lua-$(LUA_VERSION)
 	
 install: all test
-	$(MAKE) install -C lua-$(LUA_VERSION)
 	$(MAKE) install -C makeheaders
 	
-.PHONY: clean makeheaders_tool lua
+.PHONY: clean makeheaders_tool
 
 clean:
-	$(MAKE) clean -C lua-$(LUA_VERSION)
 	$(MAKE) clean -C makeheaders
 	
