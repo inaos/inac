@@ -74,7 +74,7 @@ INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t);
  * count characters have been written.
  * If the strings overlap, the behavior is undefined.
  *
- * Parameters
+ * Parameters:
  * dest  -   pointer to the character array to copy to
  * src   -   pointer to the byte string to copy from
  * count -   maximum number of characters to copy
