@@ -1,6 +1,10 @@
 # INAOS Common C Library
 
-The INAOS Common C Library is a collection of header files and library routines used to implement common operations, such as input/output, character string handling,  memory, error and event handling. This library is designed and optimized for singled threaded applications and is used as common base for all INOAS programs/libraries written in C.
+The INAOS Common C Library is a collection of header files and library routines 
+used to implement common operations, such as input/output, character string 
+handling,  memory, error and event handling. This library is designed and 
+optimized for singled threaded applications and is used as common base for 
+all INOAS programs/libraries written in C.
 
 High level objectives:
 
@@ -24,8 +28,9 @@ Initialize the library context as soon as possible:
 For each call of `ina_initlib()` you have to call `ina_exit()`.
 
 ### For applications
-For applications, initialize the application context. This must be the first function in
-your program. You must call `ina_exit()` once before you quit your program.
+For applications, initialize the application context. This must be the first
+function in your program. You must call `ina_exit()` once before you quit 
+your program.
 
     int main(int argc, char *argv) 
     {
@@ -43,7 +48,8 @@ This library provide with his portable header (portable.h) macros, functions
 and types to help writing cross-plattform libraries and applications.
 
 ### Compiler detection
-A macro for each compiler will be defined if detected. The following compilers are currently detected. 
+A macro for each compiler will be defined if detected. The following compilers 
+are  currently detected. 
 
 * Borland C/C++: `INA_COMPILER_BORLAND`
 * Compaq/DEC C/C++: `INA_COMPILER_DEC`
@@ -58,8 +64,8 @@ A macro for each compiler will be defined if detected. The following compilers a
 * Sun Pro: `INA_COMPILER_SUN`
 * Watcom C/C++: `INA_COMPILER_WATCOM`
 
-The name of detected compiler is defined by the `INA_COMPILER_STRING` macro. A warning is thrown by
-compile time if no compiler was detected.
+The name of detected compiler is defined by the `INA_COMPILER_STRING` macro. 
+A warning is thrown by compile time if no compiler was detected.
  
 
 ### Target OS detection
@@ -93,8 +99,8 @@ The name of detected target os is defined by the `INA_OS_STRING` macro.
 
 
 ### Target CPU detection
-Following target CPUs are currently supported and defined if detected. The name of detected target
-CPU is defined by the `INA_CPU_STRING` macro.
+Following target CPUs are currently supported and defined if detected. The name
+of detected target CPU is defined by the `INA_CPU_STRING` macro.
 
 * AMD x86-64: `INA_CPU_X86`, `INA_CPU_X86_64`
 * ARM: `INA_CPU_STRONGARM`
