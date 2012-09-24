@@ -2,13 +2,14 @@ DIRS = $(shell ls -p |grep /)
 SRC = $(wildcard *.c)
 OBJ = $(SRC:%.c=%.o)
 MODULES := $(DIRS)/$(DIRS:%/=%.a)
+LIB = libinac.a
 
 CFLAGS = -Wall -std=c89 -g -I../include -DINA_LIB -DDEBUG
 
 
 all: $(OBJ) 
 	for i in $(DIRS); do $(MAKE) -C $$i; done
-	$(CC) $(CFLAGS) -v -o $(BIN) $(OBJ) $(MODULES) $(LDFLAGS) 
+	$(CC) $(CFLAGS) -v -o $(LIB) $(OBJ) $(MODULES) $(LDFLAGS) 
 	
 %.o: %.c
 	$(CC) $(CFLAGS) -v -c $<

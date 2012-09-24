@@ -1,9 +1,7 @@
 CC     = /usr/bin/gcc
 CFLAGS = -Wall -g -I $(shell$$PWD)/include -DDEBUG
 LDFLAGS=
-DIRS = contribs doc etc include src scripts tests 
-
-export BIN = $(shell basename $$PWD)
+DIRS = contribs doc etc include src scripts tests
 
 all: 
 	for i in $(DIRS); do $(MAKE) -C $$i; done
