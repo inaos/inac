@@ -1,1 +1,4 @@
 INSTALLATION 
+============
+
+simply type  "sudo make && make install" on command line.
