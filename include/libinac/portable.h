@@ -32,7 +32,7 @@
 #include <signal.h>
 
 /*
- *Determine compilation environment
+ * Determine compilation environment
  */
 #if defined __ECC || defined __ICC || defined __INTEL_COMPILER
 #  define INA_COMPILER_STRING "Intel C/C++"
@@ -96,6 +96,7 @@
 
 #if !defined INA_COMPILER_STRING
 #  define INA_COMPILER_STRING "Unknown compiler"
+#  warning "Unkown compiler"
 #endif
 
 /*
