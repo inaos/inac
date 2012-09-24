@@ -27,10 +27,8 @@
 #ifndef _LIBINAC_TYPES_H_
 #define _LIBINAC_TYPES_H_
 
-typedef int ina_int64_t;
-
-/* retun code */
-typedef int ina_rc_t;
+/* Return code */
+typedef int_32 ina_rc_t;
 
 
 #endif
