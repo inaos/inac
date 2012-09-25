@@ -32,20 +32,19 @@
 INA_API(ina_str_t) ina_str_newlen(const void *anystr, size_t len, ina_mempool_t *pool)
 {
     INA_FAIL_IF(len < 0);
-    
+
     char* p = (char*)malloc(len+1);
     INA_FAIL_IF(p == NULL);
-        
+
     if (anystr) {
         memcpy(p, anystr, len);
     } else {
         memset(p,0,len);
     }
-     p[len] = '\0';
-     
-     ina_err_setlast(INA_RC_OK);
-     
-     return p;
+
+    p[len] = '\0';
+    ina_err_setlast(INA_SUCCESS);
+    return p;
 }
 
 INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool)

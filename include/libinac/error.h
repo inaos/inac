@@ -31,7 +31,12 @@
 #include <assert.h>
 #include <libinac/lib.h>
 
-#define INA_RC_OK 0
+/*
+ * Error Codes
+ */
+#define INA_SUCCESS   0
+#define INA_FAILURE  -1
+
 
 #ifdef DEBUG
 #define INA_FAIL_IF(cond) assert(cond);

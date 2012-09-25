@@ -47,7 +47,7 @@
  *  argv  -  Pointer to the argv of main() function
  *
  * Return:
- * INA_RC_OK  if no error occured
+ * INA_SUCCESS  if no error occured
  */
 INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]);
 
@@ -56,7 +56,7 @@ INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]);
  * called for any library.
  *
  * Return:
- * INA_RC_OK  if no error occured
+ * INA_SUCCESS  if no error occured
  */
 INA_API(ina_rc_t) ina_initlib(void);
 
@@ -65,7 +65,7 @@ INA_API(ina_rc_t) ina_initlib(void);
  * called once before the application terminate.
  *
  * Return:
- * INA_RC_OK  if no error occured
+ * INA_SUCCESS  if no error occured
  */
 INA_API(ina_rc_t) ina_exit(void);
 
