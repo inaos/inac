@@ -42,10 +42,11 @@ INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool);
 INA_API(ina_str_t) ina_str_newlen(const void *anystr, size_t size, ina_mempool_t *pool);
 
 /* destroy */
-INA_API(ina_rc_t) ina_str_free(ina_str_t s, ina_mempool_t *pool);
+INA_API(ina_rc_t) ina_str_free(ina_str_t s);
 
  /* copy */
 INA_API(ina_str_t) ina_str_dup(const ina_str_t s, ina_mempool_t *pool);
+
 /* conversion to C string */
 INA_API(const char *) ina_str_cstr(const ina_str_t s);
 
@@ -155,6 +156,37 @@ INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
 INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t count);
 
 /*
+* Locate substring. Returns a pointer to the first occurrence of s2 in s1,
+* or a null pointer if s2 is not part of s1.
+* The matching process does not include the terminating null-characters.
+* Parameters
+* s1  - string to be scanned.
+* s2  - string containing the sequence of characters to match.
+*
+* Return Value
+* A pointer to the first occurrence in s1 of any of the entire sequence 
+* of characters specified in s2, or a null pointer if the sequence is not 
+* present in s1.
+*/
+INA_API(ina_str_t) ina_str_str(const ina_str_t s1, const ina_str_s1);
+
+/*
+ * Locate last occurrence of character in string. Returns a pointer to the
+ * last occurrence of character in the C string str. The terminating 
+ * null-character is considered part of the string. Therefore, it can also be
+ * located to retrieve a pointer to the end of a string.
+ * 
+ * Parameters
+ * str - string.
+ * c    - character to be located.
+ *
+ * Return value:
+ * A pointer to the last occurrence of character in str.
+ * If the value is not found, the function returns a null pointer.
+ */
+INA_API(ina_str_t) ina_str_rchr(const ina_str_t s, const char c);
+
+/*
  * Returns text version of the error code errnum. errnum is usually acquired
  * from the errno variable, however the function accepts any value of type int
  * The message is locale-specific.
@@ -164,8 +196,9 @@ INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t 
  * Parameters
  * errnum  - integral value referring to a error code
  *
- * Return value
- * Pointer to a null-terminated byte string corresponding to the error code errnum.
+ * Return value:
+ * Pointer to a null-terminated byte string corresponding to the error code 
+ * errnum.
  */
 INA_API(int_str_t) ina_str_errmsg(int errnum);
 
