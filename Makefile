@@ -1,7 +1,7 @@
 CC     = /usr/bin/gcc
 CFLAGS = -Wall -g -I $(shell$$PWD)/include -DDEBUG
 LDFLAGS=
-DIRS = contribs doc etc include src tests
+DIRS = contribs doc include src tests
 
 all: 
 	for i in $(DIRS); do $(MAKE) -C $$i; done
