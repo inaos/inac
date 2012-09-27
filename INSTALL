@@ -1,4 +1,4 @@
 INSTALLATION 
 ============
 
-simply type  "sudo make && make install" on command line.
+Type  "sudo make && make install" on command line.
