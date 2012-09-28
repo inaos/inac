@@ -4,7 +4,7 @@ The INAOS Common C Library is a collection of header files and library routines
 used to implement common operations, such as input/output, character string 
 handling,  memory, error and event handling. This library is designed and 
 optimized for singled threaded applications and is used as common base for 
-all INOAS programs/libraries written in C.
+all INAOS programs/libraries written in C.
 
 High level objectives:
 
