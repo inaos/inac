@@ -1,6 +1,0 @@
-all:
-	
-.PHONY: clean
-
-clean:
-
