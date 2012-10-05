@@ -25,10 +25,21 @@
  *   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <stdio.h>
+<<<<<<< HEAD
+#include <libinac/lib.h>
+=======
+>>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
 #include "suites.h"
 
 int main(int argc, const char* argv[]) 
 { 
+<<<<<<< HEAD
+    if (ina_initapp(argc, argv)) {
+        runtests();
+    }
+    ina_exit();
+=======
     runtests();
+>>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
     return 0;
 }
