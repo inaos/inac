@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 tests/.DS_Store
 
@@ -26,3 +27,16 @@ tests/suites.h
 tests/test
 
 .DS_Store
+=======
+.DS_Store
+.Makefile.swp
+*.o
+*.a
+tests/suites.c
+tests/suites.h
+tests/test
+tests/test_*.*
+contribs/lua-5.2.1/src/lua
+contribs/lua-5.2.1/src/luac
+contribs/makeheaders/makeheaders
+>>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
