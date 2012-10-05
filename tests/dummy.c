@@ -29,6 +29,6 @@
 
 void dummy_assert_test() 
 {
-    assert(1==1);
+    INA_ASSERT_EQUAL(1,1);
 }
 

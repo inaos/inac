@@ -36,6 +36,7 @@
 #include <libinac/memory.h>
 #include <libinac/string.h>
 #include <libinac/error.h>
+#include <libinac/test.h>
 
 /*
  * Startup application with argc, argv in order to deal with 

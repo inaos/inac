@@ -27,7 +27,8 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-void test_string_allocation() {
+void test_string_allocation() 
+{
     ina_str_t s;
     /*s = ina_str_dup("hallo", NULL);
     

@@ -27,7 +27,8 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-void test_error_getset() {
-    assert(ina_err_setlast(INA_SUCCESS) == INA_SUCCESS);
-    assert(ina_err_getlast() == INA_SUCCESS);
+void test_error_getset() 
+{
+    INA_ASSERT_EQUAL(ina_err_setlast(INA_SUCCESS), INA_SUCCESS);
+    INA_ASSERT_EQUAL(ina_err_getlast(), INA_SUCCESS);
 } 

@@ -5,7 +5,7 @@ DOCS = $(SRC:%.md=%.html)
 all: $(DOCS)
 
 %.html: %.md
-	$(MD2HTMLCMD) ./$(MARKDOWN) $< > $@
+	$(MD2HTMLCMD) $< > $@
 
 install: all
     

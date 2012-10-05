@@ -31,10 +31,8 @@
 
 INA_API(ina_str_t) ina_str_newlen(const void *anystr, size_t len, ina_mempool_t *pool)
 {
-    INA_FAIL_IF(len < 0);
 
     char* p = (char*)malloc(len+1);
-    INA_FAIL_IF(p == NULL);
 
     if (anystr) {
         memcpy(p, anystr, len);

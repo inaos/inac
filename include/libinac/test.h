@@ -25,23 +25,21 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_ERROR_H_
-#define _LIBINAC_ERROR_H_
+ #ifndef _LIBINAC_TEST_H_
+ #define _LIBINAC_TEST_H_
 
-#include <libinac/lib.h>
-
-/*
- * Error Codes
- */
-#define INA_SUCCESS   0
-#define INA_FAILURE  -1
-
-
-/* set/get rc */
-INA_API(ina_rc_t) ina_err_setlast(ina_rc_t rc);
-INA_API(ina_rc_t) ina_err_getlast();
-
-/* get human readable error msg */
-INA_API(ina_rc_t) ina_err_msg(ina_rc_t rc, ina_str_t msg, size_t len);
-
-#endif
+ #include <assert.h>
+ 
+ #ifdef DEBUG
+ #define INA_ASSERT(cond) assert(cond)
+ #define INA_ASSERT_NULL(v) INA_ASSERT(v != NULL)
+ #define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == acutal)
+ #define INA_ASSERT_NOTEQUAL(notexpected, actual) INA_ASSERT(notexpected != actual)
+ #else
+ #define INA_ASSERT(cond)
+ #define INA_ASSERT_NULL(v)
+ #define INA_ASSERT_EQUAL(expected, actual)
+ #define INA_ASSERT_NOEQUAL(notexpected, actual)
+ #endif
+ 
+ #endif

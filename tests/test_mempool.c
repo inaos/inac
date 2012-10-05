@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-void test_mempool_basics() {
-    assert(ina_mempool_init() == INA_SUCCESS);  
+void test_mempool_basics() 
+{
+    INA_ASSERT_EQUAL(ina_mempool_init(), INA_SUCCESS);  
 } 
