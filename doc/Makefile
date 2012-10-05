@@ -1,16 +1,16 @@
-MARKDOWN = Markdown.pl --html4tags
+MD2HTMLCMD = 
 SRC = $(wildcard *.md)	
 DOCS = $(SRC:%.md=%.html)
 
 all: $(DOCS)
 
 %.html: %.md
-	perl ./$(MARKDOWN) $< > $@
+	$(MD2HTMLCMD) ./$(MARKDOWN) $< > $@
 
 install: all
     
 .PHONY: clean
 	
 clean: 
-	-rm -f *.html *.pdf *.man
+	-rm -f *.html
 

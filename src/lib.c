@@ -28,14 +28,14 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-static int_32 initialized = 0;
+static int32_t initialized = 0;
  
 INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]) 
 {
     return ina_initlib();
 }
 
-INA_API(ina_rc_t) ina_initlib(void);
+INA_API(ina_rc_t) ina_initlib(void)
 {
     if (initialized++) {
         return INA_SUCCESS;
@@ -45,7 +45,7 @@ INA_API(ina_rc_t) ina_initlib(void);
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_exit(void);
+INA_API(ina_rc_t) ina_exit(void)
 {
     /* TODO: tear down memory pool */
     return INA_SUCCESS;

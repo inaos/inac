@@ -28,5 +28,5 @@
 #include <libinac/lib.h>
 
 void test_mempool_basics() {
-    assert(ina_mempool_init() == INA_RC_OK);  
+    assert(ina_mempool_init() == INA_SUCCESS);  
 } 

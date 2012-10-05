@@ -28,6 +28,6 @@
 #include <libinac/lib.h>
 
 void test_error_getset() {
-    assert(ina_err_setlast(INA_RC_OK) == INA_RC_OK);
-    assert(ina_err_getlast() == INA_RC_OK);
+    assert(ina_err_setlast(INA_SUCCESS) == INA_SUCCESS);
+    assert(ina_err_getlast() == INA_SUCCESS);
 } 

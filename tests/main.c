@@ -25,10 +25,14 @@
  *   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <stdio.h>
+#include <libinac/lib.h>
 #include "suites.h"
 
 int main(int argc, const char* argv[]) 
 { 
-    runtests();
+    if (ina_initapp(argc, argv)) {
+        runtests();
+    }
+    ina_exit();
     return 0;
 }

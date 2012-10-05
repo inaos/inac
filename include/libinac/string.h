@@ -64,7 +64,7 @@ INA_API(const char *) ina_str_cstr(const ina_str_t s);
  *
  * Return:    dest
  */
-INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t);
+INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t src);
 /*
  * Copies at most count characters of the byte string pointed to by src
  * (including the terminating null character) to character array pointed to by
@@ -97,7 +97,7 @@ INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t, size_t count);
  * Return value
  * dest
  */
-INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t);
+INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src);
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
  * At most count characters are copied. The resulting byte string is
@@ -168,7 +168,7 @@ INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t 
 * of characters specified in s2, or a null pointer if the sequence is not 
 * present in s1.
 */
-INA_API(ina_str_t) ina_str_str(const ina_str_t s1, const ina_str_s1);
+INA_API(ina_str_t) ina_str_str(const ina_str_t s1, const ina_str_t s2);
 
 /*
  * Locate last occurrence of character in string. Returns a pointer to the
@@ -200,6 +200,6 @@ INA_API(ina_str_t) ina_str_rchr(const ina_str_t s, const char c);
  * Pointer to a null-terminated byte string corresponding to the error code 
  * errnum.
  */
-INA_API(int_str_t) ina_str_errmsg(int errnum);
+INA_API(ina_str_t) ina_str_errmsg(int errnum);
 
 #endif

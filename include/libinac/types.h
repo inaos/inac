@@ -29,7 +29,7 @@
 #define _LIBINAC_TYPES_H_
 
 /* Return code */
-typedef int_32 ina_rc_t;
+typedef int32_t ina_rc_t;
 
 
 #endif

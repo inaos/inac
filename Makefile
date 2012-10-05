@@ -1,6 +1,5 @@
 CC     = /usr/bin/gcc
 CFLAGS = -Wall -g -I $(shell$$PWD)/include -DDEBUG
-LDFLAGS=
 DIRS = contribs doc include src tests
 
 all: 

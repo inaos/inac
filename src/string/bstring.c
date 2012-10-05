@@ -40,13 +40,13 @@ INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool)
     return ina_str_newlen("", 0, pool);
 }
 
-INA_API(ina_rc_t) ina_str_free(ina_str_t s, ina_mempool_t *pool)
+INA_API(ina_rc_t) ina_str_free(ina_str_t s)
 {
     free(s);
-    return INA_RC_OK;
+    return INA_SUCCESS;
 }
 
-INA_API(ina_str_t) ina_str_dup(ina_str_t s, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_dup(const ina_str_t s, ina_mempool_t *pool)
 {
     return ina_str_newlen(s, strlen(s), pool);
 }
@@ -56,14 +56,14 @@ INA_API(const char*) inac_str_cstr(ina_str_t s)
     return strdup(s);
 }
 
-INA_API(ina_str_t) ina_str_cat(const ina_str_t s1, const ina_str_t s2, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
 {
     return NULL;
 }
 
 INA_API(ina_rc_t) ina_str_cmp(const ina_str_t s1, const ina_str_t s2)
 {
-    return INA_RC_OK;
+    return INA_SUCCESS;
 }
 
 INA_API(const ina_str_t) ina_str_strstr(const ina_str_t s1, const ina_str_t s2)
