@@ -18,6 +18,6 @@ all: $(OBJ)
 
 clean:
 	for i in $(DIRS); do $(MAKE) clean -C $$i; done
-	-rm -f *.o *.A
+	-rm -f *.o *.a
 	
 
