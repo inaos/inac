@@ -29,10 +29,6 @@
 
 void dummy_assert_test() 
 {
-<<<<<<< HEAD
     INA_ASSERT_EQUAL(1,1);
-=======
-    assert(1==1);
->>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
 }
 
