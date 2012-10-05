@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # INAOS Common C Library
 
 The INAOS Common C Library is a collection of header files and library routines 
@@ -16,6 +15,3 @@ High level objectives:
 * Fully documented
 
 To learn more about INAOS Common C Library, please see the Manual.
-=======
-README
->>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
