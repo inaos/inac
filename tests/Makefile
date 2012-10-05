@@ -8,7 +8,11 @@ MAKEHEADERS = ../contribs/makeheaders/makeheaders
 
 all: $(OBJ) suites.o main.o 
 	for i in $(DIRS); do $(MAKE) -C $$i; done
+<<<<<<< HEAD
+	$(CC) $(CFLAGS) -v -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS) ../src/libinac.a
+=======
 	$(CC) $(CFLAGS) -v -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS) 
+>>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
 	
 %.o: %.c
 	$(CC) $(CFLAGS) -I../include -c $<

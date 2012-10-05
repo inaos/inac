@@ -9,7 +9,6 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
-<<<<<<< HEAD
  *     * Neither the name of the INAOS GmbH nor the names of its contributors
  *       may be used to endorse or promote products derived from this software 
  *       without specific prior written permission.
@@ -25,38 +24,22 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
-=======
- *     * Neither the name of the INAOS GmbH nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
->>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
  */
-#ifndef _LIBINAC_CONIFG_H
-#define _LIBINAC_CONIFG_H
+ #ifndef _LIBINAC_TEST_H_
+ #define _LIBINAC_TEST_H_
 
-/*
- * Enable/Disable memory pool
- */
-#define INA_MEMPOOL_ENABLED 0
-
-
-/*
- * Define string code/library to be used
- */
-#define INA_STRING_CRT_ENABLED      1
-#define INA_STRING_BSTRING_ENABLED  0
-#define INA_STRING_SDS_ENABLED      0
-#define INA_STRING_LIBINAC_ENABLED  0
-
-#endif
+ #include <assert.h>
+ 
+ #ifdef DEBUG
+ #define INA_ASSERT(cond) assert(cond)
+ #define INA_ASSERT_NULL(v) INA_ASSERT(v != NULL)
+ #define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == acutal)
+ #define INA_ASSERT_NOTEQUAL(notexpected, actual) INA_ASSERT(notexpected != actual)
+ #else
+ #define INA_ASSERT(cond)
+ #define INA_ASSERT_NULL(v)
+ #define INA_ASSERT_EQUAL(expected, actual)
+ #define INA_ASSERT_NOEQUAL(notexpected, actual)
+ #endif
+ 
+ #endif

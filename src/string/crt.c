@@ -31,16 +31,36 @@
 
 INA_API(ina_str_t) ina_str_newlen(const void *anystr, size_t len, ina_mempool_t *pool)
 {
+<<<<<<< HEAD
+
+    char* p = (char*)malloc(len+1);
+
+=======
     INA_FAIL_IF(len < 0);
     
     char* p = (char*)malloc(len+1);
     INA_FAIL_IF(p == NULL);
         
+>>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
     if (anystr) {
         memcpy(p, anystr, len);
     } else {
         memset(p,0,len);
     }
+<<<<<<< HEAD
+
+    p[len] = '\0';
+    ina_err_setlast(INA_SUCCESS);
+    return p;
+}
+
+INA_API(ina_rc_t) ina_str_free(ina_str_t s)
+{
+    free(s);
+    return INA_SUCCESS;
+}
+INA_API(ina_str_t) ina_str_dup(const ina_str_t s, ina_mempool_t *pool)
+=======
      p[len] = '\0';
      
      ina_err_setlast(INA_RC_OK);
@@ -60,6 +80,7 @@ INA_API(ina_rc_t) ina_str_free(ina_str_t s, ina_mempool_t *pool)
 }
 
 INA_API(ina_str_t) ina_str_dup(ina_str_t s, ina_mempool_t *pool)
+>>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
 {
     return ina_str_newlen(s, strlen(s), pool);
 }
@@ -69,14 +90,22 @@ INA_API(const char*) inac_str_cstr(ina_str_t s)
     return strdup(s);
 }
 
+<<<<<<< HEAD
+INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
+=======
 INA_API(ina_str_t) ina_str_cat(const ina_str_t s1, const ina_str_t s2, ina_mempool_t *pool)
+>>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
 {
     return NULL;
 }
 
 INA_API(ina_rc_t) ina_str_cmp(const ina_str_t s1, const ina_str_t s2)
 {
+<<<<<<< HEAD
+    return INA_SUCCESS;
+=======
     return INA_RC_OK;
+>>>>>>> 244ecc23bf8bc8d3f4c0def4823befca126b443a
 }
 
 INA_API(const ina_str_t) ina_str_strstr(const ina_str_t s1, const ina_str_t s2)
