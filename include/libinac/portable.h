@@ -366,6 +366,19 @@
 #  define __dead
 #endif
 
+/* If your compiler supports the inline keyword in C, INA_INLINE is
+   defined to `inline', otherwise empty. In C++, the inline is always
+   supported. */
+#ifdef __cplusplus
+#define INA_INLINE inline
+#else
+#  ifdef INLINE_ENABLED
+#    define INA_INLINE inline
+#  else
+#    define INA_INLINE
+#  endif
+#endif
+
 /*
  * Define INA_EXPORT signature based on INA_DLL and INA_LIB (only Windows)
  */
