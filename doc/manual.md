@@ -119,6 +119,39 @@ of detected target CPU is defined by the `INA_CPU_STRING` macro.
 * Sparc/32: `INA_CPU_SPARC`
 
 
+## API Reference
+
+### Library Version
+The INAOS Common C Library version is of the form A.B.C, where A is the major 
+version, B is the minor version and C is the micro version. If the micro 
+version is zero, it’s omitted from the version string, i.e. the version string 
+is just A.B.
+When a new release only fixes bugs and doesn’t add new features or 
+functionality, the micro version is incremented. When new features are added
+in a backwards compatible way, the minor version is incremented and the micro 
+version is set to zero. When there are backwards incompatible changes, the 
+major version is incremented and others are set to zero.
+
+The following preprocessor constants specify the current version of the library:
+
+`INA_MAJOR_VERSION, INA_MINOR_VERSION, INA_MICRO_VERSION`
+
+Integers specifying the major, minor and micro versions, respectively.
+
+`INA_VERSION`
+
+A string representation of the current version, e.g. "1.2.1" or "1.3".
+
+`INA_VERSION_HEX`
+
+A 3-byte hexadecimal representation of the version, e.g. 0x010201 for version 
+1.2.1 and 0x010300 for version 1.3. This is useful in numeric comparisions,
+e.g.:
+
+    #if INA_VERSION_HEX >= 0x010201
+    /* Code specific to version 1.2.1 and above */
+    #endif
+
 ### Integral types
 
 ### Misc macros
