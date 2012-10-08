@@ -19,10 +19,16 @@ High level objectives:
 Build and install the library. Simply type `sudo make && make install`.
 
 Start by including the INOAS library header in your code:
+
     #include <libinac/lib.h>;
-   
+
+All constants are prefixed with INA_. Other identifiers are prefixed with ina_.
+Type names are suffixed with _t and typedef‘d so that the struct keyword need
+not be used.
+
 ### For library consumers
 Initialize the library context as soon as possible:
+
     ina_initlib();
 
 For each call of `ina_initlib()` you have to call `ina_exit()`.
@@ -118,6 +124,9 @@ of detected target CPU is defined by the `INA_CPU_STRING` macro.
 * Sparc/64: `INA_CPU_SPARC64`
 * Sparc/32: `INA_CPU_SPARC`
 
+### Integral types
+
+### Misc macros
 
 ## API Reference
 
@@ -132,7 +141,8 @@ in a backwards compatible way, the minor version is incremented and the micro
 version is set to zero. When there are backwards incompatible changes, the 
 major version is incremented and others are set to zero.
 
-The following preprocessor constants specify the current version of the library:
+The following preprocessor constants specify the current version of the 
+library:
 
 `INA_MAJOR_VERSION, INA_MINOR_VERSION, INA_MICRO_VERSION`
 
@@ -152,15 +162,20 @@ e.g.:
     /* Code specific to version 1.2.1 and above */
     #endif
 
-### Integral types
-
-### Misc macros
-
 ## Memory handling
+
+### Custom Memory Allocation
+By default, INAOS Common C Library  uses malloc() and free() for memory 
+allocation. These functions can be overridden if custom behavior is needed.
+*
+
 
 ## String handling
 
 ## Error handling
+INAOS Common C Library uses a single struct type to pass error information to 
+the user.
+
 
 ## Testing
 

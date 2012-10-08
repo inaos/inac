@@ -19,5 +19,5 @@ rebuild: clean all
 dist: test
 	$(shell git log --pretty=format:"%cd - %cn: %s" --date=short > ChangeLog)
 
-install: dist NEWS README INSTALL COPYING
+install: dist NEWS README.md INSTALL COPYING
 
