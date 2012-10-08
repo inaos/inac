@@ -9,7 +9,9 @@ CFLAGS = -Wall -std=c89 -g -I../include -DINA_LIB -DDEBUG
 
 all: $(OBJ) 
 	for i in $(DIRS); do $(MAKE) -C $$i; done
-	ar rcs $(LIB) $(OBJ) $(MODULES)
+	ar crs $(LIB) $(OBJ)
+	for i in $(DIRS); do ar crs $(LIB) $$i/*.o; done
+	
 	
 %.o: %.c
 	$(CC) $(CFLAGS) -v -c $<
