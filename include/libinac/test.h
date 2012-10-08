@@ -32,12 +32,14 @@
  
  #ifdef DEBUG
  #define INA_ASSERT(cond) assert(cond)
- #define INA_ASSERT_NULL(v) INA_ASSERT(v != NULL)
- #define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == acutal)
+ #define INA_ASSERT_NULL(v) INA_ASSERT(v == NULL)
+ #define INA_ASSERT_NOTNULL(v) INA_ASSERT(v != NULL)
+ #define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == actual)
  #define INA_ASSERT_NOTEQUAL(notexpected, actual) INA_ASSERT(notexpected != actual)
  #else
  #define INA_ASSERT(cond)
  #define INA_ASSERT_NULL(v)
+ #define INA_ASSERT_NOTNULL(v)
  #define INA_ASSERT_EQUAL(expected, actual)
  #define INA_ASSERT_NOEQUAL(notexpected, actual)
  #endif
