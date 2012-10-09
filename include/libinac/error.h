@@ -54,7 +54,7 @@ INA_API(ina_rc_t) ina_err_trace();
 INA_API(ina_rc_t) ina_err_dump();
 
 /* get human readable error msg */
-INA_API(ina_rc_t) ina_err_msg(ina_rc_t rc, ina_str_t msg, size_t len);
+INA_API(ina_rc_t) ina_err_msg(ina_rc_t rc, ina_str_t* msg, size_t len);
 
 
 #endif

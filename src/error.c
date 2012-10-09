@@ -43,7 +43,7 @@ INA_API(ina_rc_t) ina_err_getlast()
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_msg(ina_rc_t rc, ina_str_t msg, size_t len)
+INA_API(ina_rc_t) ina_err_msg(ina_rc_t rc, ina_str_t *msg, size_t len)
 {
     return INA_SUCCESS;
 }
