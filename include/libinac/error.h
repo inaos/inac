@@ -28,7 +28,14 @@
 #ifndef _LIBINAC_ERROR_H_
 #define _LIBINAC_ERROR_H_
 
+#include <errno.h>
 #include <libinac/lib.h>
+
+#define INA_ERR_STATE_SIZE 32
+
+#define INA_ERROR(e,r, __FILE__, __LINE) ina_err_put(e, r, s)
+
+typedef struct ina_error_s ina_error_t;  
 
 /*
  * Error Codes
@@ -38,10 +45,16 @@
 
 
 /* set/get rc */
-INA_API(ina_rc_t) ina_err_setlast(ina_rc_t rc);
-INA_API(ina_rc_t) ina_err_getlast();
+INA_API(ina_rc_t) ina_err_put(ina_rc_t rc);
+INA_API(ina_rc_t) ina_err_peek();
+INA_API(ina_rc_t) ina_err_getinfo(ina_error_t *info);
+INA_API(ina_rc_t) ina_err_clear();
+
+INA_API(ina_rc_t) ina_err_trace();
+INA_API(ina_rc_t) ina_err_dump();
 
 /* get human readable error msg */
 INA_API(ina_rc_t) ina_err_msg(ina_rc_t rc, ina_str_t msg, size_t len);
+
 
 #endif

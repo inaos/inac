@@ -28,6 +28,11 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+typedef struct ina_error_state_t {
+} ina_error_state_t;
+
+
+
 INA_API(ina_rc_t) ina_err_setlast(ina_rc_t rc)
 {
     return INA_SUCCESS;
