@@ -34,7 +34,7 @@ static ina_error_t;
  
 INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]) 
 {
-    return ina_initlib();
+    return ina_libinit();
 }
 
 INA_API(ina_rc_t) ina_libinit(void)

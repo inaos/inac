@@ -30,6 +30,4 @@
 
 void test_error_getset() 
 {
-    INA_ASSERT_EQUAL(ina_err_setlast(INA_SUCCESS), INA_SUCCESS);
-    INA_ASSERT_EQUAL(ina_err_getlast(), INA_SUCCESS);
 } 
