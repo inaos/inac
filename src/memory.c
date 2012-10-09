@@ -28,8 +28,42 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+static ina_malloc_t __ina_malloc;
+static ina_free_t __ina_free;
 
-INA_API(ina_rc_t) ina_mempool_init(void)
+struct ina_mempool_s {
+    size_t size;
+    ina_mempool_t *next;
+};
+
+static ina_mempool_t *mempool_root;
+
+ 
+INA_API(ina_rc_t) ina_mem_set_alloc(ina_malloc_t malloc_fn, ina_free_t free_fn)
+{
+    __ina_malloc = malloc_fn;
+    if (!__ina_malloc) {
+        __ina_malloc = malloc;
+    }
+    __ina_free = free_fn;
+    if (!__ina_free) {
+        __ina_free = free;
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(void *) ina_mem_alloc(size_t size)
+{
+    return __ina_malloc(size);
+}
+
+INA_API(void) ina_mem_free(void *ptr)
+{
+    __ina_free(ptr);
+}
+
+
+INA_API(ina_rc_t) ina_mempool_init(ina_malloc_t malloc_fn, ina_free_t free_fn)
 {
     return INA_SUCCESS;
 }
