@@ -12,7 +12,6 @@ all: $(OBJ)
 	ar crs $(LIB) $(OBJ)
 	for i in $(DIRS); do ar crs $(LIB) $$i/*.o; done
 	
-	
 %.o: %.c
 	$(CC) $(CFLAGS) -v -c $<
 	
