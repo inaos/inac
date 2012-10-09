@@ -65,7 +65,7 @@
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]);
+INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]);
 
 /*
  * Initialize all internal data structures. This must be the first function 
@@ -74,7 +74,7 @@ INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]);
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_initlib(void);
+INA_API(ina_rc_t) ina_libinit(void);
 
 /*
  * Relase and cleanup all internal data structures. This function must be

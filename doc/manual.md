@@ -29,7 +29,7 @@ not be used.
 ### For library consumers
 Initialize the library context as soon as possible:
 
-    ina_initlib();
+    ina_libinit();
 
 For each call of `ina_initlib()` you have to call `ina_exit()`.
 
@@ -40,7 +40,7 @@ your program.
 
     int main(int argc, char *argv) 
     {
-	    ina_initapp(argc, argv);
+	    ina_appinit(argc, argv);
 
 	    while (… {
 	       ….

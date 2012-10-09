@@ -29,17 +29,22 @@
 #include "config.h"
 
 static int32_t initialized = 0;
+static ina_error_t;
+
  
-INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]) 
+INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]) 
 {
     return ina_initlib();
 }
 
-INA_API(ina_rc_t) ina_initlib(void)
+INA_API(ina_rc_t) ina_libinit(void)
 {
     if (initialized++) {
         return INA_SUCCESS;
     }
+    
+    /* initalize global standard allcator */
+    ina_mem_set_alloc(NULL, NULL);
     
     /* TODO: initialize memory pool */
     return INA_SUCCESS;

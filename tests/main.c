@@ -31,7 +31,7 @@
 
 int main(int argc, const char* argv[]) 
 { 
-    if (ina_initapp(argc, argv)) {
+    if (ina_appinit(argc, argv) == INA_SUCCESS) {
         runtests();
     }
     ina_exit();
