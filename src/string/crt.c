@@ -28,56 +28,74 @@
 #include <libinac/lib.h>
 #include "../config.h"
 
+
 #ifdef INA_STRING_CRT_ENABLED
 
-INA_API(ina_str_t) ina_str_newlen(const void *anystr, size_t len, ina_mempool_t *pool)
+struct ina_str_s {
+    size_t len;
+    uint32_t rc;
+    char *data;
+};
+
+INA_API(ina_str_t*) ina_str_new(ina_mempool_t *pool) 
+{
+    return ina_str_fromcstr(NULL, pool);
+}
+
+INA_API(ina_str_t*) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {
 
-    char* p = (char*)malloc(len+1);
+    ina_str_t *str;
+    
+    str = (ina_str_t*)ina_mem_alloc(sizeof(struct ina_str_s));
+    memset(str, 0, sizeof(struct ina_str_s));
 
-    if (anystr) {
-        memcpy(p, anystr, len);
-    } else {
-        memset(p,0,len);
+    if (cstr) {
+        str->len = strlen(cstr);
+        str->data = (char*)malloc(str->len+1);
+        memcpy(str->data, cstr, str->len);
     }
 
-    p[len] = '\0';
-    ina_err_setlast(INA_SUCCESS);
-    return p;
+    str->data[str->len] = '\0';
+    return str;
 }
 
-INA_API(ina_rc_t) ina_str_free(ina_str_t s)
+INA_API(ina_rc_t) ina_str_free(ina_str_t *str)
 {
-    free(s);
-    return INA_SUCCESS;
-}
-INA_API(ina_str_t) ina_str_dup(const ina_str_t s, ina_mempool_t *pool)
-{
-    return ina_str_newlen(s, strlen(s), pool);
-}
-
-INA_API(const char*) inac_str_cstr(ina_str_t s)
-{
-    return strdup(s);
-}
-
-INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
-{
-    return NULL;
-}
-
-INA_API(ina_rc_t) ina_str_cmp(const ina_str_t s1, const ina_str_t s2)
-{
+    ina_mem_free(str->data);
+    ina_mem_free(str);
     return INA_SUCCESS;
 }
 
-INA_API(const ina_str_t) ina_str_strstr(const ina_str_t s1, const ina_str_t s2)
+INA_API(ina_str_t*) ina_str_dup(const ina_str_t *str, ina_mempool_t *pool)
+{
+    return ina_str_fromcstr(str->data, pool);
+}
+
+INA_API(const char*) inac_str_cstr(ina_str_t *str)
+{
+    return str->data;
+}
+
+INA_API(ina_str_t*) ina_str_cat(ina_str_t *dest, const ina_str_t *src)
 {
     return NULL;
 }
-INA_API(const ina_str_t) ina_str_strrch(const ina_str_t s1, const ina_str_t s2)
+
+INA_API(ina_rc_t) ina_str_cmp(const ina_str_t *s1, const ina_str_t *s2)
 {
-    return NULL;
+    return INA_SUCCESS;
 }
+
+INA_API(size_t) ina_str_len(const ina_str_t *str)
+{
+    return str->len;
+}
+
+INA_API(const char *) ina_str_cstr(const ina_str_t *str)
+{
+    return str->data;
+}
+
 
 #endif

@@ -31,6 +31,9 @@
 
 #ifdef INA_STRING_BSTRING_ENABLED
 
+struct bstring ina_str_s;
+
+
 INA_API(ina_str_t) ina_str_newlen(const void *anystr, size_t len, ina_mempool_t *pool)
 {    
      return NULL;
@@ -52,9 +55,9 @@ INA_API(ina_str_t) ina_str_dup(const ina_str_t s, ina_mempool_t *pool)
     return ina_str_newlen(s, strlen(s), pool);
 }
 
-INA_API(const char*) inac_str_cstr(ina_str_t s)
+INA_API(const char*) inac_str_cstr(ina_str_t *str)
 {
-    return strdup(s);
+    return strdup(str);
 }
 
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
