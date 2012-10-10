@@ -34,5 +34,5 @@ void test_string_allocation()
     str = ina_str_fromcstr("hallo", NULL);
     INA_ASSERT_NOTNULL(str);
     INA_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str));
-    ina_str_free(str);
+    ina_str_destroy(str);
 }

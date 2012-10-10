@@ -34,7 +34,7 @@
 INA_API(ina_str_t) ina_str_fromcstr(const char *cstr,  ina_mempool_t *pool);
 
 /* destroy */
-INA_API(ina_rc_t) ina_str_free(ina_str_t str);
+INA_API(ina_rc_t) ina_str_destroy(ina_str_t str);
 
  /* copy */
 INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool);

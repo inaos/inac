@@ -43,7 +43,7 @@ INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
     return str;
 }
 
-INA_API(ina_rc_t) ina_str_free(ina_str_t str)
+INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
 {
     bdestroy(str);
     return INA_SUCCESS;
