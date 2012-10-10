@@ -57,6 +57,7 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
 {
     __ina_malloc = malloc_fn;
     if (!__ina_malloc) {
+        INA_TRACE("use clib malloc");
         __ina_malloc = malloc;
     }
     __ina_free = free_fn;

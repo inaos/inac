@@ -25,23 +25,37 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
- #ifndef _LIBINAC_TEST_H_
- #define _LIBINAC_TEST_H_
+#ifndef _LIBINAC_TEST_H_
+#define _LIBINAC_TEST_H_
 
- #include <assert.h>
- 
- #ifdef DEBUG
- #define INA_ASSERT(cond) assert(cond)
- #define INA_ASSERT_NULL(v) INA_ASSERT(v == NULL)
- #define INA_ASSERT_NOTNULL(v) INA_ASSERT(v != NULL)
- #define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == actual)
- #define INA_ASSERT_NOTEQUAL(notexpected, actual) INA_ASSERT(notexpected != actual)
- #else
- #define INA_ASSERT(cond)
- #define INA_ASSERT_NULL(v)
- #define INA_ASSERT_NOTNULL(v)
- #define INA_ASSERT_EQUAL(expected, actual)
- #define INA_ASSERT_NOEQUAL(notexpected, actual)
- #endif
+#include <assert.h>
+
+#ifdef TRACE_ENABLED
+#define INA_TRACE(x) \
+    printf(          \
+        "%s(%d): ",  \
+        __FILE__,    \
+        __LINE__     \
+        );           \
+                     \
+    printf(x);       \
+    printf("%s", "\n");
+#else
+#define INA_TRACE(x)
+#endif 
+
+#ifdef DEBUG
+#define INA_ASSERT(cond) assert(cond)
+#define INA_ASSERT_NULL(v) INA_ASSERT(v == NULL)
+#define INA_ASSERT_NOTNULL(v) INA_ASSERT(v != NULL)
+#define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == actual)
+#define INA_ASSERT_NOTEQUAL(notexpected, actual) INA_ASSERT(notexpected != actual)
+#else
+#define INA_ASSERT(cond)
+#define INA_ASSERT_NULL(v)
+#define INA_ASSERT_NOTNULL(v)
+#define INA_ASSERT_EQUAL(expected, actual)
+#define INA_ASSERT_NOEQUAL(notexpected, actual)
+#endif
  
  #endif

@@ -31,9 +31,13 @@
 
 int main(int argc, const char* argv[]) 
 { 
+    INA_TRACE("TEST START");
+    
     if (ina_appinit(argc, argv) == INA_SUCCESS) {
         runtests();
     }
+    
+    INA_TRACE("TEST END");
     ina_exit();
     return 0;
 }

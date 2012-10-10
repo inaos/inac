@@ -4,7 +4,7 @@ OBJ = $(SRC:%.c=%.o)
 MODULES := $(DIRS)$(DIRS:%/=%.a)
 LIB = libinac.a
 
-CFLAGS = -Wall -std=c89 -g -I../include -DINA_LIB -DDEBUG
+CFLAGS = -Wall -std=c89 -g -I../include -DINA_LIB -DDEBUG -DTRACE_ENABLED
 
 
 all: $(OBJ) 

@@ -5,7 +5,7 @@ HDR = $(SRC:%.c=%.h)
 FN  = $(SRC:%.c=%)
 BIN = test
 MAKEHEADERS = ../contribs/makeheaders/makeheaders
-CFLAGS = -Wall -std=c89 -g -I../include -DINA_LIB -DDEBUG
+CFLAGS = -Wall -std=c89 -g -I../include -DINA_LIB -DDEBUG -DTRACE_ENABLED
 
 
 all: $(OBJ) suites.o main.o 
