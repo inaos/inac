@@ -29,15 +29,11 @@
 #define _LIBINAC_CONIFG_H
 
 /*
- * Enable/Disable memory pool
- */
-#define INA_MEMPOOL_ENABLED 0
-
-
-/*
  * Define string code/library to be used
  */
-#define CSTRING_ENABLED      1
+#ifndef STRING_DEFINED
+#define CSTRING_ENABLED 1
+#endif
 
 
 #endif

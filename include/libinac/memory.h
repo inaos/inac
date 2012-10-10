@@ -28,8 +28,13 @@
 #ifndef _LIBINAC_MEMORY_H_
 #define _LIBINAC_MEMORY_H_
 
+#define INA_POOL_LABEL_SIZE (48)
+
 /* Memmory pool handle */
-typedef struct ina_mempool_s ina_mempool_t;
+typedef struct ina_mempool_s  {
+    char label[INA_POOL_LABEL_SIZE];
+    size_t capacity;
+} ina_mempool_t;
 
 /* Function pointer with malloc()‘s signature */
 typedef void *(*ina_malloc_t)(size_t);
@@ -95,41 +100,47 @@ INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb);
  */
 INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
 
-/**
-* Deallocate space in memory. A block of memory previously allocated using a 
-* call to malloc, calloc or realloc is deallocated, making it available again
-* for further allocations.
-*
-* If ptr does not point to a block of memory allocated with the above 
-* functions, the behavior is undefined.
-*
-* If ptr is a null pointer, the function does nothing.
-*
-* Notice that this function does not change the value of ptr itself, hence it
-* still points to the same (now invalid) location.
-*
-* Parameters
-* ptr   pointer to a memory block prevously allocated with ina_mem_alloc()
-*
-* Return Value
-* none
-*/
+/* 
+ * Deallocate space in memory. A block of memory previously allocated using a 
+ * call to malloc, calloc or realloc is deallocated, making it available again
+ * for further allocations.
+ *
+ * If ptr does not point to a block of memory allocated with the above 
+ * functions, the behavior is undefined.
+ *
+ * If ptr is a null pointer, the function does nothing.
+ *
+ * Notice that this function does not change the value of ptr itself, hence it
+ * still points to the same (now invalid) location.
+ *
+ * Parameters
+ * ptr   pointer to a memory block prevously allocated with ina_mem_alloc()
+ *
+ * Return Value
+ * none
+ */
 INA_API(void) ina_mem_free(void *ptr);
 
-/**
-* Set custom memory allocation function.  Overrride stabdard malloc() and
-* free().  If NULL ist given standard memmory handler will be used.
-*
-* This function should be call once and as soon as possible after 
-* ina_libinit() or ini_appinit().
-*
-* Parameters:
-* malloc_fn     Pointer to the custom malloc()-function
-* free_fn       Pointer to the custom free()-fucntion
-*
-* Return Value
-* INA_SUCCESS if no error occured.
-*/
+/*
+ * Set custom memory allocation function.  Overrride stabdard malloc() and
+ * free().  If NULL ist given standard memmory handler will be used.
+ *
+ * This function should be call once and as soon as possible after 
+ * ina_libinit() or ini_appinit().
+ *
+ * Parameters:
+ * malloc_fn     Pointer to the custom malloc() function
+ * free_fn       Pointer to the custom free() function
+ * realloc_fn    Pointer to the custom realloc() function
+ * memmove_fn    Pointer to the custom memmove() function
+ * memcpy_fn     Pointer to the custom memcpy() function
+ * memcmp_fn     Pointer to the custom memcmp() function
+ * memchr_fn     Pointer to the custom memchr() function
+ * memset_fn     Pointer to the custom memset() function
+ *
+ * Return Value
+ * INA_SUCCESS if no error occured.
+ */
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
                                  ina_realloc_t realloc_fn,
@@ -140,8 +151,10 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
                                  ina_memset_t memset_fn);
 
 /* initalize internal structures . */
-INA_API(ina_rc_t) ina_mempool_init(void);    
+INA_API(ina_rc_t) ina_mempool_init(void);
 
+INA_API(ina_rc_t) ina_mempool_set_fn(ina_mempool_t *pool);
+    
 /* create a memory pool. */
 INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool);
 /* destroy a memory pool and release allocated memory */

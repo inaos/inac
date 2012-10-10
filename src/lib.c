@@ -50,6 +50,9 @@ INA_API(ina_rc_t) ina_libinit(void)
 
 INA_API(ina_rc_t) ina_exit(void)
 {
+    while (!initialized--) {
+        ina_exit();
+    }
     /* TODO: tear down memory pool */
     return INA_SUCCESS;
 }

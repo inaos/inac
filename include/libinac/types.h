@@ -34,6 +34,7 @@ typedef int32_t ina_rc_t;
 #ifdef BSTRING_ENABLED
 #include <bstring/bstrlib.h>
 #define ina_str_t bstring
+#define STRING_DEFINED 1
 #else
 typedef char * ina_str_t;
 #endif
