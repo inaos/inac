@@ -31,33 +31,33 @@
 
 #ifdef INA_STRING_BSTRING_ENABLED
 
-struct bstring ina_str_s;
 
-
-INA_API(ina_str_t) ina_str_newlen(const void *anystr, size_t len, ina_mempool_t *pool)
-{    
-     return NULL;
+INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool) 
+{
+    return ina_str_fromcstr(NULL, pool);
 }
 
-INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {
-    return ina_str_newlen("", 0, pool);
+    ina_str_t str;
+    str = bfromcstr(cstr);
+    return str;
 }
 
-INA_API(ina_rc_t) ina_str_free(ina_str_t s)
+INA_API(ina_rc_t) ina_str_free(ina_str_t str)
 {
-    free(s);
+    bdestroy(str);
     return INA_SUCCESS;
 }
 
-INA_API(ina_str_t) ina_str_dup(const ina_str_t s, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
 {
-    return ina_str_newlen(s, strlen(s), pool);
+    return ina_str_fromcstr(str->data, pool);
 }
 
-INA_API(const char*) inac_str_cstr(ina_str_t *str)
+INA_API(const char*) inac_str_cstr(ina_str_t str)
 {
-    return strdup(str);
+    return str->data;
 }
 
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
@@ -65,18 +65,15 @@ INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_str_cmp(const ina_str_t s1, const ina_str_t s2)
+
+INA_API(size_t) ina_str_len(const ina_str_t str)
 {
-    return INA_SUCCESS;
+    return blength(str);
 }
 
-INA_API(const ina_str_t) ina_str_strstr(const ina_str_t s1, const ina_str_t s2)
+INA_API(const char *) ina_str_cstr(const ina_str_t str)
 {
-    return NULL;
-}
-INA_API(const ina_str_t) ina_str_strrch(const ina_str_t s1, const ina_str_t s2)
-{
-    return NULL;
+    return str->data;
 }
 
 #endif

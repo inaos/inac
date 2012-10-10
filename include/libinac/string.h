@@ -30,19 +30,17 @@
 
 #include <libinac/lib.h>
 
-typedef struct ina_str_s ina_str_t;
-
 /* allocation */
-INA_API(ina_str_t*) ina_str_fromcstr(const char *cstr,  ina_mempool_t *pool);
+INA_API(ina_str_t) ina_str_fromcstr(const char *cstr,  ina_mempool_t *pool);
 
 /* destroy */
-INA_API(ina_rc_t) ina_str_free(ina_str_t *str);
+INA_API(ina_rc_t) ina_str_free(ina_str_t str);
 
  /* copy */
-INA_API(ina_str_t*) ina_str_dup(const ina_str_t *str, ina_mempool_t *pool);
+INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool);
 
 /* conversion to C string */
-INA_API(const char *) ina_str_cstr(const ina_str_t *str);
+INA_API(const char *) ina_str_cstr(const ina_str_t str);
 
 /*
  * String manipulation
@@ -58,7 +56,7 @@ INA_API(const char *) ina_str_cstr(const ina_str_t *str);
  *
  * Return:    dest
  */
-INA_API(ina_str_t*) ina_str_cpy(ina_str_t *dest, const ina_str_t *src);
+INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t src);
 /*
  * Copies at most count characters of the byte string pointed to by src
  * (including the terminating null character) to character array pointed to by
@@ -78,7 +76,7 @@ INA_API(ina_str_t*) ina_str_cpy(ina_str_t *dest, const ina_str_t *src);
  * Returns value
  * dest
  */
-INA_API(ina_str_t*) ina_str_ncpy(ina_str_t *dest, const ina_str_t *src, size_t count);
+INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t count);
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
  * The resulting byte string is null-terminated. If the strings overlap, the
@@ -91,7 +89,7 @@ INA_API(ina_str_t*) ina_str_ncpy(ina_str_t *dest, const ina_str_t *src, size_t c
  * Return value
  * dest
  */
-INA_API(ina_str_t*) ina_str_cat(ina_str_t *dest, const ina_str_t *src);
+INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src);
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
  * At most count characters are copied. The resulting byte string is
@@ -105,7 +103,7 @@ INA_API(ina_str_t*) ina_str_cat(ina_str_t *dest, const ina_str_t *src);
  * Return value
  * dest
  */
-INA_API(ina_str_t*) ina_str_ncat(ina_str_t *dest, const ina_str_t *str, size_t);
+INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t str, size_t);
 
 /*
  * String examinations
@@ -120,7 +118,7 @@ INA_API(ina_str_t*) ina_str_ncat(ina_str_t *dest, const ina_str_t *str, size_t);
  * Return value
  * The length of the null-terminated string s.
  */
-INA_API(size_t) ina_str_len(const ina_str_t *str);
+INA_API(size_t) ina_str_len(const ina_str_t str);
 
 /*
  * Compares two null-terminated byte strings. The comparison is done
@@ -133,7 +131,7 @@ INA_API(size_t) ina_str_len(const ina_str_t *str);
  * INA_RC_OK if lhs is equal to rhs.
  * Positive value if lhs is greater than rhs.
  */
-INA_API(ina_rc_t) ina_str_cmp(const ina_str_t *lhs, const ina_str_t *rhs);
+INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
 /*
  * Compares at most count characters of two null-terminated byte strings.
  * The comparison is done lexicographically.
@@ -147,7 +145,7 @@ INA_API(ina_rc_t) ina_str_cmp(const ina_str_t *lhs, const ina_str_t *rhs);
  * INA_RC_OK  if lhs is equal to rhs.
  * Positive value if lhs is greater than rhs.
  */
-INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t *lhs, const ina_str_t *rhs, size_t count);
+INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t count);
 
 /*
 * Locate substring. Returns a pointer to the first occurrence of s2 in s1,
@@ -162,7 +160,7 @@ INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t *lhs, const ina_str_t *rhs, size_
 * of characters specified in s2, or a null pointer if the sequence is not 
 * present in s1.
 */
-INA_API(ina_str_t*) ina_str_str(const ina_str_t *s1, const ina_str_t *s2);
+INA_API(ina_str_t) ina_str_str(const ina_str_t s1, const ina_str_t s2);
 
 /*
  * Locate last occurrence of character in string. Returns a pointer to the
@@ -178,7 +176,7 @@ INA_API(ina_str_t*) ina_str_str(const ina_str_t *s1, const ina_str_t *s2);
  * A pointer to the last occurrence of character in str.
  * If the value is not found, the function returns a null pointer.
  */
-INA_API(ina_str_t*) ina_str_rchr(const ina_str_t *str, const char c);
+INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char c);
 
 
 #endif

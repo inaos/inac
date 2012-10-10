@@ -31,71 +31,58 @@
 
 #ifdef INA_STRING_CRT_ENABLED
 
-struct ina_str_s {
-    size_t len;
-    uint32_t rc;
-    char *data;
-};
+typedef char ina_str_s;
 
-INA_API(ina_str_t*) ina_str_new(ina_mempool_t *pool) 
+INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool) 
 {
     return ina_str_fromcstr(NULL, pool);
 }
 
-INA_API(ina_str_t*) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {
-
-    ina_str_t *str;
+    ina_str_t str;
+    size_t len;
     
-    str = (ina_str_t*)ina_mem_alloc(sizeof(struct ina_str_s));
-    memset(str, 0, sizeof(struct ina_str_s));
-
+    str = NULL;
+    
     if (cstr) {
-        str->len = strlen(cstr);
-        str->data = (char*)malloc(str->len+1);
-        memcpy(str->data, cstr, str->len);
+        len = strlen(cstr);
+        str = (char*)malloc(len+1);
+        memcpy(str, cstr, len);
+        str[len] = '\0';
     }
-
-    str->data[str->len] = '\0';
     return str;
 }
 
-INA_API(ina_rc_t) ina_str_free(ina_str_t *str)
+INA_API(ina_rc_t) ina_str_free(ina_str_t str)
 {
-    ina_mem_free(str->data);
     ina_mem_free(str);
     return INA_SUCCESS;
 }
 
-INA_API(ina_str_t*) ina_str_dup(const ina_str_t *str, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
 {
-    return ina_str_fromcstr(str->data, pool);
+    return ina_str_fromcstr(str, pool);
 }
 
-INA_API(const char*) inac_str_cstr(ina_str_t *str)
+INA_API(const char*) inac_str_cstr(ina_str_t str)
 {
-    return str->data;
+    return str;
 }
 
-INA_API(ina_str_t*) ina_str_cat(ina_str_t *dest, const ina_str_t *src)
+INA_API(ina_str_t*) ina_str_cat(ina_str_t dest, const ina_str_t src)
 {
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_str_cmp(const ina_str_t *s1, const ina_str_t *s2)
+INA_API(ina_rc_t) ina_str_cmp(const ina_str_t s1, const ina_str_t s2)
 {
     return INA_SUCCESS;
 }
 
-INA_API(size_t) ina_str_len(const ina_str_t *str)
+INA_API(size_t) ina_str_len(const ina_str_t str)
 {
-    return str->len;
+    return strlen(str);
 }
-
-INA_API(const char *) ina_str_cstr(const ina_str_t *str)
-{
-    return str->data;
-}
-
 
 #endif
