@@ -31,11 +31,11 @@
 /* Return code */
 typedef int32_t ina_rc_t;
 
-#ifndef BSTRING_ENABLED
+#ifdef BSTRING_ENABLED
 #include <bstring/bstrlib.h>
 #define ina_str_t bstring
 #else
-typedef struct ina_str_s * ina_str_t;
+typedef char * ina_str_t;
 #endif
 
 

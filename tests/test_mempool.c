@@ -30,5 +30,5 @@
 
 void test_mempool_basics() 
 {
-    INA_ASSERT_EQUAL(ina_mempool_init(NULL, NULL), INA_SUCCESS);  
+    INA_ASSERT_EQUAL(ina_mempool_init(), INA_SUCCESS);  
 } 

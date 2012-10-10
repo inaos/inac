@@ -28,8 +28,15 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-static ina_malloc_t __ina_malloc;
-static ina_free_t __ina_free;
+static ina_malloc_t  __ina_malloc;
+static ina_realloc_t __ina_realloc;
+static ina_free_t    __ina_free;
+static ina_memmove_t __ina_memmove;
+static ina_memcpy_t  __ina_memcpy;
+static ina_memcmp_t  __ina_memcmp;
+static ina_memchr_t  __ina_memchr;
+static ina_memset_t  __ina_memset;
+
 
 struct ina_mempool_s {
     size_t size;
@@ -39,7 +46,14 @@ struct ina_mempool_s {
 static ina_mempool_t *mempool_root;
 
  
-INA_API(ina_rc_t) ina_mem_set_alloc(ina_malloc_t malloc_fn, ina_free_t free_fn)
+INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
+                                 ina_free_t free_fn,
+                                 ina_realloc_t realloc_fn,
+                                 ina_memmove_t memmove_fn,
+                                 ina_memcpy_t memcpy_fn,
+                                 ina_memcmp_t memcmp_fn,
+                                 ina_memchr_t memchr_fn,
+                                 ina_memset_t memset_fn)
 {
     __ina_malloc = malloc_fn;
     if (!__ina_malloc) {
@@ -49,6 +63,30 @@ INA_API(ina_rc_t) ina_mem_set_alloc(ina_malloc_t malloc_fn, ina_free_t free_fn)
     if (!__ina_free) {
         __ina_free = free;
     }
+    __ina_realloc = realloc_fn;
+    if (!__ina_realloc) {
+        __ina_realloc = realloc;
+    }
+    __ina_memmove = memmove_fn;
+    if (!__ina_memmove) {
+        __ina_memmove = memmove;
+    }
+    __ina_memcpy = memcpy_fn;
+    if (!__ina_memcpy) {
+        __ina_memcpy = memcpy;
+    }
+    __ina_memcmp = memcmp_fn;
+    if (!__ina_memcmp) {
+        __ina_memcmp = memcmp;
+    }
+    __ina_memchr = memchr_fn;
+    if (!__ina_memchr) {
+        __ina_memchr = memchr;
+    }    
+    __ina_memset = memset_fn;
+    if (!__ina_memset) {
+        __ina_memset = memset;
+    }    
     return INA_SUCCESS;
 }
 
@@ -62,8 +100,38 @@ INA_API(void) ina_mem_free(void *ptr)
     __ina_free(ptr);
 }
 
+INA_API(void *) ina_mem_realloc(void *ptr, size_t nb)
+{
+    return __ina_realloc(ptr, nb);
+}
 
-INA_API(ina_rc_t) ina_mempool_init(ina_malloc_t malloc_fn, ina_free_t free_fn)
+INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb)
+{
+    return __ina_memmove(dest, src, nb);
+}
+
+INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb)
+{
+    return __ina_memcpy(dest, src, nb);
+}
+
+INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
+{
+    return __ina_memcmp(lhs, rhs, nb);
+}
+
+INA_API(void *) ina_mem_set(void *dest, int value, size_t nb)
+{
+    return __ina_memset(dest, value, nb);
+}
+
+INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
+{
+    return __ina_memchr(dest, value, nb);
+}
+
+
+INA_API(ina_rc_t) ina_mempool_init(void)
 {
     return INA_SUCCESS;
 }

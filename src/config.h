@@ -37,9 +37,7 @@
 /*
  * Define string code/library to be used
  */
-#define INA_STRING_CRT_ENABLED      1
-/*#define INA_STRING_BSTRING_ENABLED  0
-#define INA_STRING_SDS_ENABLED      0
-#define INA_STRING_LIBINAC_ENABLED  0*/
+#define CSTRING_ENABLED      1
+
 
 #endif

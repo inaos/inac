@@ -33,32 +33,67 @@ typedef struct ina_mempool_s ina_mempool_t;
 
 /* Function pointer with malloc()‘s signature */
 typedef void *(*ina_malloc_t)(size_t);
-
+/* Function pointer with realloc()‘s signature */
+typedef void *(*ina_realloc_t)(void *, size_t);
+/* Function pointer with memmove()‘s signature */
+typedef void *(*ina_memmove_t)(void *, const void *, size_t);
+/* Function pointer with memcpy()‘s signature */
+typedef void *(*ina_memcpy_t)(void *, const void *, size_t);
+/* Function pointer with memcmp()‘s signature */
+typedef int (*ina_memcmp_t)(const void *, const void *, size_t);
+/* Function pointer with memchr()‘s signature */
+typedef void *(*ina_memchr_t) (const void *, int , size_t);
+/* Function pointer with memset()‘s signature */
+typedef void *(*ina_memset_t)(void *, int , size_t);
 /* Function pointer with free()‘s signature */
 typedef void (*ina_free_t)(void *);
 
-/**
-* Allocate memory block. Allocates a block of size bytes of memory, returning
-* a pointer to the beginning of the block.
-*
-* The content of the newly allocated block of memory is not initialized, 
-* remaining with indeterminate values.
-*
-* If size is zero, it returns a null pointer. But the returned 
-* pointer shall not be used to dereference an object in any case.
-*
-* Parameters
-* size   Size of the memory block, in bytes.size_t is an unsigned integral 
-*        type.
-* 
-* Return Value
-* On success, a pointer to the memory block allocated by the function.
-* The type of this pointer is always void*, which can be cast to the desired
-* type of data pointer in order to be dereferenceable.
-* If the function failed to allocate the requested block of memory, 
-* a null pointer is returned.
-*/
+/*
+ * Allocate memory block. Allocates a block of size bytes of memory, returning
+ * a pointer to the beginning of the block.
+ *
+ * The content of the newly allocated block of memory is not initialized, 
+ * remaining with indeterminate values.
+ *
+ * If size is zero, it returns a null pointer. But the returned 
+ * pointer shall not be used to dereference an object in any case.
+ *
+ * Parameters
+ * size   Size of the memory block, in bytes.size_t is an unsigned integral 
+ *        type.
+ * 
+ * Return Value
+ * On success, a pointer to the memory block allocated by the function.
+ * The type of this pointer is always void*, which can be cast to the desired
+ * type of data pointer in order to be dereferenceable.
+ * If the function failed to allocate the requested block of memory, 
+ * a null pointer is returned.
+ */
 INA_API(void *) ina_mem_alloc(size_t size);
+/*
+ * TODO: documentation
+ */
+INA_API(void *) ina_mem_realloc(void *ptr, size_t nb);
+/*
+ * TODO: documentation
+ */
+INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb);
+/*
+ * TODO: documentation
+ */
+INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb);
+/*
+ * TODO: documentation
+ */
+INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb);
+/*
+ * TODO: documentation
+ */
+INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb);
+/*
+ * TODO: documentation
+ */
+INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
 
 /**
 * Deallocate space in memory. A block of memory previously allocated using a 
@@ -95,10 +130,17 @@ INA_API(void) ina_mem_free(void *ptr);
 * Return Value
 * INA_SUCCESS if no error occured.
 */
-INA_API(ina_rc_t) ina_mem_set_alloc(ina_malloc_t malloc_fn, ina_free_t free_fn);
+INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
+                                 ina_free_t free_fn,
+                                 ina_realloc_t realloc_fn,
+                                 ina_memmove_t memmove_fn,
+                                 ina_memcpy_t memcpy_fn,
+                                 ina_memcmp_t memcmp_fn,
+                                 ina_memchr_t memchr_fn,
+                                 ina_memset_t memset_fn);
 
 /* initalize internal structures . */
-INA_API(ina_rc_t) ina_mempool_init(ina_malloc_t malloc_fn, ina_free_t free_fn);    
+INA_API(ina_rc_t) ina_mempool_init(void);    
 
 /* create a memory pool. */
 INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool);

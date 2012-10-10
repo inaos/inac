@@ -31,7 +31,6 @@
 
 #ifdef INA_STRING_BSTRING_ENABLED
 
-
 INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool) 
 {
     return ina_str_fromcstr(NULL, pool);

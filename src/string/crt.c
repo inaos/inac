@@ -29,9 +29,7 @@
 #include "../config.h"
 
 
-#ifdef INA_STRING_CRT_ENABLED
-
-typedef char ina_str_s;
+#ifdef CSTRING_ENABLED
 
 INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool) 
 {
@@ -47,8 +45,8 @@ INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
     
     if (cstr) {
         len = strlen(cstr);
-        str = (char*)malloc(len+1);
-        memcpy(str, cstr, len);
+        str = (ina_str_t)ina_mem_alloc(len+1);
+        ina_mem_cpy(str, cstr, len);
         str[len] = '\0';
     }
     return str;
@@ -70,7 +68,7 @@ INA_API(const char*) inac_str_cstr(ina_str_t str)
     return str;
 }
 
-INA_API(ina_str_t*) ina_str_cat(ina_str_t dest, const ina_str_t src)
+INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
 {
     return NULL;
 }

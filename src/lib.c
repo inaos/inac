@@ -43,8 +43,8 @@ INA_API(ina_rc_t) ina_libinit(void)
         return INA_SUCCESS;
     }
     
-    /* initalize global standard allcator */
-    ina_mem_set_alloc(NULL, NULL);
+    /* initalize global memory funcitons */
+    ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     
     /* TODO: initialize memory pool */
     return INA_SUCCESS;
