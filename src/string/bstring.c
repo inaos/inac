@@ -26,15 +26,10 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
-#include <bstring/bstrlib.h>
 #include "../config.h"
 
-#ifdef INA_STRING_BSTRING_ENABLED
+#ifdef BSTRING_ENABLED
 
-INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool) 
-{
-    return ina_str_fromcstr(NULL, pool);
-}
 
 INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {

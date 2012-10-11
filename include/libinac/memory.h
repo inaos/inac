@@ -162,8 +162,8 @@ INA_API(ina_rc_t) ina_mempool_destroy(ina_mempool_t *pool);
 /* reset a memory pool, memory still allocated */
 INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
 /* allocate memory from a pool */
-INA_API(void *)   ina_mempool_palloc(ina_mempool_t *pool, size_t size);
+INA_API(void *)   ina_mempool_alloc(ina_mempool_t *pool, size_t size);
 /* release prevously allocated memory. */ 
-INA_API(ina_rc_t) ina_mempool_pfree(ina_mempool_t *pool, void *p);
+INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool, void *p);
 
 #endif

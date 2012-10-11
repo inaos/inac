@@ -28,24 +28,22 @@
 #include <libinac/lib.h>
 #include "../config.h"
 
-
 #ifdef CSTRING_ENABLED
-
-INA_API(ina_str_t) ina_str_new(ina_mempool_t *pool) 
-{
-    return ina_str_fromcstr(NULL, pool);
-}
 
 INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {
     ina_str_t str;
     size_t len;
-    
+
     str = NULL;
-    
-    if (cstr) {
+
+    if (cstr != NULL) {
         len = strlen(cstr);
-        str = (ina_str_t)ina_mem_alloc(len+1);
+        if (pool != NULL) {
+            str = (ina_str_t)ina_mem_alloc(len+1);
+        } else {
+            str = (ina_str_t)ina_mempool_alloc(pool, len+1);
+        }
         ina_mem_cpy(str, cstr, len);
         str[len] = '\0';
     }
@@ -60,6 +58,9 @@ INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
 
 INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
 {
+    if (str == NULL) {
+        return NULL;
+    }
     return ina_str_fromcstr(str, pool);
 }
 
@@ -70,12 +71,23 @@ INA_API(const char*) inac_str_cstr(ina_str_t str)
 
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
 {
-    return NULL;
+    return strcat(dest, src);
 }
 
-INA_API(ina_rc_t) ina_str_cmp(const ina_str_t s1, const ina_str_t s2)
+INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t src, size_t n)
 {
-    return INA_SUCCESS;
+    return strncat(dest, src, n);
+}
+
+
+INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
+{
+    return strcmp(lhs, rhs);
+}
+
+INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
+{
+    return strncmp(lhs, rhs, n);
 }
 
 INA_API(size_t) ina_str_len(const ina_str_t str)
