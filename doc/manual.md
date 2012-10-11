@@ -167,10 +167,11 @@ e.g.:
 ### Custom Memory Allocation
 By default, INAOS Common C Library  uses malloc() and free() for memory 
 allocation. These functions can be overridden if custom behavior is needed.
-*
+
 
 
 ## String handling
+
 
 ## Error handling
 INAOS Common C Library uses a single struct type to pass error information to 
