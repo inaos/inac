@@ -30,7 +30,6 @@
 
 #ifdef BSTRING_ENABLED
 
-
 INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {
     ina_str_t str;
@@ -58,7 +57,6 @@ INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
 {
     return NULL;
 }
-
 
 INA_API(size_t) ina_str_len(const ina_str_t str)
 {

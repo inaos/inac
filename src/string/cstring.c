@@ -79,7 +79,6 @@ INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t src, size_t n)
     return strncat(dest, src, n);
 }
 
-
 INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
 {
     return strcmp(lhs, rhs);
