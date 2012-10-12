@@ -30,16 +30,28 @@
 
 #ifdef CSTRING_ENABLED
 
+INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool)
+{
+    ina_str_t str;
+    if (pool == NULL) {
+        str = (ina_str_t)ina_mem_alloc(len+1);
+    } else {
+        str = (ina_str_t)ina_mempool_alloc(pool, len+1);
+    }
+    str[0] = '\0';
+    return str; 
+}
+
 INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {
     ina_str_t str;
     size_t len;
 
     str = NULL;
-
+    
     if (cstr != NULL) {
         len = strlen(cstr);
-        if (pool != NULL) {
+        if (pool == NULL) {
             str = (ina_str_t)ina_mem_alloc(len+1);
         } else {
             str = (ina_str_t)ina_mempool_alloc(pool, len+1);
