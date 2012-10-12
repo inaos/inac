@@ -28,22 +28,105 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-typedef struct ina_error_state_t {
+#define __INA_ERR_STATE_SIZE 32
+
+typedef struct ina_error_state_s {
+    size_t c;
+    size_t ic;
+    ina_error_t *errors[__INA_ERR_STATE_SIZE];
 } ina_error_state_t;
 
 
+static ina_error_state_t __state;
 
-INA_API(ina_rc_t) ina_err_setlast(ina_rc_t rc)
+/*
+ * Pack return code
+ */
+static ina_rc_t __ina_pack_rc(int mod, int fn, int reason, int index)
 {
+    return ((((uint32_t)index)&0xffL)*0x100000000)|
+        ((((uint32_t)mod)&0xffL)*0x1000000)|
+        ((((uint32_t)fn)&0xffL)*0x1000)|
+        ((((uint32_t)reason)&0xfffL));
+}
+
+static ina_rc_t __ina_destroy_error(ina_error_t *error)
+{
+    INA_ASSERT_NOTNULL(error);
+    INA_ASSERT_NOTNULL(error->msg);
+    INA_ASSERT_NOTNULL(error->file);
+    
+    ina_mem_free(error->msg);
+    ina_mem_free(error->file);
+    ina_mem_free(error);
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_getlast()
+static ina_rc_t __ina_pop_error() 
 {
+    int i;
+    
+    if (__state.c > 0) {
+        __ina_destroy_error(__state.errors[0]);
+        for (i = 1; i < __state.c; ++i) {
+            __state.errors[i-1] = __state.errors[i];
+        }
+        --__state.c;
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int line)
+{
+    ina_error_t *error;
+
+    error = (ina_error_t*)ina_mem_alloc(sizeof(ina_error_t));
+    
+    if (error == NULL) {
+        /* FIXME */
+        return INA_FAILURE;
+    }
+    
+    if (++__state.c >= __INA_ERR_STATE_SIZE) {
+        __ina_pop_error();
+    }
+    
+    error->flags = 0;
+    error->rc = __ina_pack_rc(mod, fn, reason, ++__state.ic);
+    error->ts = time(NULL);
+    error->file = ina_str_dup(file, NULL);
+    error->line = line;
+    __state.errors[__state.c] = error;
+    return error->rc;
+}
+
+INA_API(ina_rc_t) ina_err_peek() 
+{
+    if (__state.c > 0) {
+        return __state.errors[__state.c]->rc;
+    }
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_msg(ina_rc_t rc, ina_str_t *msg, size_t len)
+INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
 {
+    uint32_t i;
+    
+    return INA_SUCCESS;
+    
+}
+INA_API(ina_rc_t) ina_err_getinfo(ina_rc_t rc, ina_error_t *error)
+{
+    return INA_FAILURE;
+}
+
+
+INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
+{
+    if (rc == INA_ERR_CLEAR_ALL) {
+        while (INA_SUCCESS == __ina_pop_error());
+        __state.ic = 0;
+    }
     return INA_SUCCESS;
 }

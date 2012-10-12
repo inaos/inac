@@ -28,6 +28,13 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-void test_error_getset() 
+void test_error_pack_rc() 
 {
+    ina_rc_t rc;
+    
+    rc = INA_ERR_RC_PACK(1,2,3,0);
+    INA_ASSERT_EQUAL(1, INA_ERR_RC_MOD(rc));
+    INA_ASSERT_EQUAL(2, INA_ERR_RC_FUNC(rc));
+    INA_ASSERT_EQUAL(3, INA_ERR_RC_REASON(rc));
+    INA_ASSERT_EQUAL(0, INA_ERR_RC_INDEX(rc));
 } 

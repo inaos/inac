@@ -53,6 +53,9 @@ INA_API(ina_rc_t) ina_exit(void)
     while (!initialized--) {
         ina_exit();
     }
+    
+    ina_err_clear(INA_ERR_CLEAR_ALL);
+    
     /* TODO: tear down memory pool */
     return INA_SUCCESS;
 }
