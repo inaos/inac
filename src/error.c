@@ -36,46 +36,13 @@ typedef struct ina_error_state_s {
     ina_error_t *errors[__INA_ERR_STATE_SIZE];
 } ina_error_state_t;
 
+static ina_rc_t __ina_pack_rc(int mod, int fn, int reason, int index);
+static ina_rc_t __ina_destroy_error(ina_error_t *error);
+static ina_rc_t __ina_pop_error();
+
+
 
 static ina_error_state_t __state;
-
-/*
- * Pack return code
- */
-static ina_rc_t __ina_pack_rc(int mod, int fn, int reason, int index)
-{
-    return ((((uint32_t)index)&0xffL)*0x100000000)|
-        ((((uint32_t)mod)&0xffL)*0x1000000)|
-        ((((uint32_t)fn)&0xffL)*0x1000)|
-        ((((uint32_t)reason)&0xfffL));
-}
-
-static ina_rc_t __ina_destroy_error(ina_error_t *error)
-{
-    INA_ASSERT_NOTNULL(error);
-    INA_ASSERT_NOTNULL(error->msg);
-    INA_ASSERT_NOTNULL(error->file);
-    
-    ina_mem_free(error->msg);
-    ina_mem_free(error->file);
-    ina_mem_free(error);
-    return INA_SUCCESS;
-}
-
-static ina_rc_t __ina_pop_error() 
-{
-    int i;
-    
-    if (__state.c > 0) {
-        __ina_destroy_error(__state.errors[0]);
-        for (i = 1; i < __state.c; ++i) {
-            __state.errors[i-1] = __state.errors[i];
-        }
-        --__state.c;
-        return INA_SUCCESS;
-    }
-    return INA_FAILURE;
-}
 
 INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int line)
 {
@@ -129,4 +96,42 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
         __state.ic = 0;
     }
     return INA_SUCCESS;
+}
+
+static ina_rc_t 
+__ina_pack_rc(int mod, int fn, int reason, int index)
+{
+    return ((((uint32_t)index)&0xffL)*0x100000000)|
+        ((((uint32_t)mod)&0xffL)*0x1000000)|
+        ((((uint32_t)fn)&0xffL)*0x1000)|
+        ((((uint32_t)reason)&0xfffL));
+}
+
+static ina_rc_t 
+__ina_destroy_error(ina_error_t *error)
+{
+    INA_ASSERT_NOTNULL(error);
+    INA_ASSERT_NOTNULL(error->msg);
+    INA_ASSERT_NOTNULL(error->file);
+    
+    ina_mem_free(error->msg);
+    ina_mem_free(error->file);
+    ina_mem_free(error);
+    return INA_SUCCESS;
+}
+
+static ina_rc_t 
+__ina_pop_error() 
+{
+    int i;
+    
+    if (__state.c > 0) {
+        __ina_destroy_error(__state.errors[0]);
+        for (i = 1; i < __state.c; ++i) {
+            __state.errors[i-1] = __state.errors[i];
+        }
+        --__state.c;
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
 }
