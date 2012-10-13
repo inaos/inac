@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#define __INA_ERR_STATE_SIZE 32
+#define __INA_ERR_STATE_SIZE (32)
 
 typedef struct ina_error_state_s {
     size_t c;
@@ -36,18 +36,14 @@ typedef struct ina_error_state_s {
     ina_error_t *errors[__INA_ERR_STATE_SIZE];
 } ina_error_state_t;
 
-static ina_rc_t __ina_pack_rc(int mod, int fn, int reason, int index);
 static ina_rc_t __ina_destroy_error(ina_error_t *error);
 static ina_rc_t __ina_pop_error();
 
-
-
 static ina_error_state_t __state;
 
-INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int line)
+INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int line, ina_str_t msg)
 {
     ina_error_t *error;
-
     error = (ina_error_t*)ina_mem_alloc(sizeof(ina_error_t));
     
     if (error == NULL) {
@@ -60,10 +56,12 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int 
     }
     
     error->flags = 0;
-    error->rc = __ina_pack_rc(mod, fn, reason, ++__state.ic);
-    error->ts = time(NULL);
+    error->rc = INA_RC_PACK(mod, fn, reason, ++__state.ic);
+    error->ts = time(NULL); /* FIXME: use own time value */
     error->file = ina_str_dup(file, NULL);
     error->line = line;
+    error->msg = ina_str_dup(msg, NULL);
+    
     __state.errors[__state.c] = error;
     return error->rc;
 }
@@ -78,33 +76,38 @@ INA_API(ina_rc_t) ina_err_peek()
 
 INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
 {
-    uint32_t i;
+    size_t i;
+    size_t k;
+    int m;
     
+    INA_ASSERT(INA_RC_INDEX(rc) < __state.ic);
+    
+    i = INA_RC_INDEX(rc);
+    if (i <= __state.ic) {
+        m = i % __INA_ERR_STATE_SIZE;
+        if (m > 0) {
+            k = (m * __INA_ERR_STATE_SIZE) - i;
+        }
+        INA_ASSERT(k > __state.c);
+        if (k <= __state.c) {
+            return __state.errors[k]->rc;
+        }
+    }
     return INA_SUCCESS;
     
 }
-INA_API(ina_rc_t) ina_err_getinfo(ina_rc_t rc, ina_error_t *error)
-{
-    return INA_FAILURE;
-}
-
 
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
     if (rc == INA_ERR_CLEAR_ALL) {
         while (INA_SUCCESS == __ina_pop_error());
         __state.ic = 0;
+        __state.c = 0;
+        INA_TRACE("error state clear");
+    } else {
+        
     }
     return INA_SUCCESS;
-}
-
-static ina_rc_t 
-__ina_pack_rc(int mod, int fn, int reason, int index)
-{
-    return ((((uint32_t)index)&0xffL)*0x100000000)|
-        ((((uint32_t)mod)&0xffL)*0x1000000)|
-        ((((uint32_t)fn)&0xffL)*0x1000)|
-        ((((uint32_t)reason)&0xfffL));
 }
 
 static ina_rc_t 

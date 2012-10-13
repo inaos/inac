@@ -37,7 +37,7 @@ static ina_memcmp_t  __ina_memcmp;
 static ina_memchr_t  __ina_memchr;
 static ina_memset_t  __ina_memset;
 
-static ina_mempool_t *mempool_root;
+/*static ina_mempool_t *mempool_root;*/
 
  
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 

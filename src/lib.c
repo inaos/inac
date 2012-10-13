@@ -41,8 +41,11 @@ INA_API(ina_rc_t) ina_libinit(void)
         return INA_SUCCESS;
     }
     
-    /* initalize global memory funcitons */
+    /* initalize global memory functons */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    
+    /* initalize error state */
+    ina_err_clear(INA_ERR_CLEAR_ALL);
     
     /* TODO: initialize memory pool */
     return INA_SUCCESS;
