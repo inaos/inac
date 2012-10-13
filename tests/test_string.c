@@ -25,11 +25,12 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <stdio.h>
 #include <libinac/lib.h>
 
 void test_string_allocation_without_pool() 
 {
+    INA_TRACE("test_string_allocation_without_pool");
+    
     ina_str_t str1;
     ina_str_t str2;
     
@@ -39,4 +40,5 @@ void test_string_allocation_without_pool()
     str2 = ina_str_dup(str1, NULL);
     INA_ASSERT_NOTNULL(str2);
     ina_str_destroy(str1);
+    ina_str_destroy(str2);
 }
