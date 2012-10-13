@@ -61,7 +61,10 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int 
     }
     
     if (__state.c == __INA_ERR_STATE_SIZE) {
-        __ina_pop_error();
+        if (__ina_pop_error() == INA_FAILURE) {
+            /* FIXME */
+            return INA_FAILURE;
+        };
     }
     
     error->rc = INA_RC_PACK(mod, fn, reason, ++__state.ic);

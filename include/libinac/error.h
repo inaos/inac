@@ -83,7 +83,6 @@
                                           __LINE__ ,                        \
                                           ina_str_fromcstr(s, NULL))
 
-
 /*
  * Push an error to the error state by passing  basic informations like
  * reason of failure, os function indentifier and message 
