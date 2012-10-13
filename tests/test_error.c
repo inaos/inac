@@ -76,15 +76,43 @@ void test_error_pack_rc()
     INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));   */
 } 
 
-void test_error_push()
+void test_error_push_and_clear()
 {
-    INA_TRACE("test_error_push");
+    INA_TRACE("test_error_push_and_clear");
 
     ina_rc_t rc1;
     ina_rc_t rc2;
+    
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
     INA_ASSERT_EQUAL(rc1, ina_err_peek());
+    INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
+    
     rc2 = INA_ERR_PUSH(1,2,5, "test error");
     INA_ASSERT_EQUAL(rc2, ina_err_peek());
     INA_ASSERT_NOTEQUAL(rc1, ina_err_peek());
+    INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
+    INA_ASSERT_NOTEQUAL(rc1, rc2);
+    
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek());
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek_last());
+}
+
+
+void test_error_push_and_peek()
+{
+    INA_TRACE("test_error_push_and_peek");
+    
+    size_t i;
+    ina_rc_t rc;
+    
+    for (i = 0; i < 10; ++i) {
+        INA_ERR_PUSH_BASIC(300+i, "This is an error");
+    }
+    
+    i = 0;
+    rc = INA_ERR_PEEK_FIRST;
+    while ((rc = ina_err_peek_next(rc))) {
+        INA_ASSERT_FALSE(INA_SUCCEED(rc));
+    }
 }

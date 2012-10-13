@@ -53,6 +53,7 @@
  */
 #define INA_ERR_STATE_CLEAR   0
 
+#define INA_ERR_PEEK_FIRST    0
 /*
  * Push an error to the error state. 
  * 
@@ -62,7 +63,7 @@
  * r    Reason of failure
  * s    Error message
  */
-#define INA_ERR_PUSH(m,f,r,s) ina_err_push(m,f,r,                           \
+#define INA_ERR_PUSH(r,m,f,s) ina_err_push(m,f,r,                           \
                                           ina_str_fromcstr(__FILE__, NULL), \
                                           __LINE__ ,                        \
                                           ina_str_fromcstr(s, NULL))
@@ -72,12 +73,28 @@
  * reason of failure and message
  * 
  * Parameters
- * m    Module identifier (optional)
+ * r    Reason of failure
  * s    Error message
- */                                          
+ */
 #define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,              \
                                           INA_OSFN_NONE,                    \
                                           r,                                \
+                                          ina_str_fromcstr(__FILE__, NULL), \
+                                          __LINE__ ,                        \
+                                          ina_str_fromcstr(s, NULL))
+
+
+/*
+ * Push an error to the error state by passing  basic informations like
+ * reason of failure, os function indentifier and message 
+ * 
+ * Parameters
+ * r    Reason of failure
+ * f    OS function identifier
+ * s    Error message
+ */ 
+#define INA_ERR_PUSH_OSFN(r,f,s) ina_err_push(INA_MOD_UNKNOWN,              \
+                                          f,r,                              \
                                           ina_str_fromcstr(__FILE__, NULL), \
                                           __LINE__ ,                        \
                                           ina_str_fromcstr(s, NULL))
@@ -105,7 +122,7 @@
 /* Unpack the reason of failuer for a given RC */
 #define INA_RC_REASON(rc)  (rc&0xFF)
 
-#define INA_SUCCEED(rc) (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0);
+#define INA_SUCCEED(rc) (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0)
 
 /* Function pointer for signal handler. */
 typedef void (*ina_signal_handler_t) (int);
@@ -138,10 +155,18 @@ INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, ina_str_t file,
                                ina_str_t msg);
 
 /*
+ * Peek the first pushed error from the error state.
+ *
+ * Return Value
+ * RC of first pushed error or INA_SUCCESS if error state is clean 
+ */
+INA_API(ina_rc_t) ina_err_peek_last(void);
+
+/*
  * Peek the first unhandled error from the error state.
  *
  * Return Value
- * RC of first unhandled error or INA_SUCCESS if no unhandled errors found 
+ * RC of first unhandled error or INA_SUCCESS error state is clean 
  */
 INA_API(ina_rc_t) ina_err_peek(void);
 

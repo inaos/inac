@@ -89,7 +89,11 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     size_t k;
     int m;
     
-    INA_ASSERT(INA_RC_ID(rc) < __state.ic);
+    INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
+    
+    if (rc == INA_ERR_PEEK_FIRST) {
+        return ina_err_peek();
+    }
     
     i = INA_RC_ID(rc);
     if (i <= __state.ic) {
@@ -104,6 +108,14 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     }
     return INA_SUCCESS;
     
+}
+
+INA_API(ina_rc_t) ina_err_peek_last()
+{
+    if (__state.c > 0) {
+        return __state.errors[0]->rc;
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
