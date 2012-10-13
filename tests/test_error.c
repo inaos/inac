@@ -41,12 +41,12 @@ void test_error_pack_rc()
     printf("rc = %u\n", rc);
     printf("id = %u\n", INA_RC_ID(rc));
     printf("mod = %u\n", INA_RC_MOD(rc));
-    printf("func = %u\n", INA_RC_FUNC(rc));
+    printf("func = %u\n", INA_RC_OSFN(rc));
     printf("reason = %u\n", INA_RC_REASON(rc));
     
     INA_ASSERT_EQUAL(rcc, rc);
     INA_ASSERT_EQUAL(4, INA_RC_MOD(rc));
-    INA_ASSERT_EQUAL(2, INA_RC_FUNC(rc));
+    INA_ASSERT_EQUAL(2, INA_RC_OSFN(rc));
     INA_ASSERT_EQUAL(7, INA_RC_REASON(rc));
     INA_ASSERT_EQUAL(4, INA_RC_ID(rc));
 } 
