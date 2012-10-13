@@ -45,7 +45,7 @@
                               ((ina_rc_t)f) << 10|   \
                               ((ina_rc_t)r)
 
-#define INA_RC_INDEX(rc)   (int)((rc >> 22))
+#define INA_RC_ID(rc)      (int)((rc >> 22))
 #define INA_RC_MOD(rc)     (int)((rc >> 16)&0xF)
 #define INA_RC_FUNC(rc)    (int)((rc >> 10)&0xF)
 #define INA_RC_REASON(rc)  (int)(rc&0xFF)
@@ -53,14 +53,13 @@
 #define INA_SUCCESS  0
 #define INA_FAILURE  1;
 
-#define INA_SUCCEED(rc) (INA_SUCCESS == rc || INA_ERR_RC_REASON(rc) == 0);
+#define INA_SUCCEED(rc) (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0);
 
 /* Function pointer for signal handler. */
 typedef void (*ina_signal_handler_t) (int);
 
 /* Error informartion */
 typedef struct ina_error_s {
-    uint32_t flags;
     ina_rc_t rc;
     time_t ts;
     uint32_t line;

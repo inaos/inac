@@ -55,7 +55,6 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int 
         __ina_pop_error();
     }
     
-    error->flags = 0;
     error->rc = INA_RC_PACK(mod, fn, reason, ++__state.ic);
     error->ts = time(NULL); /* FIXME: use own time value */
     error->file = ina_str_dup(file, NULL);
@@ -80,9 +79,9 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     size_t k;
     int m;
     
-    INA_ASSERT(INA_RC_INDEX(rc) < __state.ic);
+    INA_ASSERT(INA_RC_ID(rc) < __state.ic);
     
-    i = INA_RC_INDEX(rc);
+    i = INA_RC_ID(rc);
     if (i <= __state.ic) {
         m = i % __INA_ERR_STATE_SIZE;
         if (m > 0) {

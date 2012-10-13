@@ -35,17 +35,20 @@ void test_error_pack_rc()
     ina_rc_t rcc;
     ina_rc_t rc;
     
+    rcc = 16844807;
     rc = INA_RC_PACK(1,2,7,4);
+    
     printf("rc = %u\n", rc);
-    printf("id = %u\n", INA_RC_INDEX(rc));
+    printf("id = %u\n", INA_RC_ID(rc));
     printf("mod = %u\n", INA_RC_MOD(rc));
     printf("func = %u\n", INA_RC_FUNC(rc));
     printf("reason = %u\n", INA_RC_REASON(rc));
     
-    /*INA_ASSERT_EQUAL(1, INA_RC_MOD(rc));*/
+    INA_ASSERT_EQUAL(rcc, rc);
+    INA_ASSERT_EQUAL(4, INA_RC_MOD(rc));
     INA_ASSERT_EQUAL(2, INA_RC_FUNC(rc));
-    INA_ASSERT_EQUAL(3, INA_RC_REASON(rc));
-    INA_ASSERT_EQUAL(4, INA_RC_INDEX(rc));
+    INA_ASSERT_EQUAL(7, INA_RC_REASON(rc));
+    INA_ASSERT_EQUAL(4, INA_RC_ID(rc));
 } 
 
 void test_error_push()
