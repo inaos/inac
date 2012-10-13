@@ -44,6 +44,14 @@ static ina_error_state_t __state;
 INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int line, ina_str_t msg)
 {
     ina_error_t *error;
+    
+    INA_ASSERT(mod <= 64);
+    INA_ASSERT(fn <= 32);
+    INA_ASSERT(reason <= 512);
+    INA_ASSERT_NOTNULL(file);
+    INA_ASSERT(line > 0);
+    INA_ASSERT_NOTNULL(msg);
+    
     error = (ina_error_t*)ina_mem_alloc(sizeof(ina_error_t));
     
     if (error == NULL) {
