@@ -45,7 +45,7 @@ INA_API(ina_rc_t) ina_libinit(void)
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     
     /* initalize error state */
-    ina_err_clear(INA_ERR_CLEAR_ALL);
+    ina_err_clear(INA_ERR_STATE_CLEAR);
     
     /* TODO: initialize memory pool */
     return INA_SUCCESS;
@@ -57,7 +57,7 @@ INA_API(ina_rc_t) ina_exit(void)
         ina_exit();
     }
     
-    ina_err_clear(INA_ERR_CLEAR_ALL);
+    ina_err_clear(INA_ERR_STATE_CLEAR);
     
     /* TODO: tear down memory pool */
     return INA_SUCCESS;

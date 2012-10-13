@@ -51,7 +51,7 @@
 /*
  * Used to reset the error state.
  */
-#define INA_ERR_CLEAR_ALL   0
+#define INA_ERR_STATE_CLEAR   0
 
 /*
  * Push an error to the error state. 
@@ -93,17 +93,17 @@
  */
 #define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)i) << 22|   \
                               ((ina_rc_t)m) << 16|   \
-                              ((ina_rc_t)f) << 10|   \
+                              ((ina_rc_t)f) << 12|   \
                               ((ina_rc_t)r)
 
 /* Unpack the error identifier for a given RC */
-#define INA_RC_ID(rc)      (int)((rc >> 22))
+#define INA_RC_ID(rc)      ((rc >> 22))
 /* Unpack the module indentifier for a given RC */
-#define INA_RC_MOD(rc)     (int)((rc >> 16)&0xF)
+#define INA_RC_MOD(rc)     ((rc >> 16)&0xF)
 /* Unpack the OS function identifier for a given RC */
-#define INA_RC_OSFN(rc)    (int)((rc >> 10)&0xF)
+#define INA_RC_OSFN(rc)    ((rc >> 12)&0xF)
 /* Unpack the reason of failuer for a given RC */
-#define INA_RC_REASON(rc)  (int)(rc&0xFF)
+#define INA_RC_REASON(rc)  (rc&0xFF)
 
 #define INA_SUCCEED(rc) (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0);
 

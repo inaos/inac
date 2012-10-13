@@ -39,6 +39,7 @@ typedef struct ina_error_state_s {
 static ina_rc_t __ina_destroy_error(ina_error_t *error);
 static ina_rc_t __ina_pop_error();
 
+/* global error state */
 static ina_error_state_t __state;
 
 INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int line, ina_str_t msg)
@@ -59,7 +60,7 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int 
         return INA_FAILURE;
     }
     
-    if (++__state.c >= __INA_ERR_STATE_SIZE) {
+    if (__state.c == __INA_ERR_STATE_SIZE) {
         __ina_pop_error();
     }
     
@@ -70,13 +71,14 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int 
     error->msg = ina_str_dup(msg, NULL);
     
     __state.errors[__state.c] = error;
+    __state.c++;
     return error->rc;
 }
 
 INA_API(ina_rc_t) ina_err_peek() 
 {
     if (__state.c > 0) {
-        return __state.errors[__state.c]->rc;
+        return __state.errors[__state.c-1]->rc;
     }
     return INA_SUCCESS;
 }
@@ -106,18 +108,18 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
 
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
-    if (rc == INA_ERR_CLEAR_ALL) {
+    if (rc == INA_ERR_STATE_CLEAR) {
         while (INA_SUCCESS == __ina_pop_error());
         __state.ic = 0;
-        __state.c = 0;
+        __state.c = 0; /* Should be already 0 */
         INA_TRACE("error state clear");
     } else {
-        
+        /* TODO: Mark as handled */
     }
     return INA_SUCCESS;
 }
 
-static ina_rc_t 
+static ina_rc_t
 __ina_destroy_error(ina_error_t *error)
 {
     INA_ASSERT_NOTNULL(error);
@@ -133,7 +135,7 @@ __ina_destroy_error(ina_error_t *error)
 static ina_rc_t 
 __ina_pop_error() 
 {
-    int i;
+    size_t i;
     
     if (__state.c > 0) {
         __ina_destroy_error(__state.errors[0]);
