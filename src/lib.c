@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-static int32_t initialized = 0;
+static int32_t __initialized = 0;
  
 INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]) 
 {
@@ -37,7 +37,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[])
 
 INA_API(ina_rc_t) ina_libinit(void)
 {
-    if (initialized++) {
+    if (__initialized++) {
         return INA_SUCCESS;
     }
     
@@ -53,7 +53,7 @@ INA_API(ina_rc_t) ina_libinit(void)
 
 INA_API(ina_rc_t) ina_exit(void)
 {
-    while (!initialized--) {
+    while (!__initialized--) {
         ina_exit();
     }
     
