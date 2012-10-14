@@ -241,7 +241,7 @@ INA_API(ina_rc_t) ina_err_set_signal(int signal, ina_signal_handler_t *handler);
  * len  Max length of the string buffer str
  *
  * Return Value
- * INA_SUCCESS if successful, INA_FAILURE if an inablid RC was passed
+ * INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
  */
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t* str, size_t len);
 
