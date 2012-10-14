@@ -47,13 +47,16 @@
 #define INA_OSFN_NONE   0
 #define INA_OSFN_FOPEN  1
 
-
-/*
- * Used to reset the error state.
- */
+/* Mark an handled error (bit 9 of RC) */
+#define INA_ERR_FLAG_HANDLED 0x100
+/* Mark a fatal error (bit 10 of RC) */
+#define INA_ERR_FLAG_FATAL   0x200
+/* Used to reset the error state. */
 #define INA_ERR_STATE_CLEAR   0
 
+/* Used to start an interation */
 #define INA_ERR_PEEK_FIRST    0
+
 /*
  * Push an error to the error state. 
  * 
@@ -120,8 +123,14 @@
 #define INA_RC_OSFN(rc)    ((rc >> 12)&0xF)
 /* Unpack the reason of failuer for a given RC */
 #define INA_RC_REASON(rc)  (rc&0xFF)
-
-#define INA_SUCCEED(rc) (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0)
+/* Verify if error is handled */
+#define INA_RC_HANDLED(rc) (rc&INA_ERR_FLAG_HANLED)
+/* Verify if fatal error occurred */
+#define INA_RC_FATAL(rc) (rc&INA_ERR_FLAG_FATAL)
+/* Check retuen code if successful or handled */
+#define INA_SUCCEED(rc) (INA_SUCCESS == rc ||       \
+                         INA_RC_REASON(rc) == 0 ||  \
+                         INA_RC_HANDLED(rc))
 
 /* Function pointer for signal handler. */
 typedef void (*ina_signal_handler_t) (int);
@@ -234,7 +243,7 @@ INA_API(ina_rc_t) ina_err_set_signal(int signal, ina_signal_handler_t *handler);
  * Return Value
  * INA_SUCCESS if successful, INA_FAILURE if an inablid RC was passed
  */
-INA_API(ina_rc_t) ina_err_msg(ina_rc_t rc, ina_str_t* str, size_t len);
+INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t* str, size_t len);
 
 
 #endif

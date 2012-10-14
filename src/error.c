@@ -41,45 +41,48 @@ static ina_rc_t __ina_pop_error();
 
 /* global error state */
 static ina_error_state_t __state;
+/* initialization flag */
+static int32_t __initialized = 0;
 
 INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, 
                                int line, ina_str_t msg)
 {
     ina_error_t *error;
-    
+
+    INA_ASSERT(__initialized);
     INA_ASSERT(mod <= 64);
     INA_ASSERT(fn <= 32);
     INA_ASSERT(reason <= 512);
     INA_ASSERT_NOTNULL(file);
     INA_ASSERT(line > 0);
     INA_ASSERT_NOTNULL(msg);
-    
+
     error = (ina_error_t*)ina_mem_alloc(sizeof(ina_error_t));
-    
+
     if (error == NULL) {
         /* FIXME */
         return INA_FAILURE;
     }
-    
+
     if (__state.c == __INA_ERR_STATE_SIZE) {
         if (__ina_pop_error() == INA_FAILURE) {
-            /* FIXME */
+            ina_mem_free(error);
             return INA_FAILURE;
         };
     }
-    
+
     error->rc = INA_RC_PACK(mod, fn, reason, ++__state.ic);
     error->ts = time(NULL); /* FIXME: use own time value */
     error->file = ina_str_dup(file, NULL);
     error->line = line;
     error->msg = ina_str_dup(msg, NULL);
-    
+
     __state.errors[__state.c] = error;
-    __state.c++;
+    ++__state.c;
     return error->rc;
 }
 
-INA_API(ina_rc_t) ina_err_peek() 
+INA_API(ina_rc_t) ina_err_peek()
 {
     if (__state.c > 0) {
         return __state.errors[__state.c-1]->rc;
@@ -92,21 +95,19 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     size_t i;
     size_t k;
     int m;
-    
+
     INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
-    
+
     if (rc == INA_ERR_PEEK_FIRST) {
         return ina_err_peek();
     }
-    
+
     i = INA_RC_ID(rc);
+
     if (i <= __state.ic) {
         m = i % __INA_ERR_STATE_SIZE;
-        if (m > 0) {
-            k = (m * __INA_ERR_STATE_SIZE) - i;
-        }
-        INA_ASSERT(k > __state.c);
-        if (k <= __state.c) {
+        k = m > 0?m:i;
+        if (k < __state.c) {
             return __state.errors[k]->rc;
         }
     }
@@ -124,13 +125,30 @@ INA_API(ina_rc_t) ina_err_peek_last()
 
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
+    size_t i;
+    size_t k;
+    int m;
+
     if (rc == INA_ERR_STATE_CLEAR) {
-        while (INA_SUCCESS == __ina_pop_error());
+        if (__initialized++) {
+            while (INA_SUCCESS == __ina_pop_error());
+        }
         __state.ic = 0;
-        __state.c = 0; /* Should be already 0 */
-        INA_TRACE("error state clear");
+        INA_ASSERT(__state.c == 0);
+        INA_TRACE("error state clean");
     } else {
-        /* TODO: Mark as handled */
+        INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
+        
+        i = INA_RC_ID(rc);
+        m = i % __INA_ERR_STATE_SIZE;
+        k = m > 0?m:i;
+        if (k < __state.c) {
+            INA_ASSERT_EQUAL(rc, __state.errors[k]->rc);
+            __state.errors[k]->rc = rc|INA_ERR_FLAG_HANDLED;
+            return __state.errors[k]->rc;
+        } else {
+            return INA_FAILURE;
+        }
     }
     return INA_SUCCESS;
 }

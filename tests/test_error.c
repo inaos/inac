@@ -83,9 +83,11 @@ void test_error_push_and_clear()
     ina_rc_t rc1;
     ina_rc_t rc2;
     
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
     INA_ASSERT_EQUAL(rc1, ina_err_peek());
     INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
+    INA_ASSERT_EQUAL(ina_err_peek(), ina_err_peek_last());
     
     rc2 = INA_ERR_PUSH(1,2,5, "test error");
     INA_ASSERT_EQUAL(rc2, ina_err_peek());
@@ -105,6 +107,8 @@ void test_error_push_and_peek()
     
     size_t i;
     ina_rc_t rc;
+
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
     
     for (i = 0; i < 10; ++i) {
         INA_ERR_PUSH_BASIC(300+i, "This is an error");
