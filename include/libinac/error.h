@@ -47,10 +47,10 @@
 #define INA_OSFN_NONE   0
 #define INA_OSFN_FOPEN  1
 
-/* Mark an handled error (bit 9 of RC) */
-#define INA_ERR_FLAG_HANDLED 0x100
-/* Mark a fatal error (bit 10 of RC) */
-#define INA_ERR_FLAG_FATAL   0x200
+/* Mark an handled error (bit 10 of RC) */
+#define INA_ERR_FLAG_HANDLED 0x200
+/* Mark a fatal error (bit 11 of RC) */
+#define INA_ERR_FLAG_FATAL   0x300
 /* Used to reset the error state. */
 #define INA_ERR_STATE_CLEAR   0
 
