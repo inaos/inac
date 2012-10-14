@@ -42,7 +42,8 @@ static ina_rc_t __ina_pop_error();
 /* global error state */
 static ina_error_state_t __state;
 
-INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, int line, ina_str_t msg)
+INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, 
+                               int line, ina_str_t msg)
 {
     ina_error_t *error;
     
