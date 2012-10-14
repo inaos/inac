@@ -124,7 +124,7 @@
 /* Unpack the reason of failuer for a given RC */
 #define INA_RC_REASON(rc)  (rc&0xFF)
 /* Verify if error is handled */
-#define INA_RC_HANDLED(rc) (rc&INA_ERR_FLAG_HANLED)
+#define INA_RC_HANDLED(rc) (rc&INA_ERR_FLAG_HANDLED)
 /* Verify if fatal error occurred */
 #define INA_RC_FATAL(rc) (rc&INA_ERR_FLAG_FATAL)
 /* Check retuen code if successful or handled */
