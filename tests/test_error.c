@@ -116,7 +116,7 @@ void test_error_push_and_peek()
     
     i = 0;
     rc = INA_ERR_PEEK_FIRST;
-    while ((rc = ina_err_peek_next(rc))) {
+    while (!(rc = ina_err_peek_next(rc))) {
         INA_ASSERT_FALSE(INA_SUCCEED(rc));
     }
 }
