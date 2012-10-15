@@ -163,10 +163,11 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
     INA_ASSERT_NOTNULL(str);
     INA_ASSERT(len > 0);
 
-    /*if (INA_RC_ID(rc) <= __state.ic) {
+    if (INA_RC_ID(rc) <= __state.ic) {
         k = __ina_get_index(rc);
         if (k < __state.c) {
             error = __state.errors[k];
+            
             if (len < (ina_str_len(error->msg) +
                        ina_str_len(error->file) +
                        __INA_ERR_MESSAGE_EXTRALEN)) {
@@ -178,14 +179,14 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
 
                 outstr = ina_str_vsprintf("%s: (%s:%d) %s", tmc, 
                                             ina_str_cstr(error->file),
-                                            ina_str_cstr(error->line),
+                                            error->line,
                                             ina_str_cstr(error->msg));
                 ina_str_destroy(tmstr);
                 ina_str_ncpy(str, outstr, len);
                 ina_str_destroy(outstr);
             }
         }
-    }*/
+    }
     return INA_SUCCESS;
 }
 
