@@ -29,5 +29,12 @@
 
 void test_mempool_basics() 
 {
-    INA_ASSERT_EQUAL(ina_mempool_init(0), INA_SUCCESS);  
+    ina_mempool_info_t mi;
+
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_init(0));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
+    INA_ASSERT_EQUAL(0, mi.children);
+    INA_ASSERT_EQUAL(8*1024, mi.size);
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_release());
+      
 } 

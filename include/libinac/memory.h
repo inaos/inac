@@ -30,13 +30,20 @@
 
 /* Memmory pool handle */
 typedef struct ina_mempool_s  {
-    size_t capacity;
+    size_t size;
     size_t pos;
     size_t end;
     void *m;
     struct ina_mempool_s *parent;
     struct ina_mempool_s *child;
 } ina_mempool_t;
+
+/* struct to hold pool information */
+typedef struct ina_mempool_info_s {
+    size_t size;
+    size_t used;
+    int    children; /* number of  pool */
+} ina_mempool_info_t;
 
 /* Function pointer with malloc()‘s signature */
 typedef void *(*ina_malloc_t)(size_t);
@@ -124,8 +131,8 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
 INA_API(void) ina_mem_free(void *ptr);
 
 /*
- * Set custom memory allocation function.  Overrride stabdard malloc() and
- * free().  If NULL ist given standard memmory handler will be used.
+ * Set custom memory allocation function.  Overrride stamdard memory function.
+ *If NULL is given standard memmory handler will be used.
  *
  * This function should be call once and as soon as possible after 
  * ina_libinit() or ini_appinit().
@@ -154,18 +161,14 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
 
 INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
-                                 ina_realloc_t realloc_fn,
-                                 ina_memmove_t memmove_fn,
-                                 ina_memcpy_t memcpy_fn,
-                                 ina_memcmp_t memcmp_fn,
-                                 ina_memchr_t memchr_fn,
-                                 ina_memset_t memset_fn);
+                                 ina_realloc_t realloc_fn);
 
 /* initalize internal structures . */
 INA_API(ina_rc_t) ina_mempool_init(size_t capacitiy);
 /* cleanup */
-INA_API(ina_rc_t) ina_mempool_destroy_all(void);
-
+INA_API(ina_rc_t) ina_mempool_release(void);
+/* informationen abrufen */
+INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info);
 /* create a memory pool. */
 INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t capacity);
 /* destroy a memory pool and release allocated memory */
@@ -174,9 +177,7 @@ INA_API(ina_rc_t) ina_mempool_destroy(ina_mempool_t *pool);
 INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
 /* allocate memory from a pool */
 INA_API(void *)  ina_mempool_alloc(ina_mempool_t *pool, size_t size);
-/* reallocatre memmory from a pool */
-INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, size_t nb);
-/* release prevously allocated memory. */
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool, void *p);
+/* reallocate memory from a pool */
+INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb);
 
 #endif

@@ -38,6 +38,8 @@
 #include <libinac/error.h>
 #include <libinac/debug.h>
 
+#define INA_YES 1
+#define INA_NO  0
 /*
  * Version
  */

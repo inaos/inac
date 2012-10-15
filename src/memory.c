@@ -53,11 +53,6 @@ static ina_memset_t  __ina_memset;
 static ina_malloc_t  __ina_mp_malloc;
 static ina_realloc_t __ina_mp_realloc;
 static ina_free_t    __ina_mp_free;
-static ina_memmove_t __ina_mp_memmove;
-static ina_memcpy_t  __ina_mp_memcpy;
-static ina_memcmp_t  __ina_mp_memcmp;
-static ina_memchr_t  __ina_mp_memchr;
-static ina_memset_t  __ina_mp_memset;
 
 static ina_mempool_t *__sysmempool = NULL;
 static __ina_mempool_list_t *__mempools = NULL;
@@ -112,12 +107,7 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
 
 INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
-                                 ina_realloc_t realloc_fn,
-                                 ina_memmove_t memmove_fn,
-                                 ina_memcpy_t memcpy_fn,
-                                 ina_memcmp_t memcmp_fn,
-                                 ina_memchr_t memchr_fn,
-                                 ina_memset_t memset_fn)
+                                 ina_realloc_t realloc_fn)
 {
     __ina_mp_malloc = malloc_fn;
     if (!__ina_mp_malloc) {
@@ -131,26 +121,6 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
     if (!__ina_mp_realloc) {
         __ina_mp_realloc = realloc;
     }
-    __ina_mp_memmove = memmove_fn;
-    if (!__ina_mp_memmove) {
-        __ina_mp_memmove = memmove;
-    }
-    __ina_mp_memcpy = memcpy_fn;
-    if (!__ina_mp_memcpy) {
-        __ina_mp_memcpy = memcpy;
-    }
-    __ina_mp_memcmp = memcmp_fn;
-    if (!__ina_mp_memcmp) {
-        __ina_mp_memcmp = memcmp;
-    }
-    __ina_mp_memchr = memchr_fn;
-    if (!__ina_mp_memchr) {
-        __ina_mp_memchr = memchr;
-    }    
-    __ina_mp_memset = memset_fn;
-    if (!__ina_mp_memset) {
-        __ina_mp_memset = memset;
-    }    
     return INA_SUCCESS;
 }
 
@@ -223,7 +193,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t capacity)
     return rc;
 }
 
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t capacity)
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size)
 {
     __ina_mempool_list_t *last;
     __ina_mempool_list_t *next;
@@ -235,15 +205,15 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t capacity)
         return INA_FAILURE;
     }
 
-    (*pool)->m = __ina_mp_malloc(capacity);
+    (*pool)->m = __ina_mp_malloc(size);
     
     if ((*pool)->m == NULL) {
         __ina_mp_free(*pool);
         return INA_FAILURE;
     }
     (*pool)->pos = 0;
-    (*pool)->end = capacity;
-    (*pool)->capacity = capacity;
+    (*pool)->end = size;
+    (*pool)->size = size;
     (*pool)->parent = NULL;
     
     last = __mempools;
@@ -294,12 +264,32 @@ INA_API(ina_rc_t) ina_mempool_destroy(ina_mempool_t *pool)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info)
+{
+    ina_mempool_t *pm;
+
+    INA_ASSERT_NOTNULL(info);
+    pm = (pool==NULL?__sysmempool:pool);
+    INA_ASSERT_NOTNULL(pm);
+
+    info->size = 0;
+    info->used = 0;
+    info->children = -1;
+    while (pm != NULL) {
+        info->size += pm->size;
+        info->used += pm->size - pm->pos - pm->end;
+        ++info->children;
+        pm = pm->child;
+    }
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool)
 {
     return INA_SUCCESS;
 }
 
-INA_API(void *) ina_mempool_alloc(ina_mempool_t *pool, size_t size)
+INA_API(void *)  ina_mempool_alloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
 
@@ -310,38 +300,23 @@ INA_API(void *) ina_mempool_alloc(ina_mempool_t *pool, size_t size)
     }
     ret = &pool->m[pool->pos];
     pool->pos += size;
+    /*} else {
+        ret = &pool->m[pool->end - size];
+        pool->end -= size; 
+    }*/
     return ret;
 }
 
-INA_API(void *) ina_mempool_allocstatic(ina_mempool_t *pool, size_t size)
-{
-    void *ret;
-
-    size = __INA_MEM_ALIGN (size);
-    
-    if ((pool->pos + size > pool->end) || (pool->pos + size < pool->pos)) {
-        return NULL;        
-    }
-    ret = &pool->m[pool->end - size];
-    pool->end -= size;
-    return ret;
-}
-
-INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, size_t size)
+INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb)
 {
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool, void *p)
-{
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_mempool_destroy_all(void)
+INA_API(ina_rc_t) ina_mempool_release(void)
 {
     __ina_mempool_list_t *ref;
 
-    INA_TRACE("destroy all memory pools");
+    INA_TRACE("release and destroy all memory pools");
     
     ref = __mempools;
     while (ref->next != NULL) {
@@ -369,7 +344,7 @@ __ina_sys_realloc(void *src, size_t nb)
     INA_ASSERT_NOTNULL(__sysmempool);
     INA_ASSERT_NOTNULL(src);
     INA_ASSERT(nb > 0);
-    return ina_mempool_realloc(__sysmempool, nb);
+    return ina_mempool_realloc(__sysmempool, src, nb, nb);
 }
 
 static void 
@@ -377,5 +352,4 @@ __ina_sys_free(void * ptr)
 {
     INA_ASSERT_NOTNULL(__sysmempool);
     INA_ASSERT_NOTNULL(ptr);
-    ina_mempool_free(__sysmempool, ptr);
 }
