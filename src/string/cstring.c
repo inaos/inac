@@ -76,9 +76,19 @@ INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
     return ina_str_fromcstr(str, pool);
 }
 
-INA_API(const char*) inac_str_cstr(ina_str_t str)
+INA_API(const char*) ina_str_cstr(const ina_str_t str)
 {
     return str;
+}
+
+INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t src)
+{
+    return strcpy(dest, src);
+}
+
+INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n)
+{
+    return strncpy(dest, src, n);
 }
 
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
@@ -106,4 +116,13 @@ INA_API(size_t) ina_str_len(const ina_str_t str)
     return strlen(str);
 }
 
+
+INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...)
+{
+    va_list arglist;
+    ina_str_t str;
+
+    INA_NOT_IMPL;
+    return str;
+}
 #endif

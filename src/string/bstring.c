@@ -50,7 +50,7 @@ INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
 
 INA_API(const char*) inac_str_cstr(ina_str_t str)
 {
-    return str->data;
+    return bdata(str);
 }
 
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
@@ -61,11 +61,6 @@ INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
 INA_API(size_t) ina_str_len(const ina_str_t str)
 {
     return blength(str);
-}
-
-INA_API(const char *) ina_str_cstr(const ina_str_t str)
-{
-    return str->data;
 }
 
 #endif
