@@ -41,13 +41,17 @@ INA_API(ina_rc_t) ina_libinit(void)
         return INA_SUCCESS;
     }
     
-    /* initalize global memory functons */
+    /* initalize global memory functions */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+     /* initalize global memory functions for memory pools */
+    ina_mempool_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    
+    /* initialize system memory pool and internal structures */
+    ina_mempool_init(0);
     
     /* initalize error state */
     ina_err_clear(INA_ERR_STATE_CLEAR);
     
-    /* TODO: initialize memory pool */
     return INA_SUCCESS;
 }
 
@@ -56,10 +60,11 @@ INA_API(ina_rc_t) ina_exit(void)
     while (!__initialized--) {
         ina_exit();
     }
-    
+
     ina_err_clear(INA_ERR_STATE_CLEAR);
+
+    ina_mempool_destroy_all();
     
-    /* TODO: tear down memory pool */
     return INA_SUCCESS;
 }
  

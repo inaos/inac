@@ -28,15 +28,14 @@
 #ifndef _LIBINAC_MEMORY_H_
 #define _LIBINAC_MEMORY_H_
 
-#define INA_POOL_LABEL_SIZE (48)
-
 /* Memmory pool handle */
 typedef struct ina_mempool_s  {
-    char label[INA_POOL_LABEL_SIZE];
     size_t capacity;
     size_t pos;
     size_t end;
-    struct ina_mempool_s *next;
+    void *m;
+    struct ina_mempool_s *parent;
+    struct ina_mempool_s *child;
 } ina_mempool_t;
 
 /* Function pointer with malloc()‘s signature */
@@ -153,8 +152,20 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
                                  ina_memchr_t memchr_fn,
                                  ina_memset_t memset_fn);
 
+INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn, 
+                                 ina_free_t free_fn,
+                                 ina_realloc_t realloc_fn,
+                                 ina_memmove_t memmove_fn,
+                                 ina_memcpy_t memcpy_fn,
+                                 ina_memcmp_t memcmp_fn,
+                                 ina_memchr_t memchr_fn,
+                                 ina_memset_t memset_fn);
+
 /* initalize internal structures . */
 INA_API(ina_rc_t) ina_mempool_init(size_t capacitiy);
+/* cleanup */
+INA_API(ina_rc_t) ina_mempool_destroy_all(void);
+
 /* create a memory pool. */
 INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t capacity);
 /* destroy a memory pool and release allocated memory */
