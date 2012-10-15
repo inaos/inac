@@ -28,12 +28,13 @@
 #ifndef _LIBINAC_CONIFG_H_
 #define _LIBINAC_CONIFG_H_
 
-/*
- * Define string code/library to be used
- */
+/* Define string code/library to be used */
 #ifndef STRING_DEFINED
 #define CSTRING_ENABLED 1
 #endif
 
+#ifndef SYSMEMPOOL_SIZE
+#define SYSMEMPOOL_SIZE  8*1024
+#endif
 
 #endif
