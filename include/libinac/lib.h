@@ -36,7 +36,7 @@
 #include <libinac/memory.h>
 #include <libinac/string.h>
 #include <libinac/error.h>
-#include <libinac/test.h>
+#include <libinac/debug.h>
 
 /*
  * Version
