@@ -37,8 +37,11 @@ static ina_memcmp_t  __ina_memcmp;
 static ina_memchr_t  __ina_memchr;
 static ina_memset_t  __ina_memset;
 
-/*static ina_mempool_t *mempool_root;*/
+static ina_mempool_t *__sysmempool;
 
+static void *__ina_sys_malloc(size_t);
+static void *__ina_sys_realloc(void*, size_t);
+static void __ina_sys_free(void *);
  
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
@@ -51,15 +54,15 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
 {
     __ina_malloc = malloc_fn;
     if (!__ina_malloc) {
-        __ina_malloc = malloc;
+        __ina_malloc = __ina_sys_malloc;
     }
     __ina_free = free_fn;
     if (!__ina_free) {
-        __ina_free = free;
+        __ina_free = __ina_sys_free;
     }
     __ina_realloc = realloc_fn;
     if (!__ina_realloc) {
-        __ina_realloc = realloc;
+        __ina_realloc = __ina_sys_realloc;
     }
     __ina_memmove = memmove_fn;
     if (!__ina_memmove) {
@@ -125,12 +128,15 @@ INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
 }
 
 
-INA_API(ina_rc_t) ina_mempool_init(void)
+INA_API(ina_rc_t) ina_mempool_init(size_t capacity)
 {
-    return INA_SUCCESS;
+    if (capacity == 0) {
+        capacity = 8*1024;
+    }
+    return ina_mempool_create(&__sysmempool, capacity);
 }
 
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool)
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t capacity)
 {
     return INA_SUCCESS;
 }
@@ -155,3 +161,27 @@ INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool, void *p)
     return INA_SUCCESS;
 }
 
+static void *
+__ina_sys_malloc(size_t nb)
+{
+    INA_ASSERT_NOTNULL(__sysmempool);
+    INA_ASSERT(nb > 0);
+    return ina_mempool_alloc(__sysmempool, nb);
+}
+
+static void *
+__ina_sys_realloc(void *src, size_t nb) 
+{
+    INA_ASSERT_NOTNULL(__sysmempool);
+    INA_ASSERT_NOTNULL(src);
+    INA_ASSERT(nb > 0);
+    return ina_mempool_realloc(__sysmempool, nb);
+}
+
+static void 
+__ina_sys_free(void * ptr)
+{
+    INA_ASSERT_NOTNULL(__sysmempool);
+    INA_ASSERT_NOTNULL(ptr);
+    ina_mempool_free(__sysmempool, ptr);
+}
