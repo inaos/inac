@@ -29,6 +29,7 @@
 #include "config.h"
 
 #define __INA_ERR_STATE_SIZE (32)
+#define __INA_ERR_MESSAGE_EXTRALEN (20)
 
 typedef struct ina_error_state_s {
     size_t c;
@@ -36,8 +37,9 @@ typedef struct ina_error_state_s {
     ina_error_t *errors[__INA_ERR_STATE_SIZE];
 } ina_error_state_t;
 
-static ina_rc_t __ina_destroy_error(ina_error_t *error);
+static ina_rc_t __ina_destroy_error(ina_error_t *);
 static ina_rc_t __ina_pop_error();
+static size_t __ina_get_index(ina_rc_t);
 
 /* global error state */
 static ina_error_state_t __state;
@@ -76,6 +78,7 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file,
     error->file = ina_str_dup(file, NULL);
     error->line = line;
     error->msg = ina_str_dup(msg, NULL);
+    error->data = NULL;
 
     __state.errors[__state.c] = error;
     ++__state.c;
@@ -92,9 +95,7 @@ INA_API(ina_rc_t) ina_err_peek()
 
 INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
 {
-    size_t i;
     size_t k;
-    int m;
 
     INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
 
@@ -102,14 +103,10 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
         return ina_err_peek();
     }
 
-    i = INA_RC_ID(rc);
+    k = __ina_get_index(rc);
 
-    if (i <= __state.ic) {
-        m = i % __INA_ERR_STATE_SIZE;
-        k = m > 0?m:i;
-        if (k < __state.c) {
-            return __state.errors[k]->rc;
-        }
+    if (k < __state.c) {
+        return __state.errors[k]->rc;
     }
     return INA_SUCCESS;
     
@@ -125,32 +122,83 @@ INA_API(ina_rc_t) ina_err_peek_last()
 
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
-    size_t i;
     size_t k;
-    int m;
 
     if (rc == INA_ERR_STATE_CLEAR) {
-        if (__initialized++) {
+        if (__initialized) {
             while (INA_SUCCESS == __ina_pop_error());
+        } else {
+            ++__initialized;
+            __state.c = 0;
         }
         __state.ic = 0;
         INA_ASSERT(__state.c == 0);
         INA_TRACE("error state clean");
+        return INA_SUCCESS;
+    }
+
+    INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
+
+    k = __ina_get_index(rc);
+
+    if (k < __state.c) {
+        INA_ASSERT_EQUAL(rc, __state.errors[k]->rc);
+        __state.errors[k]->rc = rc|INA_ERR_FLAG_HANDLED;
+        return __state.errors[k]->rc;
     } else {
-        INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
-        
-        i = INA_RC_ID(rc);
-        m = i % __INA_ERR_STATE_SIZE;
-        k = m > 0?m:i;
-        if (k < __state.c) {
-            INA_ASSERT_EQUAL(rc, __state.errors[k]->rc);
-            __state.errors[k]->rc = rc|INA_ERR_FLAG_HANDLED;
-            return __state.errors[k]->rc;
-        } else {
-            return INA_FAILURE;
-        }
+        return INA_FAILURE;
     }
     return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
+{
+    size_t k;
+    struct tm *tm;
+    ina_error_t *error;
+    char tmc[30];
+    ina_str_t tmstr;
+    ina_str_t outstr;
+
+    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT(len > 0);
+
+    /*if (INA_RC_ID(rc) <= __state.ic) {
+        k = __ina_get_index(rc);
+        if (k < __state.c) {
+            error = __state.errors[k];
+            if (len < (ina_str_len(error->msg) +
+                       ina_str_len(error->file) +
+                       __INA_ERR_MESSAGE_EXTRALEN)) {
+                return INA_FAILURE;
+            }
+
+            tm = localtime(&error->ts);
+            if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%s", tm) > 0) {
+
+                outstr = ina_str_vsprintf("%s: (%s:%d) %s", tmc, 
+                                            ina_str_cstr(error->file),
+                                            ina_str_cstr(error->line),
+                                            ina_str_cstr(error->msg));
+                ina_str_destroy(tmstr);
+                ina_str_ncpy(str, outstr, len);
+                ina_str_destroy(outstr);
+            }
+        }
+    }*/
+    return INA_SUCCESS;
+}
+
+static size_t
+__ina_get_index(ina_rc_t rc)
+{
+    size_t m;
+    size_t k;
+
+    k = INA_RC_ID(rc);
+    m = k % __INA_ERR_STATE_SIZE;
+    k = m > 0?m:k;
+    return k;
 }
 
 static ina_rc_t

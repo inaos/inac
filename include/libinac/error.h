@@ -42,6 +42,7 @@
 #define INA_MOD_UNKNOWN 0
 #define INA_MOD_MEMORY  1
 #define INA_MOD_STRING  2
+#define INA_MOD_ERRROR  3
 
 /* OS function identifiers */
 #define INA_OSFN_NONE   0
@@ -142,6 +143,7 @@ typedef struct ina_error_s {
     uint32_t line;
     ina_str_t file;
     ina_str_t msg;
+    void *data;
 } ina_error_t;
 
 /*
@@ -243,7 +245,7 @@ INA_API(ina_rc_t) ina_err_set_signal(int signal, ina_signal_handler_t *handler);
  * Return Value
  * INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
  */
-INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t* str, size_t len);
+INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
 
 
 #endif
