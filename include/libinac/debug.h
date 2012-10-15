@@ -54,7 +54,7 @@
 #define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == actual)
 #define INA_ASSERT_NOTEQUAL(notexpected, actual) INA_ASSERT(notexpected != actual)
 #else
-#define INA_NOT_IMP
+#define INA_NOT_IMPL INA_CASSERT(Not_implemented,0)
 #define INA_ASSERT(cond)
 #define INA_ASSERT_FALSE(v)
 #define INA_ASSERT_TRUE(v)
