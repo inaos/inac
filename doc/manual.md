@@ -22,6 +22,12 @@ Start by including the INOAS library header in your code:
 
     #include <libinac/lib.h>;
 
+### Compile time configuration
+ * CSTRING_ENABLED: Enable C-runtime strings (Default)
+ * BSTRING_ENABLED: Enable BSTRING string (The Better String Library)
+ * SYSMEMPOOL_SIZE: Define the capacity in bytes of the internal memory pool 
+                    Default is 8MB
+
 All constants are prefixed with INA_. Other identifiers are prefixed with ina_.
 Type names are suffixed with _t and typedef‘d so that the struct keyword need
 not be used.
