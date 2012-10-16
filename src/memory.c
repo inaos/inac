@@ -41,6 +41,7 @@ typedef struct __ina_mempool_list_s {
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
 #define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
  
+/* Internal memory function */
 static ina_malloc_t  __ina_malloc;
 static ina_realloc_t __ina_realloc;
 static ina_free_t    __ina_free;
@@ -50,6 +51,7 @@ static ina_memcmp_t  __ina_memcmp;
 static ina_memchr_t  __ina_memchr;
 static ina_memset_t  __ina_memset;
 
+/* Allocators for memeory pools */
 static ina_malloc_t  __ina_mp_malloc;
 static ina_realloc_t __ina_mp_realloc;
 static ina_free_t    __ina_mp_free;
@@ -344,6 +346,7 @@ __ina_sys_realloc(void *src, size_t nb)
     INA_ASSERT_NOTNULL(__sysmempool);
     INA_ASSERT_NOTNULL(src);
     INA_ASSERT(nb > 0);
+    /* FIXME */
     return ina_mempool_realloc(__sysmempool, src, nb, nb);
 }
 
