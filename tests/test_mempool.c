@@ -25,16 +25,33 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#include <stdio.h>
 #include <libinac/lib.h>
 
-void test_mempool_basics() 
+void test_mempool_syspool() 
 {
+    void *p;
+    
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_destroy(NULL));
+    
     ina_mempool_info_t mi;
-
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_init(0));
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
     INA_ASSERT_EQUAL(0, mi.children);
-    INA_ASSERT_EQUAL(8*1024, mi.size);
+    INA_ASSERT_EQUAL(8*1024*1024, mi.size);
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_release());
-      
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_init(10*1024*1024));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
+    INA_ASSERT_EQUAL(0, mi.children);
+    INA_ASSERT_EQUAL(10*1024*1024, mi.size);
+    
+    p = ina_mem_alloc(2*1024*1024);
+    INA_ASSERT_NOTNULL(p);
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek());
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
+    INA_ASSERT_EQUAL(0, mi.children);
+    INA_ASSERT_EQUAL(10*1024*1024, mi.size);
+    printf("mi.used= %lu", mi.used);
+    INA_ASSERT_EQUAL(2*1024*1042, mi.used);
 } 

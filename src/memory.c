@@ -167,7 +167,7 @@ INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
 }
 
 
-INA_API(ina_rc_t) ina_mempool_init(size_t capacity)
+INA_API(ina_rc_t) ina_mempool_init(size_t size)
 {
     ina_rc_t rc;
     
@@ -175,15 +175,15 @@ INA_API(ina_rc_t) ina_mempool_init(size_t capacity)
         return INA_SUCCESS;
     }
     
-    if (capacity == 0) {
-        capacity = 8*1024;
+    if (size == 0) {
+        size = 8*1024*1024;
     }
     __mempools = (__ina_mempool_list_t*)__ina_mp_malloc(sizeof(__ina_mempool_list_t));
     if (__mempools == NULL) {
         return INA_FAILURE;
     }
     
-    rc = ina_mempool_create(&__sysmempool, capacity);
+    rc = ina_mempool_create(&__sysmempool, size);
     if (INA_SUCCEED(rc)) {
         __mempools->pool = __sysmempool;
         __mempools->prev = NULL;
@@ -201,7 +201,8 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size)
     __ina_mempool_list_t *next;
     
     INA_TRACE("create memory pool");
-        
+    INA_ASSERT(size > 0);
+    
     *pool = (ina_mempool_t*)__ina_mp_malloc(sizeof(ina_mempool_t));
     if (*pool == NULL) {
         return INA_FAILURE;
@@ -317,19 +318,32 @@ INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, void *old, size_t pnb, 
 INA_API(ina_rc_t) ina_mempool_release(void)
 {
     __ina_mempool_list_t *ref;
+    __ina_mempool_list_t *next;
 
     INA_TRACE("release and destroy all memory pools");
     
     ref = __mempools;
-    while (ref->next != NULL) {
+    while (ref != NULL) {
         if (ref->pool != __sysmempool) {
             if (ref->active == 1) {
                 /* FXIME: error handling */
                 ina_mempool_destroy(ref->pool);
             }
         }
+        ref = ref->next;
     }
-    return ina_mempool_destroy(__sysmempool);
+    if (INA_SUCCEED(ina_mempool_destroy(__sysmempool))) {
+        ref = __mempools;
+        next = NULL;
+        while (ref != NULL) {
+            next = ref->next;
+            ina_mem_free(ref);
+            ref = next;
+        }
+        __sysmempool = NULL;
+        __mempools = NULL;
+    }
+    return INA_SUCCESS;
 }
 
 static void *
