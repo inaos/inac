@@ -38,6 +38,9 @@ INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool)
     } else {
         str = (ina_str_t)ina_mempool_alloc(pool, len+1);
     }
+    if (str == NULL) {
+        INA_STR_ERROR_ALLOC;
+    }
     str[0] = '\0';
     return str; 
 }

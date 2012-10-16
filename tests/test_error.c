@@ -120,3 +120,11 @@ void test_error_push_and_peek()
         INA_ASSERT_FALSE(INA_SUCCEED(rc));
     }
 }
+
+void test_error_macros()
+{
+    INA_ERR_ERROR_MSGLEN;
+    INA_ERR_ERROR_MSGFMT;
+    
+    INA_STR_ERROR_ALLOC;
+}

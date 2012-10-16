@@ -42,11 +42,16 @@
 #define INA_MOD_UNKNOWN 0
 #define INA_MOD_MEMORY  1
 #define INA_MOD_STRING  2
-#define INA_MOD_ERRROR  3
+#define INA_MOD_ERROR   3
 
 /* OS function identifiers */
 #define INA_OSFN_NONE   0
 #define INA_OSFN_FOPEN  1
+
+/* Errors */
+#define INA_ERR_RC_MSGLEN 1
+#define INA_ERR_RC_MSGFMT 2
+#define INA_ERR_RC_ALLOC  3
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -132,6 +137,17 @@
 #define INA_SUCCEED(rc) (INA_SUCCESS == rc ||       \
                          INA_RC_REASON(rc) == 0 ||  \
                          INA_RC_HANDLED(rc))
+
+/* Error-Module errors */
+#define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
+#define INA_ERR_ERROR_MSGLEN INA_ERR_ERROR(INA_ERR_RC_MSGLEN, "Message size error")
+#define INA_ERR_ERROR_MSGFMT INA_ERR_ERROR(INA_ERR_RC_MSGFMT, "Message format error")
+
+/* String-Module errors */
+#define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
+#define INA_STR_ERROR_ALLOC INA_STR_ERROR(INA_ERR_RC_MSGLEN, "bad string alloc")
+
+
 
 /* Function pointer for signal handler. */
 typedef void (*ina_signal_handler_t) (int);
@@ -247,5 +263,5 @@ INA_API(ina_rc_t) ina_err_set_signal(int signal, ina_signal_handler_t *handler);
  */
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
 
-
+INA_API(ina_rc_t) ina_err_setdata(ina_rc_t rc, ...);
 #endif

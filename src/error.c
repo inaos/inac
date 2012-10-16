@@ -157,7 +157,6 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
     struct tm *tm;
     ina_error_t *error;
     char tmc[30];
-    ina_str_t tmstr;
     ina_str_t outstr;
 
     INA_ASSERT_NOTNULL(str);
@@ -171,19 +170,21 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
             if (len < (ina_str_len(error->msg) +
                        ina_str_len(error->file) +
                        __INA_ERR_MESSAGE_EXTRALEN)) {
-                return INA_FAILURE;
+                return INA_ERR_ERROR_MSGLEN;
             }
 
             tm = localtime(&error->ts);
+
             if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%s", tm) > 0) {
 
                 outstr = ina_str_vsprintf("%s: (%s:%d) %s", tmc, 
                                             ina_str_cstr(error->file),
                                             error->line,
                                             ina_str_cstr(error->msg));
-                ina_str_destroy(tmstr);
-                ina_str_ncpy(str, outstr, len);
-                ina_str_destroy(outstr);
+                if (ina_str_ncpy(str, outstr, len) == NULL) {
+                    return INA_ERR_ERROR_MSGFMT;
+                }
+                
             }
         }
     }
@@ -226,6 +227,7 @@ __ina_pop_error()
             __state.errors[i-1] = __state.errors[i];
         }
         --__state.c;
+        INA_ASSERT(__state.c >= 0);
         return INA_SUCCESS;
     }
     return INA_FAILURE;
