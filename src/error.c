@@ -164,8 +164,8 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
 
     if (INA_RC_ID(rc) <= __state.ic) {
         k = __ina_get_index(rc);
-        if (k < __state.c) {
-            error = __state.errors[k];
+        if (k <= __state.c) {
+            error = __state.errors[k-1];
             
             if (len < (ina_str_len(error->msg) +
                        ina_str_len(error->file) +
@@ -175,20 +175,21 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
 
             tm = localtime(&error->ts);
 
-            if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%s", tm) > 0) {
+            if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
 
-                outstr = ina_str_vsprintf("%s: (%s:%d) %s", tmc, 
+                outstr = ina_str_vsprintf("%s %s:%d - %s", tmc, 
                                             ina_str_cstr(error->file),
                                             error->line,
                                             ina_str_cstr(error->msg));
+
                 if (ina_str_ncpy(str, outstr, len) == NULL) {
                     return INA_ERR_ERROR_MSGFMT;
                 }
-                
+                return INA_SUCCESS;
             }
         }
     }
-    return INA_SUCCESS;
+    return INA_FAILURE;
 }
 
 static size_t

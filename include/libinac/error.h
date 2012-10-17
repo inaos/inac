@@ -255,7 +255,7 @@ INA_API(ina_rc_t) ina_err_set_signal(int signal, ina_signal_handler_t *handler);
  *
  * Parameters
  * rc   Valid RC
- * str  String buffer for the message
+ * str  String buffer to hold the message
  * len  Max length of the string buffer str
  *
  * Return Value
