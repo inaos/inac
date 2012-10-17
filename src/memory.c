@@ -332,7 +332,7 @@ INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
     return ret;
 }
 
-INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb)
+INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb)
 {
     return NULL;
 }
@@ -383,7 +383,7 @@ __ina_sys_realloc(void *src, size_t nb)
     INA_ASSERT_NOTNULL(src);
     INA_ASSERT(nb > 0);
     /* FIXME */
-    return ina_mempool_realloc(__sysmempool, src, nb, nb);
+    return ina_mempool_ralloc(__sysmempool, src, nb, nb);
 }
 
 static void 

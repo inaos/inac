@@ -28,10 +28,14 @@
 #ifndef _LIBINAC_MEMORY_H_
 #define _LIBINAC_MEMORY_H_
 
-#define INA_MEM_NONE        0
+/* Single Pool, fixed size */
+#define INA_MEM_NONN        0
+/* Dynamic chunk allocation */
 #define INA_MEM_DYNAMIC     1
-#define INA_MEM_AUTO_SIZE   2
-#define INA_MEM_BEST_FIT    4
+/* Autosized chunk */
+#define INA_MEM_AUTOSIZE    2
+/* Fill chunks */
+#define INA_MEM_BESTFIT     4
 
 /* Memmory pool handle */
 typedef struct ina_mempool_s  {
@@ -199,8 +203,7 @@ INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool, size_t size);
 INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
 /* allocate not reallocable memory from a pool */
 INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
-
 /* reallocate memory from a pool */
-INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb);
+INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb);
 
 #endif
