@@ -116,23 +116,23 @@
  * r    Reason of failure
  * i    Error identifier
  */
-#define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)i) << 22|   \
-                              ((ina_rc_t)m) << 16|   \
-                              ((ina_rc_t)f) << 12|   \
+#define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)i) << 22U|   \
+                              ((ina_rc_t)m) << 16U|   \
+                              ((ina_rc_t)f) << 12U|   \
                               ((ina_rc_t)r)
 
 /* Unpack the error identifier for a given RC */
-#define INA_RC_ID(rc)      ((rc >> 22))
+#define INA_RC_ID(rc)      (ina_rc_t)((rc >> 22U))
 /* Unpack the module indentifier for a given RC */
-#define INA_RC_MOD(rc)     ((rc >> 16)&0xF)
+#define INA_RC_MOD(rc)     (ina_rc_t)((rc >> 16U)&0xFU)
 /* Unpack the OS function identifier for a given RC */
-#define INA_RC_OSFN(rc)    ((rc >> 12)&0xF)
+#define INA_RC_OSFN(rc)    (ina_rc_t)((rc >> 12U)&0xFU)
 /* Unpack the reason of failuer for a given RC */
-#define INA_RC_REASON(rc)  (rc&0xFF)
+#define INA_RC_REASON(rc)  (ina_rc_t)(rc&0xFFU)
 /* Verify if error is handled */
-#define INA_RC_HANDLED(rc) (rc&INA_ERR_FLAG_HANDLED)
+#define INA_RC_HANDLED(rc) (ina_rc_t)(rc&INA_ERR_FLAG_HANDLED)
 /* Verify if fatal error occurred */
-#define INA_RC_FATAL(rc) (rc&INA_ERR_FLAG_FATAL)
+#define INA_RC_FATAL(rc) (ina_rc_t)(rc&INA_ERR_FLAG_FATAL)
 /* Check retuen code if successful or handled */
 #define INA_SUCCEED(rc) (INA_SUCCESS == rc ||       \
                          INA_RC_REASON(rc) == 0 ||  \
@@ -149,8 +149,8 @@
 
 
 
-/* Function pointer for signal handler. */
-typedef void (*ina_signal_handler_t) (int);
+/* Function pointer cleanup handler. */
+typedef int (*ina_cleanup_handler_t) (const int, const int);
 
 /* Error information */
 typedef struct ina_error_s {
@@ -162,6 +162,7 @@ typedef struct ina_error_s {
     void *data;
 } ina_error_t;
 
+/* internal initialization */
 ina_rc_t ina_err_init();
 
 /*
@@ -241,16 +242,15 @@ INA_API(ina_rc_t) ina_err_trace(void);
 INA_API(ina_rc_t) ina_err_dump(void);
 
 /*
- * Set a custom handler for a given signal.
+ * Set a custom cleanup handler for a given signal.
  *
  * Parameters
- * signal   Signal to be handled
  * handler  Function which handle the signal
  *
  * Return Value
  * INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_set_signal(int signal, ina_signal_handler_t *handler);
+INA_API(ina_rc_t) ina_err_set_signal(ina_cleanup_handler_t *handler);
 
 /*
  * Format the error message for a given RC.

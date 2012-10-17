@@ -31,6 +31,8 @@
 #define __INA_ERR_STATE_SIZE (32)
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
+static ina_cleanup_handler_t  __cleanup = NULL;
+
 typedef struct ina_error_state_s {
     size_t c;
     size_t ic;
@@ -206,6 +208,7 @@ ina_rc_t ina_err_init()
     signal(SIGTERM, __ina_signal_handler);
     signal(SIGKILL, __ina_signal_handler);
     signal(SIGSTOP, __ina_signal_handler);
+    return INA_SUCCESS;
 }
 
 static size_t
@@ -250,7 +253,7 @@ __ina_pop_error()
     return INA_FAILURE;
 }
 
-static void 
+static void
 __ina_signal_handler(int sig)
 {
     switch (sig) {
@@ -258,6 +261,9 @@ __ina_signal_handler(int sig)
         case SIGSEGV:
         case SIGABRT:
             INA_TRACE("abort signal received!");
+            if (__cleanup) {
+                __cleanup(sig, 0);
+            }
             ina_exit(EXIT_FAILURE);
             break;
         case SIGHUP:
@@ -267,7 +273,11 @@ __ina_signal_handler(int sig)
         case SIGKILL:
         case SIGSTOP:
             INA_TRACE("stop signal received!");
-            ina_exit(EXIT_SUCCESS);
+            if (__cleanup) {
+                if (__cleanup(sig, 0) == 1) {
+                    ina_exit(EXIT_SUCCESS);                    
+                }
+            }
             break;
         default:
             INA_TRACE("unknown singal received!");
