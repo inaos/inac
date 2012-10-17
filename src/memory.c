@@ -183,7 +183,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
         return INA_FAILURE;
     }
     
-    rc = ina_mempool_create(&__sysmempool, size);
+    rc = ina_mempool_create(&__sysmempool, size, INA_MEM_DYNAMIC);
     if (INA_SUCCEED(rc)) {
         __mempools->pool = __sysmempool;
         __mempools->prev = NULL;
@@ -195,7 +195,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     return rc;
 }
 
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size)
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf)
 {
     __ina_mempool_list_t *last;
     __ina_mempool_list_t *next;
@@ -214,6 +214,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size)
         __ina_mp_free(*pool);
         return INA_FAILURE;
     }
+    (*pool)->cf = cf;
     (*pool)->pos = 0;
     (*pool)->end = size;
     (*pool)->size = size;
@@ -237,9 +238,10 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mempool_destroy(ina_mempool_t *pool)
+INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
 {
-    ina_mempool_t *child;
+    ina_mempool_t *pm;
+    ina_mempool_t *pn;
     __ina_mempool_list_t *ref;
 
     INA_TRACE("destroy memory pool");
@@ -247,22 +249,32 @@ INA_API(ina_rc_t) ina_mempool_destroy(ina_mempool_t *pool)
     if (pool == NULL) {
         return INA_SUCCESS;
     }
+
     /* Unlink parent */
-    if (pool->parent != NULL) {
-        pool->parent->child = NULL;
-    } else {
-        ref = __mempools;
-        while (ref->next != NULL && ref->next->pool == pool) {
-            ref = ref->next;
+    if (destroy == 1) {
+        if (pool->parent != NULL) {
+            pool->parent->child = NULL;
+        } else {
+            ref = __mempools;
+            while (ref->next != NULL && ref->next->pool == pool) {
+                ref = ref->next;
+            }
+            ref->active = 0;
+            ref->pool = NULL;
         }
-        ref->active = 0;
-        ref->pool = NULL;
     }
     
-    child = pool->child;
-    while (child != NULL) {
-        child = child->child;
-        __ina_mp_free(child->m); 
+    pn = pool;
+    while (pn != NULL) {
+        pm = pn;
+        pn = pn->child;
+        if (destroy == 1) {
+            __ina_mp_free(pm->m);
+            __ina_mp_free(pm);
+        } else {
+            pm->pos = 0;
+            pm->end = pm->size;
+        }
     }
     return INA_SUCCESS;
 }
@@ -287,12 +299,12 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool)
+INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool, size_t size)
 {
     return INA_SUCCESS;
 }
 
-INA_API(void *)  ina_mempool_alloc(ina_mempool_t *pool, size_t size)
+INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
 
@@ -303,10 +315,20 @@ INA_API(void *)  ina_mempool_alloc(ina_mempool_t *pool, size_t size)
     }
     ret = &pool->m[pool->pos];
     pool->pos += size;
-    /*} else {
-        ret = &pool->m[pool->end - size];
-        pool->end -= size; 
-    }*/
+    return ret;
+}
+
+INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
+{
+    void *ret;
+
+    size = __INA_MEM_ALIGN(size);
+    
+    if ((pool->pos + size > pool->end) || (pool->pos + size < pool->pos)) {
+        return NULL;
+    }
+    ret = &pool->m[pool->end - size];
+    pool->end -= size; 
     return ret;
 }
 
@@ -315,7 +337,7 @@ INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, void *old, size_t pnb, 
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_mempool_release(void)
+INA_API(ina_rc_t) ina_mempool_destroy(void)
 {
     __ina_mempool_list_t *ref;
     __ina_mempool_list_t *next;
@@ -327,12 +349,12 @@ INA_API(ina_rc_t) ina_mempool_release(void)
         if (ref->pool != __sysmempool) {
             if (ref->active == 1) {
                 /* FXIME: error handling */
-                ina_mempool_destroy(ref->pool);
+                ina_mempool_release(ref->pool, 1);
             }
         }
         ref = ref->next;
     }
-    if (INA_SUCCEED(ina_mempool_destroy(__sysmempool))) {
+    if (INA_SUCCEED(ina_mempool_release(__sysmempool,1))) {
         ref = __mempools;
         next = NULL;
         while (ref != NULL) {
@@ -351,7 +373,7 @@ __ina_sys_malloc(size_t nb)
 {
     INA_ASSERT_NOTNULL(__sysmempool);
     INA_ASSERT(nb > 0);
-    return ina_mempool_alloc(__sysmempool, nb);
+    return ina_mempool_dalloc(__sysmempool, nb);
 }
 
 static void *

@@ -28,8 +28,14 @@
 #ifndef _LIBINAC_MEMORY_H_
 #define _LIBINAC_MEMORY_H_
 
+#define INA_MEM_NONE        0
+#define INA_MEM_DYNAMIC     1
+#define INA_MEM_AUTO_SIZE   2
+#define INA_MEM_BEST_FIT    4
+
 /* Memmory pool handle */
 typedef struct ina_mempool_s  {
+    uint32_t cf;
     size_t size;
     size_t pos;
     size_t end;
@@ -73,7 +79,7 @@ typedef void (*ina_free_t)(void *);
  * pointer shall not be used to dereference an object in any case.
  *
  * Parameters
- * size   Size of the memory block, in bytes.size_t is an unsigned integral 
+ * size   Size of the memory block, in bytes. size_t is an unsigned integral 
  *        type.
  * 
  * Return Value
@@ -131,11 +137,11 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
 INA_API(void) ina_mem_free(void *ptr);
 
 /*
- * Set custom memory allocation function.  Overrride stamdard memory function.
- *If NULL is given standard memmory handler will be used.
+ * Set custom memory function.
+ * If NULL is given standard memmory handler will be used.
  *
- * This function should be call once and as soon as possible after 
- * ina_libinit() or ini_appinit().
+ * This function should be called once and as soon as possible after 
+ * ina_libinit() or ina_appinit().
  *
  * Parameters:
  * malloc_fn     Pointer to the custom malloc() function
@@ -158,25 +164,42 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
                                  ina_memcmp_t memcmp_fn,
                                  ina_memchr_t memchr_fn,
                                  ina_memset_t memset_fn);
-
-INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn, 
+/*
+ * Set custom allocator function to use with memory pools.
+ * If NULL is given standard memmory handler will be used.
+ *
+ * This function should be called once and as soon as possible after 
+ * ina_libinit() or ina_appinit().
+ *
+ * Parameters:
+ * malloc_fn     Pointer to the custom malloc() function
+ * free_fn       Pointer to the custom free() function
+ * realloc_fn    Pointer to the custom realloc() function$
+ *
+ * Return Value
+ * INA_SUCCESS if no error occured.
+ */
+INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
                                  ina_free_t free_fn,
                                  ina_realloc_t realloc_fn);
 
 /* initalize internal structures . */
-INA_API(ina_rc_t) ina_mempool_init(size_t capacitiy);
+INA_API(ina_rc_t) ina_mempool_init(size_t size);
 /* cleanup */
-INA_API(ina_rc_t) ina_mempool_release(void);
+INA_API(ina_rc_t) ina_mempool_destroy(void);
 /* informationen abrufen */
 INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info);
 /* create a memory pool. */
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t capacity);
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf);
 /* destroy a memory pool and release allocated memory */
-INA_API(ina_rc_t) ina_mempool_destroy(ina_mempool_t *pool);
+INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy);
 /* reset a memory pool, memory still allocated */
-INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
-/* allocate memory from a pool */
-INA_API(void *)  ina_mempool_alloc(ina_mempool_t *pool, size_t size);
+INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool, size_t size);
+/* allocate reallocable memory from a pool */
+INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
+/* allocate not reallocable memory from a pool */
+INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
+
 /* reallocate memory from a pool */
 INA_API(void *) ina_mempool_realloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb);
 

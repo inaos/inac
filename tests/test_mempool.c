@@ -31,16 +31,17 @@
 void test_mempool_syspool() 
 {
     void *p;
-    
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_destroy(NULL));
-    
     ina_mempool_info_t mi;
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
+
+    INA_TRACE("test_mempool_syspool");
+    
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));    
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_destroy());
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_init(0));
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
     INA_ASSERT_EQUAL(0, mi.children);
     INA_ASSERT_EQUAL(8*1024*1024, mi.size);
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_release());
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_release(NULL, 0));
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_init(10*1024*1024));
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
     INA_ASSERT_EQUAL(0, mi.children);

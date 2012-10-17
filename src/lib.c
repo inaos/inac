@@ -62,7 +62,7 @@ INA_API(ina_rc_t) ina_exit(void)
     }
     /* FIXME: error hanfling */
     ina_err_clear(INA_ERR_STATE_CLEAR);
-    ina_mempool_release();
+    ina_mempool_destroy();
     
     return INA_SUCCESS;
 }
