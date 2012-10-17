@@ -125,9 +125,7 @@ INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...)
     va_list args;
     ina_str_t str;
 
-    if (fmt == NULL) {
-        return NULL;
-    }
+    INA_ASSERT_NOTNULL(fmt);
 
     str = ina_str_newlen(1024, NULL);
 
