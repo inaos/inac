@@ -40,6 +40,7 @@ typedef struct ina_error_state_s {
 static ina_rc_t __ina_destroy_error(ina_error_t *);
 static ina_rc_t __ina_pop_error();
 static size_t __ina_get_index(ina_rc_t);
+static void __ina_signal_handler(int);
 
 /* global error state */
 static ina_error_state_t __state;
@@ -192,6 +193,21 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
     return INA_FAILURE;
 }
 
+ina_rc_t ina_err_init() 
+{
+    /* TODO: X-platform */
+    signal(SIGILL, __ina_signal_handler);
+    signal(SIGSEGV, __ina_signal_handler);
+    signal(SIGBUS, __ina_signal_handler);
+    signal(SIGABRT, __ina_signal_handler);
+    signal(SIGHUP, __ina_signal_handler);
+    signal(SIGINT, __ina_signal_handler);
+    signal(SIGQUIT, __ina_signal_handler);
+    signal(SIGTERM, __ina_signal_handler);
+    signal(SIGKILL, __ina_signal_handler);
+    signal(SIGSTOP, __ina_signal_handler);
+}
+
 static size_t
 __ina_get_index(ina_rc_t rc)
 {
@@ -232,4 +248,29 @@ __ina_pop_error()
         return INA_SUCCESS;
     }
     return INA_FAILURE;
+}
+
+static void 
+__ina_signal_handler(int sig)
+{
+    switch (sig) {
+        case SIGILL:
+        case SIGSEGV:
+        case SIGABRT:
+            INA_TRACE("abort signal received!");
+            ina_exit(EXIT_FAILURE);
+            break;
+        case SIGHUP:
+        case SIGINT:
+        case SIGQUIT:
+        case SIGTERM:
+        case SIGKILL:
+        case SIGSTOP:
+            INA_TRACE("stop signal received!");
+            ina_exit(EXIT_SUCCESS);
+            break;
+        default:
+            INA_TRACE("unknown singal received!");
+            ina_exit(EXIT_FAILURE);
+    }
 }

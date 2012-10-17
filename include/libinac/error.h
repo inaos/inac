@@ -162,6 +162,8 @@ typedef struct ina_error_s {
     void *data;
 } ina_error_t;
 
+ina_rc_t ina_err_init();
+
 /*
  * Push an error to the error state.
  * 
