@@ -46,13 +46,12 @@ your program.
 
     int main(int argc, char *argv) 
     {
-	    ina_appinit(argc, argv);
-
-	    while (… {
-	       ….
+        if (INA_SUCCEED(ina_appinit(argc, argv)) {
+            while (… {
+                ….
+            }
         }
-     
-        ina_exit();
+        ina_exit(EXIT_SUCCESS);
     }
 
 ## Portable Header
