@@ -61,4 +61,23 @@ void test_mempool_syspool()
     INA_ASSERT_EQUAL((10*1024*1024), mi.size);
     /* printf("mi.used= %zd", mi.used); */
     /*INA_ASSERT_EQUAL(__INA_MEM_ALIGN(2*1024*1024), mi.used);*/
-} 
+}
+
+
+void test_mempool_bad_dalloc()
+{
+    void *ptr;
+    ina_mempool_t *pool;
+
+    ptr = NULL;
+    pool = NULL;
+
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_create(&pool, 1024, 0));
+    INA_ASSERT_NOTNULL(pool);
+    ptr = ina_mempool_dalloc(pool, 10000);
+    INA_ASSERT_NULL(ptr);
+    INA_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
+    INA_ASSERT_EQUAL(INA_ERR_RC_ALLOC , INA_RC_REASON(ina_err_peek()));
+
+}
