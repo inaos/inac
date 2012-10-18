@@ -36,6 +36,8 @@
 #define INA_MEM_AUTOSIZE    2
 /* Fill chunks */
 #define INA_MEM_BESTFIT     4
+/* Zero fill on allocation */
+#define INA_MEM_FILLZERO   16
 
 /* Memmory pool handle */
 typedef struct ina_mempool_s  {

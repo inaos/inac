@@ -209,6 +209,9 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     }
 
     (*pool)->m = __ina_mp_malloc(size);
+    if (cf|INA_MEM_FILLZERO) {
+        __ina_memset((*pool)->m, 0, size);
+    }
     
     if ((*pool)->m == NULL) {
         __ina_mp_free(*pool);
