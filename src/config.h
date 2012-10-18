@@ -34,7 +34,7 @@
 #endif
 
 #ifndef SYSMEMPOOL_SIZE
-#define SYSMEMPOOL_SIZE  8*1024
+#define SYSMEMPOOL_SIZE  8*1024*1024
 #endif
 
 #endif
