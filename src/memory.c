@@ -219,6 +219,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     (*pool)->end = size;
     (*pool)->size = size;
     (*pool)->parent = NULL;
+    (*pool)->current = *pool;
     
     last = __mempools;
     while (last->next != NULL) {
@@ -301,6 +302,7 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
 
 INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool, size_t size)
 {
+    INA_NOT_IMPL;
     return INA_SUCCESS;
 }
 
@@ -308,13 +310,27 @@ INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
 
+    INA_ASSERT_NOTNULL(pool->current);
+
     size = __INA_MEM_ALIGN(size);
     
-    if ((pool->pos + size > pool->end) || (pool->pos + size < pool->pos)) {
+    if ((pool->current->pos + size > pool->current->end) || 
+        (pool->current->pos + size < pool->current->pos)) {
+        if (pool->cf|INA_MEM_DYNAMIC) {
+            if (pool->cf|INA_MEM_BESTFIT) {
+                 /* TODO: Best Fit strategy */
+            }
+            if (pool->size < size && pool->cf|INA_MEM_AUTOSIZE) {
+                size = __INA_MEM_ALIGN(pool->size * 2);
+            }
+            /* FIXME: Push an error , if fails */
+            ina_mempool_create(&pool->current->child, size, pool->cf);
+            pool->current = pool->current->child;
+        }
         return NULL;
     }
-    ret = &pool->m[pool->pos];
-    pool->pos += size;
+    ret = &pool->current->m[pool->current->pos];
+    pool->current->pos += size;
     return ret;
 }
 
@@ -322,18 +338,22 @@ INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
 
+    INA_ASSERT_NOTNULL(pool->current);
+    
     size = __INA_MEM_ALIGN(size);
     
-    if ((pool->pos + size > pool->end) || (pool->pos + size < pool->pos)) {
+    if ((pool->current->pos + size > pool->current->end) || 
+        (pool->current->pos + size < pool->current->pos)) {
         return NULL;
     }
-    ret = &pool->m[pool->end - size];
-    pool->end -= size; 
+    ret = &pool->current->m[pool->current->end - size];
+    pool->current->end -= size;
     return ret;
 }
 
 INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb)
 {
+    INA_NOT_IMPL;
     return NULL;
 }
 

@@ -44,6 +44,7 @@ typedef struct ina_mempool_s  {
     size_t pos;
     size_t end;
     void *m;
+    struct ina_mempool_s *current;
     struct ina_mempool_s *parent;
     struct ina_mempool_s *child;
 } ina_mempool_t;
