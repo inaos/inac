@@ -211,7 +211,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     }
 
     (*pool)->m = __ina_mp_malloc(size);
-    if (cf|INA_MEM_FILLZERO) {
+    if (cf&INA_MEM_FILLZERO) {
         __ina_memset((*pool)->m, 0, size);
     }
     
@@ -236,6 +236,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     if (next == NULL) {
         __ina_mp_free((*pool)->m);
         __ina_mp_free(*pool);
+        return INA_FAILURE;
     }
     last->next = next;
     next->next = NULL;
@@ -321,18 +322,20 @@ INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
     
     if ((pool->current->pos + size > pool->current->end) || 
         (pool->current->pos + size < pool->current->pos)) {
-        if (pool->cf|INA_MEM_DYNAMIC) {
-            if (pool->cf|INA_MEM_BESTFIT) {
+        if (pool->cf&INA_MEM_DYNAMIC) {
+            if (pool->cf&INA_MEM_BESTFIT) {
                  /* TODO: Best Fit strategy */
             }
-            if (pool->size < size && pool->cf|INA_MEM_AUTOSIZE) {
+            if (pool->size < size && pool->cf&INA_MEM_AUTOSIZE) {
                 size = __INA_MEM_ALIGN(pool->size * 2);
             }
             /* FIXME: Push an error , if fails */
             ina_mempool_create(&pool->current->child, size, pool->cf);
             pool->current = pool->current->child;
+        } else {
+            INA_MEM_ERROR_ALLOC;
+            return NULL;
         }
-        return NULL;
     }
     ret = &pool->current->m[pool->current->pos];
     pool->current->pos += size;
