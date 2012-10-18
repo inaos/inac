@@ -28,6 +28,12 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
+/* Align to 2x word size (as GNU libc does). */
+#define __INA_ALIGN_SIZE (2 * sizeof(void*))
+
+/* Round up 'n' to a multiple of ALIGN_SIZE. */
+#define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
+
 void test_mempool_syspool() 
 {
     void *p;
@@ -41,7 +47,7 @@ void test_mempool_syspool()
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
     INA_ASSERT_EQUAL(0, mi.children);
     INA_ASSERT_EQUAL(8*1024*1024, mi.size);
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_release(NULL, 0));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_destroy());
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_init(10*1024*1024));
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
     INA_ASSERT_EQUAL(0, mi.children);
@@ -52,7 +58,7 @@ void test_mempool_syspool()
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek());
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
     INA_ASSERT_EQUAL(0, mi.children);
-    INA_ASSERT_EQUAL(10*1024*1024, mi.size);
-    printf("mi.used= %lu", mi.used);
-    INA_ASSERT_EQUAL(2*1024*1042, mi.used);
+    INA_ASSERT_EQUAL((10*1024*1024), mi.size);
+    printf("mi.used= %zd", mi.used);
+    INA_ASSERT_EQUAL(__INA_MEM_ALIGN(2*1024*1024), mi.used);
 } 

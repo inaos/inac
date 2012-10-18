@@ -103,7 +103,7 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
     __ina_memset = memset_fn;
     if (!__ina_memset) {
         __ina_memset = memset;
-    }    
+    }
     return INA_SUCCESS;
 }
 
@@ -176,7 +176,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     }
     
     if (size == 0) {
-        size = 8*1024*1024;
+        size = __INA_MEM_ALIGN(8*1024*1024);
     }
     __mempools = (__ina_mempool_list_t*)__ina_mp_malloc(sizeof(__ina_mempool_list_t));
     if (__mempools == NULL) {
@@ -202,6 +202,8 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     
     INA_TRACE("create memory pool");
     INA_ASSERT(size > 0);
+
+    size = __INA_MEM_ALIGN(size);
     
     *pool = (ina_mempool_t*)__ina_mp_malloc(sizeof(ina_mempool_t));
     if (*pool == NULL) {
@@ -238,7 +240,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     last->next = next;
     next->next = NULL;
     next->active = 1;
-    
+
     return INA_SUCCESS;
 }
 
@@ -296,7 +298,7 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
     info->children = -1;
     while (pm != NULL) {
         info->size += pm->size;
-        info->used += pm->size - pm->pos - pm->end;
+        info->used += pm->pos + (pm->size-pm->end);
         ++info->children;
         pm = pm->child;
     }
