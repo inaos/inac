@@ -29,6 +29,8 @@
 #include <libinac/lib.h>
 #include "suites.h"
 
+#define INAC_ERROR_TEST_TRACE INA_ERR_PUSH(129,1,2,"Test Trace")
+
 int main(int argc, const char* argv[]) 
 { 
     INA_TRACE("TEST START");
@@ -36,8 +38,9 @@ int main(int argc, const char* argv[])
     if (ina_appinit(argc, argv) == INA_SUCCESS) {
         runtests();
     }
-    
     INA_TRACE("TEST END");
+
+    INAC_ERROR_TEST_TRACE;
     ina_exit(EXIT_SUCCESS);
     return 0;
 }

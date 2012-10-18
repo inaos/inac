@@ -41,18 +41,18 @@ INA_API(ina_rc_t) ina_libinit(void)
         return INA_SUCCESS;
     }
     ina_err_init();
-    
+
     /* initalize global memory functions */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
      /* initalize global memory functions for memory pools */
     ina_mempool_set_fn(NULL, NULL, NULL);
-    
+
     /* initialize system memory pool and internal structures */
     ina_mempool_init(0);
-    
+
     /* initalize error state */
     ina_err_clear(INA_ERR_STATE_CLEAR);
-    
+
     return INA_SUCCESS;
 }
 
@@ -64,6 +64,11 @@ INA_API(ina_rc_t) ina_exit(int exitcode)
 
     INA_ASSERT(exitcode == EXIT_SUCCESS || exitcode == EXIT_FAILURE);
 
+    if (!INA_SUCCEED(ina_err_peek())) {
+        ina_err_trace();
+        ina_err_dump();
+    }
+    
     /* FIXME: error hanfling */
     ina_err_clear(INA_ERR_STATE_CLEAR);
     ina_mempool_destroy();

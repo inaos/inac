@@ -248,9 +248,9 @@ INA_API(ina_rc_t) ina_err_dump(void);
  * handler  Function which handle the signal
  *
  * Return Value
- * INA_SUCCESS
+ * Previously defined handler
  */
-INA_API(ina_rc_t) ina_err_set_signal(ina_cleanup_handler_t *handler);
+INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(ina_cleanup_handler_t handler);
 
 /*
  * Format the error message for a given RC.

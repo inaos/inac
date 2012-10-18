@@ -195,9 +195,53 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
     return INA_FAILURE;
 }
 
+INA_API(ina_rc_t) ina_err_trace(void)
+{
+    ina_rc_t rc;
+    ina_str_t str;
+    
+    if (INA_SUCCEED(ina_err_peek())) {
+        return INA_SUCCESS;
+    }
+
+    printf("%s\n", "**** UNHANDLED ERRROR START ******");
+
+    str = ina_str_newlen(2048, NULL);
+    INA_ASSERT(str);
+
+    rc = ina_err_peek();
+    while (!INA_SUCCEED(rc)) {
+        if (INA_SUCCEED(ina_err_fmtmsg(rc, str, 2048))) {
+            printf("%s\n", ina_str_cstr(str));
+        } else {
+            return INA_FAILURE;
+        }
+        rc = ina_err_peek_next(rc);
+    }
+    printf("%s\n", "**** UNHANDLED ERRROR END   ******");
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_err_dump(void) {
+    INA_TRACE("Dump\n");
+    return INA_SUCCESS;
+}
+
+INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
+                                        ina_cleanup_handler_t handler)
+{
+    ina_cleanup_handler_t old;
+
+    old = __cleanup;
+    __cleanup = handler;
+    return old;
+}
+
 ina_rc_t ina_err_init() 
 {
     /* TODO: X-platform */
+    signal(SIGFPE, __ina_signal_handler);
     signal(SIGILL, __ina_signal_handler);
     signal(SIGSEGV, __ina_signal_handler);
     signal(SIGBUS, __ina_signal_handler);
@@ -256,31 +300,35 @@ __ina_pop_error()
 static void
 __ina_signal_handler(int sig)
 {
+    int exitcode;
+    
+    exitcode = EXIT_FAILURE;
+    
     switch (sig) {
+        case SIGFPE:
         case SIGILL:
         case SIGSEGV:
         case SIGABRT:
-            INA_TRACE("abort signal received!");
+            INA_TRACE("programm error signal received!");
             if (__cleanup) {
-                __cleanup(sig, 0);
+                exitcode = __cleanup(sig, 0);
             }
-            ina_exit(EXIT_FAILURE);
+            ina_exit(exitcode);
             break;
         case SIGHUP:
         case SIGINT:
         case SIGQUIT:
         case SIGTERM:
-        case SIGKILL:
         case SIGSTOP:
-            INA_TRACE("stop signal received!");
+        case SIGKILL:
+            INA_TRACE("termination signal received!");
             if (__cleanup) {
-                if (__cleanup(sig, 0) == 1) {
-                    ina_exit(EXIT_SUCCESS);                    
-                }
+                exitcode = __cleanup(sig, 0);
+                ina_exit(exitcode);
             }
             break;
         default:
             INA_TRACE("unknown singal received!");
-            ina_exit(EXIT_FAILURE);
+            ina_exit(exitcode);
     }
 }
