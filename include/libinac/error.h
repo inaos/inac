@@ -147,6 +147,9 @@
 #define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
 #define INA_STR_ERROR_ALLOC INA_STR_ERROR(INA_ERR_RC_MSGLEN, "bad string alloc")
 
+/* String-Module errors */
+#define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
+#define INA_MEM_ERROR_ALLOC INA_MEM_ERROR(INA_ERR_RC_ALLOC, "bad memory alloc")
 
 
 /* Function pointer cleanup handler. */
