@@ -29,11 +29,22 @@
 #include <libinac/lib.h>
 #include "suites.h"
 
+#define INAC_ERROR_TEST_TRACE INA_ERR_PUSH(129,1,2,"Test Trace")
+
 int main(int argc, const char* argv[]) 
 { 
-    if (ina_initapp(argc, argv)) {
+    INA_TRACE("TEST START");
+    
+    if (ina_appinit(argc, argv) == INA_SUCCESS) {
         runtests();
     }
-    ina_exit();
+    INA_TRACE("TEST END");
+
+    /* this test program should alway exits with a
+       failure */
+    INAC_ERROR_TEST_TRACE;
+
+    /* Never called */
+    ina_exit(EXIT_SUCCESS);
     return 0;
 }

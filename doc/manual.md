@@ -22,6 +22,15 @@ Start by including the INOAS library header in your code:
 
     #include <libinac/lib.h>;
 
+### Compile time configuration
+ * CSTRING_ENABLED: Enable C-runtime strings (Default)
+ * BSTRING_ENABLED: Enable BSTRING string (The Better String Library)
+ * SYSMEMPOOL_SIZE: Define the capacity in bytes of the internal memory pool 
+                    Default is 8MB
+ * MEMPOOL_SIZE:    Define the default capacity in bytes for a memory pool 
+                    Default is 8MB
+
+
 All constants are prefixed with INA_. Other identifiers are prefixed with ina_.
 Type names are suffixed with _t and typedef‘d so that the struct keyword need
 not be used.
@@ -29,7 +38,7 @@ not be used.
 ### For library consumers
 Initialize the library context as soon as possible:
 
-    ina_initlib();
+    ina_libinit();
 
 For each call of `ina_initlib()` you have to call `ina_exit()`.
 
@@ -40,13 +49,12 @@ your program.
 
     int main(int argc, char *argv) 
     {
-	    ina_initapp(argc, argv);
-
-	    while (… {
-	       ….
+        if (INA_SUCCEED(ina_appinit(argc, argv)) {
+            while (… {
+                ….
+            }
         }
-     
-        ina_exit();
+        ina_exit(EXIT_SUCCESS);
     }
 
 ## Portable Header
@@ -167,15 +175,151 @@ e.g.:
 ### Custom Memory Allocation
 By default, INAOS Common C Library  uses malloc() and free() for memory 
 allocation. These functions can be overridden if custom behavior is needed.
-*
 
 
-## String handling
+
+## Strings
+
 
 ## Error handling
-INAOS Common C Library uses a single struct type to pass error information to 
-the user.
 
+A good error handling should know as much as possible about an error. Things
+like when, where, what, who, is it handed or not, and "should I abort my 
+program" are such kind of information we want to know.  
+The "who" question isn't really easy to implement, so we omitted  it.
+
+Also important: Easy access to error state information. That's why we pack 
+the 'where', 'handled or not' and 'abort or not' in one single value. We call
+it Return Code or simply RC. RC is defined by `ina_rc_t' which is in fact a 
+32bit unsigned integer value. See the sketch above for knowing how those
+ information are packed into our RC.  
+
+To know if an error occurred  we use `INA_SUCCEED' which returns TRUE if no
+errors occurred or the last error was handled by a previous caller.
+
+### Return Code:
+
+#### Reason
+This value contain the error code (reason of failure). Values from 1-128 are
+reserved to the INAOS Common C Library.   Define user error codes starting
+by 129. For instance:
+
+     #define INAWS_ERR_NOCONNECTION    INA_ERR_USER+1
+
+We can get access to the reason by ÌNA_RC_REASON` macro.
+
+    switch (INA_RC_REASON(rc)) {
+       case INAWS_TOOMANY_FILES:
+          .....
+
+#### Fatal Flag
+Indicate whenever you should about the program. Use `INA_ERR_FATAL(rc)` to 
+verify a fatal condition. For instance:
+
+    rc = inaws_server_start(...
+    if (!INA_SUCCEED(rc)) {
+        if (INA_ERR_FATAL(rc)) {
+           --- abort here
+  
+#### Handled Flag
+Indicate if an error was handled by a previous caller. Use `ina_err_clear` to
+mark an error as handled. For instance:
+    
+    rc = inaws_server_start(...
+    if (!INA_SUCCEED(rc)) {
+       switch (INA_RC_REASON(rc)) {
+          case INAWS_TOOMANY_FILES:
+               ...do something to handle too many file problem ...
+                
+               /* mark error as handled  
+               ina_err_clear(rc);
+
+Once an error is marked as handled, there is no way to reset it to
+"unhandled".  By marking an error as handled, all previous pushed errors are 
+removed  from the error state.
+
+
+#### OS function identifier
+Give us the possibility to inform the caller about system function failure . 
+For instance `fopen()`. In such a case the caller could retry with other 
+parameters/values  or let the user know about the real cause of failure. 
+Use the `INA_RC_OSFN` macro to retrieve  the OS function identifier. 
+For instance:
+
+    rc = inaws_server_start(...
+    if (!INA_SUCCEED(rc)) {
+       switch (INA_RC_REASON(rc)) {
+          case INAWS_LOGFILE_ERROR:
+              /* actually want to check if there is a problem with fopen() */
+              if (INA_RC_OSFN(rc) == INA_OSFN_FOPEN) {
+                   /* may be the ownership is wrong */
+                   if (!inaws_check_ownership(....) {
+                      /* let the user know that he must fix file ownership or
+                         fix the problem and retry again */
+                    ...
+              
+OS function identifiers are defined in `<libinac/error.h>`. Only those 
+identifiers are allowed. Don't define any others.           
+
+### Push and peek instead of throw and catch
+The basic concept of our error handling is that we push an error to a global
+error state. The error state is a simple  pointer array which stores a 
+certain number of errors (`__INA_ERR_STATE_SIZE`). In case the max number of 
+errors is reached, the "first in" error will be dropped from the state.
+
+The caller have the responsibility to take care about the pushed error(s).
+He has in fact 3 options:
+* Handle the error situation
+* Leave it unhandled and push a new error.
+* Abort the program
+
+### Push
+Use the `INA_ERR_PUSH`macro to push an error to the global error state.
+
+    INA_ERR_PUSH(INAWS_ERR_NOCONNECT, 
+        INAWS_MOD_SERVER, INA_OSFN_NONE, "Connection failed");
+
+For simplification, use the `INA_ERR_PUSH_BASIC` or `INA_ERR_PUSH_OSFN` 
+macros on depending the error information you have.
+
+    INA_ERR_PUSH_BASIC(INAWS_ERR_NOCONNECT, "Connection failed");
+    INA_ERR_PUSH_OSFN(INAWS_ERR_NOCONNECT, INA_OSFN_NONE, "Connection failed");
+
+### Peek
+With a peek operation we get the first unhandled error from the global state. 
+Call `ina_err_peek()`to peek. Peek doesn't drop the error. For instance:
+  
+    if (!INA_SUCCEED(inaws_server_start())) {
+        rc = ina_err_peek();
+        ... do something now!
+
+To know what is the first pushed error we use `ina_err_peek_last()`. It's 
+maybe confusing but, in fact the first pushed error is the last error in our
+global error state.  In others words, `ina_err_peek_last()` returns the root 
+of failure (until no errors were dropped) .
+
+We can walk through the global error state by using `ina_err_peek()` and 
+`ina_err_peek_next()`
+
+    if (!INA_SUCCEED(inaws_server_start())) {
+        rc = ina_err_peek();
+        while (!INA_SUCCEED(rc)) {
+           /* check if we must abort ... */
+          if (INA_ERR_FATAL(RC)) {
+            abort();
+          }
+          rc = ina_err_peek_next(rc);
+        }
+         
+For simplification we can set our RC to `INA_ERR_PEEK_FIRST` and then walk 
+through using `ina_err_peek_next()`.
+       
+        rc =  INA_ERR_PEEK_FIRST;
+        while (!(rc = ina_err_peek_next(rc)) {
+           /* check if we must abort ... */
+          if (INA_ERR_FATAL(RC)) {
+            abort();
+          }
 
 ## Testing
 

@@ -28,26 +28,51 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-static int32_t initialized = 0;
+static int32_t __initialized = 0;
  
-INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]) 
+INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]) 
 {
-    return ina_initlib();
+    return ina_libinit();
 }
 
-INA_API(ina_rc_t) ina_initlib(void)
+INA_API(ina_rc_t) ina_libinit(void)
 {
-    if (initialized++) {
+    if (__initialized++) {
         return INA_SUCCESS;
     }
-    
-    /* TODO: initialize memory pool */
+    ina_err_init();
+
+    /* initalize global memory functions */
+    ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+     /* initalize global memory functions for memory pools */
+    ina_mempool_set_fn(NULL, NULL, NULL);
+
+    /* initialize system memory pool and internal structures */
+    ina_mempool_init(0);
+
+    /* initalize error state */
+    ina_err_clear(INA_ERR_STATE_CLEAR);
+
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_exit(void)
+INA_API(ina_rc_t) ina_exit(int exitcode)
 {
-    /* TODO: tear down memory pool */
+    while (!__initialized--) {
+        ina_exit(exitcode);
+    }
+
+    INA_ASSERT(exitcode == EXIT_SUCCESS || exitcode == EXIT_FAILURE);
+
+    if (!INA_SUCCEED(ina_err_peek())) {
+        ina_err_trace();
+        ina_err_dump();
+    }
+    
+    /* FIXME: error hanfling */
+    ina_err_clear(INA_ERR_STATE_CLEAR);
+    ina_mempool_destroy();
+    
     return INA_SUCCESS;
 }
  

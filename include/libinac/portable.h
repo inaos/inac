@@ -478,7 +478,7 @@
  * Cross-platform compile time assertion macro
  * ----------------------------------------------------------------------------
  */
-#define INA_COMPILE_TIME_ASSERT(name, x) typedef int _INA_dummy_ ## name[(x) ? 1 : -1 ]
+#define INA_CASSERT(name, x) typedef int _INA_dummy_## name[(x) ? 1 : -1 ]
 
 /*
  * ----------------------------------------------------------------------------
