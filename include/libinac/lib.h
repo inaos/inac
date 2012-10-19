@@ -36,8 +36,10 @@
 #include <libinac/memory.h>
 #include <libinac/string.h>
 #include <libinac/error.h>
-#include <libinac/test.h>
+#include <libinac/debug.h>
 
+#define INA_YES 1
+#define INA_NO  0
 /*
  * Version
  */
@@ -50,8 +52,8 @@
 /* Version as a 3-byte hex number, e.g. 0x010201 == 1.2.1. Use this
  * for numeric comparisons, e.g. #if INA_VERSION_HEX >= ... */
 #define INA_VERSION_HEX  ((INA_MAJOR_VERSION << 16) |   \
-                              (INA_MINOR_VERSION << 8)  |   \
-                              (INA_MICRO_VERSION << 0))
+                          (INA_MINOR_VERSION << 8)  |   \
+                          (INA_MICRO_VERSION << 0))
 
 /*
  * Startup application with argc, argv in order to deal with 
@@ -65,7 +67,7 @@
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]);
+INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]);
 
 /*
  * Initialize all internal data structures. This must be the first function 
@@ -74,15 +76,19 @@ INA_API(ina_rc_t) ina_initapp(const int argc,  const char *argv[]);
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_initlib(void);
+INA_API(ina_rc_t) ina_libinit(void);
 
 /*
  * Relase and cleanup all internal data structures. This function must be
  * called once before the application terminate.
  *
+ * Parameters
+ * exitcode     EXIT_SUCCESS to indicate successful program completion. 
+ *              EXIT_FAILURE to indicate unsuccessful program completion in a 
+ *              general sense.
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_exit(void);
+INA_API(ina_rc_t) ina_exit(int exitcode);
 
 #endif

@@ -28,39 +28,110 @@
 #include <libinac/lib.h>
 #include "../config.h"
 
-#ifdef BSTRING_ENABLED
+#ifdef CSTRING_ENABLED
+
+INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool)
+{
+    ina_str_t str;
+    if (pool == NULL) {
+        str = (ina_str_t)ina_mem_alloc(len+1);
+    } else {
+        str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
+    }
+    if (str == NULL) {
+        INA_STR_ERROR_ALLOC;
+    }
+    str[0] = '\0';
+    return str; 
+}
 
 INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {
     ina_str_t str;
-    str = bfromcstr(cstr);
+    size_t len;
+
+    str = NULL;
+    
+    if (cstr != NULL) {
+        len = strlen(cstr);
+        if (pool == NULL) {
+            str = (ina_str_t)ina_mem_alloc(len+1);
+        } else {
+            str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
+        }
+        ina_mem_cpy(str, cstr, len);
+        str[len] = '\0';
+    }
     return str;
 }
 
 INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
 {
-    bdestroy(str);
+    ina_mem_free(str);
     return INA_SUCCESS;
 }
 
 INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
 {
-    return ina_str_fromcstr(str->data, pool);
+    if (str == NULL) {
+        return NULL;
+    }
+    return ina_str_fromcstr(str, pool);
 }
 
-INA_API(const char*) inac_str_cstr(ina_str_t str)
+INA_API(const char*) ina_str_cstr(const ina_str_t str)
 {
-    return bdata(str);
+    return str;
+}
+
+INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t src)
+{
+    return strcpy(dest, src);
+}
+
+INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n)
+{
+    return strncpy(dest, src, n);
 }
 
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
 {
-    return NULL;
+    return strcat(dest, src);
+}
+
+INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t src, size_t n)
+{
+    return strncat(dest, src, n);
+}
+
+INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
+{
+    return strcmp(lhs, rhs);
+}
+
+INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
+{
+    return strncmp(lhs, rhs, n);
 }
 
 INA_API(size_t) ina_str_len(const ina_str_t str)
 {
-    return blength(str);
+    return strlen(str);
 }
 
+
+INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...)
+{
+    va_list args;
+    ina_str_t str;
+
+    INA_ASSERT_NOTNULL(fmt);
+
+    str = ina_str_newlen(1024, NULL);
+
+    va_start(args, fmt);
+    vsnprintf(str, 1024, fmt, args);
+    va_end(args);
+    return str;
+}
 #endif

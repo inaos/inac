@@ -28,7 +28,69 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-void test_mempool_basics() 
+/* Align to 2x word size (as GNU libc does). */
+#define __INA_ALIGN_SIZE (2 * sizeof(void*))
+
+/* Round up 'n' to a multiple of ALIGN_SIZE. */
+#define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
+
+void test_mempool_syspool() 
 {
-    INA_ASSERT_EQUAL(ina_mempool_init(), INA_SUCCESS);  
-} 
+    void *p;
+    ina_mempool_info_t mi;
+
+    INA_TRACE("test_mempool_syspool");
+    
+    /* clear error state and assure it's clean */
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek());
+
+    /* destroy all pools and recreate internal pool with default size */
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_destroy());
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_init(0));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
+    INA_ASSERT_EQUAL(0, mi.children);
+    INA_ASSERT_EQUAL(8*1024*1024, mi.size);
+
+    /* destroy all pools and recreate internal 10MB pool */
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_destroy());
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_init(10*1024*1024));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
+    INA_ASSERT_EQUAL(0, mi.children);
+    INA_ASSERT_EQUAL(10*1024*1024, mi.size);
+
+    /* allocate 2MB */    
+    p = ina_mem_alloc(2*1024*1024);
+    INA_ASSERT_NOTNULL(p);
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek());
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_getinfo(NULL, &mi));
+    INA_ASSERT_EQUAL(0, mi.children);
+    INA_ASSERT_EQUAL((10*1024*1024), mi.size);
+    /* printf("mi.used= %zd", mi.used); */
+    /*INA_ASSERT_EQUAL(__INA_MEM_ALIGN(2*1024*1024), mi.used);*/
+}
+
+
+void test_mempool_bad_dalloc()
+{
+    void *ptr;
+    ina_mempool_t *pool;
+
+    INA_TRACE("test_mempool_bad_dalloc");
+    
+    ptr = NULL;
+    pool = NULL;
+
+    /* clear error state and assure it's clean */
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek());
+
+    /* create a fixed size pool of 1KB and try to allocate 2KB */
+    INA_ASSERT_EQUAL(INA_SUCCESS, ina_mempool_create(&pool, 1024, 0));
+    INA_ASSERT_NOTNULL(pool);
+    ptr = ina_mempool_dalloc(pool, 2048);
+    INA_ASSERT_NULL(ptr);
+    INA_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
+    INA_ASSERT_EQUAL(INA_ERR_RC_ALLOC , INA_RC_REASON(ina_err_peek()));
+
+}

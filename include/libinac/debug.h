@@ -25,59 +25,43 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <libinac/lib.h>
-#include "../config.h"
+#ifndef _LIBINAC_DEBUG_H_
+#define _LIBINAC_DEBUG_H_
 
-#ifdef INA_STRING_CRT_ENABLED
+#include <assert.h>
 
-INA_API(ina_str_t) ina_str_newlen(const void *anystr, size_t len, ina_mempool_t *pool)
-{
+#ifdef TRACE_ENABLED
+#define INA_TRACE(x) \
+    printf(          \
+        "%s(%d): ",  \
+        __FILE__,    \
+        __LINE__     \
+        );           \
+                     \
+    printf(x);       \
+    printf("%s", "\n");
+#else
+#define INA_TRACE(x)
+#endif 
 
-    char* p = (char*)malloc(len+1);
-
-    if (anystr) {
-        memcpy(p, anystr, len);
-    } else {
-        memset(p,0,len);
-    }
-
-    p[len] = '\0';
-    ina_err_setlast(INA_SUCCESS);
-    return p;
-}
-
-INA_API(ina_rc_t) ina_str_free(ina_str_t s)
-{
-    free(s);
-    return INA_SUCCESS;
-}
-INA_API(ina_str_t) ina_str_dup(const ina_str_t s, ina_mempool_t *pool)
-{
-    return ina_str_newlen(s, strlen(s), pool);
-}
-
-INA_API(const char*) inac_str_cstr(ina_str_t s)
-{
-    return strdup(s);
-}
-
-INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
-{
-    return NULL;
-}
-
-INA_API(ina_rc_t) ina_str_cmp(const ina_str_t s1, const ina_str_t s2)
-{
-    return INA_SUCCESS;
-}
-
-INA_API(const ina_str_t) ina_str_strstr(const ina_str_t s1, const ina_str_t s2)
-{
-    return NULL;
-}
-INA_API(const ina_str_t) ina_str_strrch(const ina_str_t s1, const ina_str_t s2)
-{
-    return NULL;
-}
-
+#ifdef DEBUG
+#define INA_NOT_IMPL assert(0)
+#define INA_ASSERT(cond) assert(cond)
+#define INA_ASSERT_FALSE(v) INA_ASSERT(!v)
+#define INA_ASSERT_TRUE(v) INA_ASSERT(v)
+#define INA_ASSERT_NULL(v) INA_ASSERT(v == NULL)
+#define INA_ASSERT_NOTNULL(v) INA_ASSERT(v != NULL)
+#define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == actual)
+#define INA_ASSERT_NOTEQUAL(notexpected, actual) INA_ASSERT(notexpected != actual)
+#else
+#define INA_NOT_IMPL INA_CASSERT(Not_implemented,0)
+#define INA_ASSERT(cond)
+#define INA_ASSERT_FALSE(v)
+#define INA_ASSERT_TRUE(v)
+#define INA_ASSERT_NULL(v)
+#define INA_ASSERT_NOTNULL(v)
+#define INA_ASSERT_EQUAL(expected, actual)
+#define INA_ASSERT_NOEQUAL(notexpected, actual)
 #endif
+ 
+ #endif

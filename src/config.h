@@ -25,21 +25,23 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_CONIFG_H
-#define _LIBINAC_CONIFG_H
+#ifndef _LIBINAC_CONIFG_H_
+#define _LIBINAC_CONIFG_H_
 
-/*
- * Enable/Disable memory pool
- */
-#define INA_MEMPOOL_ENABLED 0
+/* Define string code/library to use */
+#ifndef STRING_DEFINED
+#define CSTRING_ENABLED 1
+#endif
 
+/* Define default sys mem pool size */
+#ifndef SYSMEMPOOL_SIZE
+#define SYSMEMPOOL_SIZE  8*1024*1024
+#endif
 
-/*
- * Define string code/library to be used
- */
-#define INA_STRING_CRT_ENABLED      1
-#define INA_STRING_BSTRING_ENABLED  0
-#define INA_STRING_SDS_ENABLED      0
-#define INA_STRING_LIBINAC_ENABLED  0
+/* Define default mem pool size */
+#ifndef MEMPOOL_SIZE
+#define MEMPOOL_SIZE  8*1024*1024
+#endif
+
 
 #endif

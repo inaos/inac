@@ -29,7 +29,18 @@
 #define _LIBINAC_TYPES_H_
 
 /* Return code */
-typedef int32_t ina_rc_t;
+typedef uint32_t ina_rc_t;
+
+#ifdef BSTRING_ENABLED
+#include <bstring/bstrlib.h>
+#define ina_str_t bstring
+#ifdef STRING_ENABLED
+#error String library already defined.
+#endif
+#define STRING_DEFINED 1
+#else
+typedef char * ina_str_t;
+#endif
 
 
 #endif
