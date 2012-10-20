@@ -52,14 +52,12 @@
 #define INA_ERR_RC_MSGLEN 1
 #define INA_ERR_RC_MSGFMT 2
 #define INA_ERR_RC_ALLOC  3
+#define INA_ERR_RC_PARAM  4|INA_ERR_FATAL
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
 /* Mark a fatal error (bit 11 of RC) */
 #define INA_ERR_FLAG_FATAL   0x300
-/* Used to reset the error state. */
-#define INA_ERR_STATE_CLEAR   0
-
 /* Used to start an interation  */
 #define INA_ERR_PEEK_FIRST    0
 
@@ -165,9 +163,6 @@ typedef struct ina_error_s {
     void *data;
 } ina_error_t;
 
-/* internal initialization */
-ina_rc_t ina_err_init();
-
 /*
  * Push an error to the error state.
  * 
@@ -223,10 +218,12 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc);
  *
  * Return Value
  * RC. 
- * Returns INA_SUCCESS when the complete error state was cleard successfully
+ * Returns INA_SUCCESS when the complete error state was cleared successfully
  * ohterwise returns INA_FAILURE
  */
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
+
+INA_API(ina_rc_t) ina_err_reset(void);
 
 /*
  * Makes a nice trace to the stdout of the current error state.

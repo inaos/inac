@@ -41,7 +41,7 @@ void test_error_message_formatting()
     INA_ASSERT_NOTNULL(msg1);
     INA_ASSERT_NOTNULL(msg2);
     
-    INA_ASSERT_SUCCESS(ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
     INA_ERR_ERROR_MSGLEN;
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
@@ -62,7 +62,7 @@ void test_error_push_and_peek()
     size_t i;
     ina_rc_t rc;
 
-    INA_ASSERT_SUCCESS(ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
 
     for (i = 0; i < 10; ++i) {
@@ -83,7 +83,7 @@ void test_error_push_and_clear()
     ina_rc_t rc1;
     ina_rc_t rc2;
 
-    INA_ASSERT_SUCCESS(ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_SUCCESS(ina_err_reset());
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
     INA_ASSERT_EQUAL(rc1, ina_err_peek());
     INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
@@ -95,7 +95,7 @@ void test_error_push_and_clear()
     INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
     INA_ASSERT_NOTEQUAL(rc1, rc2);
 
-    INA_ASSERT_SUCCESS(ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
     INA_ASSERT_SUCCESS(ina_err_peek_last());
  }
@@ -122,6 +122,7 @@ void test_error_pack_rc()
     INA_ASSERT_EQUAL(2, INA_RC_OSFN(rc));
     INA_ASSERT_EQUAL(7, INA_RC_REASON(rc));
     INA_ASSERT_EQUAL(4, INA_RC_ID(rc));
+    INA_ASSERT_FALSE(INA_RC_FATAL(rc));
     
     rc = INA_RC_PACK(15,15,255,1023);
     printf("rc = %u\n", rc);

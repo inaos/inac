@@ -42,7 +42,7 @@ void test_mempool_syspool()
     INA_TRACE("test_mempool_syspool");
     
     /* clear error state and assure it's clean */
-    INA_ASSERT_SUCCESS(ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
 
     /* destroy all pools and recreate internal pool with default size */
@@ -82,7 +82,7 @@ void test_mempool_bad_dalloc()
     pool = NULL;
 
     /* clear error state and assure it's clean */
-    INA_ASSERT_SUCCESS(ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
 
     /* create a fixed size pool of 1KB and try to allocate 2KB */
