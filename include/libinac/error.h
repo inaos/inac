@@ -83,7 +83,7 @@
  * r    Reason of failure
  * s    Error message
  */
-#define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,              \
+#define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,               \
                                           INA_OSFN_NONE,                    \
                                           r,                                \
                                           ina_str_fromcstr(__FILE__, NULL), \
@@ -193,7 +193,7 @@ INA_API(ina_rc_t) ina_err_peek_last(void);
  * Peek the first unhandled error from the error state.
  *
  * Return Value
- * RC of first unhandled error or INA_SUCCESS error state is clean 
+ * RC of first unhandled error or INA_SUCCESS  if error state is clean 
  */
 INA_API(ina_rc_t) ina_err_peek(void);
 
@@ -209,24 +209,30 @@ INA_API(ina_rc_t) ina_err_peek(void);
 INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc);
 
 /*
- * Mark an error as handled or clear the entire error state.
+ * Mark an error as handled. All errors pushed before this one are removed
+ * from the state.
  *
  * Parameters
- * rc   Valid RC to mark as handled. If a error is already maked as handled
- *      no error occurs. To clear the complete error state pass INA_SUCCESS
- *      to the function.
+ * rc   Valid RC to mark as handled. If a error was already maked as handled
+ *      no error occurs.
  *
  * Return Value
- * RC. 
  * Returns INA_SUCCESS when the complete error state was cleared successfully
- * ohterwise returns INA_FAILURE
+ * otherwise returns INA_FAILURE. A marked 
  */
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
 
+/*
+ * Mark an error as handled.
+ *
+ * Return Value
+ * Returns INA_SUCCESS when the complete error state was cleared successfully
+ * otherwise returns INA_FAILURE
+ */
 INA_API(ina_rc_t) ina_err_reset(void);
 
 /*
- * Makes a nice trace to the stdout of the current error state.
+ * Makes a trace to the stdout of the current error state.
  *
  * Return Value
  * INA_SUCCESS
@@ -242,10 +248,14 @@ INA_API(ina_rc_t) ina_err_trace(void);
 INA_API(ina_rc_t) ina_err_dump(void);
 
 /*
- * Set a custom cleanup handler for a given signal.
+ * Set a custom cleanup routine to call in case of an programm error or
+ * a terminiation signal. The purpose of such a routine is to give consumers
+ * a last chance to cleanup before the program exits.
  *
  * Parameters
- * handler  Function which handle the signal
+ * handler  Cleanup routine. A cleanup should return EXIT_SUCCESS or 
+ *          EXIT_FAILURE depending on type of signal. On a programm error
+ *          the return of cleanup routines will be ignored. 
  *
  * Return Value
  * Previously defined handler
