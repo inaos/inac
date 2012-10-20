@@ -35,7 +35,7 @@
 
 /* Indicate no errors */
 #define INA_SUCCESS  0
-/* Indicate genercic failure */
+/* Indicate generic failure */
 #define INA_FAILURE  1
 
 /* Module identifiers */
@@ -60,7 +60,7 @@
 /* Used to reset the error state. */
 #define INA_ERR_STATE_CLEAR   0
 
-/* Used to start an interation */
+/* Used to start an interation  */
 #define INA_ERR_PEEK_FIRST    0
 
 /*
@@ -253,7 +253,8 @@ INA_API(ina_rc_t) ina_err_dump(void);
  * Return Value
  * Previously defined handler
  */
-INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(ina_cleanup_handler_t handler);
+INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
+                                        ina_cleanup_handler_t handler);
 
 /*
  * Format the error message for a given RC.
@@ -267,6 +268,4 @@ INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(ina_cleanup_handler_t
  * INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
  */
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
-
-INA_API(ina_rc_t) ina_err_setdata(ina_rc_t rc, ...);
 #endif
