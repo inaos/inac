@@ -321,6 +321,25 @@ through using `ina_err_peek_next()`.
             abort();
           }
 
+## Cleanup the error state
+To reset the entire error state use `ina_err_reset()`. All errors including 
+the most recently  pushed are removed from the error state.
+
+    /* make sure error state is clean */
+    ina_err_reset();
+    /* do the work now */
+    if (!INA_SUCCEED(inaws_server_start())) {
+        rc = ina_err_peek();
+        if (!INA_ERR_FATAL(RC)) 
+
+
+## Utilities
+The error handling module of this library provide two useful functions. They 
+are used internally but they are for public use as well.
+
+- `ina_err_trace()` printout current error state to the standard output.
+- `ina_err_coredump()` generate a core dump without terminate the program.
+
 ## Testing
 
 

@@ -141,9 +141,10 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
     ina_rc_t ret;
 
     INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
+    ret = INA_SUCCESS;
 
     k = __ina_get_index(rc);
-
+    
     if (k < __state.c) {
         INA_ASSERT_EQUAL(rc, __state.errors[k]->rc);
         __state.errors[k]->rc = rc|INA_ERR_FLAG_HANDLED;
@@ -154,7 +155,6 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
                 break;
             }
         }
-        return ret;
     } else {
         return INA_FAILURE;
     }
@@ -225,7 +225,7 @@ INA_API(ina_rc_t) ina_err_trace(void)
         return INA_SUCCESS;
     }
 
-    printf("%s\n", "**** UNHANDLED ERRROR START ******");
+    printf("%s\n", "**** UNHANDLED ERROR START ******");
 
     str = ina_str_newlen(2048, NULL);
     INA_ASSERT(str);
@@ -239,13 +239,13 @@ INA_API(ina_rc_t) ina_err_trace(void)
         }
         rc = ina_err_peek_next(rc);
     }
-    printf("%s\n", "**** UNHANDLED ERRROR END   ******");
+    printf("%s\n", "**** UNHANDLED ERROR END   ******");
 
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_dump(void) {
-    INA_TRACE("Dump\n");
+INA_API(ina_rc_t) ina_err_coredump(void) {
+    INA_TRACE("Dump");
     return INA_SUCCESS;
 }
 

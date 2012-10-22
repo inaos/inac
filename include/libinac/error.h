@@ -51,7 +51,7 @@
 /* Errors */
 #define INA_ERR_RC_MSGLEN 1
 #define INA_ERR_RC_MSGFMT 2
-#define INA_ERR_RC_ALLOC  3
+#define INA_ERR_RC_ALLOC  3|INA_ERR_FATAL
 #define INA_ERR_RC_PARAM  4|INA_ERR_FATAL
 
 /* Mark an handled error (bit 10 of RC) */
@@ -138,16 +138,16 @@
 
 /* Error-Module errors */
 #define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
-#define INA_ERR_ERROR_MSGLEN INA_ERR_ERROR(INA_ERR_RC_MSGLEN, "Message size error")
-#define INA_ERR_ERROR_MSGFMT INA_ERR_ERROR(INA_ERR_RC_MSGFMT, "Message format error")
+#define INA_ERR_ERROR_MSGLEN INA_ERR_ERROR(INA_ERR_RC_MSGLEN, "Message size")
+#define INA_ERR_ERROR_MSGFMT INA_ERR_ERROR(INA_ERR_RC_MSGFMT, "Message format")
 
 /* String-Module errors */
 #define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
-#define INA_STR_ERROR_ALLOC INA_STR_ERROR(INA_ERR_RC_MSGLEN, "bad string alloc")
+#define INA_STR_ERROR_ALLOC INA_STR_ERROR(INA_ERR_RC_ALLOC, "Bad string alloc")
 
 /* String-Module errors */
 #define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
-#define INA_MEM_ERROR_ALLOC INA_MEM_ERROR(INA_ERR_RC_ALLOC, "bad memory alloc")
+#define INA_MEM_ERROR_ALLOC INA_MEM_ERROR(INA_ERR_RC_ALLOC, "Bad memory alloc")
 
 
 /* Function pointer cleanup handler. */
@@ -240,12 +240,13 @@ INA_API(ina_rc_t) ina_err_reset(void);
 INA_API(ina_rc_t) ina_err_trace(void);
 
 /*
- * Printout a core dump to the stdout.
+ * Gerenate a core dump
  *
  * Return Value
- * INA_SUCCESS
+ * INA_SUCCESS if successful or INA_FAILURE if an
+ * error occured
  */
-INA_API(ina_rc_t) ina_err_dump(void);
+INA_API(ina_rc_t) ina_err_coredump(void);
 
 /*
  * Set a custom cleanup routine to call in case of an programm error or

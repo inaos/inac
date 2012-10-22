@@ -64,7 +64,7 @@ INA_API(ina_rc_t) ina_exit(int exitcode)
 
     if (!INA_SUCCEED(ina_err_peek())) {
         ina_err_trace();
-        ina_err_dump();
+        ina_err_coredump();
     }
     
     /* FIXME: error handling */
