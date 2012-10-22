@@ -107,17 +107,17 @@ void test_error_pack_rc()
     ina_rc_t rcc;
     ina_rc_t rc;
     
-    rcc = 16850951;
+    rcc = 16846855;
     rc = 0;
     rc = INA_RC_PACK(1,2,7,4);
     
-    printf("rc = %u\n", rc);
+    /*printf("rc = %u\n", rc);
     printf("id = %u\n", INA_RC_ID(rc));
     printf("mod = %u\n", INA_RC_MOD(rc));
     printf("func = %u\n", INA_RC_OSFN(rc));
-    printf("reason = %u\n", INA_RC_REASON(rc));
+    printf("reason = %u\n", INA_RC_REASON(rc));*/
     
-    /*INA_ASSERT_EQUAL(rcc, rc); */
+    INA_ASSERT_EQUAL(rcc, rc);
     INA_ASSERT_EQUAL(1, INA_RC_MOD(rc));
     INA_ASSERT_EQUAL(2, INA_RC_OSFN(rc));
     INA_ASSERT_EQUAL(7, INA_RC_REASON(rc));
@@ -125,26 +125,14 @@ void test_error_pack_rc()
     INA_ASSERT_FALSE(INA_RC_FATAL(rc));
     
     rc = INA_RC_PACK(15,15,255,1023);
-    printf("rc = %u\n", rc);
-    printf("id = %u\n", INA_RC_ID(rc));
-    printf("mod = %u\n", INA_RC_MOD(rc));
-    printf("func = %u\n", INA_RC_OSFN(rc));
-    printf("reason = %u\n", INA_RC_REASON(rc));
-
     INA_ASSERT_EQUAL(15, INA_RC_MOD(rc));
     INA_ASSERT_EQUAL(15, INA_RC_OSFN(rc));
     INA_ASSERT_EQUAL(255, INA_RC_REASON(rc));
     INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));   
 
-    /*rc = INA_RC_PACK(63,31,511,1023);
-    printf("rc = %u\n", rc);
-    printf("id = %u\n", INA_RC_ID(rc));
-    printf("mod = %u\n", INA_RC_MOD(rc));
-    printf("func = %u\n", INA_RC_OSFN(rc));
-    printf("reason = %u\n", INA_RC_REASON(rc));
-
+    rc = INA_RC_PACK(63,31,511,1023);
     INA_ASSERT_EQUAL(63, INA_RC_MOD(rc));
     INA_ASSERT_EQUAL(31, INA_RC_OSFN(rc));
     INA_ASSERT_EQUAL(511, INA_RC_REASON(rc));
-    INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));   */
+    INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));
 } 

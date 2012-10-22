@@ -116,17 +116,17 @@
  */
 #define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)i) << 22U|   \
                               ((ina_rc_t)m) << 16U|   \
-                              ((ina_rc_t)f) << 12U|   \
+                              ((ina_rc_t)f) << 11U|   \
                               ((ina_rc_t)r)
-
+/*4,294 ,967,295*/
 /* Unpack the error identifier for a given RC */
-#define INA_RC_ID(rc)      (ina_rc_t)((rc >> 22U))
+#define INA_RC_ID(rc)     ((((ina_rc_t)rc)&0xFFC00000U)>>22U)
 /* Unpack the module indentifier for a given RC */
-#define INA_RC_MOD(rc)     (ina_rc_t)((rc >> 16U)&0xFU)
+#define INA_RC_MOD(rc)    ((((ina_rc_t)rc)&0x3F0000U)>>16U)
 /* Unpack the OS function identifier for a given RC */
-#define INA_RC_OSFN(rc)    (ina_rc_t)((rc >> 12U)&0xFU)
+#define INA_RC_OSFN(rc)    ((((ina_rc_t)rc)&0xF800U)>>11U)
 /* Unpack the reason of failuer for a given RC */
-#define INA_RC_REASON(rc)  (ina_rc_t)(rc&0xFFU)
+#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0x1FF)>>0)
 /* Verify if error is handled */
 #define INA_RC_HANDLED(rc) (ina_rc_t)(rc&INA_ERR_FLAG_HANDLED)
 /* Verify if fatal error occurred */
