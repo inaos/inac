@@ -51,8 +51,8 @@
 /* Errors */
 #define INA_ERR_RC_MSGLEN 1
 #define INA_ERR_RC_MSGFMT 2
-#define INA_ERR_RC_ALLOC  3|INA_ERR_FATAL
-#define INA_ERR_RC_PARAM  4|INA_ERR_FATAL
+#define INA_ERR_RC_ALLOC  3|INA_ERR_FLAG_FATAL
+#define INA_ERR_RC_PARAM  4|INA_ERR_FLAG_FATAL
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -60,7 +60,6 @@
 #define INA_ERR_FLAG_FATAL   0x300
 /* Used to start an interation  */
 #define INA_ERR_PEEK_FIRST    0
-
 /*
  * Push an error to the error state. 
  * 
