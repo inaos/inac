@@ -30,7 +30,7 @@
 
 static int32_t __initialized = 0;
  
-INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]) 
+INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv) 
 {
     return ina_libinit();
 }
@@ -40,6 +40,8 @@ INA_API(ina_rc_t) ina_libinit(void)
     if (__initialized++) {
         return INA_SUCCESS;
     }
+    atexit(ina_exit);
+    
     /* initalize global memory functions */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
      /* initalize global memory functions for memory pools */
@@ -57,7 +59,7 @@ INA_API(ina_rc_t) ina_libinit(void)
 INA_API(ina_rc_t) ina_exit(int exitcode)
 {
     while (!__initialized--) {
-        ina_exit(exitcode);
+        return INA_SUCCESS;
     }
 
     INA_ASSERT(exitcode == EXIT_SUCCESS || exitcode == EXIT_FAILURE);

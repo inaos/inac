@@ -226,7 +226,7 @@ name##_consumer_get_item(struct name##_ullc_cctx_t *ctx);                   \
 type *                                                                      \
 name##_consumer_get_item_no_wait(struct name##_ullc_cctx_t *ctx);
 
-#define INA_ULLC_PRODUCER_GENERATE(name, type)	                            \
+#define INA_ULLC_PRODUCER_GENERATE(name, type)                              \
 ina_rc_t                                                                    \
 name##_create_producer(struct name##_ullc_pctx_t **pctx,                    \
     const ina_str_t name, int size, int num_consumers)                      \
@@ -250,6 +250,7 @@ name##_create_producer(struct name##_ullc_pctx_t **pctx,                    \
                         INA_MEM_SHARED,                                     \
                         name)))                                             \
     {                                                                       \
+        ctx->mempool = NULL;                                                \
         return INA_MEM_EALLOC;                                              \
     }                                                                       \
     ctx->ring = (name##_ullc_rb_t*)ina_mempool_dalloc(ctx->mempool,         \
@@ -335,7 +336,7 @@ name##_producer_commit_item(struct name##_ullc_pctx_t *ctx, type* item)     \
 #define INA_ULLC_CONSUMER_GENERATE(name, type)                                 \
 ina_rc_t                                                                    \
 name##_create_consumer(struct name##_ullc_cctx_t **cctx,                    \
-    const ina_str_t name, int size, int num_consumers, int id)                  \
+    const ina_str_t name, int size, int num_consumers, int id)              \
 {                                                                           \
     size_t mem_size;                                                        \
     name##_ullc_cctx_t *ctx;                                                \
@@ -351,11 +352,13 @@ name##_create_consumer(struct name##_ullc_cctx_t **cctx,                    \
             INA_MEM_SHARED,                                                 \
             name)))                                                         \
     {                                                                       \
+        ctx->mempool = NULL;                                                \
         return INA_MEM_EALLOC;                                              \
     }                                                                       \
-    ctx->ring = (name##_ullc_rb_t*)ctx->mempool->m;                         \
+    ctx->ring = (name##_ullc_rb_t*)ina_mempool_dalloc(ctx->mempool,         \
+                                    mem_size);                              \
     if (ctx->ring == NULL) {                                                \
-        return(INA_MEM_EALLOC);                                             \
+        return INA_MEM_EALLOC;                                              \
     }                                                                       \
     cons = (name##_ullc_consumer_t*)(&(ctx->ring->data[size-1])             \
         + sizeof(type));                                                    \
@@ -369,7 +372,7 @@ name##_destroy_consumer(struct name##_ullc_cctx_t **cctx)                   \
     name##_ullc_cctx_t* ctx;                                                \
     ctx = *cctx;                                                            \
     ctx->consumer->alive = 0;                                               \
-    ina_mempool_release(ctx->mempool, 1);                                    \
+    ina_mempool_release(ctx->mempool, 1);                                   \
     ina_mem_free(ctx);                                                      \
     return 0;                                                               \
 }                                                                           \
