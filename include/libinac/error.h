@@ -51,8 +51,8 @@
 /* Errors */
 #define INA_EMSGLEN 1
 #define INA_EMSGFMT 2
-#define INA_EALLOC  (3|INA_ERR_FLAG_FATAL)
-#define INA_EPARAM  (4|INA_ERR_FLAG_FATAL)
+#define INA_EALLOC  (3)
+#define INA_EPARAM  (4)
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -125,11 +125,11 @@
 /* Unpack the OS function identifier for a given RC */
 #define INA_RC_OSFN(rc)    ((((ina_rc_t)rc)&0xF800U)>>11U)
 /* Unpack the reason of failuer for a given RC */
-#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0x1FF)>>0)
+#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0x1FF))
 /* Verify if error is handled */
-#define INA_RC_HANDLED(rc) (ina_rc_t)(rc&INA_ERR_FLAG_HANDLED)
+#define INA_RC_HANDLED(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_HANDLED))
 /* Verify if fatal error occurred */
-#define INA_RC_FATAL(rc) (ina_rc_t)(rc&INA_ERR_FLAG_FATAL)
+#define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
 /* Check retuen code if successful or handled */
 #define INA_SUCCEED(rc) (INA_SUCCESS == rc ||       \
                          INA_RC_REASON(rc) == 0 ||  \
