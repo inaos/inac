@@ -310,7 +310,6 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
         pm = pn;
         pn = pn->child;
         if (destroy == 1) {
-            __ina_mp_free(pm);
             if (pm->cf&INA_MEM_SHARED) {
                 __ina_munmap(pm->m, pm->size);
                 __ina_shm_close(pm->label, pm->shm_handle);
