@@ -36,6 +36,7 @@
 #include <libinac/memory.h>
 #include <libinac/string.h>
 #include <libinac/error.h>
+#include <libinac/ullc.h>
 #include <libinac/debug.h>
 
 #define INA_YES 1
