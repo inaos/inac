@@ -90,14 +90,7 @@ INA_API(ina_rc_t) ina_libinit(void);
 /*
  * Relase and cleanup all internal data structures. This function must be
  * called once before the application terminate.
- *
- * Parameters
- * exitcode     EXIT_SUCCESS to indicate successful program completion. 
- *              EXIT_FAILURE to indicate unsuccessful program completion in a 
- *              general sense.
- * Return:
- * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_exit(int exitcode);
+INA_API(void) ina_exit(void);
 
 #endif

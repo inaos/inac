@@ -483,8 +483,6 @@ __ina_shm_open(ina_str_t label, size_t size)
 
     if (ftruncate(handle, size) == -1) {
         INA_TRACE("failed ftruncate()");
-        printf("error: %d", errno);
-        printf("size: %u", size);
         close(handle);
         /* shm_unlink(ina_str_cstr(label));*/
        /* FIXME: Specific error */

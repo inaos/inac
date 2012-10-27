@@ -44,7 +44,5 @@ int main(int argc, const char** argv)
        failure */
     INAC_ERROR_TEST_TRACE;
 
-    /* Never called */
-    ina_exit(EXIT_SUCCESS);
-    return 0;
+   return 0;
 }
