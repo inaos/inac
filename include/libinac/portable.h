@@ -842,7 +842,7 @@
  *  we don't need to worry about that until about 2040 at which point
  *  we'll have bigger things to worry about.
  */
-
+/*
 #ifdef stdint_int64_defined
   typedef int64_t intmax_t;
   typedef uint64_t uintmax_t;
@@ -877,6 +877,7 @@
 #  define PRINTF_INTMAX_DEC_WIDTH PRINTF_INT32_DEC_WIDTH
 # endif
 #endif
+*/
 
 /*
  *  Because this file currently only supports platforms which have
