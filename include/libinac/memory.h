@@ -44,7 +44,7 @@
 /* Memory pool handle */
 typedef struct ina_mempool_s  {
     int pid; /* FIXME: x-platform */
-    int tid; /* FIXME: x-plaform */
+    int tid; /* FIXME: x-platform */
     ina_shm_handle_t shm_handle;
     uint32_t cf;
     size_t size;
