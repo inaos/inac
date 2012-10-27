@@ -12,5 +12,5 @@ install: all
 .PHONY: clean
 	
 clean: 
-	-rm -f *.html
+	rm -f *.html
 
