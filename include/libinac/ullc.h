@@ -26,7 +26,7 @@
  * OF SUCH DAMAGE.
  */
 #ifndef _LIBINAC_ULLC_H_
-#define _LIBINAC_UULC_H_
+#define _LIBINAC_ULLC_H_
 
 #include <stdint.h>
 #include <math.h>
@@ -175,8 +175,8 @@ typedef struct name##_ullc_cctx_s {                      \
 
 #define IULLC_CONSUMER_DEFINES(name, type)               \
     INA_ULLC_RING_ROOT(name,type);                       \
-    INA_IULLC_CONSUMER_ROOT(name);                       \
-    INA_IULLC_CCTX_ROOT(name,type)
+    INA_ULLC_CONSUMER_ROOT(name);                        \
+    INA_ULLC_CCTX_ROOT(name,type)
 
 #define INA_ULLC_PRODUCER_PROTOTYPES(name, type)                            \
 ina_rc_t                                                                    \
