@@ -25,6 +25,8 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#include <unistd.h>
+
 #include <libinac/lib.h>
 #include "config.h"
 
@@ -245,7 +247,9 @@ INA_API(ina_rc_t) ina_err_trace(void)
 }
 
 INA_API(ina_rc_t) ina_err_coredump(void) {
-    INA_TRACE("Dump");
+    char cmd[160];
+    sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
+    system(cmd);
     return INA_SUCCESS;
 }
 
@@ -274,7 +278,7 @@ __ina_init(void)
     signal(SIGTERM, __ina_signal_handler);
     signal(SIGKILL, __ina_signal_handler);
     signal(SIGSTOP, __ina_signal_handler);
-    
+
     ++__initialized;
     __state.c = 0;
     __state.ic = 0;
