@@ -354,8 +354,8 @@
 #     define INA_FASTCALL __fastcall
 #  endif
 #else
-#  define INA_CDECL    
-#  define INA_STDCALL  
+#  define INA_CDECL
+#  define INA_STDCALL
 #  define INA_FASTCALL 
 #endif
 
@@ -370,13 +370,22 @@
    defined to `inline', otherwise empty. In C++, the inline is always
    supported. */
 #ifdef __cplusplus
-#define INA_INLINE inline
-#else
-#  ifdef INLINE_ENABLED
-#    define INA_INLINE inline
+#  ifdef INA_COMPILER_MSVC
+#    define INA_INLINE __inline
 #  else
-#    define INA_INLINE
+#   define INA_INLINE inline
 #  endif
+#else
+#  ifdef INA_COMPILER_MSVC
+#    define INA_INLINE __inline
+#  else
+#    ifdef INLINE_ENABLED
+#       define INA_INLINE inline
+#    endif
+#  endif
+#endif
+#ifndef INA_INLINE
+#define INA_INLINE
 #endif
 
 /*

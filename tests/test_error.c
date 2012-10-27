@@ -43,16 +43,16 @@ void test_error_message_formatting()
     
     INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
-    INA_ERR_ERROR_MSGLEN;
+    INA_ERR_EMSGLEN;
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
     printf("msg2=%s\n", ina_str_cstr(msg2));
 }
 
 void test_error_macros()
 {
-     INA_ERR_ERROR_MSGLEN;
-     INA_ERR_ERROR_MSGFMT;
-     INA_STR_ERROR_ALLOC;
+     INA_ERR_EMSGLEN;
+     INA_ERR_EMSGFMT;
+     INA_STR_EALLOC;
 }
 
 void test_error_push_and_peek()

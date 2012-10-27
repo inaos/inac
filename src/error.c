@@ -94,8 +94,7 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file,
     error->msg = ina_str_dup(msg, NULL);
     error->data = NULL;
 
-    __state.errors[__state.c] = error;
-    ++__state.c;
+    __state.errors[__state.c++] = error;
     return error->rc;
 }
 
@@ -158,9 +157,9 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
             }
         }
     } else {
-        return INA_FAILURE;
+        ret = INA_FAILURE;
     }
-    return INA_SUCCESS;
+    return ret;
 }
 
 INA_API(ina_rc_t) ina_err_reset(void)
@@ -194,7 +193,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
             if (len < (ina_str_len(error->msg) +
                        ina_str_len(error->file) +
                        __INA_ERR_MESSAGE_EXTRALEN)) {
-                return INA_ERR_ERROR_MSGLEN;
+                return INA_ERR_EMSGLEN;
             }
 
             tm = localtime(&error->ts);
@@ -207,7 +206,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
                                             ina_str_cstr(error->msg));
 
                 if (ina_str_ncpy(str, outstr, len) == NULL) {
-                    return INA_ERR_ERROR_MSGFMT;
+                    return INA_ERR_EMSGFMT;
                 }
                 return INA_SUCCESS;
             }
@@ -348,7 +347,6 @@ __ina_signal_handler(int sig)
             if (__cleanup) {
                  __cleanup(sig, 0);
             }
-            ina_exit(EXIT_FAILURE);
             break;
         case SIGHUP:
         case SIGINT:
@@ -360,10 +358,9 @@ __ina_signal_handler(int sig)
             if (__cleanup) {
                 exitcode = __cleanup(sig, 1);
             }
-            ina_exit(exitcode);
             break;
         default:
             INA_TRACE("unknown singal received!");
-            ina_exit(exitcode);
     }
+    ina_exit(exitcode);
 }
