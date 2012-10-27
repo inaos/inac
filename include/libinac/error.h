@@ -49,10 +49,10 @@
 #define INA_OSFN_FOPEN  1
 
 /* Errors */
-#define INA_ERR_RC_MSGLEN 1
-#define INA_ERR_RC_MSGFMT 2
-#define INA_ERR_RC_ALLOC  3|INA_ERR_FLAG_FATAL
-#define INA_ERR_RC_PARAM  4|INA_ERR_FLAG_FATAL
+#define INA_EMSGLEN 1
+#define INA_EMSGFMT 2
+#define INA_EALLOC  (3|INA_ERR_FLAG_FATAL)
+#define INA_EPARAM  (4|INA_ERR_FLAG_FATAL)
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -117,7 +117,7 @@
                               ((ina_rc_t)m) << 16U|   \
                               ((ina_rc_t)f) << 11U|   \
                               ((ina_rc_t)r)
-/*4,294 ,967,295*/
+
 /* Unpack the error identifier for a given RC */
 #define INA_RC_ID(rc)     ((((ina_rc_t)rc)&0xFFC00000U)>>22U)
 /* Unpack the module indentifier for a given RC */
@@ -137,16 +137,16 @@
 
 /* Error-Module errors */
 #define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
-#define INA_ERR_ERROR_MSGLEN INA_ERR_ERROR(INA_ERR_RC_MSGLEN, "Message size")
-#define INA_ERR_ERROR_MSGFMT INA_ERR_ERROR(INA_ERR_RC_MSGFMT, "Message format")
+#define INA_ERR_EMSGLEN INA_ERR_ERROR(INA_EMSGLEN, "Message size")
+#define INA_ERR_EMSGFMT INA_ERR_ERROR(INA_EMSGFMT, "Message format")
 
 /* String-Module errors */
 #define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
-#define INA_STR_ERROR_ALLOC INA_STR_ERROR(INA_ERR_RC_ALLOC, "Bad string alloc")
+#define INA_STR_EALLOC INA_STR_ERROR(INA_EALLOC, "Bad string alloc")
 
 /* String-Module errors */
 #define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
-#define INA_MEM_ERROR_ALLOC INA_MEM_ERROR(INA_ERR_RC_ALLOC, "Bad memory alloc")
+#define INA_MEM_EALLOC INA_MEM_ERROR(INA_EALLOC, "Bad memory alloc")
 
 
 /* Function pointer cleanup handler. */
@@ -237,15 +237,6 @@ INA_API(ina_rc_t) ina_err_reset(void);
  * INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_err_trace(void);
-
-/*
- * Gerenate a core dump
- *
- * Return Value
- * INA_SUCCESS if successful or INA_FAILURE if an
- * error occured
- */
-INA_API(ina_rc_t) ina_err_coredump(void);
 
 /*
  * Set a custom cleanup routine to call in case of an programm error or

@@ -86,11 +86,11 @@ void test_mempool_bad_dalloc()
     INA_ASSERT_SUCCESS(ina_err_peek());
 
     /* create a fixed size pool of 1KB and try to allocate 2KB */
-    INA_ASSERT_SUCCESS(ina_mempool_create(&pool, 1024, 0));
+    INA_ASSERT_SUCCESS(ina_mempool_create(&pool, 1024, 0, NULL));
     INA_ASSERT_NOTNULL(pool);
     ptr = ina_mempool_dalloc(pool, 2048);
     INA_ASSERT_NULL(ptr);
     INA_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
-    INA_ASSERT_EQUAL(INA_ERR_RC_ALLOC , INA_RC_REASON(ina_err_peek()));
+    INA_ASSERT_EQUAL(INA_EALLOC , INA_RC_REASON(ina_err_peek()));
 
 }
