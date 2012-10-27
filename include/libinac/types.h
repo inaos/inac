@@ -42,5 +42,9 @@ typedef uint32_t ina_rc_t;
 typedef char * ina_str_t;
 #endif
 
-
+#ifdef INA_OS_WIN32
+typedef HANDLE ina_shm_handle_t;
+#else
+typedef int ina_shm_handle_t;
+#endif
 #endif

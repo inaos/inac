@@ -25,6 +25,13 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#include <unistd.h>
+#ifndef INA_OS_WIN32
+#include <sys/mman.h>
+
+#include <fcntl.h>
+#endif
+
 #include <libinac/lib.h>
 #include "config.h"
 
@@ -60,9 +67,13 @@ static ina_mempool_t *__sysmempool = NULL;
 static __ina_mempool_list_t *__mempools = NULL;
 
 static void *__ina_sys_malloc(size_t);
-static void *__ina_sys_realloc(void*, size_t);
+static void *__ina_sys_realloc(void *, size_t);
 static void __ina_sys_free(void *);
- 
+static ina_shm_handle_t __ina_shm_open(ina_str_t, size_t );
+static void * __ina_mmap(void *, size_t, ina_shm_handle_t, size_t);
+static ina_rc_t __ina_munmap(void *, size_t);
+static ina_rc_t __ina_shm_close(ina_str_t label, ina_shm_handle_t handle);
+
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
                                  ina_realloc_t realloc_fn,
@@ -183,7 +194,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
         return INA_FAILURE;
     }
     
-    rc = ina_mempool_create(&__sysmempool, size, INA_MEM_DYNAMIC);
+    rc = ina_mempool_create(&__sysmempool, size, INA_MEM_DYNAMIC, NULL);
     if (INA_SUCCEED(rc)) {
         __mempools->pool = __sysmempool;
         __mempools->prev = NULL;
@@ -195,7 +206,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     return rc;
 }
 
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf)
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, ina_str_t label)
 {
     __ina_mempool_list_t *last;
     __ina_mempool_list_t *next;
@@ -210,21 +221,43 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         return INA_FAILURE;
     }
 
-    (*pool)->m = __ina_mp_malloc(size);
-    if (cf&INA_MEM_FILLZERO) {
-        __ina_memset((*pool)->m, 0, size);
+    if (cf&INA_MEM_SHARED) {
+        INA_ASSERT_NOTNULL(label);
+        (*pool)->shm_handle = __ina_shm_open(label, size);
+        if ((*pool)->shm_handle == INA_FAILURE) {
+            __ina_mp_free(*pool);
+            return ina_err_peek();
+        }
+        (*pool)->m = __ina_mmap(NULL, size, (*pool)->shm_handle, 0);
+        if (!INA_SUCCEED(ina_err_peek())) {
+            __ina_shm_close(label, (*pool)->shm_handle);
+            __ina_mp_free(*pool);
+            return ina_err_peek();
+        }
+    } else {
+        (*pool)->m = __ina_mp_malloc(size);        
     }
-    
+
     if ((*pool)->m == NULL) {
         __ina_mp_free(*pool);
         return INA_FAILURE;
     }
+
+    if (cf&INA_MEM_FILLZERO) {
+        __ina_memset((*pool)->m, 0, size);
+    }
+
+    (*pool)->pid = getpid();
+    (*pool)->tid = 0;
     (*pool)->cf = cf;
     (*pool)->pos = 0;
     (*pool)->end = size;
     (*pool)->size = size;
     (*pool)->parent = NULL;
     (*pool)->current = *pool;
+    if (label != NULL) {
+        (*pool)->label = ina_str_dup(label, NULL);
+    }
     
     last = __mempools;
     while (last->next != NULL) {
@@ -234,6 +267,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
 
     next = (__ina_mempool_list_t*)ina_mem_alloc(sizeof(__ina_mempool_list_t));
     if (next == NULL) {
+        ina_mem_free((*pool)->label);
         __ina_mp_free((*pool)->m);
         __ina_mp_free(*pool);
         return INA_FAILURE;
@@ -270,13 +304,19 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
             ref->pool = NULL;
         }
     }
-    
+
     pn = pool;
     while (pn != NULL) {
         pm = pn;
         pn = pn->child;
         if (destroy == 1) {
-            __ina_mp_free(pm->m);
+            __ina_mp_free(pm);
+            if (pm->cf&INA_MEM_SHARED) {
+                __ina_munmap(pm->m, pm->size);
+                __ina_shm_close(pm->label, pm->shm_handle);
+            } else {
+                __ina_mp_free(pm->m);
+            }
             __ina_mp_free(pm);
         } else {
             pm->pos = 0;
@@ -330,10 +370,11 @@ INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
                 size = __INA_MEM_ALIGN(pool->size * 2);
             }
             /* FIXME: Push an error , if fails */
-            ina_mempool_create(&pool->current->child, size, pool->cf);
+            /* FXIME: shm can not handled in chunks ! */
+            ina_mempool_create(&pool->current->child, size, pool->cf, pool->label);
             pool->current = pool->current->child;
         } else {
-            INA_MEM_ERROR_ALLOC;
+            INA_MEM_EALLOC;
             return NULL;
         }
     }
@@ -420,3 +461,69 @@ __ina_sys_free(void * ptr)
     INA_ASSERT_NOTNULL(__sysmempool);
     INA_ASSERT_NOTNULL(ptr);
 }
+
+static ina_shm_handle_t 
+__ina_shm_open(ina_str_t label, size_t size)
+{
+    ina_shm_handle_t handle;
+    
+#ifndef INA_OS_WIN32
+    handle = shm_open(ina_str_cstr(label) , O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    if (handle == -1) {
+        /* FIXME: Specific error */
+        INA_MEM_EALLOC;
+        return INA_FAILURE;
+    }
+
+    if (ftruncate(handle, size) == -1) {
+        close(handle);
+        shm_unlink(ina_str_cstr(label));
+       /* FIXME: Specific error */
+        INA_MEM_EALLOC;
+        return INA_FAILURE;
+    }
+#else
+#   error platform not supported
+#endif
+
+    return handle;
+}
+
+static ina_rc_t 
+__ina_shm_close(ina_str_t label, ina_shm_handle_t handle)
+{
+#ifndef INA_OS_WIN32
+    close(handle);
+    shm_unlink(ina_str_cstr(label));
+#else
+#   error platform not supported
+#endif
+    return INA_SUCCESS;
+}
+static void *
+__ina_mmap(void *addr, size_t size, ina_shm_handle_t handle, size_t offset)
+{
+    void *m;
+
+#ifndef INA_OS_WIN32
+    m = mmap(addr, size, PROT_READ|PROT_WRITE, handle, MAP_SHARED, 0);
+    if (m == NULL) {
+        INA_MEM_EALLOC;
+    }
+#else
+#   error platform not supported
+#endif
+    return m;
+}
+
+static ina_rc_t
+__ina_munmap(void *ptr, size_t size)
+{
+    if (ptr == NULL) {
+        return INA_SUCCESS;
+    }
+    INA_ASSERT(size > 0);
+    munmap(ptr, size);
+    return INA_SUCCESS;
+}
+
