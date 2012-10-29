@@ -40,6 +40,8 @@ INA_API(ina_rc_t) ina_libinit(void)
     if (__initialized++) {
         return INA_SUCCESS;
     }
+    atexit(ina_exit);
+
     /* initalize global memory functions */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
      /* initalize global memory functions for memory pools */
