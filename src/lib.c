@@ -30,7 +30,7 @@
 
 static int32_t __initialized = 0;
  
-INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]) 
+INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv) 
 {
     return ina_libinit();
 }
@@ -56,13 +56,11 @@ INA_API(ina_rc_t) ina_libinit(void)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_exit(int exitcode)
+INA_API(void) ina_exit(void)
 {
     while (!__initialized--) {
-        ina_exit(exitcode);
+        return;
     }
-
-    INA_ASSERT(exitcode == EXIT_SUCCESS || exitcode == EXIT_FAILURE);
 
     if (!INA_SUCCEED(ina_err_peek())) {
         ina_err_trace();
@@ -72,7 +70,5 @@ INA_API(ina_rc_t) ina_exit(int exitcode)
     ina_err_reset();
 
     ina_mempool_destroy();
-    
-    return INA_SUCCESS;
 }
  
