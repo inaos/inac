@@ -44,5 +44,5 @@ int main(int argc, const char** argv)
        failure */
     INAC_ERROR_TEST_TRACE;
 
-   return 0;
+    return 0;
 }
