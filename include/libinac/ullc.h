@@ -124,29 +124,6 @@
  * - Multi procuder handling
  *
  */
-
-#ifdef WIN32
- __inline int64_t ina_ullc_ncrement(volatile int64_t *value)
-{
-	return(InterlockedIncrement64(value));
-}
-__inline int64_t ina_ullc_comp_swap(volatile int64_t *value, int64_t with, int64_t cmp)
-{
-	return(InterlockedCompareExchange64(value, with, cmp));
-}
-#elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
-static __inline__ int64_t ina_ullc_increment(volatile int64_t *value)
-{
-	return(__sync_fetch_and_add(value, 1));
-}
-static __inline__ int64_t ina_ullc_comp_swap(volatile int64_t *value, int64_t with, int64_t cmp)
-{
-	return(__sync_val_compare_and_swap(value, cmp, with));
-}
-#else
-#error Compiler not supported yet!
-#endif
-
 typedef enum ina_ullc_producer_wait_strategy_e {
     INA_ULLC_PRODUCER_BUSY_WAIT = 1,
 } ina_ullc_producer_wait_strategy;
@@ -310,13 +287,13 @@ name##_destroy_producer(struct name##_ullc_pctx_t **pctx)                   \
         }                                                                   \
     }                                                                       \
     item = &(ctx->ring->data[like_to_write]);                               \
-    ina_ullc_increment(&ctx->ring->next_ptr);                               \
+    ina_increment(&ctx->ring->next_ptr);                                    \
     return item;                                                            \
 }                                                                           \
 ina_rc_t                                                                    \
 name##_producer_commit_item(struct name##_ullc_pctx_t *ctx, type* item)     \
 {                                                                           \
-    ina_ullc_increment(&ctx->ring->cursor);                                 \
+    ina_increment(&ctx->ring->cursor);                                      \
     return INA_SUCCESS;                                                     \
 }
 
@@ -387,8 +364,8 @@ name##_consumer_get_item(struct name##_ullc_cctx_t *ctx)                    \
     }                                                                       \
     idx = ctx->consumer->cursor % ctx->ring->size;                          \
     item = &(ctx->ring->data[idx]);                                         \
-    ina_ullc_increment(&ctx->consumer->cursor);                             \
-    return(item);                                                           \
+    ina_increment(&ctx->consumer->cursor);                                  \
+    return item;                                                            \
  }                                                                          \
 type *                                                                      \
 name##_consumer_get_item_no_wait(struct name##_ullc_cctx_t *ctx)            \
@@ -397,12 +374,12 @@ name##_consumer_get_item_no_wait(struct name##_ullc_cctx_t *ctx)            \
     int64_t wait_for = ctx->consumer->cursor;                               \
     int idx;                                                                \
     if (ctx->ring->cursor < wait_for) {                                     \
-        return(NULL);                                                       \
+        return NULL;                                                        \
     }                                                                       \
     idx = ctx->consumer->cursor % ctx->ring->size;                          \
     item = &(ctx->ring->data[idx]);                                         \
-    ina_ullc_increment(&ctx->consumer->cursor);                             \
-    return(item);                                                           \
+    ina_increment(&ctx->consumer->cursor);                                  \
+    return item;                                                            \
 }
 
 /* Public Consumer API */

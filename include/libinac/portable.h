@@ -1039,4 +1039,27 @@ typedef uint_least32_t uint_fast32_t;
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
+     
+#ifdef INA_OS_WIN32
+ __inline int64_t ina_increment(volatile int64_t *value)
+{
+	return(InterlockedIncrement64(value));
+}
+__inline int64_t ina_comp_swap(volatile int64_t *value, int64_t with, int64_t cmp)
+{
+	return(InterlockedCompareExchange64(value, with, cmp));
+}
+#elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
+static __inline__ int64_t ina_increment(volatile int64_t *value)
+{
+	return(__sync_fetch_and_add(value, 1));
+}
+static __inline__ int64_t ina_comp_swap(volatile int64_t *value, int64_t with, int64_t cmp)
+{
+	return(__sync_val_compare_and_swap(value, cmp, with));
+}
+#else
+#error Compiler not supported yet!
+#endif
+
 #endif

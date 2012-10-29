@@ -320,9 +320,9 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
                 __ina_shm_close(pm->label, pm->shm_handle);
             } else {
                 INA_TRACE("destroy memory pool 3");
-                /*__ina_mp_free(pm->m);*/
+                __ina_mp_free(pm->m);
             }
-            /*__ina_mp_free(pm)*/;
+            __ina_mp_free(pm);
         } else {
             pm->pos = 0;
             pm->end = pm->size;
