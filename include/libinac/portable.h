@@ -1054,6 +1054,10 @@ static __inline__ int64_t ina_increment(volatile int64_t *value)
 {
 	return(__sync_fetch_and_add(value, 1));
 }
+static __inline__ int64_t ina_decrement(volatile int64_t *value)
+{
+	return(__sync_fetch_and_sub(value, 1));
+}
 static __inline__ int64_t ina_comp_swap(volatile int64_t *value, int64_t with, int64_t cmp)
 {
 	return(__sync_val_compare_and_swap(value, cmp, with));

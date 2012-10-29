@@ -72,7 +72,7 @@ static void __ina_sys_free(void *);
 static ina_shm_handle_t __ina_shm_open(ina_str_t, size_t );
 static void * __ina_mmap(void *, size_t, ina_shm_handle_t, size_t);
 static ina_rc_t __ina_munmap(void *, size_t);
-static ina_rc_t __ina_shm_close(ina_str_t label, ina_shm_handle_t handle);
+static ina_rc_t __ina_shm_close(ina_str_t, ina_shm_handle_t, int);
 
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
@@ -232,10 +232,11 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         (*pool)->m = __ina_mmap(NULL, size, (*pool)->shm_handle, 0);
         if (!INA_SUCCEED(ina_err_peek())) {
             INA_TRACE("failed map shared memory");
-            __ina_shm_close(label, (*pool)->shm_handle);
+            __ina_shm_close(label, (*pool)->shm_handle, 0);
             __ina_mp_free(*pool);
             return ina_err_peek();
         }
+        ina_increment((int64_t*)(*pool)->m);
     } else {
         (*pool)->m = __ina_mp_malloc(size);
     }
@@ -253,6 +254,9 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     (*pool)->tid = 0;
     (*pool)->cf = cf;
     (*pool)->pos = 0;
+    if (cf|INA_MEM_SHARED) {
+        (*pool)->pos += sizeof(int64_t);
+    }
     (*pool)->end = size;
     (*pool)->size = size;
     (*pool)->parent = NULL;
@@ -317,7 +321,12 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
         if (destroy == 1) {
             if (pm->cf&INA_MEM_SHARED) {
                 __ina_munmap(pm->m, pm->size);
-                __ina_shm_close(pm->label, pm->shm_handle);
+                if (ina_decrement((int64_t*)pool->m) == 0) {
+                    __ina_shm_close(pm->label, pm->shm_handle, 1);
+                } else {
+                    __ina_shm_close(pm->label, pm->shm_handle, 0);
+                }
+                pm->shm_handle = 0;
             } else {
                 INA_TRACE("destroy memory pool 3");
                 __ina_mp_free(pm->m);
@@ -497,11 +506,15 @@ __ina_shm_open(ina_str_t label, size_t size)
 }
 
 static ina_rc_t 
-__ina_shm_close(ina_str_t label, ina_shm_handle_t handle)
+__ina_shm_close(ina_str_t label, ina_shm_handle_t handle, int destroy)
 {
 #ifndef INA_OS_WIN32
     close(handle);
-    /* shm_unlink(ina_str_cstr(label));*/
+    INA_TRACE("closing shared mem");
+    if (destroy == 1) {
+        INA_TRACE("unlinking shared mem");
+        shm_unlink(ina_str_cstr(label));
+    }
 #else
 #   error platform not supported
 #endif
