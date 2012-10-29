@@ -362,5 +362,5 @@ __ina_signal_handler(int sig)
         default:
             INA_TRACE("unknown singal received!");
     }
-    /*ina_exit(exitcode);*/
+    exit(exitcode);
 }
