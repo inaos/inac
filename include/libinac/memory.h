@@ -39,7 +39,8 @@
 /* Zero fill on allocation */
 #define INA_MEM_FILLZERO   16
 /* Use shared memory */
-#define INA_MEM_SHARED     32
+#define INA_MEM_SHARED        32
+#define INA_MEM_SHARED_CREATE 64
 
 /* Memory pool handle */
 typedef struct ina_mempool_s  {
