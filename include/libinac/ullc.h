@@ -148,7 +148,6 @@ typedef struct ina_ullc_consumer_t {
 
 #define INA_ULLC_PCTX_ROOT(name, type)                      \
 typedef struct name##_ullc_pctx_t {                         \
-    ina_mempool_t *mempool;                                 \
     int num_consumers;                                      \
     ina_ullc_rb_t *ring;                                    \
     ina_ullc_consumer_t *consumers;                         \
@@ -157,7 +156,6 @@ typedef struct name##_ullc_pctx_t {                         \
 
 #define INA_ULLC_CCTX_ROOT(name,type)                       \
 typedef struct name##_ullc_cctx_t {                         \
-    ina_mempool_t *mempool;                                 \
     int id;                                                 \
     ina_ullc_rb_t *ring;                                    \
     ina_ullc_consumer_t *consumer;                          \
@@ -173,7 +171,7 @@ typedef struct name##_ullc_cctx_t {                         \
 #define INA_ULLC_PRODUCER_PROTOTYPES(name,type)                             \
 ina_rc_t                                                                    \
 name##_create_producer(struct name##_ullc_pctx_t **ctx,                     \
-    const char *name, int size, int num_consumers);                         \
+    ina_mempool_t *pool, int size, int num_consumers);                      \
                                                                             \
 ina_rc_t                                                                    \
 name##_destroy_producer(struct name##_ullc_pctx_t **ctx);                   \
@@ -187,7 +185,7 @@ name##_producer_commit_item(struct name##_ullc_pctx_t *ctx, type* item);
 #define INA_ULLC_CONSUMER_PROTOTYPES(name,type)                             \
 ina_rc_t                                                                    \
 name##_create_consumer(struct name##_ullc_cctx_t **cctx,                    \
-    const char *name, int size, int num_consumers, int id);                 \
+    ina_mempool_t *pool, int size, int num_consumers, int id);              \
                                                                             \
 ina_rc_t                                                                    \
 name##_destroy_consumer(struct name##_ullc_cctx_t **cctx);                  \
@@ -201,28 +199,20 @@ name##_consumer_get_item_no_wait(struct name##_ullc_cctx_t *ctx);
 #define INA_ULLC_PRODUCER_GENERATE(name,type)                               \
 ina_rc_t                                                                    \
 name##_create_producer(struct name##_ullc_pctx_t **pctx,                    \
-    const char *name, int size, int num_consumers)                          \
+    ina_mempool_t *pool, int size, int num_consumers)                       \
 {                                                                           \
     size_t mem_size;                                                        \
     int i;                                                                  \
     name##_ullc_pctx_t *ctx;                                                \
     *pctx = (name##_ullc_pctx_t*)ina_mem_alloc(sizeof(name##_ullc_pctx_t)); \
     ctx = *pctx;                                                            \
-    ctx->mempool = NULL;                                                    \
     ctx->num_consumers = num_consumers;                                     \
     if (size % 2 != 0) {                                                    \
         return INA_MEM_EALLOC;                                              \
     }                                                                       \
     mem_size = sizeof(ina_ullc_rb_t)+(sizeof(type)*size)                    \
         +(sizeof(ina_ullc_consumer_t)*num_consumers);                       \
-    if (!INA_SUCCEED(ina_mempool_create(&ctx->mempool,                      \
-                        mem_size,                                           \
-                        INA_MEM_SHARED|INA_MEM_SHARED_CREATE,               \
-                        ina_str_fromcstr(name, NULL))))                     \
-    {                                                                       \
-        return ina_err_peek();                                              \
-    }                                                                       \
-    ctx->ring = (ina_ullc_rb_t*)ina_mempool_dalloc(ctx->mempool, mem_size); \
+    ctx->ring = (ina_ullc_rb_t*)ina_mempool_dalloc(pool, mem_size);         \
     if (!INA_SUCCEED(ina_err_peek())) {                                     \
         return ina_err_peek();                                              \
     }                                                                       \
@@ -242,13 +232,11 @@ name##_destroy_producer(struct name##_ullc_pctx_t **pctx)                   \
 {                                                                           \
     name##_ullc_pctx_t* ctx;                                                \
     ctx = *pctx;                                                            \
-    ina_mempool_release(ctx->mempool, 1);                                   \
-    ina_mem_free(ctx);                                                      \
     return INA_SUCCESS;                                                     \
- }                                                                          \
- type *                                                                     \
- name##_producer_claim_item(struct name##_ullc_pctx_t *ctx)                 \
- {                                                                          \
+}                                                                          \
+type *                                                                     \
+name##_producer_claim_item(struct name##_ullc_pctx_t *ctx)                 \
+{                                                                          \
      int i;                                                                 \
      int like_to_write = ctx->ring->next_ptr % ctx->ring->size;             \
      int slow_consumer = -1;                                                \
@@ -275,8 +263,8 @@ name##_producer_commit_item(struct name##_ullc_pctx_t *ctx, type* item)     \
 }
 
 /* Public Producer API */
-#define INA_ULLC_PRODUCER_CREATE(name, context, mem_name, size, num_consumers) \
-    name##_create_producer(context, mem_name, size, num_consumers)
+#define INA_ULLC_PRODUCER_CREATE(name, context, pool, size, num_consumers) \
+    name##_create_producer(context, pool, size, num_consumers)
 
 #define INA_ULLC_PRODUCER_DESTROY(name, context)                            \
     name##_destroy_producer(context)
@@ -290,26 +278,18 @@ name##_producer_commit_item(struct name##_ullc_pctx_t *ctx, type* item)     \
 #define INA_ULLC_CONSUMER_GENERATE(name, type)                              \
 ina_rc_t                                                                    \
 name##_create_consumer(struct name##_ullc_cctx_t **cctx,                    \
-    const char *name, int size, int num_consumers, int id)                  \
+    ina_mempool_t *pool, int size, int num_consumers, int id)               \
 {                                                                           \
     size_t mem_size;                                                        \
     name##_ullc_cctx_t *ctx;                                                \
     ina_ullc_consumer_t *cons;                                              \
     *cctx = (name##_ullc_cctx_t*)ina_mem_alloc(sizeof(name##_ullc_cctx_t)); \
     ctx = *cctx;                                                            \
-    ctx->mempool = NULL;                                                    \
     ctx->id = id;                                                           \
     mem_size = sizeof(ina_ullc_rb_t)+(sizeof(type)*size)                    \
         +(sizeof(ina_ullc_consumer_t)*num_consumers);                       \
-    if (!INA_SUCCEED(ina_mempool_create(&ctx->mempool,                      \
-            mem_size,                                                       \
-            INA_MEM_SHARED,                                                 \
-            ina_str_fromcstr(name, NULL))))                                 \
-    {                                                                       \
-        return ina_err_peek();                                              \
-    }                                                                       \
-    ctx->ring = (ina_ullc_rb_t*)ina_mempool_dalloc(ctx->mempool, mem_size); \
-    if (INA_SUCCEED(ina_err_peek())) {                                      \
+    ctx->ring = (ina_ullc_rb_t*)ina_mempool_dalloc(pool, mem_size);         \
+    if (!INA_SUCCEED(ina_err_peek())) {                                     \
         return ina_err_peek();                                              \
     }                                                                       \
     ctx->data = (type*)ctx->ring + sizeof(ina_ullc_rb_t);                   \
@@ -325,9 +305,7 @@ name##_destroy_consumer(struct name##_ullc_cctx_t **cctx)                   \
     name##_ullc_cctx_t* ctx;                                                \
     ctx = *cctx;                                                            \
     ctx->consumer->alive = 0;                                               \
-    ina_mempool_release(ctx->mempool, 1);                                   \
-    ina_mem_free(ctx);                                                      \
-    return 0;                                                               \
+    return INA_SUCCESS;                                                     \
 }                                                                           \
                                                                             \
 type *                                                                      \
@@ -360,7 +338,7 @@ name##_consumer_get_item_no_wait(struct name##_ullc_cctx_t *ctx)            \
 
 /* Public Consumer API */
 #define INA_ULLC_CONSUMER_CREATE(name, context, mem_name, size, num, id)    \
-    name##_create_consumer(context, mem_name, size, num, id)
+    name##_create_consumer(context, pool, size, num, id)
 
 #define INA_ULLC_CONSUMER_DESTROY(name, context)                            \
     name##_destroy_consumer(context)
