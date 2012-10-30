@@ -465,6 +465,7 @@ __ina_shm_open(ina_mempool_t *pool)
     INA_ASSERT_NOTNULL(pool->label);
     INA_ASSERT(pool->size > 0);
     INA_ASSERT(pool->cf|INA_MEM_SHARED);
+    INA_ASSERT_NULL(pool->m);
     
     pool->size = __INA_MEM_ALIGN(pool->size+sizeof(int64_t));
     pool->end = pool->size;
@@ -479,7 +480,7 @@ __ina_shm_open(ina_mempool_t *pool)
     INA_TRACE("__ina_shm_open()");
 
     printf("shared mem name: %s\n",ina_str_cstr(pool->label));
-    pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, 0600);
+    pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, 0x0770);
     if (pool->shm_handle == -1) {
         INA_TRACE("failed shm_open()");
         /* FIXME: Specific error */
@@ -493,11 +494,12 @@ __ina_shm_open(ina_mempool_t *pool)
             pool->shm_handle = 0;
             shm_unlink(ina_str_cstr(pool->label));
             return INA_MEM_EALLOC;
-        }
+       }
     }
-
-    pool->m = mmap(NULL, pool->size, PROT_READ|PROT_WRITE, MAP_SHARED, 
-                    pool->shm_handle, 0);
+    
+    pool->m = (void *)mmap(NULL, pool->size, PROT_READ|PROT_WRITE, 
+                        MAP_SHARED, 
+                        pool->shm_handle, 0);
 
     if (pool->m == MAP_FAILED) {
         INA_TRACE("failed mmap()");
@@ -509,7 +511,7 @@ __ina_shm_open(ina_mempool_t *pool)
         return INA_MEM_EALLOC;
     }
     if (pool->cf&INA_MEM_SHARED_CREATE) {
-        /* FIXME: portable */
+        /* FIXME: portable  */
         __sync_lock_test_and_set((int64_t*)pool->m, 1);
     }
     pool->pos += sizeof(int64_t);
