@@ -98,6 +98,14 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file,
     return error->rc;
 }
 
+INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
+{
+    if (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
 INA_API(ina_rc_t) ina_err_peek()
 {
     if (__state.c > 0) {
@@ -199,11 +207,15 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
             tm = localtime(&error->ts);
 
             if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
-
-                outstr = ina_str_vsprintf("%s %s:%d - %s", tmc, 
+                outstr = ina_str_vsprintf("%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u)",
+                                            tmc, 
                                             ina_str_cstr(error->file),
                                             error->line,
-                                            ina_str_cstr(error->msg));
+                                            ina_str_cstr(error->msg),
+                                            INA_RC_REASON(error->rc),
+                                            INA_RC_OSFN(error->rc),
+                                            INA_RC_MOD(error->rc),
+                                            INA_RC_HANDLED(error->rc));
 
                 if (ina_str_ncpy(str, outstr, len) == NULL) {
                     return INA_ERR_EMSGFMT;

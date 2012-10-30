@@ -47,12 +47,14 @@
 /* OS function identifiers */
 #define INA_OSFN_NONE   0
 #define INA_OSFN_FOPEN  1
+#define INA_OSFN_FTRUNC 2
+#define INA_OSFM_MMAP   4
 
 /* Errors */
 #define INA_EMSGLEN 1
 #define INA_EMSGFMT 2
-#define INA_EALLOC  (3)
-#define INA_EPARAM  (4)
+#define INA_EALLOC  3
+#define INA_EPARAM  4
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -131,9 +133,7 @@
 /* Verify if fatal error occurred */
 #define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
 /* Check retuen code if successful or handled */
-#define INA_SUCCEED(rc) (INA_SUCCESS == rc ||       \
-                         INA_RC_REASON(rc) == 0 ||  \
-                         INA_RC_HANDLED(rc))
+#define INA_SUCCEED(rc) ina_err_succeed(rc)
 
 /* Error-Module errors */
 #define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
@@ -180,6 +180,7 @@ INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, ina_str_t file,
                                int line, 
                                ina_str_t msg);
 
+INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc);
 /*
  * Peek the first pushed error from the error state.
  *
