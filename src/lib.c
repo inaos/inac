@@ -58,7 +58,7 @@ INA_API(ina_rc_t) ina_libinit(void)
 
 INA_API(void) ina_exit(void)
 {
-    while (!__initialized--) {
+    while (__initialized--) {
         return;
     }
 
