@@ -69,10 +69,8 @@ static __ina_mempool_list_t *__mempools = NULL;
 static void *__ina_sys_malloc(size_t);
 static void *__ina_sys_realloc(void *, size_t);
 static void __ina_sys_free(void *);
-static ina_shm_handle_t __ina_shm_open(ina_str_t, size_t, int);
-static void * __ina_mmap(void *, size_t, ina_shm_handle_t, size_t);
-static ina_rc_t __ina_munmap(void *, size_t);
-static ina_rc_t __ina_shm_close(ina_str_t, ina_shm_handle_t, int);
+static ina_rc_t __ina_shm_open(ina_mempool_t *);
+static ina_rc_t __ina_shm_close(ina_mempool_t *);
 
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
@@ -221,57 +219,37 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         return INA_FAILURE;
     }
 
+    (*pool)->cf = cf;
+    (*pool)->pos = 0;
+    (*pool)->size = size;
+    (*pool)->end = (*pool)->size;
+    (*pool)->parent = NULL;
+    (*pool)->current = *pool;
+    if (label != NULL) {
+        (*pool)->label = ina_str_dup(label, NULL);
+    }
+
     if (cf&INA_MEM_SHARED) {
-        INA_ASSERT_NOTNULL(label);
-        size = __INA_MEM_ALIGN(size+sizeof(int64_t));
-        if (cf&INA_MEM_SHARED_CREATE) {
-             INA_TRACE("open/create shared memory");
-            (*pool)->shm_handle = __ina_shm_open(label, size, 1);
-        } else {
-            INA_TRACE("open shared memory");
-            (*pool)->shm_handle = __ina_shm_open(label, size, 0);
-        }
-        if ((*pool)->shm_handle == INA_FAILURE) {
+        INA_ASSERT_NOTNULL((*pool)->label);
+
+        if (!INA_SUCCEED((__ina_shm_open(*pool)))) {
             INA_TRACE("failed open shared memory");
+            __ina_shm_close(*pool);
+            ina_mem_free((*pool)->label);
             __ina_mp_free(*pool);
             return ina_err_peek();
         }
-        (*pool)->m = __ina_mmap(NULL, size, (*pool)->shm_handle, 0);
-        if (!INA_SUCCEED(ina_err_peek())) {
-            INA_TRACE("failed map shared memory");
-            __ina_shm_close(label, (*pool)->shm_handle, 0);
-            __ina_mp_free(*pool);
-            return ina_err_peek();
-        }
-        INA_TRACE("shared memory mapped");
-        ina_increment((int64_t*)(*pool)->m);
-        INA_TRACE("shared memory inc ref");
     } else {
         (*pool)->m = __ina_mp_malloc(size);
     }
 
     if ((*pool)->m == NULL) {
         __ina_mp_free(*pool);
-        return INA_FAILURE;
+        return INA_MEM_EALLOC;
     }
 
-    if (cf&INA_MEM_FILLZERO) {
+    if (cf&INA_MEM_FILLZERO && !(cf&INA_MEM_SHARED)) {
         __ina_memset((*pool)->m, 0, size);
-    }
-
-    (*pool)->pid = getpid();
-    (*pool)->tid = 0;
-    (*pool)->cf = cf;
-    (*pool)->pos = 0;
-    if (cf|INA_MEM_SHARED) {
-        (*pool)->pos += sizeof(int64_t);
-    }
-    (*pool)->end = size;
-    (*pool)->size = size;
-    (*pool)->parent = NULL;
-    (*pool)->current = *pool;
-    if (label != NULL) {
-        (*pool)->label = ina_str_dup(label, NULL);
     }
     
     last = __mempools;
@@ -285,7 +263,8 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         ina_mem_free((*pool)->label);
         __ina_mp_free((*pool)->m);
         __ina_mp_free(*pool);
-        return INA_FAILURE;
+        INA_TRACE("panic");
+        return INA_MEM_EALLOC;
     }
     last->next = next;
     next->next = NULL;
@@ -304,9 +283,9 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
         return INA_SUCCESS;
     }
 
-    INA_TRACE("destroy memory pool");
+    INA_TRACE("destroy mem pool");
     if (__sysmempool == pool) {
-        INA_TRACE("system memory pool"); 
+        INA_TRACE("sys mempool pool"); 
     }
     
     /* Unlink parent */
@@ -322,23 +301,14 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
             ref->pool = NULL;
         }
     }
-    INA_TRACE("destroy memory pool 2");
     pn = pool;
     while (pn != NULL) {
         pm = pn;
         pn = pn->child;
         if (destroy == 1) {
             if (pm->cf&INA_MEM_SHARED) {
-                if (ina_decrement((int64_t*)pool->m) == 0) {
-                    __ina_munmap(pm->m, pm->size);
-                    __ina_shm_close(pm->label, pm->shm_handle, 1);
-                } else {
-                    __ina_munmap(pm->m, pm->size);
-                    __ina_shm_close(pm->label, pm->shm_handle, 0);
-                }
-                pm->shm_handle = 0;
+                __ina_shm_close(pm);
             } else {
-                INA_TRACE("destroy memory pool 3");
                 __ina_mp_free(pm->m);
             }
             __ina_mp_free(pm);
@@ -407,7 +377,7 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
     return ret;
 }
 
-INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
+INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
 
@@ -486,84 +456,102 @@ __ina_sys_free(void * ptr)
     INA_ASSERT_NOTNULL(ptr);
 }
 
-static ina_shm_handle_t 
-__ina_shm_open(ina_str_t label, size_t size, int create)
+static ina_rc_t 
+__ina_shm_open(ina_mempool_t *pool)
 {
-    ina_shm_handle_t handle;
     int flags;
 
-    INA_ASSERT_NOTNULL(label);
-    INA_ASSERT(size > 0);
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_NOTNULL(pool->label);
+    INA_ASSERT(pool->size > 0);
+    INA_ASSERT(pool->cf|INA_MEM_SHARED);
     
+    pool->size = __INA_MEM_ALIGN(pool->size+sizeof(int64_t));
+    pool->end = pool->size;
+    printf("shared mem size: %zd\n", pool->size);
+
 #ifndef INA_OS_WIN32
     flags = O_RDWR;
-    if (create == 1) {
-        flags =  O_CREAT|O_RDWR;
-        shm_unlink(ina_str_cstr(label));
+    if (pool->cf&INA_MEM_SHARED_CREATE) {
+        flags =  O_CREAT|O_EXCL|O_RDWR;
+        shm_unlink(ina_str_cstr(pool->label));
     }
-    printf("shared mem name: %s\n",ina_str_cstr(label));
-    handle = shm_open(ina_str_cstr(label) ,flags, 0600);
-    if (handle < 0) {
+    INA_TRACE("__ina_shm_open()");
+
+    printf("shared mem name: %s\n",ina_str_cstr(pool->label));
+    pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, 0600);
+    if (pool->shm_handle == -1) {
         INA_TRACE("failed shm_open()");
         /* FIXME: Specific error */
-        INA_MEM_EALLOC;
-        return INA_FAILURE;
+        return INA_MEM_EALLOC;
     }
 
-    if (create == 1 && ftruncate(handle, size) == -1) {
-        INA_TRACE("failed ftruncate()");
-        close(handle);
-        shm_unlink(ina_str_cstr(label));
-        INA_MEM_EALLOC;
-        return INA_FAILURE;
+    if (pool->cf&INA_MEM_SHARED_CREATE) {
+        if (ftruncate(pool->shm_handle, pool->size) == -1) {
+            INA_TRACE("failed ftruncate()");
+            close(pool->shm_handle);
+            pool->shm_handle = 0;
+            shm_unlink(ina_str_cstr(pool->label));
+            return INA_MEM_EALLOC;
+        }
     }
+
+    pool->m = mmap(NULL, pool->size, PROT_READ|PROT_WRITE, MAP_SHARED, 
+                    pool->shm_handle, 0);
+
+    if (pool->m == MAP_FAILED) {
+        INA_TRACE("failed mmap()");
+        close(pool->shm_handle);
+        pool->shm_handle = 0;
+        if (pool->cf&INA_MEM_SHARED_CREATE) {
+            shm_unlink(ina_str_cstr(pool->label));
+        }
+        return INA_MEM_EALLOC;
+    }
+    if (pool->cf&INA_MEM_SHARED_CREATE) {
+        /* FIXME: portable */
+        __sync_lock_test_and_set((int64_t*)pool->m, 1);
+    }
+    pool->pos += sizeof(int64_t);
 #else
 #   error platform not supported
 #endif
 
-    return handle;
+    return INA_SUCCESS;
 }
 
 static ina_rc_t 
-__ina_shm_close(ina_str_t label, ina_shm_handle_t handle, int destroy)
+__ina_shm_close(ina_mempool_t *pool)
 {
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT(pool->size > 0);
+    INA_ASSERT_NOTNULL(pool->label); 
+    int64_t cn;
+
 #ifndef INA_OS_WIN32
-    close(handle);
+
+    if (pool->m == NULL) {
+         return INA_SUCCESS;
+    }
+
+    INA_TRACE("unmapping shared mem");
+    cn = ina_decrement((int64_t*)pool->m);
+    munmap(pool->m, pool->size);
+    pool->m = NULL;
+    pool->size = 0;
+    pool->pos = 0;
+    pool->end = 0;
+
     INA_TRACE("closing shared mem");
-    if (destroy == 1) {
+    close(pool->shm_handle);
+
+    if (cn == 0) {
         INA_TRACE("unlinking shared mem");
-        shm_unlink(ina_str_cstr(label));
+        shm_unlink(ina_str_cstr(pool->label));
     }
 #else
 #   error platform not supported
 #endif
-    return INA_SUCCESS;
-}
-static void *
-__ina_mmap(void *addr, size_t size, ina_shm_handle_t handle, size_t offset)
-{
-    void *m;
-
-#ifndef INA_OS_WIN32
-    m = mmap(addr, size, PROT_READ|PROT_WRITE, MAP_SHARED, handle, offset);
-    if (m == MAP_FAILED) {
-        INA_TRACE("failed mmap()");
-        INA_MEM_EALLOC;
-    }
-#else
-#   error platform not supported
-#endif
-    return m;
-}
-
-static ina_rc_t
-__ina_munmap(void *ptr, size_t size)
-{
-    if (ptr == NULL) {
-        return INA_SUCCESS;
-    }
-    INA_ASSERT(size > 0);
-    munmap(ptr, size);
     return INA_SUCCESS;
 }
 
