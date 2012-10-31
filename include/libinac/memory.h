@@ -40,6 +40,7 @@
 #define INA_MEM_FILLZERO   16
 /* Use shared memory */
 #define INA_MEM_SHARED        32
+/* Open or create shared memory */
 #define INA_MEM_SHARED_CREATE 64
 
 /* Memory pool handle */
@@ -195,7 +196,16 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
                                  ina_free_t free_fn,
                                  ina_realloc_t realloc_fn);
 
-/* initalize internal structures . */
+/* 
+ * Initalize internal structures an allocate the internal memory pool. This
+ * system pool will automatically increase his size if needed.
+ * Parameters
+ * size     Initial size in bytes
+ *
+ * Return Value
+ * INA_SUCCESS when the system memory pool was succefully allocated.
+ * INA_FAILURE if an error occured 
+ */
 INA_API(ina_rc_t) ina_mempool_init(size_t size);
 /* cleanup */
 INA_API(ina_rc_t) ina_mempool_destroy(void);
@@ -212,6 +222,6 @@ INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
 /* allocate not reallocable memory from a pool */
 INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
 /* reallocate memory from a pool */
-INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t pnb, size_t nnb);
+INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size);
 
 #endif
