@@ -177,7 +177,6 @@ By default, INAOS Common C Library  uses malloc() and free() for memory
 allocation. These functions can be overridden if custom behavior is needed.
 
 
-
 ## Strings
 
 
@@ -188,16 +187,23 @@ like when, where, what, who, is it handed or not, and "should I abort my
 program" are such kind of information we want to know.  
 The "who" question isn't really easy to implement, so we omitted  it.
 
-Also important: Easy access to error state information. That's why we pack 
-the 'where', 'handled or not' and 'abort or not' in one single value. We call
-it Return Code or simply RC. RC is defined by `ina_rc_t' which is in fact a 
-32bit unsigned integer value. See the sketch above for knowing how those
- information are packed into our RC.  
+Also important: Easy access to error information. That's why we pack the 
+'where', 'what', 'handled or not' and 'abort or not' in one single value. 
+We call it 'Return Code' or simply RC. RC is defined by `ina_rc_t' which is 
+in fact a 32bit unsigned integer value. The RC is packed as follow:
 
-To know if an error occurred  we use `INA_SUCCEED' which returns TRUE if no
+     32bit |IIIIIIII|IIMMMMMM|OOOOOFHR|RRRRRRRR|
+                |         |     |  ||      +->  9bit - Reason
+                |         |     |  |+-------->  1bit - Handled flag
+                |         |     |  +--------->  1bit - Fatal flag
+                |         |     +------------>  5bit - OS function identifier   
+                |         +------------------>  6bit - Module identifier
+                +----------------------------> 10bit - Error identifier
+                         
+To know if an error occurred use `INA_SUCCEED' macro, which returns `1` if no
 errors occurred or the last error was handled by a previous caller.
 
-### Return Code:
+### Return Code
 
 #### Reason
 This value contain the error code (reason of failure). Values from 1-128 are
@@ -242,7 +248,7 @@ removed  from the error state.
 #### OS function identifier
 Give us the possibility to inform the caller about system function failure . 
 For instance `fopen()`. In such a case the caller could retry with other 
-parameters/values  or let the user know about the real cause of failure. 
+parameters/values or let the user know about the real cause of failure. 
 Use the `INA_RC_OSFN` macro to retrieve  the OS function identifier. 
 For instance:
 
@@ -261,6 +267,11 @@ For instance:
 OS function identifiers are defined in `<libinac/error.h>`. Only those 
 identifiers are allowed. Don't define any others.           
 
+#### Module identifier
+Clearly identify the source (compilation unit) of error. For instance 
+`INA_MOD_STRING` identify the string compilation unit. Developers can define
+their own identifiers.   
+
 ### Push and peek instead of throw and catch
 The basic concept of our error handling is that we push an error to a global
 error state. The error state is a simple  pointer array which stores a 
@@ -268,10 +279,11 @@ certain number of errors (`__INA_ERR_STATE_SIZE`). In case the max number of
 errors is reached, the "first in" error will be dropped from the state.
 
 The caller have the responsibility to take care about the pushed error(s).
-He has in fact 3 options:
-* Handle the error situation
-* Leave it unhandled and push a new error.
-* Abort the program
+He has in fact, depending on the error situation, 4 options:
+1. Handle the error situation
+2. Leave it unhandled and push a new error.
+3. Leave it unhandled and return it to the caller
+4. Abort the program
 
 ### Push
 Use the `INA_ERR_PUSH`macro to push an error to the global error state.
@@ -332,15 +344,23 @@ the most recently  pushed are removed from the error state.
         rc = ina_err_peek();
         if (!INA_ERR_FATAL(RC)) 
 
+## Cleanup handler
+There is a posibility to define a callback function which is called in case 
+the program is being terminated because of fatal error like segmentation fault
+or an interruption request like ctrl-c.
+Use `ina_err_set_cleanup_handler()` to define such a callback. 
+Keep in mind that this cleanup handler will be called only in case of abnormal
+program termination.
 
 ## Utilities
 The error handling module of this library provide two useful functions. They 
 are used internally but they are for public use as well.
 
 - `ina_err_trace()` printout current error state to the standard output.
-- `ina_err_coredump()` generate a core dump without terminate the program.
 
 ## Testing
+### Unit testing
+### Performance testing
 
 
 
