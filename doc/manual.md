@@ -170,17 +170,10 @@ e.g.:
     /* Code specific to version 1.2.1 and above */
     #endif
 
-## Memory handling
-
-### Custom Memory Allocation
-By default, INAOS Common C Library  uses malloc() and free() for memory 
-allocation. These functions can be overridden if custom behavior is needed.
+### Strings
 
 
-## Strings
-
-
-## Error handling
+### Error handling
 
 A good error handling should know as much as possible about an error. Things
 like when, where, what, who, is it handed or not, and "should I abort my 
@@ -203,9 +196,9 @@ in fact a 32bit unsigned integer value. The RC is packed as follow:
 To know if an error occurred use `INA_SUCCEED` macro, which returns `1` if no
 errors occurred or the last error was handled by a previous caller.
 
-### Return Code
+#### Return Code
 
-#### Reason
+##### Reason
 This value contain the error code (reason of failure). Values from 1-128 are
 reserved to the INAOS Common C Library.   Define user error codes starting
 by 129. For instance:
@@ -218,7 +211,7 @@ We can get access to the reason by ÌNA_RC_REASON` macro.
        case INAWS_TOOMANY_FILES:
           .....
 
-#### Fatal Flag
+##### Fatal Flag
 Indicate whenever you should about the program. Use `INA_ERR_FATAL(rc)` to 
 verify a fatal condition. For instance:
 
@@ -227,7 +220,7 @@ verify a fatal condition. For instance:
         if (INA_ERR_FATAL(rc)) {
            --- abort here
   
-#### Handled Flag
+##### Handled Flag
 Indicate if an error was handled by a previous caller. Use `ina_err_clear` to
 mark an error as handled. For instance:
     
@@ -245,7 +238,7 @@ Once an error is marked as handled, there is no way to reset it to
 removed  from the error state.
 
 
-#### OS function identifier
+##### OS function identifier
 Give us the possibility to inform the caller about system function failure . 
 For instance `fopen()`. In such a case the caller could retry with other 
 parameters/values or let the user know about the real cause of failure. 
@@ -285,7 +278,7 @@ He has in fact, depending on the error situation, 4 options:
 3. Leave it unhandled and return it to the caller
 4. Abort the program
 
-### Push
+#### Push
 Use the `INA_ERR_PUSH`macro to push an error to the global error state.
 
     INA_ERR_PUSH(INAWS_ERR_NOCONNECT, 
@@ -297,7 +290,7 @@ macros on depending the error information you have.
     INA_ERR_PUSH_BASIC(INAWS_ERR_NOCONNECT, "Connection failed");
     INA_ERR_PUSH_OSFN(INAWS_ERR_NOCONNECT, INA_OSFN_NONE, "Connection failed");
 
-### Peek
+#### Peek
 With a peek operation we get the first unhandled error from the global state. 
 Call `ina_err_peek()`to peek. Peek doesn't drop the error. For instance:
   
@@ -333,7 +326,7 @@ through using `ina_err_peek_next()`.
             abort();
           }
 
-## Cleanup the error state
+#### Cleanup the error state
 To reset the entire error state use `ina_err_reset()`. All errors including 
 the most recently  pushed are removed from the error state.
 
@@ -344,7 +337,7 @@ the most recently  pushed are removed from the error state.
         rc = ina_err_peek();
         if (!INA_ERR_FATAL(RC)) 
 
-## Cleanup handler
+#### Cleanup handler
 There is a posibility to define a callback function which is called in case 
 the program is being terminated because of fatal error like segmentation fault
 or an interruption request like ctrl-c.
@@ -352,16 +345,40 @@ Use `ina_err_set_cleanup_handler()` to define such a callback.
 Keep in mind that this cleanup handler will be called only in case of abnormal
 program termination.
 
-## Utilities
+#### Utilities
 The error handling module of this library provide two useful functions. They 
 are used internally but they are for public use as well.
 
 - `ina_err_trace()` printout current error state to the standard output.
 
-## Testing
-### Unit testing
-### Performance testing
+### Memory Handling
+The INAOS Common C Library provide custom memory allocation and memory pooling.
+Main Goals of those components:
 
+- Avoid memory leaks. Especially in continuos server processes.
+- Speed. By reducing significantly time consuming memory allocations and 
+  employing better memory allocators.
+- Hide complexity. In fact consumers doesn't have to care about releasing 
+  previously allocated memory.
+
+#### Architecture
+##### Internal memory pool
+##### Allocator
+##### Memory Pool
+###### Fixed sized pool
+###### Dynamic sized pool 
+###### Auto sized pool
+###### Using shared memory
+##### Memory strategies
+###### Standard
+###### Best fit
+#### Using the API
+##### Working with pools
+#### Error codes
+
+### Testing
+#### Unit testing
+#### Performance testing
 
 
 
