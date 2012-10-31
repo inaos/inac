@@ -200,7 +200,7 @@ in fact a 32bit unsigned integer value. The RC is packed as follow:
                 |         +------------------>  6bit - Module identifier
                 +----------------------------> 10bit - Error identifier
                          
-To know if an error occurred use `INA_SUCCEED' macro, which returns `1` if no
+To know if an error occurred use `INA_SUCCEED` macro, which returns `1` if no
 errors occurred or the last error was handled by a previous caller.
 
 ### Return Code
