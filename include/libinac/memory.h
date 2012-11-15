@@ -204,7 +204,7 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
  *
  * Return Value
  * INA_SUCCESS when the system memory pool was succefully allocated.
- * INA_FAILURE if an error occured 
+ * INA_FAILURE if an error occured
  */
 INA_API(ina_rc_t) ina_mempool_init(size_t size);
 /* cleanup */
