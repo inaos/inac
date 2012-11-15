@@ -62,13 +62,12 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
         if (!INA_SUCCEED(ina_err_peek())) {
             return NULL;
         }
-        return NULL;
     }
     
     if (ring->magic != 'Z') { /* FIXME: Make it better */
         ina_mem_set(ring, 0, mem_size);
         ring->magic = 'Z';
-        ring->version = ring->version;
+        ring->version = version;
         ring->size = size;
         ring->slots = slots;
         ring->num_consumers = num_consumers;
