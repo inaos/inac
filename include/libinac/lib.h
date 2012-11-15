@@ -28,12 +28,16 @@
 #ifndef _LIBINAC_LIB_H_
 #define _LIBINAC_LIB_H_
 
-#ifndef INA_OS_WIN32
+#ifndef _WIN32
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/fcntl.h>
+#include <sys/mman.h>
 #endif
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>

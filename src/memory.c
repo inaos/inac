@@ -25,16 +25,6 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <unistd.h>
-#ifndef INA_OS_WIN32
-#include <sys/mman.h>
-#include <fcntl.h>
-#else
-#define __ina_shm_open(p) __ina_shm_open_win32(p)
-#define __ina_shm_close(p) __ina_shm_close_win32(p)
-#endif
-
-
 #include <libinac/lib.h>
 #include "config.h"
 
@@ -71,10 +61,8 @@ static __ina_mplist_t *__pools = NULL;
 static void *__ina_sys_malloc(size_t);
 static void *__ina_sys_realloc(void *, size_t);
 static void __ina_sys_free(void *);
-#ifndef INA_OS_WIN32
 static ina_rc_t __ina_shm_open(ina_mempool_t *);
 static ina_rc_t __ina_shm_close(ina_mempool_t *);
-#endif
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
                                  ina_realloc_t realloc_fn,

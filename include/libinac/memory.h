@@ -50,7 +50,7 @@ typedef struct ina_mempool_s  {
     size_t size;
     size_t pos;
     size_t end;
-    void *m;
+    char *m;
     ina_str_t label;
     struct ina_mempool_s *current;
     struct ina_mempool_s *parent;
