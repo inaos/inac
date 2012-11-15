@@ -135,7 +135,7 @@ INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void *item)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ullc_create_consumer(int id, int version, ina_ullc_rb_t* ring, ina_ullc_ctx_t **ctx)
+INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, ina_ullc_rb_t* ring, ina_ullc_ctx_t **ctx)
 {
     ina_ullc_consumer_t *cons;
     
