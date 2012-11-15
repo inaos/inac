@@ -577,59 +577,58 @@ __ina_shm_close(ina_mempool_t *pool)
 static ina_rc_t 
 __ina_shm_open(ina_mempool_t *pool)
 {
-	INA_ASSERT_NOTNULL(pool);
-	INA_ASSERT_NOTNULL(pool->label);
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_NOTNULL(pool->label);
     INA_ASSERT(pool->size > 0);
     INA_ASSERT(pool->cf|INA_MEM_SHARED);
     INA_ASSERT_NULL(pool->m);
 
-	pool->shm_handle = CreateFileMapping(                                      
-		INVALID_HANDLE_VALUE,                                               
+    pool->shm_handle = CreateFileMapping(                                      
+        INVALID_HANDLE_VALUE,                                               
         NULL,                                                               
         PAGE_READWRITE,                                        
         0,                                                         
         pool->size,
         ina_str_cstr(pool->label));
-	
-	if (pool->shm_handle == NULL) {
-		return INA_MEM_EALLOC;
-	}
-	pool->m = (void*)MapViewOfFile(pool->shm_handle,
-		FILE_MAP_ALL_ACCESS, 
-		0,
+
+    if (pool->shm_handle == NULL) {
+        return INA_MEM_EALLOC;
+    }
+    pool->m = (void*)MapViewOfFile(pool->shm_handle,
+        FILE_MAP_ALL_ACCESS, 
+        0,
         0,
         pool->size);
-	
-	if (pool->shm_handle == NULL) {
-		CloseHandle(pool->shm_handle);
-		return INA_MEM_EALLOC;                                                      
-	}
+
+    if (pool->shm_handle == NULL) {
+        CloseHandle(pool->shm_handle);
+        return INA_MEM_EALLOC;                                                      
+    }
     return INA_SUCCESS;
 }
 
 static ina_rc_t 
 __ina_shm_close(ina_mempool_t *pool)
 {
-	INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_NOTNULL(pool);
     INA_ASSERT(pool->size > 0);
     INA_ASSERT_NOTNULL(pool->label); 
-	INA_ASSERT_NOTNULL(pool->shm_handle);
+    INA_ASSERT_NOTNULL(pool->shm_handle);
 
-	if (pool->m == NULL) {
+    if (pool->m == NULL) {
          return INA_SUCCESS;
     }
 
-	/* TODO: Error handling */
-	UnmapViewOfFile(pool->shm_handle);
-	CloseHAndle(pool->shm_handle);
-    
-	pool->m = NULL;
-	pool->shm_handle = NULL;
-	pool->size = 0;
+    /* TODO: Error handling */
+    UnmapViewOfFile(pool->shm_handle);
+    CloseHAndle(pool->shm_handle);
+
+    pool->m = NULL;
+    pool->shm_handle = NULL;
+    pool->size = 0;
     pool->pos = 0;
     pool->end = 0;
-
-
+    
     return INA_SUCCESS;
 }
 #endif
