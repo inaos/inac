@@ -28,14 +28,29 @@
 #ifndef _LIBINAC_LIB_H_
 #define _LIBINAC_LIB_H_
 
+#ifndef _WIN32
+#include <sys/types.h>
+#include <sys/param.h>
+#include <sys/fcntl.h>
+#include <sys/mman.h>
+#endif
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <libinac/portable.h>
 #include <libinac/types.h>
 #include <libinac/memory.h>
 #include <libinac/string.h>
 #include <libinac/error.h>
+#include <libinac/ullc.h>
 #include <libinac/debug.h>
 
 #define INA_YES 1
@@ -67,7 +82,7 @@
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]);
+INA_API(ina_rc_t) ina_appinit(const int argc,  char **argv);
 
 /*
  * Initialize all internal data structures. This must be the first function 
@@ -81,14 +96,7 @@ INA_API(ina_rc_t) ina_libinit(void);
 /*
  * Relase and cleanup all internal data structures. This function must be
  * called once before the application terminate.
- *
- * Parameters
- * exitcode     EXIT_SUCCESS to indicate successful program completion. 
- *              EXIT_FAILURE to indicate unsuccessful program completion in a 
- *              general sense.
- * Return:
- * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_exit(int exitcode);
+INA_API(void) ina_exit(void);
 
 #endif

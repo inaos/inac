@@ -40,18 +40,19 @@ void test_error_message_formatting()
 
     INA_ASSERT_NOTNULL(msg1);
     INA_ASSERT_NOTNULL(msg2);
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
-    INA_ERR_ERROR_MSGLEN;
+    
+    INA_ASSERT_SUCCESS(ina_err_reset());
+    INA_ASSERT_SUCCESS(ina_err_peek());
+    INA_ERR_EMSGLEN;
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
     printf("msg2=%s\n", ina_str_cstr(msg2));
-    /*INA_ASSERT_EQUAL(0, ina_str_cmp(msg1, msg2));*/
 }
 
 void test_error_macros()
 {
-     INA_ERR_ERROR_MSGLEN;
-     INA_ERR_ERROR_MSGFMT;
-     INA_STR_ERROR_ALLOC;
+     INA_ERR_EMSGLEN;
+     INA_ERR_EMSGFMT;
+     INA_STR_EALLOC;
 }
 
 void test_error_push_and_peek()
@@ -61,7 +62,8 @@ void test_error_push_and_peek()
     size_t i;
     ina_rc_t rc;
 
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_SUCCESS(ina_err_reset());
+    INA_ASSERT_SUCCESS(ina_err_peek());
 
     for (i = 0; i < 10; ++i) {
         INA_ERR_PUSH_BASIC(300+i, "This is an error");
@@ -81,7 +83,7 @@ void test_error_push_and_clear()
     ina_rc_t rc1;
     ina_rc_t rc2;
 
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
+    INA_ASSERT_SUCCESS(ina_err_reset());
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
     INA_ASSERT_EQUAL(rc1, ina_err_peek());
     INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
@@ -93,9 +95,9 @@ void test_error_push_and_clear()
     INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
     INA_ASSERT_NOTEQUAL(rc1, rc2);
 
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_clear(INA_ERR_STATE_CLEAR));
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek());
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_peek_last());
+    INA_ASSERT_SUCCESS(ina_err_reset());
+    INA_ASSERT_SUCCESS(ina_err_peek());
+    INA_ASSERT_SUCCESS(ina_err_peek_last());
  }
 
 void test_error_pack_rc() 
@@ -105,43 +107,32 @@ void test_error_pack_rc()
     ina_rc_t rcc;
     ina_rc_t rc;
     
-    rcc = 16850951;
+    rcc = 16846855;
     rc = 0;
     rc = INA_RC_PACK(1,2,7,4);
     
-    printf("rc = %u\n", rc);
+    /*printf("rc = %u\n", rc);
     printf("id = %u\n", INA_RC_ID(rc));
     printf("mod = %u\n", INA_RC_MOD(rc));
     printf("func = %u\n", INA_RC_OSFN(rc));
-    printf("reason = %u\n", INA_RC_REASON(rc));
+    printf("reason = %u\n", INA_RC_REASON(rc));*/
     
-    /*INA_ASSERT_EQUAL(rcc, rc); */
+    INA_ASSERT_EQUAL(rcc, rc);
     INA_ASSERT_EQUAL(1, INA_RC_MOD(rc));
     INA_ASSERT_EQUAL(2, INA_RC_OSFN(rc));
     INA_ASSERT_EQUAL(7, INA_RC_REASON(rc));
     INA_ASSERT_EQUAL(4, INA_RC_ID(rc));
+    INA_ASSERT_FALSE(INA_RC_FATAL(rc));
     
     rc = INA_RC_PACK(15,15,255,1023);
-    printf("rc = %u\n", rc);
-    printf("id = %u\n", INA_RC_ID(rc));
-    printf("mod = %u\n", INA_RC_MOD(rc));
-    printf("func = %u\n", INA_RC_OSFN(rc));
-    printf("reason = %u\n", INA_RC_REASON(rc));
-
     INA_ASSERT_EQUAL(15, INA_RC_MOD(rc));
     INA_ASSERT_EQUAL(15, INA_RC_OSFN(rc));
     INA_ASSERT_EQUAL(255, INA_RC_REASON(rc));
     INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));   
 
-    /*rc = INA_RC_PACK(63,31,511,1023);
-    printf("rc = %u\n", rc);
-    printf("id = %u\n", INA_RC_ID(rc));
-    printf("mod = %u\n", INA_RC_MOD(rc));
-    printf("func = %u\n", INA_RC_OSFN(rc));
-    printf("reason = %u\n", INA_RC_REASON(rc));
-
+    rc = INA_RC_PACK(63,31,511,1023);
     INA_ASSERT_EQUAL(63, INA_RC_MOD(rc));
     INA_ASSERT_EQUAL(31, INA_RC_OSFN(rc));
     INA_ASSERT_EQUAL(511, INA_RC_REASON(rc));
-    INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));   */
+    INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));
 } 

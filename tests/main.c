@@ -31,11 +31,11 @@
 
 #define INAC_ERROR_TEST_TRACE INA_ERR_PUSH(129,1,2,"Test Trace")
 
-int main(int argc, const char* argv[]) 
+int main(int argc, const char** argv) 
 { 
     INA_TRACE("TEST START");
     
-    if (ina_appinit(argc, argv) == INA_SUCCESS) {
+    if (ina_appinit(argc, NULL) == INA_SUCCESS) {
         runtests();
     }
     INA_TRACE("TEST END");
@@ -44,7 +44,5 @@ int main(int argc, const char* argv[])
        failure */
     INAC_ERROR_TEST_TRACE;
 
-    /* Never called */
-    ina_exit(EXIT_SUCCESS);
     return 0;
 }

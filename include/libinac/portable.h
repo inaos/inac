@@ -354,8 +354,8 @@
 #     define INA_FASTCALL __fastcall
 #  endif
 #else
-#  define INA_CDECL    
-#  define INA_STDCALL  
+#  define INA_CDECL
+#  define INA_STDCALL
 #  define INA_FASTCALL 
 #endif
 
@@ -370,13 +370,22 @@
    defined to `inline', otherwise empty. In C++, the inline is always
    supported. */
 #ifdef __cplusplus
-#define INA_INLINE inline
-#else
-#  ifdef INLINE_ENABLED
-#    define INA_INLINE inline
+#  ifdef INA_COMPILER_MSVC
+#    define INA_INLINE __inline
 #  else
-#    define INA_INLINE
+#   define INA_INLINE inline
 #  endif
+#else
+#  ifdef INA_COMPILER_MSVC
+#    define INA_INLINE __inline
+#  else
+#    ifdef INLINE_ENABLED
+#       define INA_INLINE inline
+#    endif
+#  endif
+#endif
+#ifndef INA_INLINE
+#define INA_INLINE
 #endif
 
 /*
@@ -588,7 +597,7 @@
  *  integer sizes in bits are powers of 2, and follow the ANSI
  *  definitions.
  */
-
+/*
 #ifndef UINT8_MAX
 # define UINT8_MAX 0xff
 #endif
@@ -717,13 +726,14 @@
 #error "Platform not supported"
 #endif
 #endif
-
+*/
 /*
  *  The macro stdint_int64_defined is temporarily used to record
  *  whether or not 64 integer support is available.  It must be
  *  defined for any 64 integer extensions for new platforms that are
  *  added.
  */
+ /*
 #undef stdint_int64_defined
 #if (defined(__STDC__) && defined(__STDC_VERSION__)) || defined (S_SPLINT_S)
 # if (__STDC__ && __STDC_VERSION__ >= 199901L) || defined (S_SPLINT_S)
@@ -736,9 +746,9 @@
 #   define PRINTF_INT64_MODIFIER "ll"
 #  endif
 # endif
-#endif
+#endif*/
 
-#if !defined (stdint_int64_defined)
+/*#if !defined (stdint_int64_defined)
 # if defined(__GNUC__)
 #  define stdint_int64_defined
    __extension__ typedef long long int64_t;
@@ -797,7 +807,7 @@
 #if !defined (UINT64_MAX) && defined (INT64_C)
 # define UINT64_MAX UINT64_C (18446744073709551615)
 #endif
-
+*/
 /*
  *  Width of hexadecimal for number field.
  */
@@ -833,7 +843,7 @@
  *  we don't need to worry about that until about 2040 at which point
  *  we'll have bigger things to worry about.
  */
-
+/*
 #ifdef stdint_int64_defined
   typedef int64_t intmax_t;
   typedef uint64_t uintmax_t;
@@ -868,6 +878,7 @@
 #  define PRINTF_INTMAX_DEC_WIDTH PRINTF_INT32_DEC_WIDTH
 # endif
 #endif
+*/
 
 /*
  *  Because this file currently only supports platforms which have
@@ -876,7 +887,7 @@
  *  version of this file could have different definitions.
  */
 
-#ifndef stdint_least_defined
+/*#ifndef stdint_least_defined
   typedef   int8_t   int_least8_t;
   typedef  uint8_t  uint_least8_t;
   typedef  int16_t  int_least16_t;
@@ -904,7 +915,7 @@
 # endif
 #endif
 #undef stdint_least_defined
-
+*/
 /*
  *  The ANSI C committee pretending to know or specify anything about
  *  performance is the epitome of misguided arrogance.  The mandate of
@@ -916,7 +927,7 @@
  *  stdint.h.
  */
 
-typedef   int_least8_t   int_fast8_t;
+/*typedef   int_least8_t   int_fast8_t;
 typedef  uint_least8_t  uint_fast8_t;
 typedef  int_least16_t  int_fast16_t;
 typedef uint_least16_t uint_fast16_t;
@@ -937,7 +948,7 @@ typedef uint_least32_t uint_fast32_t;
 # define UINT_FAST64_MAX UINT_LEAST64_MAX
 # define  INT_FAST64_MAX  INT_LEAST64_MAX
 # define  INT_FAST64_MIN  INT_LEAST64_MIN
-#endif
+#endif*/
 
 #undef stdint_int64_defined
 
@@ -1022,6 +1033,13 @@ typedef uint_least32_t uint_fast32_t;
  */
 #ifndef SIG_ATOMIC_MAX
 # define SIG_ATOMIC_MAX ((((sig_atomic_t) 1) << (sizeof (sig_atomic_t)*CHAR_BIT-1)) - 1)
+#endif
+
+#ifndef max
+#define max(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
 #endif
 
 #endif
