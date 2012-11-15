@@ -64,6 +64,7 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
         return NULL;
     }
     if (ring->magic != 'Z' || init == INA_MEM_SHARED_CREATE) { /* FIXME: Make it better */
+        INA_TRACE("KK");
         ina_mem_set(ring, 0, mem_size);
         ring->magic = 'Z';
         ring->version = version;
@@ -104,7 +105,7 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int id, int version,
     (*ctx)->id = id;
     (*ctx)->ring = ring;
     (*ctx)->data = ring + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_consumer_t*)(&((*ctx)->data[ring->slots-1]) + ring->size);
+    cons = (ina_ullc_consumer_t*)(&(*ctx)->data[ring->slots*ring->size]);
     (*ctx)->c_offset = &cons[0];
     return INA_SUCCESS;
 }
@@ -130,10 +131,11 @@ INA_API(void *)ina_ullc_producer_claim_item(ina_ullc_ctx_t *ctx)
             }
         }
     }
-    item = &(ctx->data[like_to_write]);
+    item = &ctx->data[like_to_write*ctx->ring->size];
     __ina_inc(&ctx->ring->next_ptr);
     return item;
 }
+
 INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void *item)
 {
     __ina_inc(&ctx->ring->cursor);
@@ -143,7 +145,7 @@ INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void *item)
 INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, ina_ullc_rb_t* ring, ina_ullc_ctx_t **ctx)
 {
     ina_ullc_consumer_t *cons;
-    
+
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
     if (!INA_SUCCEED(ina_err_peek())) {
         return ina_err_peek();
@@ -151,7 +153,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, ina_ullc_rb_t* r
     (*ctx)->id = id;
     (*ctx)->ring = ring;
     (*ctx)->data = ring + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_consumer_t*)(&((*ctx)->data[ring->slots-1]) + ring->size);
+    cons = (ina_ullc_consumer_t*)(&(*ctx)->data[ring->slots*ring->size]);
     (*ctx)->c_offset = &cons[id];
     (*ctx)->c_offset->alive = 1;
     return INA_SUCCESS;
@@ -172,7 +174,7 @@ INA_API(void *) ina_ullc_consumer_get_item(ina_ullc_ctx_t *ctx)
     while (ctx->ring->cursor < wait_for) {
     }
     idx = ctx->c_offset->cursor % ctx->ring->slots;
-    item = &(ctx->data[idx]);
+    item = &ctx->data[idx*ctx->ring->size];
     __ina_inc(&ctx->c_offset->cursor);
     return item;
 }
@@ -186,7 +188,7 @@ INA_API(void *) ina_ullc_consumer_get_item_no_wait(ina_ullc_ctx_t *ctx)
         return NULL;
     }
     idx = ctx->c_offset->cursor % ctx->ring->slots;
-    item = &(ctx->data[idx]);
+    item = &ctx->data[idx*ctx->ring->size];
     __ina_inc(&ctx->c_offset->cursor);
     return item;
 }

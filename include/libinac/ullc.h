@@ -111,7 +111,7 @@
  * 
  * - Document with graphics
  * - Fix claim_item function.. to properly wait on slow-consumers
- * - Linux, OS X adjustments for Atomic ops and Shared-Memory
+ * - Linux, OS X adjustments for Atomic ops
  * - Error handling
  * - Proper unit-testing
  * - Proper performance-tests
@@ -141,7 +141,6 @@ typedef struct ina_ullc_rb_s {
     size_t slots;
     volatile int64_t cursor;
     volatile int64_t next_ptr;
-    char *data;
 } ina_ullc_rb_t;
 
 /* consummer */
@@ -194,7 +193,7 @@ INA_API(void *)   ina_ullc_producer_claim_item(ina_ullc_ctx_t *ctx);
 /*
  * Commmit item for a producer
  */
-INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void * item);
+INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void *item);
 
 /*
  * Create a consumer
