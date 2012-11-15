@@ -159,7 +159,7 @@ typedef struct ina_ullc_ctx_s {
 
 /* Helper macro to create a ullc ring */
 #define INA_ULLC_RING_CREATE(version, type, slots, consumers, name) \
-ina_ullc_ring_create(version,sizeof(type),slots,consumer, ina_str_fromcstr(name,NULL))
+ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL))
 
 /*
  *  Create a ULLC ring
