@@ -34,7 +34,7 @@ static int64_t __ina_dec(volatile int64_t *);
 static int64_t __ina_comp_swap(volatile int64_t *, int64_t, int64_t);
 
 INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size, 
-                            size_t slots, int num_consumers, ina_str_t name)
+                            size_t slots, int num_consumers, ina_str_t name, int init)
 {
     ina_ullc_rb_t *ring;
     ina_mempool_t* pool;
@@ -57,14 +57,13 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
 
     ring = NULL;
     pool = NULL;
-    if (INA_SUCCEED(ina_mempool_create(&pool, mem_size, INA_MEM_SHARED|INA_MEM_SHARED_CREATE, name))) {
+    if (INA_SUCCEED(ina_mempool_create(&pool, mem_size, INA_MEM_SHARED|init, name))) {
         ring = (ina_ullc_rb_t*)ina_mempool_dalloc(pool, mem_size);
-        if (!INA_SUCCEED(ina_err_peek())) {
-            return NULL;
-        }
     }
-    
-    if (ring->magic != 'Z') { /* FIXME: Make it better */
+    if (ring == NULL) {
+        return NULL;
+    }
+    if (ring->magic != 'Z' || init == INA_MEM_SHARED_CREATE) { /* FIXME: Make it better */
         ina_mem_set(ring, 0, mem_size);
         ring->magic = 'Z';
         ring->version = version;
@@ -74,6 +73,12 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
         ring->cursor = -1;
         ring->next_ptr = 0;
     }
+    printf("Magic: %c\n", ring->magic);
+    printf("Version: %d\n", ring->version);
+    printf("Size: %zd\n", ring->size);
+    printf("Slots: %zd\n", ring->slots);
+    printf("Consumers: %zd\n", ring->num_consumers);
+
     return ring;
 }
 
@@ -96,9 +101,10 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int id, int version,
     if (!INA_SUCCEED(ina_err_peek())) {
         return ina_err_peek();
     }
+    (*ctx)->id = id;
     (*ctx)->ring = ring;
-    (*ctx)->data = (void*)(*ctx)->ring + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_consumer_t*)(&(*ctx)->data[ring->slots-1]) + ring->size;
+    (*ctx)->data = ring + sizeof(ina_ullc_rb_t);
+    cons = (ina_ullc_consumer_t*)(&((*ctx)->data[ring->slots-1]) + ring->size);
     (*ctx)->c_offset = &cons[0];
     return INA_SUCCESS;
 }
@@ -144,8 +150,8 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, ina_ullc_rb_t* r
     }
     (*ctx)->id = id;
     (*ctx)->ring = ring;
-    (*ctx)->data = (void*)(*ctx)->ring + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_consumer_t*)(&(*ctx)->data[ring->slots-1]) + ring->size;
+    (*ctx)->data = ring + sizeof(ina_ullc_rb_t);
+    cons = (ina_ullc_consumer_t*)(&((*ctx)->data[ring->slots-1]) + ring->size);
     (*ctx)->c_offset = &cons[id];
     (*ctx)->c_offset->alive = 1;
     return INA_SUCCESS;

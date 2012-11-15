@@ -141,6 +141,7 @@ typedef struct ina_ullc_rb_s {
     size_t slots;
     volatile int64_t cursor;
     volatile int64_t next_ptr;
+    char *data;
 } ina_ullc_rb_t;
 
 /* consummer */
@@ -154,19 +155,22 @@ typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_consumer_t *c_offset;  /* consumer(s) */
-    void *data;                     /* slot data */
+    void *data;
 } ina_ullc_ctx_t;
 
 /* Helper macro to create a ullc ring */
 #define INA_ULLC_RING_CREATE(version, type, slots, consumers, name) \
-ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL))
+ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
+
+#define INA_ULLC_RING_OPEN(version, type, slots, consumers, name) \
+ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL), 0)
 
 /*
  *  Create a ULLC ring
  */
 INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size, 
                             size_t slots, int num_consumers, 
-                            const ina_str_t name);
+                            const ina_str_t name, int init);
 /*
  *  Destroy a ULLC ring
  */
