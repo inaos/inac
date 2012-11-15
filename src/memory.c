@@ -63,6 +63,7 @@ static void *__ina_sys_realloc(void *, size_t);
 static void __ina_sys_free(void *);
 static ina_rc_t __ina_shm_open(ina_mempool_t *);
 static ina_rc_t __ina_shm_close(ina_mempool_t *);
+
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
                                  ina_realloc_t realloc_fn,
@@ -490,7 +491,7 @@ __ina_shm_open(ina_mempool_t *pool)
     INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->label);
     INA_ASSERT(pool->size > 0);
-    INA_ASSERT(pool->cf|INA_MEM_SHARED);
+    INA_ASSERT(pool->cf&INA_MEM_SHARED);
     INA_ASSERT_NULL(pool->m);
 
     pool->size = __INA_MEM_ALIGN(pool->size+sizeof(int64_t));
@@ -580,7 +581,7 @@ __ina_shm_open(ina_mempool_t *pool)
     INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->label);
     INA_ASSERT(pool->size > 0);
-    INA_ASSERT(pool->cf|INA_MEM_SHARED);
+    INA_ASSERT(pool->cf&INA_MEM_SHARED);
     INA_ASSERT_NULL(pool->m);
 
     pool->shm_handle = CreateFileMapping(                                      
