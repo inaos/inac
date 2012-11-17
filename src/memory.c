@@ -584,11 +584,11 @@ __ina_shm_open(ina_mempool_t *pool)
     INA_ASSERT(pool->cf&INA_MEM_SHARED);
     INA_ASSERT_NULL(pool->m);
 
-    pool->shm_handle = CreateFileMapping(                                      
-        INVALID_HANDLE_VALUE,                                               
-        NULL,                                                               
-        PAGE_READWRITE,                                        
-        0,                                                         
+    pool->shm_handle = CreateFileMapping(
+        INVALID_HANDLE_VALUE,
+        NULL,
+        PAGE_READWRITE
+        0,
         pool->size,
         ina_str_cstr(pool->label));
 
@@ -603,7 +603,7 @@ __ina_shm_open(ina_mempool_t *pool)
 
     if (pool->shm_handle == NULL) {
         CloseHandle(pool->shm_handle);
-        return INA_MEM_EALLOC;                                                      
+        return INA_MEM_EALLOC;
     }
     return INA_SUCCESS;
 }

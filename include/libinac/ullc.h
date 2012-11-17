@@ -154,15 +154,23 @@ typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_consumer_t *c_offset;  /* consumer(s) */
-    void *data;
+    void *data;                     /* slot data */
 } ina_ullc_ctx_t;
 
-/* Helper macro to create a ullc ring */
+/* Helper macro to create an ullc ring */
 #define INA_ULLC_RING_CREATE(version, type, slots, consumers, name) \
 ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
-
+/* Helper macro to open an ullc ring */
 #define INA_ULLC_RING_OPEN(version, type, slots, consumers, name) \
 ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL), 0)
+/* Clain an item */
+#define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim_item(ctx)
+/* Commit an item */
+#define INA_ULLC_COMMIT(ctx, item) ina_ullc_producer_commit_item(ctx, (void*)item)
+/* Get an item */
+#define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get_item(ctx)
+/* Get an item w/o waiting */
+#define INA_ULLC_GET_NOWAIT(type, ctx) (type*)ina_ullc_consumer_get_item_no_wait(ctx)
 
 /*
  *  Create a ULLC ring

@@ -28,6 +28,8 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#define __INA_MAGIC_HDR 'Z'
+
 /* FIXME: define as macro or inline */
 static int64_t __ina_inc(volatile int64_t *);
 static int64_t __ina_dec(volatile int64_t *);
@@ -46,27 +48,26 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
     INA_ASSERT_NOTNULL(name);
 
     if (size % 2 != 0) {
-        /* FIXME: INA_MEM_EBADALIGN */
-        INA_MEM_EALLOC;
+        /*INA_ULLC_EBADALIGN;*/
         return NULL;
     }
 
     
-    mem_size = (sizeof(ina_ullc_rb_t)+size*slots)
-         +(sizeof(ina_ullc_consumer_t)*num_consumers);
+    mem_size = (sizeof(ina_ullc_rb_t)+size*slots)+
+                (sizeof(ina_ullc_consumer_t)*num_consumers);
 
     ring = NULL;
     pool = NULL;
+
     if (INA_SUCCEED(ina_mempool_create(&pool, mem_size, INA_MEM_SHARED|init, name))) {
         ring = (ina_ullc_rb_t*)ina_mempool_dalloc(pool, mem_size);
     }
     if (ring == NULL) {
         return NULL;
     }
-    if (ring->magic != 'Z' || init == INA_MEM_SHARED_CREATE) { /* FIXME: Make it better */
-        INA_TRACE("KK");
+    if (ring->magic != __INA_MAGIC_HDR || init == INA_MEM_SHARED_CREATE) { /* FIXME: Make it better */
         ina_mem_set(ring, 0, mem_size);
-        ring->magic = 'Z';
+        ring->magic = __INA_MAGIC_HDR;
         ring->version = version;
         ring->size = size;
         ring->slots = slots;
@@ -74,12 +75,6 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
         ring->cursor = -1;
         ring->next_ptr = 0;
     }
-    printf("Magic: %c\n", ring->magic);
-    printf("Version: %d\n", ring->version);
-    printf("Size: %zd\n", ring->size);
-    printf("Slots: %zd\n", ring->slots);
-    printf("Consumers: %zd\n", ring->num_consumers);
-
     return ring;
 }
 
@@ -91,22 +86,24 @@ INA_API(ina_rc_t) ina_ullc_ring_destroy(ina_ullc_rb_t **ring)
 INA_API(ina_rc_t) ina_ullc_producer_create(int id, int version, 
                     ina_ullc_rb_t *ring, ina_ullc_ctx_t **ctx)
 {
-    ina_ullc_consumer_t *cons;
+    ina_ullc_ctx_t* pctx;
 
     INA_ASSERT_NOTNULL(ring);
+
     if (ring->version != version) {
         return INA_ULLC_EVERSION;
     }
-    
+
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
-    if (!INA_SUCCEED(ina_err_peek())) {
+    if (*ctx == NULL) {
         return ina_err_peek();
     }
-    (*ctx)->id = id;
-    (*ctx)->ring = ring;
-    (*ctx)->data = ring + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_consumer_t*)(&(*ctx)->data[ring->slots*ring->size]);
-    (*ctx)->c_offset = &cons[0];
+
+    pctx = *ctx;
+    pctx->id = id;
+    pctx->ring = ring;
+    pctx->data = ((void*)ring) + sizeof(ina_ullc_rb_t);
+    pctx->c_offset = (ina_ullc_consumer_t*)&pctx->data[(ring->slots-1)*ring->size]+sizeof(ina_ullc_consumer_t);
     return INA_SUCCESS;
 }
 
@@ -145,17 +142,25 @@ INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void *item)
 INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, ina_ullc_rb_t* ring, ina_ullc_ctx_t **ctx)
 {
     ina_ullc_consumer_t *cons;
+    ina_ullc_ctx_t* ccxt;
+
+    if (ring->version != version) {
+        return INA_ULLC_EVERSION;
+    }
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
-    if (!INA_SUCCEED(ina_err_peek())) {
+
+    if (*ctx == NULL) {
         return ina_err_peek();
     }
-    (*ctx)->id = id;
-    (*ctx)->ring = ring;
-    (*ctx)->data = ring + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_consumer_t*)(&(*ctx)->data[ring->slots*ring->size]);
-    (*ctx)->c_offset = &cons[id];
-    (*ctx)->c_offset->alive = 1;
+
+    ccxt = *ctx;
+    ccxt->id = id;
+    ccxt->ring = ring;
+    ccxt->data = ((void*)ring) + sizeof(ina_ullc_rb_t);
+    cons = (ina_ullc_consumer_t*)&ccxt->data[(ring->slots-1)*ring->size]+sizeof(ina_ullc_consumer_t);
+    ccxt->c_offset = &cons[id];
+    ccxt->c_offset->alive = 1;
     return INA_SUCCESS;
 }
 
@@ -192,7 +197,6 @@ INA_API(void *) ina_ullc_consumer_get_item_no_wait(ina_ullc_ctx_t *ctx)
     __ina_inc(&ctx->c_offset->cursor);
     return item;
 }
-
 
 #ifdef INA_OS_WIN32
 static int64_t 
