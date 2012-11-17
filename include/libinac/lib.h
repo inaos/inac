@@ -33,6 +33,7 @@
 #include <sys/param.h>
 #include <sys/fcntl.h>
 #include <sys/mman.h>
+#include <sys/sem.h>
 #endif
 
 #ifndef _WIN32
