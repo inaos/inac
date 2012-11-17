@@ -29,7 +29,7 @@
 #include "config.h"
 
 #define __INA_MAGIC_HDR 'Z'
-#define __INA_SEMKEY 0x300
+#define __INA_SEMKEY    0x300
 
 #ifdef INA_OS_WIN32
 #define __INA_ULLC_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
@@ -41,7 +41,8 @@
 
 
 INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size, 
-                            size_t slots, int num_consumers, ina_str_t name, int init)
+                            size_t slots, int num_consumers, ina_str_t name,
+                            int init)
 {
     ina_ullc_rb_t *ring;
     ina_mempool_t* pool;
@@ -69,7 +70,7 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
     if (ring == NULL) {
         return NULL;
     }
-    if (ring->magic != __INA_MAGIC_HDR || init == INA_MEM_SHARED_CREATE) { /* FIXME: Make it better */
+    if (ring->magic != __INA_MAGIC_HDR || init == INA_MEM_SHARED_CREATE) {
         ina_mem_set(ring, 0, mem_size);
         ring->magic = __INA_MAGIC_HDR;
         ring->version = version;
