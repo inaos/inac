@@ -206,9 +206,9 @@ INA_API(void *)   ina_ullc_producer_claim_item(ina_ullc_ctx_t *ctx);
 INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void *item);
 
 /*
- * Signal observer
+ * Signal observers
  */
-INA_API(ina_rc_t) ina_ullcsignal(ina_ullc_ctx_t *ctx);
+INA_API(ina_rc_t) ina_ullc_signal(ina_ullc_ctx_t *ctx);
 
 /*
  * Create a consumer
