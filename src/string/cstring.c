@@ -39,7 +39,7 @@ INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool)
         str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
     }
     if (str == NULL) {
-        INA_STR_ERROR_ALLOC;
+        INA_STR_EALLOC;
     }
     str[0] = '\0';
     return str; 

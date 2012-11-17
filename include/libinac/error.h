@@ -35,7 +35,7 @@
 
 /* Indicate no errors */
 #define INA_SUCCESS  0
-/* Indicate genercic failure */
+/* Indicate generic failure */
 #define INA_FAILURE  1
 
 /* Module identifiers */
@@ -43,26 +43,27 @@
 #define INA_MOD_MEMORY  1
 #define INA_MOD_STRING  2
 #define INA_MOD_ERROR   3
+#define INA_MOD_ULLC    4
 
 /* OS function identifiers */
 #define INA_OSFN_NONE   0
 #define INA_OSFN_FOPEN  1
+#define INA_OSFN_FTRUNC 2
+#define INA_OSFM_MMAP   4
 
 /* Errors */
-#define INA_ERR_RC_MSGLEN 1
-#define INA_ERR_RC_MSGFMT 2
-#define INA_ERR_RC_ALLOC  3
+#define INA_EMSGLEN  1
+#define INA_EMSGFMT  2
+#define INA_EALLOC   3
+#define INA_EPARAM   4
+#define INA_EVERSION 5
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
 /* Mark a fatal error (bit 11 of RC) */
 #define INA_ERR_FLAG_FATAL   0x300
-/* Used to reset the error state. */
-#define INA_ERR_STATE_CLEAR   0
-
-/* Used to start an interation */
+/* Used to start an interation  */
 #define INA_ERR_PEEK_FIRST    0
-
 /*
  * Push an error to the error state. 
  * 
@@ -85,7 +86,7 @@
  * r    Reason of failure
  * s    Error message
  */
-#define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,              \
+#define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,               \
                                           INA_OSFN_NONE,                    \
                                           r,                                \
                                           ina_str_fromcstr(__FILE__, NULL), \
@@ -118,38 +119,40 @@
  */
 #define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)i) << 22U|   \
                               ((ina_rc_t)m) << 16U|   \
-                              ((ina_rc_t)f) << 12U|   \
+                              ((ina_rc_t)f) << 11U|   \
                               ((ina_rc_t)r)
 
 /* Unpack the error identifier for a given RC */
-#define INA_RC_ID(rc)      (ina_rc_t)((rc >> 22U))
+#define INA_RC_ID(rc)     ((((ina_rc_t)rc)&0xFFC00000U)>>22U)
 /* Unpack the module indentifier for a given RC */
-#define INA_RC_MOD(rc)     (ina_rc_t)((rc >> 16U)&0xFU)
+#define INA_RC_MOD(rc)    ((((ina_rc_t)rc)&0x3F0000U)>>16U)
 /* Unpack the OS function identifier for a given RC */
-#define INA_RC_OSFN(rc)    (ina_rc_t)((rc >> 12U)&0xFU)
+#define INA_RC_OSFN(rc)    ((((ina_rc_t)rc)&0xF800U)>>11U)
 /* Unpack the reason of failuer for a given RC */
-#define INA_RC_REASON(rc)  (ina_rc_t)(rc&0xFFU)
+#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0x1FF))
 /* Verify if error is handled */
-#define INA_RC_HANDLED(rc) (ina_rc_t)(rc&INA_ERR_FLAG_HANDLED)
+#define INA_RC_HANDLED(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_HANDLED))
 /* Verify if fatal error occurred */
-#define INA_RC_FATAL(rc) (ina_rc_t)(rc&INA_ERR_FLAG_FATAL)
+#define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
 /* Check retuen code if successful or handled */
-#define INA_SUCCEED(rc) (INA_SUCCESS == rc ||       \
-                         INA_RC_REASON(rc) == 0 ||  \
-                         INA_RC_HANDLED(rc))
+#define INA_SUCCEED(rc) ina_err_succeed(rc)
 
 /* Error-Module errors */
 #define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
-#define INA_ERR_ERROR_MSGLEN INA_ERR_ERROR(INA_ERR_RC_MSGLEN, "Message size error")
-#define INA_ERR_ERROR_MSGFMT INA_ERR_ERROR(INA_ERR_RC_MSGFMT, "Message format error")
+#define INA_ERR_EMSGLEN INA_ERR_ERROR(INA_EMSGLEN, "Message size")
+#define INA_ERR_EMSGFMT INA_ERR_ERROR(INA_EMSGFMT, "Message format")
 
 /* String-Module errors */
 #define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
-#define INA_STR_ERROR_ALLOC INA_STR_ERROR(INA_ERR_RC_MSGLEN, "bad string alloc")
+#define INA_STR_EALLOC INA_STR_ERROR(INA_EALLOC, "Bad string alloc")
 
 /* String-Module errors */
 #define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
-#define INA_MEM_ERROR_ALLOC INA_MEM_ERROR(INA_ERR_RC_ALLOC, "bad memory alloc")
+#define INA_MEM_EALLOC INA_MEM_ERROR(INA_EALLOC, "Bad memory alloc")
+
+/* ULLC-Module errors */
+#define INA_ULLC_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ULLC,INA_OSFN_NONE, s)
+#define INA_ULLC_EVERSION INA_MEM_ERROR(INA_EVERSION, "Bad ullc version")
 
 
 /* Function pointer cleanup handler. */
@@ -164,9 +167,6 @@ typedef struct ina_error_s {
     ina_str_t msg;
     void *data;
 } ina_error_t;
-
-/* internal initialization */
-ina_rc_t ina_err_init();
 
 /*
  * Push an error to the error state.
@@ -186,6 +186,7 @@ INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, ina_str_t file,
                                int line, 
                                ina_str_t msg);
 
+INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc);
 /*
  * Peek the first pushed error from the error state.
  *
@@ -198,7 +199,7 @@ INA_API(ina_rc_t) ina_err_peek_last(void);
  * Peek the first unhandled error from the error state.
  *
  * Return Value
- * RC of first unhandled error or INA_SUCCESS error state is clean 
+ * RC of first unhandled error or INA_SUCCESS  if error state is clean 
  */
 INA_API(ina_rc_t) ina_err_peek(void);
 
@@ -214,22 +215,30 @@ INA_API(ina_rc_t) ina_err_peek(void);
 INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc);
 
 /*
- * Mark an error as handled or clear the entire error state.
+ * Mark an error as handled. All errors pushed before this one are removed
+ * from the state.
  *
  * Parameters
- * rc   Valid RC to mark as handled. If a error is already maked as handled
- *      no error occurs. To clear the complete error state pass INA_SUCCESS
- *      to the function.
+ * rc   Valid RC to mark as handled. If a error was already maked as handled
+ *      no error occurs.
  *
  * Return Value
- * RC. 
- * Returns INA_SUCCESS when the complete error state was cleard successfully
- * ohterwise returns INA_FAILURE
+ * Returns INA_SUCCESS when the complete error state was cleared successfully
+ * otherwise returns INA_FAILURE. A marked 
  */
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
 
 /*
- * Makes a nice trace to the stdout of the current error state.
+ * Mark an error as handled.
+ *
+ * Return Value
+ * Returns INA_SUCCESS when the complete error state was cleared successfully
+ * otherwise returns INA_FAILURE
+ */
+INA_API(ina_rc_t) ina_err_reset(void);
+
+/*
+ * Makes a trace to the stdout of the current error state.
  *
  * Return Value
  * INA_SUCCESS
@@ -237,23 +246,20 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
 INA_API(ina_rc_t) ina_err_trace(void);
 
 /*
- * Printout a core dump to the stdout.
- *
- * Return Value
- * INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_err_dump(void);
-
-/*
- * Set a custom cleanup handler for a given signal.
+ * Set a custom cleanup routine to call in case of an programm error or
+ * a terminiation signal. The purpose of such a routine is to give consumers
+ * a last chance to cleanup before the program exits.
  *
  * Parameters
- * handler  Function which handle the signal
+ * handler  Cleanup routine. A cleanup should return EXIT_SUCCESS or 
+ *          EXIT_FAILURE depending on type of signal. On a programm error
+ *          the return of cleanup routines will be ignored. 
  *
  * Return Value
  * Previously defined handler
  */
-INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(ina_cleanup_handler_t handler);
+INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
+                                        ina_cleanup_handler_t handler);
 
 /*
  * Format the error message for a given RC.
@@ -267,6 +273,4 @@ INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(ina_cleanup_handler_t
  * INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
  */
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
-
-INA_API(ina_rc_t) ina_err_setdata(ina_rc_t rc, ...);
 #endif

@@ -30,7 +30,7 @@
 
 static int32_t __initialized = 0;
  
-INA_API(ina_rc_t) ina_appinit(const int argc,  const char *argv[]) 
+INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv) 
 {
     return ina_libinit();
 }
@@ -40,39 +40,35 @@ INA_API(ina_rc_t) ina_libinit(void)
     if (__initialized++) {
         return INA_SUCCESS;
     }
-    ina_err_init();
+    atexit(ina_exit);
 
     /* initalize global memory functions */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
      /* initalize global memory functions for memory pools */
     ina_mempool_set_fn(NULL, NULL, NULL);
 
-    /* initialize system memory pool and internal structures */
-    ina_mempool_init(0);
-
     /* initalize error state */
-    ina_err_clear(INA_ERR_STATE_CLEAR);
+    ina_err_reset();
+
+   /* initialize system memory pool and internal structures */
+    ina_mempool_init(0);
 
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_exit(int exitcode)
+INA_API(void) ina_exit(void)
 {
-    while (!__initialized--) {
-        ina_exit(exitcode);
+    while (__initialized--) {
+        return;
     }
-
-    INA_ASSERT(exitcode == EXIT_SUCCESS || exitcode == EXIT_FAILURE);
 
     if (!INA_SUCCEED(ina_err_peek())) {
         ina_err_trace();
-        ina_err_dump();
     }
-    
-    /* FIXME: error hanfling */
-    ina_err_clear(INA_ERR_STATE_CLEAR);
+
+    /* FIXME: error handling */
+    ina_err_reset();
+
     ina_mempool_destroy();
-    
-    return INA_SUCCESS;
 }
  
