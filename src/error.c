@@ -31,17 +31,25 @@
 #define __INA_ERR_STATE_SIZE (32)
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
+/* function pointer to a custom cleanup routine */
 static ina_cleanup_handler_t  __cleanup = NULL;
 
+/* Error state */
 typedef struct ina_error_state_s {
     size_t c;
     size_t ic;
     ina_error_t *errors[__INA_ERR_STATE_SIZE];
 } ina_error_state_t;
 
+/* initialized module, returns always INA_SUCCESS */
+static ina_rc_t __ina_init(void);
+/* free allocated error  */
 static ina_rc_t __ina_destroy_error(ina_error_t *);
-static ina_rc_t __ina_pop_error();
+/* pop last error from error state. returns RC of new last error */
+static ina_rc_t __ina_pop_error(void);
+/* get index of error in the error state for a RC */
 static size_t __ina_get_index(ina_rc_t);
+/* internal signal handler */
 static void __ina_signal_handler(int);
 
 /* global error state */
@@ -57,10 +65,11 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file,
     INA_ASSERT(__initialized);
     INA_ASSERT(mod <= 64);
     INA_ASSERT(fn <= 32);
-    INA_ASSERT(reason <= 512);
+    INA_ASSERT(reason <= 1023);
     INA_ASSERT_NOTNULL(file);
     INA_ASSERT(line > 0);
     INA_ASSERT_NOTNULL(msg);
+    INA_ASSERT_NOTEQUAL(INA_SUCCESS, reason);
 
     error = (ina_error_t*)ina_mem_alloc(sizeof(ina_error_t));
 
@@ -83,9 +92,16 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file,
     error->msg = ina_str_dup(msg, NULL);
     error->data = NULL;
 
-    __state.errors[__state.c] = error;
-    ++__state.c;
+    __state.errors[__state.c++] = error;
     return error->rc;
+}
+
+INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
+{
+    if (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0) {
+        return 1;
+    }
+    return 0;
 }
 
 INA_API(ina_rc_t) ina_err_peek()
@@ -100,6 +116,7 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
 {
     size_t k;
 
+    INA_ASSERT(__initialized);
     INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
 
     if (rc == INA_ERR_PEEK_FIRST) {
@@ -117,6 +134,7 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
 
 INA_API(ina_rc_t) ina_err_peek_last()
 {
+    INA_ASSERT(__initialized);
     if (__state.c > 0) {
         return __state.errors[0]->rc;
     }
@@ -126,31 +144,39 @@ INA_API(ina_rc_t) ina_err_peek_last()
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
     size_t k;
-
-    if (rc == INA_ERR_STATE_CLEAR) {
-        if (__initialized) {
-            while (INA_SUCCESS == __ina_pop_error());
-        } else {
-            ++__initialized;
-            __state.c = 0;
-        }
-        __state.ic = 0;
-        INA_ASSERT(__state.c == 0);
-        INA_TRACE("error state clean");
-        return INA_SUCCESS;
-    }
+    ina_rc_t top;
+    ina_rc_t ret;
 
     INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
+    ret = INA_SUCCESS;
 
     k = __ina_get_index(rc);
-
+    
     if (k < __state.c) {
         INA_ASSERT_EQUAL(rc, __state.errors[k]->rc);
         __state.errors[k]->rc = rc|INA_ERR_FLAG_HANDLED;
-        return __state.errors[k]->rc;
+        ret = __state.errors[k]->rc;
+        for (;;) {
+            top =  __ina_pop_error();
+            if (top == ret) {
+                break;
+            }
+        }
     } else {
-        return INA_FAILURE;
+        ret = INA_FAILURE;
     }
+    return ret;
+}
+
+INA_API(ina_rc_t) ina_err_reset(void)
+{
+    if (__initialized) {
+        while (!(INA_SUCCESS == __ina_pop_error()));
+    } else {
+        __ina_init();
+    }
+    __state.ic = 0;
+    INA_ASSERT(__state.c == 0);
     return INA_SUCCESS;
 }
 
@@ -173,20 +199,24 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
             if (len < (ina_str_len(error->msg) +
                        ina_str_len(error->file) +
                        __INA_ERR_MESSAGE_EXTRALEN)) {
-                return INA_ERR_ERROR_MSGLEN;
+                return INA_ERR_EMSGLEN;
             }
 
             tm = localtime(&error->ts);
 
             if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
-
-                outstr = ina_str_vsprintf("%s %s:%d - %s", tmc, 
+                outstr = ina_str_vsprintf("%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u)",
+                                            tmc, 
                                             ina_str_cstr(error->file),
                                             error->line,
-                                            ina_str_cstr(error->msg));
+                                            ina_str_cstr(error->msg),
+                                            INA_RC_REASON(error->rc),
+                                            INA_RC_OSFN(error->rc),
+                                            INA_RC_MOD(error->rc),
+                                            INA_RC_HANDLED(error->rc));
 
                 if (ina_str_ncpy(str, outstr, len) == NULL) {
-                    return INA_ERR_ERROR_MSGFMT;
+                    return INA_ERR_EMSGFMT;
                 }
                 return INA_SUCCESS;
             }
@@ -199,12 +229,14 @@ INA_API(ina_rc_t) ina_err_trace(void)
 {
     ina_rc_t rc;
     ina_str_t str;
-    
+
+    INA_ASSERT(__initialized);
+
     if (INA_SUCCEED(ina_err_peek())) {
         return INA_SUCCESS;
     }
 
-    printf("%s\n", "**** UNHANDLED ERRROR START ******");
+    printf("%s\n", "**** UNHANDLED ERROR START ******");
 
     str = ina_str_newlen(2048, NULL);
     INA_ASSERT(str);
@@ -218,13 +250,15 @@ INA_API(ina_rc_t) ina_err_trace(void)
         }
         rc = ina_err_peek_next(rc);
     }
-    printf("%s\n", "**** UNHANDLED ERRROR END   ******");
+    printf("%s\n", "**** UNHANDLED ERROR END   ******");
 
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_dump(void) {
-    INA_TRACE("Dump\n");
+INA_API(ina_rc_t) ina_err_coredump(void) {
+    char cmd[160];
+    sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
+    system(cmd);
     return INA_SUCCESS;
 }
 
@@ -238,9 +272,11 @@ INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
     return old;
 }
 
-ina_rc_t ina_err_init() 
+static ina_rc_t
+__ina_init(void) 
 {
     /* TODO: X-platform */
+#ifndef INA_OS_WIN32
     signal(SIGFPE, __ina_signal_handler);
     signal(SIGILL, __ina_signal_handler);
     signal(SIGSEGV, __ina_signal_handler);
@@ -252,6 +288,11 @@ ina_rc_t ina_err_init()
     signal(SIGTERM, __ina_signal_handler);
     signal(SIGKILL, __ina_signal_handler);
     signal(SIGSTOP, __ina_signal_handler);
+#endif
+    ++__initialized;
+    __state.c = 0;
+    __state.ic = 0;
+ 
     return INA_SUCCESS;
 }
 
@@ -281,20 +322,24 @@ __ina_destroy_error(ina_error_t *error)
 }
 
 static ina_rc_t 
-__ina_pop_error() 
+__ina_pop_error(void) 
 {
     size_t i;
+
+    INA_ASSERT(__state.c >= 0);
     
     if (__state.c > 0) {
         __ina_destroy_error(__state.errors[0]);
-        for (i = 1; i < __state.c; ++i) {
+        for (i = 1; i < __state.c+1; ++i) {
             __state.errors[i-1] = __state.errors[i];
         }
         --__state.c;
         INA_ASSERT(__state.c >= 0);
-        return INA_SUCCESS;
+        if (__state.c > 0) {
+            return __state.errors[0]->rc;
+        }
     }
-    return INA_FAILURE;
+    return INA_SUCCESS;
 }
 
 static void
@@ -303,7 +348,7 @@ __ina_signal_handler(int sig)
     int exitcode;
     
     exitcode = EXIT_FAILURE;
-    
+#ifndef INA_OS_WIN32    
     switch (sig) {
         case SIGFPE:
         case SIGILL:
@@ -311,9 +356,8 @@ __ina_signal_handler(int sig)
         case SIGABRT:
             INA_TRACE("programm error signal received!");
             if (__cleanup) {
-                exitcode = __cleanup(sig, 0);
+                 __cleanup(sig, 0);
             }
-            ina_exit(exitcode);
             break;
         case SIGHUP:
         case SIGINT:
@@ -323,12 +367,12 @@ __ina_signal_handler(int sig)
         case SIGKILL:
             INA_TRACE("termination signal received!");
             if (__cleanup) {
-                exitcode = __cleanup(sig, 0);
-                ina_exit(exitcode);
+                exitcode = __cleanup(sig, 1);
             }
             break;
         default:
             INA_TRACE("unknown singal received!");
-            ina_exit(exitcode);
     }
+#endif
+    exit(exitcode);
 }

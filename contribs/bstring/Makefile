@@ -7,7 +7,7 @@ LIB = bstring.a
 all: $(OBJ)
 	ar rcs $(LIB) $(OBJ)
 %.o: %.c
-	$(CC) $(CFLAGS) -v -c -DBSTRLIB_NOVSNP $<
+	$(CC) $(CFLAGS) -v -c $<
 	
 .PHONY: clean
 
