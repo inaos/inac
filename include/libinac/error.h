@@ -52,11 +52,12 @@
 #define INA_OSFM_MMAP   4
 
 /* Errors */
-#define INA_EMSGLEN  1
-#define INA_EMSGFMT  2
-#define INA_EALLOC   3
-#define INA_EPARAM   4
-#define INA_EVERSION 5
+#define INA_EMSGLEN   1
+#define INA_EMSGFMT   2
+#define INA_EALLOC    3
+#define INA_EPARAM    4
+#define INA_EVERSION  5
+#define INA_EBADALIGN 6
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -152,7 +153,8 @@
 
 /* ULLC-Module errors */
 #define INA_ULLC_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ULLC,INA_OSFN_NONE, s)
-#define INA_ULLC_EVERSION INA_MEM_ERROR(INA_EVERSION, "Bad ullc version")
+#define INA_ULLC_EVERSION INA_ULLC_ERROR(INA_EVERSION, "Bad ullc version")
+#define INA_ILLC_EBADALIGN INA_ULLC_ERROR(INA_EBADALIGN, "Bad memory align")
 
 
 /* Function pointer cleanup handler. */
