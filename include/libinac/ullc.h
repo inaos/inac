@@ -122,15 +122,12 @@
  * - Batch writing and reading
  * - Non spinning wait-strategies
  * - Multi procuder handling
- *
  */
-typedef enum ina_ullc_producer_wait_strategy_e {
-    INA_ULLC_PRODUCER_BUSY_WAIT = 1,
-} ina_ullc_producer_wait_strategy;
-
-typedef enum ina_ullc_consumer_wait_strategy_e {
-    INA_ULLC_CONSUMER_BUSY_WAIT = 1,
- } ina_ullc_consumer_wait_strategy;
+typedef enum ina_ullc_wait_strategy_e {
+    INA_ULLC_BUSY_WAIT = 1,
+    INA_ULLC_SIGNAL_WAIT,
+    INA_ULLC_TIMER_WAIT,
+ } ina_ullc_wait_strategy;
 
 /* ring buffer (shared mem) */
 typedef struct ina_ullc_rb_s {
@@ -139,12 +136,14 @@ typedef struct ina_ullc_rb_s {
     int num_consumers;
     size_t size;
     size_t slots;
+    int semkey;  /*FIXME: win32 + multiple producer */
     volatile int64_t cursor;
     volatile int64_t next_ptr;
 } ina_ullc_rb_t;
 
 /* consummer */
 typedef struct ina_ullc_consumer_s {
+    volatile int semid;
     volatile int alive;
     volatile int64_t cursor;
  } ina_ullc_consumer_t;
@@ -152,6 +151,8 @@ typedef struct ina_ullc_consumer_s {
 /* ullc context */
 typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
+    int semid;                      /* sem id */
+    ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_consumer_t *c_offset;  /* consumer(s) */
     void *data;                     /* slot data */
@@ -187,6 +188,7 @@ INA_API(ina_rc_t) in_ullc_ring_destroy(ina_ullc_rb_t **ring);
  *  Create a producer
  */
 INA_API(ina_rc_t) ina_ullc_producer_create(int id, int version, 
+                            ina_ullc_wait_strategy ws,
                             ina_ullc_rb_t *ring, ina_ullc_ctx_t **ctx);
 /*
  *  Detroy a producer
@@ -204,9 +206,15 @@ INA_API(void *)   ina_ullc_producer_claim_item(ina_ullc_ctx_t *ctx);
 INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void *item);
 
 /*
+ * Signal observer
+ */
+INA_API(ina_rc_t) ina_ullcsignal(ina_ullc_ctx_t *ctx);
+
+/*
  * Create a consumer
  */
-INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, 
+INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
+                            ina_ullc_wait_strategy ws,
                             ina_ullc_rb_t *ring, ina_ullc_ctx_t **ctx);
 /*
  * Destroy consumer
