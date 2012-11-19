@@ -111,7 +111,6 @@
  * 
  * - Document with graphics
  * - Fix claim_item function.. to properly wait on slow-consumers
- * - Linux, OS X adjustments for Atomic ops
  * - Error handling
  * - Proper unit-testing
  * - Proper performance-tests
@@ -120,7 +119,6 @@
  *   - Consumer wait strategies
  * - Tuning, cache-lines
  * - Batch writing and reading
- * - Non spinning wait-strategies
  * - Multi procuder handling
  */
 typedef enum ina_ullc_wait_strategy_e {
@@ -165,15 +163,15 @@ ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name
 #define INA_ULLC_RING_OPEN(version, type, slots, consumers, name) \
 ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL), 0)
 /* Clain an item */
-#define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim_item(ctx)
+#define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
 /* Commit an item */
-#define INA_ULLC_COMMIT(ctx, item) ina_ullc_producer_commit_item(ctx, (void*)item)
+#define INA_ULLC_COMMIT(ctx, item) ina_ullc_producer_commit(ctx, (void*)item)
 /* Get an item */
-#define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get_item(ctx)
+#define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get(ctx)
 /* Get an item w/o waiting */
-#define INA_ULLC_GET_NOWAIT(type, ctx) (type*)ina_ullc_consumer_get_item_no_wait(ctx)
+#define INA_ULLC_GET_NOWAIT(type, ctx) (type*)ina_ullc_consumer_get_no_wait(ctx)
 /* Signal waiting cnsumers */
-#define INA_ULLC_SIGNAL(type, ctx) (type*)ina_ullc_producer_claim_item(ctx)
+#define INA_ULLC_SIGNAL(type, ctx) (type*)ina_ullc_signal(ctx)
 
 /*
  *  Create a ULLC ring
@@ -206,7 +204,6 @@ INA_API(void *)  ina_ullc_producer_claim(ina_ullc_ctx_t *ctx);
  * Commmit item for a producer
  */
 INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx, void *item);
-
 /*
  * Signal observers
  */
@@ -223,12 +220,12 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
  */
 INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx);
 /*
- * Get a item for a consumer
+ * Read from consumer
  */
-INA_API(void *)  ina_ullc_consumer_get_item(ina_ullc_ctx_t *ctx);
+INA_API(void *)  ina_ullc_consumer_get(ina_ullc_ctx_t *ctx);
 /*
- * Get a item for a consumer w/o waiting
+ * Read from for a consumer w/o waiting
  */
-INA_API(void *)  ina_ullc_consumer_get_item_no_wait(ina_ullc_ctx_t *ctx);
+INA_API(void *)  ina_ullc_consumer_get_no_wait(ina_ullc_ctx_t *ctx);
 
 #endif

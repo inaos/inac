@@ -159,7 +159,7 @@ INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx, void *item)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx)
+INA_API(ina_rc_t) ina_ullc_signal(ina_ullc_ctx_t *ctx)
 {
     /* TODO: plattform */
     struct sembuf op[1] ;
@@ -260,13 +260,16 @@ INA_API(void *) ina_ullc_consumer_get_item_no_wait(ina_ullc_ctx_t *ctx)
 static ina_rc_t 
 __ina_wait_for_signal(ina_ullc_ctx_t* ctx)
 {
-    struct sembuf op[1];
-     op[0].sem_op = -1;
-     op[0].sem_num = 0;
-     op[0].sem_flg = SEM_UNDO;
-     semop(ctx->semid, op, 1);
-     /* FIXME: Error handling */
-     return INA_SUCCESS;
-}
+    INA_ASSERT_NOTNULL(ctx);
 
+    if (ctx->semid > 0) {
+        struct sembuf op[1];
+        op[0].sem_op = -1;
+        op[0].sem_num = 0;
+        op[0].sem_flg = SEM_UNDO;
+        semop(ctx->semid, op, 1);
+        /* FIXME: Error handling */
+    }
+    return INA_SUCCESS;
+}
 
