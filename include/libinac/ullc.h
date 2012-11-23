@@ -158,7 +158,7 @@ typedef struct ina_ullc_ctx_s {
 
 /* Helper macro to create an ullc ring */
 #define INA_ULLC_RING_CREATE(version, type, slots, consumers, name) \
-ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
+ina_ullc_ring_create(version,sizeof(type),slots,consumers,ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
 /* Helper macro to open an ullc ring */
 #define INA_ULLC_RING_OPEN(version, type, slots, consumers, name) \
 ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL), 0)
@@ -203,7 +203,7 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);
 /*
  *
  */
-INA_API(ina_rc_t) ina_ullc_producer_pos(ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx);
 
 /*
  * Claim item for a producer
