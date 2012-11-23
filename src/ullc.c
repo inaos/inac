@@ -41,13 +41,15 @@
 
 static ina_rc_t __ina_wait_for_signal(ina_ullc_ctx_t*);
 
-INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size, 
-                            size_t slots, int num_consumers, ina_str_t name,
-                            int init)
+INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version, 
+                            size_t size, size_t slots, int num_consumers, 
+                            ina_str_t name, int flags)
 {
     ina_ullc_rb_t *ring;
     ina_mempool_t* pool;
     size_t mem_size;
+
+    ring = *rb;
 
     INA_ASSERT(version > 0);
     INA_ASSERT(slots > 0);
@@ -55,23 +57,24 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
     INA_ASSERT_NOTNULL(name);
 
     if (size % 2 != 0) {
-        INA_ULLC_EBADALIGN;
-        return NULL;
+        return INA_ULLC_EBADALIGN;
     }
 
     mem_size = (sizeof(ina_ullc_rb_t)+size*slots)+
                 (sizeof(ina_ullc_consumer_t)*num_consumers);
 
-    ring = NULL;
     pool = NULL;
 
-    if (INA_SUCCEED(ina_mempool_create(&pool, mem_size, INA_MEM_SHARED|init, name))) {
-        ring = (ina_ullc_rb_t*)ina_mempool_dalloc(pool, mem_size);
+    if (!INA_SUCCEED(ina_mempool_create(&pool, mem_size, INA_MEM_SHARED|flags, name))) {
+        return ina_err_peek();
     }
+
+    ring = (ina_ullc_rb_t*)ina_mempool_dalloc(pool, mem_size);
     if (ring == NULL) {
-        return NULL;
+        return ina_err_peek();
     }
-    if (ring->magic != __INA_MAGIC_HDR || init == INA_MEM_SHARED_CREATE) {
+
+    if (ring->magic != __INA_MAGIC_HDR || flags&INA_MEM_SHARED_CREATE) {
         ina_mem_set(ring, 0, mem_size);
         ring->magic = __INA_MAGIC_HDR;
         ring->version = version;
@@ -82,7 +85,7 @@ INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size,
         ring->next_ptr = 0;
         ring->semkey = __INA_SEMKEY; /* FIXME: use ftok() */
     }
-    return ring;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_ullc_ring_destroy(ina_ullc_rb_t **ring)

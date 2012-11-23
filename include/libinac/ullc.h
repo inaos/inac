@@ -157,7 +157,7 @@ typedef struct ina_ullc_ctx_s {
 } ina_ullc_ctx_t;
 
 /* Helper macro to create an ullc ring */
-#define INA_ULLC_RING_CREATE(version, type, slots, consumers, name) \
+#define INA_ULLC_RING_CREATE(version, type, slots, consumers, name, rb) \
 ina_ullc_ring_create(version,sizeof(type),slots,consumers,ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
 /* Helper macro to open an ullc ring */
 #define INA_ULLC_RING_OPEN(version, type, slots, consumers, name) \
@@ -181,9 +181,9 @@ ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name
 /*
  *  Create a ULLC ring
  */
-INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size, 
-                            size_t slots, int num_consumers, 
-                            const ina_str_t name, int init);
+INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version, 
+                            size_t size, size_t slots, int num_consumers, 
+                            const ina_str_t name, int flags);
 /*
  *  Destroy a ULLC ring
  */
