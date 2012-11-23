@@ -50,7 +50,7 @@ typedef struct ina_mempool_s  {
     size_t size;
     size_t pos;
     size_t end;
-    void *m;
+    char *m;
     ina_str_t label;
     struct ina_mempool_s *current;
     struct ina_mempool_s *parent;
@@ -204,7 +204,7 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
  *
  * Return Value
  * INA_SUCCESS when the system memory pool was succefully allocated.
- * INA_FAILURE if an error occured 
+ * INA_FAILURE if an error occured
  */
 INA_API(ina_rc_t) ina_mempool_init(size_t size);
 /* cleanup */

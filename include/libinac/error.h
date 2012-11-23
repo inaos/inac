@@ -43,18 +43,23 @@
 #define INA_MOD_MEMORY  1
 #define INA_MOD_STRING  2
 #define INA_MOD_ERROR   3
+#define INA_MOD_ULLC    4
 
 /* OS function identifiers */
-#define INA_OSFN_NONE   0
-#define INA_OSFN_FOPEN  1
-#define INA_OSFN_FTRUNC 2
-#define INA_OSFM_MMAP   4
+#define INA_OSFN_NONE    0
+#define INA_OSFN_FOPEN   1
+#define INA_OSFN_FTRUNC  2
+#define INA_OSFN_MMAP    4
+#define INA_OSFN_SEMINIT 5
 
 /* Errors */
-#define INA_EMSGLEN 1
-#define INA_EMSGFMT 2
-#define INA_EALLOC  3
-#define INA_EPARAM  4
+#define INA_EMSGLEN   1
+#define INA_EMSGFMT   2
+#define INA_EALLOC    3
+#define INA_EPARAM    4
+#define INA_EVERSION  5
+#define INA_EBADALIGN 6
+#define INA_ESEMINIT  7
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -147,6 +152,13 @@
 /* String-Module errors */
 #define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
 #define INA_MEM_EALLOC INA_MEM_ERROR(INA_EALLOC, "Bad memory alloc")
+
+/* ULLC-Module errors */
+#define INA_ULLC_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ULLC,INA_OSFN_NONE, s)
+#define INA_ULLC_EVERSION INA_ULLC_ERROR(INA_EVERSION, "Bad ullc version")
+#define INA_ULLC_EBADALIGN INA_ULLC_ERROR(INA_EBADALIGN, "Bad memory align")
+#define INA_ULLC_ESEMINIT INA_ULLC_ERROR(INA_ESEMINIT, "Semaphore failed")
+
 
 
 /* Function pointer cleanup handler. */

@@ -25,16 +25,6 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <unistd.h>
-#ifndef INA_OS_WIN32
-#include <sys/mman.h>
-#include <fcntl.h>
-#else
-#define __ina_shm_open(p) __ina_shm_open_win32(p)
-#define __ina_shm_close(p) __ina_shm_clode_win32(p)
-#endif
-
-
 #include <libinac/lib.h>
 #include "config.h"
 
@@ -71,13 +61,8 @@ static __ina_mplist_t *__pools = NULL;
 static void *__ina_sys_malloc(size_t);
 static void *__ina_sys_realloc(void *, size_t);
 static void __ina_sys_free(void *);
-#ifndef INA_OS_WIN32
 static ina_rc_t __ina_shm_open(ina_mempool_t *);
 static ina_rc_t __ina_shm_close(ina_mempool_t *);
-#else
-static ina_rc_t __ina_shm_open_win32(ina_mempool_t *);
-static ina_rc_t __ina_shm_close_win32(ina_mempool_t *);
-#endif
 
 INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
@@ -506,7 +491,7 @@ __ina_shm_open(ina_mempool_t *pool)
     INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->label);
     INA_ASSERT(pool->size > 0);
-    INA_ASSERT(pool->cf|INA_MEM_SHARED);
+    INA_ASSERT(pool->cf&INA_MEM_SHARED);
     INA_ASSERT_NULL(pool->m);
 
     pool->size = __INA_MEM_ALIGN(pool->size+sizeof(int64_t));
@@ -573,7 +558,7 @@ __ina_shm_close(ina_mempool_t *pool)
     }
 
     /*INA_TRACE("unmapping shared mem");*/
-    cn = ina_decrement((int64_t*)pool->m);
+    cn = __sync_fetch_and_sub((int64_t*)pool->m, 1);
     munmap(pool->m, pool->size);
     pool->m = NULL;
     pool->size = 0;
@@ -591,16 +576,60 @@ __ina_shm_close(ina_mempool_t *pool)
 }
 #else
 static ina_rc_t 
-__ina_shm_open_win32(ina_mempool_t *pool)
+__ina_shm_open(ina_mempool_t *pool)
 {
-    INA_NOT_IMPL;
-    return INA_FAILURE;
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_NOTNULL(pool->label);
+    INA_ASSERT(pool->size > 0);
+    INA_ASSERT(pool->cf&INA_MEM_SHARED);
+    INA_ASSERT_NULL(pool->m);
+
+    pool->shm_handle = CreateFileMapping(
+        INVALID_HANDLE_VALUE,
+        NULL,
+        PAGE_READWRITE
+        0,
+        pool->size,
+        ina_str_cstr(pool->label));
+
+    if (pool->shm_handle == NULL) {
+        return INA_MEM_EALLOC;
+    }
+    pool->m = (void*)MapViewOfFile(pool->shm_handle,
+        FILE_MAP_ALL_ACCESS, 
+        0,
+        0,
+        pool->size);
+
+    if (pool->shm_handle == NULL) {
+        CloseHandle(pool->shm_handle);
+        return INA_MEM_EALLOC;
+    }
+    return INA_SUCCESS;
 }
 
 static ina_rc_t 
-__ina_shm_close_win32(ina_mempool_t *pool)
+__ina_shm_close(ina_mempool_t *pool)
 {
-        INA_NOT_IMPL;
-        return INA_FAILURE;
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT(pool->size > 0);
+    INA_ASSERT_NOTNULL(pool->label); 
+    INA_ASSERT_NOTNULL(pool->shm_handle);
+
+    if (pool->m == NULL) {
+         return INA_SUCCESS;
+    }
+
+    /* TODO: Error handling */
+    UnmapViewOfFile(pool->shm_handle);
+    CloseHAndle(pool->shm_handle);
+
+    pool->m = NULL;
+    pool->shm_handle = NULL;
+    pool->size = 0;
+    pool->pos = 0;
+    pool->end = 0;
+    
+    return INA_SUCCESS;
 }
 #endif

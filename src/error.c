@@ -25,8 +25,6 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <unistd.h>
-
 #include <libinac/lib.h>
 #include "config.h"
 
@@ -278,6 +276,7 @@ static ina_rc_t
 __ina_init(void) 
 {
     /* TODO: X-platform */
+#ifndef INA_OS_WIN32
     signal(SIGFPE, __ina_signal_handler);
     signal(SIGILL, __ina_signal_handler);
     signal(SIGSEGV, __ina_signal_handler);
@@ -289,7 +288,7 @@ __ina_init(void)
     signal(SIGTERM, __ina_signal_handler);
     signal(SIGKILL, __ina_signal_handler);
     signal(SIGSTOP, __ina_signal_handler);
-
+#endif
     ++__initialized;
     __state.c = 0;
     __state.ic = 0;
@@ -349,7 +348,7 @@ __ina_signal_handler(int sig)
     int exitcode;
     
     exitcode = EXIT_FAILURE;
-    
+#ifndef INA_OS_WIN32    
     switch (sig) {
         case SIGFPE:
         case SIGILL:
@@ -374,5 +373,6 @@ __ina_signal_handler(int sig)
         default:
             INA_TRACE("unknown singal received!");
     }
+#endif
     exit(exitcode);
 }

@@ -30,37 +30,80 @@
 
 #ifdef BSTRING_ENABLED
 
+INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool)
+{
+    return NULL; 
+}
+
 INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
 {
-    ina_str_t str;
-    str = bfromcstr(cstr);
-    return str;
+    INA_NOT_IMPL;
+    return NULL;
 }
 
 INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
 {
-    bdestroy(str);
-    return INA_SUCCESS;
+    if (bdestroy(str)) == BSTR_OK) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
 }
 
 INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
 {
-    return ina_str_fromcstr(str->data, pool);
+    INA_NOT_IMPL;
+    return NULL;
 }
 
-INA_API(const char*) inac_str_cstr(ina_str_t str)
+INA_API(const char*) ina_str_cstr(const ina_str_t str)
 {
-    return bdata(str);
+    INA_NOT_IMPL;
+    return NULL;
+}
+
+ INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t src)
+ {
+     return strcpy(dest, src);
+ }
+
+INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n)
+{
+    return strncpy(dest, src, n);
 }
 
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
 {
+    INA_NOT_IMPL;
     return NULL;
+}
+
+INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t src, size_t n)
+{
+    INA_NOT_IMPL;
+    return NULL;
+}
+
+INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
+{
+    INA_NOT_IMPL;
+    return NULL;
+}
+
+INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
+{
+    return strncmp(lhs, rhs, n);
 }
 
 INA_API(size_t) ina_str_len(const ina_str_t str)
 {
-    return blength(str);
+    return strlen(str);
+}
+
+
+INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...)
+{
+    INA_NOT_IMPL;
+    return NULL;
 }
 
 #endif

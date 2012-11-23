@@ -2,6 +2,8 @@
 .Makefile.swp
 *.o
 *.a
+*.obj
+*.lib
 tests/suites.c
 tests/suites.h
 tests/test
