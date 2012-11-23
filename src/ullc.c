@@ -160,7 +160,7 @@ INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
-INA_API(int64_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx)
+INA_API(int64_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx)
 {
     return ctx->ring->cursor;
 }

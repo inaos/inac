@@ -203,7 +203,7 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);
 /*
  *
  */
-INA_API(ina_rc_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx);
+INA_API(int64_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx);
 
 /*
  * Claim item for a producer
