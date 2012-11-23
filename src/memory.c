@@ -587,7 +587,7 @@ __ina_shm_open(ina_mempool_t *pool)
     pool->shm_handle = CreateFileMapping(
         INVALID_HANDLE_VALUE,
         NULL,
-        PAGE_READWRITE
+        PAGE_READWRITE,
         0,
         pool->size,
         ina_str_cstr(pool->label));
@@ -622,7 +622,7 @@ __ina_shm_close(ina_mempool_t *pool)
 
     /* TODO: Error handling */
     UnmapViewOfFile(pool->shm_handle);
-    CloseHAndle(pool->shm_handle);
+    CloseHandle(pool->shm_handle);
 
     pool->m = NULL;
     pool->shm_handle = NULL;

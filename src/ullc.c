@@ -41,7 +41,7 @@
 
 
 INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size, 
-                            size_t slots, int num_consumers, ina_str_t name,
+                            size_t slots, int num_consumers, const ina_str_t name,
                             int init)
 {
     ina_ullc_rb_t *ring;
