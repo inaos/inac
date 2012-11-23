@@ -10,3 +10,4 @@ contribs/lua-5.2.1/src/lua
 contribs/lua-5.2.1/src/luac
 contribs/makeheaders/makeheaders
 luajit
+build/*
