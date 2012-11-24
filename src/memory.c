@@ -228,6 +228,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
             __ina_shm_close(*pool);
             ina_mem_free((*pool)->label);
             __ina_mp_free(*pool);
+            *pool = NULL;
             return ina_err_peek();
         }
     } else {
@@ -236,6 +237,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
 
     if ((*pool)->m == NULL) {
         __ina_mp_free(*pool);
+        *pool = NULL;
         return INA_MEM_EALLOC;
     }
 
@@ -253,6 +255,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         ina_mem_free((*pool)->label);
         __ina_mp_free((*pool)->m);
         __ina_mp_free(*pool);
+        *pool = NULL;
         return ina_err_peek();
     }
     last->next = next;
