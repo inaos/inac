@@ -180,6 +180,11 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     if (__pools == NULL) {
         return INA_FAILURE;
     }
+
+    __pools->pool = NULL;
+    __pools->next = NULL;
+    __pools->active = 0;
+
     if (INA_SUCCEED(ina_mempool_create(&__pool, size, INA_MEM_DYNAMIC, NULL))) {
         __pools->pool = __pool;
         __pools->next = NULL;
@@ -432,6 +437,10 @@ INA_API(ina_rc_t) ina_mempool_destroy(void)
 {
     __ina_mplist_t *ref;
     __ina_mplist_t *next;
+
+    if (__pools == NULL) {
+        return INA_SUCCESS;
+    }
 
     next = __pools->next;
     ref = NULL;

@@ -70,7 +70,7 @@ void test_mempool_syspool()
     INA_ASSERT_SUCCESS(ina_err_peek());
 
     /* destroy all pools and recreate internal pool with default size */
-    INA_ASSERT_SUCCESS(ina_mempool_destroy());
+    /*INA_ASSERT_SUCCESS(ina_mempool_destroy());*/
     INA_ASSERT_SUCCESS(ina_mempool_init(0));
     INA_ASSERT_SUCCESS(ina_mempool_getinfo(NULL, &mi));
     INA_ASSERT_EQUAL(0, mi.children);
