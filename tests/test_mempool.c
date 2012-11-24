@@ -34,6 +34,30 @@
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
 #define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
 
+ void test_mempool_bad_dalloc()
+ {
+     void *ptr;
+     ina_mempool_t *pool;
+
+     INA_TRACE("test_mempool_bad_dalloc");
+
+     ptr = NULL;
+     pool = NULL;
+
+     /* clear error state and assure it's clean */
+     INA_ASSERT_SUCCESS(ina_err_reset());
+     INA_ASSERT_SUCCESS(ina_err_peek());
+
+     /* create a fixed size pool of 1KB and try to allocate 2KB */
+     INA_ASSERT_SUCCESS(ina_mempool_create(&pool, 1024, 0, NULL));
+     INA_ASSERT_NOTNULL(pool);
+     ptr = ina_mempool_dalloc(pool, 2048);
+     INA_ASSERT_NULL(ptr);
+     INA_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
+     INA_ASSERT_EQUAL(INA_EALLOC , INA_RC_REASON(ina_err_peek()));
+
+}
+
 void test_mempool_syspool() 
 {
     void *p;
@@ -68,29 +92,4 @@ void test_mempool_syspool()
     INA_ASSERT_EQUAL((10*1024*1024), mi.size);
     /* printf("mi.used= %zd", mi.used); */
     /*INA_ASSERT_EQUAL(__INA_MEM_ALIGN(2*1024*1024), mi.used);*/
-}
-
-
-void test_mempool_bad_dalloc()
-{
-    void *ptr;
-    ina_mempool_t *pool;
-
-    INA_TRACE("test_mempool_bad_dalloc");
-    
-    ptr = NULL;
-    pool = NULL;
-
-    /* clear error state and assure it's clean */
-    INA_ASSERT_SUCCESS(ina_err_reset());
-    INA_ASSERT_SUCCESS(ina_err_peek());
-
-    /* create a fixed size pool of 1KB and try to allocate 2KB */
-    INA_ASSERT_SUCCESS(ina_mempool_create(&pool, 1024, 0, NULL));
-    INA_ASSERT_NOTNULL(pool);
-    ptr = ina_mempool_dalloc(pool, 2048);
-    INA_ASSERT_NULL(ptr);
-    INA_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
-    INA_ASSERT_EQUAL(INA_EALLOC , INA_RC_REASON(ina_err_peek()));
-
 }
