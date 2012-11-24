@@ -51,8 +51,9 @@ INA_API(ina_rc_t) ina_libinit(void)
     ina_err_reset();
 
    /* initialize system memory pool and internal structures */
-    ina_mempool_init(0);
-
+    if (!INA_SUCCEED(ina_mempool_init(0))) {
+        return ina_err_peek();
+    }
     return INA_SUCCESS;
 }
 
