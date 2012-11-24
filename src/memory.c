@@ -181,14 +181,20 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
         return INA_FAILURE;
     }
 
+    __pools->pool = NULL;
+    __pools->next = NULL;
+    __pools->active = 0;
+
     if (INA_SUCCEED(ina_mempool_create(&__pool, size, INA_MEM_DYNAMIC, NULL))) {
         __pools->pool = __pool;
         __pools->next = NULL;
         __pools->active = 1;
         return INA_SUCCESS;
-    } else {
-        __ina_mp_free(__pools);
     }
+    __ina_mp_free(__pools);
+    __ina_mp_free(__pool);
+    __pools = NULL;
+    __pool = NULL;
     return INA_FAILURE;
 }
 
@@ -200,7 +206,6 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     last = NULL;
     next = NULL;
 
-    INA_TRACE("create memory pool");
     INA_ASSERT(size > 0);
 
     size = __INA_MEM_ALIGN(size);
@@ -212,7 +217,6 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         }
         return INA_FAILURE;
     }
-
     (*pool)->cf = cf;
     (*pool)->pos = 0;
     (*pool)->size = size;
@@ -222,15 +226,14 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     if (label != NULL) {
         (*pool)->label = ina_str_dup(label, NULL);
     }
-
     if (cf&INA_MEM_SHARED) {
         INA_ASSERT_NOTNULL((*pool)->label);
 
         if (!INA_SUCCEED((__ina_shm_open(*pool)))) {
-            INA_TRACE("failed open shared memory");
             __ina_shm_close(*pool);
             ina_mem_free((*pool)->label);
             __ina_mp_free(*pool);
+            *pool = NULL;
             return ina_err_peek();
         }
     } else {
@@ -239,23 +242,25 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
 
     if ((*pool)->m == NULL) {
         __ina_mp_free(*pool);
+        *pool = NULL;
         return INA_MEM_EALLOC;
     }
 
     if (cf&INA_MEM_FILLZERO && !(cf&INA_MEM_SHARED)) {
         __ina_memset((*pool)->m, 0, size);
     }
-    
+
     last = __pools;
     while (last->next != NULL) {
         last = last->next;
     }
 
-    next = (__ina_mplist_t*)ina_mem_alloc(sizeof(__ina_mplist_t));
-    if (!INA_SUCCEED(ina_err_peek())) {
+    next = (__ina_mplist_t*)__ina_mp_malloc(sizeof(__ina_mplist_t));
+    if (next == NULL) {
         ina_mem_free((*pool)->label);
         __ina_mp_free((*pool)->m);
         __ina_mp_free(*pool);
+        *pool = NULL;
         return ina_err_peek();
     }
     last->next = next;
@@ -433,6 +438,10 @@ INA_API(ina_rc_t) ina_mempool_destroy(void)
     __ina_mplist_t *ref;
     __ina_mplist_t *next;
 
+    if (__pools == NULL) {
+        return INA_SUCCESS;
+    }
+
     next = __pools->next;
     ref = NULL;
     while (next != NULL) {
@@ -447,13 +456,14 @@ INA_API(ina_rc_t) ina_mempool_destroy(void)
         next = NULL;
         while (ref != NULL) {
             next = ref->next;
-            ina_mem_free(ref);
+            __ina_mp_free(ref);
             ref = next;
         }
         __pool = NULL;
         __pools = NULL;
+        return INA_SUCCESS;
     }
-    return INA_SUCCESS;
+    return INA_FAILURE;
 }
 
 static void *

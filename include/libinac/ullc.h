@@ -111,7 +111,6 @@
  * 
  * - Document with graphics
  * - Fix claim_item function.. to properly wait on slow-consumers
- * - Linux, OS X adjustments for Atomic ops
  * - Error handling
  * - Proper unit-testing
  * - Proper performance-tests
@@ -120,7 +119,6 @@
  *   - Consumer wait strategies
  * - Tuning, cache-lines
  * - Batch writing and reading
- * - Non spinning wait-strategies
  * - Multi procuder handling
  */
 typedef enum ina_ullc_wait_strategy_e {
@@ -159,26 +157,33 @@ typedef struct ina_ullc_ctx_s {
 } ina_ullc_ctx_t;
 
 /* Helper macro to create an ullc ring */
-#define INA_ULLC_RING_CREATE(version, type, slots, consumers, name) \
-ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
+#define INA_ULLC_RING_CREATE(rb, version, type, slots, consumers, name) \
+ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers,ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
 /* Helper macro to open an ullc ring */
-#define INA_ULLC_RING_OPEN(version, type, slots, consumers, name) \
-ina_ullc_ring_create(version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL), 0)
+#define INA_ULLC_RING_OPEN(rb, version, type, slots, consumers, name) \
+ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL), 0)
 /* Clain an item */
-#define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim_item(ctx)
+#define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
 /* Commit an item */
-#define INA_ULLC_COMMIT(ctx, item) ina_ullc_producer_commit_item(ctx, (void*)item)
-/* Get an item */
-#define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get_item(ctx)
+#define INA_ULLC_COMMIT(ctx) ina_ullc_producer_commit(ctx)
+/* Get an item  waiting a signal*/
+#define INA_ULLC_GET_SWAIT(type, ctx) (type*)ina_ullc_consumer_get_swait(ctx)
+/* Get an item  waiting a signal with timout*/
+#define INA_ULLC_GET_TWAIT(type, ctx) (type*)ina_ullc_consumer_get_twait(ctx)
+/* Get an item  waiting a signal*/
+#define INA_ULLC_GET_BWAIT(type, ctx) (type*)ina_ullc_consumer_get_bwait(ctx)
 /* Get an item w/o waiting */
-#define INA_ULLC_GET_NOWAIT(type, ctx) (type*)ina_ullc_consumer_get_item_no_wait(ctx)
+#define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get(ctx)
+/* Signal waiting cnsumers */
+#define INA_ULLC_SIGNAL(ctx) ina_ullc_producer_signal(ctx)
+
 
 /*
  *  Create a ULLC ring
  */
-INA_API(ina_ullc_rb_t*) ina_ullc_ring_create(int version, size_t size, 
-                            size_t slots, int num_consumers, 
-                            const ina_str_t name, int init);
+INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version, 
+                            size_t size, size_t slots, int num_consumers, 
+                            const ina_str_t name, int flags);
 /*
  *  Destroy a ULLC ring
  */
@@ -187,28 +192,32 @@ INA_API(ina_rc_t) in_ullc_ring_destroy(ina_ullc_rb_t **ring);
 /*
  *  Create a producer
  */
-INA_API(ina_rc_t) ina_ullc_producer_create(int id, int version, 
+INA_API(ina_rc_t) ina_ullc_producer_create(int version,
                             ina_ullc_wait_strategy ws,
                             ina_ullc_rb_t *ring, ina_ullc_ctx_t **ctx);
 /*
- *  Detroy a producer
+ *  Destroy a producer
  */
 INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);
 
 /*
+ *
+ */
+INA_API(int64_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx);
+
+/*
  * Claim item for a producer
  */
-INA_API(void *)   ina_ullc_producer_claim_item(ina_ullc_ctx_t *ctx);
+INA_API(void *)  ina_ullc_producer_claim(ina_ullc_ctx_t *ctx);
 
 /*
  * Commmit item for a producer
  */
-INA_API(ina_rc_t) ina_ullc_producer_commit_item(ina_ullc_ctx_t *ctx, void *item);
-
+INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx);
 /*
  * Signal observers
  */
-INA_API(ina_rc_t) ina_ullc_signal(ina_ullc_ctx_t *ctx);
+INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx);
 
 /*
  * Create a consumer
@@ -221,12 +230,15 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
  */
 INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx);
 /*
- * Get a item for a consumer
+ * Read from consumer, no wait, signal
  */
-INA_API(void *)   ina_ullc_consumer_get_item(ina_ullc_ctx_t *ctx);
+INA_API(void *)  ina_ullc_consumer_get(ina_ullc_ctx_t *ctx);
+INA_API(void *)  ina_ullc_consumer_get_twait(ina_ullc_ctx_t *ctx);
+INA_API(void *)  ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx);
+INA_API(void *)  ina_ullc_consumer_get_bwait(ina_ullc_ctx_t *ctx);
 /*
- * Get a item for a consumer w/o waiting
+ * Read from for a consumer w/o waiting
  */
-INA_API(void *)   ina_ullc_consumer_get_item_no_wait(ina_ullc_ctx_t *ctx);
+INA_API(void *)  ina_ullc_consumer_get_no_wait(ina_ullc_ctx_t *ctx);
 
 #endif
