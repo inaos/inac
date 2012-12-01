@@ -168,7 +168,7 @@ ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(
 #define INA_ULLC_COMMIT(ctx) ina_ullc_producer_commit(ctx)
 /* Get an item  waiting a signal*/
 #define INA_ULLC_GET_SWAIT(type, ctx) (type*)ina_ullc_consumer_get_swait(ctx)
-/* Get an item  waiting a signal with timout*/
+/* Get an item  waiting a signal with timeout*/
 #define INA_ULLC_GET_TWAIT(type, ctx) (type*)ina_ullc_consumer_get_twait(ctx)
 /* Get an item  waiting a signal*/
 #define INA_ULLC_GET_BWAIT(type, ctx) (type*)ina_ullc_consumer_get_bwait(ctx)
@@ -236,9 +236,4 @@ INA_API(void *)  ina_ullc_consumer_get(ina_ullc_ctx_t *ctx);
 INA_API(void *)  ina_ullc_consumer_get_twait(ina_ullc_ctx_t *ctx);
 INA_API(void *)  ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx);
 INA_API(void *)  ina_ullc_consumer_get_bwait(ina_ullc_ctx_t *ctx);
-/*
- * Read from for a consumer w/o waiting
- */
-INA_API(void *)  ina_ullc_consumer_get_no_wait(ina_ullc_ctx_t *ctx);
-
 #endif
