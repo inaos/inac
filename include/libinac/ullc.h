@@ -119,7 +119,7 @@
  *   - Consumer wait strategies
  * - Tuning, cache-lines
  * - Batch writing and reading
- * - Multi procuder handling
+ * - Multi producer handling
  */
 typedef enum ina_ullc_wait_strategy_e {
     INA_ULLC_BUSY_WAIT = 1,
