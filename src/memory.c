@@ -320,7 +320,9 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
 
     INA_ASSERT_NOTNULL(info);
     pm = (pool==NULL?__pool:pool);
-    INA_ASSERT_NOTNULL(pm);
+    if (pm == NULL) {
+        return INA_FAILURE;
+    }
 
     info->size = 0;
     info->used = 0;
