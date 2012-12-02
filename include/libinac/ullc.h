@@ -33,7 +33,6 @@
 #define INA_ULLC_MIN(x,y) max(x,y)
 
 
-
 /*
  * GOALs:
  * 
@@ -134,14 +133,18 @@ typedef struct ina_ullc_rb_s {
     int num_consumers;
     size_t size;
     size_t slots;
-    int semkey;  /*FIXME: win32 + multiple producer */
     volatile int64_t cursor;
     volatile int64_t next_ptr;
+#ifdef INA_OS_WIN32
+	volatile int64_t swait_count;
+	char* semkey;  /*FIXME: multiple producer */
+#else
+    int semkey;  /*FIXME: multiple producer */
+#endif
 } ina_ullc_rb_t;
 
-/* consummer */
+/* consumer */
 typedef struct ina_ullc_consumer_s {
-    volatile int semid;
     volatile int alive;
     volatile int64_t cursor;
  } ina_ullc_consumer_t;
@@ -149,7 +152,11 @@ typedef struct ina_ullc_consumer_s {
 /* ullc context */
 typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
+#ifdef INA_OS_WIN32
+	HANDLE semid;
+#else
     int semid;                      /* sem id */
+#endif
     ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_consumer_t *c_offset;  /* consumer(s) */
@@ -230,10 +237,19 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
  */
 INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx);
 /*
- * Read from consumer, no wait, signal
+ * Read from consumer, no wait
  */
 INA_API(void *)  ina_ullc_consumer_get(ina_ullc_ctx_t *ctx);
+/*
+ * Read from consumer, timer wait
+ */
 INA_API(void *)  ina_ullc_consumer_get_twait(ina_ullc_ctx_t *ctx);
+/*
+ * Read from consumer, signal wait
+ */
 INA_API(void *)  ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx);
+/*
+ * Read from consumer, busy wait
+ */
 INA_API(void *)  ina_ullc_consumer_get_bwait(ina_ullc_ctx_t *ctx);
 #endif
