@@ -197,7 +197,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
                         ina_ullc_rb_t* ring, ina_ullc_ctx_t **ctx)
 {
     ina_ullc_consumer_t *cons;
-    ina_ullc_ctx_t* ccxt;
+    ina_ullc_ctx_t* cctx;
 
     if (ring->version != version) {
         return INA_ULLC_EVERSION;
@@ -209,18 +209,18 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
         return ina_err_peek();
     }
 
-    ccxt = *ctx;
-    ccxt->id = id;
-    ccxt->ws = ws;
-    ccxt->sem_handle = 0;
-    ccxt->ring = ring;
-    ccxt->data = ((unsigned char*)ring) + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_consumer_t*)&ccxt->data[(ring->slots-1)*ring->size]+sizeof(ina_ullc_consumer_t);
-    ccxt->c_offset = &cons[id];
-    ccxt->c_offset->alive = 1;
+    cctx = *ctx;
+    cctx->id = id;
+    cctx->ws = ws;
+    cctx->sem_handle = 0;
+    cctx->ring = ring;
+    cctx->data = ((unsigned char*)ring) + sizeof(ina_ullc_rb_t);
+    cons = (ina_ullc_consumer_t*)&cctx->data[(ring->slots-1)*ring->size]+sizeof(ina_ullc_consumer_t);
+    cctx->c_offset = &cons[id];
+    cctx->c_offset->alive = 1;
     
     if (ws == INA_ULLC_SIGNAL_WAIT) {
-        return __ina_sem_open(ccxt);
+        return __ina_sem_open(cctx);
     }
     return INA_SUCCESS;
 }
