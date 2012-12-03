@@ -157,10 +157,10 @@ typedef struct ina_ullc_ctx_s {
 
 /* Helper macro to create an ullc ring */
 #define INA_ULLC_RING_CREATE(rb, version, type, slots, consumers, name) \
-ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers,ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
+ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers,ina_str_fromcstr(name),  INA_MEM_SHARED_CREATE)
 /* Helper macro to open an ullc ring */
 #define INA_ULLC_RING_OPEN(rb, version, type, slots, consumers, name) \
-ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL), 0)
+ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(name), 0)
 /* Clain an item */
 #define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
 /* Commit an item */
