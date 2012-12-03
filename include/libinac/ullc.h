@@ -135,12 +135,8 @@ typedef struct ina_ullc_rb_s {
     size_t slots;
     volatile int64_t cursor;
     volatile int64_t next_ptr;
-#ifdef INA_OS_WIN32
-	volatile int64_t swait_count;
-	char* semkey;  /*FIXME: multiple producer */
-#else
-    int semkey;  /*FIXME: multiple producer */
-#endif
+    volatile int64_t swait_count;
+    ina_semkey_t semkey; /*FIXME: multiple producer */
 } ina_ullc_rb_t;
 
 /* consumer */
@@ -152,15 +148,11 @@ typedef struct ina_ullc_consumer_s {
 /* ullc context */
 typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
-#ifdef INA_OS_WIN32
-	HANDLE semid;
-#else
-    int semid;                      /* sem id */
-#endif
+    ina_handle_t sem_handle;        /* semaphore handle */
     ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_consumer_t *c_offset;  /* consumer(s) */
-    void *data;                     /* slot data */
+    unsigned char *data;            /* slot data */
 } ina_ullc_ctx_t;
 
 /* Helper macro to create an ullc ring */

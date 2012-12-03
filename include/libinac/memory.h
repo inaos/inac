@@ -45,7 +45,7 @@
 
 /* Memory pool handle */
 typedef struct ina_mempool_s  {
-    ina_shm_handle_t shm_handle;
+    ina_handle_t shm_handle;
     uint32_t cf;
     size_t size;
     size_t pos;
