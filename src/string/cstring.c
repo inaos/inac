@@ -30,14 +30,10 @@
 
 #ifdef CSTRING_ENABLED
 
-INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_newlen(size_t len)
 {
     ina_str_t str;
-    if (pool == NULL) {
-        str = (ina_str_t)ina_mem_alloc(len+1);
-    } else {
-        str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
-    }
+    str = (ina_str_t)ina_mem_alloc(len+1);
     if (str == NULL) {
         INA_STR_EALLOC;
     }
@@ -45,7 +41,23 @@ INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool)
     return str; 
 }
 
-INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_pnewlen(size_t len, ina_mempool_t *pool)
+{
+    ina_str_t str;
+    if (pool == NULL) {
+        INA_STR_EALLOC;
+        return NULL;
+    }
+    str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
+    if (str == NULL) {
+        INA_STR_EALLOC;
+        return NULL;
+    }
+    str[0] = '\0';
+    return str; 
+}
+
+INA_API(ina_str_t) ina_str_fromcstr(const char* cstr)
 {
     ina_str_t str;
     size_t len;
@@ -54,10 +66,30 @@ INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
     
     if (cstr != NULL) {
         len = strlen(cstr);
-        if (pool == NULL) {
-            str = (ina_str_t)ina_mem_alloc(len+1);
-        } else {
-            str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
+        str = (ina_str_t)ina_mem_alloc(len+1);
+        if (str == NULL) {
+            INA_STR_EALLOC;
+            return NULL;
+        }
+        ina_mem_cpy(str, cstr, len);
+        str[len] = '\0';
+    }
+    return str;
+}
+
+INA_API(ina_str_t) ina_str_pfromcstr(const char* cstr, ina_mempool_t *pool)
+{
+    ina_str_t str;
+    size_t len;
+
+    str = NULL;
+    
+    if (cstr != NULL) {
+        len = strlen(cstr);
+        str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
+        if (str == NULL) {
+            INA_STR_EALLOC;
+            return NULL;
         }
         ina_mem_cpy(str, cstr, len);
         str[len] = '\0';
@@ -71,12 +103,20 @@ INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
     return INA_SUCCESS;
 }
 
-INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_dup(const ina_str_t str)
 {
     if (str == NULL) {
         return NULL;
     }
-    return ina_str_fromcstr(str, pool);
+    return ina_str_fromcstr(str);
+}
+
+INA_API(ina_str_t) ina_str_pdup(const ina_str_t str, ina_mempool_t *pool)
+{
+    if (str == NULL) {
+        return NULL;
+    }
+    return ina_str_pfromcstr(str, pool);
 }
 
 INA_API(const char*) ina_str_cstr(const ina_str_t str)
@@ -127,7 +167,7 @@ INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...)
 
     INA_ASSERT_NOTNULL(fmt);
 
-    str = ina_str_newlen(1024, NULL);
+    str = ina_str_newlen(1024);
 
     va_start(args, fmt);
     vsnprintf(str, 1024, fmt, args);

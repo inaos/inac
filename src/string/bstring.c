@@ -30,12 +30,23 @@
 
 #ifdef BSTRING_ENABLED
 
-INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_newlen(size_t len)
 {
     return NULL; 
 }
 
-INA_API(ina_str_t) ina_str_fromcstr(const char* cstr, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_pnewlen(size_t len, ina_mempool_t *pool)
+{
+    return NULL; 
+}
+
+INA_API(ina_str_t) ina_str_fromcstr(const char* cstr)
+{
+    INA_NOT_IMPL;
+    return NULL;
+}
+
+INA_API(ina_str_t) ina_str_pfromcstr(const char* cstr, ina_mempool_t *pool)
 {
     INA_NOT_IMPL;
     return NULL;
@@ -49,7 +60,13 @@ INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
     return INA_FAILURE;
 }
 
-INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_dup(const ina_str_t str)
+{
+    INA_NOT_IMPL;
+    return NULL;
+}
+
+INA_API(ina_str_t) ina_str_pdup(const ina_str_t str, ina_mempool_t *pool)
 {
     INA_NOT_IMPL;
     return NULL;
