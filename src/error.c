@@ -87,9 +87,9 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file,
 
     error->rc = INA_RC_PACK(mod, fn, reason, ++__state.ic);
     error->ts = time(NULL); /* FIXME: use own time value */
-    error->file = ina_str_dup(file, NULL);
+    error->file = ina_str_dup(file);
     error->line = line;
-    error->msg = ina_str_dup(msg, NULL);
+    error->msg = ina_str_dup(msg);
     error->data = NULL;
 
     __state.errors[__state.c++] = error;
@@ -238,7 +238,7 @@ INA_API(ina_rc_t) ina_err_trace(void)
 
     printf("%s\n", "**** UNHANDLED ERROR START ******");
 
-    str = ina_str_newlen(2048, NULL);
+    str = ina_str_newlen(2048);
     INA_ASSERT(str);
 
     rc = ina_err_peek();

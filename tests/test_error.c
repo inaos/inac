@@ -35,8 +35,8 @@ void test_error_message_formatting()
 
     INA_TRACE("test_error_message_formatting");
 
-    msg1 = ina_str_fromcstr("Message size error", NULL);
-    msg2 = ina_str_newlen(100, NULL);
+    msg1 = ina_str_fromcstr("Message size error");
+    msg2 = ina_str_newlen(100);
 
     INA_ASSERT_NOTNULL(msg1);
     INA_ASSERT_NOTNULL(msg2);

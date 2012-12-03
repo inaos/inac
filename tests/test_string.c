@@ -34,10 +34,10 @@ void test_string_allocation_without_pool()
     ina_str_t str1;
     ina_str_t str2;
     
-    str1 = ina_str_fromcstr("hallo", NULL);
+    str1 = ina_str_fromcstr("hallo");
     INA_ASSERT_NOTNULL(str1);
     INA_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
-    str2 = ina_str_dup(str1, NULL);
+    str2 = ina_str_dup(str1);
     INA_ASSERT_NOTNULL(str2);
     ina_str_destroy(str1);
     ina_str_destroy(str2);
