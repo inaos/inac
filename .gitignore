@@ -10,6 +10,7 @@ tests/test
 tests/test_*.*
 contribs/lua-5.2.1/src/lua
 contribs/lua-5.2.1/src/luac
+contribs/luajit-2.0.0/src/*.so
 contribs/makeheaders/makeheaders
 luajit
 build/*
