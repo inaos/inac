@@ -120,6 +120,14 @@
  * - Batch writing and reading
  * - Multi producer handling
  */
+
+/* Signal types for INA_ULLC_SIGNAL_WAIT */
+typedef enum ina_ullc_signal_type_e {
+     INA_ULLC_SIG_WAIT = -1,
+     INA_ULLC_SIG_RELEASE = 1,
+} ina_ullc_signal_type;
+
+/* ULLC wait strategies */
 typedef enum ina_ullc_wait_strategy_e {
     INA_ULLC_BUSY_WAIT = 1,
     INA_ULLC_SIGNAL_WAIT,
@@ -152,7 +160,7 @@ typedef struct ina_ullc_ctx_s {
     ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_consumer_t *c_offset;  /* consumer(s) */
-    unsigned char *data;            /* slot data */
+    unsigned char *data;                     /* slot data */
 } ina_ullc_ctx_t;
 
 /* Helper macro to create an ullc ring */
@@ -173,8 +181,10 @@ ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(
 #define INA_ULLC_GET_BWAIT(type, ctx) (type*)ina_ullc_consumer_get_bwait(ctx)
 /* Get an item w/o waiting */
 #define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get(ctx)
-/* Signal waiting cnsumers */
-#define INA_ULLC_SIGNAL(ctx) ina_ullc_producer_signal(ctx)
+/* "Signal" consumers  to wait */
+#define INA_ULLC_SIGNAL_WAIT(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_WAIT)
+/* "Singal" consumers to read */
+#define INA_ULLC_SIGNAL_RELEASE(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_RELEASE)
 
 
 /*
@@ -216,7 +226,7 @@ INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx);
 /*
  * Signal observers
  */
-INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx);
+INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st);
 
 /*
  * Create a consumer

@@ -46,7 +46,6 @@
 #error Compiler not supported yet for ULLC!
 #endif
 
-static ina_rc_t __ina_wait_for_signal(ina_ullc_ctx_t*);
 /* make unique sem key */
 static ina_rc_t __ina_sem_makekey(ina_ullc_rb_t*, const ina_str_t);
 /* create semaphore */
@@ -56,7 +55,7 @@ static ina_rc_t __ina_sem_open(ina_ullc_ctx_t*);
 /* close semphore */
 static ina_rc_t __ina_sem_close(ina_ullc_ctx_t*);
 /* release semphore */
-static ina_rc_t __ina_sem_release(ina_ullc_ctx_t*);
+static ina_rc_t __ina_sem_operation(ina_ullc_ctx_t*, ina_ullc_signal_type st);
 
 
 INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version, 
@@ -90,6 +89,7 @@ INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version,
     }
 
     if ((*rb)->magic != __INA_MAGIC_HDR || flags&INA_MEM_SHARED_CREATE) {
+        INA_TRACE("1");
         ina_mem_set(*rb, 0, mem_size);
         (*rb)->magic = __INA_MAGIC_HDR;
         (*rb)->version = version;
@@ -131,7 +131,7 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version,
     pctx->id = 0;
     pctx->ws = ws;
     pctx->ring = ring;
-    pctx->data = ((void*)ring) + sizeof(ina_ullc_rb_t);
+    pctx->data = ((unsigned char*)ring) + sizeof(ina_ullc_rb_t);
     pctx->c_offset = (ina_ullc_consumer_t*)&pctx->data[(ring->slots-1)*ring->size]+sizeof(ina_ullc_consumer_t);
     return __ina_sem_create(pctx);
 }
@@ -176,10 +176,10 @@ INA_API(int64_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx)
     return ctx->ring->cursor;
 }
 
-INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx)
+INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 {
     /* FIMXE: maybe declare API as inline */
-    return __ina_sem_release(ctx);
+    return __ina_sem_operation(ctx, st);
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, 
@@ -236,9 +236,6 @@ INA_API(void *) ina_ullc_consumer_get_bwait(ina_ullc_ctx_t *ctx)
 
     idx = ctx->c_offset->cursor % ctx->ring->slots;
     item = &ctx->data[idx*ctx->ring->size];
-    if (ctx->c_offset->cursor == ctx->ring->cursor) {
-        ctx->sem_handle = 0;
-    }
     __INA_ULLC_INC(&ctx->c_offset->cursor);
     return item;
 }
@@ -249,9 +246,9 @@ INA_API(void *) ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx)
     int idx;
     int64_t wait_for;
     
-    if (!INA_SUCCEED(__ina_wait_for_signal(ctx))) {
-        return NULL;
-    }
+    INA_ASSERT_NOTNULL(ctx);
+    __ina_sem_operation(ctx, INA_ULLC_SIG_WAIT);
+    __ina_sem_operation(ctx, INA_ULLC_SIG_RELEASE);
 
     wait_for = ctx->c_offset->cursor;
     if (ctx->ring->cursor < wait_for) {
@@ -260,9 +257,6 @@ INA_API(void *) ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx)
 
     idx = ctx->c_offset->cursor % ctx->ring->slots;
     item = &ctx->data[idx*ctx->ring->size];
-    if (ctx->c_offset->cursor == ctx->ring->cursor) {
-        ctx->sem_handle = 0;
-    }
     __INA_ULLC_INC(&ctx->c_offset->cursor);
     return item;
 }
@@ -296,58 +290,42 @@ __ina_sem_makekey(ina_ullc_rb_t *rb, const ina_str_t name)
     rb->semkey = __INA_SEMKEY;
     return INA_SUCCESS;
 }
-static ina_rc_t 
-__ina_wait_for_signal(ina_ullc_ctx_t *ctx)
-{
-    INA_ASSERT_NOTNULL(ctx);
 
-    if (ctx->sem_handle > 0) {
-        INA_TRACE("wait for signal");
-        struct sembuf op[1];
-        op[0].sem_op = -1;
-        op[0].sem_num = ctx->id;
-        op[0].sem_flg = SEM_UNDO;
-        semop(ctx->sem_handle, op, 1);
-        ctx->sem_handle = 0;
-        /* FIXME: Error handling */
-    }
-    return INA_SUCCESS;
-}
 static ina_rc_t
 __ina_sem_create(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
     ctx->sem_handle = semget(ctx->ring->semkey, 1, 0666 | IPC_CREAT);
-    if (ctx->sem_handle <= 0) {
+    if (ctx->sem_handle < 0) {
         return INA_ULLC_ESEMINIT;
     }
-    return INA_SUCCESS;
+    if (semctl(ctx->sem_handle, 0, SETVAL, (int)1) == -1) {
+        return INA_ULLC_ESEMINIT;
+    }
+     return INA_SUCCESS;
 }
+
 static ina_rc_t
 __ina_sem_open(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
-
     ctx->sem_handle = semget(ctx->ring->semkey, 1, 0);
     return INA_SUCCESS;
 }
+
 static ina_rc_t
-__ina_sem_release(ina_ullc_ctx_t *ctx)
+__ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 {
-    struct sembuf *op;
-    size_t i;
+    struct sembuf op;
 
     INA_ASSERT_NOTNULL(ctx);
 
-    ctx->sem_handle = semget(ctx->ring->semkey, 1, 0);
-    op = (struct sembuf*)ina_mem_alloc(sizeof(struct sembuf)*ctx->ring->num_consumers);
-    for (i = 0; i < ctx->ring->num_consumers; ++i) {
-        op[i].sem_op  = 1;
-        op[i].sem_num = i;
-        op[i].sem_flg = SEM_UNDO;
-    }
-    if (semop(ctx->sem_handle, op, ctx->ring->num_consumers) == -1) {
+    op.sem_op = (int)st;
+    op.sem_num = 0;
+    op.sem_flg = SEM_UNDO;
+
+    if (semop(ctx->sem_handle, &op, 1) == -1) {
         return INA_FAILURE;
     }
     return INA_SUCCESS;
@@ -366,19 +344,6 @@ __ina_sem_close(ina_ullc_ctx_t *ctx)
  * Windows implementations
  */
 #else 
-static ina_rc_t 
-__ina_wait_for_signal(ina_ullc_ctx_t *ctx)
-{
-    INA_ASSERT_NOTNULL(ctx);
-
-    if (ctx->sem_handle > 0) {
-        INA_TRACE("wait for signal");
-        __INA_ULLC_INC(&ctx->ring->swait_count);
-        WaitForSingleObject(ctx->sem_handle, INFINITE);
-        __INA_ULLC_DEC(&ctx->ring->swait_count);
-    }
-    return INA_SUCCESS;
-}
 static ina_rc_t 
 __ina_sem_makekey(ina_ullc_rb_t *rb, const ina_str_t name)
 {
@@ -418,13 +383,19 @@ __ina_sem_open(ina_ullc_ctx_t *ctx)
     return INA_SUCCESS;
 }
 static int_rc_t
-__ina_sem_release(ina_ullc_ctx_t* ctx)
+__ina_sem_operation(ina_ullc_ctx_t* ctxm ina_ullc_signal_type st)
 {
     INA_ASSERT_NOTNULL(ctx);
 
-    if (ctx->ring->swait_count > 0) {
-        ReleaseSemaphore(ctx->sem_handle, (LONG)ctx->ring->swait_count, NULL);
-    // FIXME: error handling
+    if (st == INA_ULLC_SIG_RELEASE) {
+        if (ctx->ring->swait_count > 0) {
+            ReleaseSemaphore(ctx->sem_handle, (LONG)ctx->ring->swait_count, NULL);
+        // FIXME: error handling
+        }
+    } else {
+        __INA_ULLC_INC(&ctx->ring->swait_count);
+         WaitForSingleObject(ctx->sem_handle, INFINITE);
+         __INA_ULLC_DEC(&ctx->ring->swait_count);       
     }
     return INA_SUCCESS;
 }
