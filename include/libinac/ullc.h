@@ -120,6 +120,14 @@
  * - Batch writing and reading
  * - Multi producer handling
  */
+
+/* Signal types for INA_ULLC_SIGNAL_WAIT */
+typedef enum ina_ullc_signal_type_e {
+     INA_ULLC_SIG_WAIT = -1,
+     INA_ULLC_SIG_RELEASE = 1,
+} ina_ullc_signal_type;
+
+/* ULLC wait strategies */
 typedef enum ina_ullc_wait_strategy_e {
     INA_ULLC_BUSY_WAIT = 1,
     INA_ULLC_SIGNAL_WAIT,
@@ -135,12 +143,8 @@ typedef struct ina_ullc_rb_s {
     size_t slots;
     volatile int64_t cursor;
     volatile int64_t next_ptr;
-#ifdef INA_OS_WIN32
-	volatile int64_t swait_count;
-	char* semkey;  /*FIXME: multiple producer */
-#else
-    int semkey;  /*FIXME: multiple producer */
-#endif
+    volatile int64_t swait_count;
+    ina_semkey_t semkey; /*FIXME: multiple producer */
 } ina_ullc_rb_t;
 
 /* consumer */
@@ -152,23 +156,19 @@ typedef struct ina_ullc_consumer_s {
 /* ullc context */
 typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
-#ifdef INA_OS_WIN32
-	HANDLE semid;
-#else
-    int semid;                      /* sem id */
-#endif
+    ina_handle_t sem_handle;        /* semaphore handle */
     ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_consumer_t *c_offset;  /* consumer(s) */
-    void *data;                     /* slot data */
+    unsigned char *data;                     /* slot data */
 } ina_ullc_ctx_t;
 
 /* Helper macro to create an ullc ring */
 #define INA_ULLC_RING_CREATE(rb, version, type, slots, consumers, name) \
-ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers,ina_str_fromcstr(name,NULL),  INA_MEM_SHARED_CREATE)
+ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers,ina_str_fromcstr(name),  INA_MEM_SHARED_CREATE)
 /* Helper macro to open an ullc ring */
 #define INA_ULLC_RING_OPEN(rb, version, type, slots, consumers, name) \
-ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(name,NULL), 0)
+ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(name), 0)
 /* Clain an item */
 #define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
 /* Commit an item */
@@ -181,8 +181,10 @@ ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(
 #define INA_ULLC_GET_BWAIT(type, ctx) (type*)ina_ullc_consumer_get_bwait(ctx)
 /* Get an item w/o waiting */
 #define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get(ctx)
-/* Signal waiting cnsumers */
-#define INA_ULLC_SIGNAL(ctx) ina_ullc_producer_signal(ctx)
+/* "Signal" consumers  to wait */
+#define INA_ULLC_SIGNAL_WAIT(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_WAIT)
+/* "Singal" consumers to read */
+#define INA_ULLC_SIGNAL_RELEASE(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_RELEASE)
 
 
 /*
@@ -224,7 +226,7 @@ INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx);
 /*
  * Signal observers
  */
-INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx);
+INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st);
 
 /*
  * Create a consumer

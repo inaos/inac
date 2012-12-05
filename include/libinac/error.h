@@ -77,9 +77,9 @@
  * s    Error message
  */
 #define INA_ERR_PUSH(r,m,f,s) ina_err_push(m,f,r,                           \
-                                          ina_str_fromcstr(__FILE__, NULL), \
+                                          ina_str_fromcstr(__FILE__),       \
                                           __LINE__ ,                        \
-                                          ina_str_fromcstr(s, NULL))
+                                          ina_str_fromcstr(s))
 
 /*
  * Push an error to the error state by passing only basic informations like
@@ -92,9 +92,9 @@
 #define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,               \
                                           INA_OSFN_NONE,                    \
                                           r,                                \
-                                          ina_str_fromcstr(__FILE__, NULL), \
+                                          ina_str_fromcstr(__FILE__),       \
                                           __LINE__ ,                        \
-                                          ina_str_fromcstr(s, NULL))
+                                          ina_str_fromcstr(s))
 
 /*
  * Push an error to the error state by passing  basic informations like
@@ -107,9 +107,9 @@
  */ 
 #define INA_ERR_PUSH_OSFN(r,f,s) ina_err_push(INA_MOD_UNKNOWN,              \
                                           f,r,                              \
-                                          ina_str_fromcstr(__FILE__, NULL), \
+                                          ina_str_fromcstr(__FILE__),       \
                                           __LINE__ ,                        \
-                                          ina_str_fromcstr(s, NULL))
+                                          ina_str_fromcstr(s))
 
 /*
  * Pack an RC. 

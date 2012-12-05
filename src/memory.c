@@ -224,7 +224,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     (*pool)->parent = NULL;
     (*pool)->current = *pool;
     if (label != NULL) {
-        (*pool)->label = ina_str_dup(label, NULL);
+        (*pool)->label = ina_str_dup(label);
     }
     if (cf&INA_MEM_SHARED) {
         INA_ASSERT_NOTNULL((*pool)->label);

@@ -31,15 +31,18 @@
 #include <libinac/lib.h>
 
 /* allocation */
-INA_API(ina_str_t) ina_str_newlen(size_t len, ina_mempool_t *pool);
+INA_API(ina_str_t) ina_str_newlen(size_t len);
+INA_API(ina_str_t) ina_str_pnewlen(size_t len, ina_mempool_t *pool);
 
-INA_API(ina_str_t) ina_str_fromcstr(const char *cstr,  ina_mempool_t *pool);
+INA_API(ina_str_t) ina_str_fromcstr(const char *cstr);
+INA_API(ina_str_t) ina_str_pfromcstr(const char *cstr,  ina_mempool_t *pool);
 
 /* destroy */
 INA_API(ina_rc_t) ina_str_destroy(ina_str_t str);
 
  /* copy */
-INA_API(ina_str_t) ina_str_dup(const ina_str_t str, ina_mempool_t *pool);
+INA_API(ina_str_t) ina_str_dup(const ina_str_t str);
+INA_API(ina_str_t) ina_str_pdup(const ina_str_t str, ina_mempool_t *pool);
 
 /* conversion to C string */
 INA_API(const char *) ina_str_cstr(const ina_str_t str);
