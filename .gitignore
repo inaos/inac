@@ -16,5 +16,6 @@ contribs/luajit-2.0.0/src/lua51.exp
 contribs/luajit-2.0.0/src/luajit.exe
 contribs/luajit-2.0.0/src/*.so
 contribs/makeheaders/makeheaders
+contribs/sqlite-3.7.14.1/build/*
 luajit
 build/*
