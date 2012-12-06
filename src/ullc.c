@@ -347,13 +347,14 @@ __ina_sem_close(ina_ullc_ctx_t *ctx)
 static ina_rc_t 
 __ina_sem_makekey(ina_ullc_rb_t *rb, const ina_str_t name)
 {
+    ina_str_t semkey;
+
     INA_ASSERT_NOTNULL(rb);
     INA_ASSERT_NOTNULL(name);
 
-    ina_str_t semkey = ina_str_newlen(strlen(__INA_SEMKEY) + ina_str_len(name));
-    semkey = ina_str_cpy(semkey, __INA_SEMKEY);
+    semkey = ina_str_newlen(strlen(__INA_SEMKEY) + ina_str_len(name));
     semkey = ina_str_cat(semkey, name);
-    ina_str_cpy(*rb->semkey, semkey);
+    strcpy(rb->semkey, ina_str_cstr(semkey));
     return INA_SUCCESS;
 }
 
@@ -367,23 +368,23 @@ __ina_sem_create(ina_ullc_ctx_t *ctx)
                         ctx->ring->num_consumers, 
                         ctx->ring->semkey);
 
-    if (pctx->sem_handle == NULL) {
+    if (ctx->sem_handle == NULL) {
         return INA_ULLC_ESEMINIT;
     }
-    return INA_SUCCESS
+    return INA_SUCCESS;
 }
 static ina_rc_t
 __ina_sem_open(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
-    cxt->sem_handle = OpenSemaphore(SEMAPHORE_ALL_ACCESS, 
+    ctx->sem_handle = OpenSemaphore(SEMAPHORE_ALL_ACCESS, 
                             FALSE, 
                             cxt->ring->semkey);
     return INA_SUCCESS;
 }
 static int_rc_t
-__ina_sem_operation(ina_ullc_ctx_t* ctxm ina_ullc_signal_type st)
+__ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 {
     INA_ASSERT_NOTNULL(ctx);
 
@@ -404,7 +405,7 @@ __ina_sem_close(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
-    CloseHandle(*ctx->sem_handle);
+    CloseHandle(ctx->sem_handle);
     return INA_SUCCESS;
 }
 #endif

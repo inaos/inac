@@ -8,12 +8,18 @@ tests/suites.c
 tests/suites.h
 tests/test
 tests/test_*.*
+<<<<<<< HEAD
 contribs/luajit-2.0.0/src/host/buildvm_arch.h
 contribs/luajit-2.0.0/src/libluajit.so
 contribs/luajit-2.0.0/src/lj_bcdef.h
 contribs/luajit-2.0.0/src/lua51.dll
 contribs/luajit-2.0.0/src/lua51.exp
 contribs/luajit-2.0.0/src/luajit.exe
+=======
+contribs/lua-5.2.1/src/lua
+contribs/lua-5.2.1/src/luac
+contribs/luajit-2.0.0/src/*.so
+>>>>>>> 4c3162086b0d3cee5ca0b5f0f41bb95b06d23c09
 contribs/makeheaders/makeheaders
 luajit
 build/*
