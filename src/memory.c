@@ -169,7 +169,7 @@ INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
 
 INA_API(ina_rc_t) ina_mempool_init(size_t size)
 {
-    if (__pool) {
+    if (__pools) {
         return INA_SUCCESS;
     }
 
@@ -251,7 +251,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     }
 
     last = __pools;
-    while (last->next != NULL) {
+    while (last != NULL && last->next != NULL) {
         last = last->next;
     }
 
@@ -263,10 +263,12 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         *pool = NULL;
         return ina_err_peek();
     }
-    last->next = next;
-    next->next = NULL;
-    next->pool = *pool;
-    next->active = 1;
+    if (last != NULL) {
+        last->next = next;
+        next->next = NULL;
+        next->pool = *pool;
+        next->active = 1;
+    }
     return INA_SUCCESS;
 }
 
