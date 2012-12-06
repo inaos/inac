@@ -45,7 +45,7 @@ typedef char * ina_str_t;
 #ifdef INA_OS_WIN32
 #include <windows.h>
 typedef HANDLE ina_handle_t;
-typedef char ina_semkey_t[MAX_PATH];
+typedef char[MAX_PATH] ina_semkey_t;
 #else
 typedef int ina_handle_t;
 typedef int ina_semkey_t;
