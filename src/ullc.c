@@ -10,18 +10,18 @@
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
+ *       may be used to endorse or promote products derived from this software
  *       without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
@@ -58,8 +58,8 @@ static ina_rc_t __ina_sem_close(ina_ullc_ctx_t*);
 static ina_rc_t __ina_sem_operation(ina_ullc_ctx_t*, ina_ullc_signal_type st);
 
 
-INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version, 
-                            size_t size, size_t slots, int num_consumers, 
+INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version,
+                            size_t size, size_t slots, int num_consumers,
                             const ina_str_t name, int flags)
 {
     ina_mempool_t *pool;
@@ -89,7 +89,6 @@ INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version,
     }
 
     if ((*rb)->magic != __INA_MAGIC_HDR || flags&INA_MEM_SHARED_CREATE) {
-        INA_TRACE("1");
         ina_mem_set(*rb, 0, mem_size);
         (*rb)->magic = __INA_MAGIC_HDR;
         (*rb)->version = version;
@@ -182,7 +181,7 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_
     return __ina_sem_operation(ctx, st);
 }
 
-INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, 
+INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
                         ina_ullc_wait_strategy ws,
                         ina_ullc_rb_t* ring, ina_ullc_ctx_t **ctx)
 {
@@ -208,7 +207,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
     cons = (ina_ullc_consumer_t*)&ccxt->data[(ring->slots-1)*ring->size]+sizeof(ina_ullc_consumer_t);
     ccxt->c_offset = &cons[id];
     ccxt->c_offset->alive = 1;
-    
+
     if (ws == INA_ULLC_SIGNAL_WAIT) {
         return __ina_sem_open(ccxt);
     }
@@ -245,7 +244,7 @@ INA_API(void *) ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx)
     void *item;
     int idx;
     int64_t wait_for;
-    
+
     INA_ASSERT_NOTNULL(ctx);
     __ina_sem_operation(ctx, INA_ULLC_SIG_WAIT);
     __ina_sem_operation(ctx, INA_ULLC_SIG_RELEASE);
@@ -281,7 +280,7 @@ INA_API(void *) ina_ullc_consumer_get(ina_ullc_ctx_t *ctx)
  */
 #ifndef INA_OS_WIN32
 
-static ina_rc_t 
+static ina_rc_t
 __ina_sem_makekey(ina_ullc_rb_t *rb, const ina_str_t name)
 {
     INA_ASSERT_NOTNULL(rb);
@@ -343,8 +342,8 @@ __ina_sem_close(ina_ullc_ctx_t *ctx)
 /*
  * Windows implementations
  */
-#else 
-static ina_rc_t 
+#else
+static ina_rc_t
 __ina_sem_makekey(ina_ullc_rb_t *rb, const ina_str_t name)
 {
     ina_str_t semkey;
@@ -363,9 +362,9 @@ __ina_sem_create(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
-    ctx->sem_handle = CreateSemaphore(NULL, 
-                        0, 
-                        ctx->ring->num_consumers, 
+    ctx->sem_handle = CreateSemaphore(NULL,
+                        0,
+                        ctx->ring->num_consumers,
                         ctx->ring->semkey);
 
     if (ctx->sem_handle == NULL) {
@@ -378,8 +377,8 @@ __ina_sem_open(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
-    ctx->sem_handle = OpenSemaphore(SEMAPHORE_ALL_ACCESS, 
-                            FALSE, 
+    ctx->sem_handle = OpenSemaphore(SEMAPHORE_ALL_ACCESS,
+                            FALSE,
                             cxt->ring->semkey);
     return INA_SUCCESS;
 }
@@ -396,7 +395,7 @@ __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
     } else {
         __INA_ULLC_INC(&ctx->ring->swait_count);
          WaitForSingleObject(ctx->sem_handle, INFINITE);
-         __INA_ULLC_DEC(&ctx->ring->swait_count);       
+         __INA_ULLC_DEC(&ctx->ring->swait_count);
     }
     return INA_SUCCESS;
 }
