@@ -27,8 +27,6 @@
  */
 #include <stdio.h>
 #include <libinac/lib.h>
-
-static int __malloc_counter = 0;
  
 void test_memory_memfn()
 {
