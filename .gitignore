@@ -7,7 +7,7 @@
 tests/suites.c
 tests/suites.h
 tests/test
-tests/test_*.*
+tests/test_*.h
 contribs/lua-5.2.1/src/lua
 contribs/lua-5.2.1/src/luac
 contribs/luajit-2.0.0/src/*.so
