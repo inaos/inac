@@ -382,7 +382,7 @@ __ina_sem_open(ina_ullc_ctx_t *ctx)
                             cxt->ring->semkey);
     return INA_SUCCESS;
 }
-static int_rc_t
+static ina_rc_t
 __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 {
     INA_ASSERT_NOTNULL(ctx);
