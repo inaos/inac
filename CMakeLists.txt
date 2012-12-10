@@ -28,7 +28,7 @@ add_library(makeheaders ${DEPS_DIR}/makeheaders/makeheaders.c)
 # END dependencies
 
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
-                 ${SRC_DIR}/string/bstring.c ${SRC_DIR}/string/cstring.c)
+                 ${SRC_DIR}/string/bstring.c ${SRC_DIR}/string/cstring.c ${SRC_DIR}/util.c)
 
 add_library(libinac ${LIBINAC_SRC})
 
