@@ -379,7 +379,7 @@ __ina_sem_open(ina_ullc_ctx_t *ctx)
 
     ctx->sem_handle = OpenSemaphore(SEMAPHORE_ALL_ACCESS,
                             FALSE,
-                            cxt->ring->semkey);
+                            ctx->ring->semkey);
     return INA_SUCCESS;
 }
 static ina_rc_t
