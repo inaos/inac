@@ -47,9 +47,9 @@ typedef struct ina_iscp_cxt_s {
 } ina_iscp_ctx_t;
 
 /* Send callback */
-typedef ina_rc_t *(ina_iscp_send_cb)(ina_iscp_ctx_t*, size_t, unsigned char*);
+typedef ina_rc_t *(ina_iscp_send_cb)(ina_iscp_ctx_t*, size_t, const unsigned char*);
 /* Receive callback */
-typedef ina_rc_t *(ina_iscp_recv_cb)(ina_iscp_ctx_t*, size_t*, const unsigned char*);
+typedef ina_rc_t *(ina_iscp_recv_cb)(ina_iscp_ctx_t*, size_t*, unsigned char*);
 /* ISCP parameter */
 typedef struct ina_iscp_param_s {
     uint8_t type;

@@ -28,16 +28,24 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+static ina_iscp_recv_cb __recv_cb = NULL;
+static ina_iscp_send_cb __send_cb = NULL;
+
+
 INA_API(ina_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb)
 {
-    INA_NOT_IMPL;
-    return INA_FAILURE;
+    __send_cb = send_cb;
+    __recv_cb = recv_cb;
+
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_iscp_reset(void) 
 {
-    INA_NOT_IMPL;
-    return INA_FAILURE;
+    __send_cb = NULL;
+    __recv_cb = NULL;
+    
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_iscp_register(int cmd_id, ina_iscp_handler handler)
