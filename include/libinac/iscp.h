@@ -40,26 +40,28 @@
 #define INA_ISCP_TYPE_STRING     (1)  /* uint16_t (lenght) + char[lenght] */
 #define INA_ISCP_TYPE_FLOAT      (2)  /* float 8 bytes */
 
-/* ISCP context */
+/* ISCP context: Implementation specific 
+ * data (socket descriptor for instance) */
 typedef struct ina_iscp_cxt_s {
-    void *data   /* Implementation specific data (socket descriptor for instance) */
+    void *data;   
 } ina_iscp_ctx_t;
 
 /* Send callback */
 typedef ina_rc_t *(ina_iscp_send_cb)(ina_iscp_ctx_t*, size_t, unsigned char*);
 /* Receive callback */
 typedef ina_rc_t *(ina_iscp_recv_cb)(ina_iscp_ctx_t*, size_t*, const unsigned char*);
-/* Command handler */
-typedef ina_rc_t *(ina_iscp_handler)(int, int, ina_iscp_param_t*);
 /* ISCP parameter */
-typedef struct ina_ispc_param_s {
+typedef struct ina_iscp_param_s {
     uint8_t type;
     union {
         int32_t   n;
         float     f;
         ina_str_t s;
     } value;
-} ina_ispc_param_t;
+} ina_iscp_param_t;
+
+/* Command handler */
+typedef ina_rc_t *(ina_iscp_handler)(int, int, ina_iscp_param_t*);
 
 /* Internal send/receive buffer */
 typedef struct ina_iscp_buf_s {
@@ -74,7 +76,7 @@ typedef struct ina_iscp_buf_s {
      * [INA_ISPP_TYPE_STRING][string lenght b1][b2 str lenght][b1][b2][bxx...]
      * [INA_ISCP_TYPE_FLOAT][b1][b2][b3][b4][b5][b6][b7][b8]
      */
-    unsigned char cmd_data[INA_ISCP_BUFSIZE]; 
+    unsigned char cmd_data[INA_ISCP_BUFFER_SIZE]; 
 } ina_iscp_buf_t;
 
 /*
@@ -87,14 +89,14 @@ typedef struct ina_iscp_buf_s {
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(in_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
+INA_API(ina_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
 /*
  * Reset ISCP status an remove all regsitred commands.
  *
  * Return Value:
  * INA_SUCCESS if successfully cleared.
  */
-INA_API(int_rc_t) ina_iscp_reset(void);
+INA_API(ina_rc_t) ina_iscp_reset(void);
 /*
  * Register  command definition. Only used on "server" side.
  *
