@@ -28,15 +28,33 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+/* Internal registry entry */
+typedef struct ina_ispc_cmd_s {
+    uint16_t cmd_id;
+    uint16_t pcount;
+    ina_iscp_handler handler;
+    UT_hash_handle hh;
+} ina_iscp_cmd_t;
+
 static ina_iscp_recv_cb __recv_cb = NULL;
 static ina_iscp_send_cb __send_cb = NULL;
+static ina_iscp_cmd_t*  __cmds = NULL;
+static ina_mempool_t* __mempool = NULL;
 
 
 INA_API(ina_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb)
 {
     __send_cb = send_cb;
+    if (__send_cb == NULL) {
+        return INA_FAILURE;
+    }
     __recv_cb = recv_cb;
-
+    if (__recv_cb == NULL) {
+        return INA_FAILURE;
+    }
+    if (__mempool == NULL) {
+        return ina_mempool_create(&__mempool, 2*1024*1024, INA_MEM_DYNAMIC, NULL);
+    }
     return INA_SUCCESS;
 }
 
@@ -44,25 +62,132 @@ INA_API(ina_rc_t) ina_iscp_reset(void)
 {
     __send_cb = NULL;
     __recv_cb = NULL;
-    
-    return INA_SUCCESS;
+    HASH_CLEAR(hh, __cmds);
+    return ina_mempool_release(__mempool, 0);
 }
 
-INA_API(ina_rc_t) ina_iscp_register(int cmd_id, ina_iscp_handler handler)
+INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int pcount, ina_iscp_handler handler)
 {
-    INA_NOT_IMPL;
-    return INA_FAILURE;
+    ina_iscp_cmd_t *cmd;
+
+    INA_ASSERT(cmd_id > 0);
+    INA_ASSERT(pcount >= 0);
+    INA_ASSERT_NOTNULL(handler);
+        
+    HASH_FIND_INT(__cmds, &cmd_id, cmd);
+    if (cmd != NULL) {
+        if (cmd->cmd_id == cmd_id &&
+            cmd->pcount == pcount &&
+            cmd->handler == handler)  {
+                return INA_SUCCESS;
+        }
+        return INA_FAILURE;
+    }
+    
+    cmd = (ina_iscp_cmd_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_cmd_t));
+    if (cmd == NULL) {
+        return ina_err_peek();
+    }
+
+    cmd->cmd_id = cmd_id;
+    cmd->pcount = pcount;
+    cmd->handler = handler;
+
+    HASH_ADD_INT(__cmds, cmd_id, cmd);
+
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...)
 {
-    INA_NOT_IMPL;
-    return INA_FAILURE;
+    ina_iscp_cmd_t* cmd;
+    ina_iscp_buf_t* buf;
+    size_t n;
+    size_t p;
+    int type;
+    va_list params;
+
+    INA_ASSERT_NOTNULL(ctx);
+
+    cmd = NULL;
+    HASH_FIND_INT(__cmds, &cmd_id, cmd);
+    if (cmd == NULL) {
+        /* TODO: Specific error */
+        return INA_FAILURE;
+    }
+
+    /* Allocate buffer */
+    buf = (ina_iscp_buf_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_buf_t));
+
+    type = -1;
+    n = 0;
+    p = cmd->pcount;
+
+    va_start(params, cmd_id);
+
+    while (p--) {
+        type = va_arg(params, int);
+        buf->cmd_data[n] = (short)type;
+        n += sizeof(short);
+        switch (type) {
+            case INA_ISCP_TYPE_INT64:
+            {
+                int64_t i;
+                i = va_arg(params, int64_t);
+                buf->cmd_data[n++] = i & 0xff;
+                buf->cmd_data[n++] = (i>>8)  & 0xff;
+                buf->cmd_data[n++] = (i>>16) & 0xff;
+                buf->cmd_data[n++] = (i>>24) & 0xff;
+                buf->cmd_data[n++] = (i>>32) & 0xff;
+                buf->cmd_data[n++] = (i>>40) & 0xff;
+                buf->cmd_data[n++] = (i>>48) & 0xff;
+                buf->cmd_data[n++] = (i>>56) & 0xff;
+            }
+            case INA_ISCP_TYPE_DBL:
+            {
+                /* FIXME: find better solution */
+                double d;
+                d = va_arg(params, double);
+                ina_mem_cpy(&buf->cmd_data[n++], &d, 8);
+            }
+            case INA_ISCP_TYPE_STR:
+            {
+                const char* str;
+                int32_t i;
+    
+                i = strlen(str);
+                str = va_arg(params, char*);
+
+                buf->cmd_data[n++] = i & 0xff;
+                buf->cmd_data[n++] = (i>>8)  & 0xff;
+                buf->cmd_data[n++] = (i>>16) & 0xff;
+                buf->cmd_data[n++] = (i>>24) & 0xff;
+                strcpy((char*)&buf->cmd_data[n], str);
+                n += i;
+            }
+        }
+    }
+    va_end(params);
+
+    buf->length = n + sizeof(uint16_t)*2+sizeof(uint32_t);
+    buf->cmd_id = cmd->cmd_id;
+    buf->cmd_uid = 1; /* TODO: Command UID generation */
+
+    return __send_cb(ctx, buf->length, (const unsigned char*)buf);
 }
 
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t* ctx, int nc, int timeout) 
 {
-    INA_NOT_IMPL;
+    size_t size;
+    ina_iscp_buf_t *buf;
+    
+    INA_ASSERT_NOTNULL(ctx);
+    
+    buf = (ina_iscp_buf_t*)ina_mem_alloc(sizeof(ina_iscp_buf_t));
+    
+    if (INA_SUCCEED(__recv_cb(ctx, &size, (unsigned char*)buf))) {
+    }
+    
     return INA_FAILURE;
 }
 

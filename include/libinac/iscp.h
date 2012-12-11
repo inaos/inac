@@ -36,9 +36,9 @@
 
 #define INA_ISCP_BUFFER_SIZE  (2048)  /* Max size of command data */
 
-#define INA_ISCP_TYPE_INT        (0)  /* uint32_t  4 bytes*/
-#define INA_ISCP_TYPE_STRING     (1)  /* uint16_t (lenght) + char[lenght] */
-#define INA_ISCP_TYPE_FLOAT      (2)  /* float 8 bytes */
+#define INA_ISCP_TYPE_INT64  (0)  /* uint32_t  4 bytes*/
+#define INA_ISCP_TYPE_STR    (1)  /* uint16_t (length) + char[lenght] */
+#define INA_ISCP_TYPE_DBL    (2)  /* double 8 bytes */
 
 /* ISCP context: Implementation specific 
  * data (socket descriptor for instance) */
@@ -47,28 +47,27 @@ typedef struct ina_iscp_cxt_s {
 } ina_iscp_ctx_t;
 
 /* Send callback */
-typedef ina_rc_t *(ina_iscp_send_cb)(ina_iscp_ctx_t*, size_t, const unsigned char*);
+typedef ina_rc_t (*ina_iscp_send_cb)(ina_iscp_ctx_t*, size_t, const unsigned char*);
 /* Receive callback */
-typedef ina_rc_t *(ina_iscp_recv_cb)(ina_iscp_ctx_t*, size_t*, unsigned char*);
+typedef ina_rc_t (*ina_iscp_recv_cb)(ina_iscp_ctx_t*, size_t*, unsigned char*);
 /* ISCP parameter */
 typedef struct ina_iscp_param_s {
     uint8_t type;
     union {
-        int32_t   n;
-        float     f;
+        int64_t   n;
+        double    f;
         ina_str_t s;
     } value;
 } ina_iscp_param_t;
 
 /* Command handler */
-typedef ina_rc_t *(ina_iscp_handler)(int, int, ina_iscp_param_t*);
+typedef ina_rc_t (*ina_iscp_handler)(int, int, ina_iscp_param_t*);
 
 /* Internal send/receive buffer */
 typedef struct ina_iscp_buf_s {
     uint16_t length;    /* store the command buffer size */
     uint32_t cmd_uid;   /* UID for sent commands */
     uint16_t cmd_id;    /* identify the command */
-    uint16_t pcount;    /* number of parameters */
     /* Parameters 
      * [1 byte, parameter type][parameter]
      * 
@@ -90,6 +89,7 @@ typedef struct ina_iscp_buf_s {
  * INA_SUCCESS if no error occurred
  */
 INA_API(ina_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
+
 /*
  * Reset ISCP status an remove all regsitred commands.
  *
@@ -97,17 +97,19 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_
  * INA_SUCCESS if successfully cleared.
  */
 INA_API(ina_rc_t) ina_iscp_reset(void);
+
 /*
  * Register  command definition. Only used on "server" side.
  *
  * Parameters
  * cmd_id       Command identifier
+ * p_count      Number of commands to send or to receive
  * handler      Command handler function
  *
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_register(int cmd_id, ina_iscp_handler handler);
+INA_API(ina_rc_t) ina_iscp_register(int cmd_id,int p_count, ina_iscp_handler handler);
 /*
  * Send a command synchronously.
  * Like:

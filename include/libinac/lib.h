@@ -54,6 +54,7 @@
 #include <libinac/ullc.h>
 #include <libinac/iscp.h>
 #include <libinac/util.h>
+#include <libinac/uthash.h>
 #include <libinac/debug.h>
 
 #define INA_YES 1
