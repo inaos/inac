@@ -44,6 +44,7 @@
 #define INA_MOD_STRING  2
 #define INA_MOD_ERROR   3
 #define INA_MOD_ULLC    4
+#define INA_MOD_ISCP    5
 
 /* OS function identifiers */
 #define INA_OSFN_NONE    0
