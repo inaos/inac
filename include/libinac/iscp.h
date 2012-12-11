@@ -31,7 +31,7 @@
 #include <libinac/lib.h>
 
 /*
- * INAOS simple command prootocol 
+ * INAOS Simple Command Protocol 
  */
 
 #define INA_ISCP_BUFSIZE   (2048)  /* Max size of command data */
@@ -75,6 +75,13 @@ typedef struct ina_iscp_buf_s {
  */
 INA_API(in_rc_t) ina_iscp_init(void);
 /*
+ * Reset ISCP status an remove all regsitred commands.
+ *
+ * Return Value:
+ * INA_SUCCESS if successfully cleared.
+ */
+INA_API(int_rc_t) ina_iscp_reset(void);
+/*
  * Register  command definition. Only used on "server" side.
  *
  * Parameters
@@ -85,13 +92,6 @@ INA_API(in_rc_t) ina_iscp_init(void);
  * INA_SUCCESS if no error occurred
  */
 INA_API(ina_rc_t) ina_iscp_register(int cmd_id, ina_iscp_cmdhandler handler);
-/*
- * Reset ISCP status an remove all regsitred commands.
- *
- * Return Value:
- * INA_SUCCESS if successfully cleared.
- */
-INA_API(int_rc_t) ina_iscp_reset(void);
 /*
  * Send a command synchronously.
  * Like:
