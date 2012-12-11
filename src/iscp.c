@@ -63,6 +63,7 @@ INA_API(ina_rc_t) ina_iscp_reset(void)
     __send_cb = NULL;
     __recv_cb = NULL;
     HASH_CLEAR(hh, __cmds);
+    INA_ASSERT_NULL(__cmds);
     return ina_mempool_release(__mempool, 0);
 }
 
@@ -149,6 +150,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...)
                 double d;
                 d = va_arg(params, double);
                 ina_mem_cpy(&buf->cmd_data[n++], &d, 8);
+                break;
             }
             case INA_ISCP_TYPE_STR:
             {
@@ -164,6 +166,10 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...)
                 buf->cmd_data[n++] = (i>>24) & 0xff;
                 strcpy((char*)&buf->cmd_data[n], str);
                 n += i;
+                break;
+            }
+            default: {
+                return INA_FAILURE;
             }
         }
     }
@@ -185,9 +191,34 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t* ctx, int nc, int timeout)
     
     buf = (ina_iscp_buf_t*)ina_mem_alloc(sizeof(ina_iscp_buf_t));
     
+    /* TODO Timer event */
     if (INA_SUCCEED(__recv_cb(ctx, &size, (unsigned char*)buf))) {
+        size_t n;
+
+        n = sizeof(uint16_t)*2+sizeof(uint32_t);
+        while (n < buf->length) {
+            short type;
+            type = buf->cmd_data[n];
+            switch (type) {
+                case INA_ISCP_TYPE_INT64:
+                {
+                    break;
+                }
+                case INA_ISCP_TYPE_DBL:
+                {
+                    break;
+                }
+                case INA_ISCP_TYPE_STR:
+                {
+                    break;
+                }
+                default: 
+                {
+                    return INA_FAILURE;
+                }
+            }
+        }
     }
-    
     return INA_FAILURE;
 }
 
