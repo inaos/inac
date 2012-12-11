@@ -23,7 +23,7 @@ suites.o: $(MAKEHADERS)
 	/bin/echo "#include \"suites.h\"" > suites.c
 	/bin/echo "void runtests() {" >> suites.c
 	for i in $(FN); do \
-		$(MAKEHEADERS) -local $$i.c; \
+		$(MAKEHEADERS) $$i.c; \
 		cat $$i.h | sed '1d' | sed -e 's/^ *[^ ]* //' >> suites.c; \
 		echo "#include \""$$i.h\" >> suites.h; \
 	done
