@@ -30,11 +30,10 @@
 void test_util_crc32() 
 {
     ina_str_t str;
-    uint32_t crc;
     INA_TRACE("test_util_crc32");
 
     str = ina_str_fromcstr("test");
-    crc = ina_util_crc32(0, str, ina_str_len(str));
-    INA_ASSERT_EQUAL(3632233996, crc);
-
+    INA_ASSERT_EQUAL(3632233996, ina_util_crc32(0, str, ina_str_len(str)));
+    INA_ASSERT_NOTEQUAL(3632233, ina_util_crc32(0, str, ina_str_len(str)));
+    INA_ASSERT_EQUAL(3966352177, ina_util_crc32(3632233996, str, ina_str_len(str)));
 }
