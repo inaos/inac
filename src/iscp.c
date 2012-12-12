@@ -132,8 +132,8 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
     while (p--) {
         type = (uint8_t)va_arg(params, int);
-        printf("send-type->%d  ", type);
-        printf("send->pos->%ld\n", n + sizeof(uint16_t)*3+sizeof(uint32_t));
+        /*printf("send-type->%d  ", type);
+        printf("send->pos->%ld\n", n + sizeof(uint16_t)*3+sizeof(uint32_t));*/
         buf->cmd_data[n] = type;
         n += sizeof(uint8_t);
         switch (type) {
@@ -211,10 +211,10 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
         ina_iscp_param_t *params;
         int ci;
 
-        printf("recv->cmd_id->%d\n", buf->cmd_id);
+        /*printf("recv->cmd_id->%d\n", buf->cmd_id);
         printf("recv->length->%d\n", buf->length);
         printf("recv->cmd_uid->%d\n", buf->cmd_uid);
-        printf("recv->p_count->%d\n", buf->p_count);
+        printf("recv->p_count->%d\n", buf->p_count);*/
 
         ci = buf->cmd_id;
         HASH_FIND_INT(__cmds, &ci, cmd);
@@ -230,9 +230,9 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                                         sizeof(ina_iscp_param_t)*(buf->p_count));
 
         while ((n+sizeof(uint16_t)*3+sizeof(uint32_t)) < buf->length-2) {
-            printf("recv->pos->%ld  ", n+sizeof(uint16_t)*3+sizeof(uint32_t));            
+            /*printf("recv->pos->%ld  ", n+sizeof(uint16_t)*3+sizeof(uint32_t));   */         
             params[p].type = (*(uint8_t*)(&buf->cmd_data[n]));
-            printf("recv->type->%d\n", params[p].type);            
+            /*printf("recv->type->%d\n", params[p].type);*/            
             
             n+= sizeof(uint8_t);
             switch (params[p].type) {

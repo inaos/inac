@@ -38,7 +38,7 @@ static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, size_t size, const unsigned 
     INA_ASSERT_NOTNULL(buf);
     ++__send_count;
     __send_buf = (ina_iscp_buf_t*)buf;
-    printf("__send_buf->length=%d\n", __send_buf->length);
+   /* printf("__send_buf->length=%d\n", __send_buf->length);*/
     return INA_SUCCESS;
 }
 
@@ -50,7 +50,7 @@ static ina_rc_t __null_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, unsigned char 
     ++__recv_count;
     ina_mem_cpy(buf, __send_buf, __send_buf->length);
     recv_buf = (ina_iscp_buf_t*)buf;
-    printf("__send_buf->length=%d\n", recv_buf->length);
+    /*printf("__send_buf->length=%d\n", recv_buf->length);*/
     return INA_SUCCESS;
 }
 
@@ -88,7 +88,7 @@ static ina_rc_t __check_params_handler(int cmd_id, int count, ina_iscp_param_t *
             INA_ASSERT_EQUAL(5.2, params->value.d);
         } 
         if (__p_count == 3) {
-            printf("%s", params->value.s);
+            /*printf("%s", params->value.s);*/
             INA_ASSERT_EQUAL(INA_ISCP_TYPE_STR, params->type);
             INA_ASSERT_EQUAL(0, strcmp("test", params->value.s));
         }
