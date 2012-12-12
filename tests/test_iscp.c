@@ -33,12 +33,14 @@ static int __p_count = 0;
  
 static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, size_t size, const unsigned char *buf)
 {
+    INA_ASSERT_NOTNULL(buf);
     ++__send_count;
     return INA_SUCCESS;
 }
 
 static ina_rc_t __null_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, unsigned char *buf)
 {   
+    INA_ASSERT_NOTNULL(buf);
     ++__recv_count;
     return INA_SUCCESS;
 }
@@ -50,13 +52,30 @@ static ina_rc_t __null_handler(int cmd_id, int count, ina_iscp_param_t *params)
 }
 
 static ina_rc_t __null_handler2(int cmd_id, int count, ina_iscp_param_t *params)
-{
+{   
+    while (params) {
+        ++__p_count;
+    }
     return INA_SUCCESS;
 }
 
+void test_iscp_send_local()
+{
+    ina_iscp_ctx_t ctx;
+    ctx.data = NULL;
+
+    INA_TRACE("test_iscp_send_local");
+    INA_ASSERT_SUCCEED(ina_iscp_init(__null_send_cb, __null_recv_cb));
+    INA_ASSERT_SUCCEED(ina_iscp_send(&ctx, 1, 
+                            INA_ISCP_TYPE_INT64, 300,
+                            INA_ISCP_TYPE_DBL, 3.2,
+                            INA_ISCP_TYPE_STR, "test"));
+    INA_ASSERT_EQUAL(1, __send_count);
+}
+
 void test_iscp_setup()
- {
-     INA_TRACE("test_memory_iscp");
+{
+     INA_TRACE("test_iscp_setup");
      INA_ASSERT_SUCCEED(ina_iscp_init(__null_send_cb, __null_recv_cb));
      INA_ASSERT_FAILURE(ina_iscp_init(NULL, __null_recv_cb));
      INA_ASSERT_FAILURE(ina_iscp_init(NULL, NULL));
@@ -67,5 +86,7 @@ void test_iscp_setup()
      INA_ASSERT_FAILURE(ina_iscp_register(1, 2, __null_handler));
      INA_ASSERT_FAILURE(ina_iscp_register(1, 4, __null_handler2));
      INA_ASSERT_SUCCEED(ina_iscp_reset());
+     INA_ASSERT_FAILURE(ina_iscp_register(1, 4, __null_handler2));
+     INA_ASSERT_SUCCEED(ina_iscp_init(__null_send_cb, __null_recv_cb));
      INA_ASSERT_SUCCEED(ina_iscp_register(1, 4, __null_handler2));
- }
+}

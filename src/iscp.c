@@ -30,7 +30,7 @@
 
 /* Internal registry entry */
 typedef struct ina_ispc_cmd_s {
-    uint16_t cmd_id;
+    int cmd_id;
     uint16_t p_count;
     ina_iscp_handler handler;
     UT_hash_handle hh;
@@ -74,6 +74,11 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler ha
     INA_ASSERT(cmd_id > 0);
     INA_ASSERT(p_count >= 0);
     INA_ASSERT_NOTNULL(handler);
+
+    if (__send_cb == NULL || __recv_cb == NULL) {
+        /* TODO: sepfific error */
+        return INA_FAILURE;
+    }
         
     HASH_FIND_INT(__cmds, &cmd_id, cmd);
     if (cmd != NULL) {
@@ -204,9 +209,10 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
 
         p = 0;
         n = sizeof(uint16_t)*2+sizeof(uint32_t);
-        params = (ina_iscp_param_t*)ina_mempool_dalloc(__mempool,
-                                        sizeof(ina_iscp_param_t)*buf->p_count);
-                
+        params = (ina_iscp_param_t*)ina_mempool_dalloc(
+                                        __mempool,
+                                        sizeof(ina_iscp_param_t)*(buf->p_count+1));
+
         while (n < buf->length) {
             params[p].type = (*(uint8_t*)(&buf->cmd_data[n]));
             switch (params[p].type) {
