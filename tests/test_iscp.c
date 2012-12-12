@@ -27,6 +27,7 @@
  */
 #include <libinac/lib.h>
 
+static ina_iscp_buf_t *__send_buf = NULL;
 static int __send_count = 0;
 static int __recv_count = 0;
 static int __p_count = 0;
@@ -35,6 +36,7 @@ static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, size_t size, const unsigned 
 {
     INA_ASSERT_NOTNULL(buf);
     ++__send_count;
+    __send_buf = (ina_iscp_buf_t*)buf;
     return INA_SUCCESS;
 }
 
@@ -42,6 +44,7 @@ static ina_rc_t __null_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, unsigned char 
 {   
     INA_ASSERT_NOTNULL(buf);
     ++__recv_count;
+    ina_mem_cpy(buf, __send_buf, __send_buf->length);
     return INA_SUCCESS;
 }
 
@@ -80,9 +83,13 @@ void test_iscp_send_local()
                             INA_ISCP_TYPE_STR, "test"));
     INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, NULL));
     INA_ASSERT_SUCCEED(ina_iscp_send(&ctx, 1, 
-                             INA_ISCP_TYPE_INT64, 20,
-                             INA_ISCP_TYPE_DBL, 5.2,
-                             INA_ISCP_TYPE_STR, "test-2"));
+                            INA_ISCP_TYPE_INT64, 20,
+                            INA_ISCP_TYPE_DBL, 5.2,
+                            INA_ISCP_TYPE_STR, "test-2"));
+    INA_ASSERT_SUCCEED(ina_iscp_send(&ctx, 1, 
+                            INA_ISCP_TYPE_INT64, 20,
+                            INA_ISCP_TYPE_STR, "test-2"));
+
     INA_ASSERT_EQUAL(1, __send_count);
 }
 
