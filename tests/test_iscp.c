@@ -80,6 +80,7 @@ void test_iscp_setup()
      INA_ASSERT_FAILURE(ina_iscp_init(NULL, __null_recv_cb));
      INA_ASSERT_FAILURE(ina_iscp_init(NULL, NULL));
      INA_ASSERT_FAILURE(ina_iscp_init(__null_send_cb, NULL));
+     INA_ASSERT_SUCCEED(ina_iscp_init(__null_send_cb, __null_recv_cb));
      INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler));
      INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler));
      INA_ASSERT_FAILURE(ina_iscp_register(1, 3, __null_handler2));
