@@ -73,8 +73,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler ha
 
     INA_ASSERT(cmd_id > 0);
     INA_ASSERT(p_count >= 0);
-    INA_ASSERT_NOTNULL(handler);
-
+ 
     if (__send_cb == NULL || __recv_cb == NULL) {
         /* TODO: sepfific error */
         return INA_FAILURE;
@@ -83,8 +82,8 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler ha
     HASH_FIND_INT(__cmds, &cmd_id, cmd);
     if (cmd != NULL) {
         if (cmd->cmd_id == cmd_id &&
-            cmd->p_count == p_count &&
-            cmd->handler == handler)  {
+            cmd->p_count == p_count)  {
+                cmd->handler = handler;
                 return INA_SUCCESS;
         }
         return INA_FAILURE;
@@ -161,14 +160,15 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
             {
                 const char* str;
                 int32_t i;
-    
+
+                str = va_arg(params, char*);                
                 i = strlen(str);
-                str = va_arg(params, char*);
 
                 buf->cmd_data[n++] = i & 0xff;
                 buf->cmd_data[n++] = (i>>8)  & 0xff;
                 buf->cmd_data[n++] = (i>>16) & 0xff;
                 buf->cmd_data[n++] = (i>>24) & 0xff;
+    
                 strcpy((char*)&buf->cmd_data[n], str);
                 n += i;
                 break;

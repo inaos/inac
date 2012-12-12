@@ -74,16 +74,16 @@ void test_iscp_send_local()
                              INA_ISCP_TYPE_STR, "test"));
     INA_ASSERT_EQUAL(0, __send_count);       
     INA_ASSERT_SUCCEED(ina_iscp_init(__null_send_cb, __null_recv_cb));
-    INA_ASSERT_SUCCEED(ina_iscp_send(&ctx, 1, 
+    INA_ASSERT_FAILURE(ina_iscp_send(&ctx, 1, 
                             INA_ISCP_TYPE_INT64, 300,
                             INA_ISCP_TYPE_DBL, 3.2,
                             INA_ISCP_TYPE_STR, "test"));
-    INA_ASSERT_EQUAL(1, __send_count);
+    INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, NULL));
     INA_ASSERT_SUCCEED(ina_iscp_send(&ctx, 1, 
                              INA_ISCP_TYPE_INT64, 20,
                              INA_ISCP_TYPE_DBL, 5.2,
                              INA_ISCP_TYPE_STR, "test-2"));
-    INA_ASSERT_EQUAL(2, __send_count);
+    INA_ASSERT_EQUAL(1, __send_count);
 }
 
 void test_iscp_setup()
@@ -96,7 +96,7 @@ void test_iscp_setup()
      INA_ASSERT_SUCCEED(ina_iscp_init(__null_send_cb, __null_recv_cb));
      INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler));
      INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler));
-     INA_ASSERT_FAILURE(ina_iscp_register(1, 3, __null_handler2));
+     INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler2));
      INA_ASSERT_FAILURE(ina_iscp_register(1, 2, __null_handler));
      INA_ASSERT_FAILURE(ina_iscp_register(1, 4, __null_handler2));
      INA_ASSERT_SUCCEED(ina_iscp_reset());
