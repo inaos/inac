@@ -30,6 +30,7 @@
 static ina_iscp_buf_t *__send_buf;
 static int __send_count = 0;
 static int __recv_count = 0;
+static int __handler_count = 0;
 static int __p_count = 0;
  
 static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, size_t size, const unsigned char *buf)
@@ -55,21 +56,28 @@ static ina_rc_t __null_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, unsigned char 
 
 static ina_rc_t __null_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {
-    __p_count = 0;
+    ++__handler_count;
+    __p_count = count;
     return INA_SUCCESS;
 }
 
 static ina_rc_t __null_handler2(int cmd_id, int count, ina_iscp_param_t *params)
 {   
+    ++__handler_count;
     while (params) {
         ++__p_count;
     }
+    INA_ASSERT_EQUAL(count, __p_count);
     return INA_SUCCESS;
 }
 
 static ina_rc_t __check_params_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {   
-    while (params) {
+    size_t i;
+
+    ++__handler_count;
+    
+    for (i = 0; i < count; ++i) {
         ++__p_count;
         if (__p_count == 1) {
             INA_ASSERT_EQUAL(INA_ISCP_TYPE_INT64, params->type);
@@ -80,6 +88,7 @@ static ina_rc_t __check_params_handler(int cmd_id, int count, ina_iscp_param_t *
             INA_ASSERT_EQUAL(5.2, params->value.d);
         } 
         if (__p_count == 3) {
+            printf("%s", params->value.s);
             INA_ASSERT_EQUAL(INA_ISCP_TYPE_STR, params->type);
             INA_ASSERT_EQUAL(0, strcmp("test", params->value.s));
         }
@@ -87,7 +96,6 @@ static ina_rc_t __check_params_handler(int cmd_id, int count, ina_iscp_param_t *
     }
     return INA_SUCCESS;
 }
-
 
 void test_iscp_send_recv_checkparams()
 {
@@ -98,13 +106,14 @@ void test_iscp_send_recv_checkparams()
      __recv_count = 0;
      __p_count = 0;
      __send_buf = NULL;
+     __handler_count = 0;
 
      INA_TRACE("test_iscp_send_recv_local");
      INA_ASSERT_SUCCEED(ina_iscp_reset());
      INA_ASSERT_SUCCEED(ina_iscp_init(__null_send_cb, __null_recv_cb));
-     INA_ASSERT_SUCCEED(ina_iscp_register(99, 3, __check_params_handler));
+     INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __check_params_handler));
 
-     INA_ASSERT_SUCCEED(ina_iscp_send(&ctx, 99, 
+     INA_ASSERT_SUCCEED(ina_iscp_send(&ctx, 1, 
                              INA_ISCP_TYPE_INT64, 20,
                              INA_ISCP_TYPE_DBL, 5.2,
                              INA_ISCP_TYPE_STR, "test"));
@@ -112,7 +121,8 @@ void test_iscp_send_recv_checkparams()
      INA_ASSERT_NOTNULL(__send_buf);    
      INA_ASSERT_SUCCEED(ina_iscp_recv(&ctx, 1000, 1));
      INA_ASSERT_EQUAL(1, __recv_count);
-     INA_ASSERT_EQUAL(3, __p_count);     
+     INA_ASSERT_EQUAL(1, __handler_count);
+     INA_ASSERT_EQUAL(3, __p_count);
 }
 
 void test_iscp_send_local()
@@ -128,7 +138,7 @@ void test_iscp_send_local()
                              INA_ISCP_TYPE_INT64, 300,
                              INA_ISCP_TYPE_DBL, 3.2,
                              INA_ISCP_TYPE_STR, "test"));
-    INA_ASSERT_EQUAL(0, __send_count);       
+    INA_ASSERT_EQUAL(0, __send_count);   
     INA_ASSERT_SUCCEED(ina_iscp_init(__null_send_cb, __null_recv_cb));
     INA_ASSERT_FAILURE(ina_iscp_send(&ctx, 1, 
                             INA_ISCP_TYPE_INT64, 300,
@@ -142,7 +152,6 @@ void test_iscp_send_local()
     INA_ASSERT_FAILURE(ina_iscp_send(&ctx, 1, 
                             INA_ISCP_TYPE_INT64, 20,
                             INA_ISCP_TYPE_STR, "test-2"));
-
     INA_ASSERT_EQUAL(1, __send_count);
 }
 

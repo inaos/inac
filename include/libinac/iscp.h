@@ -40,9 +40,9 @@ extern "C" {
 
 #define INA_ISCP_BUFFER_SIZE  (2048)  /* Max size of command data */
 
-#define INA_ISCP_TYPE_INT64  (0)  /* uint32_t  4 bytes*/
-#define INA_ISCP_TYPE_STR    (1)  /* uint16_t (length) + char[lenght] */
+#define INA_ISCP_TYPE_INT64  (1)  /* uint32_t  4 bytes*/
 #define INA_ISCP_TYPE_DBL    (2)  /* double 8 bytes */
+#define INA_ISCP_TYPE_STR    (3)  /* uint16_t (length) + char[lenght] */
 
 /* ISCP context: Implementation specific 
  * data (socket descriptor for instance) */
