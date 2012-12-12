@@ -28,6 +28,10 @@
 #ifndef _LIBINAC_TYPES_H_
 #define _LIBINAC_TYPES_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Return code */
 typedef uint32_t ina_rc_t;
 
@@ -50,4 +54,9 @@ typedef char ina_semkey_t[MAX_PATH];
 typedef int ina_handle_t;
 typedef int ina_semkey_t;
 #endif
+
+#ifdef __cplusplus
+}
+#endif 
+
 #endif

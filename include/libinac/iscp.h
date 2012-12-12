@@ -30,6 +30,10 @@
 
 #include <libinac/lib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * INAOS Simple Command Protocol 
  */
@@ -145,6 +149,10 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  * INA_SUCCESS if no error occurred.
  */
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif
 

@@ -33,6 +33,10 @@
 
 #include <libinac/lib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Indicate no errors */
 #define INA_SUCCESS  0
 /* Indicate generic failure */
@@ -280,4 +284,9 @@ INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
  * INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
  */
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
+
+#ifdef __cplusplus
+}
+#endif 
+
 #endif

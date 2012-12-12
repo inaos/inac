@@ -30,6 +30,10 @@
 
 #include <assert.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef TRACE_ENABLED
 #define INA_TRACE(x) \
     printf(          \
@@ -71,5 +75,9 @@
 #define INA_ASSERT_SUCCEED(v)
 #define INA_ASSERT_NOTSUCCEED(v)
 #endif
- 
- #endif
+
+#ifdef __cplusplus
+}
+#endif 
+
+#endif

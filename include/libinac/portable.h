@@ -32,6 +32,10 @@
 #include <limits.h>
 #include <signal.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Determine compilation environment
  */
@@ -1041,5 +1045,9 @@ typedef uint_least32_t uint_fast32_t;
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
 #endif
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

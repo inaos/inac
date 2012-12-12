@@ -30,6 +30,10 @@
 
 #include <libinac/lib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define INA_ULLC_MIN(x,y) max(x,y)
 
 
@@ -254,4 +258,9 @@ INA_API(void *)  ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx);
  * Read from consumer, busy wait
  */
 INA_API(void *)  ina_ullc_consumer_get_bwait(ina_ullc_ctx_t *ctx);
+
+#ifdef __cplusplus
+}
+#endif 
+
 #endif

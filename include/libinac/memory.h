@@ -28,6 +28,10 @@
 #ifndef _LIBINAC_MEMORY_H_
 #define _LIBINAC_MEMORY_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Single Pool, fixed size */
 #define INA_MEM_BASIC       0
 /* Dynamic chunk allocation */
@@ -223,5 +227,9 @@ INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
 INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
 /* reallocate memory from a pool */
 INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

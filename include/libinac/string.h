@@ -30,6 +30,10 @@
 
 #include <libinac/lib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* allocation */
 INA_API(ina_str_t) ina_str_newlen(size_t len);
 INA_API(ina_str_t) ina_str_pnewlen(size_t len, ina_mempool_t *pool);
@@ -184,4 +188,9 @@ INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2);
 INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr);
 
 INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...);
+
+#ifdef __cplusplus
+}
+#endif 
+
 #endif

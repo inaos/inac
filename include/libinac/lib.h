@@ -57,6 +57,10 @@
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define INA_YES 1
 #define INA_NO  0
 /*
@@ -102,5 +106,9 @@ INA_API(ina_rc_t) ina_libinit(void);
  * called once before the application terminate.
  */
 INA_API(void) ina_exit(void);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif
