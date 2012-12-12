@@ -147,6 +147,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
                 buf->cmd_data[n++] = (i>>40) & 0xff;
                 buf->cmd_data[n++] = (i>>48) & 0xff;
                 buf->cmd_data[n++] = (i>>56) & 0xff;
+                break;
             }
             case INA_ISCP_TYPE_DBL:
             {
@@ -174,7 +175,9 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
                 break;
             }
             default:
+            {
                 return INA_FAILURE;
+            }
         }
     }
     va_end(params);
