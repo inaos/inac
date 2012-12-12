@@ -31,15 +31,15 @@
 /* Internal registry entry */
 typedef struct ina_ispc_cmd_s {
     uint16_t cmd_id;
-    uint16_t pcount;
+    uint16_t p_count;
     ina_iscp_handler handler;
     UT_hash_handle hh;
 } ina_iscp_cmd_t;
 
 static ina_iscp_recv_cb __recv_cb = NULL;
 static ina_iscp_send_cb __send_cb = NULL;
-static ina_iscp_cmd_t*  __cmds = NULL;
-static ina_mempool_t* __mempool = NULL;
+static ina_iscp_cmd_t  *__cmds = NULL;
+static ina_mempool_t   *__mempool = NULL;
 
 
 INA_API(ina_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb)
@@ -67,18 +67,18 @@ INA_API(ina_rc_t) ina_iscp_reset(void)
     return ina_mempool_release(__mempool, 0);
 }
 
-INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int pcount, ina_iscp_handler handler)
+INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler handler)
 {
     ina_iscp_cmd_t *cmd;
 
     INA_ASSERT(cmd_id > 0);
-    INA_ASSERT(pcount >= 0);
+    INA_ASSERT(p_count >= 0);
     INA_ASSERT_NOTNULL(handler);
         
     HASH_FIND_INT(__cmds, &cmd_id, cmd);
     if (cmd != NULL) {
         if (cmd->cmd_id == cmd_id &&
-            cmd->pcount == pcount &&
+            cmd->p_count == p_count &&
             cmd->handler == handler)  {
                 return INA_SUCCESS;
         }
@@ -91,7 +91,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int pcount, ina_iscp_handler han
     }
 
     cmd->cmd_id = cmd_id;
-    cmd->pcount = pcount;
+    cmd->p_count = p_count;
     cmd->handler = handler;
 
     HASH_ADD_INT(__cmds, cmd_id, cmd);
@@ -99,7 +99,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int pcount, ina_iscp_handler han
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...)
+INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 {
     ina_iscp_cmd_t* cmd;
     ina_iscp_buf_t* buf;
@@ -122,7 +122,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...)
 
     type = -1;
     n = 0;
-    p = cmd->pcount;
+    p = cmd->p_count;
 
     va_start(params, cmd_id);
 
@@ -146,7 +146,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...)
             }
             case INA_ISCP_TYPE_DBL:
             {
-                /* FIXME: find better solution */
+                /* FIXME: find a better solution */
                 double d;
                 d = va_arg(params, double);
                 ina_mem_cpy(&buf->cmd_data[n++], &d, 8);
@@ -168,9 +168,8 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...)
                 n += i;
                 break;
             }
-            default: {
+            default:
                 return INA_FAILURE;
-            }
         }
     }
     va_end(params);
@@ -182,43 +181,61 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...)
     return __send_cb(ctx, buf->length, (const unsigned char*)buf);
 }
 
-INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t* ctx, int nc, int timeout) 
+INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout) 
 {
     size_t size;
     ina_iscp_buf_t *buf;
     
     INA_ASSERT_NOTNULL(ctx);
     
-    buf = (ina_iscp_buf_t*)ina_mem_alloc(sizeof(ina_iscp_buf_t));
+    buf = (ina_iscp_buf_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_buf_t));
     
     /* TODO Timer event */
     if (INA_SUCCEED(__recv_cb(ctx, &size, (unsigned char*)buf))) {
         size_t n;
+        size_t p;
+        ina_iscp_cmd_t *cmd;
+        ina_iscp_param_t *params;
 
+        HASH_FIND_INT(__cmds, &buf->cmd_id, cmd);
+        if (cmd == NULL) {
+            return INA_SUCCESS;
+        }
+
+        p = 0;
         n = sizeof(uint16_t)*2+sizeof(uint32_t);
+        params = (ina_iscp_param_t*)ina_mempool_dalloc(__mempool,
+                                        sizeof(ina_iscp_param_t)*buf->p_count);
+                
         while (n < buf->length) {
-            short type;
-            type = buf->cmd_data[n];
-            switch (type) {
+            params[p].type = (*(uint8_t*)(&buf->cmd_data[n]));
+            switch (params[p].type) {
                 case INA_ISCP_TYPE_INT64:
                 {
+                    params[p].value.i = (*(int64_t*)(&buf->cmd_data[n]));
+                    n += sizeof(int64_t);
                     break;
                 }
                 case INA_ISCP_TYPE_DBL:
                 {
+                    params[p].value.d = (*(double*)(&buf->cmd_data[n]));
+                    n += sizeof(double);
                     break;
                 }
                 case INA_ISCP_TYPE_STR:
                 {
+                    int32_t i;
+                    i = (*(int32_t*)(&buf->cmd_data[n]));
+                    n += sizeof(int32_t);
+                    params[p].value.s = ina_str_fromcstr((const char*)&buf->cmd_data[n]);
                     break;
                 }
                 default: 
-                {
                     return INA_FAILURE;
-                }
             }
+            ++p;
         }
+        return cmd->handler(buf->cmd_id, p, params);
     }
     return INA_FAILURE;
 }
-

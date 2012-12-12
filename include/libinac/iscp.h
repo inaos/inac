@@ -54,8 +54,8 @@ typedef ina_rc_t (*ina_iscp_recv_cb)(ina_iscp_ctx_t*, size_t*, unsigned char*);
 typedef struct ina_iscp_param_s {
     uint8_t type;
     union {
-        int64_t   n;
-        double    f;
+        int64_t   i;
+        double    d;
         ina_str_t s;
     } value;
 } ina_iscp_param_t;
@@ -68,6 +68,7 @@ typedef struct ina_iscp_buf_s {
     uint16_t length;    /* store the command buffer size */
     uint32_t cmd_uid;   /* UID for sent commands */
     uint16_t cmd_id;    /* identify the command */
+    uint16_t p_count;    /* parameter count */
     /* Parameters 
      * [1 byte, parameter type][parameter]
      * 
@@ -113,7 +114,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id,int p_count, ina_iscp_handler han
 /*
  * Send a command synchronously.
  * Like:
- * ina_iscp_send(fd, INAFX_ISCP_SUBSCRIBE, 
+ * ina_iscp_send(ctx, INAFX_ISCP_SUBSCRIBE, 
  *                   INA_ISCP_TYPE_INT, 1,
  *                   INA_ISCP_TYPE_STR, "127.0.0.1"
  *                   INA_ISCP_TYPE_FLOAT, 2.3,
@@ -128,7 +129,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id,int p_count, ina_iscp_handler han
  * INA SUCCESS if command was successfully sent to the server and 
  *             executed by the receiver w/o error.
  */
-INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...);
+INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
 
 /*
  * Check and receive a previously regsisterd command. If a
@@ -143,7 +144,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t* ctx, int cmd_id, ...);
  * Return Value:
  * INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t* ctx, int nc, int timeout);
+INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout);
 
 #endif
 

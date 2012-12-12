@@ -29,25 +29,27 @@
 
 static int __send_count = 0;
 static int __recv_count = 0;
+static int __p_count = 0;
  
-static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, size_t size, const unsigned char* buf)
+static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, size_t size, const unsigned char *buf)
 {
     ++__send_count;
     return INA_SUCCESS;
 }
 
-static ina_rc_t __null_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, unsigned char* buf)
+static ina_rc_t __null_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, unsigned char *buf)
 {   
     ++__recv_count;
     return INA_SUCCESS;
 }
 
-static ina_rc_t __null_handler(int cmd_id, int count, ina_iscp_param_t* params)
+static ina_rc_t __null_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {
+    __p_count = 0;
     return INA_SUCCESS;
 }
 
-static ina_rc_t __null_handler2(int cmd_id, int count, ina_iscp_param_t* params)
+static ina_rc_t __null_handler2(int cmd_id, int count, ina_iscp_param_t *params)
 {
     return INA_SUCCESS;
 }
@@ -59,12 +61,11 @@ void test_iscp_setup()
      INA_ASSERT_FAILURE(ina_iscp_init(NULL, __null_recv_cb));
      INA_ASSERT_FAILURE(ina_iscp_init(NULL, NULL));
      INA_ASSERT_FAILURE(ina_iscp_init(__null_send_cb, NULL));
-     INA_ASSERT_SUCCEED(ina_iscp_register(1,3,__null_handler));
-     INA_ASSERT_SUCCEED(ina_iscp_register(1,3,__null_handler));
-     INA_ASSERT_FAILURE(ina_iscp_register(1,3,__null_handler2));
-     INA_ASSERT_FAILURE(ina_iscp_register(1,2,__null_handler));
-     INA_ASSERT_FAILURE(ina_iscp_register(1,4,__null_handler2));
+     INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler));
+     INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler));
+     INA_ASSERT_FAILURE(ina_iscp_register(1, 3, __null_handler2));
+     INA_ASSERT_FAILURE(ina_iscp_register(1, 2, __null_handler));
+     INA_ASSERT_FAILURE(ina_iscp_register(1, 4, __null_handler2));
      INA_ASSERT_SUCCEED(ina_iscp_reset());
-     INA_ASSERT_SUCCEED(ina_iscp_register(1,4,__null_handler2));     
-     
+     INA_ASSERT_SUCCEED(ina_iscp_register(1, 4, __null_handler2));
  }
