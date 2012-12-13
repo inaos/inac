@@ -320,7 +320,7 @@ INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, size_t *size,
         int length;
         length = (*(uint16_t*)&buf[0]); 
         nread = ina_net_read(fd, (char*)buf[sizeof(uint16_t)], length-sizeof(uint16_t));
-        if (nread)
+        if (nread) {
             *size = length;
             return INA_SUCCESS;
         }
