@@ -4,9 +4,10 @@ project (inac)
 set (DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
+set (ANET_INCLUDE_DIR "${DEPS_DIR}/anet")
 set (BSTRING_INCLUDE_DIR "${DEPS_DIR}/bstring")
 
-include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${BSTRING_INCLUDE_DIR}")
+include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${ANET_INCLUDE_DIR}" "${BSTRING_INCLUDE_DIR}")
 
 #if(WIN32)
 #	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib)
@@ -28,7 +29,8 @@ add_library(makeheaders ${DEPS_DIR}/makeheaders/makeheaders.c)
 # END dependencies
 
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
-                 ${SRC_DIR}/string/bstring.c ${SRC_DIR}/string/cstring.c ${SRC_DIR}/util.c)
+                 ${SRC_DIR}/string/bstring.c ${SRC_DIR}/string/cstring.c ${SRC_DIR}/util.c
+				 ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c)
 
 add_library(libinac ${LIBINAC_SRC})
 
