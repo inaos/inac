@@ -48,6 +48,10 @@ INA_API(int) ina_net_tcp_server(char *err, int port, char *bindaddr)
     return anetTcpServer(err, port, bindaddr);
 }
 
+INA_API(int) ina_net_tcp_accept(char *err, int s, char *ip, int *port)
+{
+    return anetTcpAccept(err, s, ip, port);
+}
 INA_API(int) ina_net_tcp_connect(char *err, char *addr, int port)
 {
 	return(anetTcpConnect(err, addr, port));

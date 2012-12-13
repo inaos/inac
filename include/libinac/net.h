@@ -44,6 +44,7 @@ INA_API(int)  ina_net_nonblock(char *err, int fd);
 INA_API(void) ina_net_close(int fd);
 
 INA_API(int) ina_net_tcp_server(char *err, int port, char *bindaddr);
+INA_API(int) ina_net_tcp_accept(char *err, int s, char *ip, int *port);
 INA_API(int) ina_net_tcp_connect(char *err, char *addr, int port);
 
 INA_API(int) ina_net_udp_bind(char *err, char *addr, int port);
