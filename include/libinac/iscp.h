@@ -39,10 +39,17 @@ extern "C" {
  */
 
 #define INA_ISCP_BUFFER_SIZE  (2048)  /* Max size of command data */
+#define INA_ISCP_HDR_SIZE     (sizeof(uint16_t)*3+sizeof(uint32_t))
 
 #define INA_ISCP_TYPE_INT64  (1)  /* uint32_t  4 bytes*/
 #define INA_ISCP_TYPE_DBL    (2)  /* double 8 bytes */
 #define INA_ISCP_TYPE_STR    (3)  /* uint16_t (length) + char[lenght] */
+
+/* Backend */
+typedef enum ina_iscp_backend_e {
+    INA_ISCP_NONE = 0,
+    INA_ISCP_INET,
+} ina_iscp_backend_t;
 
 /* ISCP context: Implementation specific 
  * data (socket descriptor for instance) */
@@ -54,6 +61,7 @@ typedef struct ina_iscp_cxt_s {
 typedef ina_rc_t (*ina_iscp_send_cb)(ina_iscp_ctx_t*, size_t, const unsigned char*);
 /* Receive callback */
 typedef ina_rc_t (*ina_iscp_recv_cb)(ina_iscp_ctx_t*, size_t*, unsigned char*);
+
 /* ISCP parameter */
 typedef struct ina_iscp_param_s {
     uint8_t type;
@@ -87,13 +95,14 @@ typedef struct ina_iscp_buf_s {
  * Initialize internal structrues for ISCP
  *
  * Parameters
- * send_cb      Send callback function
+ * backend      Spe
  * recv_cb      Receive callback function
  *
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
+INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend);
+INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
 
 /*
  * Reset ISCP status an remove all regsitred commands.
@@ -104,12 +113,13 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_
 INA_API(ina_rc_t) ina_iscp_reset(void);
 
 /*
- * Register  command definition. Only used on "server" side.
+ * Register a ISCP command.
  *
  * Parameters
  * cmd_id       Command identifier
  * p_count      Number of commands to send or to receive
- * handler      Command handler function
+ * handler      Command handler function called when the command is 
+ *              received.
  *
  * Return Value
  * INA_SUCCESS if no error occurred
@@ -150,6 +160,13 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  */
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout);
 
+
+INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, size_t size, 
+    const unsigned char *buf);
+
+
+INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, 
+    unsigned char *buf);
 #ifdef __cplusplus
 }
 #endif 
