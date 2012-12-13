@@ -250,7 +250,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                                         __mempool,
                                         sizeof(ina_iscp_param_t)*(buf->p_count));
 
-        while (n+INA_ISCP_HDR_SIZE < buf->length-2) {
+        while (n+INA_ISCP_HDR_SIZE < buf->length-2) { /* Fix: ! */
             /*printf("recv->pos->%ld  ", n+sizeof(uint16_t)*3+sizeof(uint32_t));   */         
             params[p].type = (*(uint8_t*)(&buf->cmd_data[n]));
             /*printf("recv->type->%d\n", params[p].type);*/            
@@ -302,7 +302,7 @@ INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, size_t size,
     int fd;
     fd = *(int*)ctx->data;
     
-    if (ina_net_write(fd, (char*)buf, size) == size) {
+    if (ina_net_write(fd, (char*)buf, size)) {
         return INA_SUCCESS;
     }
     return INA_FAILURE;
@@ -317,11 +317,11 @@ INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, size_t *size,
  
     nread = ina_net_read(fd, (char*)buf, sizeof(uint16_t));
     if (nread) {
-        uint16_t length;
+        int length;
         length = (*(uint16_t*)&buf[0]); 
-        nread += ina_net_read(fd, (char*)buf[sizeof(uint16_t)], length-sizeof(uint16_t));
-        if (nread == length) {
-            *size = nread;
+        nread = ina_net_read(fd, (char*)buf[sizeof(uint16_t)], length-sizeof(uint16_t));
+        if (nread)
+            *size = length;
             return INA_SUCCESS;
         }
     }
