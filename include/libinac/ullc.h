@@ -164,7 +164,7 @@ typedef struct ina_ullc_ctx_s {
     ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_consumer_t *c_offset;  /* consumer(s) */
-    unsigned char *data;                     /* slot data */
+    unsigned char *data;            /* slot data */
 } ina_ullc_ctx_t;
 
 /* Helper macro to create an ullc ring */
