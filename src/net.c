@@ -88,7 +88,7 @@ INA_API(int) ina_net_join_group(char* err, int fd, char *localif, char *source)
     return(anetJoinGroup(err, fd, localif, source));
 }
 
-INA_API(int) inet_leave_group(char* err, int fd, char *localif, char *source)
+INA_API(int) ina_net_leave_group(char* err, int fd, char *localif, char *source)
 {
     return(anetLeaveGroup(err, fd, localif, source));
 }

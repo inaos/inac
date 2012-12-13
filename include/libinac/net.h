@@ -40,8 +40,8 @@ extern "C" {
 INA_API(int) ina_net_read(int fd, char *buf, int count);
 INA_API(int) ina_net_resolve(char *err, char *host, char *ipbuf);
 INA_API(int) ina_net_write(int fd, char *buf, int count);
-INA_API(int) ina_net_nonblock(char *err, int fd);
-INA_API(void) ina_inet_close(int fd);
+INA_API(int)  ina_net_nonblock(char *err, int fd);
+INA_API(void) ina_net_close(int fd);
 
 INA_API(int) ina_net_tcp_connect(char *err, char *addr, int port);
 
