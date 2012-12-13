@@ -6,7 +6,7 @@ SQLITE_VERSION=3.7.14.1
 SQLITE_PLATFORM=$(shell uname)
 SQLITE_PLATFORM_Darwin = macosx
 
-all: makeheaders_tool bstring sqlite luajit
+all: makeheaders_tool bstring sqlite luajit anet
 
 makeheaders_tool:
 	$(MAKE) -C makeheaders
@@ -19,6 +19,9 @@ sqlite:
 
 bstring:
 	$(MAKE) -C bstring
+
+anet:
+	$(MAKE) -C anet
 
 sds:
 	$(MAKE) -C sds
@@ -33,6 +36,7 @@ install: all test
 clean:
 	$(MAKE) clean -C makeheaders
 	$(MAKE) clean -C bstring
+	$(MAKE) clean -C anet
 	$(MAKE) clean -C sds
 	$(MAKE) clean -C luajit-$(LUAJIT_VERSION)
 	$(MAKE) clean -C sqlite-$(SQLITE_VERSION)
