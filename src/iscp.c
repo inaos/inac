@@ -315,7 +315,7 @@ INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, size_t *size,
     int fd;
     fd = *(int*)ctx->data;
  
-    nread = ina_net_read(fd, (char*)buf, sizeof(uint16_t));
+    nread = ina_net_read(fd, (char*)buf, sizeof(ina_iscp_buf_t));
     if (nread > 0) {
         int length;
         length = (*(uint16_t*)&buf[0]); 
