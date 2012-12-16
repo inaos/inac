@@ -27,29 +27,29 @@
  */
 #include <libinac/lib.h>
 
-static ina_iscp_buf_t *__send_buf;
+static ina_iscp_msg_t *__send_msg;
 static int __send_count = 0;
 static int __recv_count = 0;
 static int __handler_count = 0;
 static int __p_count = 0;
  
-static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, size_t size, const unsigned char *buf)
+static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
 {
-    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_NOTNULL(msg);
     ++__send_count;
-    __send_buf = (ina_iscp_buf_t*)buf;
+    __send_msg = msg;
    /* printf("__send_buf->length=%d\n", __send_buf->length);*/
     return INA_SUCCESS;
 }
 
-static ina_rc_t __null_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, unsigned char *buf)
+static ina_rc_t __null_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
 {   
-    ina_iscp_buf_t *recv_buf;
+    ina_iscp_msg_t *recv_msg;
 
-    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_NOTNULL(msg);
     ++__recv_count;
-    ina_mem_cpy(buf, __send_buf, __send_buf->length);
-    recv_buf = (ina_iscp_buf_t*)buf;
+    ina_mem_cpy(msg, __send_msg, __send_msg->length);
+    recv_msg = msg;
     /*printf("__send_buf->length=%d\n", recv_buf->length);*/
     return INA_SUCCESS;
 }
@@ -105,7 +105,7 @@ void test_iscp_send_recv_checkparams()
      __send_count = 0;
      __recv_count = 0;
      __p_count = 0;
-     __send_buf = NULL;
+     __send_msg = NULL;
      __handler_count = 0;
 
      INA_TRACE("test_iscp_send_recv_local");
@@ -119,7 +119,7 @@ void test_iscp_send_recv_checkparams()
                              INA_ISCP_TYPE_DBL, 5.2,
                              INA_ISCP_TYPE_STR, "test"));
      INA_ASSERT_EQUAL(1, __send_count);
-     INA_ASSERT_NOTNULL(__send_buf);    
+     INA_ASSERT_NOTNULL(__send_msg);    
      INA_ASSERT_SUCCEED(ina_iscp_recv(&ctx, 1000, 1));
      INA_ASSERT_EQUAL(1, __recv_count);
      INA_ASSERT_EQUAL(1, __handler_count);

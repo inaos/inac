@@ -57,11 +57,6 @@ typedef struct ina_iscp_cxt_s {
     void *data;   
 } ina_iscp_ctx_t;
 
-/* Send callback */
-typedef ina_rc_t (*ina_iscp_send_cb)(ina_iscp_ctx_t*, size_t, const unsigned char*);
-/* Receive callback */
-typedef ina_rc_t (*ina_iscp_recv_cb)(ina_iscp_ctx_t*, size_t*, unsigned char*);
-
 /* ISCP parameter */
 typedef struct ina_iscp_param_s {
     uint8_t type;
@@ -75,8 +70,8 @@ typedef struct ina_iscp_param_s {
 /* Command handler */
 typedef ina_rc_t (*ina_iscp_handler)(int, int, ina_iscp_param_t*);
 
-/* Internal send/receive buffer */
-typedef struct ina_iscp_buf_s {
+/* Internal send/receive message */
+typedef struct ina_iscp_msg_s {
     uint16_t length;    /* store the command buffer size */
     uint32_t cmd_uid;   /* UID for sent commands */
     uint16_t cmd_id;    /* identify the command */
@@ -89,7 +84,12 @@ typedef struct ina_iscp_buf_s {
      * [INA_ISCP_TYPE_FLOAT][b1][b2][b3][b4][b5][b6][b7][b8]
      */
     unsigned char cmd_data[INA_ISCP_BUFFER_SIZE]; 
-} ina_iscp_buf_t;
+} ina_iscp_msg_t;
+
+/* Send callback */
+typedef ina_rc_t (*ina_iscp_send_cb)(ina_iscp_ctx_t*, ina_iscp_msg_t*);
+/* Receive callback */
+typedef ina_rc_t (*ina_iscp_recv_cb)(ina_iscp_ctx_t*, ina_iscp_msg_t*);
 
 /*
  * Initialize internal structrues for ISCP
@@ -160,13 +160,15 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  */
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout);
 
+/*
+ * Net callback to send an ISCP command.
+ */
+INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg);
 
-INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, size_t size, 
-    const unsigned char *buf);
-
-
-INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, 
-    unsigned char *buf);
+/*
+ * Net callback to receive an ISCP command.
+ */
+INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg);
 #ifdef __cplusplus
 }
 #endif 

@@ -126,7 +126,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler ha
 INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 {
     ina_iscp_cmd_t* cmd;
-    ina_iscp_buf_t* buf;
+    ina_iscp_msg_t* msg;
     size_t n;
     size_t p;
     uint8_t type;
@@ -142,7 +142,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     }
 
     /* Allocate buffer */
-    buf = (ina_iscp_buf_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_buf_t));
+    msg = (ina_iscp_msg_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_msg_t));
 
     type = -1;
     n = 0;
@@ -154,21 +154,21 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
         type = (uint8_t)va_arg(params, int);
         /*printf("send-type->%d  ", type);
         printf("send->pos->%ld\n", n + sizeof(uint16_t)*3+sizeof(uint32_t));*/
-        buf->cmd_data[n] = type;
+        msg->cmd_data[n] = type;
         n += sizeof(uint8_t);
         switch (type) {
             case INA_ISCP_TYPE_INT64:
             {
                 int64_t i;
                 i = va_arg(params, int64_t);
-                buf->cmd_data[n] = i & 0xff;
-                buf->cmd_data[++n] = (i>>8)  & 0xff;
-                buf->cmd_data[++n] = (i>>16) & 0xff;
-                buf->cmd_data[++n] = (i>>24) & 0xff;
-                buf->cmd_data[++n] = (i>>32) & 0xff;
-                buf->cmd_data[++n] = (i>>40) & 0xff;
-                buf->cmd_data[++n] = (i>>48) & 0xff;
-                buf->cmd_data[++n] = (i>>56) & 0xff;
+                msg->cmd_data[n] = i & 0xff;
+                msg->cmd_data[++n] = (i>>8)  & 0xff;
+                msg->cmd_data[++n] = (i>>16) & 0xff;
+                msg->cmd_data[++n] = (i>>24) & 0xff;
+                msg->cmd_data[++n] = (i>>32) & 0xff;
+                msg->cmd_data[++n] = (i>>40) & 0xff;
+                msg->cmd_data[++n] = (i>>48) & 0xff;
+                msg->cmd_data[++n] = (i>>56) & 0xff;
                 ++n;
                 break;
             }
@@ -177,7 +177,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
                 /* FIXME: find a better solution */
                 double d;
                 d = va_arg(params, double);
-                ina_mem_cpy(&buf->cmd_data[n], &d, sizeof(double));
+                ina_mem_cpy(&msg->cmd_data[n], &d, sizeof(double));
                 n += sizeof(double);
                 break;
             }
@@ -189,13 +189,13 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
                 str = va_arg(params, char*);                
                 i = strlen(str);
                 /*printf("s=%d\n", i);*/
-                buf->cmd_data[n] = i & 0xff;
-                buf->cmd_data[++n] = (i>>8)  & 0xff;
-                buf->cmd_data[++n] = (i>>16) & 0xff;
-                buf->cmd_data[++n] = (i>>24) & 0xff;
-                ina_mem_cpy(&buf->cmd_data[++n], str, i);
+                msg->cmd_data[n] = i & 0xff;
+                msg->cmd_data[++n] = (i>>8)  & 0xff;
+                msg->cmd_data[++n] = (i>>16) & 0xff;
+                msg->cmd_data[++n] = (i>>24) & 0xff;
+                ina_mem_cpy(&msg->cmd_data[++n], str, i);
                 n += i+1;
-                buf->cmd_data[++n] = 0;
+                msg->cmd_data[++n] = 0;
                 break;
             }
             default:
@@ -205,25 +205,24 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
         }
     }
     va_end(params);
-    buf->length = n + INA_ISCP_HDR_SIZE;
-    buf->cmd_id = cmd->cmd_id;
-    buf->cmd_uid = 1; /* FIMXE: UID Generator */
-    buf->p_count = cmd->p_count;
+    msg->length = n + INA_ISCP_HDR_SIZE;
+    msg->cmd_id = cmd->cmd_id;
+    msg->cmd_uid = 1; /* FIMXE: UID Generator */
+    msg->p_count = cmd->p_count;
 
-    return __send_cb(ctx, buf->length, (const unsigned char*)buf);
+    return __send_cb(ctx, msg);
 }
 
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout) 
 {
-    size_t size;
-    ina_iscp_buf_t *buf;
+    ina_iscp_msg_t *msg;
 
     INA_ASSERT_NOTNULL(ctx);
     
-    buf = (ina_iscp_buf_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_buf_t));
+    msg = (ina_iscp_msg_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_msg_t));
     
     /* TODO Timer event */
-    if (INA_SUCCEED(__recv_cb(ctx, &size, (unsigned char*)buf))) {
+    if (INA_SUCCEED(__recv_cb(ctx, msg))) {
         size_t n;
         size_t p;
         ina_iscp_cmd_t *cmd;
@@ -236,7 +235,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
         printf("recv->p_count->%d\n", buf->p_count);*/
 
         /* We need exactlly an int */
-        ci = buf->cmd_id;
+        ci = msg->cmd_id;
 
         HASH_FIND_INT(__cmds, &ci, cmd);
         if (cmd == NULL) {
@@ -248,34 +247,34 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
         n = 0;
         params = (ina_iscp_param_t*)ina_mempool_dalloc(
                                         __mempool,
-                                        sizeof(ina_iscp_param_t)*(buf->p_count));
+                                        sizeof(ina_iscp_param_t)*(msg->p_count));
 
-        while (n+INA_ISCP_HDR_SIZE < buf->length-2) { /* Fix: ! */
+        while (n+INA_ISCP_HDR_SIZE < msg->length-2) { /* Fix: ! */
             /*printf("recv->pos->%ld  ", n+sizeof(uint16_t)*3+sizeof(uint32_t));   */         
-            params[p].type = (*(uint8_t*)(&buf->cmd_data[n]));
+            params[p].type = (*(uint8_t*)(&msg->cmd_data[n]));
             /*printf("recv->type->%d\n", params[p].type);*/            
 
             n+= sizeof(uint8_t);
             switch (params[p].type) {
                 case INA_ISCP_TYPE_INT64:
                 {
-                    params[p].value.i = (*(int64_t*)(&buf->cmd_data[n]));
+                    params[p].value.i = (*(int64_t*)(&msg->cmd_data[n]));
                     n += sizeof(int64_t);
                     break;
                 }
                 case INA_ISCP_TYPE_DBL:
                 {
-                    params[p].value.d = (*(double*)(&buf->cmd_data[n]));
+                    params[p].value.d = (*(double*)(&msg->cmd_data[n]));
                     n += sizeof(double);
                     break;
                 }
                 case INA_ISCP_TYPE_STR:
                 {
                     int32_t i;
-                    i = (*(int32_t*)(&buf->cmd_data[n]));
+                    i = (*(int32_t*)(&msg->cmd_data[n]));
                     /*printf("strlen=%d", i);*/
                     n += sizeof(int32_t);
-                    params[p].value.s = ina_str_fromcstr((const char*)&buf->cmd_data[n]);
+                    params[p].value.s = ina_str_fromcstr((const char*)&msg->cmd_data[n]);
                     /*printf("s=%s\n", params[p].value.s);*/
                     n += i;
                     break;
@@ -287,39 +286,35 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
             }
             ++p;
         }
-        if (p == buf->p_count) {
+        if (p == msg->p_count) {
             if (cmd->handler != NULL) {
-                return cmd->handler(buf->cmd_id, buf->p_count, params);
+                return cmd->handler(msg->cmd_id, msg->p_count, params);
             }
         }
     }
     return INA_FAILURE;
 }
 
-INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, size_t size, 
-                    const unsigned char *buf)
+INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
 {
     int fd;
     fd = *(int*)ctx->data;
     
-    if (ina_net_write(fd, (char*)buf, size)) {
+    if (ina_net_write(fd, (char*)msg, msg->length)) {
         return INA_SUCCESS;
     }
     return INA_FAILURE;
 }
 
-INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, size_t *size, 
-                    unsigned char *buf)
+INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
 {   
     int nread;
     int fd;
     fd = *(int*)ctx->data;
  
-    nread = ina_net_read(fd, (char*)buf, sizeof(ina_iscp_buf_t));
+    nread = ina_net_read(fd, (char*)msg, sizeof(ina_iscp_msg_t));
+    /* FIXME: not safe */
     if (nread > 0) {
-        int length;
-        length = (*(uint16_t*)&buf[0]); 
-        *size = length;
         return INA_SUCCESS;
     }
     return INA_FAILURE;
