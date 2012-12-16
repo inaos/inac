@@ -51,7 +51,7 @@ INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr)
     INA_ASSERT_NOTNULL(bindaddr);
     INA_ASSERT_TRUE(port > 0);
     *fd = anetTcpServer(err, port, (char*)bindaddr);
-    if (*fd != ANET_ERR) {
+    if (*fd == ANET_ERR) {
         return INA_NET_ERROR(err);
     }
     return INA_SUCCESS;
