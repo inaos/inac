@@ -45,7 +45,7 @@ void test_error_message_formatting()
     INA_ASSERT_SUCCESS(ina_err_peek());
     INA_ERR_EMSGLEN;
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
-    printf("msg2=%s\n", ina_str_cstr(msg2));
+    INA_TRACE_FMT("msg2=%s", ina_str_cstr(msg2));
 }
 
 void test_error_macros()
@@ -111,11 +111,11 @@ void test_error_pack_rc()
     rc = 0;
     rc = INA_RC_PACK(1,2,7,4);
     
-    /*printf("rc = %u\n", rc);
-    printf("id = %u\n", INA_RC_ID(rc));
-    printf("mod = %u\n", INA_RC_MOD(rc));
-    printf("func = %u\n", INA_RC_OSFN(rc));
-    printf("reason = %u\n", INA_RC_REASON(rc));*/
+    INA_TRACE_FMT("rc = %u", rc);
+    INA_TRACE_FMT("id = %u", INA_RC_ID(rc));
+    INA_TRACE_FMT("mod = %u", INA_RC_MOD(rc));
+    INA_TRACE_FMT("func = %u", INA_RC_OSFN(rc));
+    INA_TRACE_FMT("reason = %u", INA_RC_REASON(rc));
     
     INA_ASSERT_EQUAL(rcc, rc);
     INA_ASSERT_EQUAL(1, INA_RC_MOD(rc));

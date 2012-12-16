@@ -35,17 +35,19 @@ extern "C" {
 #endif
 
 #ifdef TRACE_ENABLED
-#define INA_TRACE(x) \
-    printf(          \
-        "%s(%d): ",  \
-        __FILE__,    \
-        __LINE__     \
-        );           \
-                     \
-    printf(x);       \
-    printf("%s", "\n");
+
+#define INA_TRACE_FMT(fmt, ...)  \
+    fprintf(stderr,            \
+        "%s:%d:%s(): " fmt "\n",\
+        __FILE__,             \
+        __LINE__,             \
+        __FUNCTION__,         \
+        __VA_ARGS__           \
+        );
+#define INA_TRACE(msg) INA_TRACE_FMT("%s", msg)
 #else
-#define INA_TRACE(x)
+#define INA_TRACE_FMT(f, ...)
+#define INA_TRACE(msg)
 #endif 
 
 #ifdef DEBUG
