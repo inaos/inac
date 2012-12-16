@@ -35,21 +35,20 @@
 extern "C" {
 #endif
 
-#define INA_NET_ERROR -1
+INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf);
 
-INA_API(int) ina_net_read(int fd, char *buf, int count);
-INA_API(int) ina_net_resolve(char *err, char *host, char *ipbuf);
-INA_API(int) ina_net_write(int fd, char *buf, int count);
-INA_API(int)  ina_net_nonblock(char *err, int fd);
-INA_API(void) ina_net_close(int fd);
+INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr);
+INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port);
+INA_API(ina_rc_t) ina_net_tcp_connect(int *fd, const char *addr, int port);
 
-INA_API(int) ina_net_tcp_server(char *err, int port, char *bindaddr);
-INA_API(int) ina_net_tcp_accept(char *err, int s, char *ip, int *port);
-INA_API(int) ina_net_tcp_connect(char *err, char *addr, int port);
+INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read);
+INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* nb_write);
+INA_API(ina_rc_t) ina_net_nonblock(int fd);
+INA_API(ina_rc_t) ina_net_close(int fd);
 
-INA_API(int) ina_net_udp_bind(char *err, char *addr, int port);
-INA_API(int) ina_net_join_group(char* err, int fd, char *localif, char *source);
-INA_API(int) ina_net_leave_group(char* err, int fd, char *localif, char *source);
+INA_API(ina_rc_t) ina_net_udp_bind(int* fd, const char *addr, int port);
+INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *source);
+INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *source);
 
 #ifdef __cplusplus
 }

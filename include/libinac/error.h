@@ -49,6 +49,7 @@ extern "C" {
 #define INA_MOD_ERROR   3
 #define INA_MOD_ULLC    4
 #define INA_MOD_ISCP    5
+#define INA_MOD_NET     7
 
 /* OS function identifiers */
 #define INA_OSFN_NONE    0
@@ -65,6 +66,7 @@ extern "C" {
 #define INA_EVERSION  5
 #define INA_EBADALIGN 6
 #define INA_ESEMINIT  7
+#define INA_ENET      8
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -164,7 +166,8 @@ extern "C" {
 #define INA_ULLC_EBADALIGN INA_ULLC_ERROR(INA_EBADALIGN, "Bad memory align")
 #define INA_ULLC_ESEMINIT INA_ULLC_ERROR(INA_ESEMINIT, "Semaphore failed")
 
-
+/* Net-Module errors */
+#define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
 
 /* Function pointer cleanup handler. */
 typedef int (*ina_cleanup_handler_t) (const int, const int);

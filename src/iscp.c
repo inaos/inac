@@ -297,25 +297,14 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
 
 INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
 {
-    int fd;
-    fd = *(int*)ctx->data;
-    
-    if (ina_net_write(fd, (char*)msg, msg->length)) {
-        return INA_SUCCESS;
-    }
-    return INA_FAILURE;
+    int nb_write;
+    nb_write = 0;
+    return ina_net_write(*(int*)ctx->data, (unsigned char*)msg, msg->length, &nb_write);
 }
 
 INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
 {   
-    int nread;
-    int fd;
-    fd = *(int*)ctx->data;
- 
-    nread = ina_net_read(fd, (char*)msg, sizeof(ina_iscp_msg_t));
-    /* FIXME: not safe */
-    if (nread > 0) {
-        return INA_SUCCESS;
-    }
-    return INA_FAILURE;
+    int nb_read;
+    nb_read = 0;
+    return ina_net_read(*(int*)ctx->data, (unsigned char*)msg, sizeof(ina_iscp_msg_t), &nb_read);
 }
