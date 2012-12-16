@@ -39,7 +39,7 @@ void test_mempool_bad_dalloc()
     void *ptr;
     ina_mempool_t *pool;
 
-    INA_TRACE("test_mempool_bad_dalloc");
+    INA_TRACE_MSG("test_mempool_bad_dalloc");
 
     ptr = NULL;
     pool = NULL;
@@ -63,7 +63,7 @@ void test_mempool_destroy_syspool_1000_times()
     size_t i;
     ina_mempool_info_t mi;
 
-    INA_TRACE("test_mempool_destroy_syspool_1000_times");
+    INA_TRACE_MSG("test_mempool_destroy_syspool_1000_times");
     
     /* clear error state and assure it's clean */
     INA_ASSERT_SUCCESS(ina_err_reset());
@@ -80,7 +80,7 @@ void test_mempool_destroy_syspool_1000_times_and_recreate()
     size_t i;
     ina_mempool_info_t mi;
 
-    INA_TRACE("test_mempool_destroy_syspool_1000_times_and_recreate");
+    INA_TRACE_MSG("test_mempool_destroy_syspool_1000_times_and_recreate");
     
     /* clear error state and assure it's clean */
     INA_ASSERT_SUCCESS(ina_err_reset());
@@ -100,7 +100,7 @@ void test_mempool_syspool()
     void *p;
     ina_mempool_info_t mi;
 
-    INA_TRACE("test_mempool_syspool");
+    INA_TRACE_MSG("test_mempool_syspool");
     
     /* clear error state and assure it's clean */
     INA_ASSERT_SUCCESS(ina_err_reset());

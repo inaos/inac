@@ -31,7 +31,7 @@
  {
      ina_mempool_t *pool;
 
-     INA_TRACE("test_string_simple_allocation_with_pool");
+     INA_TRACE_MSG("test_string_simple_allocation_with_pool");
 
      INA_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
     
@@ -49,7 +49,7 @@
 
 void test_string_simple_allocation_without_pool() 
 {
-    INA_TRACE("test_string_simple_allocation_without_pool");
+    INA_TRACE_MSG("test_string_simple_allocation_without_pool");
     
     ina_str_t str1;
     ina_str_t str2;

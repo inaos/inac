@@ -224,21 +224,22 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
     /* TODO Timer event */
     if (INA_SUCCEED(__recv_cb(ctx, msg))) {
         size_t n;
-        size_t p;
+        int p;
         ina_iscp_cmd_t *cmd;
         ina_iscp_param_t *params;
         int ci;
-
-        /*printf("recv->cmd_id->%d\n", buf->cmd_id);
-        printf("recv->length->%d\n", buf->length);
-        printf("recv->cmd_uid->%d\n", buf->cmd_uid);
-        printf("recv->p_count->%d\n", buf->p_count);*/
+        INA_TRACE_MSG("Message received")
+        INA_TRACE("- msg->cmd_id->%d", msg->cmd_id);
+        INA_TRACE("- msg->length->%d", msg->length);
+        INA_TRACE("- msg->cmd_uid->%d", msg->cmd_uid);
+        INA_TRACE("- msg->p_count->%d", msg->p_count);
 
         /* We need exactlly an int */
         ci = msg->cmd_id;
 
         HASH_FIND_INT(__cmds, &ci, cmd);
         if (cmd == NULL) {
+            INA_TRACE("Command discard with id %d", msg->cmd_id);
             /* TODO: sepcific error */
             return INA_FAILURE;
         }
@@ -250,9 +251,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                                         sizeof(ina_iscp_param_t)*(msg->p_count));
 
         while (n+INA_ISCP_HDR_SIZE < msg->length-2) { /* Fix: ! */
-            /*printf("recv->pos->%ld  ", n+sizeof(uint16_t)*3+sizeof(uint32_t));   */         
             params[p].type = (*(uint8_t*)(&msg->cmd_data[n]));
-            /*printf("recv->type->%d\n", params[p].type);*/            
+            INA_TRACE("recv->type->%d", params[p].type);
 
             n+= sizeof(uint8_t);
             switch (params[p].type) {
@@ -260,12 +260,14 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                 {
                     params[p].value.i = (*(int64_t*)(&msg->cmd_data[n]));
                     n += sizeof(int64_t);
+                    INA_TRACE("- Parameter %d type=int64_t value=%lld", p, params[p].value.i);
                     break;
                 }
                 case INA_ISCP_TYPE_DBL:
                 {
                     params[p].value.d = (*(double*)(&msg->cmd_data[n]));
                     n += sizeof(double);
+                    INA_TRACE("- Parameter %d type=double value=%f", p, params[p].value.d);
                     break;
                 }
                 case INA_ISCP_TYPE_STR:
@@ -275,11 +277,15 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                     /*printf("strlen=%d", i);*/
                     n += sizeof(int32_t);
                     params[p].value.s = ina_str_fromcstr((const char*)&msg->cmd_data[n]);
+                    INA_TRACE("- Parameter %d type=string value=%s", p, params[p].value.s);
+                    INA_TRACE("   - string length=%d", i);
+    
                     /*printf("s=%s\n", params[p].value.s);*/
                     n += i;
                     break;
                 }
                 default:  {
+                    INA_TRACE_MSG("Invalid type!")
                     /* TODO: specific error */
                     return INA_FAILURE;
                 }

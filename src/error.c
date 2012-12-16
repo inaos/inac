@@ -354,7 +354,7 @@ __ina_signal_handler(int sig)
         case SIGILL:
         case SIGSEGV:
         case SIGABRT:
-            INA_TRACE("programm error signal received!");
+            INA_TRACE_MSG("programm error signal received!");
             if (__cleanup) {
                  __cleanup(sig, 0);
             }
@@ -365,13 +365,13 @@ __ina_signal_handler(int sig)
         case SIGTERM:
         case SIGSTOP:
         case SIGKILL:
-            INA_TRACE("termination signal received!");
+            INA_TRACE_MSG("termination signal received!");
             if (__cleanup) {
                 exitcode = __cleanup(sig, 1);
             }
             break;
         default:
-            INA_TRACE("unknown singal received!");
+            INA_TRACE_MSG("unknown singal received!");
     }
 #endif
     exit(exitcode);

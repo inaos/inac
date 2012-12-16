@@ -108,7 +108,7 @@ void test_iscp_send_recv_checkparams()
      __send_msg = NULL;
      __handler_count = 0;
 
-     INA_TRACE("test_iscp_send_recv_local");
+     INA_TRACE_MSG("test_iscp_send_recv_local");
      INA_ASSERT_SUCCEED(ina_iscp_reset());
      INA_ASSERT_SUCCESS(ina_iscp_init(INA_ISCP_INET));
      INA_ASSERT_SUCCEED(ina_iscp_set_callbacks(__null_send_cb, __null_recv_cb));
@@ -133,7 +133,7 @@ void test_iscp_send_local()
 
     __send_count = 0;
 
-    INA_TRACE("test_iscp_send_local");
+    INA_TRACE_MSG("test_iscp_send_local");
     INA_ASSERT_SUCCEED(ina_iscp_reset());
     INA_ASSERT_FAILURE(ina_iscp_send(&ctx, 1, 
                              INA_ISCP_TYPE_INT64, 300,
@@ -159,7 +159,7 @@ void test_iscp_send_local()
 
 void test_iscp_setup()
 {
-     INA_TRACE("test_iscp_setup");
+     INA_TRACE_MSG("test_iscp_setup");
      INA_ASSERT_SUCCESS(ina_iscp_init(INA_ISCP_INET));
      INA_ASSERT_SUCCEED(ina_iscp_set_callbacks(__null_send_cb, __null_recv_cb));
      INA_ASSERT_FAILURE(ina_iscp_set_callbacks(NULL, __null_recv_cb));

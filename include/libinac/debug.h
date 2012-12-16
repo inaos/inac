@@ -36,7 +36,7 @@ extern "C" {
 
 #ifdef TRACE_ENABLED
 
-#define INA_TRACE_FMT(fmt, ...)  \
+#define INA_TRACE(fmt, ...)  \
     fprintf(stderr,            \
         "%s:%d:%s(): " fmt "\n",\
         __FILE__,             \
@@ -44,10 +44,10 @@ extern "C" {
         __FUNCTION__,         \
         __VA_ARGS__           \
         );
-#define INA_TRACE(msg) INA_TRACE_FMT("%s", msg)
+#define INA_TRACE_MSG(msg) INA_TRACE("%s", msg)
 #else
-#define INA_TRACE_FMT(f, ...)
-#define INA_TRACE(msg)
+#define INA_TRACE(f, ...)
+#define INA_TRACE_MSG(msg)
 #endif 
 
 #ifdef DEBUG

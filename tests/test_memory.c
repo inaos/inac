@@ -30,5 +30,5 @@
  
 void test_memory_memfn()
 {
-    INA_TRACE("test_memory_memfn");
+    INA_TRACE_MSG("test_memory_memfn");
 }

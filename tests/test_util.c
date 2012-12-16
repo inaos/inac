@@ -30,7 +30,7 @@
 void test_util_crc32() 
 {
     ina_str_t str;
-    INA_TRACE("test_util_crc32");
+    INA_TRACE_MSG("test_util_crc32");
 
     str = ina_str_fromcstr("test");
     INA_ASSERT_EQUAL(3632233996, ina_util_crc32(0, str, ina_str_len(str)));

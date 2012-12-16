@@ -33,7 +33,7 @@ void test_error_message_formatting()
     ina_str_t msg1;
     ina_str_t msg2;
 
-    INA_TRACE("test_error_message_formatting");
+    INA_TRACE_MSG("test_error_message_formatting");
 
     msg1 = ina_str_fromcstr("Message size error");
     msg2 = ina_str_newlen(100);
@@ -45,7 +45,7 @@ void test_error_message_formatting()
     INA_ASSERT_SUCCESS(ina_err_peek());
     INA_ERR_EMSGLEN;
     INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
-    INA_TRACE_FMT("msg2=%s", ina_str_cstr(msg2));
+    INA_TRACE("msg2=%s", ina_str_cstr(msg2));
 }
 
 void test_error_macros()
@@ -57,7 +57,7 @@ void test_error_macros()
 
 void test_error_push_and_peek()
 {
-    INA_TRACE("test_error_push_and_peek");
+    INA_TRACE_MSG("test_error_push_and_peek");
 
     size_t i;
     ina_rc_t rc;
@@ -78,7 +78,7 @@ void test_error_push_and_peek()
 
 void test_error_push_and_clear()
 {
-    INA_TRACE("test_error_push_and_clear");
+    INA_TRACE_MSG("test_error_push_and_clear");
 
     ina_rc_t rc1;
     ina_rc_t rc2;
@@ -102,7 +102,7 @@ void test_error_push_and_clear()
 
 void test_error_pack_rc() 
 {
-    INA_TRACE("test_error_pack_rc");
+    INA_TRACE_MSG("test_error_pack_rc");
     
     ina_rc_t rcc;
     ina_rc_t rc;
@@ -111,11 +111,11 @@ void test_error_pack_rc()
     rc = 0;
     rc = INA_RC_PACK(1,2,7,4);
     
-    INA_TRACE_FMT("rc = %u", rc);
-    INA_TRACE_FMT("id = %u", INA_RC_ID(rc));
-    INA_TRACE_FMT("mod = %u", INA_RC_MOD(rc));
-    INA_TRACE_FMT("func = %u", INA_RC_OSFN(rc));
-    INA_TRACE_FMT("reason = %u", INA_RC_REASON(rc));
+    INA_TRACE("rc = %u", rc);
+    INA_TRACE("id = %u", INA_RC_ID(rc));
+    INA_TRACE("mod = %u", INA_RC_MOD(rc));
+    INA_TRACE("func = %u", INA_RC_OSFN(rc));
+    INA_TRACE("reason = %u", INA_RC_REASON(rc));
     
     INA_ASSERT_EQUAL(rcc, rc);
     INA_ASSERT_EQUAL(1, INA_RC_MOD(rc));

@@ -381,12 +381,12 @@ Main Goals of those components:
 INAC provides 2 macros which can be used for print debug messages when DEBUG is defined
     
     INA_TRACE
-    INA_TRACE_FMT
+    INA_TRACE_MSG
     
-Use `INA_TRACE` to print simple messages and `INA_TRACE_FMT` to print debug messages having var args.
+Use `INA_TRACE_MSG` to print simple messages and `INA_TRACE` to print debug messages having var args.
 
-    INA_TRACE("Server started");
-    INA_TRACE_FMT("Buffer size is %d", bufsize);
+    INA_TRACE_MSG("Server started");
+    INA_TRACE("Buffer size is %d", bufsize);
     
 
 #### Unit testing
