@@ -130,6 +130,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     size_t n;
     size_t p;
     uint8_t type;
+    uint32_t crc;
     va_list params;
 
     INA_ASSERT_NOTNULL(ctx);
@@ -205,6 +206,16 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
         }
     }
     va_end(params);
+    
+    /* Calculate CRC and append it to the message */
+    crc = ina_util_crc32(0, (void*)msg, n);
+    INA_TRACE("crc=%d", crc);
+    msg->cmd_data[n] = crc & 0xff;
+    msg->cmd_data[++n] = (crc>>8)  & 0xff;
+    msg->cmd_data[++n] = (crc>>16) & 0xff;
+    msg->cmd_data[++n] = (crc>>24) & 0xff;
+
+    /* Fill up header fields */
     msg->length = n + INA_ISCP_HDR_SIZE;
     msg->cmd_id = cmd->cmd_id;
     msg->cmd_uid = 1; /* FIMXE: UID Generator */
@@ -228,6 +239,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
         ina_iscp_cmd_t *cmd;
         ina_iscp_param_t *params;
         int ci;
+        uint32_t crc;
+
         INA_TRACE_MSG("Message received")
         INA_TRACE("- msg->cmd_id->%d", msg->cmd_id);
         INA_TRACE("- msg->length->%d", msg->length);
@@ -244,6 +257,14 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
             return INA_FAILURE;
         }
 
+        /* Validate CRC */
+        crc = (*(uint32_t*)(&msg->cmd_data[msg->length-sizeof(uint32_t)]));
+        if (crc != ina_util_crc32(0, (void*)msg, msg->length-sizeof(uint32_t))) {
+            INA_TRACE("Invalid CRC (%d)", crc);
+            /* TODO: Specific error */
+            return INA_FAILURE;
+        }
+
         p = 0;
         n = 0;
         params = (ina_iscp_param_t*)ina_mempool_dalloc(
@@ -252,7 +273,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
 
         while (n+INA_ISCP_HDR_SIZE < msg->length-2) { /* Fix: ! */
             params[p].type = (*(uint8_t*)(&msg->cmd_data[n]));
-            INA_TRACE("recv->type->%d", params[p].type);
+            INA_TRACE("msg->type->%d", params[p].type);
 
             n+= sizeof(uint8_t);
             switch (params[p].type) {
