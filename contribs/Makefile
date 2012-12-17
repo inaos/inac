@@ -31,7 +31,7 @@ test: all
 install: all test
 	$(MAKE) install -C makeheaders
 	
-.PHONY: clean makeheaders_tool bstring sqlite luajit sds
+.PHONY: clean makeheaders_tool bstring sqlite luajit sds anet
 
 clean:
 	$(MAKE) clean -C makeheaders
