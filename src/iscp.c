@@ -274,14 +274,11 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                 {
                     int32_t i;
                     i = (*(int32_t*)(&msg->cmd_data[n]));
-                    /*printf("strlen=%d", i);*/
                     n += sizeof(int32_t);
                     params[p].value.s = ina_str_fromcstr((const char*)&msg->cmd_data[n]);
                     INA_TRACE("- Parameter %d type=string value=%s", p, params[p].value.s);
                     INA_TRACE("   - string length=%d", i);
-    
-                    /*printf("s=%s\n", params[p].value.s);*/
-                    n += i;
+                    n += i+2;
                     break;
                 }
                 default:  {
