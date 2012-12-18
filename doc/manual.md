@@ -376,6 +376,9 @@ Main Goals of those components:
 ##### Working with pools
 #### Error codes
 
+### High-Level Communication
+
+
 ### Testing
 #### Tracing 
 INAC provides 2 macros which can be used for print debug messages when DEBUG is defined

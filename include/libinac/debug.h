@@ -43,7 +43,7 @@ extern "C" {
         __LINE__,             \
         __FUNCTION__,         \
         __VA_ARGS__           \
-        );
+        )
 #define INA_TRACE_MSG(msg) INA_TRACE("%s", msg)
 #else
 #define INA_TRACE(f, ...)
