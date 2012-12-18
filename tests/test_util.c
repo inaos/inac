@@ -33,7 +33,7 @@ void test_util_crc32()
     INA_TRACE_MSG("test_util_crc32");
 
     str = ina_str_fromcstr("test");
-    INA_ASSERT_EQUAL(3632233996, ina_util_crc32(0, str, ina_str_len(str)));
-    INA_ASSERT_NOTEQUAL(3632233, ina_util_crc32(0, str, ina_str_len(str)));
-    INA_ASSERT_EQUAL(3966352177, ina_util_crc32(3632233996, str, ina_str_len(str)));
+    INA_ASSERT_EQUAL(3632233996, ina_util_crc32(0, (unsigned char*)str, ina_str_len(str)));
+    INA_ASSERT_NOTEQUAL(3632233, ina_util_crc32(0, (unsigned char*)str, ina_str_len(str)));
+    INA_ASSERT_EQUAL(3966352177, ina_util_crc32(3632233996, (unsigned char*)str, ina_str_len(str)));
 }
