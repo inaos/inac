@@ -37,7 +37,7 @@ extern "C" {
 /*
  * Calulate CRC
  */
-INA_API(uint32_t) ina_util_crc32(uint32_t crc, const void *buf, size_t size);
+INA_API(uint32_t) ina_util_crc32(uint32_t crc, const unsigned char *buf, size_t size);
 
 #ifdef __cplusplus
 }
