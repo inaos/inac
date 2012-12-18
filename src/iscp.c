@@ -218,12 +218,12 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     INA_TRACE("crc pos %ld", msg->length-sizeof(uint32_t));
     crc = ina_util_crc32(0, (unsigned char*)msg, msg->length-sizeof(uint32_t));
     INA_TRACE("crc=%u crc-length=%ld", crc,  msg->length-sizeof(uint32_t));
-    ina_mem_cpy(&msg->cmd_data[n], &crc, 4);
-    /*msg->cmd_data[++n] = (crc>>8)  & 0xff;
+    msg->cmd_data[n] = crc & 0xff;
+    msg->cmd_data[++n] = (crc>>8)  & 0xff;
     msg->cmd_data[++n] = (crc>>16) & 0xff;
-    msg->cmd_data[++n] = (crc>>24) & 0xff;*/
+    msg->cmd_data[++n] = (crc>>24) & 0xff;
 
-    INA_TRACE_MSG("Message sending")
+    INA_TRACE_MSG("Message sending");
     INA_TRACE("- msg->cmd_id->%d", msg->cmd_id);
     INA_TRACE("- msg->length->%d", msg->length);
     INA_TRACE("- msg->cmd_uid->%d", msg->cmd_uid);
@@ -249,7 +249,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
         int ci;
         uint32_t crc;
  
-        INA_TRACE_MSG("Message received")
+        INA_TRACE_MSG("Message received");
         INA_TRACE("- msg->cmd_id->%d", msg->cmd_id);
         INA_TRACE("- msg->length->%d", msg->length);
         INA_TRACE("- msg->cmd_uid->%d", msg->cmd_uid);
@@ -282,7 +282,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                                         sizeof(ina_iscp_param_t)*(msg->p_count));
 
         while (n+INA_ISCP_HDR_SIZE < msg->length-sizeof(uint32_t)) {
-            params[p].type = (*(uint8_t*)(&msg->cmd_data[n]));
+            params[p].type = *(uint8_t*)&msg->cmd_data[n];
             INA_TRACE("msg->type->%d", params[p].type);
 
             n+= sizeof(uint8_t);
@@ -313,7 +313,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                     break;
                 }
                 default:  {
-                    INA_TRACE_MSG("Invalid type!")
+                    INA_TRACE_MSG("Invalid type!");
                     /* TODO: specific error */
                     return INA_FAILURE;
                 }
