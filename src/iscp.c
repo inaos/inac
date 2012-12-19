@@ -309,7 +309,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                     params[p].value.s = ina_str_fromcstr((const char*)&msg->cmd_data[n]);
                     INA_TRACE("- Parameter %d type=string value=%s", p, params[p].value.s);
                     INA_TRACE("   - string length=%d", i);
-                    n += i+2;
+                    n += i+1;
                     break;
                 }
                 default:  {
@@ -341,9 +341,13 @@ INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
     int nb_read;
     nb_read = 0;
     if (INA_SUCCEED(ina_net_read(*(int*)ctx->data, (unsigned char*)msg, INA_ISCP_HDR_SIZE, &nb_read))) {
-        nb_read = msg->length;
-        nb_read -= INA_ISCP_HDR_SIZE;
-        return ina_net_read(*(int*)ctx->data, (unsigned char*)&msg[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
+        if (nb_read > 0) {
+            nb_read = msg->length;
+            nb_read -= INA_ISCP_HDR_SIZE;
+            if (nb_read > 0) {
+                return ina_net_read(*(int*)ctx->data, (unsigned char*)&msg[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
+            }
+        }
     }
     return INA_FAILURE;
 }
