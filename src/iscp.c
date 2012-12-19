@@ -345,7 +345,7 @@ INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
             nb_read = msg->length;
             nb_read -= INA_ISCP_HDR_SIZE;
             if (nb_read > 0) {
-                return ina_net_read(*(int*)ctx->data, (unsigned char*)&msg[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
+                return ina_net_read(*(int*)ctx->data, &((unsigned char*)msg)[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
             }
         }
     }
