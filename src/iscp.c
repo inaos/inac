@@ -341,9 +341,14 @@ INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
     int nb_read;
     nb_read = 0;
     if (INA_SUCCEED(ina_net_read(*(int*)ctx->data, (unsigned char*)msg, INA_ISCP_HDR_SIZE, &nb_read))) {
-        nb_read = msg->length;
-        nb_read -= INA_ISCP_HDR_SIZE;
-        return ina_net_read(*(int*)ctx->data, (unsigned char*)&msg[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
+        if (nb_read > 0) {
+            nb_read = msg->length;
+            nb_read -= INA_ISCP_HDR_SIZE;
+            if (nb_read > 0) {
+                INA_TRACE("nb_read=%d", nb_read);
+                return ina_net_read(*(int*)ctx->data, (unsigned char*)&msg[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
+            }
+        }
     }
     return INA_FAILURE;
 }
