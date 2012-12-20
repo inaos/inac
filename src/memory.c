@@ -208,7 +208,11 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
 
     INA_ASSERT(size > 0);
 
+    if (size < INA_MEM_MIN_POOL_SIZE) {
+        size = INA_MEM_MIN_POOL_SIZE;
+    }
     size = __INA_MEM_ALIGN(size);
+    
 
     *pool = (ina_mempool_t*)__ina_mp_malloc(sizeof(ina_mempool_t));
     if (*pool == NULL) {

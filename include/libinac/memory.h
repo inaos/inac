@@ -32,6 +32,8 @@
 extern "C" {
 #endif
 
+/* Minimal allowed pool size */
+#define INA_MEM_MIN_POOL_SIZE (2*1024*1024)
 /* Single Pool, fixed size */
 #define INA_MEM_BASIC       0
 /* Dynamic chunk allocation */
