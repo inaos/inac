@@ -23,6 +23,11 @@ set (BSTRING_SRC_DIR ${DEPS_DIR}/bstring)
 set (BSTRING_SRC ${BSTRING_SRC_DIR}/bsafe.c ${BSTRING_SRC_DIR}/bstraux.c ${BSTRING_SRC_DIR}/bstrlib.c)
 add_library(bstring ${BSTRING_SRC})
 
+# ANET
+set (ANET_SRC_DIR ${DEPS_DIR}/anet)
+set (ANET_SRC ${ANET_SRC_DIR}/anet.c)
+add_library(anet ${ANET_SRC})
+
 # Makeheaders
 add_library(makeheaders ${DEPS_DIR}/makeheaders/makeheaders.c)
 
