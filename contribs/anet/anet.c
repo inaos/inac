@@ -397,8 +397,8 @@ int anetWrite(int fd, char *buf, int count)
 }
 
 #ifdef WIN32
-static int anetListen(char *err, int s, struct sockaddr *sa) {
-    if (bind(s,sa,sizeof(sa)) == -1) {
+static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len) {
+    if (bind(s,sa,len) == -1) {
         anetSetError(err, "bind: %s", strerror(WSAGetLastError()));
         closesocket(s);
 		WSACleanup();
@@ -447,7 +447,7 @@ int anetTcpServer(char *err, int port, char *bindaddr)
 		WSACleanup();
         return ANET_ERR;
     }
-    if (anetListen(err,s,(struct sockaddr*)&sa) == ANET_ERR)
+    if (anetListen(err,s,(struct sockaddr*)&sa, sizeof(sa)) == ANET_ERR)
         return ANET_ERR;
     return s;
 }
