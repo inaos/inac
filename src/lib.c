@@ -71,5 +71,9 @@ INA_API(void) ina_exit(void)
     ina_err_reset();
 
     ina_mempool_destroy();
+    
+#ifdef INA_OS_WIN32
+    WSACleanup();
+#endif
 }
  
