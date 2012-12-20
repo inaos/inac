@@ -208,7 +208,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
     ccxt->c_offset = &cons[id];
     ccxt->c_offset->alive = 1;
 
-    if (ws == INA_ULLC_SIGNAL_WAIT) {
+	if (ws == INA_ULLC_WS_SIGNAL_WAIT) {
         return __ina_sem_open(ccxt);
     }
     return INA_SUCCESS;
@@ -247,7 +247,6 @@ INA_API(void *) ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx)
 
     INA_ASSERT_NOTNULL(ctx);
     __ina_sem_operation(ctx, INA_ULLC_SIG_WAIT);
-    __ina_sem_operation(ctx, INA_ULLC_SIG_RELEASE);
 
     wait_for = ctx->c_offset->cursor;
     if (ctx->ring->cursor < wait_for) {
@@ -353,6 +352,7 @@ __ina_sem_makekey(ina_ullc_rb_t *rb, const ina_str_t name)
 
     semkey = ina_str_newlen(strlen(__INA_SEMKEY) + ina_str_len(name));
     semkey = ina_str_cat(semkey, name);
+	semkey = ina_str_cat(semkey, "_sem");
     strcpy(rb->semkey, ina_str_cstr(semkey));
     return INA_SUCCESS;
 }

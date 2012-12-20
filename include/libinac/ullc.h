@@ -133,9 +133,9 @@ typedef enum ina_ullc_signal_type_e {
 
 /* ULLC wait strategies */
 typedef enum ina_ullc_wait_strategy_e {
-    INA_ULLC_BUSY_WAIT = 1,
-    INA_ULLC_SIGNAL_WAIT,
-    INA_ULLC_TIMER_WAIT,
+    INA_ULLC_WS_BUSY_WAIT = 1,
+    INA_ULLC_WS_SIGNAL_WAIT,
+    INA_ULLC_WS_TIMER_WAIT,
  } ina_ullc_wait_strategy;
 
 /* ring buffer (shared mem) */

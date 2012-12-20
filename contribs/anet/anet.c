@@ -69,8 +69,8 @@ static void anetSetError(char *err, const char *fmt, ...)
 int anetNonBlock(char *err, int fd)
 {
 	unsigned long enable = 1;
-	if (ioctlsocket(fd, FIONBIO, &enable) != WSANOTINITIALISED) {
-		anetSetError(err, "ioctlsocket(FIONBIO): %s");
+	if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
+		anetSetError(err, "ioctlsocket(FIONBIO)");
 		return ANET_ERR;
 	}
     
@@ -354,27 +354,20 @@ int anetUnixNonBlockConnect(char *err, char *path)
 }
 #endif
 
-/* Like read(2) but make sure 'count' is read before to return
- * (unless error or EOF condition is encountered) */
-
 int anetRead(int fd, char *buf, int count)
 {
-    int nread, totlen = 0;
-    while(totlen != count) {
+    int nread;
 #ifdef WIN32
-        nread = recv(fd,buf,count-totlen, 0);
-#else
-		nread = read(fd,buf,count-totlen);
-#endif
-		if (nread == 0) return totlen;
-        if (nread == -1) return -1;
-        totlen += nread;
-        buf += nread;
-		if (nread <= count) {
-			break;
+        nread = recv(fd,buf,count, 0);
+		if (nread < 0) {
+			if (WSAGetLastError() == WSAEWOULDBLOCK) {
+				return(ANET_OK);
+			}
 		}
-    }
-    return totlen;
+#else
+		nread = read(fd,buf,count);
+#endif
+    return nread;
 }
 
 /* Like write(2) but make sure 'count' is read before to return
@@ -496,11 +489,10 @@ int anetUnixServer(char *err, char *path, mode_t perm)
 #endif
 
 #ifdef WIN32
-static int anetGenericAccept(char *err, int s, struct sockaddr *sa) {
+static int anetGenericAccept(char *err, int s, struct sockaddr *sa, socklen_t *len) {
     int fd;
-	int len = sizeof(sa);
     while(1) {
-        fd = accept(s,sa,&len);
+        fd = accept(s,sa,len);
         if (fd == -1) {
             if (errno == EINTR)
                 continue;
@@ -536,7 +528,8 @@ static int anetGenericAccept(char *err, int s, struct sockaddr *sa, socklen_t *l
 int anetTcpAccept(char *err, int s, char *ip, int *port) {
     int fd;
     struct sockaddr_in sa;
-    if ((fd = anetGenericAccept(err,s,(struct sockaddr*)&sa)) == ANET_ERR)
+	socklen_t salen = sizeof(sa);
+    if ((fd = anetGenericAccept(err,s,(struct sockaddr*)&sa, &salen)) == ANET_ERR)
         return ANET_ERR;
 
     if (ip) strcpy(ip,inet_ntoa(sa.sin_addr));

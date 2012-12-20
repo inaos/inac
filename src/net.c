@@ -148,7 +148,6 @@ INA_API(ina_rc_t) ina_net_close(int fd)
 
 #ifdef WIN32
     closesocket(fd);
-    WSACleanup();
 #else
     close(fd);
 #endif

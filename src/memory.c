@@ -221,7 +221,9 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     (*pool)->pos = 0;
     (*pool)->size = size;
     (*pool)->end = (*pool)->size;
+	(*pool)->m = NULL;
     (*pool)->parent = NULL;
+	(*pool)->child = NULL;
     (*pool)->current = *pool;
     if (label != NULL) {
         (*pool)->label = ina_str_dup(label);
@@ -321,7 +323,12 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
     ina_mempool_t *pm;
 
     INA_ASSERT_NOTNULL(info);
-    pm = (pool==NULL?__pool:pool);
+	if (pool == NULL) {
+		pm = __pool;
+	}
+	else {
+		pm = pool;
+	}
     if (pm == NULL) {
         return INA_FAILURE;
     }
