@@ -63,15 +63,13 @@ INA_API(void) ina_exit(void)
         return;
     }
 
+    ina_mempool_destroy();
+
     if (!INA_SUCCEED(ina_err_peek())) {
         ina_err_trace();
     }
 
-    /* FIXME: error handling */
     ina_err_reset();
-
-    ina_mempool_destroy();
-    
 #ifdef INA_OS_WIN32
     WSACleanup();
 #endif
