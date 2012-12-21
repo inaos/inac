@@ -166,13 +166,13 @@ INA_API(ina_rc_t) ina_err_reset(void)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
+INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
 {
     size_t k;
     struct tm *tm;
     ina_error_t *error;
     char tmc[30];
-    ina_str_t outstr;
+    char outstr[2048];
 
     INA_ASSERT_NOTNULL(str);
     INA_ASSERT(len > 0);
@@ -182,8 +182,8 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
         if (k <= __state.c) {
             error = &__state.errors[k-1];
             
-            if (len < (ina_str_len(error->msg) +
-                       ina_str_len(error->file) +
+            if (len < (strlen(error->msg) +
+                       strlen(error->file) +
                        __INA_ERR_MESSAGE_EXTRALEN)) {
                 return INA_ERR_EMSGLEN;
             }
@@ -191,17 +191,17 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
             tm = localtime(&error->ts);
 
             if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
-                outstr = ina_str_vsprintf("%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u)",
+                sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u)",
                                             tmc, 
-                                            ina_str_cstr(error->file),
+                                            error->file,
                                             error->line,
-                                            ina_str_cstr(error->msg),
+                                            error->msg,
                                             INA_RC_REASON(error->rc),
                                             INA_RC_OSFN(error->rc),
                                             INA_RC_MOD(error->rc),
                                             INA_RC_HANDLED(error->rc));
 
-                if (ina_str_ncpy(str, outstr, len) == NULL) {
+                if (strncpy(str, outstr, len) == NULL) {
                     return INA_ERR_EMSGFMT;
                 }
                 return INA_SUCCESS;
@@ -214,7 +214,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
 INA_API(ina_rc_t) ina_err_trace(void)
 {
     ina_rc_t rc;
-    ina_str_t str;
+    char str[2048];
 
     INA_ASSERT(__initialized);
 
@@ -224,14 +224,12 @@ INA_API(ina_rc_t) ina_err_trace(void)
 
     printf("%s\n", "**** UNHANDLED ERROR START ******");
 
-    str = ina_str_newlen(2048);
-    INA_ASSERT(str);
-
     rc = ina_err_peek();
     while (!INA_SUCCEED(rc)) {
         if (INA_SUCCEED(ina_err_fmtmsg(rc, str, 2048))) {
             printf("%s\n", ina_str_cstr(str));
         } else {
+            printf("%s\n", "**** FATAL ERROR  ******");
             return INA_FAILURE;
         }
         rc = ina_err_peek_next(rc);
@@ -263,17 +261,16 @@ INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
 static ina_rc_t
 __ina_init(void) 
 {
-    /* TODO: X-platform */
-#ifndef INA_OS_WIN32
     signal(SIGFPE, __ina_signal_handler);
-    signal(SIGILL, __ina_signal_handler);
-    signal(SIGSEGV, __ina_signal_handler);
-    signal(SIGBUS, __ina_signal_handler);
     signal(SIGABRT, __ina_signal_handler);
-    signal(SIGHUP, __ina_signal_handler);
+    signal(SIGILL, __ina_signal_handler);
     signal(SIGINT, __ina_signal_handler);
-    signal(SIGQUIT, __ina_signal_handler);
+    signal(SIGSEGV, __ina_signal_handler);
     signal(SIGTERM, __ina_signal_handler);
+#ifndef INA_OS_WIN32
+    signal(SIGBUS, __ina_signal_handler);
+    signal(SIGHUP, __ina_signal_handler);
+    signal(SIGQUIT, __ina_signal_handler);
     signal(SIGKILL, __ina_signal_handler);
     signal(SIGSTOP, __ina_signal_handler);
 #endif
@@ -322,7 +319,6 @@ __ina_signal_handler(int sig)
     int exitcode;
     
     exitcode = EXIT_FAILURE;
-#ifndef INA_OS_WIN32    
     switch (sig) {
         case SIGFPE:
         case SIGILL:
@@ -333,12 +329,14 @@ __ina_signal_handler(int sig)
                  __cleanup(sig, 0);
             }
             break;
-        case SIGHUP:
-        case SIGINT:
-        case SIGQUIT:
         case SIGTERM:
+        case SIGINT:
+#ifndef INA_OS_WIN32
+        case SIGHUP:
+        case SIGQUIT:
         case SIGSTOP:
         case SIGKILL:
+#endif
             INA_TRACE_MSG("termination signal received!");
             if (__cleanup) {
                 exitcode = __cleanup(sig, 1);
@@ -347,6 +345,5 @@ __ina_signal_handler(int sig)
         default:
             INA_TRACE_MSG("unknown singal received!");
     }
-#endif
-    exit(exitcode);
+    ina_err_trace();
 }
