@@ -31,10 +31,6 @@
 #define __INA_ERR_STATE_SIZE (32)
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
-/* function pointer to a custom cleanup routine */
-static ina_cleanup_handler_t  __cleanup = NULL;
-static int __sig = 0;
-
 /* Error state */
 typedef struct ina_error_state_s {
     size_t c;
@@ -48,8 +44,6 @@ static ina_rc_t __ina_init(void);
 static ina_rc_t __ina_pop_error(void);
 /* get index of error in the error state for a RC */
 static size_t __ina_get_index(ina_rc_t);
-/* internal signal handler */
-static void __ina_signal_handler(int);
 
 /* global error state */
 static ina_error_state_t __state;
@@ -249,32 +243,9 @@ INA_API(ina_rc_t) ina_err_coredump(void) {
     return INA_SUCCESS;
 }
 
-INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
-                                        ina_cleanup_handler_t handler)
-{
-    ina_cleanup_handler_t old;
-
-    old = __cleanup;
-    __cleanup = handler;
-    return old;
-}
-
 static ina_rc_t
 __ina_init(void) 
 {
-    signal(SIGFPE, __ina_signal_handler);
-    signal(SIGABRT, __ina_signal_handler);
-    signal(SIGILL, __ina_signal_handler);
-    signal(SIGINT, __ina_signal_handler);
-    signal(SIGSEGV, __ina_signal_handler);
-    signal(SIGTERM, __ina_signal_handler);
-#ifndef INA_OS_WIN32
-    signal(SIGBUS, __ina_signal_handler);
-    signal(SIGHUP, __ina_signal_handler);
-    signal(SIGQUIT, __ina_signal_handler);
-    signal(SIGKILL, __ina_signal_handler);
-    signal(SIGSTOP, __ina_signal_handler);
-#endif
     ++__initialized;
     __state.c = 0;
     __state.ic = 0;
@@ -312,45 +283,4 @@ __ina_pop_error(void)
         }
     }
     return INA_SUCCESS;
-}
-
-static void
-__ina_signal_handler(int sig)
-{
-    int exitcode;
-    
-    if (__sig != 0) {
-        return;
-    }
-    __sig = sig;
-
-    exitcode = EXIT_FAILURE;
-    switch (sig) {
-        case SIGFPE:
-        case SIGILL:
-        case SIGSEGV:
-        case SIGABRT:
-            INA_TRACE_MSG("programm error signal received!");
-            if (__cleanup) {
-                 __cleanup(sig, 0);
-            }
-            break;
-        case SIGTERM:
-        case SIGINT:
-#ifndef INA_OS_WIN32
-        case SIGHUP:
-        case SIGQUIT:
-        case SIGSTOP:
-        case SIGKILL:
-#endif
-            INA_TRACE_MSG("termination signal received!");
-            if (__cleanup) {
-                exitcode = __cleanup(sig, 1);
-            }
-            break;
-        default:
-            INA_TRACE_MSG("unknown singal received!");
-    }
-    ina_err_trace();
-    exit(exitcode);
 }
