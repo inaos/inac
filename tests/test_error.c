@@ -28,6 +28,19 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
+void test_error_push_a_million_errors()
+{
+    size_t i;
+
+    INA_ASSERT_SUCCESS(ina_err_reset());
+    INA_ASSERT_SUCCESS(ina_err_peek());
+
+    for (i = 0; i < 1000000; ++i) {
+        INA_ERR_PUSH(1,2,5, "test error");
+        INA_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
+    }
+}
+
 void test_error_message_formatting()
 {
     ina_str_t msg1;
