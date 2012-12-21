@@ -346,4 +346,5 @@ __ina_signal_handler(int sig)
             INA_TRACE_MSG("unknown singal received!");
     }
     ina_err_trace();
+    exit(exitcode);
 }
