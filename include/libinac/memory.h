@@ -32,6 +32,7 @@
 extern "C" {
 #endif
 
+#define INA_MEM_DFT_POOL_SIZE (8*1024*1204)
 /* Minimal allowed pool size */
 #define INA_MEM_MIN_POOL_SIZE (1024)
 /* Single Pool, fixed size */

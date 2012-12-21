@@ -29,18 +29,41 @@
 #include "config.h"
 
 static int32_t __initialized = 0;
- 
-INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv) 
+
+/* function pointer to a custom cleanup routine */
+static ina_cleanup_handler_t  __cleanup = NULL;
+static int __sig = 0;
+
+/* internal signal handler */
+static void __ina_signal_handler(int);
+
+
+INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv, size_t pool_size) 
 {
-    return ina_libinit();
+    return ina_init(pool_size);
 }
 
-INA_API(ina_rc_t) ina_libinit(void)
+INA_API(ina_rc_t) ina_init(size_t pool_size)
 {
     if (__initialized++) {
         return INA_SUCCESS;
     }
     atexit(ina_exit);
+
+    /* Setup signals */
+    signal(SIGFPE, __ina_signal_handler);
+    signal(SIGABRT, __ina_signal_handler);
+    signal(SIGILL, __ina_signal_handler);
+    signal(SIGINT, __ina_signal_handler);
+    signal(SIGSEGV, __ina_signal_handler);
+    signal(SIGTERM, __ina_signal_handler);
+#ifndef INA_OS_WIN32
+    signal(SIGBUS, __ina_signal_handler);
+    signal(SIGHUP, __ina_signal_handler);
+    signal(SIGQUIT, __ina_signal_handler);
+    signal(SIGKILL, __ina_signal_handler);
+    signal(SIGSTOP, __ina_signal_handler);
+#endif
 
     /* initalize global memory functions */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -51,7 +74,7 @@ INA_API(ina_rc_t) ina_libinit(void)
     ina_err_reset();
 
    /* initialize system memory pool and internal structures */
-    if (!INA_SUCCEED(ina_mempool_init(0))) {
+    if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
         return ina_err_peek();
     }
     return INA_SUCCESS;
@@ -61,6 +84,10 @@ INA_API(void) ina_exit(void)
 {
     while (__initialized--) {
         return;
+    }
+    
+    if (__cleanup != NULL) {
+        __cleanup(0, 0);
     }
 
     ina_mempool_destroy();
@@ -74,4 +101,54 @@ INA_API(void) ina_exit(void)
     WSACleanup();
 #endif
 }
- 
+
+INA_API(ina_cleanup_handler_t) ina_set_cleanup_handler(
+                                        ina_cleanup_handler_t handler)
+{
+    ina_cleanup_handler_t old;
+
+    old = __cleanup;
+    __cleanup = handler;
+    return old;
+}
+
+static void
+__ina_signal_handler(int sig)
+{
+    int exitcode;
+    
+    if (__sig != 0) {
+        return;
+    }
+    __sig = sig;
+
+    exitcode = EXIT_FAILURE;
+    switch (sig) {
+        case SIGFPE:
+        case SIGILL:
+        case SIGSEGV:
+        case SIGABRT:
+            INA_TRACE_MSG("programm error signal received!");
+            if (__cleanup) {
+                 __cleanup(sig, 0);
+            }
+            break;
+        case SIGTERM:
+        case SIGINT:
+#ifndef INA_OS_WIN32
+        case SIGHUP:
+        case SIGQUIT:
+        case SIGSTOP:
+        case SIGKILL:
+#endif
+            INA_TRACE_MSG("termination signal received!");
+            if (__cleanup) {
+                exitcode = __cleanup(sig, 1);
+            }
+            break;
+        default:
+            INA_TRACE_MSG("unknown singal received!");
+    }
+    ina_err_trace();
+    exit(exitcode);
+}
