@@ -42,6 +42,9 @@ extern "C" {
 /* Indicate generic failure */
 #define INA_FAILURE  1
 
+/* Error message length */
+#define INA_ERR_MSGLEN  512
+
 /* Module identifiers */
 #define INA_MOD_UNKNOWN 0
 #define INA_MOD_MEMORY  1
@@ -177,9 +180,8 @@ typedef struct ina_error_s {
     ina_rc_t rc; 
     time_t ts;  /* FIXME: we should use our proper time value */
     uint32_t line;
-    ina_str_t file;
-    ina_str_t msg;
-    void *data;
+    char file[512];
+    char msg[INA_ERR_MSGLEN];
 } ina_error_t;
 
 /*

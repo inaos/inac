@@ -38,13 +38,11 @@ static ina_cleanup_handler_t  __cleanup = NULL;
 typedef struct ina_error_state_s {
     size_t c;
     size_t ic;
-    ina_error_t *errors[__INA_ERR_STATE_SIZE];
+    ina_error_t errors[__INA_ERR_STATE_SIZE];
 } ina_error_state_t;
 
 /* initialized module, returns always INA_SUCCESS */
 static ina_rc_t __ina_init(void);
-/* free allocated error  */
-static ina_rc_t __ina_destroy_error(ina_error_t *);
 /* pop last error from error state. returns RC of new last error */
 static ina_rc_t __ina_pop_error(void);
 /* get index of error in the error state for a RC */
@@ -70,29 +68,17 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file,
     INA_ASSERT(line > 0);
     INA_ASSERT_NOTNULL(msg);
     INA_ASSERT_NOTEQUAL(INA_SUCCESS, reason);
-
-    error = (ina_error_t*)ina_mem_alloc(sizeof(ina_error_t));
-
-    if (error == NULL) {
-        /* FIXME */
-        return INA_FAILURE;
-    }
-
+    
     if (__state.c == __INA_ERR_STATE_SIZE) {
-        if (__ina_pop_error() == INA_FAILURE) {
-            ina_mem_free(error);
-            return INA_FAILURE;
-        };
+        __ina_pop_error();
     }
-
+    error = &__state.errors[__state.c++];
     error->rc = INA_RC_PACK(mod, fn, reason, ++__state.ic);
     error->ts = time(NULL); /* FIXME: use own time value */
-    error->file = ina_str_dup(file);
+    strcpy(error->file, ina_str_cstr(file));
     error->line = line;
-    error->msg = ina_str_dup(msg);
-    error->data = NULL;
+    strcpy(error->msg, ina_str_cstr(msg));
 
-    __state.errors[__state.c++] = error;
     return error->rc;
 }
 
@@ -107,7 +93,7 @@ INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
 INA_API(ina_rc_t) ina_err_peek()
 {
     if (__state.c > 0) {
-        return __state.errors[__state.c-1]->rc;
+        return __state.errors[__state.c-1].rc;
     }
     return INA_SUCCESS;
 }
@@ -126,7 +112,7 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     k = __ina_get_index(rc);
 
     if (k < __state.c) {
-        return __state.errors[k]->rc;
+        return __state.errors[k].rc;
     }
     return INA_SUCCESS;
     
@@ -136,7 +122,7 @@ INA_API(ina_rc_t) ina_err_peek_last()
 {
     INA_ASSERT(__initialized);
     if (__state.c > 0) {
-        return __state.errors[0]->rc;
+        return __state.errors[0].rc;
     }
     return INA_SUCCESS;
 }
@@ -153,9 +139,9 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
     k = __ina_get_index(rc);
     
     if (k < __state.c) {
-        INA_ASSERT_EQUAL(rc, __state.errors[k]->rc);
-        __state.errors[k]->rc = rc|INA_ERR_FLAG_HANDLED;
-        ret = __state.errors[k]->rc;
+        INA_ASSERT_EQUAL(rc, __state.errors[k].rc);
+        __state.errors[k].rc = rc|INA_ERR_FLAG_HANDLED;
+        ret = __state.errors[k].rc;
         for (;;) {
             top =  __ina_pop_error();
             if (top == ret) {
@@ -194,7 +180,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len)
     if (INA_RC_ID(rc) <= __state.ic) {
         k = __ina_get_index(rc);
         if (k <= __state.c) {
-            error = __state.errors[k-1];
+            error = &__state.errors[k-1];
             
             if (len < (ina_str_len(error->msg) +
                        ina_str_len(error->file) +
@@ -256,10 +242,12 @@ INA_API(ina_rc_t) ina_err_trace(void)
 }
 
 INA_API(ina_rc_t) ina_err_coredump(void) {
+#ifndef INA_OS_WIN32
     char cmd[160];
     sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
     system(cmd);
     return INA_SUCCESS;
+#endif
 }
 
 INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
@@ -308,35 +296,21 @@ __ina_get_index(ina_rc_t rc)
     return k;
 }
 
-static ina_rc_t
-__ina_destroy_error(ina_error_t *error)
-{
-    INA_ASSERT_NOTNULL(error);
-    INA_ASSERT_NOTNULL(error->msg);
-    INA_ASSERT_NOTNULL(error->file);
-    
-    ina_mem_free(error->msg);
-    ina_mem_free(error->file);
-    ina_mem_free(error);
-    return INA_SUCCESS;
-}
-
 static ina_rc_t 
 __ina_pop_error(void) 
 {
     size_t i;
 
     INA_ASSERT(__state.c >= 0);
-    
+
     if (__state.c > 0) {
-        __ina_destroy_error(__state.errors[0]);
         for (i = 1; i < __state.c+1; ++i) {
             __state.errors[i-1] = __state.errors[i];
         }
         --__state.c;
         INA_ASSERT(__state.c >= 0);
         if (__state.c > 0) {
-            return __state.errors[0]->rc;
+            return __state.errors[0].rc;
         }
     }
     return INA_SUCCESS;
