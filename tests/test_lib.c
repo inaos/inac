@@ -20,29 +20,28 @@
  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <stdio.h>
 #include <libinac/lib.h>
-#include "suites.h"
 
-#define INAC_ERROR_TEST_TRACE INA_ERR_PUSH(129,1,2,"Test Trace")
+static int __call_count = 0;
+ 
+static int __handler(const int sig, const int error)
+{
+    ++__call_count;
+    return EXIT_SUCCESS;
+}
 
-int main(int argc, const char** argv) 
-{ 
-    INA_TRACE_MSG("TEST START");
-    
-    if (ina_appinit(argc, NULL, -1) == INA_SUCCESS) {
-        runtests();
-    }
-    INA_TRACE_MSG("TEST END");
+void test_lib_set_signal_handler() 
+{
+    INA_TRACE_MSG("test_lib_set_signal_handler");
 
-    /* this test program should alway exits with a
-       failure */
-    INAC_ERROR_TEST_TRACE;
-
-    return 0;
+    INA_ASSERT_NULL(ina_set_cleanup_handler(NULL));
+    INA_ASSERT_NULL(ina_set_cleanup_handler(__handler));
+    INA_ASSERT_EQUAL(__handler, ina_set_cleanup_handler(__handler));
+    INA_ASSERT_EQUAL(__handler, ina_set_cleanup_handler(__handler));
+    INA_ASSERT_EQUAL(__handler, ina_set_cleanup_handler(NULL));
 }

@@ -79,28 +79,54 @@ extern "C" {
                           (INA_MINOR_VERSION << 8)  |   \
                           (INA_MICRO_VERSION << 0))
 
+
+/* Cleanup handler. */
+typedef int (*ina_cleanup_handler_t) (const int, const int);
+
 /*
  * Startup application with argc, argv in order to deal with 
  * platform-specific quirks. This must be the first function called for any
  * program.
  *
  * Parameters:
- *  argc  -  argc of main() function
- *  argv  -  Pointer to the argv of main() function
+ *  argc      -  argc of main() function
+ *  argv      -  Pointer to the argv of main() function
+ *  pool_size - Initial size of internal memory pool. if 0 passed a pool
+ *              with size INA_MEM_DFT_POOL_SIZE will be created.
  *
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_appinit(const int argc,  char **argv);
+INA_API(ina_rc_t) ina_appinit(const int argc,  char **argv, size_t pool_size);
 
 /*
  * Initialize all internal data structures. This must be the first function 
  * called for any library.
  *
+ * Parameters:
+ *  pool_size - Initial size of internal memory pool. if 0 passed a pool
+ *              with size INA_MEM_DFT_POOL_SIZE will be created.
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_libinit(void);
+INA_API(ina_rc_t) ina_init(size_t pool_size);
+
+/*
+ * Set a custom cleanup routine to call in case of an programm error or
+ * a terminiation signal. The purpose of such a routine is to give consumers
+ * a last chance to cleanup before the program exits.
+ *
+ * Parameters
+ * handler  Cleanup routine. A cleanup should return EXIT_SUCCESS or 
+ *          EXIT_FAILURE depending on type of signal. On a programm error
+ *          the return of cleanup routines will be ignored. 
+ *
+ * Return Value
+ * Previously defined handler
+ */
+INA_API(ina_cleanup_handler_t) ina_set_cleanup_handler(
+                                        ina_cleanup_handler_t handler);
+
 
 /*
  * Relase and cleanup all internal data structures. This function must be

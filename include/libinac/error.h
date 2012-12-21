@@ -172,9 +172,6 @@ extern "C" {
 /* Net-Module errors */
 #define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
 
-/* Function pointer cleanup handler. */
-typedef int (*ina_cleanup_handler_t) (const int, const int);
-
 /* Error information */
 typedef struct ina_error_s {
     ina_rc_t rc; 
@@ -260,22 +257,6 @@ INA_API(ina_rc_t) ina_err_reset(void);
  * INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_err_trace(void);
-
-/*
- * Set a custom cleanup routine to call in case of an programm error or
- * a terminiation signal. The purpose of such a routine is to give consumers
- * a last chance to cleanup before the program exits.
- *
- * Parameters
- * handler  Cleanup routine. A cleanup should return EXIT_SUCCESS or 
- *          EXIT_FAILURE depending on type of signal. On a programm error
- *          the return of cleanup routines will be ignored. 
- *
- * Return Value
- * Previously defined handler
- */
-INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
-                                        ina_cleanup_handler_t handler);
 
 /*
  * Format the error message for a given RC.
