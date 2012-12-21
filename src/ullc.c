@@ -182,7 +182,6 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
-                        ina_ullc_wait_strategy ws,
                         ina_ullc_rb_t* ring, ina_ullc_ctx_t **ctx)
 {
     ina_ullc_consumer_t *cons;
@@ -200,7 +199,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
 
     ccxt = *ctx;
     ccxt->id = id;
-    ccxt->ws = ws;
+    ccxt->ws = INA_ULLC_WS_NONE;
     ccxt->sem_handle = 0;
     ccxt->ring = ring;
     ccxt->data = ((unsigned char*)ring) + sizeof(ina_ullc_rb_t);
@@ -208,10 +207,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
     ccxt->c_offset = &cons[id];
     ccxt->c_offset->alive = 1;
 
-	if (ws == INA_ULLC_WS_SIGNAL_WAIT) {
-        return __ina_sem_open(ccxt);
-    }
-    return INA_SUCCESS;
+	return __ina_sem_open(ccxt);
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
@@ -223,41 +219,28 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
-INA_API(void *) ina_ullc_consumer_get_bwait(ina_ullc_ctx_t *ctx)
+INA_API(ina_rc_t) ina_ullc_consumer_swait(ina_ullc_ctx_t *ctx)
 {
-    void *item;
-    int idx;
-    int64_t wait_for;
-
-    wait_for = ctx->c_offset->cursor;
-
-    while (ctx->ring->cursor < wait_for) {}
-
-    idx = ctx->c_offset->cursor % ctx->ring->slots;
-    item = &ctx->data[idx*ctx->ring->size];
-    __INA_ULLC_INC(&ctx->c_offset->cursor);
-    return item;
-}
-
-INA_API(void *) ina_ullc_consumer_get_swait(ina_ullc_ctx_t *ctx)
-{
-    void *item;
-    int idx;
-    int64_t wait_for;
-
     INA_ASSERT_NOTNULL(ctx);
-    __ina_sem_operation(ctx, INA_ULLC_SIG_WAIT);
-
-    wait_for = ctx->c_offset->cursor;
-    if (ctx->ring->cursor < wait_for) {
-         return NULL;
-    }
-
-    idx = ctx->c_offset->cursor % ctx->ring->slots;
-    item = &ctx->data[idx*ctx->ring->size];
-    __INA_ULLC_INC(&ctx->c_offset->cursor);
-    return item;
+    return __ina_sem_operation(ctx, INA_ULLC_SIG_WAIT);
 }
+
+INA_API(ina_rc_t) ina_ullc_consumer_swait_begin(ina_ullc_ctx_t *ctx)
+{
+#ifdef INA_OS_WIN32
+	__INA_ULLC_INC(&ctx->ring->swait_count);
+#endif
+	return(INA_SUCCESS);
+}
+
+INA_API(ina_rc_t) ina_ullc_consumer_swait_end(ina_ullc_ctx_t *ctx)
+{
+#ifdef INA_OS_WIN32
+	__INA_ULLC_DEC(&ctx->ring->swait_count);
+#endif
+	return(INA_SUCCESS);
+}
+
 
 INA_API(void *) ina_ullc_consumer_get(ina_ullc_ctx_t *ctx)
 {
@@ -393,9 +376,9 @@ __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
         // FIXME: error handling
         }
     } else {
-        __INA_ULLC_INC(&ctx->ring->swait_count);
-         WaitForSingleObject(ctx->sem_handle, INFINITE);
-         __INA_ULLC_DEC(&ctx->ring->swait_count);
+		__INA_ULLC_INC(&ctx->ring->swait_count);
+		WaitForSingleObject(ctx->sem_handle, INFINITE);
+		__INA_ULLC_DEC(&ctx->ring->swait_count);
     }
     return INA_SUCCESS;
 }

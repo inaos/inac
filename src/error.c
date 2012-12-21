@@ -245,8 +245,8 @@ INA_API(ina_rc_t) ina_err_coredump(void) {
     char cmd[160];
     sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
     system(cmd);
-    return INA_SUCCESS;
 #endif
+    return INA_SUCCESS;
 }
 
 INA_API(ina_cleanup_handler_t) ina_err_set_cleanup_handler(
