@@ -33,6 +33,7 @@
 
 /* function pointer to a custom cleanup routine */
 static ina_cleanup_handler_t  __cleanup = NULL;
+static int __sig = 0;
 
 /* Error state */
 typedef struct ina_error_state_s {
@@ -227,7 +228,7 @@ INA_API(ina_rc_t) ina_err_trace(void)
     rc = ina_err_peek();
     while (!INA_SUCCEED(rc)) {
         if (INA_SUCCEED(ina_err_fmtmsg(rc, str, 2048))) {
-            printf("%s\n", ina_str_cstr(str));
+            printf("%s\n", str);
         } else {
             printf("%s\n", "**** FATAL ERROR  ******");
             return INA_FAILURE;
@@ -318,6 +319,11 @@ __ina_signal_handler(int sig)
 {
     int exitcode;
     
+    if (__sig != 0) {
+        return;
+    }
+    __sig = sig;
+
     exitcode = EXIT_FAILURE;
     switch (sig) {
         case SIGFPE:
