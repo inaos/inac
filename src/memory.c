@@ -327,12 +327,12 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
     ina_mempool_t *pm;
 
     INA_ASSERT_NOTNULL(info);
-	if (pool == NULL) {
-		pm = __pool;
-	}
-	else {
-		pm = pool;
-	}
+    if (pool == NULL) {
+        pm = __pool;
+    }
+    else {
+        pm = pool;
+    }
     if (pm == NULL) {
         return INA_FAILURE;
     }
