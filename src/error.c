@@ -210,6 +210,7 @@ INA_API(ina_rc_t) ina_err_trace(void)
 {
     ina_rc_t rc;
     char str[2048];
+    int n;
 
     INA_ASSERT(__initialized);
 
@@ -220,7 +221,8 @@ INA_API(ina_rc_t) ina_err_trace(void)
     printf("%s\n", "**** UNHANDLED ERROR START ******");
 
     rc = ina_err_peek();
-    while (!INA_SUCCEED(rc)) {
+    n = 0;
+    while (!INA_SUCCEED(rc) && n < __INA_ERR_STATE_SIZE) {
         if (INA_SUCCEED(ina_err_fmtmsg(rc, str, 2048))) {
             printf("%s\n", str);
         } else {
