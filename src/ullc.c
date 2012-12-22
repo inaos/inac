@@ -171,7 +171,7 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
         }
     }
     item = &ctx->data[like_to_write*ctx->ring->size];
-    __INA_ULLC_INC(&ctx->ring->next_ptr);
+    
     return item;
 }
 
@@ -179,7 +179,7 @@ INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
-
+	__INA_ULLC_INC(&ctx->ring->next_ptr);
     __INA_ULLC_INC(&ctx->ring->cursor);
     return INA_SUCCESS;
 }
