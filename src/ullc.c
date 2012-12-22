@@ -193,7 +193,7 @@ INA_API(int64_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx)
 INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 {
     INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
+    /*INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);*/
 
     /* FIMXE: maybe declare API as inline */
     return __ina_sem_operation(ctx, st);
@@ -257,7 +257,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_swait_begin(ina_ullc_ctx_t *ctx)
 #ifdef INA_OS_WIN32
 	__INA_ULLC_INC(&ctx->ring->swait_count);
 #endif
-	return(INA_SUCCESS);
+    return ina_ullc_consumer_swait(ctx);
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_swait_end(ina_ullc_ctx_t *ctx)
