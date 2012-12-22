@@ -125,6 +125,12 @@ extern "C" {
  * - Multi producer handling
  */
 
+/* Context types */
+typedef enum ina_ullc_ctx_type_e {
+    INA_ULLC_CTX_PRODUCER = 0,
+    INA_ULLC_CTX_CONSUMER,
+} ina_ullc_ctx_type_t;
+    
 /* Signal types for INA_ULLC_SIGNAL_WAIT */
 typedef enum ina_ullc_signal_type_e {
      INA_ULLC_SIG_WAIT = -1,
@@ -161,6 +167,7 @@ typedef struct ina_ullc_consumer_s {
 /* ullc context */
 typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
+    ina_ullc_ctx_type_t type;       /* type of context */
     ina_handle_t sem_handle;        /* semaphore handle */
     ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
