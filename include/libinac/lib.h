@@ -34,11 +34,10 @@
 #include <sys/fcntl.h>
 #include <sys/mman.h>
 #include <sys/sem.h>
-#endif
-
-#ifndef _WIN32
+#include <sys/syslog.h>
 #include <unistd.h>
 #endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -50,6 +49,7 @@
 #include <libinac/types.h>
 #include <libinac/memory.h>
 #include <libinac/string.h>
+#include <libinac/log.h>
 #include <libinac/error.h>
 #include <libinac/ullc.h>
 #include <libinac/net.h>
