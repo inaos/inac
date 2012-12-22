@@ -274,12 +274,14 @@ INA_API(ina_rc_t) ina_ullc_consumer_swait_end(ina_ullc_ctx_t *ctx)
 
 INA_API(void *) ina_ullc_consumer_get(ina_ullc_ctx_t *ctx)
 {
+	int idx;
+	void *item;
+	int64_t wait_for;
+
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
-
-    void *item;
-    int64_t wait_for = ctx->c_offset->cursor;
-    int idx;
+    
+    wait_for = ctx->c_offset->cursor;
     if (ctx->ring->cursor < wait_for) {
         return NULL;
     }
