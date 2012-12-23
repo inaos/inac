@@ -53,6 +53,9 @@ extern "C" {
 #define INA_MOD_ULLC    4
 #define INA_MOD_ISCP    5
 #define INA_MOD_NET     7
+#define INA_MOD_LOG     8
+#define INA_MOD_TIME    9
+#define INA_MOD_TIMER   10
 
 /* OS function identifiers */
 #define INA_OSFN_NONE    0
