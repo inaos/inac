@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-/* Representing a time value */
+/* Time value */
 typedef struct ina_time_s {
 #ifdef WIN32
     LARGE_INTEGER tp;
@@ -52,13 +52,25 @@ typedef struct ina_stopwatch_s {
 } ina_stopwatch_t;
 
 /*
- *
+ * Read current time.
  */
 INA_API(ina_rc_t) ina_time_read_clock(ina_time_t* time);
-INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *seconds); 
+/*
+ * Extract seconds from a time value
+ */
+INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *seconds);
+/* 
+ * Extract milliseconds from a time value
+ */
 INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *milliseconds);
 
+/*
+ * Start a stop watch
+ */
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch);
+/*
+ * Stop a stop watch 
+ */
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch);
 
 #ifdef __cplusplus
