@@ -67,8 +67,12 @@ INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg)
     if ((*cfg)->fp != NULL && (*cfg)->target == INA_LOG_FILE) {
         fclose((*cfg)->fp);
     }
-    ina_str_destroy((*cfg)->logfile);
-    ina_str_destroy((*cfg)->syslog_ident);
+    if ((*cfg)->logfile != NULL) {
+        ina_str_destroy((*cfg)->logfile);
+    }
+    if ((*cfg)->syslog_ident != NULL) {
+        ina_str_destroy((*cfg)->syslog_ident);
+    }
     *cfg = NULL;
     return INA_SUCCESS;
 }
@@ -76,7 +80,7 @@ INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg)
 static ina_rc_t 
 __ina_init(ina_log_cfg_t *cfg)
 {
-    if (cfg->target == INA_LOG_CONSOLE) {
+    if (cfg->target == INA_LOG_STDOUT) {
         cfg->fp = stdout;    
     }
     else if (cfg->target == INA_LOG_FILE) {

@@ -48,7 +48,10 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     if (__initialized++) {
         return INA_SUCCESS;
     }
-    atexit(ina_exit);
+    if (atexit(ina_exit) != 0) {
+        INA_TRACE_MSG("Failed to regsiter exit fucntion!");
+        return INA_FAILURE;
+    }
 
     /* Setup signals */
     signal(SIGFPE, __ina_signal_handler);
@@ -83,20 +86,18 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
 INA_API(void) ina_exit(void)
 {
     while (__initialized--) {
-        return;
     }
     
     if (__cleanup != NULL) {
         __cleanup(0, 0);
     }
-
     ina_mempool_destroy();
 
     if (!INA_SUCCEED(ina_err_peek())) {
         ina_err_trace();
     }
-
     ina_err_reset();
+
 #ifdef INA_OS_WIN32
     WSACleanup();
 #endif
@@ -122,7 +123,7 @@ __ina_signal_handler(int sig)
     }
     __sig = sig;
 
-    exitcode = EXIT_FAILURE;
+    exitcode = 3;
     switch (sig) {
         case SIGFPE:
         case SIGILL:
@@ -132,6 +133,7 @@ __ina_signal_handler(int sig)
             if (__cleanup) {
                  __cleanup(sig, 0);
             }
+            abort();
             break;
         case SIGTERM:
         case SIGINT:
@@ -142,13 +144,10 @@ __ina_signal_handler(int sig)
         case SIGKILL:
 #endif
             INA_TRACE_MSG("termination signal received!");
-            if (__cleanup) {
-                exitcode = __cleanup(sig, 1);
-            }
+            exit(exitcode);
             break;
         default:
             INA_TRACE_MSG("unknown singal received!");
     }
-    ina_err_trace();
-    exit(exitcode);
+    abort();
 }

@@ -32,6 +32,8 @@ void test_error_push_a_million_errors()
 {
     size_t i;
 
+    INA_TRACE_MSG("test_error_push_a_million_errors");
+    
     INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
 

@@ -70,6 +70,7 @@ extern "C" {
 #define INA_EBADALIGN 6
 #define INA_ESEMINIT  7
 #define INA_ENET      8
+#define INA_ERALLOC   9
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -86,10 +87,7 @@ extern "C" {
  * r    Reason of failure
  * s    Error message
  */
-#define INA_ERR_PUSH(r,m,f,s) ina_err_push(m,f,r,                           \
-                                          ina_str_fromcstr(__FILE__),       \
-                                          __LINE__ ,                        \
-                                          ina_str_fromcstr(s))
+#define INA_ERR_PUSH(r,m,f,s) ina_err_push(m,f,r, __FILE__, __LINE__, s)
 
 /*
  * Push an error to the error state by passing only basic informations like
@@ -102,9 +100,9 @@ extern "C" {
 #define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,               \
                                           INA_OSFN_NONE,                    \
                                           r,                                \
-                                          ina_str_fromcstr(__FILE__),       \
+                                          __FILE__,                         \
                                           __LINE__ ,                        \
-                                          ina_str_fromcstr(s))
+                                          s)
 
 /*
  * Push an error to the error state by passing  basic informations like
@@ -117,9 +115,9 @@ extern "C" {
  */ 
 #define INA_ERR_PUSH_OSFN(r,f,s) ina_err_push(INA_MOD_UNKNOWN,              \
                                           f,r,                              \
-                                          ina_str_fromcstr(__FILE__),       \
+                                          __FILE__,                         \
                                           __LINE__ ,                        \
-                                          ina_str_fromcstr(s))
+                                          s)
 
 /*
  * Pack an RC. 
@@ -162,6 +160,8 @@ extern "C" {
 /* String-Module errors */
 #define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
 #define INA_MEM_EALLOC INA_MEM_ERROR(INA_EALLOC, "Bad memory alloc")
+#define INA_MEM_ERALLOC INA_MEM_ERROR(INA_ERALLOC, "Bad memory realloc")
+#define INA_MEM_ESHMALLOC INA_MEM_ERROR(INA_EALLOC, "Failed shared memory alloc")
 
 /* ULLC-Module errors */
 #define INA_ULLC_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ULLC,INA_OSFN_NONE, s)
@@ -195,9 +195,9 @@ typedef struct ina_error_s {
  * Return Value
  * RC
  */
-INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, ina_str_t file, 
+INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, const char *file, 
                                int line, 
-                               ina_str_t msg);
+                               const char *msg);
 
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc);
 /*

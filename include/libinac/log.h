@@ -42,7 +42,7 @@ typedef enum ina_log_level_e {
 
 /* Log backendt */
 typedef enum ina_log_target_e {
-    INA_LOG_CONSOLE,
+    INA_LOG_STDOUT,
     INA_LOG_FILE,
 #ifndef WIN32
     INA_LOG_SYSLOG

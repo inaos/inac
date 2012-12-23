@@ -50,8 +50,8 @@ static ina_error_state_t __state;
 /* initialization flag */
 static int32_t __initialized = 0;
 
-INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file, 
-                               int line, ina_str_t msg)
+INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, const char *file, 
+                               int line, const char *msg)
 {
     ina_error_t *error;
 
@@ -70,9 +70,9 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, ina_str_t file,
     error = &__state.errors[__state.c++];
     error->rc = INA_RC_PACK(mod, fn, reason, ++__state.ic);
     error->ts = time(NULL); /* FIXME: use own time value */
-    strcpy(error->file, ina_str_cstr(file));
+    strcpy(error->file, file);
     error->line = line;
-    strcpy(error->msg, ina_str_cstr(msg));
+    strcpy(error->msg, msg);
 
     return error->rc;
 }

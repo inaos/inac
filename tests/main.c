@@ -31,18 +31,31 @@
 
 #define INAC_ERROR_TEST_TRACE INA_ERR_PUSH(129,1,2,"Test Trace")
 
+static int __cleanup_called = 0;
+static int __ina_cleanup_handler(const int sig, const int error) 
+{
+    ++__cleanup_called;
+    INA_TRACE("Cleanup called = %d", __cleanup_called);
+    return EXIT_SUCCESS;
+}
+
 int main(int argc, const char** argv) 
 { 
     INA_TRACE_MSG("TEST START");
     
-    if (ina_appinit(argc, NULL, 0) == INA_SUCCESS) {
+    if (INA_SUCCEED(ina_appinit(argc, NULL, 0))) {
         runtests();
+        ina_set_cleanup_handler(__ina_cleanup_handler);
+        
+
+        /* this test program should alway exits with a
+        failure */
+        INAC_ERROR_TEST_TRACE;
     }
+
     INA_TRACE_MSG("TEST END");
 
-    /* this test program should alway exits with a
-       failure */
-    INAC_ERROR_TEST_TRACE;
-
-    return 0;
+    getchar();
+    
+    return EXIT_SUCCESS;
 }

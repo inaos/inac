@@ -37,6 +37,7 @@
 void test_mempool_min_allowed_size()
 {
     ina_mempool_t *pool;
+    ina_mempool_info_t mi;
 
      INA_TRACE_MSG("test_mempool_min_allowed_size");
 
@@ -45,8 +46,10 @@ void test_mempool_min_allowed_size()
     INA_ASSERT_SUCCESS(ina_err_peek());
     
     pool = NULL;
-    INA_ASSERT_FAILURE(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE-100, 0, NULL));
-    INA_ASSERT_NULL(pool);
+    INA_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE-100, 0, NULL));
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
+    INA_ASSERT_EQUAL(INA_MEM_MIN_POOL_SIZE, mi.size);
     INA_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
     INA_ASSERT_NOTNULL(pool);
 }
@@ -88,7 +91,7 @@ void test_mempool_destroy_syspool_1000_times()
     
     for (i = 0; i < 1000; ++i) {
         INA_ASSERT_SUCCESS(ina_mempool_destroy());
-        INA_ASSERT_FAILURE(ina_mempool_getinfo(NULL, &mi));
+        INA_ASSERT_NOTSUCCEED(ina_mempool_getinfo(NULL, &mi));
     }
 }
 

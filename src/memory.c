@@ -219,15 +219,15 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         if (__pool != NULL) {
             return INA_MEM_EALLOC;
         }
-        return INA_FAILURE;
+        return INA_MEM_EALLOC;
     }
     (*pool)->cf = cf;
     (*pool)->pos = 0;
     (*pool)->size = size;
     (*pool)->end = (*pool)->size;
-	(*pool)->m = NULL;
+    (*pool)->m = NULL;
     (*pool)->parent = NULL;
-	(*pool)->child = NULL;
+    (*pool)->child = NULL;
     (*pool)->current = *pool;
     if (label != NULL) {
         (*pool)->label = ina_str_dup(label);
@@ -240,7 +240,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
             ina_mem_free((*pool)->label);
             __ina_mp_free(*pool);
             *pool = NULL;
-            return ina_err_peek();
+            return INA_MEM_ESHMALLOC;
         }
     } else {
         (*pool)->m = __ina_mp_malloc(size);
@@ -275,6 +275,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         next->pool = *pool;
         next->active = 1;
     }
+    INA_TRACE2("New memory pool: size = %ld", (*pool)->size);
     return INA_SUCCESS;
 }
 
@@ -306,7 +307,9 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
     pm = NULL;
     while (pn != NULL) {
         pm = pn;
-        pn = pn->child;
+        if (pn != pn->child) {
+            pn = pn->child;
+        }
         if (destroy == 1) {
             if (pm->cf&INA_MEM_SHARED) {
                 __ina_shm_close(pm);
@@ -398,6 +401,7 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 
     if ((pool->current->pos + size > pool->current->end) || 
         (pool->current->pos + size < pool->current->pos)) {
+        INA_MEM_EALLOC;
         return NULL;
     }
     ret = &pool->current->m[pool->current->end - size];
@@ -428,6 +432,7 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
                 return old;
             }
             /* does not fit */
+            INA_MEM_ERALLOC;
             return NULL;
         }
     }
@@ -445,6 +450,7 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
         return ret;
     }
     /* does not fit */
+    INA_MEM_ERALLOC;
     return NULL;
 }
 
@@ -535,7 +541,7 @@ __ina_shm_open(ina_mempool_t *pool)
     if (pool->shm_handle == -1) {
         /* INA_TRACE("failed shm_open()");*/
         /* FIXME: Specific error */
-        return INA_MEM_EALLOC;
+        return INA_MEM_ESHMALLOC;
     }
 
     if (pool->cf&INA_MEM_SHARED_CREATE) {
@@ -544,7 +550,7 @@ __ina_shm_open(ina_mempool_t *pool)
             close(pool->shm_handle);
             pool->shm_handle = 0;
             shm_unlink(ina_str_cstr(pool->label));
-            return INA_MEM_EALLOC;
+            return INA_MEM_ESHMALLOC;
        }
     }
 
@@ -559,7 +565,7 @@ __ina_shm_open(ina_mempool_t *pool)
         if (pool->cf&INA_MEM_SHARED_CREATE) {
             shm_unlink(ina_str_cstr(pool->label));
         }
-        return INA_MEM_EALLOC;
+        return INA_MEM_ESHMALLOC;
     }
     if (pool->cf&INA_MEM_SHARED_CREATE) {
         /* FIXME: portable  */
@@ -618,7 +624,7 @@ __ina_shm_open(ina_mempool_t *pool)
         ina_str_cstr(pool->label));
 
     if (pool->shm_handle == NULL) {
-        return INA_MEM_EALLOC;
+        return INA_MEM_ESHMALLOC;
     }
     pool->m = (void*)MapViewOfFile(pool->shm_handle,
         FILE_MAP_ALL_ACCESS, 
@@ -628,7 +634,7 @@ __ina_shm_open(ina_mempool_t *pool)
 
     if (pool->shm_handle == NULL) {
         CloseHandle(pool->shm_handle);
-        return INA_MEM_EALLOC;
+        return INA_MEM_ESHMALLOC;
     }
     return INA_SUCCESS;
 }
