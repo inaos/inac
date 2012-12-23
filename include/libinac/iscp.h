@@ -171,16 +171,6 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  */
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout);
 
-/*
- * Net callback to send an ISCP command.
- */
-INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg);
-
-/*
- * Net callback to receive an ISCP command.
- */
-INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg);
-
 #ifdef __cplusplus
 }
 #endif 

@@ -41,13 +41,23 @@ static ina_iscp_send_cb __send_cb = NULL;
 static ina_iscp_cmd_t  *__cmds = NULL;
 static ina_mempool_t   *__mempool = NULL;
 
+/*
+ * Net callback to send an ISCP command.
+ */
+static ina_rc_t __ina_net_send_cb(ina_iscp_ctx_t*, ina_iscp_msg_t*);
+
+/*
+ * Net callback to receive an ISCP command.
+ */
+static ina_rc_t __ina_net_recv_cb(ina_iscp_ctx_t*, ina_iscp_msg_t*);
+
 
 INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend)
 {
     switch (backend) {
         case INA_ISCP_INET:
         {
-            ina_iscp_set_callbacks(ina_iscp_net_send_cb, ina_iscp_net_recv_cb);
+            ina_iscp_set_callbacks(__ina_net_send_cb, __ina_net_recv_cb);
             break;
         }
         default: {
@@ -329,14 +339,16 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
     return INA_FAILURE;
 }
 
-INA_API(ina_rc_t) ina_iscp_net_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
+static ina_rc_t
+__ina_net_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
 {
     int nb_write;
     nb_write = 0;
     return ina_net_write(*(int*)ctx->data, (unsigned char*)msg, msg->length, &nb_write);
 }
 
-INA_API(ina_rc_t) ina_iscp_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
+static ina_rc_t
+__ina_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
 {   
     int nb_read;
     nb_read = 0;
