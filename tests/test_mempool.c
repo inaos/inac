@@ -34,6 +34,23 @@
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
 #define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
 
+void test_mempool_min_allowed_size()
+{
+    ina_mempool_t *pool;
+
+     INA_TRACE_MSG("test_mempool_min_allowed_size");
+
+    /* clear error state and assure it's clean */
+    INA_ASSERT_SUCCESS(ina_err_reset());
+    INA_ASSERT_SUCCESS(ina_err_peek());
+    
+    pool = NULL;
+    INA_ASSERT_FAILURE(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE-100, 0, NULL));
+    INA_ASSERT_NULL(pool);
+    INA_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
+    INA_ASSERT_NOTNULL(pool);
+}
+
 void test_mempool_bad_dalloc()
 {
     void *ptr;
