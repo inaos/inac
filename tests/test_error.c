@@ -126,11 +126,11 @@ void test_error_pack_rc()
     rc = 0;
     rc = INA_RC_PACK(1,2,7,4);
     
-    INA_TRACE("rc = %u", rc);
-    INA_TRACE("id = %u", INA_RC_ID(rc));
-    INA_TRACE("mod = %u", INA_RC_MOD(rc));
-    INA_TRACE("func = %u", INA_RC_OSFN(rc));
-    INA_TRACE("reason = %u", INA_RC_REASON(rc));
+    INA_TRACE3("rc = %u", rc);
+    INA_TRACE3("id = %u", INA_RC_ID(rc));
+    INA_TRACE3("mod = %u", INA_RC_MOD(rc));
+    INA_TRACE3("func = %u", INA_RC_OSFN(rc));
+    INA_TRACE3("reason = %u", INA_RC_REASON(rc));
     
     INA_ASSERT_EQUAL(rcc, rc);
     INA_ASSERT_EQUAL(1, INA_RC_MOD(rc));
