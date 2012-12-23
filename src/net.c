@@ -137,7 +137,7 @@ INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* n
     if (*nb_write == ANET_ERR) {
         /* FIXME : Stay in line with the coding standards */
         /*         define Error message in error.h */
-        return INA_NET_ERROR("Error writting");
+        return INA_NET_ERROR("Error writing");
     }
     return INA_SUCCESS;
 }
