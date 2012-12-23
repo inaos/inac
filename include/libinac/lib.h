@@ -35,6 +35,7 @@
 #include <sys/mman.h>
 #include <sys/sem.h>
 #include <sys/syslog.h>
+#include <sys/time.h>
 #include <unistd.h>
 #endif
 
@@ -51,6 +52,8 @@
 #include <libinac/string.h>
 #include <libinac/log.h>
 #include <libinac/error.h>
+#include <libinac/time.h>
+#include <libinac/timer.h>
 #include <libinac/ullc.h>
 #include <libinac/net.h>
 #include <libinac/iscp.h>
