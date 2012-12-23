@@ -54,8 +54,6 @@ int main(int argc, const char** argv)
     }
 
     INA_TRACE_MSG("TEST END");
-
-    getchar();
     
     return EXIT_SUCCESS;
 }
