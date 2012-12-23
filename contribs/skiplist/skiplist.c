@@ -1,391 +1,509 @@
-// This program is free software. It comes without any warranty, to the extent
-// permitted by applicable law. You can redistribute it and/or modify it under
-// the terms of the Do What The Fuck You Want To Public License, Version 2, as
-// published by Sam Hocevar. See http://sam.zoy.org/wtfpl/COPYING for more
-// details.
+/*
+ * skiplist.c
+ *
+ * Copyright (c) 2008, Thomas Hurst <tom@hur.st>
+ *
+ * Based on the original skipList.c at ftp://ftp.cs.umd.edu/pub/skipLists/
+ *
+ * Some important differences from the traditional skiplist:
+ *
+ *  o Duplicates are always allowed.
+ *  o There are no seperate keys stored in the list; just a void *value
+ *    we assume is comparable.  DO NOT CHANGE KEYS WITHOUT DELETE + INSERT!
+ *  o Comparisons are driven by a function passed to skiplist_create
+ *  o The sentinal value is provided by the user.
+ *  o Deletes operate by reference, not FIFO.
+ *  o Items can also be accessed by their index in the list.
+ *
+ * Average storage cost is 3.33333 pointers + 0.33333 ints per node, expected
+ * search costs are O(log n), and iteration from any node is just 1 dereference
+ * and a pointer comparison.
+ *
+ * Basic usage:
+ *
+ * // Return <0 if a < b, 0 if a == b and >0 if a > b
+ * static int IntCmp(const void *a, const void *b) {
+ *         return *(const int *)a - *(const int *)b;
+ * }
+ * 
+ * ...
+ *
+ * int max = 0x7fffffff;
+ * int value = 42;
+ * int othervalue = 42;
+ * skipnode n,tmp;
+ * skiplist l = skiplist_create(IntCmp, &max);
+ *
+ * skiplist_lock(l); // If MT
+ * skiplist_insert(l, &value);
+ * skiplist_unlock(l);
+ *
+ * printf("Skiplist contains %d items\n", skiplist_size(l));
+ *
+ * n = skiplist_search(l, &othervalue);  // Returns NULL if not found
+ * n = skiplist_search_exact(l, &value); // Find only with address of value
+ * n = skiplist_at(l, 0);                // Find at position 0
+ * printf("value = %d\n", *(int *)skipnode_item(n)); // or just n->item;
+ *
+ * SKIPLIST_FOREACH(l,n)
+ * 	printf("value = %d\n", *(int *)skipnode_item(n));
+ *
+ * SKIPLIST_FOREACH_SAFE(l,n,tmp)
+ * 	skiplist_delete(l,n);
+ *
+ * skiplist_gc(l); // free() all deleted nodes; _delete doesn't to aid concurrency
+ *
+ * skiplist_destroy(l); // Will do the equivilent of the above if necessary
+ */
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
+#ifdef NDEBUG
+# undef NDEBUG
+#endif
+
+#include <assert.h>
 #include <stdlib.h>
-#include <time.h>
+#include <stdio.h>
 
 #include "skiplist.h"
 
-// A skiplist's maximum level
-enum { SKIPLIST_LEVEL_MAX = 8 };
-// A skiplist's minimum level
-enum { SKIPLIST_LEVEL_MIN = 0 };
-// The amount of possible levels
-enum { SKIPLIST_LEVEL_COUNT = SKIPLIST_LEVEL_MAX - SKIPLIST_LEVEL_MIN + 1 };
+#ifdef SKIPLIST_DEBUG
+#define D(...) fprintf(stdout, __VA_ARGS__)
+#else
+#define D(...)
+#endif
 
-// An array of nodes that need to be updated after an insert or delete operation
-typedef skiplist_node_t *skiplist_update_t[SKIPLIST_LEVEL_COUNT];
-
-void skiplist_global_init(void) {
-  srand(time(NULL));
-}
-
-// Generate a random skiplist level.
-static skiplist_level_t skiplist_level_generate(void) {
-  // This constant is found by 1 / P, where P = 0.25.
-  enum { P_INVERSE = 4 };
-
-  // The original algorithm's random number is in the range [0, 1), so
-  // max M = 1. Its ceiling C = M * P = 1 * P = P.
-  //
-  // Our random number is in the range [0, UINT16_MAX], so M = UINT16_MAX. Therefore,
-  // C = UINT16_MAX * P = UINT16_MAX / P_INVERSE.
-  enum { P_CEIL = UINT16_MAX / P_INVERSE };
-
-  skiplist_level_t level = SKIPLIST_LEVEL_MIN;
-
-  while ((uint16_t)(rand()) < P_CEIL)
-    level += 1;
-
-  if (level < SKIPLIST_LEVEL_MAX)
-    return level;
-
-  return SKIPLIST_LEVEL_MAX;
-}
-
-// Normalize @cmp to exactly @SKIPLIST_CMP_LT, @SKIPLIST_CMP_EQ, or
-// @SKIPLIST_CMP_GT.
-//
-//   skiplist_cmp_normalize(-3) -> SKIPLIST_CMP_LT (-1)
-//   skiplist_cmp_normalize(0)  -> SKIPLIST_CMP_EQ (0)
-//   skiplist_cmp_normalize(50) -> SKIPLIST_CMP_GT (1)
-//
-static skiplist_cmp_t skiplist_cmp_normalize(const skiplist_cmp_t cmp) {
-  if (cmp <= SKIPLIST_CMP_LT)
-    return SKIPLIST_CMP_LT;
-
-  if (cmp >= SKIPLIST_CMP_GT)
-    return SKIPLIST_CMP_GT;
-
-  return SKIPLIST_CMP_EQ;
-}
-
-// Get the node immediately after @node.
-static inline skiplist_node_t *skiplist_node_next(const skiplist_node_t *node) {
-  return node->forward[SKIPLIST_LEVEL_MIN];
-}
-
-// Create a new level @level node with value @value. The node should eventually
-// be destroyed with @skiplist_node_destroy.
-//
-//   @return: a new node on success and NULL otherwise.
-//
-static skiplist_node_t *skiplist_node_new(const skiplist_level_t level,
-                                          void *value)
+static skipnode
+new_node(int level)
 {
-  skiplist_node_t *new_node = (skiplist_node_t *)
-    (malloc(sizeof(skiplist_node_t)));
-
-  if (!new_node)
-    return NULL;
-
-  new_node->value = value;
-  new_node->level = level;
-
-  // A level 0 node still needs to hold 1 forward pointer, etc.
-  new_node->forward = (skiplist_node_t **)
-    (calloc(level + 1, sizeof(skiplist_node_t *)));
-
-  if (new_node->forward)
-    return new_node;
-
-  free(new_node);
-
-  return NULL;
+	int ns = sizeof(struct skipNode) + (sizeof(struct skipPointer) * (level + 1));
+	skipnode sn = (skipnode)malloc(ns);
+	assert(sn);
+	return sn;
 }
 
-// Create a new header node -- a node with the value NULL and level
-// @SKIPLIST_LEVEL_MIN.
-//
-//   @return: see @skiplist_node_new.
-//
-static inline skiplist_node_t *skiplist_header_node_new(void) {
-  return skiplist_node_new(SKIPLIST_LEVEL_MAX, NULL);
-}
-
-// Destroy @node. If @list has a @destroy_fn, use it to destroy @node's value.
-static void skiplist_node_destroy(skiplist_node_t *node, skiplist_t *list) {
-  if (list->destroy_fn && node != list->header)
-    list->destroy_fn(node->value);
-
-  free(node->forward);
-  free(node);
-}
-
-int skiplist_init(skiplist_t *list) {
-  list->cmp_fn = NULL;
-  list->search_fn = NULL;
-  list->destroy_fn = NULL;
-  list->inspect_fn = NULL;
-
-  list->length = 0;
-  list->level = SKIPLIST_LEVEL_MIN;
-  list->header = skiplist_header_node_new();
-
-  return list->header != NULL;
-}
-
-void skiplist_destroy(skiplist_t *list) {
-  skiplist_node_t *cur_node = list->header;
-  skiplist_node_t *fwd_node;
-
-  do {
-    fwd_node = skiplist_node_next(cur_node);
-    skiplist_node_destroy(cur_node, list);
-  } while ((cur_node = fwd_node));
-}
-
-// An operation to perform after comparing a user value or search with a node's
-// value
-typedef enum {
-  OP_GOTO_NEXT_LEVEL,
-  OP_GOTO_NEXT_NODE,
-  OP_FINISH,
-} op_t;
-
-static op_t op_insert(const skiplist_t *list,
-                      const skiplist_node_t *fwd_node,
-                      const void *value)
+skiplist
+skiplist_create(skiplist_cmp_fn cmp, void *max)
 {
-  if (!fwd_node)
-    return OP_GOTO_NEXT_LEVEL;
+	int i;
+	skiplist l;
 
-  switch (skiplist_cmp_normalize(list->cmp_fn(fwd_node->value, value))) {
-    case SKIPLIST_CMP_LT: return OP_GOTO_NEXT_NODE;
-    case SKIPLIST_CMP_EQ: return OP_FINISH;
-  }
+	l = (skiplist)malloc(sizeof(struct skipList));
+	assert(l);
 
-  return OP_GOTO_NEXT_LEVEL;
+	l->gc = malloc(sizeof(skipnode) * SKIPLIST_GC_NODES);
+	assert(l->gc);
+	l->gc_limit = SKIPLIST_GC_NODES;
+	l->gc_used = 0;
+
+	l->sentinal = new_node(-1);
+	l->sentinal->item = max;
+
+	l->level = -1;
+	l->cmp = cmp;
+	l->randleft = RAND_BITS / 2;
+#ifdef WIN32
+	l->rand = rand();
+#else
+	l->rand = random();
+#endif
+	l->header = new_node(MAX_NUMBER_OF_LEVELS);
+
+	l->header->prev = l->sentinal;
+	l->sentinal->prev = l->sentinal;
+	l->header->next = l->sentinal;
+
+	for (i=0; i < MAX_NUMBER_OF_LEVELS; i++)
+	{
+		l->header->forward[i].ptr = l->sentinal;
+		l->header->forward[i].distance = 0;
+	}
+
+	l->size = 0;
+
+	return l;
 }
 
-static op_t op_delete(const skiplist_t *list,
-                      const skiplist_node_t *fwd_node,
-                      const void *value)
+void
+skiplist_destroy(skiplist l)
 {
-  if (!fwd_node)
-    return OP_GOTO_NEXT_LEVEL;
+	skipnode si,st;
 
-  switch (skiplist_cmp_normalize(list->cmp_fn(fwd_node->value, value))) {
-    case SKIPLIST_CMP_LT: return OP_GOTO_NEXT_NODE;
-  }
+	SKIPLIST_FOREACH_SAFE(l,si,st)
+#ifdef SKIPLIST_DEBUG
+	{
+		assert(skiplist_delete(l, si->item));
+		skiplist_gc(l);
+	}
 
-  return OP_GOTO_NEXT_LEVEL;
+	assert(skiplist_size(l) == 0);
+
+#else
+		free(si);
+#endif
+
+	free(l->gc);
+	free(l->header);
+	free(l->sentinal);
+	free(l);
 }
 
-static op_t op_contains(const skiplist_t *list,
-                        const skiplist_node_t *fwd_node,
-                        const void *value)
+static int
+rand_level(skiplist l)
 {
-  if (!fwd_node)
-    return OP_GOTO_NEXT_LEVEL;
+	int level = -1;
+	int b;
+	do {
+		b = l->rand & 3; /* 25% of the time, go up a level */
+		if (!b) level++;
+		l->rand >>= 2;
 
-  switch (skiplist_cmp_normalize(list->cmp_fn(fwd_node->value, value))) {
-    case SKIPLIST_CMP_LT: return OP_GOTO_NEXT_NODE;
-    case SKIPLIST_CMP_EQ: return OP_FINISH;
-  }
+		if (--l->randleft == 0)
+		{
+#ifdef WIN32
+			l->rand = rand();
+#else
+			l->rand = random();
+#endif
+			l->randleft = RAND_BITS / 2;
 
-  return OP_GOTO_NEXT_LEVEL;
+		}
+	} while (!b);
+	return(level > MAX_LEVEL ? MAX_LEVEL : level);
 }
 
-static op_t op_search(const skiplist_t *list,
-                      const skiplist_node_t *fwd_node,
-                      const void *search)
+void
+skiplist_insert(skiplist l, void *item)
 {
-  if (!fwd_node)
-    return OP_GOTO_NEXT_LEVEL;
+	skipnode update[MAX_NUMBER_OF_LEVELS];
+	int updatepos[MAX_NUMBER_OF_LEVELS];
+	int level, newlevel, pos;
+	skipnode prev,next,vnew;
 
-  switch (skiplist_cmp_normalize(list->search_fn(fwd_node->value, search))) {
-    case SKIPLIST_CMP_LT: return OP_GOTO_NEXT_NODE;
-    case SKIPLIST_CMP_EQ: return OP_FINISH;
-  }
+	// Upgrade the skiplist level if necessary.
+	newlevel = rand_level(l);
+	if (newlevel > l->level)
+	{
+		for (pos = l->level + 1; pos <= newlevel; pos++)
+		{
+			l->header->forward[pos].ptr = l->sentinal;
+			l->header->forward[pos].distance = l->size + 1;
+		}
+		l->level = newlevel; // keep level update atomic
+	}
 
-  return OP_GOTO_NEXT_LEVEL;
+	pos = 0;
+	level = l->level;
+	prev = l->header;
+	while (level >= 0)
+	{
+		updatepos[level] = pos;
+		while (next = prev->forward[level].ptr, l->cmp(next->item, item) < 0)
+		{
+			pos += prev->forward[level].distance;
+			updatepos[level] += prev->forward[level].distance;
+			prev = next;
+		}
+
+		update[level] = prev;
+		level--;
+	}
+
+	while (next = prev->next, l->cmp(next->item, item) < 0)
+	{
+		pos++;
+		prev = next;
+	}
+
+	// We now have our place.  We could check for the existance of dupes here
+	// and abort if necessary; note we may have updated l->level with now
+	// pointless entries at this point.
+
+	vnew = new_node(newlevel);
+	vnew->item = item;
+
+	// Setup for level -1
+	vnew->next = prev->next;
+	// Avoid vnew->prev = prev unless you don't want l->sentinal to be head->next->prev.
+	vnew->prev = vnew->next->prev;
+
+	// Safe for insert now, we're fully linked at -1.
+	vnew->next->prev = vnew;
+	prev->next = vnew;
+
+	// Insert at level 0, 1, 2 .. n, in that order.
+	for (level = 0; level <= l->level; level++)
+	{
+		if (level > newlevel)
+		{
+			update[level]->forward[level].distance++;
+		}
+		else
+		{
+			prev = update[level];
+			next = prev->forward[level].ptr;
+
+			vnew->forward[level].ptr = next;
+			prev->forward[level].ptr = vnew; // insert to level
+
+			vnew->forward[level].distance = updatepos[level] + (prev->forward[level].distance - pos);
+			prev->forward[level].distance = pos + 1 - updatepos[level];
+		}
+	}
+
+	l->size++;
 }
 
-int skiplist_insert(skiplist_t *list, void *value) {
-  skiplist_update_t update;
-  skiplist_level_t update_level;
-  skiplist_level_t new_node_level;
+int
+skiplist_delete(skiplist l, void *item)
+{
+	skipnode update[MAX_NUMBER_OF_LEVELS];
+	int level,offset = 0;
+	skipnode prev,next,old,oldprev;
 
-  skiplist_node_t *cur_node = list->header;
-  skiplist_level_t level = list->level;
-  skiplist_node_t *new_node;
+	level = l->level;
+	prev = l->header;
+	while (level >= 0)
+	{
+		while (next = prev->forward[level].ptr, l->cmp(next->item, item) < 0)
+		{
+			assert(next != prev);
+			prev = next;
+		}
 
-  while ((update_level = level) >= SKIPLIST_LEVEL_MIN) {
-    skiplist_node_t *fwd_node = cur_node->forward[level];
+		oldprev = prev;
+		if (next->item != item)
+		{
+			while (next = prev->forward[level].ptr, l->cmp(next->item, item) == 0 && next->item != item)
+			{
+				prev = next;
+			}
+		}
 
-    switch (op_insert(list, fwd_node, value)) {
-      case OP_FINISH:
-        // Reinsert @value to ensure correct sorting.
-        return skiplist_delete(list, fwd_node->value) &&
-               skiplist_insert(list, value);
+		if (next->item != item)
+		{
+			// overshot, backtrack so we can update the count
+			prev = oldprev;
+		}
+		update[level] = prev;
+		level--;
+	}
 
-      case OP_GOTO_NEXT_NODE:  cur_node = fwd_node; break;
-      case OP_GOTO_NEXT_LEVEL: level -= 1;
-    }
+	while (next = prev->next, l->cmp(next->item, item) < 0)
+	{
+		prev = next;
+	}
 
-    update[update_level] = cur_node;
-  }
+	// XXX should we have skiplist_delete_exact?
+	if (next->item != item)
+	{
+		prev = next;
+		while (next = prev->next, l->cmp(next->item, item) == 0 && next->item != item)
+		{
+			offset++;
+			prev = next;
+		}
+	}
 
-  new_node_level = skiplist_level_generate();
+	// Opposite to insert, we start at the top level and go down.  I think there's a good
+	// reason for this ;)
+	if (next->item == item)
+	{
+		old = next;
+		oldprev = prev;
+		for (level = l->level; level >= 0; level--)
+		{
+			prev = update[level];
+			next = prev->forward[level].ptr;
+			if (next == old)
+			{
+				prev->forward[level].ptr = old->forward[level].ptr;
+				prev->forward[level].distance += old->forward[level].distance - 1;
+			}
+			else
+			{
+				prev->forward[level].distance--;
+			}
+		}
+		prev = oldprev;
+		prev->next = old->next;
+		old->next->prev = old->prev;
 
-  if (new_node_level > list->level) {
-    for (level = list->level + 1; level <= new_node_level; level += 1)
-      update[level] = list->header;
+		l->size--;
 
-    list->level = new_node_level;
-  }
+		// free(old);
+		if (l->gc_used + 1 >= l->gc_limit)
+		{
+			l->gc = realloc(l->gc, sizeof(skipnode) * (l->gc_limit *= 2));
+			assert(l->gc);
+		}
 
-  new_node = skiplist_node_new(new_node_level, value);
+		l->gc[l->gc_used++] = old;
 
-  if (!new_node)
-    return 0;
+		level = l->level;
+		while (l->header->forward[level].ptr == l->sentinal && level > 0)
+			level--;
 
-  // Drop @new_node into @list.
-  for (level = SKIPLIST_LEVEL_MIN; level <= new_node_level; level += 1) {
-    new_node->forward[level] = update[level]->forward[level];
-    update[level]->forward[level] = new_node;
-  }
+		if (l->header->next == l->sentinal)
+		{
+			assert(level == 0 || l->level == -1);
+			level = -1;
+		}
 
-  list->length += 1;
+		l->level = level;
+		return 1;
+	}
 
-  return 1;
+	return 0;
 }
 
-int skiplist_delete(skiplist_t *list, void *value) {
-  skiplist_update_t update;
-  skiplist_level_t update_level;
-
-  skiplist_node_t *cur_node = list->header;
-  skiplist_level_t level = list->level;
-  skiplist_node_t *found_node;
-
-  while ((update_level = level) >= SKIPLIST_LEVEL_MIN) {
-    skiplist_node_t *fwd_node = cur_node->forward[level];
-
-    switch (op_delete(list, fwd_node, value)) {
-      case OP_GOTO_NEXT_NODE:  cur_node = fwd_node; break;
-      case OP_GOTO_NEXT_LEVEL: level -= 1;
-      default: break;
-    }
-
-    update[update_level] = cur_node;
-  }
-
-  // The immediate forward node should be the matching node...
-  found_node = skiplist_node_next(cur_node);
-
-  // ...unless we're at the end of the list or the value doesn't exist.
-  if (!found_node || list->cmp_fn(found_node->value, value) >= SKIPLIST_CMP_GT)
-    return 0;
-
-  // Splice @found_node out of @list.
-  for (level = SKIPLIST_LEVEL_MIN; level <= list->level; level += 1)
-    if (update[level]->forward[level] == found_node)
-      update[level]->forward[level] = found_node->forward[level];
-
-  skiplist_node_destroy(found_node, list);
-
-  // Remove unused levels from @list -- stop removing levels as soon as a used
-  // level is found. Unused levels can occur if @found_node had the highest
-  // level.
-  for (level = list->level; level >= SKIPLIST_LEVEL_MIN; level -= 1) {
-    if (list->header->forward[level])
-      break;
-
-    list->level -= 1;
-  }
-
-  list->length -= 1;
-
-  return 1;
+void
+skiplist_gc(skiplist l)
+{
+	while (l->gc_used)
+		free(l->gc[--l->gc_used]);
 }
 
-int skiplist_contains(const skiplist_t *list, const void *value) {
-  const skiplist_node_t *cur_node = list->header;
-  skiplist_level_t level = list->level;
 
-  while (level >= SKIPLIST_LEVEL_MIN) {
-    const skiplist_node_t *fwd_node = cur_node->forward[level];
-
-    switch (op_contains(list, fwd_node, value)) {
-      case OP_FINISH:          return 1;
-      case OP_GOTO_NEXT_NODE:  cur_node = fwd_node; break;
-      case OP_GOTO_NEXT_LEVEL: level -= 1;
-    }
-  }
-
-  return 0;
+int
+skiplist_delete_gc(skiplist l, void *item)
+{
+	int r;
+	r = skiplist_delete(l, item);
+	skiplist_gc(l);
+	return r;
 }
 
-void *skiplist_search(skiplist_t *list, const void *search) {
-  skiplist_node_t *cur_node = list->header;
-  skiplist_level_t level = list->level;
+skipnode
+skiplist_at(skiplist l, int index)
+{
+	int level;
+	int pos = 0;
+	skipnode node = l->header;
 
-  while (level >= SKIPLIST_LEVEL_MIN) {
-    skiplist_node_t *fwd_node = cur_node->forward[level];
+	if (index > l->size - 1)
+	{
+		return NULL;
+	}
 
-    switch (op_search(list, fwd_node, search)) {
-      case OP_FINISH:          return fwd_node->value;
-      case OP_GOTO_NEXT_NODE:  cur_node = fwd_node; break;
-      case OP_GOTO_NEXT_LEVEL: level -= 1;
-    }
-  }
+	for (level = l->level; level >= 0; level--)
+	{
+		while (pos + node->forward[level].distance < index)
+		{
+			pos += node->forward[level].distance;
+			node = node->forward[level].ptr;
+		}
+	}
 
-  return NULL;
+	while (pos < index + 1)
+	{
+		pos++;
+		node = node->next;
+	}
+
+	return node;
 }
 
-void skiplist_inspect(const skiplist_t *list, FILE *stream) {
-  enum { BUFFER_SIZE = 256 };
-  typedef char buffer_t[BUFFER_SIZE];
 
-  const skiplist_node_t *cur_node = list->header;
-
-  do {
-	  skiplist_level_t level;
-
-    if (cur_node == list->header)
-      fprintf(stream, "Header ");
-    else
-      fprintf(stream, "Node ");
-
-    fprintf(stream, "%p {level: %d", (void *)(cur_node), cur_node->level);
-
-    if (list->inspect_fn && cur_node != list->header) {
-      buffer_t buffer;
-
-      if (list->inspect_fn(cur_node->value, buffer, BUFFER_SIZE))
-        fprintf(stream, ", value: %s", buffer);
-    }
-
-    fprintf(stream, "}\n");
-
-    for (level = cur_node->level; level >= SKIPLIST_LEVEL_MIN; level -= 1)
-      fprintf(stream, "  |%d| -> %p\n", level,
-        (void *)(cur_node->forward[level]));
-  } while ((cur_node = skiplist_node_next(cur_node)));
+void *
+skiplist_fetch_at(skiplist l, int index)
+{
+	skipnode n;
+	if ((n = skiplist_at(l, index)))
+		return skipnode_item(n);
+	else
+		return NULL;
 }
 
-void skiplist_iter_init(skiplist_iter_t *iter, skiplist_t *list) {
-  iter->list = list;
-  skiplist_iter_reset(iter);
+skipnode
+skiplist_search(skiplist l, void *item)
+{
+	int level;
+	skipnode prev,next;
+
+	prev = l->header;
+	level = l->level;
+
+	while (level >= 0)
+	{
+		while (next = prev->forward[level].ptr, l->cmp(next->item, item) < 0)
+			prev = next;
+		level--;
+	}
+
+	while (next = prev->next, l->cmp(next->item, item) < 0)
+		prev = next;
+
+	if (l->cmp(next->item, item) == 0)
+		return next;
+
+	return NULL;
 }
 
-void skiplist_iter_reset(skiplist_iter_t *iter) {
-  iter->cur_node = iter->list->header;
+void *
+skiplist_fetch(skiplist l, void *item)
+{
+	skipnode n;
+
+	if ((n = skiplist_search(l, item)))
+		return(skipnode_item(n));
+	else
+		return NULL;
 }
 
-void *skiplist_iter_next(skiplist_iter_t *iter) {
-  iter->cur_node = skiplist_node_next(iter->cur_node);
+skipnode
+skiplist_search_exact(skiplist l, void *item)
+{
+	skipnode n = skiplist_search(l, item);
+	if (NULL == n)
+		return NULL;
 
-  if (iter->cur_node)
-    return iter->cur_node->value;
+	while (n->item != item && l->cmp(n->item, item) == 0)
+		n = skiplist_next(l, n);
 
-  return NULL;
+	if (n->item == item)
+		return n;
+
+	return NULL;
+}
+
+
+void *
+skiplist_fetch_exact(skiplist l, void *item)
+{
+	skipnode n;
+
+	if ((n = skiplist_search_exact(l, item)))
+		return(skipnode_item(n));
+	else
+		return NULL;
+}
+
+skipnode
+skiplist_first(skiplist l)
+{
+	return(l->header->next == l->sentinal ? NULL : l->header->next);
+}
+
+skipnode
+skiplist_last(skiplist l)
+{
+	return(l->sentinal->prev == l->sentinal ? NULL : l->sentinal->prev);
+}
+
+skipnode
+skiplist_next(skiplist l, skipnode n)
+{
+	return(n->next == l->sentinal ? NULL : n->next);
+}
+
+skipnode
+skiplist_prev(skiplist l, skipnode n)
+{
+	return(n->prev == l->sentinal ? NULL : n->prev);
+}
+
+int
+skiplist_size(skiplist l)
+{
+	return(l->size);
 }
