@@ -63,7 +63,6 @@ INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *seconds);
  * Extract milliseconds from a time value
  */
 INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *milliseconds);
-
 /*
  * Start a stop watch
  */

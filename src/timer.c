@@ -119,7 +119,7 @@ INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e
     return INA_SUCCESS;
 }
 
-INA_API(ina_time_event_t*) ina_timer_next(ina_timer_t *timer)
+INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer)
 {
     time_t now = time(NULL);
     time_t now_sec, now_ms;
