@@ -35,6 +35,8 @@
      time_t t_start;
      time_t t_stop;
 
+     INA_TRACE_MSG("test_time_stopwatch");
+
      gettimeofday(&tv_start, NULL);
      INA_ASSERT_SUCCEED(ina_time_stopwatch_start(&sw));
      sleep(1);
