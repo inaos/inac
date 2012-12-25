@@ -6,8 +6,10 @@ set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
 set (ANET_INCLUDE_DIR "${DEPS_DIR}/anet")
 set (BSTRING_INCLUDE_DIR "${DEPS_DIR}/bstring")
+set (SKIPLIST_INCLUDE_DIR "${DEPS_DIR}/skiplist")
 
-include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${ANET_INCLUDE_DIR}" "${BSTRING_INCLUDE_DIR}")
+include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${ANET_INCLUDE_DIR}" 
+					"${BSTRING_INCLUDE_DIR}" "${SKIPLIST_INCLUDE_DIR}")
 
 #if(WIN32)
 #	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib)

@@ -52,11 +52,13 @@ INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *seconds)
 
 INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *milliseconds)
 {
+	int sec;
+
     INA_ASSERT_NOTNULL(time);
     INA_ASSERT_NOTNULL(milliseconds);
 
 #ifdef WIN32
-    int sec = (int)(time->ttp / 1000);
+    sec = (int)(time->ttp / 1000);
     *milliseconds = (time_t)(time->ttp - (sec*1000));
 #else
     *milliseconds = time->tp.tv_usec/1000;
