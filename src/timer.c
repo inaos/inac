@@ -88,7 +88,7 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
     skiplist_destroy((*timer)->events);
     ina_mem_free(*timer);
     *timer = NULL;
-#ifdef WIN32
+#ifdef INA_OS_WIN32
     timeEndPeriod(1);
 #endif
     return INA_SUCCESS;
