@@ -66,13 +66,9 @@ INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e
  */
 INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer);
 /*
- * 
+ * Get the time in milli seconds before the next time-event goes off 
  */
 INA_API(ina_rc_t) ina_timer_time_to_next(ina_timer_t *timer, time_t *how_long_millis);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_timer_sleep(ina_timer_t *timer, time_t how_long_millis);
 
 #ifdef __cplusplus
 }

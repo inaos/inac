@@ -52,8 +52,9 @@ INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *seconds)
 
 INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *milliseconds)
 {
+#ifdef WIN32
 	int sec;
-
+#endif
     INA_ASSERT_NOTNULL(time);
     INA_ASSERT_NOTNULL(milliseconds);
 
@@ -80,6 +81,9 @@ INA_API(ina_rc_t) ina_time_sleep(time_t how_long_millis)
 {
 #ifdef WIN32
     Sleep((DWORD)how_long_millis);
+#else
+    /* FIXME - should use nanosleep() */
+    usleep(how_long_millis*1000);
 #endif
     return INA_SUCCESS;
 }
