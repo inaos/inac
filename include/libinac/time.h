@@ -71,6 +71,10 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch);
  * Stop a stop watch 
  */
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch);
+/*
+ * Sleep for X milli seconds
+ */
+INA_API(ina_rc_t) ina_time_sleep(time_t how_long_millis);
 
 #ifdef __cplusplus
 }
