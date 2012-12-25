@@ -160,7 +160,7 @@ extern "C" {
 #define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
 #define INA_STR_EALLOC INA_STR_ERROR(INA_EALLOC, "Bad string alloc")
 
-/* String-Module errors */
+/* Memory-Module errors */
 #define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
 #define INA_MEM_EALLOC INA_MEM_ERROR(INA_EALLOC, "Bad memory alloc")
 #define INA_MEM_ERALLOC INA_MEM_ERROR(INA_ERALLOC, "Bad memory realloc")
