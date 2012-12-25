@@ -38,46 +38,52 @@ static double __ina_lit_to_secs(LARGE_INTEGER * L)
 #endif
 
 
-INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *seconds)
+INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *sec)
 {
     INA_ASSERT_NOTNULL(time);
-    INA_ASSERT_NOTNULL(seconds);
+    INA_ASSERT_NOTNULL(sec);
 #ifdef WIN32
-    *seconds = (int)(time->ttp / 1000);
+    *sec = (int)(time->ttp / 1000);
 #else
-    *seconds = time->tp.tv_sec;
+    *sec = time->tp.tv_sec;
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *milliseconds)
+INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *msec)
 {
     INA_ASSERT_NOTNULL(time);
-    INA_ASSERT_NOTNULL(milliseconds);
+    INA_ASSERT_NOTNULL(msec);
 
 #ifdef WIN32
     int sec = (int)(time->ttp / 1000);
-    *milliseconds = (time_t)(time->ttp - (sec*1000));
+    *msec = (time_t)(time->ttp - (sec*1000));
 #else
-    *milliseconds = time->tp.tv_usec/1000;
+    *msec = time->tp.tv_usec/1000;
 #endif
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_read_clock(ina_time_t* time)
 {
-#ifdef WIN32
+#ifdef INA_OS_WIN32
     QueryPerformanceCounter(&time->tp);
 #else
-    gettimeofday(&time->tp, NULL);
+    if (gettimeofday(&time->tp, NULL) == -1) {
+        return INA_FAILURE;
+    }
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_sleep(time_t how_long_millis)
+INA_API(ina_rc_t) ina_time_sleep(time_t msec)
 {
-#ifdef WIN32
-    Sleep((DWORD)how_long_millis);
+#ifdef INA_OS_WIN32
+    Sleep((DWORD)msec);
+#else 
+    if (usleep(msec*1000) == -1) {
+        return INA_FAILURE;
+    }
 #endif
     return INA_SUCCESS;
 }

@@ -58,8 +58,8 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
         return INA_MEM_EALLOC;
     }
     sentinal->id = 0;
-    sentinal->millis = 0;
-    sentinal->when_ms = 0;  
+    sentinal->msec = 0;
+    sentinal->when_msec = 0;  
     sentinal->when_sec = 0;
 
     *timer = (ina_timer_t*)ina_mem_alloc(sizeof(ina_timer_t));
@@ -94,9 +94,13 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
     return INA_SUCCESS;
 }
 
-INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t milliseconds)
+INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec)
 {
     ina_time_event_t *e;
+    
+    INA_ASSERT_NOTNULL(timer);
+    INA_ASSERT(msec > 0);
+
     e = (ina_time_event_t*)ina_mem_alloc(sizeof(ina_time_event_t));
     if (e == NULL) {
         INA_MEM_EALLOC;
@@ -104,9 +108,9 @@ INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t mil
     }
 
     e->id = ++timer->next_event_id;
-    e->millis = milliseconds;
+    e->msec = msec;
 
-    __ina_add_millis_to_now(milliseconds, &e->when_sec, &e->when_ms);
+    __ina_add_millis_to_now(msec, &e->when_sec, &e->when_msec);
 
     skiplist_insert(timer->events, e);
     return e;
@@ -122,8 +126,10 @@ INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e
 INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer)
 {
     time_t now = time(NULL);
-    time_t now_sec, now_ms;
+    time_t now_sec, now_msec;
     ina_time_event_t *e;
+
+    INA_ASSERT_NOTNULL(timer);
 
     /* 
      * If the system clock is moved to the future, and then set back to the
@@ -151,36 +157,39 @@ INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer)
     }
     
     /* check if event should fire if yes return it, if no return null */
-    __ina_get_time(&now_sec, &now_ms);
-    if (now_sec > e->when_sec || (now_sec == e->when_sec && now_ms >= e->when_ms)) {
+    __ina_get_time(&now_sec, &now_msec);
+    if (now_sec > e->when_sec || (now_sec == e->when_sec && now_msec >= e->when_msec)) {
         __ina_reschedule_timer(timer, e);
         return e;
     }
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_timer_time_to_next(ina_timer_t *timer, time_t *how_long_millis)
+INA_API(ina_rc_t) ina_timer_time_to_next(ina_timer_t *timer, time_t *how_long_msec)
 {
-    time_t now_sec, now_ms;
+    time_t now_sec, now_msec;
     ina_time_event_t *shortest;
     time_t hl_sec;
-    time_t hl_ms;
+    time_t hl_msec;
+
+    INA_ASSERT_NOTNULL(timer);
+    INA_ASSERT_NOTNULL(how_long_msec);
 
     shortest = __ina_search_nearest_event(timer);
 
     /* Calculate the time missing for the nearest timer to fire. */
-    __ina_get_time(&now_sec, &now_ms);
+    __ina_get_time(&now_sec, &now_msec);
     hl_sec = shortest->when_sec - now_sec;
-    hl_ms = shortest->when_ms - now_ms;
-    if (shortest->when_ms < now_ms) {
+    hl_msec = shortest->when_msec - now_msec;
+    if (shortest->when_msec < now_msec) {
         hl_sec--;
     }
-    if (hl_sec < 0 || hl_ms < 0) {
+    if (hl_sec < 0 || hl_msec < 0) {
         /* set to zero */
-        *how_long_millis = 0;
+        *how_long_msec = 0;
     }
     else {
-        *how_long_millis = hl_ms;
+        *how_long_msec = hl_msec;
     }
     return INA_SUCCESS;
 }
@@ -207,10 +216,10 @@ static int
             return(-1);
         }
         else {
-            if (l->when_ms > u->when_ms) {
+            if (l->when_msec > u->when_msec) {
                 return(1);
             }
-            else if (l->when_ms < u->when_ms) {
+            else if (l->when_msec < u->when_msec) {
                 return(-1);
             }
             else {
@@ -231,40 +240,45 @@ __ina_read_clock(ina_time_t *time)
 #ifdef WIN32
     time->ttp = timeGetTime();
 #else
-    gettimeofday(&time->tp, NULL);
+    if (gettimeofday(&time->tp, NULL) == -1) {
+        return INA_FAILURE;
+    }
 #endif
     return INA_SUCCESS;
 }
 
 static ina_rc_t 
-__ina_get_time(time_t *seconds, time_t *millis)
+__ina_get_time(time_t *sec, time_t *msec)
 {
     ina_time_t t;
 
-    INA_ASSERT_NOTNULL(seconds);
-    INA_ASSERT_NOTNULL(millis);
+    INA_ASSERT_NOTNULL(sec);
+    INA_ASSERT_NOTNULL(msec);
 
     __ina_read_clock(&t);
 
-    ina_time_get_seconds(&t, seconds);
-    ina_time_get_milliseconds(&t, millis);
+    ina_time_get_seconds(&t, sec);
+    ina_time_get_milliseconds(&t, msec);
     return INA_SUCCESS;
 }
 
 static ina_rc_t
-__ina_add_millis_to_now(time_t millis, time_t *sec, time_t *ms)
+__ina_add_millis_to_now(time_t msec_to_add, time_t *sec, time_t *msec)
 {
-    time_t cur_sec, cur_ms, when_sec, when_ms;
+    time_t cur_sec, cur_msec, when_sec, when_msec;
+    INA_ASSERT(msec_to_add > 0);
+    INA_ASSERT_NOTNULL(sec);
+    INA_ASSERT_NOTNULL(msec);
 
-    __ina_get_time(&cur_sec, &cur_ms);
-    when_sec = cur_sec + millis/1000;
-    when_ms = cur_ms + millis%1000;
-    if (when_ms >= 1000) {
+    __ina_get_time(&cur_sec, &cur_msec);
+    when_sec = cur_sec + msec_to_add/1000;
+    when_msec = cur_msec + msec_to_add%1000;
+    if (when_msec >= 1000) {
         when_sec++;
-        when_ms -= 1000;
+        when_msec -= 1000;
     }
     *sec = when_sec;
-    *ms = when_ms;
+    *msec = when_msec;
     return INA_SUCCESS;
 }
 
@@ -280,7 +294,7 @@ static ina_rc_t
 __ina_reschedule_timer(ina_timer_t *timer, ina_time_event_t *e)
 {
     skiplist_delete_gc(timer->events, e);
-    __ina_add_millis_to_now(e->millis, &e->when_sec, &e->when_ms);
+    __ina_add_millis_to_now(e->msec, &e->when_sec, &e->when_msec);
     skiplist_insert(timer->events, e);
     return INA_SUCCESS;
 }

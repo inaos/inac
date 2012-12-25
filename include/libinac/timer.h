@@ -40,9 +40,9 @@ typedef struct ina_timer_s ina_timer_t;
 /* Time event */
 typedef struct ina_time_event_s {
     uint64_t id;
-    time_t millis;
+    time_t msec;
     time_t when_sec;
-    time_t when_ms;
+    time_t when_msec;
 } ina_time_event_t;
 
 /*
@@ -56,23 +56,23 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer);
 /*
  * Create a new time event for a timer
  */
-INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t milliseconds);
+INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec);
 /*
  * Delete a time event from a timer
  */
-INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *ev);
+INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e);
 /*
  * Get the next elapsed time event
  */
 INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer);
 /*
- * 
+ *  Calculate time in msec until the next time event will elapse.
  */
-INA_API(ina_rc_t) ina_timer_time_to_next(ina_timer_t *timer, time_t *how_long_millis);
+INA_API(ina_rc_t) ina_timer_time_to_next_event(ina_timer_t *timer, time_t *how_long_msec);
 /*
- * 
+ * Sleep a timer for msec. 
  */
-INA_API(ina_rc_t) ina_timer_sleep(ina_timer_t *timer, time_t how_long_millis);
+INA_API(ina_rc_t) ina_timer_sleep(ina_timer_t *timer, time_t msec);
 
 #ifdef __cplusplus
 }

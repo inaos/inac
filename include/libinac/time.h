@@ -58,11 +58,11 @@ INA_API(ina_rc_t) ina_time_read_clock(ina_time_t* time);
 /*
  * Extract seconds from a time value
  */
-INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *seconds);
+INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *sec);
 /* 
  * Extract milliseconds from a time value
  */
-INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *milliseconds);
+INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *msec);
 /*
  * Start a stop watch
  */
