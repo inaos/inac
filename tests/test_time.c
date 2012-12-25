@@ -45,6 +45,10 @@ void test_time_two_stopwatches()
     INA_ASSERT_SUCCEED(ina_time_get_seconds(&w1.start, &sec1)); 
     INA_ASSERT_SUCCEED(ina_time_get_seconds(&w2.start, &sec2));
     INA_ASSERT_EQUAL(sec1, sec2);
+    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w1.start, &msec1)); 
+    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w2.start, &msec2));
+    INA_ASSERT_EQUAL(msec1, msec2);
+
 } 
 
 void test_time_stopwatch() 
