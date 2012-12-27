@@ -222,7 +222,7 @@ INA_API(ina_rc_t) ina_err_trace(void)
 
     rc = ina_err_peek();
     n = 0;
-    while (!INA_SUCCEED(rc) && n < __INA_ERR_STATE_SIZE) {
+    while (!INA_SUCCEED(rc) && __INA_ERR_STATE_SIZE > ++n) {
         if (INA_SUCCEED(ina_err_fmtmsg(rc, str, 2048))) {
             printf("%s\n", str);
         } else {
