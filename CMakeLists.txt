@@ -30,6 +30,11 @@ set (ANET_SRC_DIR ${DEPS_DIR}/anet)
 set (ANET_SRC ${ANET_SRC_DIR}/anet.c)
 add_library(anet ${ANET_SRC})
 
+# SKIPLIST
+set (SKIPLIST_SRC_DIR ${DEPS_DIR}/skiplist)
+set (SKIPLIST_SRC ${SKIPLIST_SRC_DIR}/skiplist.c)
+add_library(skiplist ${SKIPLIST_SRC})
+
 # Makeheaders
 add_library(makeheaders ${DEPS_DIR}/makeheaders/makeheaders.c)
 
