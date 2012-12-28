@@ -9,6 +9,7 @@ tests/suites.c
 tests/suites.h
 tests/test
 tests/test_*.h
+tests/sem_test
 contribs/lua-5.2.1/src/lua
 contribs/lua-5.2.1/src/luac
 contribs/luajit-2.0.0/src/host/buildvm

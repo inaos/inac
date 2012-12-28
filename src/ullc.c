@@ -317,7 +317,7 @@ __ina_sem_create(ina_ullc_ctx_t *ctx)
     if (ctx->sem_handle < 0) {
         return INA_ULLC_ESEMINIT;
     }
-    if (semctl(ctx->sem_handle, 0, SETVAL, (int)1) == -1) {
+    if (semctl(ctx->sem_handle, 0, SETVAL, (int)0) == -1) {
         return INA_ULLC_ESEMINIT;
     }
      return INA_SUCCESS;
@@ -327,7 +327,7 @@ static ina_rc_t
 __ina_sem_open(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
-    ctx->sem_handle = semget(ctx->ring->semkey, 0, 0);
+    ctx->sem_handle = semget(ctx->ring->semkey, 1, 0);
     return INA_SUCCESS;
 }
 
