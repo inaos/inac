@@ -209,7 +209,7 @@ INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version,
 /*
  *  Destroy a ULLC ring
  */
-INA_API(ina_rc_t) in_ullc_ring_destroy(ina_ullc_rb_t **ring);
+INA_API(ina_rc_t) ina_ullc_ring_destroy(ina_ullc_rb_t **ring);
 
 /*
  *  Create a producer
