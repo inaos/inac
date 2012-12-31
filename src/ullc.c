@@ -90,6 +90,7 @@ INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version,
 
     if ((*rb)->magic != __INA_MAGIC_HDR || flags&INA_MEM_SHARED_CREATE) {
         ina_mem_set(*rb, 0, mem_size);
+		(*rb)->pool = pool;
         (*rb)->magic = __INA_MAGIC_HDR;
         (*rb)->version = version;
         (*rb)->size = size;
@@ -106,6 +107,9 @@ INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version,
 
 INA_API(ina_rc_t) ina_ullc_ring_destroy(ina_ullc_rb_t **ring)
 {
+	if (!INA_SUCCEED(ina_mempool_release((*ring)->pool, 1))) {
+		return ina_err_peek();
+	}
     return INA_SUCCESS;
 }
 

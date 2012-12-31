@@ -147,6 +147,7 @@ typedef enum ina_ullc_wait_strategy_e {
 
 /* ring buffer (shared mem) */
 typedef struct ina_ullc_rb_s {
+	ina_mempool_t *pool;
     char magic;
     int version;
     int num_consumers;
