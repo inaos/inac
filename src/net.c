@@ -66,7 +66,22 @@ INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port)
     
     *fd = anetTcpAccept(err, sfd, ip, port);
     if (*fd == ANET_ERR) {
-        return INA_NET_ERROR(err);
+#ifdef INA_OS_WIN32
+		int ec = WSAGetLastError();
+		if (ec == WSAEWOULDBLOCK) {
+			/* this is ok we have a non-blocking socket */	
+		}
+		else {
+			return INA_NET_ERROR(err);
+		}
+#else
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			/* this is ok we have a non-blocking socket */	
+		}
+		else {
+			return INA_NET_ERROR(err);
+		}
+#endif
     }
     return INA_SUCCESS;
 }
