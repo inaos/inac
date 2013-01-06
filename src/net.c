@@ -67,20 +67,15 @@ INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port)
     *fd = anetTcpAccept(err, sfd, ip, port);
     if (*fd == ANET_ERR) {
 #ifdef INA_OS_WIN32
-		int ec = WSAGetLastError();
-		if (ec == WSAEWOULDBLOCK) {
-			/* this is ok we have a non-blocking socket */	
-		}
-		else {
-			return INA_NET_ERROR(err);
-		}
-#else
-		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			/* this is ok we have a non-blocking socket */	
-		}
-		else {
-			return INA_NET_ERROR(err);
-		}
+        int ec = WSAGetLastError();
+        /* this is ok we have a non-blocking socket */	
+        if (ec != WSAEWOULDBLOCK) {
+            return INA_NET_ERROR(err);
+        }
+#else   
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            return INA_NET_ERROR(err);
+        }
 #endif
     }
     return INA_SUCCESS;
@@ -121,9 +116,21 @@ INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read)
     
     *nb_read = anetRead(fd, (char*)buf, nb);
     if (*nb_read == ANET_ERR) {
-        /* FIXME : Stay in line with the coding standards */
-        /*         define Error message in error.h */
-        return INA_NET_ERROR("Error reading");
+#ifdef INA_OS_WIN32
+        int ec = WSAGetLastError();
+        /* this is ok we have a non-blocking socket */	
+        if (ec != WSAEWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error reading");
+        }
+#else   
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error reading");
+        }
+#endif
     }
     return INA_SUCCESS;
 }
