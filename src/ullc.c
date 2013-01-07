@@ -321,7 +321,7 @@ __ina_sem_create(ina_ullc_ctx_t *ctx)
     if (ctx->sem_handle < 0) {
         return INA_ULLC_ESEMINIT;
     }
-    if (semctl(ctx->sem_handle, 0, SETVAL, (int)0) == -1) {
+    if (semctl(ctx->sem_handle, 0, SETVAL, (int)1) == -1) {
         return INA_ULLC_ESEMINIT;
     }
      return INA_SUCCESS;
