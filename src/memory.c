@@ -527,26 +527,20 @@ __ina_shm_open(ina_mempool_t *pool)
 
     pool->size = __INA_MEM_ALIGN(pool->size+sizeof(int64_t));
     pool->end = pool->size;
-    /*printf("shared mem size: %zd\n", pool->size);*/
 
     flags = O_RDWR;
     if (pool->cf&INA_MEM_SHARED_CREATE) {
         flags =  O_CREAT|O_EXCL|O_RDWR;
         shm_unlink(ina_str_cstr(pool->label));
     }
-    /*INA_TRACE("__ina_shm_open()");*/
 
-    /*printf("shared mem name: %s\n",ina_str_cstr(pool->label));*/
     pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, 0x0770);
     if (pool->shm_handle == -1) {
-        /* INA_TRACE("failed shm_open()");*/
-        /* FIXME: Specific error */
         return INA_MEM_ESHMALLOC;
     }
 
     if (pool->cf&INA_MEM_SHARED_CREATE) {
         if (ftruncate(pool->shm_handle, pool->size) == -1) {
-            /*INA_TRACE("failed ftruncate()");*/
             close(pool->shm_handle);
             pool->shm_handle = 0;
             shm_unlink(ina_str_cstr(pool->label));
@@ -559,7 +553,6 @@ __ina_shm_open(ina_mempool_t *pool)
                         pool->shm_handle, 0);
 
     if (pool->m == MAP_FAILED) {
-        /*INA_TRACE("failed mmap()");*/
         close(pool->shm_handle);
         pool->shm_handle = 0;
         if (pool->cf&INA_MEM_SHARED_CREATE) {
@@ -568,7 +561,6 @@ __ina_shm_open(ina_mempool_t *pool)
         return INA_MEM_ESHMALLOC;
     }
     if (pool->cf&INA_MEM_SHARED_CREATE) {
-        /* FIXME: portable  */
         __sync_lock_test_and_set((int64_t*)pool->m, 1);
     }
     pool->pos += sizeof(int64_t);
@@ -588,7 +580,6 @@ __ina_shm_close(ina_mempool_t *pool)
          return INA_SUCCESS;
     }
 
-    /*INA_TRACE("unmapping shared mem");*/
     cn = __sync_fetch_and_sub((int64_t*)pool->m, 1);
     munmap(pool->m, pool->size);
     pool->m = NULL;
@@ -596,11 +587,10 @@ __ina_shm_close(ina_mempool_t *pool)
     pool->pos = 0;
     pool->end = 0;
 
-    /*INA_TRACE("closing shared mem");*/
     close(pool->shm_handle);
 
     if (cn == 0) {
-        /*INA_TRACE("unlinking shared mem");*/
+        INA_TRACE("unlinking shared mem %s", pool->label);
         shm_unlink(ina_str_cstr(pool->label));
     }
     return INA_SUCCESS;
