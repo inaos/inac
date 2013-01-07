@@ -560,11 +560,11 @@ __ina_shm_open(ina_mempool_t *pool)
         }
         return INA_MEM_ESHMALLOC;
     }
-    if (pool->cf&INA_MEM_SHARED_CREATE) {
-        __sync_lock_test_and_set((int64_t*)pool->m, 1);
-    }
+    /* Inc ref count */
+    __sync_fetch_and_add((int64_t*)pool->m, 1);
+    /* Inc start pos */
     pool->pos += sizeof(int64_t);
-
+    INA_TRACE2("shared mem %s ref count =  %lld", pool->label, *(int64_t*)pool->m);
     return INA_SUCCESS;
 }
 
@@ -580,19 +580,27 @@ __ina_shm_close(ina_mempool_t *pool)
          return INA_SUCCESS;
     }
 
-    cn = __sync_fetch_and_sub((int64_t*)pool->m, 1);
+    /* Dec an get ref count before unmap memory */
+    cn = __sync_sub_and_fetch((int64_t*)pool->m, 1);
+    
+    /* Unmap memory */
     munmap(pool->m, pool->size);
     pool->m = NULL;
     pool->size = 0;
     pool->pos = 0;
     pool->end = 0;
 
+    /* Close shared mem */
     close(pool->shm_handle);
 
+    /* Dec ref count, unlink on last relase */
     if (cn == 0) {
-        INA_TRACE("unlinking shared mem %s", pool->label);
+        INA_TRACE2("unlinking shared mem %s", pool->label);
         shm_unlink(ina_str_cstr(pool->label));
     }
+    INA_TRACE2("shared mem %s ref count =  %lld", pool->label, cn);
+    ina_str_destroy(pool->label);
+
     return INA_SUCCESS;
 }
 #else
