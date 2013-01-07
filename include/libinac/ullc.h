@@ -147,6 +147,7 @@ typedef enum ina_ullc_wait_strategy_e {
 
 /* ring buffer (shared mem) */
 typedef struct ina_ullc_rb_s {
+	ina_mempool_t *pool;
     char magic;
     int version;
     int num_consumers;
@@ -209,7 +210,7 @@ INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version,
 /*
  *  Destroy a ULLC ring
  */
-INA_API(ina_rc_t) in_ullc_ring_destroy(ina_ullc_rb_t **ring);
+INA_API(ina_rc_t) ina_ullc_ring_destroy(ina_ullc_rb_t **ring);
 
 /*
  *  Create a producer
