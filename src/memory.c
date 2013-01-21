@@ -630,8 +630,9 @@ __ina_shm_open(ina_mempool_t *pool)
         0,
         pool->size);
 
-    if (pool->shm_handle == NULL) {
+    if (pool->m == NULL) {
         CloseHandle(pool->shm_handle);
+        pool->shm_handle = NULL;
         return INA_MEM_ESHMALLOC;
     }
     return INA_SUCCESS;
