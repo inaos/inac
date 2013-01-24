@@ -141,11 +141,14 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
     }
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, (*ctx)->type);
 
-	if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
-		return ina_err_peek();
-	}
-
-    return __ina_sem_close(*ctx);
+    if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
+        return ina_err_peek();
+    }
+    if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
+        return ina_err_peek();
+    }
+    *ctx = NULL;
+    return INA_SUCCESS;
 }
 
 INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
@@ -245,11 +248,14 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
 
     (*ctx)->c_offset->alive = 0;
 
-	if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
-		return ina_err_peek();
-	}
-
-    return __ina_sem_close(*ctx);
+    if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
+        return ina_err_peek();
+    }
+    if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
+        return ina_err_peek();
+    }
+    *ctx = NULL;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_swait(ina_ullc_ctx_t *ctx)
