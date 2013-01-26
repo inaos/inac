@@ -47,8 +47,9 @@ extern "C" {
 
 /* Backend */
 typedef enum ina_iscp_backend_e {
-    INA_ISCP_DEFAULT = 0,
+    INA_ISCP_NONE = 0,
     INA_ISCP_INET,
+    INA_ISCP_DEFAULT = INA_ISCP_INET,
 } ina_iscp_backend_t;
 
 /* ISCP context: Implementation specific 
