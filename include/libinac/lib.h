@@ -57,6 +57,7 @@
 #include <libinac/ullc.h>
 #include <libinac/net.h>
 #include <libinac/iscp.h>
+#include <libinac/conffile.h>
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
