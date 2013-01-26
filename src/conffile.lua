@@ -1,4 +1,6 @@
-sections = {}
+local conffile = {}
+
+--[[sections = {}
 sections.Debug = {
   name = "Debug",
   named = false,
@@ -6,13 +8,11 @@ sections.Debug = {
   keys = {
     command_latency = {
       required = true,
-      typename = "number",
-      has_value = false
+      typename = "number"
     },
     other_latency = {
       required = false,
-      typename = "number",
-      has_value = false
+      typename = "number"
     }
   },
   configured = false
@@ -24,21 +24,20 @@ sections.Iface = {
   keys = {
     ip = {
       required = true,
-      typename = "string",
-      has_value = false
+      typename = "string"
     },
     mask = {
       required = true,
-      typename = "string",
-      has_value = false
+      typename = "string"
     },
   },
   configured = false
 }
+]]
 
 -- Example config
-example =
-[[
+--example =
+--[[
 Debug {
 	command_latency=1000
 }
@@ -156,15 +155,6 @@ env.math.sin = math.sin
 env.math.sinh = math.sqrt
 env.math.tan = math.tanh
 
-for sk,section in pairs(sections) do
-	if not section.named then
-		env[section.name] = _section_func
-	else
-		env[section.name] = _named_section_func
-    section.children = {}
-	end
-end
-
 -- run code under environment [Lua 5.1]
 local function _run(code)
     local untrusted_function, message = loadstring(code)
@@ -176,19 +166,38 @@ local function _run(code)
     return ret, initfunc
 end
 
--- load config and validate
-local success, err = _run(example)
-if not success then
-  error(err)
-end
+conffile.process = function(sections, config_file)
+  local f = io.open(config_file, "r")
+  local code = f:read("*a")
+  f:close()
 
--- additional validation
-for sk,s in pairs(sections) do
-  if s.required and not s.configured then
-    error("Section: "..sk.." required but not configured")
+  for sk,section in pairs(sections) do
+    if not section.named then
+      env[section.name] = _section_func
+    else
+      env[section.name] = _named_section_func
+      section.children = {}
+    end
+  end
+
+  -- load config and validate
+  local success, err = _run(code)
+  if not success then
+    error(err)
+  end
+
+  -- additional validation
+  for sk,s in pairs(sections) do
+    if s.required and not s.configured then
+      error("Section: "..sk.." required but not configured")
+    end
   end
 end
 
+return conffile
+
+-- sample processor
+--[[
 for sk,s in pairs(sections) do
   if s.configured then
     print(sk)
@@ -210,3 +219,4 @@ for sk,s in pairs(sections) do
     end
   end
 end
+]]
