@@ -54,26 +54,35 @@ static ina_rc_t __ina_net_recv_cb(ina_iscp_ctx_t*, ina_iscp_msg_t*);
 
 INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend)
 {
+    ina_rc_t rc = INA_SUCCESS;
+
     switch (backend) {
-		case INA_ISCP_NONE:
-			/* Callsbacks will be provided externally */
-			break;
-		case INA_ISCP_INET:
+        case INA_ISCP_NONE:
+            /* Callsbacks will be provided externally */
+            break;
+        case INA_ISCP_INET:
         {
-            ina_iscp_set_callbacks(__ina_net_send_cb, __ina_net_recv_cb);
+            rc = ina_iscp_set_callbacks(__ina_net_send_cb, __ina_net_recv_cb);
             break;
         }
-        default: {
-            return INA_FAILURE;
+        default: 
+        {
+            rc = ina_iscp_set_callbacks(__ina_net_send_cb, __ina_net_recv_cb);
             break;
         }
     }
+    
+    if (!INA_SUCCEED(rc)) {
+        return INA_ERR_REPUSH;
+    }
 
     if (__mempool == NULL) {
-        return ina_mempool_create(&__mempool, 
+        if (!INA_SUCCEED(ina_mempool_create(&__mempool, 
                     2*1024*1024, 
                     INA_MEM_DYNAMIC|INA_MEM_FILLZERO, 
-                    NULL);
+                    NULL))) {
+            return INA_ERR_REPUSH;
+        }
     }
     return INA_SUCCESS;
 }
@@ -82,22 +91,23 @@ INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_send_cb send_cb, ina_iscp_recv
 {
     __recv_cb = recv_cb;
     if (__recv_cb == NULL) {
-        return INA_FAILURE;
+        return INA_ISCP_ESENDCB;
     }
     __send_cb = send_cb;
     if (__send_cb == NULL) {
-        return INA_FAILURE;
+        return INA_ISCP_ERECVCB;
     }
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_iscp_reset(void) 
 {
-    __send_cb = NULL;
-    __recv_cb = NULL;
     HASH_CLEAR(hh, __cmds);
     INA_ASSERT_NULL(__cmds);
-    return ina_mempool_release(__mempool, 0);
+    if (!INA_SUCCEED(ina_mempool_release(__mempool, 0))) {
+        return INA_ERR_REPUSH;
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler handler)
@@ -124,7 +134,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler ha
 
     cmd = (ina_iscp_cmd_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_cmd_t));
     if (cmd == NULL) {
-        return ina_err_peek();
+        return INA_ERR_REPUSH;
     }
 
     cmd->cmd_id = cmd_id;
@@ -148,6 +158,11 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
     INA_ASSERT_NOTNULL(ctx);
 
+    /* We need a send callback */
+    if (__send_cb == NULL) {
+        return INA_FAILURE;
+    }
+
     cmd = NULL;
     HASH_FIND_INT(__cmds, &cmd_id, cmd);
     if (cmd == NULL) {
@@ -157,6 +172,9 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
     /* Allocate buffer */
     msg = (ina_iscp_msg_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_msg_t));
+    if (msg == NULL) {
+        return INA_ERR_REPUSH;
+    }
 
     n = 0;
     p = cmd->p_count;
@@ -229,7 +247,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
     /* Calculate CRC and append it to the message */
     INA_TRACE3("crc pos %ld", msg->length-sizeof(uint32_t));
-    crc = ina_util_crc32(0, (unsigned char*)msg, msg->length-sizeof(uint32_t));
+    crc = ina_util_hash_crc32(0, msg, msg->length-sizeof(uint32_t));
     INA_TRACE3("crc=%u crc-length=%ld", crc,  msg->length-sizeof(uint32_t));
     msg->cmd_data[n] = crc & 0xff;
     msg->cmd_data[++n] = (crc>>8)  & 0xff;

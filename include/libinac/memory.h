@@ -43,8 +43,6 @@ extern "C" {
 #define INA_MEM_AUTOSIZE    2
 /* Fill chunks */
 #define INA_MEM_BESTFIT     4
-/* Zero fill on allocation */
-#define INA_MEM_FILLZERO   16
 /* Use shared memory */
 #define INA_MEM_SHARED        32
 /* Open or create shared memory */
