@@ -162,9 +162,9 @@ void test_iscp_setup()
      INA_TRACE_MSG("test_iscp_setup");
      INA_ASSERT_SUCCESS(ina_iscp_init(INA_ISCP_INET));
      INA_ASSERT_SUCCEED(ina_iscp_set_callbacks(__null_send_cb, __null_recv_cb));
-     INA_ASSERT_FAILURE(ina_iscp_set_callbacks(NULL, __null_recv_cb));
-     INA_ASSERT_FAILURE(ina_iscp_set_callbacks(NULL, NULL));
-     INA_ASSERT_FAILURE(ina_iscp_set_callbacks(__null_send_cb, NULL));
+     INA_ASSERT_NOTSUCCEED(ina_iscp_set_callbacks(NULL, __null_recv_cb));
+     INA_ASSERT_NOTSUCCEED(ina_iscp_set_callbacks(NULL, NULL));
+     INA_ASSERT_NOTSUCCEED(ina_iscp_set_callbacks(__null_send_cb, NULL));
      INA_ASSERT_SUCCEED(ina_iscp_set_callbacks(__null_send_cb, __null_recv_cb));
      INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler));
      INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __null_handler));
@@ -172,7 +172,7 @@ void test_iscp_setup()
      INA_ASSERT_FAILURE(ina_iscp_register(1, 2, __null_handler));
      INA_ASSERT_FAILURE(ina_iscp_register(1, 4, __null_handler2));
      INA_ASSERT_SUCCEED(ina_iscp_reset());
-     INA_ASSERT_FAILURE(ina_iscp_register(1, 4, __null_handler2));
+     INA_ASSERT_SUCCEED(ina_iscp_register(1, 4, __null_handler2));
      INA_ASSERT_SUCCEED(ina_iscp_set_callbacks(__null_send_cb, __null_recv_cb));
      INA_ASSERT_SUCCEED(ina_iscp_register(1, 4, __null_handler2));
 }

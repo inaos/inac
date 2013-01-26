@@ -47,7 +47,7 @@ extern "C" {
 
 /* Backend */
 typedef enum ina_iscp_backend_e {
-    INA_ISCP_NONE = 0,
+    INA_ISCP_DEFAULT = 0,
     INA_ISCP_INET,
 } ina_iscp_backend_t;
 
@@ -88,13 +88,19 @@ typedef struct ina_iscp_msg_s {
     unsigned char cmd_data[INA_ISCP_BUFFER_SIZE]; 
 } ina_iscp_msg_t;
 
+/* ISCP RC */
+typedef struct ina_iscp_rc_s {
+    uint32_t cmd_uid; /* UID for sent commands */
+    ina_rc_t rc;      /* RC */
+} ina_iscp_rc_t;
+
 /* Send callback */
 typedef ina_rc_t (*ina_iscp_send_cb)(ina_iscp_ctx_t*, ina_iscp_msg_t*);
 /* Receive callback */
 typedef ina_rc_t (*ina_iscp_recv_cb)(ina_iscp_ctx_t*, ina_iscp_msg_t*);
 
 /*
- * Initialize internal structrues for ISCP
+ * Initialize internal structures for ISCP
  *
  * Parameters
  * backend      Specifies the type of backend to use
@@ -116,7 +122,7 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend);
 INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
 
 /*
- * Reset ISCP status and remove all regsitred commands.
+ * Reset ISCP status and remove all regsistred commands.
  *
  * Return Value:
  * INA_SUCCESS if successfully cleared.
@@ -146,7 +152,6 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id,int p_count, ina_iscp_handler han
  *                   INA_ISCP_TYPE_INT, 3);
  *
  * Parameters
- * fd       socket descriptor
  * cmd_id   Commmand identifier
  * ...      Command parameter list
  *
