@@ -57,7 +57,10 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend)
     ina_rc_t rc = INA_SUCCESS;
 
     switch (backend) {
-        case INA_ISCP_INET:
+		case INA_ISCP_NONE:
+			/* Callsbacks will be provided externally */
+			break;
+		case INA_ISCP_INET:
         {
             rc = ina_iscp_set_callbacks(__ina_net_send_cb, __ina_net_recv_cb);
             break;

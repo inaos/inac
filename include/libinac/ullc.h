@@ -147,7 +147,6 @@ typedef enum ina_ullc_wait_strategy_e {
 
 /* ring buffer (shared mem) */
 typedef struct ina_ullc_rb_s {
-	ina_mempool_t *pool;
     char magic;
     int version;
     int num_consumers;
@@ -168,6 +167,7 @@ typedef struct ina_ullc_consumer_s {
 /* ullc context */
 typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
+	ina_mempool_t *pool;            /* memory-pool */
     ina_ullc_ctx_type_t type;       /* type of context */
     ina_handle_t sem_handle;        /* semaphore handle */
     ina_ullc_wait_strategy ws;      /* wait strategy */
@@ -176,12 +176,10 @@ typedef struct ina_ullc_ctx_s {
     unsigned char *data;            /* slot data */
 } ina_ullc_ctx_t;
 
-/* Helper macro to create an ullc ring */
-#define INA_ULLC_RING_CREATE(rb, version, type, slots, consumers, name) \
-ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers,ina_str_fromcstr(name),  INA_MEM_SHARED_CREATE)
-/* Helper macro to open an ullc ring */
-#define INA_ULLC_RING_OPEN(rb, version, type, slots, consumers, name) \
-ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(name), 0)
+#define INA_ULLC_PRODUCER_CREATE(type, version, slots, consumers, name, ws, ctx) \
+	ina_ullc_producer_create(version, sizeof(type), slots, consumers, name, ws, ctx)
+#define INA_ULLC_CONSUMER_CREATE(type, version, slots, consumers, name, ctx, id) \
+	ina_ullc_consumer_create(id, version, sizeof(type), slots, consumers, name, ctx)
 /* Clain an item */
 #define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
 /* Commit an item */
@@ -200,24 +198,11 @@ ina_ullc_ring_create(rb, version,sizeof(type),slots,consumers, ina_str_fromcstr(
 /* "Singal" consumers to read */
 #define INA_ULLC_SIGNAL_RELEASE(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_RELEASE)
 
-
-/*
- *  Create a ULLC ring
- */
-INA_API(ina_rc_t) ina_ullc_ring_create(ina_ullc_rb_t **rb, int version, 
-                            size_t size, size_t slots, int num_consumers, 
-                            const ina_str_t name, int flags);
-/*
- *  Destroy a ULLC ring
- */
-INA_API(ina_rc_t) ina_ullc_ring_destroy(ina_ullc_rb_t **ring);
-
 /*
  *  Create a producer
  */
-INA_API(ina_rc_t) ina_ullc_producer_create(int version,
-                            ina_ullc_wait_strategy ws,
-                            ina_ullc_rb_t *ring, ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, size_t slots, int num_consumers,
+                            const ina_str_t name, ina_ullc_wait_strategy ws, ina_ullc_ctx_t **ctx);
 /*
  *  Destroy a producer
  */
@@ -245,8 +230,8 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_
 /*
  * Create a consumer
  */
-INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version,
-                            ina_ullc_rb_t *ring, ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, size_t size, size_t slots, 
+							int num_consumers, const ina_str_t name, ina_ullc_ctx_t **ctx);
 /*
  * Destroy consumer
  */
