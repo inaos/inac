@@ -25,3 +25,5 @@ contribs/makeheaders/makeheaders
 contribs/sqlite-3.7.14.1/build/*
 luajit
 build/*
+buildall/*
+tests/build/*
