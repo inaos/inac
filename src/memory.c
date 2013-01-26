@@ -252,7 +252,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         return INA_MEM_EALLOC;
     }
 
-    if (cf&INA_MEM_FILLZERO && !(cf&INA_MEM_SHARED)) {
+    if (!(cf&INA_MEM_SHARED)) {
         __ina_memset((*pool)->m, 0, size);
     }
 
