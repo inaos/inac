@@ -74,6 +74,7 @@ extern "C" {
 #define INA_ESEMINIT  7
 #define INA_ENET      8
 #define INA_ERALLOC   9
+#define INA_EINVAL   10
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -121,7 +122,6 @@ extern "C" {
                                           __FILE__,                         \
                                           __LINE__ ,                        \
                                           s)
-
 /*
  * Pack an RC. 
  * 
@@ -151,6 +151,11 @@ extern "C" {
 /* Check retuen code if successful or handled */
 #define INA_SUCCEED(rc) ina_err_succeed(rc)
 
+/*
+ * Re-push last pushed error
+ */
+#define INA_ERR_REPUSH ina_err_repush(ina_err_peek(), __FILE__, __LINE__)
+
 /* Error-Module errors */
 #define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
 #define INA_ERR_EMSGLEN INA_ERR_ERROR(INA_EMSGLEN, "Message size")
@@ -174,6 +179,12 @@ extern "C" {
 
 /* Net-Module errors */
 #define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
+
+/* ISCP errors */
+#define INA_ISCP_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ISCP, INA_OSFN_NONE, s)
+#define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set callback");
+#define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set callback");
+
 
 /* Error information */
 typedef struct ina_error_s {
@@ -201,6 +212,19 @@ typedef struct ina_error_s {
 INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, const char *file, 
                                int line, 
                                const char *msg);
+
+/*
+ * Re-push an error to the error state
+ *
+ * Parameters
+ * rc   RC to re-push
+ * file     filename
+ * line     line
+ *
+ * Return Value
+ * RC
+ */
+INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line);
 
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc);
 /*

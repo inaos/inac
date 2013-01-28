@@ -77,6 +77,20 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, const char *file,
     return error->rc;
 }
 
+INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line)
+{
+    size_t k;
+
+    k = __ina_get_index(rc);
+
+    return ina_err_push(INA_RC_MOD(rc),
+                 INA_RC_OSFN(rc),
+                 INA_RC_REASON(rc),
+                 file,
+                 line,
+                 __state.errors[k].msg);
+}
+
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
 {
     if (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0) {
@@ -174,8 +188,8 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
 
     if (INA_RC_ID(rc) <= __state.ic) {
         k = __ina_get_index(rc);
-        if (k <= __state.c) {
-            error = &__state.errors[k-1];
+        if (k < __state.c) {
+            error = &__state.errors[k];
             
             if (len < (strlen(error->msg) +
                        strlen(error->file) +
@@ -221,15 +235,14 @@ INA_API(ina_rc_t) ina_err_trace(void)
     printf("%s\n", "**** UNHANDLED ERROR START ******");
 
     rc = ina_err_peek();
-    n = 0;
-    while (!INA_SUCCEED(rc) && __INA_ERR_STATE_SIZE > ++n) {
-        if (INA_SUCCEED(ina_err_fmtmsg(rc, str, 2048))) {
+    n = __state.c;
+    while (n--) {
+        if (INA_SUCCEED(ina_err_fmtmsg(__state.errors[n].rc, str, 2048))) {
             printf("%s\n", str);
         } else {
             printf("%s\n", "**** FATAL ERROR  ******");
             return INA_FAILURE;
         }
-        rc = ina_err_peek_next(rc);
     }
     printf("%s\n", "**** UNHANDLED ERROR END   ******");
 
@@ -263,7 +276,7 @@ __ina_get_index(ina_rc_t rc)
 
     k = INA_RC_ID(rc);
     m = k % __INA_ERR_STATE_SIZE;
-    k = m > 0?m:k;
+    k = m > 0?m-1:k-1;
     return k;
 }
 
