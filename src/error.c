@@ -121,7 +121,7 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     k = __ina_get_index(rc);
 
     if (k < __state.c) {
-        return __state.errors[k].rc;
+        return __state.errors[k-1].rc;
     }
     return INA_SUCCESS;
     
@@ -200,7 +200,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
             tm = localtime(&error->ts);
 
             if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
-                sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u)",
+                sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u,i:%d)",
                                             tmc, 
                                             error->file,
                                             error->line,
@@ -208,7 +208,8 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
                                             INA_RC_REASON(error->rc),
                                             INA_RC_OSFN(error->rc),
                                             INA_RC_MOD(error->rc),
-                                            INA_RC_HANDLED(error->rc));
+                                            INA_RC_HANDLED(error->rc),
+                                            INA_RC_ID(error->rc));
 
                 if (strncpy(str, outstr, len) == NULL) {
                     return INA_ERR_EMSGFMT;
