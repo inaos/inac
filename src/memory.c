@@ -50,7 +50,7 @@ static ina_memcmp_t  __ina_memcmp  = NULL;
 static ina_memchr_t  __ina_memchr  = NULL;
 static ina_memset_t  __ina_memset  = NULL;
 
-/* Allocators for memeory pools */
+/* Allocators for memory pools */
 static ina_malloc_t  __ina_mp_malloc   = NULL;
 static ina_realloc_t __ina_mp_realloc  = NULL;
 static ina_free_t    __ina_mp_free     = NULL;
@@ -320,6 +320,7 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
         } else {
             pm->pos = 0;
             pm->end = pm->size;
+            ina_mem_set(pm->m, 0, pm->size);
         }
     }
     return INA_SUCCESS;
@@ -349,12 +350,6 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
         ++info->children;
         pm = pm->child;
     }
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool, size_t size)
-{
-    INA_NOT_IMPL;
     return INA_SUCCESS;
 }
 

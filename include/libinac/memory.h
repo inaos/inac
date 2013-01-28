@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -212,21 +212,34 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
  * INA_FAILURE if an error occured
  */
 INA_API(ina_rc_t) ina_mempool_init(size_t size);
-/* cleanup */
+/*
+ * Destroy all memory pools and release allocated memory. To reuse memory
+ * a ina_mempool_init() must be called.
+ */
 INA_API(ina_rc_t) ina_mempool_destroy(void);
-/* informationen abrufen */
+/*
+ * Query information about a memory pool
+ */
 INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info);
-/* create a memory pool. */
+/* 
+ * Create a memory pool. 
+ */
 INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, ina_str_t label);
-/* destroy a memory pool and release allocated memory */
+/* 
+ * Release pool memory.
+ */
 INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy);
-/* reset a memory pool, memory still allocated */
-INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool, size_t size);
-/* allocate reallocable memory from a pool */
+/*
+ * Allocate reallocable memory from a pool 
+ */
 INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
-/* allocate not reallocable memory from a pool */
+/* 
+ * Allocate not reallocable memory from a pool
+ */
 INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
-/* reallocate memory from a pool */
+/* 
+ * Reallocate memory from a pool 
+ */
 INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size);
 
 #ifdef __cplusplus
