@@ -121,7 +121,18 @@ extern "C" {
                                           f,r,                              \
                                           __FILE__,                         \
                                           __LINE__ ,                        \
-                                          s)
+
+
+/*
+ * Re-push a previously pushed error
+ */
+#define INA_ERR_REPUSH(rc) ina_err_repush(rc, __FILE__, __LINE__)
+
+/*
+ * Re-push last pushed error
+ */
+#define INA_ERR_PUSH_LAST INA_ERR_REPUSH(ina_err_peek())
+
 /*
  * Pack an RC. 
  * 
@@ -150,11 +161,6 @@ extern "C" {
 #define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
 /* Check retuen code if successful or handled */
 #define INA_SUCCEED(rc) ina_err_succeed(rc)
-
-/*
- * Re-push last pushed error
- */
-#define INA_ERR_REPUSH ina_err_repush(ina_err_peek(), __FILE__, __LINE__)
 
 /* Error-Module errors */
 #define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)

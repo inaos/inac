@@ -40,8 +40,8 @@ void test_error_repush()
     INA_ERR_EMSGLEN;
     INA_ERR_EMSGFMT;
     INA_STR_EALLOC;
-    INA_ERR_REPUSH;
-    INA_ERR_REPUSH;
+    INA_ERR_PUSH_LAST;
+    INA_ERR_PUSH_LAST;
     
     rc = ina_err_peek();
     INA_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));

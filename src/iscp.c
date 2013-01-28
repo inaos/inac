@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,15 +73,15 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend)
     }
     
     if (!INA_SUCCEED(rc)) {
-        return INA_ERR_REPUSH;
+        return INA_ERR_PUSH_LAST;
     }
 
     if (__mempool == NULL) {
         if (!INA_SUCCEED(ina_mempool_create(&__mempool, 
                     2*1024*1024, 
-                    INA_MEM_DYNAMIC|INA_MEM_FILLZERO, 
+                    INA_MEM_DYNAMIC, 
                     NULL))) {
-            return INA_ERR_REPUSH;
+            return INA_ERR_PUSH_LAST;
         }
     }
     return INA_SUCCESS;
@@ -105,7 +105,7 @@ INA_API(ina_rc_t) ina_iscp_reset(void)
     HASH_CLEAR(hh, __cmds);
     INA_ASSERT_NULL(__cmds);
     if (!INA_SUCCEED(ina_mempool_release(__mempool, 0))) {
-        return INA_ERR_REPUSH;
+        return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
 }
@@ -134,7 +134,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler ha
 
     cmd = (ina_iscp_cmd_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_cmd_t));
     if (cmd == NULL) {
-        return INA_ERR_REPUSH;
+        return INA_ERR_PUSH_LAST;
     }
 
     cmd->cmd_id = cmd_id;
@@ -173,7 +173,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     /* Allocate buffer */
     msg = (ina_iscp_msg_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_msg_t));
     if (msg == NULL) {
-        return INA_ERR_REPUSH;
+        return INA_ERR_PUSH_LAST;
     }
 
     n = 0;
