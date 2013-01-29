@@ -82,6 +82,20 @@ extern "C" {
                           (INA_MINOR_VERSION << 8)  |   \
                           (INA_MICRO_VERSION << 0))
 
+typedef enum ina_opt_type_e {
+    INA_OPT_TYPE_STRING = 0,
+    INA_OPT_TYPE_INT,
+    INA_OPT_TYPE_FLAG,
+} ina_opt_type_t;
+    
+/* Command line option builder */
+typedef struct ina_opt_s {
+    const char *short_opt;  /* short option, nomally 1 char */
+    const char *long_opt;   /* long option */
+    ina_opt_type_t type;    /* option type */
+    const char *dft;        /* default value */
+    const char *desc;       /* short description, used in usage */
+} ina_opt_t;
 
 /* Cleanup handler. */
 typedef int (*ina_cleanup_handler_t) (const int, const int);
@@ -96,11 +110,45 @@ typedef int (*ina_cleanup_handler_t) (const int, const int);
  *  argv      -  Pointer to the argv of main() function
  *  pool_size - Initial size of internal memory pool. if 0 passed a pool
  *              with size INA_MEM_DFT_POOL_SIZE will be created.
+ *  opt         Array of options to parse
  *
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_appinit(const int argc,  char **argv, size_t pool_size);
+INA_API(ina_rc_t) ina_appinit(const int argc,  char **argv, size_t pool_size, ina_opt_t *opt);
+
+/*
+ * Check whenever an option is available.
+ *
+ * Parameters:
+ *  opt   name of option
+ *
+ * Return Value
+ * INA_SUCCESS if option is available
+ */
+INA_API(ina_rc_t) ina_opt_isset(const char *opt);
+/*
+ * Get the string value of an option.
+ *
+ * Parameters:
+ *  opt     name of option
+ *  value
+ *
+ * Return Value
+ * INA_SUCCESS if option is available
+ */
+INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value);
+/*
+ * Get the integer value of an option.
+ *
+ * Parameters:
+ *  opt     name of option
+ *  value
+ *
+ * Return Value
+ * INA_SUCCESS if option is available
+ */
+INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value);
 
 /*
  * Initialize all internal data structures. This must be the first function 
