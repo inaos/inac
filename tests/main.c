@@ -44,30 +44,17 @@ int main(int argc,  char** argv)
     INA_TRACE_MSG("TEST START");
     
     ina_opt_t opt[] = {
-        {"h", "help", INA_OPT_TYPE_FLAG, NULL, "Show help"},
-        {"v", "version", INA_OPT_TYPE_FLAG, NULL, "Show current version"},
-        {"c", "cfg", INA_OPT_TYPE_STRING, "", "Confiuration file "},
-        {"l", "loglevel", INA_OPT_TYPE_INT, "2", "Set log level (2 default)"},
+        {"f", "fork", INA_OPT_TYPE_STRING, NULL, "fork a test"},
         {NULL, NULL, 0, NULL, NULL}
     };
     
     if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
-        ina_str_t cfg = NULL;
-        int loglevel = 0;
-        if (INA_SUCCEED(ina_opt_get_string("cfg", &cfg))) {
-            INA_TRACE("cfg=%s", cfg);
-        }
-        if (INA_SUCCEED(ina_opt_get_int("l", &loglevel))) {
-            INA_TRACE("l=%d", loglevel);
-        }
-        if (INA_SUCCEED(ina_opt_isset("version"))) {
-            printf("version 1.0\n");
-        }
-        
+        ina_str_t fork_test = NULL;
+        if (INA_SUCCEED(ina_opt_get_string("fork", &fork_test))) {
+            INA_TRACE("fork=%s", fork_test);
+        } 
         runtests();
         ina_set_cleanup_handler(__ina_cleanup_handler);
-        
-        
 
         /* this test program should alway exits with a
         failure */

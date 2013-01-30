@@ -59,17 +59,24 @@ static void __ina_opt_usage(void);
 static __ina_sopt_t *__sopt =  NULL;
 static __ina_lopt_t *__lopt = NULL;
 
+/* that's our program name */
+static ina_str_t __program_name = NULL;
+
 INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv, size_t pool_size, ina_opt_t *opt) 
 {
     if (!INA_SUCCEED(ina_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
     }
 
-    HASH_CLEAR(hh, __sopt);
-    HASH_CLEAR(hh, __lopt);
+    if (argv != NULL) {
+        const char* basename = strrchr(argv[0],(int)'/');
+        if (basename) {
+            basename++;
+        }
+        __program_name = ina_str_fromcstr(basename);
+    }
 
     if (opt != NULL) {
-
         while (opt->short_opt) {
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             if (so == NULL) {
@@ -79,26 +86,29 @@ INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv, size_t pool_size, in
             so->value = ina_str_fromcstr(opt->dft);
             so->desc = ina_str_fromcstr(opt->desc);
             so->type = opt->type;
+            HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
+
             __ina_lopt_t *lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
             if (lo == NULL) {
                 return INA_ERR_PUSH_LAST;
             }
             lo->opt = ina_str_fromcstr(opt->long_opt);
             lo->short_opt = so;
-            HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
             HASH_ADD_KEYPTR(hh, __lopt, ina_str_cstr(lo->opt), ina_str_len(lo->opt), lo);
             opt++;
         }
         
+        /* Parse arguments, if any */
         if (argv != NULL) {
             size_t n;
             for (n = 1; n < argc; n++ ) {
                 size_t c = 0;
                 size_t s = 0;
                 size_t e = 0;
+                size_t vs = 0;
                 __ina_sopt_t *so = NULL; 
                 while (argv[n][c]) {
-                    switch (argv[n][c]) {
+                    switch (tolower(argv[n][c])) {
                         case '-': {
                             if (s == 0) {
                                 if (argv[n][c+1] == '-') {
@@ -110,10 +120,14 @@ INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv, size_t pool_size, in
                         }
                         case '=': {
                             e = c;
+                            vs = c+1;
                             break;
                         }
                         default:
                             break;
+                    }
+                    if (vs != 0) {
+                        break;
                     }
                     c++;
                 }
@@ -121,24 +135,43 @@ INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv, size_t pool_size, in
                 if (e == 0) {
                     e = c;
                 }
-                    
+
                 if (s > 0) {
-                    char optc[100];
-                    strncpy(optc, &argv[n][s], e-s);
-                    optc[c-s] = 0;
-                    INA_TRACE3("opt=%s", optc);
-                    so = __ina_opt_get(optc);
+                    char buf[100];
+                    strncpy(buf, &argv[n][s], e-s);
+                    buf[c-s] = 0;
+                    INA_TRACE3("opt=%s", buf);
+                    so = __ina_opt_get(buf);
                     if (so == NULL) {
-                        INA_TRACE2("invalid options %s", optc);
+                        INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
+                        /* TODO: Specific error */
                         return INA_FAILURE;
                     }
+                    /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
-                        if (argc > n+1) {
-                            so->value = ina_str_fromcstr(argv[n+1]);
-                            n++;
+                        /* value separated by space? */
+                        if (vs == 0) {
+                            if (argc > n+1) {
+                                so->value = ina_str_fromcstr(argv[n+1]);
+                                n++;
+                            }
+                        } else {
+                            strcpy(buf, &argv[n][vs]);
+                            so->value = ina_str_fromcstr(buf);
                         }
                     }
+                }
+            }
+            
+            /* Validate, any options must have a value except flags */
+            __ina_sopt_t *so = NULL;
+            __ina_sopt_t *tmp_so =  NULL;
+            HASH_ITER(hh, __sopt, so, tmp_so) {
+                if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
+                    __ina_opt_usage();
+                    /* TODO: Specific error */
+                    return INA_FAILURE;
                 }
             }
         }
@@ -190,10 +223,29 @@ INA_API(void) ina_exit(void)
 {
     while (__initialized--) {
     }
-    
+
     if (__cleanup != NULL) {
         __cleanup(0, 0);
     }
+
+    if (__program_name != NULL) {
+        ina_str_destroy(__program_name);
+    }
+
+    __ina_lopt_t *lo = NULL;
+    __ina_lopt_t *tmp_lo =  NULL;    
+    HASH_ITER(hh, __lopt, lo, tmp_lo) {
+        HASH_DEL(__lopt, lo);
+        ina_mem_free(lo);
+    }
+
+    __ina_sopt_t *so = NULL;
+    __ina_sopt_t *tmp_so =  NULL;    
+    HASH_ITER(hh, __sopt, so, tmp_so) {
+        HASH_DEL(__sopt, so);
+        ina_mem_free(so);
+    }
+
     ina_mempool_destroy();
 
     if (!INA_SUCCEED(ina_err_peek())) {
@@ -266,9 +318,32 @@ __ina_opt_get(const char *opt)
     return so;
 }
 
-static void __ina_opt_usage(void)
+static void 
+__ina_opt_usage(void)
 {
-    printf("Invalid argument(s)\n");
+    printf("USAGE: %s ", ina_str_cstr(__program_name));
+
+    __ina_lopt_t *lo = NULL;
+    __ina_lopt_t *tmp_lo =  NULL;
+    __ina_sopt_t *so = NULL;
+    
+    HASH_ITER(hh, __lopt, lo, tmp_lo) {
+        so = lo->short_opt;
+        printf("-%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
+        if (so->type != INA_OPT_TYPE_FLAG) {
+            printf("%s", "= [");
+            if (so->type == INA_OPT_TYPE_STRING) {
+                printf("%s", "STRING] ");
+            } else {
+                printf("%s", "INT] ");
+            }
+        }
+    }
+    printf("%s", "\n\n");
+    HASH_ITER(hh, __lopt, lo, tmp_lo) {
+        so = lo->short_opt;
+        printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), ina_str_cstr(lo->opt), ina_str_cstr(so->desc));
+    }
 }
 
 static void
