@@ -47,7 +47,7 @@ void test_timer_event()
     e1 = ina_timer_create_event(t, 1000);
     INA_ASSERT_SUCCEED(ina_err_peek());
     INA_ASSERT_NOTNULL(e1);
-    ina_time_sleep(1);
+    ina_time_sleep(1000);
     e2 = ina_timer_next_event(t);
     INA_ASSERT_SUCCEED(ina_err_peek());
     INA_ASSERT_NOTNULL(e2);
