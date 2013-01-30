@@ -9,7 +9,7 @@ MAKEHEADERS = ../contribs/makeheaders/makeheaders
 CFLAGS = -Wall -std=c89 -g -I../include -DINA_LIB -DDEBUG -DTRACE_ENABLED
 
 
-all: $(OBJ) suites.o main.o sem_test.o
+all: $(OBJ) suites.o main.o
 	for i in $(DIRS); do $(MAKE) -C $$i; done
 	$(CC) $(CFLAGS) -v -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS) ../src/libinac.a ../contribs/anet/anet.a ../contribs/skiplist/skiplist.a
 
