@@ -28,6 +28,18 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
+void test_error_repush_success()
+{
+    INA_TRACE_MSG("test_error_repush_success");
+
+    INA_ASSERT_SUCCESS(ina_err_reset());
+    INA_ASSERT_SUCCESS(ina_err_peek());
+
+    INA_ASSERT_SUCCEED(INA_ERR_REPUSH(INA_SUCCESS));
+    INA_ASSERT_SUCCESS(INA_ERR_REPUSH(INA_SUCCESS));
+    INA_ASSERT_SUCCESS(ina_err_peek());
+}
+
 void test_error_repush()
 {
     ina_rc_t rc;
