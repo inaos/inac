@@ -59,6 +59,7 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, const char *file,
     INA_ASSERT(mod <= 64);
     INA_ASSERT(fn <= 32);
     INA_ASSERT(reason <= 1023);
+    INA_ASSERT(reason < 0);
     INA_ASSERT_NOTNULL(file);
     INA_ASSERT(line > 0);
     INA_ASSERT_NOTNULL(msg);
@@ -80,6 +81,10 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, const char *file,
 INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line)
 {
     size_t k;
+
+    if (rc == INA_SUCESS) {
+        return INA_SUCESS;
+    }
 
     k = __ina_get_index(rc);
 
