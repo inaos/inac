@@ -35,6 +35,28 @@ static int __handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
+void test_lib_opt()
+{
+    int l_int_value = 1;
+    ina_str_t l_str_value = NULL;
+    int s_int_value = 2;
+    ina_str_t s_str_value = NULL;
+    
+    INA_TRACE_MSG("test_lib_opt");
+    INA_ASSERT_SUCCEED(ina_opt_isset("run"));
+    INA_ASSERT_SUCCEED(ina_opt_isset("r"));
+    INA_ASSERT_SUCCEED(ina_opt_isset("repeat"));
+    INA_ASSERT_SUCCEED(ina_opt_isset("x")); 
+    INA_ASSERT_SUCCEED(ina_opt_get_string("run", &l_str_value));
+    INA_ASSERT_NOTNULL(l_str_value);
+    INA_ASSERT_SUCCEED(ina_opt_get_string("run", &s_str_value));
+    INA_ASSERT_NOTNULL(s_str_value);
+    INA_ASSERT_EQUAL(0, ina_str_cmp(l_str_value, s_str_value));
+    INA_ASSERT_SUCCEED(ina_opt_get_int("repeat", &l_int_value));
+    INA_ASSERT_SUCCEED(ina_opt_get_int("x", &s_int_value));
+    INA_ASSERT_EQUAL(s_int_value, l_int_value);
+
+}
 void test_lib_appname()
 {
     INA_TRACE_MSG("test_lib_appname");

@@ -56,7 +56,7 @@ static void __ina_signal_handler(int);
 static __ina_sopt_t *__ina_opt_get(const char*); 
 static void __ina_opt_usage(void);
 
-static __ina_sopt_t *__sopt =  NULL;
+static __ina_sopt_t *__sopt = NULL;
 static __ina_lopt_t *__lopt = NULL;
 
 /* that's our program name */
@@ -72,7 +72,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
     if (!INA_SUCCEED(ina_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
     }
-
+    
     if (argv != NULL) {
         const char* basename = strrchr(argv[0],(int)'/');
         if (basename) {
@@ -226,6 +226,10 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
 
 INA_API(void) ina_exit(void)
 {
+    if (!__initialized) {
+        return;
+    }
+
     while (__initialized--) {
     }
 
@@ -237,19 +241,25 @@ INA_API(void) ina_exit(void)
         ina_str_destroy(__appname);
     }
 
-    __ina_lopt_t *lo = NULL;
-    __ina_lopt_t *tmp_lo =  NULL;    
-    HASH_ITER(hh, __lopt, lo, tmp_lo) {
-        HASH_DEL(__lopt, lo);
-        ina_mem_free(lo);
+    /* FIXME: Crashes during because sys mem pool 
+       was destroyed */
+    /*if (__lopt != NULL) {
+        __ina_lopt_t *lo = NULL;
+        __ina_lopt_t *tmp_lo =  NULL;    
+        HASH_ITER(hh, __lopt, lo, tmp_lo) {
+            HASH_DEL(__lopt, lo);
+            ina_mem_free(lo);
+        }
     }
 
-    __ina_sopt_t *so = NULL;
-    __ina_sopt_t *tmp_so =  NULL;    
-    HASH_ITER(hh, __sopt, so, tmp_so) {
-        HASH_DEL(__sopt, so);
-        ina_mem_free(so);
-    }
+    if (__sopt != NULL) {
+        __ina_sopt_t *so = NULL;
+        __ina_sopt_t *tmp_so =  NULL;    
+        HASH_ITER(hh, __sopt, so, tmp_so) {
+            HASH_DEL(__sopt, so);
+            ina_mem_free(so);
+        }
+    }*/
 
     ina_mempool_destroy();
 

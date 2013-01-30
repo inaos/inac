@@ -45,19 +45,24 @@ int main(int argc,  char** argv)
     
     ina_opt_t opt[] = {
         {"r", "run", INA_OPT_TYPE_STRING, "all", "fork a test"},
+        {"x", "repeat", INA_OPT_TYPE_INT, "1", "repeat x times selected tests"},
         {NULL, NULL, 0, NULL, NULL}
     };
     
     if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
         ina_str_t run = NULL;
-        if (INA_SUCCEED(ina_opt_get_string("run", &run))) {
-            INA_TRACE("run=%s", ina_str_cstr(run));
-        } 
-        runtests();
+        int repeat = 0;
+
+        ina_opt_get_string("run", &run);
+        ina_opt_get_int("x", &repeat);
+        
+        while (repeat--) {
+            runtests();
+        }
+
         ina_set_cleanup_handler(__ina_cleanup_handler);
 
-        /* this test program should alway exits with a
-        failure */
+        /* this test program should alway exits with a failure */
         INAC_ERROR_TEST_TRACE;
     }
 
