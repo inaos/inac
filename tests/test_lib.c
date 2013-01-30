@@ -35,6 +35,14 @@ static int __handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
+void test_lib_appname()
+{
+    INA_TRACE_MSG("test_lib_appname");
+
+    INA_ASSERT_NOTNULL(ina_appname());
+    INA_ASSERT_EQUAL(0, strcmp("test", ina_appname()));
+}
+
 void test_lib_set_signal_handler() 
 {
     INA_TRACE_MSG("test_lib_set_signal_handler");

@@ -101,6 +101,11 @@ typedef struct ina_opt_s {
 typedef int (*ina_cleanup_handler_t) (const int, const int);
 
 /*
+ * Return the program name
+ */
+INA_API(const char*) ina_appname(void);
+
+/*
  * Startup application with argc, argv in order to deal with 
  * platform-specific quirks. This must be the first function called for any
  * program.

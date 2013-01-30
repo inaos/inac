@@ -60,9 +60,14 @@ static __ina_sopt_t *__sopt =  NULL;
 static __ina_lopt_t *__lopt = NULL;
 
 /* that's our program name */
-static ina_str_t __program_name = NULL;
+static ina_str_t __appname = NULL;
 
-INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv, size_t pool_size, ina_opt_t *opt) 
+INA_API(const char*) ina_appname(void)
+{
+    return ina_str_cstr(__appname);
+}
+
+INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina_opt_t *opt) 
 {
     if (!INA_SUCCEED(ina_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
@@ -73,7 +78,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc,  char** argv, size_t pool_size, in
         if (basename) {
             basename++;
         }
-        __program_name = ina_str_fromcstr(basename);
+        __appname = ina_str_fromcstr(basename);
     }
 
     if (opt != NULL) {
@@ -228,8 +233,8 @@ INA_API(void) ina_exit(void)
         __cleanup(0, 0);
     }
 
-    if (__program_name != NULL) {
-        ina_str_destroy(__program_name);
+    if (__appname != NULL) {
+        ina_str_destroy(__appname);
     }
 
     __ina_lopt_t *lo = NULL;
@@ -321,7 +326,7 @@ __ina_opt_get(const char *opt)
 static void 
 __ina_opt_usage(void)
 {
-    printf("USAGE: %s ", ina_str_cstr(__program_name));
+    printf("USAGE: %s ", ina_str_cstr(__appname));
 
     __ina_lopt_t *lo = NULL;
     __ina_lopt_t *tmp_lo =  NULL;
