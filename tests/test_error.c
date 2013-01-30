@@ -98,10 +98,10 @@ void test_error_macros()
 
 void test_error_push_and_peek()
 {
-    INA_TRACE_MSG("test_error_push_and_peek");
-
-    size_t i;
+	size_t i;
     ina_rc_t rc;
+
+    INA_TRACE_MSG("test_error_push_and_peek");
 
     INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
@@ -119,10 +119,10 @@ void test_error_push_and_peek()
 
 void test_error_push_and_clear()
 {
-    INA_TRACE_MSG("test_error_push_and_clear");
-
-    ina_rc_t rc1;
+	ina_rc_t rc1;
     ina_rc_t rc2;
+
+    INA_TRACE_MSG("test_error_push_and_clear");
 
     INA_ASSERT_SUCCESS(ina_err_reset());
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
@@ -143,10 +143,10 @@ void test_error_push_and_clear()
 
 void test_error_pack_rc() 
 {
-    INA_TRACE_MSG("test_error_pack_rc");
-    
-    ina_rc_t rcc;
+	ina_rc_t rcc;
     ina_rc_t rc;
+
+    INA_TRACE_MSG("test_error_pack_rc");
     
     rcc = 16846855;
     rc = 0;
