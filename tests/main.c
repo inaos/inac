@@ -44,14 +44,14 @@ int main(int argc,  char** argv)
     INA_TRACE_MSG("TEST START");
     
     ina_opt_t opt[] = {
-        {"f", "fork", INA_OPT_TYPE_STRING, NULL, "fork a test"},
+        {"r", "run", INA_OPT_TYPE_STRING, "all", "fork a test"},
         {NULL, NULL, 0, NULL, NULL}
     };
     
     if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
-        ina_str_t fork_test = NULL;
-        if (INA_SUCCEED(ina_opt_get_string("fork", &fork_test))) {
-            INA_TRACE("fork=%s", fork_test);
+        ina_str_t run = NULL;
+        if (INA_SUCCEED(ina_opt_get_string("run", &run))) {
+            INA_TRACE("run=%s", ina_str_cstr(run));
         } 
         runtests();
         ina_set_cleanup_handler(__ina_cleanup_handler);
