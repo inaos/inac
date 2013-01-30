@@ -36,6 +36,9 @@ extern "C" {
 
 #define INA_HASH_CSTR_TO_CRC32(s) ina_util_hash_crc32(0, s, strlen(s))
 #define INA_HASH_CSTR_TO_SDBM(s)  ina_util_hash_sdbm(0, s, strlen(s))
+#define INA_HASH_STR_TO_CRC32(s) ina_util_hash_crc32(0, ina_str_cstr(s), ina_str_len(s))
+#define INA_HASH_STR_TO_SDBM(s)  ina_util_hash_sdbm(0, ina_str_cstr(s), ina_str_len(s))
+
 
 /*
  * Calulate 32bit CRC hash
