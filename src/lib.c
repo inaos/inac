@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,21 +44,23 @@ typedef struct __ina_lopt_s {
     UT_hash_handle hh;
 } __ina_lopt_t;
 
-static int32_t __initialized = 0;
-
-/* function pointer to a custom cleanup routine */
-static ina_cleanup_handler_t  __cleanup = NULL;
-static int __sig = 0;
-
 /* internal signal handler */
 static void __ina_signal_handler(int);
 /* get command line option */
 static __ina_sopt_t *__ina_opt_get(const char*); 
+/* display usage */
 static void __ina_opt_usage(void);
 
+/* initialization flag, > 0 lib/app initialized */
+static int32_t __initialized = 0;
+/* function pointer to a custom cleanup routine */
+static ina_cleanup_handler_t  __cleanup = NULL;
+/* incemented when a signal is catched */
+static int __sig = 0;
+/* short command line options */
 static __ina_sopt_t *__sopt = NULL;
+/* long command line options */
 static __ina_lopt_t *__lopt = NULL;
-
 /* that's our program name */
 static ina_str_t __appname = NULL;
 
@@ -82,6 +84,9 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
     }
 
     if (opt != NULL) {
+        __ina_sopt_t *so = NULL;
+        __ina_sopt_t *tmp_so =  NULL;
+
         while (opt->short_opt) {
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             if (so == NULL) {
@@ -170,8 +175,6 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
             }
             
             /* Validate, any options must have a value except flags */
-            __ina_sopt_t *so = NULL;
-            __ina_sopt_t *tmp_so =  NULL;
             HASH_ITER(hh, __sopt, so, tmp_so) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
                     __ina_opt_usage();
@@ -241,7 +244,7 @@ INA_API(void) ina_exit(void)
         ina_str_destroy(__appname);
     }
 
-    /* FIXME: Crashes during because sys mem pool 
+    /* FIXME: Crashes during tests because sys mem pool 
        was destroyed */
     /*if (__lopt != NULL) {
         __ina_lopt_t *lo = NULL;
