@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,37 @@ extern "C" {
 /* Return code */
 typedef uint32_t ina_rc_t;
 
+/* Decimal type */
+typedef struct ina_decimal_s {
+    int32_t exponent;
+    int64_t mantissa;
+} ina_decimal_t;
+
+/*
+ * Copy a decimal.
+ */
+static __inline void ina_cpy_decimal(ina_decimal_t *src, ina_decimal_t *dst)
+{
+    dst->exponent = src->exponent;
+    dst->mantissa = src->mantissa;
+}
+/*
+ * Convert a double to a decimal type.
+ */
+static __inline void ina_dbl_to_decimal(double dbl, ina_decimal_t *dec)
+{
+    double tmp = frexp(dbl, &dec->exponent);
+    dec->mantissa = (int64_t)(tmp * (double)pow((double)FLT_RADIX, DBL_MANT_DIG));
+}
+/*
+ * Convert decimal to a double type.
+ */
+static __inline double ina_dbl_from_decimal(ina_decimal_t *dec)
+{
+    double tmp = dec->mantissa / (double)pow((double)FLT_RADIX, DBL_MANT_DIG);
+    return ldexp(tmp, dec->exponent);
+}
+
 #ifdef BSTRING_ENABLED
 #include <bstring/bstrlib.h>
 #define ina_str_t bstring
@@ -47,7 +78,6 @@ typedef char * ina_str_t;
 #endif
 
 #ifdef INA_OS_WIN32
-#include <windows.h>
 typedef HANDLE ina_handle_t;
 typedef char ina_semkey_t[MAX_PATH];
 #else

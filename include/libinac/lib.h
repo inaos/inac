@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,17 @@
 #include <unistd.h>
 #endif
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #include <libinac/portable.h>
 #include <libinac/types.h>
