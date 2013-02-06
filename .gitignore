@@ -19,6 +19,7 @@ contribs/luajit-2.0.0/src/libluajit.so
 contribs/luajit-2.0.0/src/lj_bcdef.h
 contribs/luajit-2.0.0/src/lua51.dll
 contribs/luajit-2.0.0/src/lua51.exp
+contribs/luajit-2.0.0/src/luajit.exp
 contribs/luajit-2.0.0/src/luajit.exe
 contribs/luajit-2.0.0/src/*.so
 contribs/makeheaders/makeheaders
