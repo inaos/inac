@@ -4,7 +4,7 @@ project (inac)
 set (DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
-set (LUA_INCLUDE_DIR "${DEPS_DIR}/luajit-2.0.0/src")
+set (LUA_INCLUDE_DIR "${DEPS_DIR}/luajit-2.0.1/src")
 set (ANET_INCLUDE_DIR "${DEPS_DIR}/anet")
 set (BSTRING_INCLUDE_DIR "${DEPS_DIR}/bstring")
 set (SKIPLIST_INCLUDE_DIR "${DEPS_DIR}/skiplist")
