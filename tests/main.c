@@ -44,6 +44,7 @@ int main(int argc,  char** argv)
     INA_TRACE_MSG("TEST START");
     
     ina_opt_t opt[] = {
+        {"s", "spawn", INA_OPT_TYPE_FLAG, NULL, "Flag for spwan-test"},
         {"r", "run", INA_OPT_TYPE_STRING, "all", "fork a test"},
         {"x", "repeat", INA_OPT_TYPE_INT, "1", "repeat x times selected tests"},
         {NULL, NULL, 0, NULL, NULL}
@@ -57,7 +58,7 @@ int main(int argc,  char** argv)
         ina_opt_get_int("x", &repeat);
         
         while (repeat--) {
-            runtests();
+            runtests(ina_str_cstr(run));
         }
 
         ina_set_cleanup_handler(__ina_cleanup_handler);
