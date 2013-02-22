@@ -35,35 +35,6 @@
 extern "C" {
 #endif
 
-#define INA_TEST_RUN(name, pattern) if (strstr(name, pattern)) #name()
-
-#define INA_TEST_SPAWN_BEGIN()                            \
-  {                                                       \
-    FILE *_fp = NULL;                                     \
-    int _spawn = INA_SUCCEED(ina_opt_isset("spwan"))?1:0; \
-    if (!_spawn) {                                        \
-        posix_spawn("test --spwan --run="__FUNC__, 'r');  \
-        while (!_fp) {                                    \
-            _fp = fopen(name ".lock", "r");               \
-            sleep(100);                                   \
-        }                                                 \
-    } else {                                              \
-        _fp = fopen(name".lock", 'w');                    \
-    }
-
-#define INA_TEST_SPAWN_CODE_START() \
-    if (_spawn) {
-
-#define INA_TEST_SPAWN_CODE_END() \
-    }
-    
-#define INA_TEST_SPAWN_END()          \
-    fclose(fp);                       \
-    if (_spawn) exit(EXIT_SUCCESS);   \
-    }
-
-#define INA_TEST_CMD(cmd) system(cmd)
-
 #ifndef INA_TRACE_LEVEL
 #define INA_TRACE_LEVEL 1
 #endif

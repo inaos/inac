@@ -38,13 +38,8 @@ static int __stop = 0;
 
 static ina_rc_t __stop_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {
-<<<<<<< HEAD
-    __stop = 1;
-    return INA_SUCCESS;
-=======
    __stop = 1;
    return INA_SUCCESS;
->>>>>>> c2b76e47195dd9b36bb24c56667f091274fb1152
 }
 
 static ina_rc_t __null_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
@@ -121,61 +116,6 @@ static ina_rc_t __check_params_handler(int cmd_id, int count, ina_iscp_param_t *
 }
 
 void test_iscp_send_tcp() 
-<<<<<<< HEAD
-{
-    int server_fd = -1;
-    int fd = -1;
-    ina_iscp_ctx_t iscp;
-
-    INA_TRACE_MSG("test_iscp_send_recv_local");
-    INA_ASSERT_SUCCEED(ina_iscp_reset());
-    INA_ASSERT_SUCCESS(ina_iscp_init(INA_ISCP_INET));
-    INA_ASSERT_SUCCEED(ina_iscp_register(1, 3, __check_params_handler));
-    INA_ASSERT_SUCCEED(ina_iscp_register(2, 0, __stop_handler));
-    
-    
-    INA_TEST_SPAWN_BEGIN();
-
-    INA_ASSERT_SUCCEED(ina_tcp_connect(&fd, 999, "1270.0.0.1"));
-    iscp.data = &fd;
-    INA_ASSERT_SUCCEED(ina_iscp_send(&iscp, 1, 
-                            INA_ISCP_TYPE_INT64, 20,
-                            INA_ISCP_TYPE_DBL, 5.2,
-                            INA_ISCP_TYPE_STR, "test"));
-
-
-    INA_TEST_SPWAN_CODE_BEGIN()
-
-    INA_ASSERT_SUCCEED(ina_net_tcp_server(&server_fd, 999, "127.0.0.1");
-    INA_ASSERT_SUCCEED(ina_net_nonblock(server_fd);
-    INA_TEST_SPAWN_CODE_READY();
-
-    while (!_stop && server_fd)
-        if (fd != -1) {
-            iscp.data = &fd;
-            ina_iscp_recv(&iscp, 1000, 1);
-            ina_net_close(fd);
-            fd = -1;
-        }
-
-        ina_time_sleep(100);
-    
-        if (fd == -1) {
-            if (INA_SUCCEED(ina_net_tcp_accept(&fd, server_fd, NULL, NULL))) {
-                if (fd != -1 && !INA_SUCCEED(ina_net_nonblock(fd))) {
-                    ina_net_close(fd);
-                    fd = -1;
-                }
-            }
-        }
-    }
-    INA_TEST_SPAWN_CODE_END();
-    INA_TEST_SPAWN_END();
-
-}
-void test_iscp_send_recv_checkparams()
-=======
->>>>>>> c2b76e47195dd9b36bb24c56667f091274fb1152
 {
    int server_fd = -1;
    int fd = -1;

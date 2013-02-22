@@ -22,14 +22,14 @@ suites.o: $(MAKEHADERS)
 	/bin/echo "#ifndef _SUITES_H_" > suites.h
 	/bin/echo "#define _SUITES_H_" >> suites.h
 	/bin/echo "#include \"suites.h\"" > suites.c
-	/bin/echo "void runtests() {" >> suites.c
+	/bin/echo "void runtests(const char* pattern) {" >> suites.c
 	for i in $(FN); do \
 		$(MAKEHEADERS) $$i.c; \
 		cat $$i.h | sed '1d' | sed -e 's/^ *[^ ]* //' >> suites.c; \
 		echo "#include \""$$i.h\" >> suites.h; \
 	done
 	/bin/echo "}" >> suites.c;
-	/bin/echo "void runtests();" >> suites.h
+	/bin/echo "void runtests(const char* pattern);" >> suites.h
 	/bin/echo "#endif" >> suites.h
 	$(CC) $(CFLAGS) -c suites.c
 		
