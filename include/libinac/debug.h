@@ -84,7 +84,8 @@ extern "C" {
 
 #define INA_TEST_SPAWN_BEGIN()      \
  {                                  \
-     int _spawn = 0, FILE _fp = 0;
+     int _spawn = 0; \
+     FILE *_fp = 0;
 
 #define INA_TEST_SPAWN_CODE_BEGIN()  \
    if (_spawn) {
