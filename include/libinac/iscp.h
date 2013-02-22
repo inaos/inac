@@ -123,7 +123,7 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend);
 INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
 
 /*
- * Reset ISCP status and remove all regsistred commands.
+ * Reset ISCP status and remove all registred commands.
  *
  * Return Value:
  * INA_SUCCESS if successfully cleared.

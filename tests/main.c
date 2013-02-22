@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@ int main(int argc,  char** argv)
     
     ina_opt_t opt[] = {
         {"r", "run", INA_OPT_TYPE_STRING, "all", "fork a test"},
+        {"s", "spawn", INA_OPT_TYPE_FLAG, NULL, "spawn a test"},
         {"x", "repeat", INA_OPT_TYPE_INT, "1", "repeat x times selected tests"},
         {NULL, NULL, 0, NULL, NULL}
     };

@@ -34,6 +34,7 @@
 extern "C" {
 #endif
 
+
 /* allocation */
 INA_API(ina_str_t) ina_str_newlen(size_t len);
 INA_API(ina_str_t) ina_str_pnewlen(size_t len, ina_mempool_t *pool);

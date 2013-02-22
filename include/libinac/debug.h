@@ -76,6 +76,28 @@ extern "C" {
 #define INA_TRACE_MSG(msg)
 #endif 
 
+/*
+ * Test macros
+ */
+
+#define INA_TEST_RUN(name, pattern) if (strstr(name, pattern)) #name()
+
+#define INA_TEST_SPAWN_BEGIN()                           \
+ {  
+
+#define INA_TEST_SPAWN_CODE_BEGIN()  \
+   if (_spawn) {
+
+#define INA_TEST_SPAWN_CODE_END()    \
+   }
+
+#define INA_TEST_SPAWN_END()         \
+   fclose(_fp);                      \
+   if (_spawn) exit(EXIT_SUCCESS);   \
+   }
+#define INA_TEST_CMD(cmd) system(cmd)
+
+
 #ifdef DEBUG
 #define INA_NOT_IMPL assert(0)
 #define INA_ASSERT(cond) assert(cond)
