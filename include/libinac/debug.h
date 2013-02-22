@@ -82,8 +82,9 @@ extern "C" {
 
 #define INA_TEST_RUN(name, pattern) if (strstr(name, pattern)) #name()
 
-#define INA_TEST_SPAWN_BEGIN()                           \
- {  
+#define INA_TEST_SPAWN_BEGIN()      \
+ {                                  \
+     int _spawn = 0, FILE _fp = 0;
 
 #define INA_TEST_SPAWN_CODE_BEGIN()  \
    if (_spawn) {
