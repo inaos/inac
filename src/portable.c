@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -20,55 +20,52 @@
  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <stdio.h>
+#ifdef INA_OS_WIN32
+
 #include <libinac/lib.h>
-#include "suites.h"
+#include "config.h"
 
-#define INAC_ERROR_TEST_TRACE INA_ERR_PUSH(129,1,2,"Test Trace")
-
-static int __cleanup_called = 0;
-static int __ina_cleanup_handler(const int sig, const int error) 
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+    #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#else
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#endif
+ 
+struct timezone {
+    int  tz_minuteswest; /* minutes W of Greenwich */
+    int  tz_dsttime;     /* type of dst correction */
+};
+ 
+int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-    ++__cleanup_called;
-    INA_TRACE("Cleanup called = %d", __cleanup_called);
-    return EXIT_SUCCESS;
-}
+    FILETIME ft;
+    unsigned __int64 tmpres = 0;
+    static int tzflag;
 
-int main(int argc,  char** argv) 
-{ 
-    INA_TRACE_MSG("TEST START");
-    
-    ina_opt_t opt[] = {
-        {"s", "spawn", INA_OPT_TYPE_FLAG, NULL, "Flag for spwan-test"},
-        {"r", "run", INA_OPT_TYPE_STRING, "all", "fork a test"},
-        {"s", "spawn", INA_OPT_TYPE_FLAG, NULL, "spawn a test"},
-        {"x", "repeat", INA_OPT_TYPE_INT, "1", "repeat x times selected tests"},
-        {NULL, NULL, 0, NULL, NULL}
-    };
-    
-    if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
-        ina_str_t run = NULL;
-        int repeat = 0;
-
-        ina_opt_get_string("run", &run);
-        ina_opt_get_int("x", &repeat);
-        
-        while (repeat--) {
-            runtests(ina_str_cstr(run));
-        }
-
-        ina_set_cleanup_handler(__ina_cleanup_handler);
-
-        /* this test program should alway exits with a failure */
-        INAC_ERROR_TEST_TRACE;
+    if (NULL != tv) {
+        GetSystemTimeAsFileTime(&ft);
+        tmpres |= ft.dwHighDateTime;
+        tmpres <<= 32;
+        tmpres |= ft.dwLowDateTime;
+        /*converting file time to unix epoch*/
+        tmpres -= DELTA_EPOCH_IN_MICROSECS; 
+        tmpres /= 10;  /*convert into microseconds*/
+        tv->tv_sec = (long)(tmpres / 1000000UL);
+        tv->tv_usec = (long)(tmpres % 1000000UL);
     }
-
-    INA_TRACE_MSG("TEST END");
-    
-    return EXIT_SUCCESS;
+    if (NULL != tz) {
+        if (!tzflag) {
+            _tzset();
+            tzflag++;
+        }
+        tz->tz_minuteswest = _timezone / 60;
+        tz->tz_dsttime = _daylight;
+    }
+    return 0;
 }
+#endif

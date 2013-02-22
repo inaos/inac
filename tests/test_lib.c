@@ -35,6 +35,24 @@ static int __handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
+
+void test_lib_fork() 
+{
+    int pid = 0;
+    
+    INA_TRACE_MSG("before fore");
+    pid = fork();
+    if (pid < 0) {
+        INA_TRACE_MSG("error fork;");
+    } else {
+        if (pid == 0) {
+            INA_TRACE_MSG("in child");
+        }
+        else {
+            INA_TRACE_MSG("in parent");
+        }
+    }
+}
 void test_lib_opt()
 {
     int l_int_value = 1;

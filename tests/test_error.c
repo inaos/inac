@@ -110,7 +110,7 @@ void test_error_macros()
 
 void test_error_push_and_peek()
 {
-	size_t i;
+    size_t i;
     ina_rc_t rc;
 
     INA_TRACE_MSG("test_error_push_and_peek");
