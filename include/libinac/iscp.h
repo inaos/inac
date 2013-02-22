@@ -91,7 +91,7 @@ typedef struct ina_iscp_msg_s {
 
 /* ISCP RC */
 typedef struct ina_iscp_rc_s {
-    uint32_t cmd_uid; /* UID for sent commands */
+    uint32_t cmd_uid; /* UID for sent command */
     ina_rc_t rc;      /* RC */
 } ina_iscp_rc_t;
 
@@ -99,6 +99,9 @@ typedef struct ina_iscp_rc_s {
 typedef ina_rc_t (*ina_iscp_send_cb)(ina_iscp_ctx_t*, ina_iscp_msg_t*);
 /* Receive callback */
 typedef ina_rc_t (*ina_iscp_recv_cb)(ina_iscp_ctx_t*, ina_iscp_msg_t*);
+/* Reponse callback */
+typedef ina_rc_t (*ina_iscp_retn_cb)(ina_iscp_ctx_t*, ina_iscp_rc_t*);
+
 
 /*
  * Initialize internal structures for ISCP
@@ -116,11 +119,14 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend);
  * Parameters
  * send_cb      Send callback function
  * recv_cb      Receive callback
+ * retn_cb      Return callback
  *
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
+INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_send_cb send_cb,
+                                         ina_iscp_recv_cb recv_cb,
+                                         ina_iscp_retn_cb retn_cb);
 
 /*
  * Reset ISCP status and remove all registred commands.
