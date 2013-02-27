@@ -41,7 +41,7 @@
 #define __INA_ULLC_DEC(vv_ptr) InterlockedDecrement64(vv_ptr)
 #elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
 #define __INA_ULLC_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1)
-#define __INA_ULLC_DEV(vv_ptr) __sync_fetch_and_sub(vv_ptr, 1)
+#define __INA_ULLC_DEC(vv_ptr) __sync_fetch_and_sub(vv_ptr, 1)
 #else
 #error Compiler not supported yet for ULLC!
 #endif
