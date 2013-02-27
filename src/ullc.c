@@ -39,9 +39,12 @@
 #ifdef INA_OS_WIN32
 #define __INA_ULLC_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
 #define __INA_ULLC_DEC(vv_ptr) InterlockedDecrement64(vv_ptr)
+#define __INA_ULLC_SWAP(vv_ptr, old, new) InterlockedCompareExchange64(vv_ptr,old,new)
 #elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
 #define __INA_ULLC_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1)
 #define __INA_ULLC_DEC(vv_ptr) __sync_fetch_and_sub(vv_ptr, 1)
+#define __INA_ULLC_SWAP(vv_ptr, old, new) __sync_val_compare_and_swap(vv_ptr,old,new)
+ 
 #else
 #error Compiler not supported yet for ULLC!
 #endif
@@ -234,13 +237,12 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
     cons = (ina_ullc_consumer_t*)&ccxt->data[(ccxt->ring->slots-1)*ccxt->ring->size]+sizeof(ina_ullc_consumer_t);
     while (ccxt->id < num_consumers) {
         ccxt->c_offset = &cons[ccxt->id];
-        if (ccxt->c_offset->alive == 0) {
-            ccxt->c_offset->alive = 1;
+        if (__INA_ULLC_SWAP(&ccxt->c_offset->alive, 0, 1) == 0) {
             break;
         }
         ++ccxt->id;
     }
-    if (ccxt->id >= num_consumers) {
+    if (ccxt->id == num_consumers) {
         return INA_ULLC_ECLIMIT;
     }
 
@@ -255,7 +257,8 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
 
     INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, (*ctx)->type);
 
-    (*ctx)->c_offset->alive = 0;
+    __INA_ULLC_SWAP(&(*ctx)->c_offset->alive,1,0);
+    INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive)
 
     if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
         return ina_err_peek();

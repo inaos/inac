@@ -160,7 +160,7 @@ typedef struct ina_ullc_rb_s {
 
 /* consumer */
 typedef struct ina_ullc_consumer_s {
-    volatile int alive;
+    volatile int64_t alive;
     volatile int64_t cursor;
  } ina_ullc_consumer_t;
 
