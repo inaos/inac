@@ -39,11 +39,11 @@
 #ifdef INA_OS_WIN32
 #define __INA_ULLC_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
 #define __INA_ULLC_DEC(vv_ptr) InterlockedDecrement64(vv_ptr)
-#define __INA_ULLC_SWAP(vv_ptr, old, new) InterlockedCompareExchange64(vv_ptr,old,new)
+#define __INA_ULLC_SWAP(vv_ptr,old,new) InterlockedCompareExchange64(vv_ptr,new,old)
 #elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
 #define __INA_ULLC_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1)
 #define __INA_ULLC_DEC(vv_ptr) __sync_fetch_and_sub(vv_ptr, 1)
-#define __INA_ULLC_SWAP(vv_ptr, old, new) __sync_val_compare_and_swap(vv_ptr,old,new)
+#define __INA_ULLC_SWAP(vv_ptr,old,new) __sync_val_compare_and_swap(vv_ptr,old,new)
  
 #else
 #error Compiler not supported yet for ULLC!
@@ -258,7 +258,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
     INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, (*ctx)->type);
 
     __INA_ULLC_SWAP(&(*ctx)->c_offset->alive,1,0);
-    INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive)
+    INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive);
 
     if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
         return ina_err_peek();
