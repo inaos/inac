@@ -178,8 +178,8 @@ typedef struct ina_ullc_ctx_s {
 
 #define INA_ULLC_PRODUCER_CREATE(type, version, slots, consumers, name, ws, ctx) \
 	ina_ullc_producer_create(version, sizeof(type), slots, consumers, name, ws, ctx)
-#define INA_ULLC_CONSUMER_CREATE(type, version, slots, consumers, name, ctx, id) \
-	ina_ullc_consumer_create(id, version, sizeof(type), slots, consumers, name, ctx)
+#define INA_ULLC_CONSUMER_CREATE(type, version, slots, consumers, name, ctx) \
+	ina_ullc_consumer_create(version, sizeof(type), slots, consumers, name, ctx)
 /* Clain an item */
 #define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
 /* Commit an item */
@@ -230,8 +230,10 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_
 /*
  * Create a consumer
  */
-INA_API(ina_rc_t) ina_ullc_consumer_create(int id, int version, size_t size, size_t slots, 
-							int num_consumers, const ina_str_t name, ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size, size_t slots, 
+                                    int num_consumers, 
+                                    const ina_str_t name, 
+                                    ina_ullc_ctx_t **ctx);
 /*
  * Destroy consumer
  */
