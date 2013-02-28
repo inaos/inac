@@ -76,6 +76,7 @@ extern "C" {
 #define INA_ERALLOC   9
 #define INA_EINVAL   10
 #define INA_ELIMIT   11
+#define INA_ESEMOP   12
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -180,10 +181,15 @@ extern "C" {
 
 /* ULLC-Module errors */
 #define INA_ULLC_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ULLC,INA_OSFN_NONE, s)
-#define INA_ULLC_EVERSION INA_ULLC_ERROR(INA_EVERSION, "Bad ullc version")
+#define INA_ULLC_EVERSION INA_ULLC_ERROR(INA_EVERSION, "Invalid ullc version")
 #define INA_ULLC_EBADALIGN INA_ULLC_ERROR(INA_EBADALIGN, "Bad memory align")
 #define INA_ULLC_ESEMINIT INA_ULLC_ERROR(INA_ESEMINIT, "Semaphore failed")
+#define INA_ULLC_ESEMOP INA_ULLC_ERROR(INA_ESEMOP, "Semaphore op failed")
 #define INA_ULLC_ECLIMIT INA_ULLC_ERROR(INA_ELIMIT, "Consumer limit exeeded")
+#define INA_ULLC_EINVERSION INA_ULLC_ERROR(INA_EINVAL, "Invalid argument version")
+#define INA_ULLC_EINSLOTS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument slots")
+#define INA_ULLC_EINSIZE INA_ULLC_ERROR(INA_EINVAL, "Invalid argument size")
+#define INA_ULLC_EINCONSUMERS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument consumers")
 
 /* Net-Module errors */
 #define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
