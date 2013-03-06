@@ -199,6 +199,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
         return INA_ULLC_EVERSION;
     }
 
+    ccxt->id = 0;
     ccxt->type = INA_ULLC_CTX_CONSUMER;
     ccxt->ws = INA_ULLC_WS_NONE;
     ccxt->sem_handle = 0;
