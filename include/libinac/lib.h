@@ -54,6 +54,7 @@
 
 #include <libinac/portable.h>
 #include <libinac/types.h>
+#include <libinac/uthash.h>
 #include <libinac/memory.h>
 #include <libinac/string.h>
 #include <libinac/log.h>

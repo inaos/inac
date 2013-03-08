@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,9 @@ extern "C" {
 #define INA_EINVAL   10
 #define INA_ELIMIT   11
 #define INA_ESEMOP   12
+#define INA_EEXISTS  13
+#define INA_EREAD    14
+#define INA_EWRITE   15
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -196,9 +199,13 @@ extern "C" {
 
 /* ISCP errors */
 #define INA_ISCP_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ISCP, INA_OSFN_NONE, s)
-#define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set callback");
-#define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set callback");
-
+#define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set send callback");
+#define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set recv callback");
+#define INA_ISCP_ERETNCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set retn callback");
+#define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registred");
+#define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed");
+#define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed");
+#define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed");
 
 /* Error information */
 typedef struct ina_error_s {

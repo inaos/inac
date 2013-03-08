@@ -28,39 +28,30 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-/* Internal registry entry */
-typedef struct ina_ispc_cmd_s {
-    int cmd_id;
-    uint16_t p_count;
-    ina_iscp_handler handler;
-    UT_hash_handle hh;
-} ina_iscp_cmd_t;
-
-static ina_iscp_recv_cb __recv_cb = NULL;
-static ina_iscp_send_cb __send_cb = NULL;
-static ina_iscp_retn_cb __retn_cb = NULL;
-static ina_iscp_cmd_t  *__cmds = NULL;
-static ina_mempool_t   *__mempool = NULL;
-
 /*
  * Net callback to send an ISCP command.
  */
-static ina_rc_t __ina_net_send_cb(ina_iscp_ctx_t*, ina_iscp_msg_t*);
+static ina_rc_t __ina_net_send_cb(void*, ina_iscp_msg_t*);
 
 /*
  * Net callback to receive an ISCP command.
  */
-static ina_rc_t __ina_net_recv_cb(ina_iscp_ctx_t*, ina_iscp_msg_t*);
+static ina_rc_t __ina_net_recv_cb(void*, ina_iscp_msg_t*);
 
 /*
  * Net callback to return an ISCP command result.
  */
-static ina_rc_t __ina_net_retn_cb(ina_iscp_ctx_t*, ina_iscp_rc_t*);
+static ina_rc_t __ina_net_retn_cb(void*, ina_iscp_rc_t*);
 
 
-INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend)
+INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backend)
 {
     ina_rc_t rc = INA_SUCCESS;
+
+    *ctx = (ina_iscp_ctx_t*)ina_mem_alloc(sizeof(ina_iscp_ctx_t));
+    if (*ctx == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
 
     switch (backend) {
         case INA_ISCP_NONE:
@@ -68,13 +59,13 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend)
             break;
         case INA_ISCP_INET:
         {
-            rc = ina_iscp_set_callbacks(__ina_net_send_cb, __ina_net_recv_cb, 
+            rc = ina_iscp_set_callbacks(*ctx, __ina_net_send_cb, __ina_net_recv_cb, 
                     __ina_net_retn_cb);
             break;
         }
         default: 
         {
-            rc = ina_iscp_set_callbacks(__ina_net_send_cb, __ina_net_recv_cb, 
+            rc = ina_iscp_set_callbacks(*ctx, __ina_net_send_cb, __ina_net_recv_cb, 
                     __ina_net_retn_cb);
             break;
         }
@@ -84,58 +75,64 @@ INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend)
         return INA_ERR_PUSH_LAST;
     }
 
-    if (__mempool == NULL) {
-        if (!INA_SUCCEED(ina_mempool_create(&__mempool, 
-                    2*1024*1024, 
-                    INA_MEM_DYNAMIC, 
-                    NULL))) {
-            return INA_ERR_PUSH_LAST;
-        }
-    }
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_send_cb send_cb, 
-                        ina_iscp_recv_cb recv_cb, ina_iscp_retn_cb retn_cb)
-{
-    __recv_cb = recv_cb;
-    if (__recv_cb == NULL) {
-        return INA_ISCP_ESENDCB;
-    }
-    __send_cb = send_cb;
-    if (__send_cb == NULL) {
-        return INA_ISCP_ERECVCB;
-    }
-    __retn_cb = retn_cb;
-    if (__retn_cb == NULL) {
-        return INA_ISCP_ERECVCB;
-    }
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_iscp_reset(void) 
-{
-    HASH_CLEAR(hh, __cmds);
-    INA_ASSERT_NULL(__cmds);
-    if (!INA_SUCCEED(ina_mempool_release(__mempool, 0))) {
+    if (!INA_SUCCEED(ina_mempool_create(&(*ctx)->mempool, 
+            2*1024*1024, 
+            INA_MEM_DYNAMIC, 
+            NULL))) {
+        ina_mem_free(*ctx);
+        *ctx = NULL;
         return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler handler)
+INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_ctx_t *ctx,
+                        ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb, 
+                        ina_iscp_retn_cb retn_cb)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    
+    ctx->recv_cb = recv_cb;
+    if (ctx->recv_cb == NULL) {
+        return INA_ISCP_ESENDCB;
+    }
+    ctx->send_cb = send_cb;
+    if (ctx->send_cb == NULL) {
+        return INA_ISCP_ERECVCB;
+    }
+    ctx->retn_cb = retn_cb;
+    if (ctx->retn_cb == NULL) {
+        return INA_ISCP_ERECVCB;
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx) 
+{
+    if (*ctx == NULL) {
+        return INA_SUCCESS;
+    }
+    
+    HASH_CLEAR(hh, (*ctx)->cmds);
+    INA_ASSERT_NULL((*ctx)->cmds);
+    if (!INA_SUCCEED(ina_mempool_release((*ctx)->mempool, 0))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    ina_mem_free(*ctx);
+    *ctx = NULL;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx, int cmd_id, int p_count, ina_iscp_handler_t handler)
 {
     ina_iscp_cmd_t *cmd;
 
+    INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT(cmd_id > 0);
     INA_ASSERT(p_count >= 0);
  
-    if (__send_cb == NULL || __recv_cb == NULL) {
-        /* TODO: sepfific error */
-        return INA_FAILURE;
-    }
-
-    HASH_FIND_INT(__cmds, &cmd_id, cmd);
+    HASH_FIND_INT(ctx->cmds, &cmd_id, cmd);
     if (cmd != NULL) {
         if (cmd->cmd_id == cmd_id &&
             cmd->p_count == p_count)  {
@@ -145,7 +142,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler ha
         return INA_FAILURE;
     }
 
-    cmd = (ina_iscp_cmd_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_cmd_t));
+    cmd = (ina_iscp_cmd_t*)ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_cmd_t));
     if (cmd == NULL) {
         return INA_ERR_PUSH_LAST;
     }
@@ -154,7 +151,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id, int p_count, ina_iscp_handler ha
     cmd->p_count = p_count;
     cmd->handler = handler;
 
-    HASH_ADD_INT(__cmds, cmd_id, cmd);
+    HASH_ADD_INT(ctx->cmds, cmd_id, cmd);
 
     return INA_SUCCESS;
 }
@@ -172,19 +169,19 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     INA_ASSERT_NOTNULL(ctx);
 
     /* We need a send callback */
-    if (__send_cb == NULL) {
+    if (ctx->send_cb == NULL) {
         return INA_FAILURE;
     }
 
     cmd = NULL;
-    HASH_FIND_INT(__cmds, &cmd_id, cmd);
+    HASH_FIND_INT(ctx->cmds, &cmd_id, cmd);
     if (cmd == NULL) {
         /* TODO: Specific error */
         return INA_FAILURE;
     }
 
     /* Allocate buffer */
-    msg = (ina_iscp_msg_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_msg_t));
+    msg = (ina_iscp_msg_t*)ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_msg_t));
     if (msg == NULL) {
         return INA_ERR_PUSH_LAST;
     }
@@ -273,7 +270,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     INA_TRACE3("- msg->cmd_uid->%d", msg->cmd_uid);
     INA_TRACE3("- msg->p_count->%d", msg->p_count);
 
-    return __send_cb(ctx, msg);
+    return ctx->send_cb(ctx->user_data, msg);
 }
 
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout) 
@@ -282,10 +279,14 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
 
     INA_ASSERT_NOTNULL(ctx);
     
-    msg = (ina_iscp_msg_t*)ina_mempool_dalloc(__mempool, sizeof(ina_iscp_msg_t));
+    if (ctx->recv_cb == NULL || ctx->retn_cb == NULL)  {
+        return INA_FAILURE;
+    }
+    
+    msg = (ina_iscp_msg_t*)ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_msg_t));
     
     /* TODO Timer event */
-    if (INA_SUCCEED(__recv_cb(ctx, msg))) {
+    if (INA_SUCCEED(ctx->recv_cb(ctx->user_data, msg))) {
         size_t n;
         int p;
         ina_iscp_cmd_t *cmd;
@@ -305,13 +306,12 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
 
         irc.cmd_uid = msg->cmd_uid;
 
-        HASH_FIND_INT(__cmds, &ci, cmd);
+        HASH_FIND_INT(ctx->cmds, &ci, cmd);
         if (cmd == NULL) {
             INA_TRACE("Command discard with id %d", msg->cmd_id);
-            /* TODO: sepcific error */
-            irc.rc = INA_FAILURE;
-            __retn_cb(ctx, &irc);
-            return INA_FAILURE;
+            irc.rc = INA_ISCP_ECMDREG;
+            ctx->retn_cb(ctx->user_data, &irc);
+            return ina_err_peek();
         }
 
         /* Validate CRC */
@@ -327,7 +327,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
         p = 0;
         n = 0;
         params = (ina_iscp_param_t*)ina_mempool_dalloc(
-                                        __mempool,
+                                        ctx->mempool,
                                         sizeof(ina_iscp_param_t)*(msg->p_count));
 
         while (n+INA_ISCP_HDR_SIZE < msg->length-sizeof(uint32_t)) {
@@ -363,10 +363,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
                 }
                 default:  {
                     INA_TRACE_MSG("Invalid type!");
-                    /* TODO: specific error */
                     irc.rc = INA_FAILURE;
-                    __retn_cb(ctx, &irc);
-                    
+                    ctx->retn_cb(ctx, &irc);
                     return INA_FAILURE;
                 }
             }
@@ -375,7 +373,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
         if (p == msg->p_count) {
             if (cmd->handler != NULL) {
                 irc.rc = cmd->handler(msg->cmd_id, msg->p_count, params);
-                return __retn_cb(ctx, &irc);
+                return ctx->retn_cb(ctx->user_data, &irc);
             }
         }
     }
@@ -383,43 +381,43 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout)
 }
 
 static ina_rc_t
-__ina_net_send_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
+__ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
 {
     int nb_write;
     int nb_read;
     nb_write = 0;
     nb_read = 0;
     ina_iscp_rc_t irc;
-    if (INA_SUCCEED(ina_net_write(*(int*)ctx->data, (unsigned char*)msg, msg->length, &nb_write))) {
-        ina_net_read(*(int*)ctx->data, (unsigned char*)&irc, sizeof(ina_iscp_rc_t), &nb_read);
+    if (INA_SUCCEED(ina_net_write(*(int*)user_data, (unsigned char*)msg, msg->length, &nb_write))) {
+        ina_net_read(*(int*)user_data, (unsigned char*)&irc, sizeof(ina_iscp_rc_t), &nb_read);
         return irc.rc;
     }
-    return INA_FAILURE;
+    return INA_ISCP_ESEND;
 }
 
 static ina_rc_t
-__ina_net_recv_cb(ina_iscp_ctx_t *ctx, ina_iscp_msg_t *msg)
+__ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 {   
     int nb_read;
     nb_read = 0;
-    if (INA_SUCCEED(ina_net_read(*(int*)ctx->data, (unsigned char*)msg, INA_ISCP_HDR_SIZE, &nb_read))) {
+    if (INA_SUCCEED(ina_net_read(*(int*)user_data, (unsigned char*)msg, INA_ISCP_HDR_SIZE, &nb_read))) {
         if (nb_read > 0) {
             nb_read = msg->length;
             nb_read -= INA_ISCP_HDR_SIZE;
             if (nb_read > 0) {
-                return ina_net_read(*(int*)ctx->data, &((unsigned char*)msg)[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
+                return ina_net_read(*(int*)user_data, &((unsigned char*)msg)[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
             }
         }
     }
-    return INA_FAILURE;
+    return INA_ISCP_ERECV;
 }
 
 static ina_rc_t
-__ina_net_retn_cb(ina_iscp_ctx_t *ctx, ina_iscp_rc_t *rc)
+__ina_net_retn_cb(void *user_data, ina_iscp_rc_t *rc)
 {
     int nb_write;
     INA_ASSERT_NOTNULL(rc);
     nb_write = 0;
-    return ina_net_write(*(int*)ctx->data, (unsigned char*)rc, sizeof(ina_iscp_rc_t), &nb_write);
+    return ina_net_write(*(int*)user_data, (unsigned char*)rc, sizeof(ina_iscp_rc_t), &nb_write);
 }
   
