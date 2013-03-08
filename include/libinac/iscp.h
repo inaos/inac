@@ -97,6 +97,10 @@ typedef struct ina_iscp_rc_s {
     ina_rc_t rc;      /* RC */
 } ina_iscp_rc_t;
 
+/* Open channel callback */
+typedef ina_rc_t (*ina_iscp_open_cb)(void *user_data);
+/* Close channel callback */
+typedef ina_rc_t (*ina_iscp_clse_cb)(void *user_data);
 /* Send callback */
 typedef ina_rc_t (*ina_iscp_send_cb)(void *user_data, ina_iscp_msg_t*);
 /* Receive callback */
@@ -106,6 +110,9 @@ typedef ina_rc_t (*ina_iscp_retn_cb)(void *user_data, ina_iscp_rc_t*);
 
 /* ISCP context */
 typedef struct ina_iscp_ctx_s {
+    ina_iscp_backend_t backend;
+    ina_iscp_open_cb open_cb;
+    ina_iscp_clse_cb clse_cb;
     ina_iscp_send_cb send_cb;
     ina_iscp_recv_cb recv_cb;
     ina_iscp_retn_cb retn_cb;
@@ -114,8 +121,15 @@ typedef struct ina_iscp_ctx_s {
     void *user_data;
 } ina_iscp_ctx_t;
 
+/* ISCP context for TCP IP */
+typedef struct ina_iscp_tcp_data_s {
+    ina_str_t host;
+    int       port;
+    int       fd;
+} ina_iscp_tcp_data_t;
+
 /*
- * Create  ISCP context
+ * Create a generic ISCP context
  *
  * Parameters
  * ctx          Pointer to a context pointer to create
@@ -125,11 +139,25 @@ typedef struct ina_iscp_ctx_s {
  * INA_SUCCESS if no error occurred
  */
 INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backend);
+
+/*
+ * Create a generic ISCP context
+ *
+ * Parameters
+ * ctx          Pointer to a context pointer to create
+ *
+ * Return Value
+ * INA_SUCCESS if no error occurred
+ */
+INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* host, int port);
+
 /*
  * Set the send and receive callbacks.
  *
  * Parameters
  * ctx          Valid ISCP context
+ * open_cb      Open channel callback
+ * clse_cb      Close channel callback
  * send_cb      Send callback function
  * recv_cb      Receive callback
  * retn_cb      Return callback
@@ -139,6 +167,8 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
  * EINVAL      if any of the paramaters is invalid
  */
 INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_ctx_t *ctx,
+                                         ina_iscp_open_cb open_cb,
+                                         ina_iscp_clse_cb clse_cb,
                                          ina_iscp_send_cb send_cb,
                                          ina_iscp_recv_cb recv_cb,
                                          ina_iscp_retn_cb retn_cb);

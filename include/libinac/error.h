@@ -202,6 +202,8 @@ extern "C" {
 #define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set send callback");
 #define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set recv callback");
 #define INA_ISCP_ERETNCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set retn callback");
+#define INA_ISCP_EOPENCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set open callback");
+#define INA_ISCP_ECLSECB INA_ISCP_ERROR(INA_EINVAL, "Failed to set clse callback");
 #define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registred");
 #define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed");
 #define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed");
