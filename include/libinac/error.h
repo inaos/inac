@@ -209,7 +209,7 @@ extern "C" {
 #define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed");
 #define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed");
 #define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed");
-#define INA_ISCP_EWAIT INA_ISCP_ERROR(INA_EWAIT, "waiting");
+#define INA_ISCP_EWAIT INA_ISCP_ERROR(INA_EWAIT, "waiting for object");
 
 /* Error information */
 typedef struct ina_error_s {
