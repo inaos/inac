@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,18 +10,18 @@
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
+ *       may be used to endorse or promote products derived from this software
  *       without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
@@ -74,7 +74,12 @@ extern "C" {
 #define INA_ESEMINIT  7
 #define INA_ENET      8
 #define INA_ERALLOC   9
-#define INA_ELIMIT   10
+#define INA_EINVAL   10
+#define INA_ELIMIT   11
+#define INA_ESEMOP   12
+#define INA_EEXISTS  13
+#define INA_EREAD    14
+#define INA_EWRITE   15
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -83,8 +88,8 @@ extern "C" {
 /* Used to start an interation  */
 #define INA_ERR_PEEK_FIRST    0
 /*
- * Push an error to the error state. 
- * 
+ * Push an error to the error state.
+ *
  * Parameters
  * m    Module identifier (optional)
  * f    OS function identifier (if needed)
@@ -96,7 +101,7 @@ extern "C" {
 /*
  * Push an error to the error state by passing only basic informations like
  * reason of failure and message
- * 
+ *
  * Parameters
  * r    Reason of failure
  * s    Error message
@@ -110,22 +115,32 @@ extern "C" {
 
 /*
  * Push an error to the error state by passing  basic informations like
- * reason of failure, os function indentifier and message 
- * 
+ * reason of failure, os function indentifier and message
+ *
  * Parameters
  * r    Reason of failure
  * f    OS function identifier
  * s    Error message
- */ 
+ */
 #define INA_ERR_PUSH_OSFN(r,f,s) ina_err_push(INA_MOD_UNKNOWN,              \
                                           f,r,                              \
                                           __FILE__,                         \
                                           __LINE__ ,                        \
-                                          s)
+
 
 /*
- * Pack an RC. 
- * 
+ * Re-push a previously pushed error
+ */
+#define INA_ERR_REPUSH(rc) ina_err_repush(rc, __FILE__, __LINE__)
+
+/*
+ * Re-push last pushed error
+ */
+#define INA_ERR_PUSH_LAST INA_ERR_REPUSH(ina_err_peek())
+
+/*
+ * Pack an RC.
+ *
  * Parameters
  * m    Module identifier (optional)
  * f    OS function identifier (if needed)
@@ -169,17 +184,34 @@ extern "C" {
 
 /* ULLC-Module errors */
 #define INA_ULLC_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ULLC,INA_OSFN_NONE, s)
-#define INA_ULLC_EVERSION INA_ULLC_ERROR(INA_EVERSION, "Bad ullc version")
+#define INA_ULLC_EVERSION INA_ULLC_ERROR(INA_EVERSION, "Invalid ullc version")
 #define INA_ULLC_EBADALIGN INA_ULLC_ERROR(INA_EBADALIGN, "Bad memory align")
 #define INA_ULLC_ESEMINIT INA_ULLC_ERROR(INA_ESEMINIT, "Semaphore failed")
+#define INA_ULLC_ESEMOP INA_ULLC_ERROR(INA_ESEMOP, "Semaphore op failed")
 #define INA_ULLC_ECLIMIT INA_ULLC_ERROR(INA_ELIMIT, "Consumer limit exeeded")
+#define INA_ULLC_EINVERSION INA_ULLC_ERROR(INA_EINVAL, "Invalid argument version")
+#define INA_ULLC_EINSLOTS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument slots")
+#define INA_ULLC_EINSIZE INA_ULLC_ERROR(INA_EINVAL, "Invalid argument size")
+#define INA_ULLC_EINCONSUMERS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument consumers")
 
 /* Net-Module errors */
 #define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
 
+/* ISCP errors */
+#define INA_ISCP_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ISCP, INA_OSFN_NONE, s)
+#define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set send callback");
+#define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set recv callback");
+#define INA_ISCP_ERETNCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set retn callback");
+#define INA_ISCP_EOPENCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set open callback");
+#define INA_ISCP_ECLSECB INA_ISCP_ERROR(INA_EINVAL, "Failed to set clse callback");
+#define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registred");
+#define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed");
+#define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed");
+#define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed");
+
 /* Error information */
 typedef struct ina_error_s {
-    ina_rc_t rc; 
+    ina_rc_t rc;
     time_t ts;  /* FIXME: we should use our proper time value */
     uint32_t line;
     char file[512];
@@ -188,7 +220,7 @@ typedef struct ina_error_s {
 
 /*
  * Push an error to the error state.
- * 
+ *
  * Parameters
  * mod      Module identifier
  * osfn     OS function intentifier
@@ -200,16 +232,29 @@ typedef struct ina_error_s {
  * Return Value
  * RC
  */
-INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, const char *file, 
-                               int line, 
+INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, const char *file,
+                               int line,
                                const char *msg);
+
+/*
+ * Re-push an error to the error state
+ *
+ * Parameters
+ * rc   RC to re-push
+ * file     filename
+ * line     line
+ *
+ * Return Value
+ * RC
+ */
+INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line);
 
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc);
 /*
  * Peek the first pushed error from the error state.
  *
  * Return Value
- * RC of first pushed error or INA_SUCCESS if error state is clean 
+ * RC of first pushed error or INA_SUCCESS if error state is clean
  */
 INA_API(ina_rc_t) ina_err_peek_last(void);
 
@@ -217,7 +262,7 @@ INA_API(ina_rc_t) ina_err_peek_last(void);
  * Peek the first unhandled error from the error state.
  *
  * Return Value
- * RC of first unhandled error or INA_SUCCESS  if error state is clean 
+ * RC of first unhandled error or INA_SUCCESS  if error state is clean
  */
 INA_API(ina_rc_t) ina_err_peek(void);
 
@@ -242,7 +287,7 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc);
  *
  * Return Value
  * Returns INA_SUCCESS when the complete error state was cleared successfully
- * otherwise returns INA_FAILURE. A marked 
+ * otherwise returns INA_FAILURE. A marked
  */
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
 
@@ -278,6 +323,6 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 #endif

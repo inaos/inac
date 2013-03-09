@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,17 +39,32 @@ static int __ina_cleanup_handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
-int main(int argc, const char** argv) 
+int main(int argc,  char** argv) 
 { 
     INA_TRACE_MSG("TEST START");
     
-    if (INA_SUCCEED(ina_appinit(argc, NULL, 0))) {
-        runtests();
-        ina_set_cleanup_handler(__ina_cleanup_handler);
-        
+    ina_opt_t opt[] = {
+        {"s", "spawn", INA_OPT_TYPE_FLAG, NULL, "Flag for spwan-test"},
+        {"r", "run", INA_OPT_TYPE_STRING, "all", "fork a test"},
+        {"s", "spawn", INA_OPT_TYPE_FLAG, NULL, "spawn a test"},
+        {"x", "repeat", INA_OPT_TYPE_INT, "1", "repeat x times selected tests"},
+        {NULL, NULL, 0, NULL, NULL}
+    };
+    
+    if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
+        ina_str_t run = NULL;
+        int repeat = 0;
 
-        /* this test program should alway exits with a
-        failure */
+        ina_opt_get_string("run", &run);
+        ina_opt_get_int("x", &repeat);
+        
+        while (repeat--) {
+            runtests(ina_str_cstr(run));
+        }
+
+        ina_set_cleanup_handler(__ina_cleanup_handler);
+
+        /* this test program should alway exits with a failure */
         INAC_ERROR_TEST_TRACE;
     }
 

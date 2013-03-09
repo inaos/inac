@@ -4,7 +4,7 @@ OBJ = $(SRC:%.c=%.o)
 MODULES := $(DIRS)$(DIRS:%/=%.a)
 LIB = libinac.a
 
-CFLAGS = -Wall -std=c89 -g -I../include -I../contribs/anet -I../contribs/skiplist -DINA_LIB -DDEBUG -DTRACE_ENABLED
+CFLAGS = -Wall -std=c89 -g -I../include -I../contribs/anet -I../contribs/skiplist -I../contribs/luajit-2.0.1/src -DINA_LIB -DDEBUG -DTRACE_ENABLED
 
 
 all: $(OBJ) 
