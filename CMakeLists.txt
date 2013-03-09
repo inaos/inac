@@ -58,7 +58,7 @@ add_library(${SKIPLIST_LIB_NAME} ${SKIPLIST_SRC})
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
                  ${SRC_DIR}/string/bstring.c ${SRC_DIR}/string/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
-                 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c, ${SRC_DIR}/portable.c)
+                 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/portable.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
