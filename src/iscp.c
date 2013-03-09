@@ -443,20 +443,22 @@ static ina_rc_t
 __ina_net_open_cb(void* user_data, int send)
 {
     ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
-    if (send == 1) {
-        if (data->fd <= 0) {
+    
+    if (data->fd != -1) {
+        if (send == 1) {
             if (!INA_SUCCEED(ina_net_tcp_connect(&data->fd, ina_str_cstr(data->addr), data->port))) {
                 return INA_ERR_PUSH_LAST;
             }
+        } else {
+            if (!INA_SUCCEED(ina_net_tcp_server(&data->fd, data->port, ina_str_cstr(data->addr)))) {
+                return INA_ERR_PUSH_LAST;
+            }
+            if (!INA_SUCCEED(ina_net_nonblock(data->fd))) {
+                ina_net_close(data->fd);
+                data->fd = -1;
+                return INA_ERR_PUSH_LAST;
+            }
         }
-    } else {
-        if (!INA_SUCCEED(ina_net_tcp_server(&data->fd, data->port, ina_str_cstr(data->addr)))) {
-            return INA_ERR_PUSH_LAST;
-        }
-
-        if (!INA_SUCCEED(ina_net_nonblock(data->fd))) {
-            return INA_ERR_PUSH_LAST;
-        }        
     }
     return INA_SUCCESS;
 }
