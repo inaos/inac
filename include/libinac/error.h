@@ -80,6 +80,7 @@ extern "C" {
 #define INA_EEXISTS  13
 #define INA_EREAD    14
 #define INA_EWRITE   15
+#define INA_EWAIT    16
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -208,6 +209,7 @@ extern "C" {
 #define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed");
 #define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed");
 #define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed");
+#define INA_ISCP_EWAIT INA_ISCP_ERROR(INA_EWAIT, "waiting");
 
 /* Error information */
 typedef struct ina_error_s {
