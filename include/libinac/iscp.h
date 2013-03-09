@@ -226,14 +226,14 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  * synchronously.
  *
  * Parameters
- * ctx      Valid ISCP context
- * nc       Num of loops.
- * timeout  Number of milliseconds to wait for a command
+ * ctx   Valid ISCP context
+ * nc    Num of loops.
+ * wait  Number of milliseconds to wait for next try
  *
  * Return Value:
  * INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int timeout);
+INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec);
 
 #ifdef __cplusplus
 }
