@@ -59,67 +59,37 @@ static ina_rc_t __ina_sem_open(ina_ullc_ctx_t*);
 static ina_rc_t __ina_sem_close(ina_ullc_ctx_t*);
 /* release semphore */
 static ina_rc_t __ina_sem_operation(ina_ullc_ctx_t*, ina_ullc_signal_type st);
-
-
-static ina_rc_t __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
-                            size_t size, size_t slots, int num_consumers,
-                            const ina_str_t name, int flags)
-{
-    size_t mem_size;
-
-	INA_ASSERT(version > 0);
-    INA_ASSERT(slots > 0);
-    INA_ASSERT(size > 0);
-    INA_ASSERT_NOTNULL(name);
-
-    if (size % 2 != 0) {
-        return INA_ULLC_EBADALIGN;
-    }
-
-    mem_size = (sizeof(ina_ullc_rb_t)+size*slots)+
-                 (sizeof(ina_ullc_consumer_t)*num_consumers);
-
-	ctx->pool = NULL;
-
-    if (!INA_SUCCEED(ina_mempool_create(&ctx->pool, mem_size, INA_MEM_SHARED|flags, name))) {
-        return ina_err_peek();
-    }
-
-    *rb = (ina_ullc_rb_t*)ina_mempool_dalloc(ctx->pool, mem_size);
-    if (*rb == NULL) {
-        return ina_err_peek();
-    }
-
-    if ((*rb)->magic != __INA_MAGIC_HDR || flags&INA_MEM_SHARED_CREATE) {
-        ina_mem_set(*rb, 0, mem_size);
-        (*rb)->magic = __INA_MAGIC_HDR;
-        (*rb)->version = version;
-        (*rb)->size = size;
-        (*rb)->slots = slots;
-        (*rb)->num_consumers = num_consumers;
-        (*rb)->cursor = -1;
-        (*rb)->next_ptr = 0;
-        if (!INA_SUCCEED(__ina_sem_makekey(*rb, name))) {
-            return ina_err_peek();
-        }
-    }
-    return INA_SUCCESS;
-}
+/* create/open ring buffer */
+static ina_rc_t __ina_ullc_ring_create(ina_ullc_rb_t**, ina_ullc_ctx_t*, int,
+                            size_t, size_t, int , const ina_str_t, int);
 
 INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, size_t slots, int num_consumers,
                             const ina_str_t name, ina_ullc_wait_strategy ws, ina_ullc_ctx_t **ctx)
 {
     ina_ullc_ctx_t* pctx;
+    
+    if (version <= 0) {
+        return INA_ULLC_EINVERSION;
+    }
+    if (size == 0) {
+        return INA_ULLC_EINSIZE;
+    }
+    if (slots == 0) {
+        return INA_ULLC_EINSLOTS;
+    }
+    if (num_consumers <= 0) {
+        return INA_ULLC_EINCONSUMERS;
+    }
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
     if (*ctx == NULL) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
     pctx = *ctx;
 
     if (!INA_SUCCEED(__ina_ullc_ring_create(&pctx->ring, pctx, version, size, 
     slots, num_consumers, ina_str_fromcstr(name), INA_MEM_SHARED_CREATE))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
 
     INA_ASSERT_NOTNULL(pctx->ring);
@@ -145,10 +115,10 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, (*ctx)->type);
 
     if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
     if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
     *ctx = NULL;
     return INA_SUCCESS;
@@ -216,13 +186,13 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
     if (*ctx == NULL) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
     ccxt = *ctx;
 
     if (!INA_SUCCEED(__ina_ullc_ring_create(&ccxt->ring, ccxt, version, size, 
             slots, num_consumers, ina_str_fromcstr(name), 0))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
 
     if (ccxt->ring->version != version) {
@@ -262,10 +232,10 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
     INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive);
 
     if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
     if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
     *ctx = NULL;
     return INA_SUCCESS;
@@ -321,6 +291,65 @@ INA_API(void *) ina_ullc_consumer_get(ina_ullc_ctx_t *ctx)
     return item;
 }
 
+static ina_rc_t 
+__ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
+                            size_t size, size_t slots, int num_consumers,
+                            const ina_str_t name, int flags)
+{
+    size_t mem_size;
+
+    INA_ASSERT(version > 0);
+    INA_ASSERT(slots > 0);
+    INA_ASSERT(size > 0);
+    INA_ASSERT_NOTNULL(name);
+
+    if (size % 2 != 0) {
+        return INA_ULLC_EBADALIGN;
+    }
+
+    mem_size = (sizeof(ina_ullc_rb_t)+size*slots)+
+                 (sizeof(ina_ullc_consumer_t)*num_consumers);
+
+	ctx->pool = NULL;
+
+    if (!INA_SUCCEED(ina_mempool_create(&ctx->pool, mem_size, INA_MEM_SHARED|flags, name))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    *rb = (ina_ullc_rb_t*)ina_mempool_dalloc(ctx->pool, mem_size);
+    if (*rb == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if ((*rb)->magic != __INA_MAGIC_HDR || flags&INA_MEM_SHARED_CREATE) {
+        ina_mem_set(*rb, 0, mem_size);
+        (*rb)->magic = __INA_MAGIC_HDR;
+        (*rb)->version = version;
+        (*rb)->size = size;
+        (*rb)->slots = slots;
+        (*rb)->num_consumers = num_consumers;
+        (*rb)->cursor = -1;
+        (*rb)->next_ptr = 0;
+        if (!INA_SUCCEED(__ina_sem_makekey(*rb, name))) {
+            return INA_ERR_PUSH_LAST;
+        }
+    }
+    
+    if ((*rb)->version != version) {
+        return INA_ULLC_EINVERSION;
+    }
+    if ((*rb)->size != size) {
+        return INA_ULLC_EINSIZE;
+    }
+    if ((*rb)->slots != slots) {
+        return INA_ULLC_EINSLOTS;
+    }
+    if ((*rb)->num_consumers != num_consumers) {
+        return INA_ULLC_EINCONSUMERS;
+    }
+    return INA_SUCCESS;
+}
+
 
 /*
  * Unix implementations
@@ -373,7 +402,7 @@ __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
     op.sem_flg = SEM_UNDO;
 
     if (semop(ctx->sem_handle, &op, 1) == -1) {
-        return INA_FAILURE;
+        return INA_ULLC_ESEMOP;
     }
     return INA_SUCCESS;
 }

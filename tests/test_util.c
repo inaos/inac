@@ -27,13 +27,44 @@
  */
 #include <libinac/lib.h>
 
+void test_util_sdbm_macro() 
+{
+    ina_str_t str;
+    INA_TRACE_MSG("test_util_sdbm_macro");
+
+    str = ina_str_fromcstr("test");
+    INA_ASSERT_EQUAL(1195757874, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
+    INA_ASSERT_NOTEQUAL(3632233, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
+}
+
+void test_util_sdbm() 
+{
+    ina_str_t str;
+    INA_TRACE_MSG("test_util_sdbm");
+
+    str = ina_str_fromcstr("test");
+    INA_ASSERT_EQUAL(1195757874, ina_util_hash_sdbm(0, str, ina_str_len(str)));
+    INA_ASSERT_NOTEQUAL(3632233, ina_util_hash_sdbm(0, str, ina_str_len(str)));
+    INA_ASSERT_EQUAL(1732587620, ina_util_hash_sdbm(1195757874, str, ina_str_len(str)));
+}
+
+void test_util_crc32_macro() 
+{
+    ina_str_t str;
+    INA_TRACE_MSG("test_util_crc32_macro");
+
+    str = ina_str_fromcstr("test");
+    INA_ASSERT_EQUAL(3632233996, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
+    INA_ASSERT_NOTEQUAL(3632233, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
+}
+
 void test_util_crc32() 
 {
     ina_str_t str;
     INA_TRACE_MSG("test_util_crc32");
 
     str = ina_str_fromcstr("test");
-    INA_ASSERT_EQUAL(3632233996, ina_util_crc32(0, (unsigned char*)str, ina_str_len(str)));
-    INA_ASSERT_NOTEQUAL(3632233, ina_util_crc32(0, (unsigned char*)str, ina_str_len(str)));
-    INA_ASSERT_EQUAL(3966352177, ina_util_crc32(3632233996, (unsigned char*)str, ina_str_len(str)));
+    INA_ASSERT_EQUAL(3632233996, ina_util_hash_crc32(0, str, ina_str_len(str)));
+    INA_ASSERT_NOTEQUAL(3632233, ina_util_hash_crc32(0, str, ina_str_len(str)));
+    INA_ASSERT_EQUAL(3966352177, ina_util_hash_crc32(3632233996, str, ina_str_len(str)));
 }

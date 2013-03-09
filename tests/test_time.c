@@ -27,6 +27,7 @@
  */
 #include <libinac/lib.h>
 
+
 void test_time_two_stopwatches()
 {
     ina_stopwatch_t w1;
@@ -63,7 +64,7 @@ void test_time_stopwatch()
 
     gettimeofday(&tv_start, NULL);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_start(&sw));
-    sleep(1);
+    ina_time_sleep(1);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(&sw));
     gettimeofday(&tv_stop, NULL);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,13 +49,8 @@ extern "C" {
 typedef enum ina_iscp_backend_e {
     INA_ISCP_NONE = 0,
     INA_ISCP_INET,
+    INA_ISCP_DEFAULT = INA_ISCP_INET,
 } ina_iscp_backend_t;
-
-/* ISCP context: Implementation specific 
- * data (socket descriptor for instance) */
-typedef struct ina_iscp_cxt_s {
-    void *data;   
-} ina_iscp_ctx_t;
 
 /* ISCP parameter */
 typedef struct ina_iscp_param_s {
@@ -68,7 +63,15 @@ typedef struct ina_iscp_param_s {
 } ina_iscp_param_t;
 
 /* Command handler */
-typedef ina_rc_t (*ina_iscp_handler)(int, int, ina_iscp_param_t*);
+typedef ina_rc_t (*ina_iscp_handler_t)(int, int, ina_iscp_param_t*);
+
+/* Internal registry entry */
+typedef struct ina_ispc_cmd_s {
+    int cmd_id;
+    uint16_t p_count;
+    ina_iscp_handler_t handler;
+    UT_hash_handle hh;
+} ina_iscp_cmd_t;
 
 /* Internal send/receive message */
 typedef struct ina_iscp_msg_s {
@@ -88,45 +91,103 @@ typedef struct ina_iscp_msg_s {
     unsigned char cmd_data[INA_ISCP_BUFFER_SIZE]; 
 } ina_iscp_msg_t;
 
+/* ISCP RC */
+typedef struct ina_iscp_rc_s {
+    uint32_t cmd_uid; /* UID for sent command */
+    ina_rc_t rc;      /* RC */
+} ina_iscp_rc_t;
+
+/* Open channel callback */
+typedef ina_rc_t (*ina_iscp_open_cb)(void *user_data);
+/* Close channel callback */
+typedef ina_rc_t (*ina_iscp_clse_cb)(void *user_data);
 /* Send callback */
-typedef ina_rc_t (*ina_iscp_send_cb)(ina_iscp_ctx_t*, ina_iscp_msg_t*);
+typedef ina_rc_t (*ina_iscp_send_cb)(void *user_data, ina_iscp_msg_t*);
 /* Receive callback */
-typedef ina_rc_t (*ina_iscp_recv_cb)(ina_iscp_ctx_t*, ina_iscp_msg_t*);
+typedef ina_rc_t (*ina_iscp_recv_cb)(void *user_data, ina_iscp_msg_t*);
+/* Reponse callback */
+typedef ina_rc_t (*ina_iscp_retn_cb)(void *user_data, ina_iscp_rc_t*);
+
+/* ISCP context */
+typedef struct ina_iscp_ctx_s {
+    ina_iscp_backend_t backend;
+    ina_iscp_open_cb open_cb;
+    ina_iscp_clse_cb clse_cb;
+    ina_iscp_send_cb send_cb;
+    ina_iscp_recv_cb recv_cb;
+    ina_iscp_retn_cb retn_cb;
+    ina_iscp_cmd_t  *cmds;
+    ina_mempool_t   *mempool;
+    void *user_data;
+} ina_iscp_ctx_t;
+
+/* ISCP context for TCP IP */
+typedef struct ina_iscp_tcp_data_s {
+    ina_str_t host;
+    int       port;
+    int       fd;
+} ina_iscp_tcp_data_t;
 
 /*
- * Initialize internal structrues for ISCP
+ * Create a generic ISCP context
  *
  * Parameters
+ * ctx          Pointer to a context pointer to create
  * backend      Specifies the type of backend to use
  *
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_init(ina_iscp_backend_t backend);
+INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backend);
+
 /*
- * Set the send and receive callbacks.
+ * Create a generic ISCP context
  *
  * Parameters
- * send_cb      Send callback function
- * recv_cb      Receive callback
+ * ctx          Pointer to a context pointer to create
  *
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_send_cb send_cb, ina_iscp_recv_cb recv_cb);
+INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* host, int port);
 
 /*
- * Reset ISCP status and remove all regsitred commands.
+ * Set the send and receive callbacks.
+ *
+ * Parameters
+ * ctx          Valid ISCP context
+ * open_cb      Open channel callback
+ * clse_cb      Close channel callback
+ * send_cb      Send callback function
+ * recv_cb      Receive callback
+ * retn_cb      Return callback
+ *
+ * Return Value
+ * INA_SUCCESS if no error occurred
+ * EINVAL      if any of the paramaters is invalid
+ */
+INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_ctx_t *ctx,
+                                         ina_iscp_open_cb open_cb,
+                                         ina_iscp_clse_cb clse_cb,
+                                         ina_iscp_send_cb send_cb,
+                                         ina_iscp_recv_cb recv_cb,
+                                         ina_iscp_retn_cb retn_cb);
+/*
+ * Reset ISCP status and remove all registred commands.
+ *
+ * Parameters
+ * ctx          Pointer to a context pointer to create
  *
  * Return Value:
  * INA_SUCCESS if successfully cleared.
  */
-INA_API(ina_rc_t) ina_iscp_reset(void);
+INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx);
 
 /*
  * Register a ISCP command. Only command 
  *
  * Parameters
+ * ctx          Valid ISCP context
  * cmd_id       Command identifier
  * p_count      Number of parameters to send or to receive
  * handler      Command handler function called when the command is 
@@ -135,7 +196,8 @@ INA_API(ina_rc_t) ina_iscp_reset(void);
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_register(int cmd_id,int p_count, ina_iscp_handler handler);
+INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx, int cmd_id,int p_count, 
+                                    ina_iscp_handler_t handler);
 /*
  * Send a command synchronously.
  * Like:
@@ -146,7 +208,7 @@ INA_API(ina_rc_t) ina_iscp_register(int cmd_id,int p_count, ina_iscp_handler han
  *                   INA_ISCP_TYPE_INT, 3);
  *
  * Parameters
- * fd       socket descriptor
+ * ctx       Valid ISCP context
  * cmd_id   Commmand identifier
  * ...      Command parameter list
  *
@@ -162,7 +224,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  * synchronously.
  *
  * Parameters
- * fd       Socket descriptior
+ * ctx      Valid ISCP context
  * nc       Max number of command to accept.
  * timeout  Number of milliseconds to wait for a command
  *

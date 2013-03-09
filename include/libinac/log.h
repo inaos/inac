@@ -60,7 +60,7 @@ typedef struct ina_log_cfg_s {
 
 
 INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const char* fmt, ...);
-INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target);
+INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target, ina_log_level_t level);
 INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg);
 
 #ifdef __cplusplus
