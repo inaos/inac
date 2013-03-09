@@ -98,9 +98,9 @@ typedef struct ina_iscp_rc_s {
 } ina_iscp_rc_t;
 
 /* Open channel callback */
-typedef ina_rc_t (*ina_iscp_open_cb)(void *user_data);
+typedef ina_rc_t (*ina_iscp_open_cb)(void *user_data, int send);
 /* Close channel callback */
-typedef ina_rc_t (*ina_iscp_clse_cb)(void *user_data);
+typedef ina_rc_t (*ina_iscp_clse_cb)(void *user_data, int send);
 /* Send callback */
 typedef ina_rc_t (*ina_iscp_send_cb)(void *user_data, ina_iscp_msg_t*);
 /* Receive callback */
@@ -116,16 +116,18 @@ typedef struct ina_iscp_ctx_s {
     ina_iscp_send_cb send_cb;
     ina_iscp_recv_cb recv_cb;
     ina_iscp_retn_cb retn_cb;
-    ina_iscp_cmd_t  *cmds;
-    ina_mempool_t   *mempool;
+    ina_timer_t      *timer;
+    ina_time_event_t *time_event;
+    ina_iscp_cmd_t   *cmds;
+    ina_mempool_t    *mempool;
     void *user_data;
 } ina_iscp_ctx_t;
 
 /* ISCP context for TCP IP */
 typedef struct ina_iscp_tcp_data_s {
-    ina_str_t host;
-    int       port;
-    int       fd;
+    ina_str_t addr;     /*  IP */
+    int       port;     /*  port */
+    int       fd;       /*  file descriptore */
 } ina_iscp_tcp_data_t;
 
 /*
@@ -149,7 +151,7 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* host, int port);
+INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, int port);
 
 /*
  * Set the send and receive callbacks.
@@ -225,7 +227,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  *
  * Parameters
  * ctx      Valid ISCP context
- * nc       Max number of command to accept.
+ * nc       Num of loops.
  * timeout  Number of milliseconds to wait for a command
  *
  * Return Value:
