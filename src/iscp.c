@@ -220,12 +220,12 @@ INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx, int cmd_id, int p_count
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_iscp_regsiter_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds)
+INA_API(ina_rc_t) ina_iscp_register_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds)
 {
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(cmds);
-    
-    while (cmds++) {
+
+    while (cmds->cmd_id >0 && cmds++) {
         if (!INA_SUCCEED(ina_iscp_register(ctx, cmds->cmd_id, cmds->p_count, cmds->handler))) {
             return INA_ERR_PUSH_LAST;
         }
@@ -248,8 +248,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     cmd = NULL;
     HASH_FIND_INT(ctx->cmds, &cmd_id, cmd);
     if (cmd == NULL) {
-        /* TODO: Specific error */
-        return INA_FAILURE;
+        return INA_ISCP_ECMDREG;
     }
 
     /* Allocate buffer */
@@ -316,7 +315,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
             }
             default:
             {
-                return INA_FAILURE;
+                return INA_ISCP_ETYPE;
             }
         }
     }

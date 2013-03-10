@@ -287,16 +287,16 @@ void test_iscp_regsiter_ex()
 {
     ina_iscp_ctx_t *ctx = NULL;
     ina_iscp_cmd_t cmds[] = {
-         INA_ISCP_CMD(1,1,__null_handler2),
-         INA_ISCP_CMD(2,3,__null_handler2),
+         INA_ISCP_SEND_CMD(1,1),
+         INA_ISCP_SENDRECV_CMD(2,3,__null_handler2),
      };
      INA_ISCP_CMDS(cmds2,
-          INA_ISCP_CMD(4,1,__null_handler2),
-          INA_ISCP_CMD(5,3,__null_handler2));
+          INA_ISCP_SENDRECV_CMD(4,1,__null_handler2),
+          INA_ISCP_SENDRECV_CMD(5,3, __null_handler2));
      
      
     INA_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_NONE));
     INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_SUCCEED(ina_iscp_regsiter_ex(ctx, cmds));
-    INA_ASSERT_SUCCEED(ina_iscp_regsiter_ex(ctx, cmds2));
+    INA_ASSERT_SUCCEED(ina_iscp_register_ex(ctx, cmds));
+    INA_ASSERT_SUCCEED(ina_iscp_register_ex(ctx, cmds2));
 }
