@@ -45,6 +45,14 @@ extern "C" {
 #define INA_ISCP_TYPE_DBL    (2)  /* double 8 bytes */
 #define INA_ISCP_TYPE_STR    (3)  /* uint32_t (length) + char[length] */
 
+#define INA_ISCP_CMD(cmd_id, p_count, handler)   \
+ { cmd_id, p_count, handler, {NULL} }
+
+#define INA_ISCP_CMDS(name, ...)   \
+ina_iscp_cmd_t name[] = {     \
+    __VA_ARGS__               \
+    };
+    
 /* Backend */
 typedef enum ina_iscp_backend_e {
     INA_ISCP_NONE = 0,
@@ -125,9 +133,10 @@ typedef struct ina_iscp_ctx_s {
 
 /* ISCP context for TCP IP */
 typedef struct ina_iscp_tcp_data_s {
-    ina_str_t addr;     /*  IP */
-    int       port;     /*  port */
-    int       fd;       /*  file descriptore */
+    ina_str_t addr;     /* IP */
+    int       port;     /* Port */
+    int       fd;       /* File descriptor */
+    int       lfd;      /* File descriptor for listener */
 } ina_iscp_tcp_data_t;
 
 /*
@@ -186,7 +195,7 @@ INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_ctx_t *ctx,
 INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx);
 
 /*
- * Register a ISCP command. Only command 
+ * Register a ISCP command.
  *
  * Parameters
  * ctx          Valid ISCP context
@@ -199,7 +208,20 @@ INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx);
  * INA_SUCCESS if no error occurred
  */
 INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx, int cmd_id,int p_count, 
-                                    ina_iscp_handler_t handler);
+                                      ina_iscp_handler_t handler);
+
+/*
+ * Register one or more ISCP commands.
+ *
+ * Parameters
+ * ctx          Valid ISCP context
+ * cmds         Command pointer array
+ *
+ * Return Value
+ * INA_SUCCESS if no error occurred
+ */                                      
+INA_API(ina_rc_t) ina_iscp_regsiter_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds);
+
 /*
  * Send a command synchronously.
  * Like:
