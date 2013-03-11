@@ -54,7 +54,7 @@ extern "C" {
 #define INA_ISCP_CMDS(name, ...)     \
 ina_iscp_cmd_t name[] = {            \
     __VA_ARGS__,                     \
-    INA_ISCP_SEND_CMD(-1, -1),       \
+    INA_ISCP_SEND_CMD(0, 0),         \
     };
     
 /* Backend */

@@ -90,6 +90,25 @@ extern "C" {
                           (INA_MINOR_VERSION << 8)  |   \
                           (INA_MICRO_VERSION << 0))
 
+/* Add flag option */
+#define INA_OPT_FLAG(short_opt, long_opt, desc)           \
+ { short_opt, long_opt, INA_OPT_TYPE_FLAG, NULL, desc }
+
+/* Add string option */
+#define INA_OPT_STRING(short_opt, long_opt, dft, desc)    \
+ { short_opt, long_opt, INA_OPT_TYPE_STRING, NULL, desc }
+ 
+/* Add int option */
+#define INA_OPT_INT(short_opt, long_opt, dft, desc)       \
+ { short_opt, long_opt, INA_OPT_TYPE_INT, NULL, desc }
+
+/* Define options map */
+#define INA_OPTS(name, ...)         \
+ina_opt_t name[] = {                \
+    __VA_ARGS__,                    \
+    {NULL, NULL, 0, NULL, NULL}     \
+};
+
 typedef enum ina_opt_type_e {
     INA_OPT_TYPE_STRING = 0,
     INA_OPT_TYPE_INT,
