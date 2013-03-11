@@ -203,7 +203,7 @@ INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx, int cmd_id, int p_count
                 cmd->handler = handler;
                 return INA_SUCCESS;
         }
-        return INA_FAILURE;
+        return INA_ISCP_ECMDREG;
     }
 
     cmd = (ina_iscp_cmd_t*)ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_cmd_t));
@@ -380,6 +380,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             int ci;
             uint32_t crc;
             ina_iscp_rc_t irc;
+            ina_rc_t rc;
  
             INA_TRACE2("Message received with cmd_id %d", msg->cmd_id);
             INA_TRACE3("- msg->cmd_id->%d", msg->cmd_id);
@@ -393,7 +394,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             irc.cmd_uid = msg->cmd_uid;
 
             HASH_FIND_INT(ctx->cmds, &ci, cmd);
-            if (cmd == NULL) {
+            if (cmd == NULL || cmd->handler == NULL) {
                 INA_TRACE("Command discard with id %d", msg->cmd_id);
                 irc.rc = INA_ISCP_ECMDREG;
                 ctx->retn_cb(ctx->user_data, &irc);
@@ -457,18 +458,22 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                 ++p;
             }
 
-            if (p == msg->p_count) {
-                if (cmd->handler != NULL) {
-                    irc.rc = cmd->handler(msg->cmd_id, msg->p_count, params);
-                    ctx->retn_cb(ctx->user_data, &irc);
-                    ctx->clse_cb(ctx->user_data, 1);
-                }
+            if (p != msg->p_count) {
+                return INA_ISCP_ECMDREG;
             }
+            
+            /* Store RC from command handler */
+            irc.rc = cmd->handler(msg->cmd_id, msg->p_count, params);
+            /* We return RC back to the callee */
+            rc = ctx->retn_cb(ctx->user_data, &irc);
+            ctx->clse_cb(ctx->user_data, 1);
+            return rc;            
+        }
+        if (INA_RC_REASON(ina_err_peek()) == INA_EWAIT) {
             if (nc && wait_msec > 0) {
                 ina_time_sleep(wait_msec);
             }
         }
-        return INA_ERR_PUSH_LAST;
     }
     return INA_FAILURE;
 }
@@ -528,6 +533,7 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
 
     nb_write = 0;
     nb_read = 0;
+    irc.rc = INA_SUCCESS;
     
     if (INA_SUCCEED(ina_net_write(data->fd, (unsigned char*)msg, msg->length, &nb_write))) {
         ina_net_read(data->fd, (unsigned char*)&irc, sizeof(ina_iscp_rc_t), &nb_read);
