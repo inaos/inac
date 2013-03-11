@@ -225,10 +225,12 @@ INA_API(ina_rc_t) ina_iscp_register_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(cmds);
 
-    while (cmds->cmd_id >0 && cmds++) {
+    while (cmds->cmd_id >0) {
+        INA_TRACE("Register cmd with ID %d", cmds->cmd_id);
         if (!INA_SUCCEED(ina_iscp_register(ctx, cmds->cmd_id, cmds->p_count, cmds->handler))) {
             return INA_ERR_PUSH_LAST;
         }
+        ++cmds;
     }
     return INA_SUCCESS;
 }
@@ -345,7 +347,10 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     if (INA_SUCCEED(ctx->open_cb(ctx->user_data, 1))) {
         ina_rc_t rc = ctx->send_cb(ctx->user_data, msg);
         ctx->clse_cb(ctx->user_data, 1);
-        return rc;
+        if (rc != INA_SUCCESS) {
+            return INA_ISCP_ERROR(INA_RC_REASON(rc), "ISCP command failed");
+        }
+        return INA_SUCCESS;
     }
     return INA_ERR_PUSH_LAST;
 }
@@ -463,19 +468,25 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             }
             
             /* Store RC from command handler */
+            INA_TRACE3("Call command handler for cmd_id %d", msg->cmd_id);
             irc.rc = cmd->handler(msg->cmd_id, msg->p_count, params);
             /* We return RC back to the callee */
             rc = ctx->retn_cb(ctx->user_data, &irc);
-            ctx->clse_cb(ctx->user_data, 1);
-            return rc;            
-        }
-        if (INA_RC_REASON(ina_err_peek()) == INA_EWAIT) {
-            if (nc && wait_msec > 0) {
-                ina_time_sleep(wait_msec);
+            if (rc == INA_SUCCESS) {
+                return INA_ISCP_EWAIT;
             }
+            return rc;
+        }
+        if (INA_RC_REASON(ina_err_peek()) != INA_EWAIT) {
+            return INA_ERR_PUSH_LAST;
+        }
+        
+        if (nc && wait_msec > 0) {
+            INA_TRACE3("Next ISCP in %d msec", wait_msec);
+            ina_time_sleep(wait_msec);
         }
     }
-    return INA_FAILURE;
+    return INA_ERR_PUSH_LAST;
 }
 
 static ina_rc_t 
@@ -485,26 +496,37 @@ __ina_net_open_cb(void* user_data, int send)
 
     /* Open channel for sending **/
     if (send == 1) {    
+        INA_TRACE_MSG("ISCP channel for send");
         /* Check if the channel is sill open */
         if (data->fd == -1) {
+             INA_TRACE_MSG("Open ISCP channel for send");
             if (!INA_SUCCEED(ina_net_tcp_connect(&data->fd, ina_str_cstr(data->addr), data->port))) {
                 return INA_ERR_PUSH_LAST;
             }
+            INA_TRACE_MSG("Open ISCP channel ready to send");
         }
         return INA_SUCCESS;
     }
 
+    INA_TRACE_MSG("ISCP channel for receive");
+
     if (data->lfd  == -1) {
+        INA_TRACE3("Open ISCP channel for receive port %d, address %s", 
+            data->port,
+            ina_str_cstr(data->addr));
+        
         /* Open chnannel for receiving */
         if (!INA_SUCCEED(ina_net_tcp_server(&data->lfd, data->port, ina_str_cstr(data->addr)))) {
             return INA_ERR_PUSH_LAST;
         }
-        if (!INA_SUCCEED(ina_net_nonblock(data->fd))) {
-            ina_net_close(data->fd);
+  
+        if (!INA_SUCCEED(ina_net_nonblock(data->lfd))) {
+            ina_net_close(data->lfd);
             data->lfd = -1;
             data->fd = -1;
             return INA_ERR_PUSH_LAST;
         }
+         INA_TRACE_MSG("ISCP channel ready to receive");
     }
     return INA_SUCCESS;
 }
@@ -513,10 +535,12 @@ static ina_rc_t
 __ina_net_clse_cb(void* user_data, int send)
 {
     ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
-    if (send == 1) {
+    if (send == 1 && data->fd != -1) {
+        INA_TRACE3("ISCP close client fd %d", data->fd);
         ina_net_close(data->fd);
         data->fd = -1;
-    } else {
+    } else if (data->lfd != -1){
+        INA_TRACE3("ISCP close server fd %d", data->fd);
         ina_net_close(data->lfd);
         data->lfd = -1;
     }
@@ -534,9 +558,13 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
     nb_write = 0;
     nb_read = 0;
     irc.rc = INA_SUCCESS;
+
+    INA_TRACE3("ISCP send on fd %d", data->fd);
     
     if (INA_SUCCEED(ina_net_write(data->fd, (unsigned char*)msg, msg->length, &nb_write))) {
+        INA_TRACE3("ISCP read response on fd %d", data->fd);
         ina_net_read(data->fd, (unsigned char*)&irc, sizeof(ina_iscp_rc_t), &nb_read);
+        INA_TRACE3("ISCP response on fd %d is %d", data->fd, irc.rc);
         return irc.rc;
     }
     return INA_ISCP_ESEND;
@@ -550,14 +578,20 @@ __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 
     nb_read = 0;
     
+    INA_TRACE3("Acpect ISCP on fd %d", data->lfd);
+    
     if (INA_SUCCEED(ina_net_tcp_accept(&data->fd, data->lfd, NULL, NULL))) {
-        if (data->fd != -1 && !INA_SUCCEED(ina_net_nonblock(data->fd))) {
-            ina_net_close(data->fd);
-            data->fd = -1;
+        if (data->fd != -1) {
+            INA_TRACE3("Accepted ISCP fd %d", data->fd);
+            if (!INA_SUCCEED(ina_net_nonblock(data->fd))) {
+                ina_net_close(data->fd);
+                data->fd = -1;
+            }
         }
     }
     
     if (data->fd == -1) {
+        INA_TRACE3("Return EWAIT for next ISCP on fd %d", data->lfd);
         return INA_ISCP_EWAIT;
     }
 
@@ -583,4 +617,3 @@ __ina_net_retn_cb(void *user_data, ina_iscp_rc_t *rc)
     nb_write = 0;
     return ina_net_write(data->fd, (unsigned char*)rc, sizeof(ina_iscp_rc_t), &nb_write);
 }
-  
