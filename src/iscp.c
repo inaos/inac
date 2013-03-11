@@ -494,14 +494,14 @@ __ina_net_open_cb(void* user_data, int send)
 
     /* Open channel for sending **/
     if (send == 1) {    
-        INA_TRACE_MSG("ISCP channel for send");
+        INA_TRACE3("ISCP channel for send");
         /* Check if the channel is sill open */
         if (data->fd == -1) {
-             INA_TRACE_MSG("Open ISCP channel for send");
+             INA_TRACE3("Open ISCP channel for send");
             if (!INA_SUCCEED(ina_net_tcp_connect(&data->fd, ina_str_cstr(data->addr), data->port))) {
                 return ina_err_peek();
             }
-            INA_TRACE_MSG("Open ISCP channel ready to send");
+            INA_TRACE3("Open ISCP channel ready to send");
         }
         return INA_SUCCESS;
     }
@@ -522,7 +522,7 @@ __ina_net_open_cb(void* user_data, int send)
             data->fd = -1;
             return ina_err_peek();
         }
-         INA_TRACE_MSG("ISCP channel ready to receive");
+         INA_TRACE3("ISCP channel ready to receive");
     }
     return INA_SUCCESS;
 }
