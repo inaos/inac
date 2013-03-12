@@ -88,6 +88,8 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
         __ina_sopt_t *tmp_so =  NULL;
 
         while (opt->short_opt) {
+			__ina_lopt_t *lo;
+
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             if (so == NULL) {
                 return INA_ERR_PUSH_LAST;
@@ -98,7 +100,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
             so->type = opt->type;
             HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
 
-            __ina_lopt_t *lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
+            lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
             if (lo == NULL) {
                 return INA_ERR_PUSH_LAST;
             }
@@ -110,7 +112,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
         
         /* Parse arguments, if any */
         if (argv != NULL) {
-            size_t n;
+            int n;
             for (n = 1; n < argc; n++ ) {
                 size_t c = 0;
                 size_t s = 0;
@@ -339,11 +341,11 @@ __ina_opt_get(const char *opt)
 static void 
 __ina_opt_usage(void)
 {
-    printf("USAGE: %s ", ina_str_cstr(__appname));
-
     __ina_lopt_t *lo = NULL;
     __ina_lopt_t *tmp_lo =  NULL;
     __ina_sopt_t *so = NULL;
+
+	printf("USAGE: %s ", ina_str_cstr(__appname));
     
     HASH_ITER(hh, __lopt, lo, tmp_lo) {
         so = lo->short_opt;

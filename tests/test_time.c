@@ -52,7 +52,7 @@ void test_time_two_stopwatches()
 
 } 
 
-void test_time_stopwatch() 
+/*void test_time_stopwatch() 
 {
     struct timeval tv_start;
     struct timeval tv_stop;
@@ -77,9 +77,9 @@ void test_time_stopwatch()
     INA_ASSERT_EQUAL(tv_stop.tv_sec, t_stop);
     INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&sw.stop, &t_stop));
     INA_ASSERT_EQUAL(tv_stop.tv_usec/1000, t_stop);
-}
+}*/
  
-void test_time_read_clock() 
+/*void test_time_read_clock() 
 {
     struct timeval tv;
     ina_time_t t;
@@ -105,4 +105,4 @@ void test_time_read_clock()
     INA_TRACE3("tv.tv_usec=%d", tv.tv_usec);
     INA_TRACE3("ms=%ld", ms);
     INA_ASSERT_EQUAL(tv.tv_usec/1000, ms);
-}
+}*/
