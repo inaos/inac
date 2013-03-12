@@ -12,23 +12,19 @@ set (SKIPLIST_INCLUDE_DIR "${DEPS_DIR}/skiplist")
 include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${ANET_INCLUDE_DIR}" 
 					"${BSTRING_INCLUDE_DIR}" "${SKIPLIST_INCLUDE_DIR}" "${LUA_INCLUDE_DIR}")
 
+set(BSTRING_LIB_NAME "bstring")
+set(ANET_LIB_NAME "anet")
+set(SKIPLIST_LIB_NAME "skiplist")
+set(INAC_LIB_NAME "libinac")
+set(INAC_TESTLIB_NAME "testinac")					
+					
 #set build-type specific variables
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)
-	set(BSTRING_LIB_NAME "bstring")
-	set(ANET_LIB_NAME "anet")
-	set(SKIPLIST_LIB_NAME "skiplist")
-	set(INAC_LIB_NAME "libinac")
-	set(INAC_TESTLIB_NAME "testinac")
+	add_definitions(-DINA_OS_WIN32 -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)	
 else()
 	#Preprocessor
 	add_definitions(-DINA_OS_WIN32 -DDEBUG -DTRACE_ENABLED -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)
-	set(BSTRING_LIB_NAME "bstringd")
-	set(ANET_LIB_NAME "anetd")
-	set(SKIPLIST_LIB_NAME "skiplistd")
-	set(INAC_LIB_NAME "libinacd")
-	set(INAC_TESTLIB_NAME "testinacd")
 endif()
 
 # BEGIN dependencies
@@ -58,7 +54,7 @@ add_library(${SKIPLIST_LIB_NAME} ${SKIPLIST_SRC})
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
                  ${SRC_DIR}/string/bstring.c ${SRC_DIR}/string/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
-                 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c, ${SRC_DIR}/portable.c)
+                 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/portable.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 

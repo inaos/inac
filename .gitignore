@@ -9,6 +9,7 @@ tests/suites.c
 tests/suites.h
 tests/test
 tests/test_*.h
+contribs/luajit-2.0.1/src/luajit.exp
 contribs/luajit-2.0.1/src/host/buildvm
 contribs/luajit-2.0.1/src/host/minilua
 contribs/luajit-2.0.1/src/host/buildvm_arch.h

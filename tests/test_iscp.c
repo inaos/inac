@@ -106,7 +106,7 @@ static ina_rc_t __null_handler2(int cmd_id, int count, ina_iscp_param_t *params)
 
 static ina_rc_t __check_params_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {   
-   size_t i;
+   int i;
 
    ++__handler_count;
 

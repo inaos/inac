@@ -36,7 +36,7 @@ static int __handler(const int sig, const int error)
 }
 
 
-void test_lib_fork() 
+/*void test_lib_fork() 
 {
     int pid = 0;
     
@@ -52,7 +52,7 @@ void test_lib_fork()
             INA_TRACE_MSG("in parent");
         }
     }
-}
+}*/
 void test_lib_opt()
 {
     int l_int_value = 1;

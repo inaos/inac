@@ -238,7 +238,7 @@ INA_API(ina_rc_t) ina_iscp_register_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds
 INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 {
     ina_iscp_cmd_t* cmd;
-    ina_iscp_msg_t* msg;
+    ina_iscp_msg_t*  msg;  
     size_t n;
     size_t p;
     uint8_t type;
@@ -357,7 +357,9 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec) 
 {
-    ina_iscp_msg_t *msg;
+    ina_iscp_msg_t msg1;
+    ina_iscp_msg_t *msg = &msg1;
+    ina_rc_t rc;
 
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_TRUE(nc > 0);
@@ -368,16 +370,17 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
         return INA_ERR_PUSH_LAST;
     }
 
-    msg = (ina_iscp_msg_t*)ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_msg_t));
-    if (msg == NULL) {
+    /*msg = (ina_iscp_msg_t*)ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_msg_t));*/
+    /*if (msg == NULL) {*/
         /* We close the channel here, it doesn't make sens in this
            case to leave it open */
-        ctx->clse_cb(ctx->user_data, 0);
+    /*    ctx->clse_cb(ctx->user_data, 0);
         return INA_ERR_PUSH_LAST;
-    }
+    }*/
 
     while (nc--) {
-        if (INA_SUCCEED(ctx->recv_cb(ctx->user_data, msg))) {
+        rc = ctx->recv_cb(ctx->user_data, msg);
+        if (INA_SUCCEED(rc)) {
             size_t n;
             int p;
             ina_iscp_cmd_t *cmd;
@@ -385,7 +388,6 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             int ci;
             uint32_t crc;
             ina_iscp_rc_t irc;
-            ina_rc_t rc;
  
             INA_TRACE2("Message received with cmd_id %d", msg->cmd_id);
             INA_TRACE3("- msg->cmd_id->%d", msg->cmd_id);
@@ -471,14 +473,10 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             INA_TRACE3("Call command handler for cmd_id %d", msg->cmd_id);
             irc.rc = cmd->handler(msg->cmd_id, msg->p_count, params);
             /* We return RC back to the callee */
-            rc = ctx->retn_cb(ctx->user_data, &irc);
-            if (rc == INA_SUCCESS) {
-                return INA_ISCP_EWAIT;
-            }
-            return rc;
+            return  ctx->retn_cb(ctx->user_data, &irc);
         }
-        if (INA_RC_REASON(ina_err_peek()) != INA_EWAIT) {
-            return INA_ERR_PUSH_LAST;
+        if (rc != INA_EWAIT) {
+            return ina_err_peek();
         }
         
         if (nc && wait_msec > 0) {
@@ -496,19 +494,17 @@ __ina_net_open_cb(void* user_data, int send)
 
     /* Open channel for sending **/
     if (send == 1) {    
-        INA_TRACE_MSG("ISCP channel for send");
+        INA_TRACE3("ISCP channel for send");
         /* Check if the channel is sill open */
         if (data->fd == -1) {
-             INA_TRACE_MSG("Open ISCP channel for send");
+             INA_TRACE3("Open ISCP channel for send");
             if (!INA_SUCCEED(ina_net_tcp_connect(&data->fd, ina_str_cstr(data->addr), data->port))) {
-                return INA_ERR_PUSH_LAST;
+                return ina_err_peek();
             }
-            INA_TRACE_MSG("Open ISCP channel ready to send");
+            INA_TRACE3("Open ISCP channel ready to send");
         }
         return INA_SUCCESS;
     }
-
-    INA_TRACE_MSG("ISCP channel for receive");
 
     if (data->lfd  == -1) {
         INA_TRACE3("Open ISCP channel for receive port %d, address %s", 
@@ -517,16 +513,16 @@ __ina_net_open_cb(void* user_data, int send)
         
         /* Open chnannel for receiving */
         if (!INA_SUCCEED(ina_net_tcp_server(&data->lfd, data->port, ina_str_cstr(data->addr)))) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_peek();
         }
   
         if (!INA_SUCCEED(ina_net_nonblock(data->lfd))) {
             ina_net_close(data->lfd);
             data->lfd = -1;
             data->fd = -1;
-            return INA_ERR_PUSH_LAST;
+            return ina_err_peek();
         }
-         INA_TRACE_MSG("ISCP channel ready to receive");
+         INA_TRACE3("ISCP channel ready to receive");
     }
     return INA_SUCCESS;
 }
@@ -592,7 +588,7 @@ __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
     
     if (data->fd == -1) {
         INA_TRACE3("Return EWAIT for next ISCP on fd %d", data->lfd);
-        return INA_ISCP_EWAIT;
+        return INA_EWAIT;
     }
 
     if (INA_SUCCEED(ina_net_read(data->fd, (unsigned char*)msg, INA_ISCP_HDR_SIZE, &nb_read))) {
