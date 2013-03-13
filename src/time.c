@@ -72,7 +72,6 @@ INA_API(ina_rc_t) ina_time_read_clock(ina_time_t* time)
 {
 #ifdef INA_OS_WIN32
     QueryPerformanceCounter(&time->tp);
-	time->ttp = timeGetTime();
 #else
     if (gettimeofday(&time->tp, NULL) == -1) {
         return INA_FAILURE;
