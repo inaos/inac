@@ -92,7 +92,7 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) in_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch)
+INA_API(ina_rc_t) ina_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch)
 {   
     char name[100];
     sprintf(name, "/ina_stopwach_%d", id);
