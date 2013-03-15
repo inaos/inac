@@ -238,7 +238,7 @@ INA_API(ina_rc_t) ina_iscp_register_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds
 INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 {
     ina_iscp_cmd_t* cmd;
-    ina_iscp_msg_t*  msg;  
+    ina_iscp_msg_t  msg;  
     size_t n;
     size_t p;
     uint8_t type;
@@ -253,12 +253,6 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
         return INA_ISCP_ECMDREG;
     }
 
-    /* Allocate buffer */
-    msg = (ina_iscp_msg_t*)ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_msg_t));
-    if (msg == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
-
     n = 0;
     p = cmd->p_count;
     type = -1;
@@ -269,23 +263,23 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
         type = (uint8_t)va_arg(params, int);
 
         INA_TRACE3("msg offset=%ld", n + INA_ISCP_HDR_SIZE);
-        INA_TRACE3("msg->type=%d  ", type);
+        INA_TRACE3("msg.type=%d  ", type);
 
-        msg->cmd_data[n] = type;
+        msg.cmd_data[n] = type;
         n += sizeof(uint8_t);
         switch (type) {
             case INA_ISCP_TYPE_INT64:
             {
                 int64_t i;
                 i = va_arg(params, int64_t);
-                msg->cmd_data[n] = i & 0xff;
-                msg->cmd_data[++n] = (i>>8)  & 0xff;
-                msg->cmd_data[++n] = (i>>16) & 0xff;
-                msg->cmd_data[++n] = (i>>24) & 0xff;
-                msg->cmd_data[++n] = (i>>32) & 0xff;
-                msg->cmd_data[++n] = (i>>40) & 0xff;
-                msg->cmd_data[++n] = (i>>48) & 0xff;
-                msg->cmd_data[++n] = (i>>56) & 0xff;
+                msg.cmd_data[n] = i & 0xff;
+                msg.cmd_data[++n] = (i>>8)  & 0xff;
+                msg.cmd_data[++n] = (i>>16) & 0xff;
+                msg.cmd_data[++n] = (i>>24) & 0xff;
+                msg.cmd_data[++n] = (i>>32) & 0xff;
+                msg.cmd_data[++n] = (i>>40) & 0xff;
+                msg.cmd_data[++n] = (i>>48) & 0xff;
+                msg.cmd_data[++n] = (i>>56) & 0xff;
                 ++n;
                 break;
             }
@@ -294,7 +288,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
                 /* FIXME: find a better solution */
                 double d;
                 d = va_arg(params, double);
-                ina_mem_cpy(&msg->cmd_data[n], &d, sizeof(double));
+                ina_mem_cpy(&msg.cmd_data[n], &d, sizeof(double));
                 n += sizeof(double);
                 break;
             }
@@ -305,13 +299,13 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
                 str = va_arg(params, char*);
                 i = strlen(str);
-                msg->cmd_data[n] = i & 0xff;
-                msg->cmd_data[++n] = (i>>8)  & 0xff;
-                msg->cmd_data[++n] = (i>>16) & 0xff;
-                msg->cmd_data[++n] = (i>>24) & 0xff;
-                ina_mem_cpy(&msg->cmd_data[++n], str, i);
+                msg.cmd_data[n] = i & 0xff;
+                msg.cmd_data[++n] = (i>>8)  & 0xff;
+                msg.cmd_data[++n] = (i>>16) & 0xff;
+                msg.cmd_data[++n] = (i>>24) & 0xff;
+                ina_mem_cpy(&msg.cmd_data[++n], str, i);
                 n += i;
-                msg->cmd_data[n] = 0;
+                msg.cmd_data[n] = 0;
                 ++n;
                 break;
             }
@@ -324,28 +318,28 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     va_end(params);
 
     /* Fill up header fields */
-    msg->length = n + INA_ISCP_HDR_SIZE + sizeof(uint32_t);
-    msg->cmd_id = cmd->cmd_id;
-    msg->cmd_uid = 1; /* FIMXE: UID Generator */
-    msg->p_count = cmd->p_count;
+    msg.length = n + INA_ISCP_HDR_SIZE + sizeof(uint32_t);
+    msg.cmd_id = cmd->cmd_id;
+    msg.cmd_uid = 1; /* FIMXE: UID Generator */
+    msg.p_count = cmd->p_count;
 
     /* Calculate CRC and append it to the message */
-    INA_TRACE3("crc pos %ld", msg->length-sizeof(uint32_t));
-    crc = ina_util_hash_crc32(0, msg, msg->length-sizeof(uint32_t));
-    INA_TRACE3("crc=%u crc-length=%ld", crc,  msg->length-sizeof(uint32_t));
-    msg->cmd_data[n] = crc & 0xff;
-    msg->cmd_data[++n] = (crc>>8)  & 0xff;
-    msg->cmd_data[++n] = (crc>>16) & 0xff;
-    msg->cmd_data[++n] = (crc>>24) & 0xff;
+    INA_TRACE3("crc pos %ld", msg.length-sizeof(uint32_t));
+    crc = ina_util_hash_crc32(0, &msg, msg.length-sizeof(uint32_t));
+    INA_TRACE3("crc=%u crc-length=%ld", crc,  msg.length-sizeof(uint32_t));
+    msg.cmd_data[n] = crc & 0xff;
+    msg.cmd_data[++n] = (crc>>8)  & 0xff;
+    msg.cmd_data[++n] = (crc>>16) & 0xff;
+    msg.cmd_data[++n] = (crc>>24) & 0xff;
 
-    INA_TRACE2("Message sending with id %d", msg->cmd_id);
-    INA_TRACE3("- msg->cmd_id->%d", msg->cmd_id);
-    INA_TRACE3("- msg->length->%d", msg->length);
-    INA_TRACE3("- msg->cmd_uid->%d", msg->cmd_uid);
-    INA_TRACE3("- msg->p_count->%d", msg->p_count);
+    INA_TRACE2("Message sending with id %d", msg.cmd_id);
+    INA_TRACE3("- msg.cmd_id->%d", msg.cmd_id);
+    INA_TRACE3("- msg.length->%d", msg.length);
+    INA_TRACE3("- msg.cmd_uid->%d", msg.cmd_uid);
+    INA_TRACE3("- msg.p_count->%d", msg.p_count);
     
     if (INA_SUCCEED(ctx->open_cb(ctx->user_data, 1))) {
-        ina_rc_t rc = ctx->send_cb(ctx->user_data, msg);
+        ina_rc_t rc = ctx->send_cb(ctx->user_data, &msg);
         ctx->clse_cb(ctx->user_data, 1);
         if (rc != INA_SUCCESS) {
             return INA_ISCP_ERROR(INA_RC_REASON(rc), "ISCP command failed");
@@ -357,8 +351,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec) 
 {
-    ina_iscp_msg_t msg1;
-    ina_iscp_msg_t *msg = &msg1;
+    ina_iscp_msg_t msg;
     ina_rc_t rc;
 
     INA_ASSERT_NOTNULL(ctx);
@@ -370,16 +363,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
         return INA_ERR_PUSH_LAST;
     }
 
-    /*msg = (ina_iscp_msg_t*)ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_msg_t));*/
-    /*if (msg == NULL) {*/
-        /* We close the channel here, it doesn't make sens in this
-           case to leave it open */
-    /*    ctx->clse_cb(ctx->user_data, 0);
-        return INA_ERR_PUSH_LAST;
-    }*/
-
     while (nc--) {
-        rc = ctx->recv_cb(ctx->user_data, msg);
+        rc = ctx->recv_cb(ctx->user_data, &msg);
         if (INA_SUCCEED(rc)) {
             size_t n;
             int p;
@@ -389,29 +374,29 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             uint32_t crc;
             ina_iscp_rc_t irc;
  
-            INA_TRACE2("Message received with cmd_id %d", msg->cmd_id);
-            INA_TRACE3("- msg->cmd_id->%d", msg->cmd_id);
-            INA_TRACE3("- msg->length->%d", msg->length);
-            INA_TRACE3("- msg->cmd_uid->%d", msg->cmd_uid);
-            INA_TRACE3("- msg->p_count->%d", msg->p_count);
+            INA_TRACE2("Message received with cmd_id %d", msg.cmd_id);
+            INA_TRACE3("- msg.cmd_id->%d", msg.cmd_id);
+            INA_TRACE3("- msg.length->%d", msg.length);
+            INA_TRACE3("- msg.cmd_uid->%d", msg.cmd_uid);
+            INA_TRACE3("- msg.p_count->%d", msg.p_count);
 
             /* We need exactlly an int */
-            ci = msg->cmd_id;
+            ci = msg.cmd_id;
 
-            irc.cmd_uid = msg->cmd_uid;
+            irc.cmd_uid = msg.cmd_uid;
 
             HASH_FIND_INT(ctx->cmds, &ci, cmd);
             if (cmd == NULL || cmd->handler == NULL) {
-                INA_TRACE("Command discard with id %d", msg->cmd_id);
+                INA_TRACE("Command discard with id %d", msg.cmd_id);
                 irc.rc = INA_ISCP_ECMDREG;
                 ctx->retn_cb(ctx->user_data, &irc);
                 return ina_err_peek();
             }
 
             /* Validate CRC */
-            INA_TRACE3("crc pos=%ld", msg->length-sizeof(uint32_t));
-            crc = *(uint32_t*)&((unsigned char*)(msg))[msg->length-sizeof(uint32_t)];
-            INA_TRACE3("crc=%u crc-length=%ld", crc, msg->length-sizeof(uint32_t));
+            INA_TRACE3("crc pos=%ld", msg.length-sizeof(uint32_t));
+            crc = *(uint32_t*)&((unsigned char*)(&msg))[msg.length-sizeof(uint32_t)];
+            INA_TRACE3("crc=%u crc-length=%ld", crc, msg.length-sizeof(uint32_t));
 
             /*if (crc != ina_util_crc32(0, (unsigned char*)msg, msg->length-sizeof(uint32_t))) {
                 INA_TRACE("Invalid crc (%d)", crc);
@@ -422,24 +407,24 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             n = 0;
             params = (ina_iscp_param_t*)ina_mempool_dalloc(
                                             ctx->mempool,
-                                            sizeof(ina_iscp_param_t)*(msg->p_count));
+                                            sizeof(ina_iscp_param_t)*(msg.p_count));
 
-            while (n+INA_ISCP_HDR_SIZE < msg->length-sizeof(uint32_t)) {
-                params[p].type = *(uint8_t*)&msg->cmd_data[n];
-                INA_TRACE3("msg->type->%d", params[p].type);
+            while (n+INA_ISCP_HDR_SIZE < msg.length-sizeof(uint32_t)) {
+                params[p].type = *(uint8_t*)&msg.cmd_data[n];
+                INA_TRACE3("msg.type->%d", params[p].type);
 
                 n+= sizeof(uint8_t);
                 switch (params[p].type) {
                     case INA_ISCP_TYPE_INT64:
                     {
-                        params[p].value.i = *(int64_t*)&msg->cmd_data[n];
+                        params[p].value.i = *(int64_t*)&msg.cmd_data[n];
                         n += sizeof(int64_t);
                         INA_TRACE3("- Parameter %d type=int64_t value=%lld", p, params[p].value.i);
                         break;
                     }
                     case INA_ISCP_TYPE_DBL:
                     {
-                        params[p].value.d = *(double*)&msg->cmd_data[n];
+                        params[p].value.d = *(double*)&msg.cmd_data[n];
                         n += sizeof(double);
                         INA_TRACE3("- Parameter %d type=double value=%f", p, params[p].value.d);
                         break;
@@ -447,9 +432,9 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                     case INA_ISCP_TYPE_STR:
                     {
                         int32_t i;
-                        i = *(int32_t*)&msg->cmd_data[n];
+                        i = *(int32_t*)&msg.cmd_data[n];
                         n += sizeof(int32_t);
-                        params[p].value.s = ina_str_fromcstr((const char*)&msg->cmd_data[n]);
+                        params[p].value.s = ina_str_fromcstr((const char*)&msg.cmd_data[n]);
                         INA_TRACE3("- Parameter %d type=string value=%s", p, params[p].value.s);
                         INA_TRACE3("   - string length=%d", i);
                         n += i+1;
@@ -465,13 +450,13 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                 ++p;
             }
 
-            if (p != msg->p_count) {
+            if (p != msg.p_count) {
                 return INA_ISCP_ECMDREG;
             }
             
             /* Store RC from command handler */
-            INA_TRACE3("Call command handler for cmd_id %d", msg->cmd_id);
-            irc.rc = cmd->handler(msg->cmd_id, msg->p_count, params);
+            INA_TRACE3("Call command handler for cmd_id %d", msg.cmd_id);
+            irc.rc = cmd->handler(msg.cmd_id, msg.p_count, params);
             /* We return RC back to the callee */
             return  ctx->retn_cb(ctx->user_data, &irc);
         }
