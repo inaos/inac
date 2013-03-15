@@ -28,6 +28,8 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int);
+ 
 #ifdef INA_OS_WIN32
 static double __ina_lit_to_secs(LARGE_INTEGER * L) 
 {
@@ -93,42 +95,13 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch)
-{   
-    ina_str_t sname;
-    char name[100];
-    sprintf(name, "/ina_stopwacht_%d", id);
-    sname = ina_str_fromcstr(name);
+{
+    return __ina_stopwatch_init(id, stopwatch, 1);
+}
 
-    *stopwatch = (ina_stopwatch_t*)ina_mem_alloc(sizeof(ina_stopwatch_t));
-    if (*stopwatch == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
-    ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
-
-    if (!INA_SUCCEED(ina_mempool_create(&(*stopwatch)->shared_mem, 
-            sizeof(ina_stopwatch_t), 
-            INA_MEM_SHARED|INA_MEM_SHARED_CREATE, 
-            sname))) {
-        ina_mem_free(*stopwatch);
-        *stopwatch = NULL;
-        return INA_ERR_PUSH_LAST;
-    }
-
-    (*stopwatch)->data = (ina_stopwatch_data_t*)ina_mempool_dalloc(
-            (*stopwatch)->shared_mem, 
-            sizeof(ina_stopwatch_data_t));
-
-
-    if ((*stopwatch)->data == NULL) {
-        ina_mempool_release((*stopwatch)->shared_mem, 1);
-        ina_mem_free(*stopwatch);
-        *stopwatch = NULL;
-        return INA_ERR_PUSH_LAST;
-    }
-    /* FIXME: atommic */
-    (*stopwatch)->data->c_ref++;
-    (*stopwatch)->id = id;
-    return INA_SUCCESS; 
+INA_API(ina_rc_t) ina_time_stopwatch_open(int id, ina_stopwatch_t **stopwatch)
+{
+    return __ina_stopwatch_init(id, stopwatch, 0);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch) 
@@ -136,8 +109,6 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
     if (*stopwatch == NULL) {
         return INA_SUCCESS;
     }
-    /* FIXME: atomic */
-    (*stopwatch)->data->c_ref--;
     ina_mempool_release((*stopwatch)->shared_mem, 1);
     ina_mem_free(*stopwatch);
     *stopwatch = NULL;
@@ -148,20 +119,65 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
 {
     INA_ASSERT_NOTNULL(stopwatch);
-    return ina_time_read_clock(&stopwatch->data->start);
+    return ina_time_read_clock(&stopwatch->tv->start);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 {
 #ifdef INA_OS_WIN32
     LARGE_INTEGER elapsed;
-    ina_time_read_clock(&stopwatch->data->stop);
-    elapsed.QuadPart = stopwatch->data->stop.tp.QuadPart - stopwatch->data->start.tp.QuadPart; 
+    ina_time_read_clock(&stopwatch->tv->stop);
+    elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->data->sec_duration = __ina_lit_to_secs(&elapsed);
 #else
-    ina_time_read_clock(&stopwatch->data->stop);
-    stopwatch->data->sec_duration = (stopwatch->data->stop.tp.tv_sec - stopwatch->data->start.tp.tv_sec);
-    stopwatch->data->sec_duration += ((stopwatch->data->stop.tp.tv_usec - stopwatch->data->start.tp.tv_usec) / 10000000.0); 
+    ina_time_read_clock(&stopwatch->tv->stop);
+    stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
+    stopwatch->tv->sec_duration += ((stopwatch->tv->stop.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
 #endif
     return INA_SUCCESS;
+}
+
+static ina_rc_t 
+__ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create)
+{
+    uint32_t cf = INA_MEM_SHARED;
+    char name[100];
+    sprintf(name, "/ina_stopwatch_%d", id);
+
+     *stopwatch = (ina_stopwatch_t*)ina_mem_alloc(sizeof(ina_stopwatch_t));
+     if (*stopwatch == NULL) {
+         return INA_ERR_PUSH_LAST;
+     }
+     ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
+
+     if (create == 1) {
+         cf = cf|INA_MEM_SHARED_CREATE;
+     }
+
+     if (!INA_SUCCEED(ina_mempool_create(&(*stopwatch)->shared_mem, 
+             sizeof(ina_stopwatch_t), 
+             cf, 
+             name))) {
+         ina_mem_free(*stopwatch);
+         *stopwatch = NULL;
+         return INA_ERR_PUSH_LAST;
+     }
+
+     (*stopwatch)->tv = (ina_stopwatch_tv_t*)ina_mempool_dalloc(
+             (*stopwatch)->shared_mem, 
+             sizeof(ina_stopwatch_tv_t));
+
+
+     if ((*stopwatch)->tv == NULL) {
+         ina_mempool_release((*stopwatch)->shared_mem, 1);
+         ina_mem_free(*stopwatch);
+         *stopwatch = NULL;
+         return INA_ERR_PUSH_LAST;
+     }
+
+     if (create) {
+         ina_mem_set(&(*stopwatch)->tv, sizeof(ina_stopwatch_tv_t), 0);
+     }
+     (*stopwatch)->id = id;
+     return INA_SUCCESS; 
 }

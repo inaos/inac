@@ -45,18 +45,17 @@ typedef struct ina_time_s {
 } ina_time_t;
 
 /* Stopwatch  data */
-typedef struct ina_stopwatch_data_s {
-    int64_t    c_ref;
+typedef struct ina_stopwatch_tv_s {
     ina_time_t start;
     ina_time_t stop;
     double sec_duration;
-} ina_stopwatch_data_t;
+} ina_stopwatch_tv_t;
 
-/* Stopwatch */
+/* Stopwatch time values */
 typedef struct ina_stopwatch_s {
     int id;
     ina_mempool_t *shared_mem;
-    ina_stopwatch_data_t *data;
+    ina_stopwatch_tv_t *tv;
 } ina_stopwatch_t;
 
 
@@ -77,6 +76,11 @@ INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *msec);
  * Create a new stopwatch
  */
 INA_API(ina_rc_t) ina_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch);
+
+/*
+ * Open an existing stopwatch
+ */
+INA_API(ina_rc_t) ina_time_stopwatch_open(int id, ina_stopwatch_t **stopwatch);
 
 /*
  * Create a new stopwatch
