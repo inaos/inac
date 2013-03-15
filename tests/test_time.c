@@ -44,6 +44,11 @@ void test_time_two_stopwatches()
     INA_ASSERT_EQUAL(1, w1->id);
     INA_ASSERT_NOTNULL(w1->data);
     INA_ASSERT_EQUAL(1, w1->data->c_ref);
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(2, &w2));
+    INA_ASSERT_NOTNULL(w2);
+    INA_ASSERT_EQUAL(2, w2->id);
+    INA_ASSERT_NOTNULL(w2->data);
+    INA_ASSERT_EQUAL(1, w2->data->c_ref);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w1));
     INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w1));
     INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w1));
@@ -54,7 +59,8 @@ void test_time_two_stopwatches()
     INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w1->data->start, &msec1)); 
     INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w2->data->start, &msec2));
     INA_ASSERT_EQUAL(msec1, msec2);
-
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w1));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w2));
 } 
 
 /*void test_time_stopwatch() 
