@@ -30,8 +30,8 @@
 
 void test_time_two_stopwatches()
 {
-    ina_stopwatch_t w1;
-    ina_stopwatch_t w2;
+    ina_stopwatch_t *w1 = NULL;
+    ina_stopwatch_t *w2 = NULL;
     time_t sec1  = 0;
     time_t sec2  = 0; 
     time_t msec1 = 0;
@@ -39,15 +39,20 @@ void test_time_two_stopwatches()
 
     INA_TRACE_MSG("test_time_two_stopwatches");
 
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(&w1));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(&w2));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(&w1));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(&w2));
-    INA_ASSERT_SUCCEED(ina_time_get_seconds(&w1.start, &sec1)); 
-    INA_ASSERT_SUCCEED(ina_time_get_seconds(&w2.start, &sec2));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(1, &w1));
+    INA_ASSERT_NOTNULL(w1);
+    INA_ASSERT_EQUAL(1, w1->id);
+    INA_ASSERT_NOTNULL(w1->data);
+    INA_ASSERT_EQUAL(1, w1->data->c_ref);
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w1));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w1));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w1));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w2));
+    INA_ASSERT_SUCCEED(ina_time_get_seconds(&w1->data->start, &sec1)); 
+    INA_ASSERT_SUCCEED(ina_time_get_seconds(&w2->data->start, &sec2));
     INA_ASSERT_EQUAL(sec1, sec2);
-    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w1.start, &msec1)); 
-    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w2.start, &msec2));
+    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w1->data->start, &msec1)); 
+    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w2->data->start, &msec2));
     INA_ASSERT_EQUAL(msec1, msec2);
 
 } 
