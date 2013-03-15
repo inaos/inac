@@ -94,26 +94,30 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
 
 INA_API(ina_rc_t) ina_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch)
 {   
+    ina_str_t sname;
     char name[100];
-    sprintf(name, "/ina_stopwach_%d", id);
+    sprintf(name, "/ina_stopwacht_%d", id);
+    sname = ina_str_fromcstr(name);
 
     *stopwatch = (ina_stopwatch_t*)ina_mem_alloc(sizeof(ina_stopwatch_t));
     if (*stopwatch == NULL) {
         return INA_ERR_PUSH_LAST;
     }
+    ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
 
     if (!INA_SUCCEED(ina_mempool_create(&(*stopwatch)->shared_mem, 
             sizeof(ina_stopwatch_t), 
-            INA_MEM_SHARED, 
-            name))) {
+            INA_MEM_SHARED|INA_MEM_SHARED_CREATE, 
+            sname))) {
         ina_mem_free(*stopwatch);
-        stopwatch = NULL;
+        *stopwatch = NULL;
         return INA_ERR_PUSH_LAST;
     }
-    
+
     (*stopwatch)->data = (ina_stopwatch_data_t*)ina_mempool_dalloc(
             (*stopwatch)->shared_mem, 
             sizeof(ina_stopwatch_data_t));
+
 
     if ((*stopwatch)->data == NULL) {
         ina_mempool_release((*stopwatch)->shared_mem, 1);
