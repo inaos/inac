@@ -92,22 +92,72 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) in_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch)
+{   
+    char name[100];
+    sprintf(name, "/ina_stopwach_%d", id);
+
+    *stopwatch = (ina_stopwatch_t*)ina_mem_alloc(sizeof(ina_stopwatch_t));
+    if (*stopwatch == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if (!INA_SUCCEED(ina_mempool_create(&(*stopwatch)->shared_mem, 
+            sizeof(ina_stopwatch_t), 
+            INA_MEM_SHARED, 
+            name))) {
+        ina_mem_free(*stopwatch);
+        stopwatch = NULL;
+        return INA_ERR_PUSH_LAST;
+    }
+    
+    (*stopwatch)->data = (ina_stopwatch_data_t*)ina_mempool_dalloc(
+            (*stopwatch)->shared_mem, 
+            sizeof(ina_stopwatch_data_t));
+
+    if ((*stopwatch)->data == NULL) {
+        ina_mempool_release((*stopwatch)->shared_mem, 1);
+        ina_mem_free(*stopwatch);
+        *stopwatch = NULL;
+        return INA_ERR_PUSH_LAST;
+    }
+    /* FIXME: atommic */
+    (*stopwatch)->data->c_ref++;
+    (*stopwatch)->id = id;
+    return INA_SUCCESS; 
+}
+
+INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch) 
+{
+    if (*stopwatch == NULL) {
+        return INA_SUCCESS;
+    }
+    /* FIXME: atomic */
+    (*stopwatch)->data->c_ref--;
+    ina_mempool_release((*stopwatch)->shared_mem, 1);
+    ina_mem_free(*stopwatch);
+    *stopwatch = NULL;
+    return INA_SUCCESS;
+}
+
+
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
 {
-    return ina_time_read_clock(&stopwatch->start);
+    INA_ASSERT_NOTNULL(stopwatch);
+    return ina_time_read_clock(&stopwatch->data->start);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 {
 #ifdef INA_OS_WIN32
     LARGE_INTEGER elapsed;
-    ina_time_read_clock(&stopwatch->stop);
-    elapsed.QuadPart = stopwatch->stop.tp.QuadPart - stopwatch->start.tp.QuadPart; 
-    stopwatch->sec_duration = __ina_lit_to_secs(&elapsed);
+    ina_time_read_clock(&stopwatch->data->stop);
+    elapsed.QuadPart = stopwatch->data->stop.tp.QuadPart - stopwatch->data->start.tp.QuadPart; 
+    stopwatch->data->sec_duration = __ina_lit_to_secs(&elapsed);
 #else
-    ina_time_read_clock(&stopwatch->stop);
-    stopwatch->sec_duration = (stopwatch->stop.tp.tv_sec - stopwatch->start.tp.tv_sec);
-    stopwatch->sec_duration += ((stopwatch->stop.tp.tv_usec - stopwatch->start.tp.tv_usec) / 10000000.0); 
+    ina_time_read_clock(&stopwatch->data->stop);
+    stopwatch->data->sec_duration = (stopwatch->data->stop.tp.tv_sec - stopwatch->data->start.tp.tv_sec);
+    stopwatch->data->sec_duration += ((stopwatch->data->stop.tp.tv_usec - stopwatch->data->start.tp.tv_usec) / 10000000.0); 
 #endif
     return INA_SUCCESS;
 }

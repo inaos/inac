@@ -37,7 +37,7 @@ typedef enum ina_log_level_e {
     INA_LOG_DEBUG,
     INA_LOG_INFO,
     INA_LOG_WARNING,
-    LOG_ERROR
+    INA_LOG_ERROR
 } ina_log_level_t;
 
 /* Log backendt */
