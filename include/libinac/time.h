@@ -81,7 +81,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch)
 /*
  * Create a new stopwatch
  */
-INA_API(ina_rc_t) in_time_stopwatch_destroy(ina_stopwatch_t **stopwatch);
+INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch);
 
 /*
  * Start a stop watch
