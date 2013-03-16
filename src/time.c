@@ -140,8 +140,6 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
 {
     INA_ASSERT_NOTNULL(stopwatch);
     stopwatch->tv->sec_duration  = 0;
-    stopwatch->tv->msec_duration = 0;
-    stopwatch->tv->usec_duration = 0;
     return ina_time_read_clock(&stopwatch->tv->start);
 }
 
@@ -157,6 +155,8 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
     stopwatch->tv->sec_duration += ((stopwatch->tv->stop.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
 #endif
+    stopwatch->tv->msec_duration= stopwatch->tv->sec_duration*1000;
+    stopwatch->tv->usec_duration = stopwatch->tv->sec_duration*1000*1000;    
     return ina_time_stopwatch_valid(stopwatch);
 }
 
