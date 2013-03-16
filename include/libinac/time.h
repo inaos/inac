@@ -49,6 +49,8 @@ typedef struct ina_stopwatch_tv_s {
     ina_time_t start;
     ina_time_t stop;
     double sec_duration;
+    double msec_duration;
+    double usec_duration;
 } ina_stopwatch_tv_t;
 
 /* Stopwatch time values */
@@ -86,6 +88,15 @@ INA_API(ina_rc_t) ina_time_stopwatch_open(int id, ina_stopwatch_t **stopwatch);
  * Create a new stopwatch
  */
 INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch);
+
+/*
+ * Check if stopwatch started.
+ */
+INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch);
+/*
+ * Check if stopwatch has valid values
+ */
+INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch);
 
 /*
  * Start a stop watch
