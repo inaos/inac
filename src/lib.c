@@ -88,8 +88,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
         __ina_sopt_t *tmp_so =  NULL;
 
         while (opt->short_opt) {
-			__ina_lopt_t *lo;
-
+            __ina_lopt_t *lo;
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             if (so == NULL) {
                 return INA_ERR_PUSH_LAST;
@@ -345,11 +344,11 @@ __ina_opt_usage(void)
     __ina_lopt_t *tmp_lo =  NULL;
     __ina_sopt_t *so = NULL;
 
-	printf("USAGE: %s ", ina_str_cstr(__appname));
+    printf("USAGE: %s ", ina_str_cstr(__appname));
     
     HASH_ITER(hh, __lopt, lo, tmp_lo) {
         so = lo->short_opt;
-        printf("-%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
+        printf(" -%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
         if (so->type != INA_OPT_TYPE_FLAG) {
             printf("%s", "= [");
             if (so->type == INA_OPT_TYPE_STRING) {
