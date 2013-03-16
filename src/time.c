@@ -104,6 +104,27 @@ INA_API(ina_rc_t) ina_time_stopwatch_open(int id, ina_stopwatch_t **stopwatch)
     return __ina_stopwatch_init(id, stopwatch, 0);
 }
 
+INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch)
+{
+    INA_ASSERT_NOTNULL(stopwatch);
+    if (stopwatch->tv->sec_duration == 0) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
+{
+    INA_ASSERT_NOTNULL(stopwatch);
+#ifdef INA_OS_WIN32
+    if (stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart) {
+        return INA_FAILURE;
+    }
+#endif
+    return INA_SUCCESS; 
+}
+
+
 INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch) 
 {
     if (*stopwatch == NULL) {
@@ -118,6 +139,9 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
 {
     INA_ASSERT_NOTNULL(stopwatch);
+    stopwatch->tv->sec_duration  = 0;
+    stopwatch->tv->msec_duration = 0;
+    stopwatch->tv->usec_duration = 0;
     return ina_time_read_clock(&stopwatch->tv->start);
 }
 
@@ -133,7 +157,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
     stopwatch->tv->sec_duration += ((stopwatch->tv->stop.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
 #endif
-    return INA_SUCCESS;
+    return ina_time_stopwatch_valid(stopwatch);
 }
 
 static ina_rc_t 
