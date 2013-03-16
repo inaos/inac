@@ -171,6 +171,8 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
                             strcpy(buf, &argv[n][vs]);
                             so->value = ina_str_fromcstr(buf);
                         }
+                    } else {
+                        so->value = ina_str_fromcstr("on");
                     }
                 }
             }
@@ -292,6 +294,9 @@ INA_API(ina_rc_t) ina_opt_isset(const char *opt)
     __ina_sopt_t *so = __ina_opt_get(opt);
     if (so == NULL) {
         /* FIXME: specific error */
+        return INA_FAILURE;
+    }
+    if (so->type == INA_OPT_TYPE_FLAG && so->value == NULL) {
         return INA_FAILURE;
     }
     return INA_SUCCESS;
