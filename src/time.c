@@ -127,7 +127,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     LARGE_INTEGER elapsed;
     ina_time_read_clock(&stopwatch->tv->stop);
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
-    stopwatch->data->sec_duration = __ina_lit_to_secs(&elapsed);
+    stopwatch->tv->sec_duration = __ina_lit_to_secs(&elapsed);
 #else
     ina_time_read_clock(&stopwatch->tv->stop);
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
