@@ -115,7 +115,6 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
     return INA_SUCCESS;
 }
 
-
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
 {
     INA_ASSERT_NOTNULL(stopwatch);
