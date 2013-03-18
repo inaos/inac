@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,12 @@
 #include <sys/sem.h>
 #include <sys/syslog.h>
 #include <sys/time.h>
+#include <spawn.h>
 #include <unistd.h>
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
 #endif
 
 #include <stdio.h>
@@ -45,9 +50,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #include <libinac/portable.h>
 #include <libinac/types.h>
+#include <libinac/uthash.h>
 #include <libinac/memory.h>
 #include <libinac/string.h>
 #include <libinac/log.h>
@@ -57,6 +64,7 @@
 #include <libinac/ullc.h>
 #include <libinac/net.h>
 #include <libinac/iscp.h>
+#include <libinac/conffile.h>
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
@@ -82,9 +90,47 @@ extern "C" {
                           (INA_MINOR_VERSION << 8)  |   \
                           (INA_MICRO_VERSION << 0))
 
+/* Add flag option */
+#define INA_OPT_FLAG(short_opt, long_opt, desc)           \
+ { short_opt, long_opt, INA_OPT_TYPE_FLAG, NULL, desc }
+
+/* Add string option */
+#define INA_OPT_STRING(short_opt, long_opt, dft, desc)    \
+ { short_opt, long_opt, INA_OPT_TYPE_STRING, dft, desc }
+ 
+/* Add int option */
+#define INA_OPT_INT(short_opt, long_opt, dft, desc)       \
+ { short_opt, long_opt, INA_OPT_TYPE_INT, dft, desc }
+
+/* Define options map */
+#define INA_OPTS(name, ...)         \
+ina_opt_t name[] = {                \
+    __VA_ARGS__,                    \
+    {NULL, NULL, 0, NULL, NULL}     \
+};
+
+typedef enum ina_opt_type_e {
+    INA_OPT_TYPE_STRING = 0,
+    INA_OPT_TYPE_INT,
+    INA_OPT_TYPE_FLAG,
+} ina_opt_type_t;
+    
+/* Command line option builder */
+typedef struct ina_opt_s {
+    const char *short_opt;  /* short option, nomally 1 char */
+    const char *long_opt;   /* long option */
+    ina_opt_type_t type;    /* option type */
+    const char *dft;        /* default value */
+    const char *desc;       /* short description, used in usage */
+} ina_opt_t;
 
 /* Cleanup handler. */
 typedef int (*ina_cleanup_handler_t) (const int, const int);
+
+/*
+ * Return the program name
+ */
+INA_API(const char*) ina_appname(void);
 
 /*
  * Startup application with argc, argv in order to deal with 
@@ -96,11 +142,45 @@ typedef int (*ina_cleanup_handler_t) (const int, const int);
  *  argv      -  Pointer to the argv of main() function
  *  pool_size - Initial size of internal memory pool. if 0 passed a pool
  *              with size INA_MEM_DFT_POOL_SIZE will be created.
+ *  opt         Array of options to parse
  *
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_appinit(const int argc,  char **argv, size_t pool_size);
+INA_API(ina_rc_t) ina_appinit(const int argc,  char **argv, size_t pool_size, ina_opt_t *opt);
+
+/*
+ * Check whenever an option is available.
+ *
+ * Parameters:
+ *  opt   name of option
+ *
+ * Return Value
+ * INA_SUCCESS if option is available
+ */
+INA_API(ina_rc_t) ina_opt_isset(const char *opt);
+/*
+ * Get the string value of an option.
+ *
+ * Parameters:
+ *  opt     name of option
+ *  value
+ *
+ * Return Value
+ * INA_SUCCESS if option is available
+ */
+INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value);
+/*
+ * Get the integer value of an option.
+ *
+ * Parameters:
+ *  opt     name of option
+ *  value
+ *
+ * Return Value
+ * INA_SUCCESS if option is available
+ */
+INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value);
 
 /*
  * Initialize all internal data structures. This must be the first function 

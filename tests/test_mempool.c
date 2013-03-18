@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,27 @@
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
 #define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
 
+void test_mempool_fill_zero()
+{
+    ina_mempool_t *pool;
+    unsigned char *buf;
+    size_t size = INA_MEM_MIN_POOL_SIZE-100;
+
+     INA_TRACE_MSG("test_mempool_fill_zero");
+
+    /* clear error state and assure it's clean */
+    INA_ASSERT_SUCCESS(ina_err_reset());
+    INA_ASSERT_SUCCESS(ina_err_peek());
+
+    pool = NULL;
+    INA_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
+    INA_ASSERT_NOTNULL(pool);
+    buf = (unsigned char*)ina_mempool_dalloc(pool, size);
+    INA_ASSERT_NOTNULL(pool);
+    while (size--) {
+        INA_ASSERT_EQUAL(*(buf++), 0);
+    }
+}
 void test_mempool_min_allowed_size()
 {
     ina_mempool_t *pool;
