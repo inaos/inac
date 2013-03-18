@@ -120,6 +120,10 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
     if (stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart) {
         return INA_FAILURE;
     }
+#else 
+    if (timercmp(&stopwatch->tv->stop.tp, &stopwatch->tv->start.tp, <)) {
+        return INA_FAILURE;
+    }
 #endif
     return INA_SUCCESS; 
 }
