@@ -52,7 +52,7 @@ typedef struct ina_time_s {
 #define INA_TIME_STOPWATCH_CREATE(pptr_sw, id, max_stamps, ptr_start)  \
     ina_time_stopwatch_create(pptr_sw, id, max_stamps, ptr_start) 
 #define INA_TIME_STOPWATCH_OPEN(id, pptr_sw, ptr_start)                \
-    ina_time_stopwatch_open(id, pptr_sw) 
+    ina_time_stopwatch_open(id, pptr_sw, ptr_start) 
 #define INA_TIME_STOPWATCH_DESTROY(pptr_sw)                 \
     ina_time_stopwatch_destroy(pptr_sw)
 #define INA_TIME_STOPWATCH_START(ptr_sw)                    \
