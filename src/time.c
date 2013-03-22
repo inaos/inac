@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #define __INA_TIME_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1) 
 #endif
 
-static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
+static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t, ina_time_t*);
  
 #ifdef INA_OS_WIN32
 static double __ina_lit_to_secs(LARGE_INTEGER * L) 
@@ -100,19 +100,19 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_stopwatch_create(int id, int max_stamps, ina_stopwatch_t **stopwatch)
+INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch, int id, int max_stamps, ina_time_t *start)
 {
     size_t size = INA_TIME_MAX_STAMPS;
 
     if (max_stamps == -1) {
         size = (size_t)INA_TIME_MAX_STAMPS;
     }
-    return __ina_stopwatch_init(id, stopwatch, 1, size);
+    return __ina_stopwatch_init(id, stopwatch, 1, size, start);
 }
 
-INA_API(ina_rc_t) ina_time_stopwatch_open(int id, ina_stopwatch_t **stopwatch)
+INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id, ina_time_t *start)
 {
-    return __ina_stopwatch_init(id, stopwatch, 0, 0);
+    return __ina_stopwatch_init(id, stopwatch, 0, 0, start);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch)
@@ -154,20 +154,29 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
 {
     INA_ASSERT_NOTNULL(stopwatch);
+    /* Duration = 0, indicate stopwwatch is running */
     stopwatch->tv->sec_duration  = 0;
+    /* Reset timestamp index, clear all timestamps */
+    stopwatch->tv->next_stamp = 0;
+    ina_mem_set(&stopwatch->tv->stamps, 0,
+        (sizeof(ina_stopwatch_ts_t)*stopwatch->tv->max_stamps));
+    /* Read clock */
     return ina_time_read_clock(&stopwatch->tv->start);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int *stamp_index)
 {
     INA_ASSERT_NOTNULL(stopwatch);
-    
+
+    /* reset current timestamp */
     stopwatch->ts = NULL;
 
+    /* Return if there arent any timestamp */
     if (stopwatch->tv->max_stamps == 0) {
         return INA_FAILURE;
     }
 
+    /* Get the timesstamp depending in stamp index */
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
     } else if (*stamp_index >= stopwatch->tv->next_stamp) {
@@ -179,6 +188,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int 
         stopwatch->ts = (&(stopwatch->tv->stamps))+(*stamp_index);
     }
 
+    /* Calculate duration if not yet done */
     if (stopwatch->ts->sec_duration == 0) {
         #ifdef INA_OS_WIN32
         LARGE_INTEGER elapsed;
@@ -189,9 +199,9 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int 
         stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
         #endif
         stopwatch->ts->msec_duration= stopwatch->ts->sec_duration*1000;
-        stopwatch->ts->usec_duration = stopwatch->ts->sec_duration*1000*1000;        
+        stopwatch->ts->usec_duration = stopwatch->ts->sec_duration*1000*1000;
     }
-    return INA_SUCCESS;    
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const char* user_data1, const char* user_data2)
@@ -249,7 +259,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 }
 
 static ina_rc_t 
-__ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create, size_t max_stamps)
+__ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create, size_t max_stamps, ina_time_t *start)
 {
     size_t size;
     uint32_t cf = INA_MEM_SHARED;
