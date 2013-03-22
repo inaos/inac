@@ -39,16 +39,16 @@ void test_time_two_stopwatches()
 
     INA_TRACE_MSG("test_time_two_stopwatches");
 
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w1, 1, -1, NULL));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w1, 1, -1));
     INA_ASSERT_NOTNULL(w1);
     INA_ASSERT_EQUAL(1, w1->id);
     INA_ASSERT_NOTNULL(w1->tv);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w2, 2, -1, NULL));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w2, 2, -1));
     INA_ASSERT_NOTNULL(w2);
     INA_ASSERT_EQUAL(2, w2->id);
     INA_ASSERT_NOTNULL(w2->tv);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w1));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w2));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w1, NULL));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w2, NULL));
     INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w1));
     INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w2));
     INA_ASSERT_SUCCEED(ina_time_get_seconds(&w1->tv->start, &sec1)); 
