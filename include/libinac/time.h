@@ -133,7 +133,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id);
 /*
  * Read a timestamp from a stopwatch
  */
-INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t *stopwatch, int *index);
+INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t *stopwatch, int64_t *index);
 
 /*
  * Create a new stopwatch
