@@ -28,7 +28,13 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int);
+#ifdef INA_OS_WIN32
+#define __INA_TIME_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
+#else
+#define __INA_TIME_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1) 
+#endif
+
+static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
  
 #ifdef INA_OS_WIN32
 static double __ina_lit_to_secs(LARGE_INTEGER * L) 
@@ -94,14 +100,19 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch)
+INA_API(ina_rc_t) ina_time_stopwatch_create(int id, int max_stamps, ina_stopwatch_t **stopwatch)
 {
-    return __ina_stopwatch_init(id, stopwatch, 1);
+    size_t size = INA_TIME_MAX_STAMPS;
+
+    if (max_stamps == -1) {
+        size = (size_t)INA_TIME_MAX_STAMPS;
+    }
+    return __ina_stopwatch_init(id, stopwatch, 1, size);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_open(int id, ina_stopwatch_t **stopwatch)
 {
-    return __ina_stopwatch_init(id, stopwatch, 0);
+    return __ina_stopwatch_init(id, stopwatch, 0, 0);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch)
@@ -147,8 +158,68 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
     return ina_time_read_clock(&stopwatch->tv->start);
 }
 
+INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int *stamp_index)
+{
+    INA_ASSERT_NOTNULL(stopwatch);
+    if (stopwatch->tv->max_stamps == 0) {
+        stopwatch->ts = NULL;
+        return INA_FAILURE;
+    }
+
+    if (stamp_index == NULL) {
+        stopwatch->ts = &stopwatch->tv->stamps;
+        return INA_SUCCESS;
+    }
+    if (*stamp_index > stopwatch->tv->next_stamp) {
+        stopwatch->ts = NULL;
+        return INA_FAILURE;
+    }
+    if (*stamp_index == -1) {
+        *stamp_index = stopwatch->tv->next_stamp;
+    }
+    stopwatch->ts = (&(stopwatch->tv->stamps))+(*stamp_index);
+    return INA_SUCCESS;    
+}
+
+INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const char* user_data1, const char* user_data2)
+{
+    int64_t si = 0;
+    ina_stopwatch_ts_t *ts = NULL;
+
+    INA_ASSERT_NOTNULL(stopwatch);
+    if (stopwatch->tv->max_stamps== 0) {
+        /* TODO: specific error */
+        return INA_FAILURE;
+    }
+
+    si = __INA_TIME_INC(&stopwatch->tv->next_stamp);
+    if (si > stopwatch->tv->max_stamps) {
+        /* TODO: specific error */
+        return INA_FAILURE;
+    }
+
+    ts = (&(stopwatch->tv->stamps))+si;
+
+    ina_time_read_clock(&ts->stamp);
+    
+    if (user_data1 != NULL) {
+        if (strlen(user_data1)+1 < INA_TIME_MAX_USERDATA_LEN) {
+            strcpy(ts->user_data1, user_data1);
+        }
+    }
+    if (user_data2 != NULL) {
+        if (strlen(user_data2)+1 < INA_TIME_MAX_USERDATA_LEN) {
+            strcpy(ts->user_data2, user_data2); 
+        }       
+    }
+    return INA_SUCCESS;
+}
+
+
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 {
+    INA_ASSERT_NOTNULL(stopwatch);
+
 #ifdef INA_OS_WIN32
     LARGE_INTEGER elapsed;
     ina_time_read_clock(&stopwatch->tv->stop);
@@ -165,8 +236,9 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 }
 
 static ina_rc_t 
-__ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create)
+__ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create, size_t max_stamps)
 {
+    size_t size;
     uint32_t cf = INA_MEM_SHARED;
     char name[100];
     sprintf(name, "/ina_stopwatch_%d", id);
@@ -181,8 +253,9 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create)
          cf = cf|INA_MEM_SHARED_CREATE;
      }
 
+     size = sizeof(ina_stopwatch_t)+(max_stamps*sizeof(ina_stopwatch_ts_t));
      if (!INA_SUCCEED(ina_mempool_create(&(*stopwatch)->shared_mem, 
-             sizeof(ina_stopwatch_t), 
+             size, 
              cf, 
              name))) {
          ina_mem_free(*stopwatch);
@@ -192,8 +265,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create)
 
      (*stopwatch)->tv = (ina_stopwatch_tv_t*)ina_mempool_dalloc(
              (*stopwatch)->shared_mem, 
-             sizeof(ina_stopwatch_tv_t));
-
+             size);
 
      if ((*stopwatch)->tv == NULL) {
          ina_mempool_release((*stopwatch)->shared_mem, 1);
@@ -203,7 +275,8 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create)
      }
 
      if (create) {
-         ina_mem_set(&(*stopwatch)->tv, sizeof(ina_stopwatch_tv_t), 0);
+         ina_mem_set(&(*stopwatch)->tv, size, 0);
+         (*stopwatch)->tv->max_stamps = max_stamps;
      }
      (*stopwatch)->id = id;
      return INA_SUCCESS; 
