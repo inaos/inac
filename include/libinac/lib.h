@@ -100,7 +100,7 @@ extern "C" {
  
 /* Add int option */
 #define INA_OPT_INT(short_opt, long_opt, dft, desc)       \
- { short_opt, long_opt, INA_OPT_TYPE_INT, dft, desc }
+ { short_opt, long_opt, INA_OPT_TYPE_INT, #dft, desc }
 
 /* Define options map */
 #define INA_OPTS(name, ...)         \
