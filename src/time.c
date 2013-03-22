@@ -105,7 +105,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_create(int id, int max_stamps, ina_stopwatc
     size_t size = INA_TIME_MAX_STAMPS;
 
     if (max_stamps == -1) {
-        size = (size_t)max_stamps;
+        size = (size_t)INA_TIME_MAX_STAMPS;
     }
     return __ina_stopwatch_init(id, stopwatch, 1, size);
 }
