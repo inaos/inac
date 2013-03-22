@@ -81,6 +81,9 @@ typedef struct ina_stopwatch_ts_s {
     ina_time_t stamp;
     char user_data1[INA_TIME_MAX_USERDATA_LEN];
     char user_data2[INA_TIME_MAX_USERDATA_LEN];
+    double sec_duration;
+    double msec_duration;
+    double usec_duration;
 } ina_stopwatch_ts_t;
 
 /* Stopwatch  data */
