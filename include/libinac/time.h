@@ -47,8 +47,34 @@ typedef struct ina_time_s {
 #define INA_TIME_MAX_USERDATA_LEN (30)
 #define INA_TIME_MAX_STAMPS       (1024)
 
-#define INA_TIME_STOPWATCH_CREATE()
-#define INA_TIME_STOPWATCH_STAMP(sw, ud1, ud2)
+
+#ifndef INA_TIME_STOPWATCH_DISABLED
+#define INA_TIME_STOPWATCH_CREATE(id, max_stamps, pptr_sw)  \
+    ina_time_stopwatch_create(id, max_stamp, pptr_sw)  
+#define INA_TIME_STOPWATCH_OPEN(id, pptr_sw)                \
+    ina_time_stopwatch_open(id, pptr_sw)  
+#define INA_TIME_STOPWATCH_DESTROY(pptr_sw)                 \
+    ina_time_stopwatch_destroy(pptr_sw)
+#define INA_TIME_STOPWATCH_START(ptr_sw)                    \
+    ina_time_stopwatch_start(ptr_sw)  
+#define INA_TIME_STOPWATCH_STOP(ptr_sw)                     \
+    ina_time_stopwatch_stop(ptr_sw)  
+#define INA_TIME_STOPWATCH_STAMP(ptr_sw)                    \
+    ina_time_stopwatch_stamp(ptr_sw, NULL, NULL)  
+#define INA_TIME_STOPWATCH_STAMP1(ptr_sw, ud1)              \
+    ina_time_stopwatch_stamp(ptr_sw, ud1, NULL)  
+#define INA_TIME_STOPWATCH_STAMP2(ptr_sw, ud1, ud2)         \
+    ina_time_stopwatch_stamp(ptr_sw, ud1, ud2)  
+#else
+#define INA_TIME_STOPWATCH_CREATE(id, max_stamps, pptr_sw)
+#define INA_TIME_STOPWATCH_OPEN(id, pptr_sw)
+#define INA_TIME_STOPWATCH_DESTROY(pptr_sw)
+#define INA_TIME_STOPWATCH_START(ptr_sw)
+#define INA_TIME_STOPWATCH_STOP(ptr_sw)\
+#define INA_TIME_STOPWATCH_STAMP(ptr_sw)\
+#define INA_TIME_STOPWATCH_STAMP1(ptr_sw, ud1)\
+#define INA_TIME_STOPWATCH_STAMP2(ptr_sw, ud1, ud2)\
+#endif
 
 /* Stopwatch timstamps */
 typedef struct ina_stopwatch_ts_s {
