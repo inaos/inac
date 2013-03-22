@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +49,8 @@ typedef struct ina_time_s {
 
 
 #ifndef INA_TIME_STOPWATCH_DISABLED
-#define INA_TIME_STOPWATCH_CREATE(id, max_stamps, pptr_sw)  \
-    ina_time_stopwatch_create(id, max_stamps, pptr_sw) 
+#define INA_TIME_STOPWATCH_CREATE(pptr_sw, id, max_stamps)  \
+    ina_time_stopwatch_create(pptr_sw, id, max_stamps) 
 #define INA_TIME_STOPWATCH_OPEN(id, pptr_sw)                \
     ina_time_stopwatch_open(id, pptr_sw) 
 #define INA_TIME_STOPWATCH_DESTROY(pptr_sw)                 \
@@ -76,7 +76,7 @@ typedef struct ina_time_s {
 #define INA_TIME_STOPWATCH_STAMP2(ptr_sw, ud1, ud2)
 #endif
 
-/* Stopwatch timstamps */
+/* Stopwatch timestamps */
 typedef struct ina_stopwatch_ts_s {
     ina_time_t stamp;
     char user_data1[INA_TIME_MAX_USERDATA_LEN];
@@ -119,16 +119,14 @@ INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *sec);
  * Extract milliseconds from a time value
  */
 INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *msec);
-
 /*
  * Create a new stopwatch
  */
-INA_API(ina_rc_t) ina_time_stopwatch_create(int id, int max_stamps, ina_stopwatch_t **stopwatch);
-
+INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch, int id, int max_stamps);
 /*
  * Open an existing stopwatch
  */
-INA_API(ina_rc_t) ina_time_stopwatch_open(int id, ina_stopwatch_t **stopwatch);
+INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id);
 /*
  * Read a timestamp from a stopwatch
  */
