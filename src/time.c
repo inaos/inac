@@ -161,23 +161,36 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
 INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int *stamp_index)
 {
     INA_ASSERT_NOTNULL(stopwatch);
+    
+    stopwatch->ts = NULL;
+
     if (stopwatch->tv->max_stamps == 0) {
-        stopwatch->ts = NULL;
         return INA_FAILURE;
     }
 
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
-        return INA_SUCCESS;
-    }
-    if (*stamp_index > stopwatch->tv->next_stamp) {
-        stopwatch->ts = NULL;
+    } else if (*stamp_index > stopwatch->tv->next_stamp) {
         return INA_FAILURE;
-    }
-    if (*stamp_index == -1) {
+    } else if (*stamp_index == -1) {
         *stamp_index = stopwatch->tv->next_stamp;
     }
-    stopwatch->ts = (&(stopwatch->tv->stamps))+(*stamp_index);
+    if (stopwatch->ts == NULL) {
+        stopwatch->ts = (&(stopwatch->tv->stamps))+(*stamp_index);
+    }
+
+    if (stopwatch->ts->sec_duration == 0) {
+        #ifdef INA_OS_WIN32
+        LARGE_INTEGER elapsed;
+        elapsed.QuadPart = stopwatch->ts->stamp.tp.QuadPart - stopwatch->ts->start.tp.QuadPart; 
+        stopwatch->ts->sec_duration = __ina_lit_to_secs(&elapsed);
+        #else
+        stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
+        stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
+        #endif
+        stopwatch->ts->msec_duration= stopwatch->ts->sec_duration*1000;
+        stopwatch->ts->usec_duration = stopwatch->ts->sec_duration*1000*1000;        
+    }
     return INA_SUCCESS;    
 }
 
