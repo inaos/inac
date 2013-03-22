@@ -170,7 +170,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int 
 
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
-    } else if (*stamp_index > stopwatch->tv->next_stamp) {
+    } else if (*stamp_index >= stopwatch->tv->next_stamp) {
         return INA_FAILURE;
     } else if (*stamp_index == -1) {
         *stamp_index = stopwatch->tv->next_stamp;
