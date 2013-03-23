@@ -1,4 +1,0 @@
-
-inac.lib: src\error.c src\lib.c src\memory.c src\string\cstring.c
-    CL /c -I ".\include" -DDEBUG -DTRACE_ENABLED -DINA_LIB src\error.c src\memory.c src\lib.c src\string\cstring.c
-    LIB  error.obj lib.obj memory.obj cstring.obj

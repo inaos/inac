@@ -74,14 +74,26 @@ static uint32_t crc32_tab[] = {
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-INA_API(uint32_t) ina_util_crc32(uint32_t crc, const unsigned char *buf, size_t size)
+INA_API(uint32_t) ina_util_hash_crc32(uint32_t hash, const void *data, size_t size)
 {
     const uint8_t *p;
 
-    p = buf;
-    crc = crc ^ ~0U;
+    p = data;
+    hash = hash ^ ~0U;
     while (size--) {
-        crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
+        hash = crc32_tab[(hash ^ *p++) & 0xFF] ^ (hash >> 8);
     }
-    return crc ^ ~0U;
+    return hash ^ ~0U;
 }
+
+INA_API(uint32_t) ina_util_hash_sdbm(uint32_t hash, const void *data, size_t size)
+{
+    const uint8_t *p;
+
+    p = data;
+    while (size--) {
+        hash = (*p++) + (hash << 6) + (hash << 16) - hash;
+    }
+    return hash;
+}
+
