@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,14 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifdef INA_OS_WIN32
+#define __INA_TIME_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
+#else
+#define __INA_TIME_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1) 
+#endif
+
+static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
+ 
 #ifdef INA_OS_WIN32
 static double __ina_lit_to_secs(LARGE_INTEGER * L) 
 {
@@ -92,22 +100,211 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch)
+INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch, int id, int max_stamps)
 {
-    return ina_time_read_clock(&stopwatch->start);
+    size_t size = INA_TIME_MAX_STAMPS;
+
+    if (max_stamps == -1) {
+        size = (size_t)INA_TIME_MAX_STAMPS;
+    }
+    return __ina_stopwatch_init(id, stopwatch, 1, size);
 }
+
+INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id)
+{
+    return __ina_stopwatch_init(id, stopwatch, 0, 0);
+}
+
+INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch)
+{
+    INA_ASSERT_NOTNULL(stopwatch);
+    if (stopwatch->tv->sec_duration == 0) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
+{
+    INA_ASSERT_NOTNULL(stopwatch);
+#ifdef INA_OS_WIN32
+    if (stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart) {
+        return INA_FAILURE;
+    }
+#else 
+    if (timercmp(&stopwatch->tv->stop.tp, &stopwatch->tv->start.tp, <)) {
+        return INA_FAILURE;
+    }
+#endif
+    return INA_SUCCESS; 
+}
+
+
+INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch) 
+{
+    if (*stopwatch == NULL) {
+        return INA_SUCCESS;
+    }
+    ina_mempool_release((*stopwatch)->shared_mem, 1);
+    ina_mem_free(*stopwatch);
+    *stopwatch = NULL;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_t *start)
+{
+    INA_ASSERT_NOTNULL(stopwatch);
+    /* Duration = 0, indicate stopwwatch is running */
+    stopwatch->tv->sec_duration  = 0;
+    /* Reset timestamp index, clear all timestamps */
+    stopwatch->tv->next_stamp = 0;
+    ina_mem_set(&stopwatch->tv->stamps, 0,
+        (sizeof(ina_stopwatch_ts_t)*stopwatch->tv->max_stamps));
+    
+    /* Override start if passed */
+    if (start != NULL) {
+        ina_mem_cpy(&stopwatch->tv->start, start, sizeof(ina_time_t));
+        return INA_SUCCESS;
+    }
+    /* Read clock */
+    return ina_time_read_clock(&stopwatch->tv->start);
+}
+
+INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int64_t *stamp_index)
+{
+    INA_ASSERT_NOTNULL(stopwatch);
+
+    /* reset current timestamp */
+    stopwatch->ts = NULL;
+
+    /* Return if there arent any timestamp */
+    if (stopwatch->tv->max_stamps == 0 || *stamp_index >= stopwatch->tv->next_stamp) {
+        return INA_FAILURE;
+    }
+
+    /* Get the timesstamp depending in stamp index */
+    if (stamp_index == NULL) {
+        stopwatch->ts = &stopwatch->tv->stamps;
+    } else if (*stamp_index == -1) {
+        *stamp_index = stopwatch->tv->next_stamp;
+    }
+    if (stopwatch->ts == NULL) {
+        stopwatch->ts = (&(stopwatch->tv->stamps))+(*stamp_index);
+    }
+
+    /* Calculate duration if not yet done */
+    if (stopwatch->ts->sec_duration == 0) {
+        #ifdef INA_OS_WIN32
+        LARGE_INTEGER elapsed;
+        elapsed.QuadPart = stopwatch->ts->stamp.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
+        stopwatch->ts->sec_duration = __ina_lit_to_secs(&elapsed);
+        #else
+        stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
+        stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
+        #endif
+        stopwatch->ts->msec_duration= stopwatch->ts->sec_duration*1000;
+        stopwatch->ts->usec_duration = stopwatch->ts->sec_duration*1000*1000;
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const char* user_data1, const char* user_data2)
+{
+    int64_t si = 0;
+    ina_stopwatch_ts_t *ts = NULL;
+
+    INA_ASSERT_NOTNULL(stopwatch);
+    if (stopwatch->tv->max_stamps == 0) {
+        /* TODO: specific error */
+        return INA_FAILURE;
+    }
+
+    si = __INA_TIME_INC(&stopwatch->tv->next_stamp);
+    if (si > stopwatch->tv->max_stamps) {
+        /* TODO: specific error */
+        return INA_FAILURE;
+    }
+
+    ts = (&(stopwatch->tv->stamps))+si;
+
+    ina_time_read_clock(&ts->stamp);
+
+    if (user_data1 != NULL) {
+        if (strlen(user_data1)+1 < INA_TIME_MAX_USERDATA_LEN) {
+            strcpy(ts->user_data1, user_data1);
+        }
+    }
+    if (user_data2 != NULL) {
+        if (strlen(user_data2)+1 < INA_TIME_MAX_USERDATA_LEN) {
+            strcpy(ts->user_data2, user_data2); 
+        }
+    }
+    return INA_SUCCESS;
+}
+
 
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 {
 #ifdef INA_OS_WIN32
     LARGE_INTEGER elapsed;
-    ina_time_read_clock(&stopwatch->stop);
-    elapsed.QuadPart = stopwatch->stop.tp.QuadPart - stopwatch->start.tp.QuadPart; 
-    stopwatch->sec_duration = __ina_lit_to_secs(&elapsed);
+	INA_ASSERT_NOTNULL(stopwatch);
+    ina_time_read_clock(&stopwatch->tv->stop);
+    elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
+    stopwatch->tv->sec_duration = __ina_lit_to_secs(&elapsed);
 #else
-    ina_time_read_clock(&stopwatch->stop);
-    stopwatch->sec_duration = (stopwatch->stop.tp.tv_sec - stopwatch->start.tp.tv_sec);
-    stopwatch->sec_duration += ((stopwatch->stop.tp.tv_usec - stopwatch->start.tp.tv_usec) / 10000000.0); 
+	INA_ASSERT_NOTNULL(stopwatch);
+    ina_time_read_clock(&stopwatch->tv->stop);
+    stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
+    stopwatch->tv->sec_duration += ((stopwatch->tv->stop.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
 #endif
-    return INA_SUCCESS;
+    stopwatch->tv->msec_duration= stopwatch->tv->sec_duration*1000;
+    stopwatch->tv->usec_duration = stopwatch->tv->sec_duration*1000*1000;    
+    return ina_time_stopwatch_valid(stopwatch);
+}
+
+static ina_rc_t 
+__ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create, size_t max_stamps)
+{
+    size_t size;
+    uint32_t cf = INA_MEM_SHARED;
+    char name[100];
+    sprintf(name, "/ina_stopwatch_%d", id);
+
+     *stopwatch = (ina_stopwatch_t*)ina_mem_alloc(sizeof(ina_stopwatch_t));
+     if (*stopwatch == NULL) {
+         return INA_ERR_PUSH_LAST;
+     }
+     ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
+
+     if (create == 1) {
+         cf = cf|INA_MEM_SHARED_CREATE;
+     }
+
+     size = sizeof(ina_stopwatch_t)+(max_stamps*sizeof(ina_stopwatch_ts_t));
+     if (!INA_SUCCEED(ina_mempool_create(&(*stopwatch)->shared_mem, 
+             size, 
+             cf, 
+             name))) {
+         ina_mem_free(*stopwatch);
+         *stopwatch = NULL;
+         return INA_ERR_PUSH_LAST;
+     }
+
+     (*stopwatch)->tv = (ina_stopwatch_tv_t*)ina_mempool_dalloc(
+             (*stopwatch)->shared_mem, 
+             size);
+
+     if ((*stopwatch)->tv == NULL) {
+         ina_mempool_release((*stopwatch)->shared_mem, 1);
+         ina_mem_free(*stopwatch);
+         *stopwatch = NULL;
+         return INA_ERR_PUSH_LAST;
+     }
+
+     if (create) {
+         ina_mem_set(&(*stopwatch)->tv, size, 0);
+         (*stopwatch)->tv->max_stamps = max_stamps;
+     }
+     (*stopwatch)->id = id;
+     return INA_SUCCESS; 
 }

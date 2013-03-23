@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, const char *file,
     INA_ASSERT(mod <= 64);
     INA_ASSERT(fn <= 32);
     INA_ASSERT(reason <= 1023);
+    INA_ASSERT(reason > 0);
     INA_ASSERT_NOTNULL(file);
     INA_ASSERT(line > 0);
     INA_ASSERT_NOTNULL(msg);
@@ -75,6 +76,24 @@ INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, const char *file,
     strcpy(error->msg, msg);
 
     return error->rc;
+}
+
+INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line)
+{
+    size_t k;
+
+    if (rc == INA_SUCCESS) {
+        return INA_SUCCESS;
+    }
+
+    k = __ina_get_index(rc);
+
+    return ina_err_push(INA_RC_MOD(rc),
+                 INA_RC_OSFN(rc),
+                 INA_RC_REASON(rc),
+                 file,
+                 line,
+                 __state.errors[k].msg);
 }
 
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
@@ -107,7 +126,7 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     k = __ina_get_index(rc);
 
     if (k < __state.c) {
-        return __state.errors[k].rc;
+        return __state.errors[k-1].rc;
     }
     return INA_SUCCESS;
     
@@ -174,8 +193,8 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
 
     if (INA_RC_ID(rc) <= __state.ic) {
         k = __ina_get_index(rc);
-        if (k <= __state.c) {
-            error = &__state.errors[k-1];
+        if (k < __state.c) {
+            error = &__state.errors[k];
             
             if (len < (strlen(error->msg) +
                        strlen(error->file) +
@@ -186,7 +205,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
             tm = localtime(&error->ts);
 
             if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
-                sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u)",
+                sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u,i:%d)",
                                             tmc, 
                                             error->file,
                                             error->line,
@@ -194,7 +213,8 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
                                             INA_RC_REASON(error->rc),
                                             INA_RC_OSFN(error->rc),
                                             INA_RC_MOD(error->rc),
-                                            INA_RC_HANDLED(error->rc));
+                                            INA_RC_HANDLED(error->rc),
+                                            INA_RC_ID(error->rc));
 
                 if (strncpy(str, outstr, len) == NULL) {
                     return INA_ERR_EMSGFMT;
@@ -221,15 +241,14 @@ INA_API(ina_rc_t) ina_err_trace(void)
     printf("%s\n", "**** UNHANDLED ERROR START ******");
 
     rc = ina_err_peek();
-    n = 0;
-    while (!INA_SUCCEED(rc) && __INA_ERR_STATE_SIZE > ++n) {
-        if (INA_SUCCEED(ina_err_fmtmsg(rc, str, 2048))) {
+    n = __state.c;
+    while (n--) {
+        if (INA_SUCCEED(ina_err_fmtmsg(__state.errors[n].rc, str, 2048))) {
             printf("%s\n", str);
         } else {
             printf("%s\n", "**** FATAL ERROR  ******");
             return INA_FAILURE;
         }
-        rc = ina_err_peek_next(rc);
     }
     printf("%s\n", "**** UNHANDLED ERROR END   ******");
 
@@ -263,7 +282,7 @@ __ina_get_index(ina_rc_t rc)
 
     k = INA_RC_ID(rc);
     m = k % __INA_ERR_STATE_SIZE;
-    k = m > 0?m:k;
+    k = m > 0?m-1:k-1;
     return k;
 }
 
