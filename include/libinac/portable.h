@@ -1046,6 +1046,15 @@ typedef uint_least32_t uint_fast32_t;
      _a > _b ? _a : _b; })
 #endif
 
+#ifdef INA_OS_WIN32
+struct timezone {
+     int  tz_minuteswest; /* minutes W of Greenwich */
+     int  tz_dsttime;     /* type of dst correction */
+};
+
+INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz)
+#endif
+
 #ifdef __cplusplus
 }
 #endif 

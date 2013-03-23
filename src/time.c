@@ -160,6 +160,12 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_
     stopwatch->tv->next_stamp = 0;
     ina_mem_set(&stopwatch->tv->stamps, 0,
         (sizeof(ina_stopwatch_ts_t)*stopwatch->tv->max_stamps));
+    
+    /* Override start if passed */
+    if (start != NULL) {
+        ina_mem_cpy(&stopwatch->tv->start, start, sizeof(ina_time_t));
+        return INA_SUCCESS;
+    }
     /* Read clock */
     return ina_time_read_clock(&stopwatch->tv->start);
 }
@@ -172,15 +178,13 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int6
     stopwatch->ts = NULL;
 
     /* Return if there arent any timestamp */
-    if (stopwatch->tv->max_stamps == 0) {
+    if (stopwatch->tv->max_stamps == 0 || *stamp_index >= stopwatch->tv->next_stamp) {
         return INA_FAILURE;
     }
 
     /* Get the timesstamp depending in stamp index */
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
-    } else if (*stamp_index >= stopwatch->tv->next_stamp) {
-        return INA_FAILURE;
     } else if (*stamp_index == -1) {
         *stamp_index = stopwatch->tv->next_stamp;
     }
@@ -210,7 +214,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const cha
     ina_stopwatch_ts_t *ts = NULL;
 
     INA_ASSERT_NOTNULL(stopwatch);
-    if (stopwatch->tv->max_stamps== 0) {
+    if (stopwatch->tv->max_stamps == 0) {
         /* TODO: specific error */
         return INA_FAILURE;
     }
@@ -224,7 +228,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const cha
     ts = (&(stopwatch->tv->stamps))+si;
 
     ina_time_read_clock(&ts->stamp);
-    
+
     if (user_data1 != NULL) {
         if (strlen(user_data1)+1 < INA_TIME_MAX_USERDATA_LEN) {
             strcpy(ts->user_data1, user_data1);
@@ -233,7 +237,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const cha
     if (user_data2 != NULL) {
         if (strlen(user_data2)+1 < INA_TIME_MAX_USERDATA_LEN) {
             strcpy(ts->user_data2, user_data2); 
-        }       
+        }
     }
     return INA_SUCCESS;
 }
