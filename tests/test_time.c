@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,10 +43,12 @@ void test_time_two_stopwatches()
     INA_ASSERT_NOTNULL(w1);
     INA_ASSERT_EQUAL(1, w1->id);
     INA_ASSERT_NOTNULL(w1->tv);
+    INA_ASSERT_NULL(w1->ts);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w2, 2, -1));
     INA_ASSERT_NOTNULL(w2);
     INA_ASSERT_EQUAL(2, w2->id);
     INA_ASSERT_NOTNULL(w2->tv);
+    INA_ASSERT_NULL(w2->ts);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w1, NULL));
     INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w2, NULL));
     INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w1));
@@ -61,34 +63,42 @@ void test_time_two_stopwatches()
     INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w2));
 } 
 
-/*void test_time_stopwatch() 
+void test_time_stopwatch() 
 {
     struct timeval tv_start;
     struct timeval tv_stop;
-    ina_stopwatch_t sw;
+    ina_stopwatch_t *w;
     time_t t_start;
     time_t t_stop;
 
     INA_TRACE_MSG("test_time_stopwatch");
 
     gettimeofday(&tv_start, NULL);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(&sw));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 99, -1));
+    INA_ASSERT_EQUAL(0, w->tv->next_stamp);
+    INA_ASSERT_EQUAL(INA_TIME_MAX_STAMPS, w->tv->max_stamps);
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
+    INA_ASSERT_EQUAL(0, w->ts->sec_duration);
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(&sw));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     gettimeofday(&tv_stop, NULL);
 
-    INA_ASSERT_SUCCEED(ina_time_get_seconds(&sw.start, &t_start));
+    INA_ASSERT_SUCCEED(ina_time_get_seconds(&w->tv->start, &t_start));
     INA_ASSERT_EQUAL(tv_start.tv_sec, t_start);
-    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&sw.start, &t_start));
+    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w->tv->start, &t_start));
     INA_ASSERT_EQUAL(tv_start.tv_usec/1000, t_start);
      
-    INA_ASSERT_SUCCEED(ina_time_get_seconds(&sw.stop, &t_stop));
+    INA_ASSERT_SUCCEED(ina_time_get_seconds(&w->tv->stop, &t_stop));
     INA_ASSERT_EQUAL(tv_stop.tv_sec, t_stop);
-    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&sw.stop, &t_stop));
+    INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w->tv->stop, &t_stop));
     INA_ASSERT_EQUAL(tv_stop.tv_usec/1000, t_stop);
-}*/
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
+    INA_ASSERT_NOTNULL(w);
+}
  
-/*void test_time_read_clock() 
+void test_time_read_clock() 
 {
     struct timeval tv;
     ina_time_t t;
@@ -114,4 +124,4 @@ void test_time_two_stopwatches()
     INA_TRACE3("tv.tv_usec=%d", tv.tv_usec);
     INA_TRACE3("ms=%ld", ms);
     INA_ASSERT_EQUAL(tv.tv_usec/1000, ms);
-}*/
+}

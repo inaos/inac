@@ -111,6 +111,10 @@ typedef struct ina_stopwatch_s {
 
 
 /*
+ * Sleep for X milli seconds
+ */
+INA_API(ina_rc_t) ina_time_sleep(time_t msec);
+/*
  * Read current time.
  */
 INA_API(ina_rc_t) ina_time_read_clock(ina_time_t* time);
@@ -161,10 +165,6 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const cha
  * Stop a stop watch 
  */
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch);
-/*
- * Sleep for X milli seconds
- */
-INA_API(ina_rc_t) ina_time_sleep(time_t how_long_millis);
 
 #ifdef __cplusplus
 }

@@ -25,23 +25,19 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifdef INA_OS_WIN32
 
 #include <libinac/lib.h>
 #include "config.h"
+
+#ifdef INA_OS_WIN32
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
     #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
- 
-struct timezone {
-    int  tz_minuteswest; /* minutes W of Greenwich */
-    int  tz_dsttime;     /* type of dst correction */
-};
- 
-int gettimeofday(struct timeval *tv, struct timezone *tz)
+
+INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz)
 {
     FILETIME ft;
     unsigned __int64 tmpres = 0;
