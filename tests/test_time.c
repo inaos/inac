@@ -78,11 +78,12 @@ void test_time_stopwatch()
     INA_ASSERT_EQUAL(0, w->tv->next_stamp);
     INA_ASSERT_EQUAL(INA_TIME_MAX_STAMPS, w->tv->max_stamps);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
-    INA_ASSERT_EQUAL(0, w->ts->sec_duration);
+    INA_ASSERT_NULL(w->ts);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
     INA_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
+    INA_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
     gettimeofday(&tv_stop, NULL);
 
     INA_ASSERT_SUCCEED(ina_time_get_seconds(&w->tv->start, &t_start));
