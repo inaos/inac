@@ -132,8 +132,13 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
         return INA_FAILURE;
     }
 #else 
-    if (timercmp(&stopwatch->tv->stop.tp, &stopwatch->tv->start.tp, <)) {
+    if (stopwatch->tv->stop.tp.tv_sec <  stopwatch->tv->start.tp.tv_sec) {
         return INA_FAILURE;
+    }
+    if (stopwatch->tv->stop.tp.tv_sec == stopwatch->tv->start.tp.tv_sec) {
+        if (stopwatch->tv->stop.tp.tv_usec < stopwatch->tv->start.tp.tv_usec) {
+            return INA_FAILURE;
+        }
     }
 #endif
     return INA_SUCCESS; 
@@ -178,7 +183,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int6
     stopwatch->ts = NULL;
 
     /* Return if there arent any timestamp */
-    if (stopwatch->tv->max_stamps == 0 || *stamp_index >= stopwatch->tv->next_stamp) {
+    if (stopwatch->tv->max_stamps == 0 || *stamp_index > stopwatch->tv->next_stamp) {
         return INA_FAILURE;
     }
 
