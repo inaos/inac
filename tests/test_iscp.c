@@ -223,6 +223,7 @@ void test_iscp_send_local()
 
    /*INA_TRACE_MSG("test_iscp_send_local");
    INA_ASSERT_SUCCEED(ina_iscp_destroy(&ctx));
+   INA_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_INET));
    INA_ASSERT_FAILURE(ina_iscp_send(ctx, 1, 
                             INA_ISCP_TYPE_INT64, 300,
                             INA_ISCP_TYPE_DBL, 3.2,
@@ -251,7 +252,7 @@ void test_iscp_send_local()
 
 void test_iscp_setup()
 {
-    /*ina_iscp_ctx_t *ctx = NULL;
+    ina_iscp_ctx_t *ctx = NULL;
 
     INA_TRACE_MSG("test_iscp_setup");
     INA_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_INET));
@@ -271,16 +272,17 @@ void test_iscp_setup()
     INA_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 3, __null_handler));
     INA_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 3, __null_handler));
     INA_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 3, __null_handler2));
-    INA_ASSERT_FAILURE(ina_iscp_register(ctx, 1, 2, __null_handler));
-    INA_ASSERT_FAILURE(ina_iscp_register(ctx, 1, 4, __null_handler2));
+    /*INA_ASSERT_FAILURE(ina_iscp_register(ctx, 1, 2, __null_handler));*/
+    /*INA_ASSERT_FAILURE(ina_iscp_register(ctx, 1, 4, __null_handler2));*/
     INA_ASSERT_SUCCEED(ina_iscp_destroy(&ctx));
+    INA_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_INET));
     INA_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 4, __null_handler2));
     INA_ASSERT_SUCCEED(ina_iscp_set_callbacks(ctx, __null_open_cb, 
                                                     __null_clse_cb, 
                                                     __null_send_cb,
                                                     __null_recv_cb, 
                                                     __null_retn_cb));
-    INA_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 4, __null_handler2));*/
+    INA_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 4, __null_handler2));
 }
 
 void test_iscp_regsiter_ex()

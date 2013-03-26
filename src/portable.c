@@ -25,10 +25,11 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifdef INA_OS_WIN32
 
 #include <libinac/lib.h>
 #include "config.h"
+
+#ifdef INA_OS_WIN32
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
     #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64

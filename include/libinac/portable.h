@@ -1052,7 +1052,7 @@ struct timezone {
      int  tz_dsttime;     /* type of dst correction */
 };
 
-INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz)
+INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 #ifdef __cplusplus

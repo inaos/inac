@@ -35,24 +35,6 @@ static int __handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
-
-/*void test_lib_fork() 
-{
-    int pid = 0;
-    
-    INA_TRACE_MSG("before fore");
-    pid = fork();
-    if (pid < 0) {
-        INA_TRACE_MSG("error fork;");
-    } else {
-        if (pid == 0) {
-            INA_TRACE_MSG("in child");
-        }
-        else {
-            INA_TRACE_MSG("in parent");
-        }
-    }
-}*/
 void test_lib_opt()
 {
     int l_int_value = 1;
@@ -73,6 +55,9 @@ void test_lib_opt()
     INA_ASSERT_SUCCEED(ina_opt_get_int("repeat", &l_int_value));
     INA_ASSERT_SUCCEED(ina_opt_get_int("x", &s_int_value));
     INA_ASSERT_EQUAL(s_int_value, l_int_value);
+    INA_ASSERT_SUCCEED(ina_opt_get_int("t", &s_int_value));
+    INA_ASSERT_EQUAL(121, s_int_value);
+    
 
 }
 void test_lib_appname()
