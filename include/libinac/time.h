@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,13 +44,61 @@ typedef struct ina_time_s {
 #endif
 } ina_time_t;
 
+#define INA_TIME_MAX_USERDATA_LEN (30)
+#define INA_TIME_MAX_STAMPS       (1024)
+
+
+#ifndef INA_TIME_STOPWATCH_DISABLED
+#define INA_TIME_STOPWATCH_CREATE(pptr_sw, id, max_stamps)  \
+    ina_time_stopwatch_create(pptr_sw, id, max_stamps) 
+#define INA_TIME_STOPWATCH_OPEN(id, pptr_sw)                \
+    ina_time_stopwatch_open(id, pptr_sw) 
+#define INA_TIME_STOPWATCH_DESTROY(pptr_sw)                 \
+    ina_time_stopwatch_destroy(pptr_sw)
+#define INA_TIME_STOPWATCH_START(ptr_sw)                    \
+    ina_time_stopwatch_start(ptr_sw,NULL)
+#define INA_TIME_STOPWATCH_START_EX(ptr_sw, ptr_start)      \
+    ina_time_stopwatch_start(ptr_sw,ptr_start)
+#define INA_TIME_STOPWATCH_STOP(ptr_sw)                     \
+    ina_time_stopwatch_stop(ptr_sw) 
+#define INA_TIME_STOPWATCH_STAMP(ptr_sw)                    \
+    ina_time_stopwatch_stamp(ptr_sw, NULL, NULL) 
+#define INA_TIME_STOPWATCH_STAMP1(ptr_sw, ud1)              \
+    ina_time_stopwatch_stamp(ptr_sw, ud1, NULL) 
+#define INA_TIME_STOPWATCH_STAMP2(ptr_sw, ud1, ud2)         \
+    ina_time_stopwatch_stamp(ptr_sw, ud1, ud2)
+#else
+#define INA_TIME_STOPWATCH_CREATE(pptr_sw, id, max_stamps)
+#define INA_TIME_STOPWATCH_OPEN(pptr_sw, id)
+#define INA_TIME_STOPWATCH_DESTROY(pptr_sw)
+#define INA_TIME_STOPWATCH_START(ptr_sw)
+#define INA_TIME_STOPWATCH_START_EX(ptr_sw, ptr_str)
+#define INA_TIME_STOPWATCH_STOP(ptr_sw)
+#define INA_TIME_STOPWATCH_STAMP(ptr_sw)
+#define INA_TIME_STOPWATCH_STAMP1(ptr_sw, ud1)
+#define INA_TIME_STOPWATCH_STAMP2(ptr_sw, ud1, ud2)
+#endif
+
+/* Stopwatch timestamps */
+typedef struct ina_stopwatch_ts_s {
+    ina_time_t stamp;
+    char user_data1[INA_TIME_MAX_USERDATA_LEN];
+    char user_data2[INA_TIME_MAX_USERDATA_LEN];
+    double sec_duration;
+    double msec_duration;
+    double usec_duration;
+} ina_stopwatch_ts_t;
+
 /* Stopwatch  data */
 typedef struct ina_stopwatch_tv_s {
     ina_time_t start;
     ina_time_t stop;
+    size_t max_stamps;
+    volatile int64_t next_stamp;
     double sec_duration;
     double msec_duration;
     double usec_duration;
+    ina_stopwatch_ts_t stamps;
 } ina_stopwatch_tv_t;
 
 /* Stopwatch time values */
@@ -58,9 +106,14 @@ typedef struct ina_stopwatch_s {
     int id;
     ina_mempool_t *shared_mem;
     ina_stopwatch_tv_t *tv;
+    ina_stopwatch_ts_t *ts;
 } ina_stopwatch_t;
 
 
+/*
+ * Sleep for X milli seconds
+ */
+INA_API(ina_rc_t) ina_time_sleep(time_t msec);
 /*
  * Read current time.
  */
@@ -73,16 +126,18 @@ INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *sec);
  * Extract milliseconds from a time value
  */
 INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *msec);
-
 /*
  * Create a new stopwatch
  */
-INA_API(ina_rc_t) ina_time_stopwatch_create(int id, ina_stopwatch_t **stopwatch);
-
+INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch, int id, int max_stamps);
 /*
  * Open an existing stopwatch
  */
-INA_API(ina_rc_t) ina_time_stopwatch_open(int id, ina_stopwatch_t **stopwatch);
+INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id);
+/*
+ * Read a timestamp from a stopwatch
+ */
+INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t *stopwatch, int64_t *index);
 
 /*
  * Create a new stopwatch
@@ -101,15 +156,15 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch);
 /*
  * Start a stop watch
  */
-INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch);
+INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_t *start);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const char* user_data1, const char* user_data2);
 /*
  * Stop a stop watch 
  */
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch);
-/*
- * Sleep for X milli seconds
- */
-INA_API(ina_rc_t) ina_time_sleep(time_t how_long_millis);
 
 #ifdef __cplusplus
 }

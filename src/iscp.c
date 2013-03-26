@@ -226,7 +226,7 @@ INA_API(ina_rc_t) ina_iscp_register_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds
     INA_ASSERT_NOTNULL(cmds);
 
     while (cmds->cmd_id >0) {
-        INA_TRACE("Register cmd with ID %d", cmds->cmd_id);
+        INA_TRACE3("Register cmd with ID %d", cmds->cmd_id);
         if (!INA_SUCCEED(ina_iscp_register(ctx, cmds->cmd_id, cmds->p_count, cmds->handler))) {
             return INA_ERR_PUSH_LAST;
         }

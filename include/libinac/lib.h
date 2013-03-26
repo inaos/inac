@@ -75,6 +75,9 @@ extern "C" {
 
 #define INA_YES 1
 #define INA_NO  0
+
+#define INA_NUM2STR_X(x) #x
+#define INA_NUM2STR(x) INA_NUM2STR_X(x)
 /*
  * Version
  */
@@ -100,7 +103,7 @@ extern "C" {
  
 /* Add int option */
 #define INA_OPT_INT(short_opt, long_opt, dft, desc)       \
- { short_opt, long_opt, INA_OPT_TYPE_INT, dft, desc }
+ { short_opt, long_opt, INA_OPT_TYPE_INT, INA_NUM2STR(dft), desc }
 
 /* Define options map */
 #define INA_OPTS(name, ...)         \
