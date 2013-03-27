@@ -112,7 +112,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch, int id,
 
 INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id)
 {
-    return __ina_stopwatch_init(id, stopwatch, 0, 0);
+    return __ina_stopwatch_init(id, stopwatch, 0, INA_TIME_MAX_STAMPS);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch)
