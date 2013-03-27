@@ -168,7 +168,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_
     
     /* Override start if passed */
     if (start != NULL) {
-        ina_mem_cpy(&stopwatch->tv->start, start, sizeof(ina_time_t));
+        ina_mem_cpy(&stopwatch->tv->start, 0, sizeof(ina_time_t));
         return INA_SUCCESS;
     }
     /* Read clock */
@@ -183,13 +183,15 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int6
     stopwatch->ts = NULL;
 
     /* Return if there arent any timestamp */
-    if (stopwatch->tv->max_stamps == 0 || *stamp_index > stopwatch->tv->next_stamp) {
+    if (stopwatch->tv->max_stamps == 0) {
         return INA_FAILURE;
     }
 
     /* Get the timesstamp depending in stamp index */
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
+    } else if (*stamp_index >= stopwatch->tv->next_stamp) {
+        return INA_FAILURE;
     } else if (*stamp_index == -1) {
         *stamp_index = stopwatch->tv->next_stamp;
     }
