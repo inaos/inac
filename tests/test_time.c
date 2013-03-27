@@ -27,6 +27,29 @@
  */
 #include <libinac/lib.h>
 
+void test_time_time_stamp()
+{
+    ina_stopwatch_t *w = NULL;
+    int64_t c = 0;
+
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
+    INA_ASSERT_NOTNULL(w);
+    INA_ASSERT_EQUAL(1, w->id);
+    INA_ASSERT_EQUAL(1024, w->tv->max_stamps);
+    INA_ASSERT_NOTNULL(w->tv);
+    INA_ASSERT_NULL(w->ts);
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
+    while (c--) {
+        INA_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, "1", "2"));
+    }
+    c = 0;
+    while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &c))) {
+        INA_ASSERT_NOTNULL(w->ts);
+    }
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
+    INA_ASSERT_EQUAL(10, c);
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
+}
 
 void test_time_two_stopwatches()
 {
@@ -74,28 +97,30 @@ void test_time_stopwatch()
     INA_TRACE_MSG("test_time_stopwatch");
 
     gettimeofday(&tv_start, NULL);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 99, -1));
+    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
     INA_ASSERT_EQUAL(0, w->tv->next_stamp);
     INA_ASSERT_EQUAL(INA_TIME_MAX_STAMPS, w->tv->max_stamps);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
-    INA_ASSERT_EQUAL(0, w->ts->sec_duration);
+    INA_ASSERT_EQUAL(0, w->tv->sec_duration);
+    INA_ASSERT_NULL(w->ts);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
+    INA_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
+    INA_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
     gettimeofday(&tv_stop, NULL);
 
     INA_ASSERT_SUCCEED(ina_time_get_seconds(&w->tv->start, &t_start));
     INA_ASSERT_EQUAL(tv_start.tv_sec, t_start);
     INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w->tv->start, &t_start));
     INA_ASSERT_EQUAL(tv_start.tv_usec/1000, t_start);
-     
+
     INA_ASSERT_SUCCEED(ina_time_get_seconds(&w->tv->stop, &t_stop));
     INA_ASSERT_EQUAL(tv_stop.tv_sec, t_stop);
     INA_ASSERT_SUCCEED(ina_time_get_milliseconds(&w->tv->stop, &t_stop));
     INA_ASSERT_EQUAL(tv_stop.tv_usec/1000, t_stop);
     INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
-    INA_ASSERT_NOTNULL(w);
+    INA_ASSERT_NULL(w);
 }
  
 void test_time_read_clock() 
