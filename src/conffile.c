@@ -29,9 +29,6 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#include <lauxlib.h>
-#include <lualib.h>
-
 struct ina_conffile_entry_s {
 	uint32_t id;
 	char *key;

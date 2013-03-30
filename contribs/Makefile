@@ -1,8 +1,6 @@
-LUAJIT_VERSION=2.0.1
 LUAJIT_PLATFORM=$(shell uname)
 LUAJIT_PLATFORM_Darwin = macosx
 
-SQLITE_VERSION=3.7.14.1
 SQLITE_PLATFORM=$(shell uname)
 SQLITE_PLATFORM_Darwin = macosx
 
@@ -12,10 +10,10 @@ makeheaders_tool:
 	$(MAKE) -C makeheaders
 
 luajit:
-	$(MAKE) -C luajit-$(LUAJIT_VERSION)
+	$(MAKE) -C luajit
 
 sqlite:
-	$(MAKE) -C sqlite-$(SQLITE_VERSION)
+	$(MAKE) -C sqlite
 
 bstring:
 	$(MAKE) -C bstring
@@ -42,5 +40,5 @@ clean:
 	$(MAKE) clean -C skiplist
 	$(MAKE) clean -C anet
 	$(MAKE) clean -C sds
-	$(MAKE) clean -C luajit-$(LUAJIT_VERSION)
-	$(MAKE) clean -C sqlite-$(SQLITE_VERSION)
+	$(MAKE) clean -C luajit
+	$(MAKE) clean -C sqlite

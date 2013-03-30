@@ -52,6 +52,10 @@
 #include <math.h>
 #include <float.h>
 
+#include <contribs/luajit/src/luajit.h>
+#include <contribs/luajit/src/lauxlib.h>
+#include <contribs/luajit/src/lualib.h>
+
 #include <libinac/portable.h>
 #include <libinac/types.h>
 #include <libinac/uthash.h>
@@ -65,9 +69,11 @@
 #include <libinac/net.h>
 #include <libinac/iscp.h>
 #include <libinac/conffile.h>
+#include <libinac/ljit.h>
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
+
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,7 +1,7 @@
 DIRS = $(shell ls -p |grep /)
 SRC = $(wildcard *.c)
 OBJ = $(SRC:%.c=%.o) $(DIRS:%=%.o)
-CFLAGS = -Wall -std=c89 -g -I../../include -I../../contribs -DINA_LIB -DDEBUG -DTRACE_ENABLED
+CFLAGS = -Wall -std=c89 -g -I../../include -I../../ -DINA_LIB -DDEBUG -DTRACE_ENABLED
 MODULE = string.a
 
 all: $(OBJ)
