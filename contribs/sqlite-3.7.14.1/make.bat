@@ -36,60 +36,10 @@ SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
 if not exist %INAC_BUILD_SCRIPT% goto fail_no_build_script
 
-REM Determine build-type and build-stage
-if not "%2" == "" (
-	call %INAC_BUILD_SCRIPT% %1 %2 eval_params
-) else (
-	call %INAC_BUILD_SCRIPT% %1 dummy eval_params
-)
-if not defined INAC_W32_BUILD_TYPE goto exit
-if not defined INAC_W32_BUILD_STAGE goto exit
-if "%INAC_W32_BUILD_STAGE%" == "dummy" goto exit
-if not "%INAC_W32_BUILD_STAGE%" == "clean" (
-	if "%INAC_W32_BUILD_TYPE%" == "dummy" goto exit
-)
-
-REM Build 3rd party
-REM ---------------------------------
-
-REM build luajit
-cd contribs\luajit-2.0.1\src
-if not exist msvcbuild.bat goto fail_no_luajit1
-if not exist msvcbuild_debug.bat goto fail_no_luajit2
-if "%INAC_W32_BUILD_STAGE%" == "clean" (
-	if exist lua51.lib del lua51.lib
-	if exist lua51d.lib del lua51d.lib
-) else (
-	if "%INAC_W32_BUILD_TYPE%" == "debug" (
-		if not exist lua51d.lib (
-			call msvcbuild_debug.bat static
-		)
-	)
-	if "%INAC_W32_BUILD_TYPE%" == "release" (
-		if not exist lua51.lib (
-			call msvcbuild.bat static
-		)
-	)
-)
-cd %INAC_HOME%
-
-REM build sqlite
-call contribs\sqlite-3.7.14.1\make.bat %1 %2
-
-REM reset the main environment variables because they might have been deleted by the previous build
-SET INAC_HOME=%CD%
-SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
-
-REM Build INAC
-REM ---------------------------------
-
-SET INAC_WIN32_BUILD_NAME=inac
-SET INAC_WIN32_PROJECT_DIR=.
+SET INAC_WIN32_BUILD_NAME=sqlite
+SET INAC_WIN32_PROJECT_DIR=contribs\sqlite-3.7.14.1
 SET INAC_WIN32_C_SOURCE_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
-SET INAC_WIN32_C_TEST_SOURCE_DIR=tests
-SET INAC_WIN32_C_TEST_MAKEHEADERS=..\buildall\makeheaders.exe
-SET INAC_WIN32_C_TEST_SUITE_EXEC=buildtest\test.exe
 
 call %INAC_BUILD_SCRIPT% %1 %2
 
@@ -99,22 +49,11 @@ goto exit
 echo Error: Something is wrong with your INAC_HOME setting: %INAC_HOME%
 goto exit
 
-:fail_no_luajit1
-echo Error: Luajit build script msvcbuild.bat not found
-goto exit
-
-:fail_no_luajit2
-echo Error: Luajit debug build script msvcbuild.bat not found
-goto exit
-
 
 :exit
 
 REM Clean-up
 REM ---------------------------------
-
-SET INAC_W32_BUILD_TYPE=
-SET INAC_W32_BUILD_STAGE=
 
 SET INAC_HOME=
 SET INAC_BUILD_SCRIPT=

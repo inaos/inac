@@ -1,0 +1,12 @@
+Since we'd only link staticly and like to have a debug library for windows as well we have 
+created a second msvcbuild.bat - called msvcbuild_debug.bat
+
+It contains the following changes:
+
+- To produce a debug lib adjust the msvcbuild.bat the following way:
+- set LJCOMPILE => change /MD to /MDd
+- change output library to: lua51d.lib
+- change library of luajit.exe to reflect the 'd'
+- THE IDEA IS THAT YOU'LL HAVE 2 LIBS IN THE END -> lua51.lib, lua51d.lib
+
+Make sure to maintain this file when upgrading luajit!

@@ -18,10 +18,13 @@ contribs/luajit-2.0.1/src/lj_bcdef.h
 contribs/luajit-2.0.1/src/lua51.dll
 contribs/luajit-2.0.1/src/lua51.exp
 contribs/luajit-2.0.1/src/luajit.exe
+contribs/luajit-2.0.1/src/luajitd.exe
+contribs/luajit-2.0.1/src/luajitd.exp
 contribs/luajit-2.0.1/src/*.so
 contribs/makeheaders/makeheaders
-contribs/sqlite-3.7.14.1/build/*
+contribs/sqlite-3.7.14.1/buildall/*
 luajit
 build/*
 buildall/*
+buildtest/*
 tests/build/*
