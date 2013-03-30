@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2012, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,12 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_LJIT_H_
-#define _LIBINAC_LJIT_H_
-
 #include <libinac/lib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* 
- * Import LuaJIT Bytecode. Works only for modules generated using 
- * standard naming convention.
- */
-#define INA_LJIT_IMPORT(module)                             \
-     extern const char *luaJIT_BC_module;                   \
-     static const char *__ina_ljit_import_##module (void) { \
-        return luaJIT_BC_module;                            \
-    }
-
-/* 
- * Expose API tu luajit. 
- */
-#define INA_LJIT_EXPOSE_API(api)
-
-/* 
- * Expose API tu luajit. 
- */
-#define INA_LJIT_EXPOSE(...)                         \
-    static const void *__ina_luajit_export(void) {   \
-     __VA_ARGS__,                                    \
-     }                                               \
-
-#ifdef __cplusplus
+void test_ljit_open_close_state() 
+{
+    lua_State *lstate = luaL_newstate();
+    luaL_openlibs(lstate);
+    lua_close(lstate);
 }
-#endif 
 
-#endif
