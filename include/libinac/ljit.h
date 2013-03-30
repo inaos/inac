@@ -40,7 +40,7 @@ extern "C" {
 #define INA_LJIT_IMPORT(module) 
      extern const char *luaJIT_BC_#module;                  \
      static const char *__ina_ljit_import_#module(void) {   \
-        return luaJIT_BC_#module;                          \
+        return luaJIT_BC_#module;                           \
     }
 
 #ifdef __cplusplus
