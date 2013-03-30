@@ -34,14 +34,32 @@
 extern "C" {
 #endif
 
-/* Import LuaJIT Bytecode. Works only for modules generated using 
+/* 
+ * Import LuaJIT Bytecode. Works only for modules generated using 
  * standard naming convention.
  */
 #define INA_LJIT_IMPORT(module) 
-     extern const char *luaJIT_BC_#module;                  \
-     static const char *__ina_ljit_import_#module(void) {   \
-        return luaJIT_BC_#module;                           \
+     extern const char *luaJIT_BC_module;                  \
+     static const char *__ina_ljit_import_module(void) {   \
+        return luaJIT_BC_module;                           \
     }
+
+/* 
+ * Expose API tu luajit. 
+ */
+#define INA_LJIT_EXPOSE_API(api)               \
+    #ifdef INA_OS_WIN32                        \
+    #endif
+
+/* 
+ * Expose API tu luajit. 
+ */
+#define INA_LJIT_EXPOSE(...)
+    #ifdef INA_OS_WIN32                              \
+    static const void *__ina_luajit_export(void) {   \
+     __VA_ARGS__,                                    \
+     }                                               \
+     #endif
 
 #ifdef __cplusplus
 }
