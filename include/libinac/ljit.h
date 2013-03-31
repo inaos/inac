@@ -34,14 +34,19 @@
 extern "C" {
 #endif
 
+/* LuaJIT/Lua context */
+typedef struct ina_ljit_ctx_s {
+    lua_State *lstate;
+} ina_ljit_ctx_t;
+
 /* 
  * Import LuaJIT Bytecode. Works only for modules generated using 
  * standard naming convention.
  */
-#define INA_LJIT_IMPORT(module)                             \
-     extern const char *luaJIT_BC_module;                   \
-     static const char *__ina_ljit_import_##module (void) { \
-        return luaJIT_BC_module;                            \
+#define INA_LJIT_IMPORT(module)                               \
+    extern const char *luaJIT_BC_##module;                    \
+    static const char *__ina_ljit_import_##module (void) {    \
+        return luaJIT_BC_##module;                            \
     }
 
 /* 
@@ -55,7 +60,20 @@ extern "C" {
 #define INA_LJIT_EXPOSE(...)                         \
     static const void *__ina_luajit_export(void) {   \
      __VA_ARGS__,                                    \
-     }                                               \
+     }
+
+/*
+ * Initalize LuaJIT context
+ */
+INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx);
+/*
+ * Destroy LuaJIT context
+ */
+INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx);
+/*
+ * Call a Lua function
+ */
+INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const char *sig, ...);
 
 #ifdef __cplusplus
 }

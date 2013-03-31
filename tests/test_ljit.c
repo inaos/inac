@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,21 @@
  */
 #include <libinac/lib.h>
 
-void test_ljit_open_close_state() 
+void test_ljit_init_destroy()
+{
+    ina_ljit_ctx_t *ctx = NULL;
+    INA_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(ctx->lstate);
+    INA_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_ASSERT_NULL(ctx);
+    INA_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+}
+
+void test_ljit_open_close_state_native() 
 {
     lua_State *lstate = luaL_newstate();
+    INA_ASSERT_NOTNULL(lstate);
     luaL_openlibs(lstate);
     lua_close(lstate);
 }
