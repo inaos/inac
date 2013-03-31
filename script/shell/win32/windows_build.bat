@@ -154,7 +154,9 @@ REM rule 2
 SET INAC_BUILD_C_OR_TEST_VALID=
 if defined INAC_WIN32_C_SOURCE_DIR SET INAC_BUILD_C_OR_TEST_VALID=1
 if defined INAC_WIN32_C_TEST_SOURCE_DIR SET INAC_BUILD_C_OR_TEST_VALID=1
-if not defined INAC_BUILD_C_OR_TEST_VALID goto fail_rule_2
+if defined INAC_BUILD_C_OR_TEST_VALID (
+	if not defined INAC_WIN32_C_BUILD_TOOL goto fail_rule_2
+)
 
 REM rule 3
 if defined INAC_WIN32_LUA_SOURCE_DIR (
@@ -167,8 +169,8 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 )
 
 REM invoke code-generator if necessary
+SET "INAC_W32_CODE_GEN_FULL_PATH=%INAC_WIN32_PROJECT_DIR%\%INAC_WIN32_CODE_GEN_SCRIPT% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%"
 if defined INAC_WIN32_CODE_GEN_SCRIPT (
-	SET INAC_W32_CODE_GEN_FULL_PATH=%INAC_WIN32_PROJECT_DIR%\%INAC_WIN32_CODE_GEN_SCRIPT%
 	if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 		if not exist %INAC_W32_CODE_GEN_FULL_PATH% goto fail_code_gen
 		echo Invoke Code-Generator
@@ -249,8 +251,10 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 
 REM Invoke the Test-Suite
 if defined INAC_WIN32_C_TEST_SUITE_EXEC (
-	start cmd /c %INAC_WIN32_C_TEST_SUITE_EXEC%
-	REM FIXME: collect test logs and evalutate failure or success
+	if "%INAC_W32_BUILD_STAGE%" == "test" (
+		start cmd /c %INAC_WIN32_C_TEST_SUITE_EXEC%
+		REM FIXME: collect test logs and evalutate failure or success
+	)
 )
 
 REM compile lua to byte code - if there is any
@@ -265,7 +269,11 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua
 		for %%i in (%INAC_WIN32_LUA_SOURCE_DIR%\*.lua) do (
 			echo Compiling...%%~nxi
-			%INAC_W32_LUAJIT% -b %%i %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%%~nxi.obj
+			if "%INAC_W32_BUILD_TYPE%" == "debug" (
+				%INAC_W32_LUAJIT% -bg %%i %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%%~nxi.obj
+			) else (
+				%INAC_W32_LUAJIT% -b %%i %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%%~nxi.obj
+			)
 		)
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dump.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dump.obj
 	)
