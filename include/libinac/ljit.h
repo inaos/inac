@@ -34,8 +34,9 @@
 extern "C" {
 #endif
 
+/* LuaJIT/Lua context */
 typedef struct ina_ljit_ctx_s {
-	lua_State *lstate;
+    lua_State *lstate;
 } ina_ljit_ctx_t;
 
 /* 
@@ -43,9 +44,9 @@ typedef struct ina_ljit_ctx_s {
  * standard naming convention.
  */
 #define INA_LJIT_IMPORT(module)                               \
-	extern const char *luaJIT_BC_##module;                    \
-     static const char *__ina_ljit_import_##module (void) {   \
-		return luaJIT_BC_##module;                            \
+    extern const char *luaJIT_BC_##module;                    \
+    static const char *__ina_ljit_import_##module (void) {    \
+        return luaJIT_BC_##module;                            \
     }
 
 /* 
@@ -62,17 +63,17 @@ typedef struct ina_ljit_ctx_s {
      }
 
 /*
- *
+ * Initalize LuaJIT context
  */
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx);
 /*
- *
+ * Destroy LuaJIT context
  */
-INA_API(ina_rc_t) ina_ljit_destoy(ina_ljit_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx);
 /*
- *
+ * Call a Lua function
  */
-INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, ...);
+INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const char *sig, ...);
 
 #ifdef __cplusplus
 }
