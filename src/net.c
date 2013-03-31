@@ -39,7 +39,7 @@
 #include <unistd.h>
 #endif
 
-#include <anet.h>
+#include <contribs/anet/anet.h>
 
 #include <libinac/lib.h>
 

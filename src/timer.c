@@ -26,8 +26,8 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
+#include <contribs/skiplist/skiplist.h>
 #include "config.h"
-#include <skiplist.h>
 
 struct ina_timer_s {
     skiplist events;

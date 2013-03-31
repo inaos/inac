@@ -6,15 +6,15 @@ FN  = $(SRC:%.c=%)
 BIN = test
 
 MAKEHEADERS = ../contribs/makeheaders/makeheaders
-CFLAGS = -Wall -std=c89 -g -I../include -DINA_LIB -DDEBUG -DTRACE_ENABLED
+CFLAGS = -Wall -std=c89 -g -I../include -I../ -DINA_LIB -DDEBUG -DTRACE_ENABLED
 
 
 all: $(OBJ) suites.o main.o
 	for i in $(DIRS); do $(MAKE) -C $$i; done
-	$(CC) $(CFLAGS) -v -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS) ../src/libinac.a ../contribs/anet/anet.a ../contribs/skiplist/skiplist.a
+	$(CC) $(CFLAGS) -v -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)  -pagezero_size 10000 -image_base 100000000 ../src/libinac.a ../contribs/anet/anet.a ../contribs/skiplist/skiplist.a ../contribs/luajit/src/libluajit.a
 
 %.o: %.c
-	$(CC) $(CFLAGS) -I../include -c $<
+	$(CC) $(CFLAGS) -I../include -I../ -c $<
 	
 .PHONY: clean
 
