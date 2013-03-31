@@ -121,7 +121,7 @@ extern "C" {
 #define INA_ASSERT_NULL(v)
 #define INA_ASSERT_NOTNULL(v)
 #define INA_ASSERT_EQUAL(expected, actual)
-#define INA_ASSERT_NOEQUAL(notexpected, actual)
+#define INA_ASSERT_NOTEQUAL(notexpected, actual)
 #define INA_ASSERT_SUCCESS(v)
 #define INA_ASSERT_FAILURE(v) 
 #define INA_ASSERT_SUCCEED(v)
