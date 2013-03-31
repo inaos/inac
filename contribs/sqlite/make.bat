@@ -37,7 +37,7 @@ SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 if not exist %INAC_BUILD_SCRIPT% goto fail_no_build_script
 
 SET INAC_WIN32_BUILD_NAME=sqlite
-SET INAC_WIN32_PROJECT_DIR=contribs\sqlite-3.7.14.1
+SET INAC_WIN32_PROJECT_DIR=contribs\sqlite
 SET INAC_WIN32_C_SOURCE_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
 

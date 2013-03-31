@@ -91,11 +91,11 @@ if not defined INCLUDE goto fail_vs_env
 if not defined INAC_HOME goto fail_inac_home
 
 REM set variables according to input
-SET INAC_W32_LUAJIT=%INAC_HOME%\contribs\luajit-2.0.1\src\luajit.exe
-SET INAC_W32_LUAJIT_DIR=%INAC_HOME%\contribs\luajit-2.0.1\src\jit
+SET INAC_W32_LUAJIT=%INAC_HOME%\contribs\luajit\src\luajit.exe
+SET INAC_W32_LUAJIT_DIR=%INAC_HOME%\contribs\luajit\src\jit
 
 if not defined ORIGINAL-LUA_PATH set ORIGINAL-LUA_PATH=%LUA_PATH%
-SET LUA_PATH=%INAC_HOME%\contribs\luajit-2.0.1\src\?.lua;%ORIGINAL-LUA_PATH%
+SET LUA_PATH=%INAC_HOME%\contribs\luajit\src\?.lua;%ORIGINAL-LUA_PATH%
 
 REM evaluate parameters
 if not "%1" == "" (

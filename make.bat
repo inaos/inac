@@ -53,7 +53,7 @@ REM Build 3rd party
 REM ---------------------------------
 
 REM build luajit
-cd contribs\luajit-2.0.1\src
+cd contribs\luajit\src
 if not exist msvcbuild.bat goto fail_no_luajit1
 if not exist msvcbuild_debug.bat goto fail_no_luajit2
 if "%INAC_W32_BUILD_STAGE%" == "clean" (
@@ -74,7 +74,7 @@ if "%INAC_W32_BUILD_STAGE%" == "clean" (
 cd %INAC_HOME%
 
 REM build sqlite
-call contribs\sqlite-3.7.14.1\make.bat %1 %2
+call contribs\sqlite\make.bat %1 %2
 
 REM reset the main environment variables because they might have been deleted by the previous build
 SET INAC_HOME=%CD%
