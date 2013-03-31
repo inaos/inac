@@ -82,18 +82,18 @@ buildvm -m folddef -o lj_folddef.h lj_opt_fold.c
 :AMALGDLL
 %LJCOMPILE% /DLUA_BUILD_AS_DLL ljamalg.c
 @if errorlevel 1 goto :BAD
-%LJLINK% /DLL /out:lua51d.dll ljamalg.obj lj_vm.obj
+%LJLINK% /DLL /out:lua51.dll ljamalg.obj lj_vm.obj
 @if errorlevel 1 goto :BAD
 :MTDLL
-if exist lua51d.dll.manifest^
-  %LJMT% -manifest lua51d.dll.manifest -outputresource:lua51d.dll;2
+if exist lua51.dll.manifest^
+  %LJMT% -manifest lua51.dll.manifest -outputresource:lua51.dll;2
 
 %LJCOMPILE% luajit.c
 @if errorlevel 1 goto :BAD
-%LJLINK% /out:luajitd.exe luajit.obj lua51d.lib
+%LJLINK% /out:luajit.exe luajit.obj lua51d.lib
 @if errorlevel 1 goto :BAD
-if exist luajitd.exe.manifest^
-  %LJMT% -manifest luajitd.exe.manifest -outputresource:luajitd.exe
+if exist luajit.exe.manifest^
+  %LJMT% -manifest luajit.exe.manifest -outputresource:luajit.exe
 
 @del *.obj *.manifest minilua.exe buildvm.exe
 @echo.
