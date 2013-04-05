@@ -38,6 +38,7 @@ extern "C" {
  * INAOS Simple Command Protocol 
  */
 
+#define INA_ISCP_NET_TIMEOUT  (10)    /* Default Net connect timeout in seconds */
 #define INA_ISCP_BUFFER_SIZE  (2048)  /* Max size of command data */
 #define INA_ISCP_HDR_SIZE     (sizeof(uint16_t)*3+sizeof(uint32_t))
 
@@ -141,6 +142,7 @@ typedef struct ina_iscp_tcp_data_s {
     int       port;     /* Port */
     int       fd;       /* File descriptor */
     int       lfd;      /* File descriptor for listener */
+    int       timeout_sec; /* Timeout for TCP connect  default 10 seconds */
 } ina_iscp_tcp_data_t;
 
 /*

@@ -68,22 +68,16 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
         case INA_ISCP_NONE:
             /* Callsbacks will be provided externally */
             break;
-        case INA_ISCP_INET:
-        {
+        case INA_ISCP_INET: {
             rc = ina_iscp_set_callbacks(*ctx, __ina_net_open_cb,
-                                              __ina_net_clse_cb,
-                                              __ina_net_send_cb,
-                                              __ina_net_recv_cb,
-                                              __ina_net_retn_cb);
+                                             __ina_net_clse_cb,
+                                             __ina_net_send_cb,
+                                             __ina_net_recv_cb,
+                                             __ina_net_retn_cb);
             break;
-        }
+        };
         default: 
         {
-            rc = ina_iscp_set_callbacks(*ctx, __ina_net_open_cb,
-                                              __ina_net_clse_cb,
-                                              __ina_net_send_cb,
-                                              __ina_net_recv_cb,
-                                              __ina_net_retn_cb);
             break;
         }
     }
@@ -131,6 +125,7 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, in
     data->port = port;
     data->fd   = -1;
     data->lfd  = -1;
+    data->timeout_sec = INA_ISCP_NET_TIMEOUT;
     (*ctx)->user_data = data;
 
     return INA_SUCCESS;
@@ -483,11 +478,13 @@ __ina_net_open_cb(void* user_data, int send)
         /* Check if the channel is sill open */
         if (data->fd == -1) {
              INA_TRACE3("Open ISCP channel for send");
-            if (!INA_SUCCEED(ina_net_tcp_connect(&data->fd, ina_str_cstr(data->addr), data->port))) {
+            if (!INA_SUCCEED(ina_net_tcp_connect(&data->fd, ina_str_cstr(data->addr), data->port, data->timeout_sec))) {
                 return ina_err_peek();
             }
             INA_TRACE3("Open ISCP channel ready to send");
         }
+        ina_net_set_read_timeout(data->fd, 100);
+        ina_net_set_write_timeout(data->fd, 100);
         return INA_SUCCESS;
     }
 
@@ -507,7 +504,9 @@ __ina_net_open_cb(void* user_data, int send)
             data->fd = -1;
             return ina_err_peek();
         }
-         INA_TRACE3("ISCP channel ready to receive");
+        ina_net_set_read_timeout(data->lfd, 100);
+        ina_net_set_write_timeout(data->lfd, 100);
+        INA_TRACE3("ISCP channel ready to receive");
     }
     return INA_SUCCESS;
 }
@@ -568,6 +567,8 @@ __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
                 ina_net_close(data->fd);
                 data->fd = -1;
             }
+            ina_net_set_read_timeout(data->fd, 100);
+            ina_net_set_write_timeout(data->fd, 100);
         }
     }
     
