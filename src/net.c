@@ -290,10 +290,10 @@ ina_rct_t ina_net_block(int fd)
     }
     return INA_SUCCESS;
 }
+#else
 ina_rc_t ina_net_block(int fd)
 {
     int flags;
-
     /* Set the socket nonblocking.
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
@@ -303,6 +303,6 @@ ina_rc_t ina_net_block(int fd)
     if (fcntl(fd, F_SETFL, flags | O_LOCK) == -1) {
         return INA_NET_ERROR("fcntl(F_SETFL,O_NONBLOCK): %s");
     }
-    return ANET_OK;
+    return INA_SUCCESS;
 }
 #endif
