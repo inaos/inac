@@ -179,7 +179,7 @@ skiplist_insert(skiplist l, void *item)
 	int level, newlevel, pos;
 	skipnode prev,next,vnew;
 
-	// Upgrade the skiplist level if necessary.
+	/* Upgrade the skiplist level if necessary. */
 	newlevel = rand_level(l);
 	if (newlevel > l->level)
 	{
@@ -188,7 +188,7 @@ skiplist_insert(skiplist l, void *item)
 			l->header->forward[pos].ptr = l->sentinal;
 			l->header->forward[pos].distance = l->size + 1;
 		}
-		l->level = newlevel; // keep level update atomic
+		l->level = newlevel; /* keep level update atomic */
 	}
 
 	pos = 0;
@@ -214,23 +214,23 @@ skiplist_insert(skiplist l, void *item)
 		prev = next;
 	}
 
-	// We now have our place.  We could check for the existance of dupes here
-	// and abort if necessary; note we may have updated l->level with now
-	// pointless entries at this point.
+	/* We now have our place.  We could check for the existance of dupes here
+	   and abort if necessary; note we may have updated l->level with now
+	  pointless entries at this point.*/
 
 	vnew = new_node(newlevel);
 	vnew->item = item;
 
-	// Setup for level -1
+	/* Setup for level -1 */
 	vnew->next = prev->next;
-	// Avoid vnew->prev = prev unless you don't want l->sentinal to be head->next->prev.
+	/* Avoid vnew->prev = prev unless you don't want l->sentinal to be head->next->prev.*/
 	vnew->prev = vnew->next->prev;
 
-	// Safe for insert now, we're fully linked at -1.
+	/* Safe for insert now, we're fully linked at -1. */
 	vnew->next->prev = vnew;
 	prev->next = vnew;
 
-	// Insert at level 0, 1, 2 .. n, in that order.
+	/* Insert at level 0, 1, 2 .. n, in that order.*/
 	for (level = 0; level <= l->level; level++)
 	{
 		if (level > newlevel)
@@ -243,7 +243,7 @@ skiplist_insert(skiplist l, void *item)
 			next = prev->forward[level].ptr;
 
 			vnew->forward[level].ptr = next;
-			prev->forward[level].ptr = vnew; // insert to level
+			prev->forward[level].ptr = vnew; /* insert to level */
 
 			vnew->forward[level].distance = updatepos[level] + (prev->forward[level].distance - pos);
 			prev->forward[level].distance = pos + 1 - updatepos[level];
@@ -281,7 +281,7 @@ skiplist_delete(skiplist l, void *item)
 
 		if (next->item != item)
 		{
-			// overshot, backtrack so we can update the count
+			/* overshot, backtrack so we can update the count */
 			prev = oldprev;
 		}
 		update[level] = prev;
@@ -293,7 +293,7 @@ skiplist_delete(skiplist l, void *item)
 		prev = next;
 	}
 
-	// XXX should we have skiplist_delete_exact?
+	/* XXX should we have skiplist_delete_exact? */
 	if (next->item != item)
 	{
 		prev = next;
@@ -304,8 +304,8 @@ skiplist_delete(skiplist l, void *item)
 		}
 	}
 
-	// Opposite to insert, we start at the top level and go down.  I think there's a good
-	// reason for this ;)
+	/* Opposite to insert, we start at the top level and go down.  I think there's a good
+	   reason for this ;) */
 	if (next->item == item)
 	{
 		old = next;
@@ -330,7 +330,7 @@ skiplist_delete(skiplist l, void *item)
 
 		l->size--;
 
-		// free(old);
+		/* free(old); */
 		if (l->gc_used + 1 >= l->gc_limit)
 		{
 			l->gc = realloc(l->gc, sizeof(skipnode) * (l->gc_limit *= 2));
