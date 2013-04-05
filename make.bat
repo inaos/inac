@@ -34,6 +34,12 @@ REM ---------------------------------
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
+if not defined INCLUDE (
+	if not defined VS110COMNTOOLS goto fail_vs_2012
+	if not exist "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" goto fail_vs_2012
+	call "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" x86
+)
+
 if not exist %INAC_BUILD_SCRIPT% goto fail_no_build_script
 
 REM Determine build-type and build-stage
@@ -93,6 +99,10 @@ SET INAC_WIN32_C_TEST_SUITE_EXEC=buildtest\test.exe
 
 call %INAC_BUILD_SCRIPT% %1 %2
 
+goto exit
+
+:fail_vs_2012
+echo Error: Something is wrong with your INAC_HOME setting: %INAC_HOME%
 goto exit
 
 :fail_no_build_script
