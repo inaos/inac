@@ -132,6 +132,7 @@ INA_API(void *) ina_mem_alloc(size_t size)
     void *p;
     p = __ina_malloc(size);
     ina_mem_set(p, 0, size);
+    return p;
 }
 
 INA_API(void) ina_mem_free(void *ptr)
