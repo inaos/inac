@@ -300,7 +300,7 @@ ina_rc_t ina_net_block(int fd)
     if ((flags = fcntl(fd, F_GETFL)) == -1) {
         return INA_NET_ERROR("fcntl(F_GETFL)");
     }
-    if (fcntl(fd, F_SETFL, flags | O_LOCK) == -1) {
+    if (fcntl(fd, F_SETFL, flags & ~O_NONBLOCK) == -1) {
         return INA_NET_ERROR("fcntl(F_SETFL,O_NONBLOCK): %s");
     }
     return INA_SUCCESS;
