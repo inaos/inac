@@ -129,7 +129,9 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
 
 INA_API(void *) ina_mem_alloc(size_t size)
 {
-    return __ina_malloc(size);
+    void *p;
+    p = __ina_malloc(size);
+    ina_mem_set(p, 0, size);
 }
 
 INA_API(void) ina_mem_free(void *ptr)
