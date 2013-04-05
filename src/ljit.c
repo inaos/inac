@@ -56,6 +56,21 @@ INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
+unsigned long ina_ljit_hash_sbdm(const char *str)
+{
+   return INA_HASH_CSTR_TO_SDBM(str);
+}
+
+void ina_ljit_dbl_to_decimal(double dbl, ina_decimal_t *dec)
+{
+   ina_dbl_to_decimal(dbl, dec);
+}
+
+double ina_ljit_dbl_from_decimal(ina_decimal_t *dec)
+{
+   return(ina_dbl_from_decimal(dec));
+}
+
 INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const char *sig, ...)
 {
     va_list vl;
