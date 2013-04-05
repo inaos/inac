@@ -168,7 +168,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_
     
     /* Override start if passed */
     if (start != NULL) {
-        ina_mem_cpy(&stopwatch->tv->start, start, sizeof(ina_time_t));
+        ina_mem_cpy(&stopwatch->tv->start, 0, sizeof(ina_time_t));
         return INA_SUCCESS;
     }
     /* Read clock */
