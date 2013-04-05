@@ -378,6 +378,8 @@ Main Goals of those components:
 
 ### High-Level Communication
 
+ina_iscp_regsiter()
+
 
 ### Testing
 #### Tracing 
