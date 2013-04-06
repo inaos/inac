@@ -37,8 +37,6 @@ struct ina_timer_s {
 
 /* Skip list compare callback */
 static int __ina_cmp(const void *, const void *);
-/* Read clock time */
-static ina_rc_t __ina_read_clock(ina_time_t*);
 /* Get current time */
 static ina_rc_t __ina_get_time(time_t*, time_t*);
 /* Get current time and add milliseconds to the time value */
@@ -71,9 +69,7 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
     t->next_event_id = 0;
     t->last_time = time(NULL);
     t->events = skiplist_create(__ina_cmp, sentinal);
-#ifdef INA_OS_WIN32
-    timeBeginPeriod(1);
-#endif
+
     return INA_SUCCESS;
 }
 
@@ -88,9 +84,7 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
     skiplist_destroy((*timer)->events);
     ina_mem_free(*timer);
     *timer = NULL;
-#ifdef INA_OS_WIN32
-    timeEndPeriod(1);
-#endif
+
     return INA_SUCCESS;
 }
 
@@ -235,19 +229,6 @@ static int
 }
 
 static ina_rc_t 
-__ina_read_clock(ina_time_t *time)
-{
-#ifdef WIN32
-    time->ttp = timeGetTime();
-#else
-    if (gettimeofday(&time->tp, NULL) == -1) {
-        return INA_FAILURE;
-    }
-#endif
-    return INA_SUCCESS;
-}
-
-static ina_rc_t 
 __ina_get_time(time_t *sec, time_t *msec)
 {
     ina_time_t t;
@@ -255,7 +236,7 @@ __ina_get_time(time_t *sec, time_t *msec)
     INA_ASSERT_NOTNULL(sec);
     INA_ASSERT_NOTNULL(msec);
 
-    __ina_read_clock(&t);
+    ina_time_read_clock(&t);
 
     ina_time_get_seconds(&t, sec);
     ina_time_get_milliseconds(&t, msec);
