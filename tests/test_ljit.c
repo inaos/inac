@@ -42,7 +42,7 @@ void test_ljit_call()
     INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
     lua_getglobal(ctx->lstate, "t");
     
-    INA_ASSERT_SUUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", 10, 5, &r));
+    INA_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", 10, 5, &r));
     INA_ASSERT_EQUAL(50, r);
     
     INA_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "<s", &rs));
