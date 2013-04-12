@@ -27,9 +27,70 @@
  */
 #include <libinac/lib.h>
 
+void test_ljit_call()
+{
+    ina_ljit_ctx_t *ctx = NULL;
+    double r = 0;
+    char *rs = NULL;
+
+    INA_TRACE_MSG("test_ljit_call");
+
+    INA_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(ctx->lstate);
+
+    INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
+    lua_getglobal(ctx->lstate, "t");
+    
+    INA_ASSERT_SUUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", 10, 5, &r));
+    INA_ASSERT_EQUAL(50, r);
+    
+    INA_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "<s", &rs));
+    INA_ASSERT_EQUAL(0, strcmp(ina_appname(), rs));
+
+    INA_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_ASSERT_NULL(ctx);
+}
+
+void test_ljit_luaL_dostring()
+{
+    ina_ljit_ctx_t *ctx = NULL;
+
+    INA_TRACE_MSG("test_ljit_luaL_dostring");
+
+    INA_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(ctx->lstate);
+
+    INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "return 100\n"));
+    INA_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
+    INA_ASSERT_EQUAL(100, (int)lua_tonumber(ctx->lstate, -1));
+    lua_pop(ctx->lstate, 1);
+
+    INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_appname()\n"));
+    INA_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));
+    INA_ASSERT_EQUAL(0, strcmp(ina_appname(), (const char *)lua_tostring(ctx->lstate, -1)));
+    lua_pop(ctx->lstate, 1);
+    
+    lua_pushnumber(ctx->lstate, 5);
+    lua_setglobal(ctx->lstate, "d1");
+    lua_pushnumber(ctx->lstate, 10);
+    lua_setglobal(ctx->lstate, "d2");
+    INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_params(d1, d2)\n"));
+    INA_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
+    INA_ASSERT_EQUAL(50, (int)lua_tonumber(ctx->lstate, -1));
+    lua_pop(ctx->lstate, 1);
+
+    INA_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_ASSERT_NULL(ctx);
+}
+
 void test_ljit_init_destroy()
 {
     ina_ljit_ctx_t *ctx = NULL;
+    
+    INA_TRACE_MSG("test_ljit_init_destroy");
+
     INA_ASSERT_SUCCEED(ina_ljit_init(&ctx));
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(ctx->lstate);
@@ -40,7 +101,10 @@ void test_ljit_init_destroy()
 
 void test_ljit_open_close_state_native() 
 {
+ 
     lua_State *lstate = luaL_newstate();
+    INA_TRACE_MSG("test_ljit_open_close_state_native");
+
     INA_ASSERT_NOTNULL(lstate);
     luaL_openlibs(lstate);
     lua_close(lstate);
