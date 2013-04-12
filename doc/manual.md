@@ -16,7 +16,28 @@ High level objectives:
 
 ## Getting started
 
+### Building on Windows
+
+Building on Windows requires some programs to be present on your system.
+
+#### Prerequisits
+
+* [Visual Studio 2012](http://www.microsoft.com/visualstudio/eng/products/visual-studio-express-products)
+* [CMake](http://www.cmake.org/cmake/resources/software.html)
+  * Use the binaray installer you don't need to build from source
+  * Make sure you add cmake to your PATH
+
+#### Build
+
+* Open a Visual Studio command prompt
+* Navigate to the INAC root folder
+* Type: make.bat all debug
+
+### Buiding on Linux or OS X
+
 Build and install the library. Simply type `sudo make && make install`.
+
+### Starting to code
 
 Start by including the INOAS library header in your code:
 
@@ -379,6 +400,8 @@ Main Goals of those components:
 ### High-Level Communication : ISCP
 
 ### Time & Timer
+
+ina_iscp_regsiter()
 
 
 ### Testing

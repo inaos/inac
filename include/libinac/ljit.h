@@ -70,6 +70,22 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx);
  * Destroy LuaJIT context
  */
 INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx);
+
+/*
+ *
+ */
+INA_API(unsigned long) ina_ljit_hash_sbdm(const char *str);
+
+/*
+ *
+ */
+INA_API(void) ina_ljit_dbl_to_decimal(double dbl, ina_decimal_t *dec);
+    
+/*
+ *
+ */
+INA_API(double) ina_ljit_dbl_from_decimal(ina_decimal_t *dec);
+     
 /*
  * Call a Lua function
  */

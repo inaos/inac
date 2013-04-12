@@ -57,8 +57,6 @@ void test_lib_opt()
     INA_ASSERT_EQUAL(s_int_value, l_int_value);
     INA_ASSERT_SUCCEED(ina_opt_get_int("t", &s_int_value));
     INA_ASSERT_EQUAL(121, s_int_value);
-    
-
 }
 void test_lib_appname()
 {
