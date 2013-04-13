@@ -390,6 +390,9 @@ __ina_signal_handler(int sig)
             if (__cleanup) {
                  __cleanup(sig, 0);
             }
+            /* Try to trace out the source of error */
+            ina_err_trace();
+            /* ... then stop */
             abort();
             break;
         case SIGTERM:
