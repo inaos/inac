@@ -26,7 +26,7 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
-#include "../config.h"
+#include "config.h"
 
 #ifdef CSTRING_ENABLED
 

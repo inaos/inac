@@ -29,7 +29,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#define __INA_ENUM_SECTIONS     "section"
+#define __INA_ENUM_SECTIONS     "sections"
 #define __INA_ENUM_KEYS         "keys"
 #define __INA_ENUM_CHILDREN     "children"
 #define __INA_ATTR_NAME         "name"
@@ -45,23 +45,23 @@
 
 /* Single entry */
 struct ina_conffile_entry_s {
-    uint32_t id;
-    char *key;
-    char *sv;
+    unsigned long id;
+    ina_str_t key;
+    ina_str_t sv;
     double nv;
     UT_hash_handle hh;
 };
 
 typedef struct ina_conffile_section_key_s {
-    uint32_t id;
+    unsigned long id;
     ina_str_t name;
     int required;
-    ina_conffile_value_type_t valuetype;
+    ina_conffile_value_type_t value_type;
     UT_hash_handle hh;
 } ina_conffile_section_key_t;
 
 typedef struct ina_conffile_section_res_s {
-    uint32_t id;
+    unsigned long id;
     ina_str_t name;
     ina_conffile_entry_t *entries;
     UT_hash_handle hh;
@@ -80,6 +80,15 @@ struct ina_conffile_section_s {
     UT_hash_handle hh;
 };
 
+/* Private functions */
+static ina_rc_t __ina_add_internal(ina_conffile_t*, const char *, 
+                                   int , ina_conffile_section_cb_t, 
+                                   ina_conffile_named_section_cb_t, 
+                                   ina_conffile_section_t **, int );
+static ina_rc_t __ina_construct_section_table(ina_conffile_t*);
+static ina_rc_t __ina_process_section_table(ina_conffile_t*);
+static ina_rc_t __ina_process_entries(ina_conffile_t*, 
+                                      ina_conffile_section_res_t*);
 
 INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf, const char* filepath)
 {
@@ -88,12 +97,15 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf, const char* filepath)
         return INA_ERR_PUSH_LAST;
     }
     (*cf)->filepath = ina_str_fromcstr(filepath);
-    /* 
-     * by convention the conf-file path is [binary-name].conf 
-     * in the current workdir if nothing else is specified
-     */
+
     if ((*cf)->filepath == NULL) {
         (*cf)->filepath = ina_str_vsprintf("%s.conf", ina_appname());
+    }
+
+    if (!INA_SUCCEED(ina_ljit_init(&(*cf)->lctx))) {
+        ina_mem_free(*cf);
+        *cf = NULL;
+        return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
 }
@@ -109,38 +121,6 @@ INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf)
         /* FIXME: Free allocated data */
     }
     *cf = 0;
-    return INA_SUCCESS;
-}
-
-static ina_rc_t __ina_add_internal(ina_conffile_t *cf, const char *name, 
-                    int required, ina_conffile_section_cb_t cb1, 
-                    ina_conffile_named_section_cb_t cb2, 
-                    ina_conffile_section_t **section, int named)
-{
-    uint32_t key;
-    ina_conffile_section_t *sp;
-    ina_conffile_section_t *check;
-
-    key = INA_HASH_CSTR_TO_SDBM(name);
-    HASH_FIND_ULONG(cf->sections, &key, check);
-    if (check != NULL) {
-        /* FIXME: specific error */
-        return INA_FAILURE;
-    }
-
-    *section = (ina_conffile_section_t*)ina_mem_alloc(sizeof(ina_conffile_section_t));
-    sp = *section;
-    if (sp == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
-
-    sp->id = key;
-    sp->name = ina_str_fromcstr(name);
-    sp->named = named;
-    sp->section_cb = cb1;
-    sp->named_section_cb = cb2;
-    sp->required = required;
-    HASH_ADD_ULONG(cf->sections, id, sp);
     return INA_SUCCESS;
 }
 
@@ -165,17 +145,187 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
                             int required)
 {
     ina_conffile_section_key_t *key;
+    ina_conffile_entry_t *check = NULL;
 
     INA_ASSERT_NOTNULL(section);
     INA_ASSERT_NOTNULL(name);
+
+    HASH_FIND_ULONG(section, &key, check);
+    if (check != NULL) {
+        return INA_CONFFILE_EDUPKEY;
+    }
 
     key = (ina_conffile_section_key_t*)ina_mem_alloc(sizeof(ina_conffile_section_key_t));
     key->id = INA_HASH_CSTR_TO_SDBM(name);
     key->name = ina_str_fromcstr(name);
     key->required = required;
-    key->valuetype = value_type;
-
+    key->value_type = value_type;
+    INA_TRACE("key hash=%ld", key->id);
+    INA_TRACE("key name=%s", name);
     HASH_ADD_ULONG(section->keys, id, key);
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_entry_t *entries, 
+                    const char* key)
+{
+    ina_conffile_entry_t *entry = NULL;
+    unsigned long k = INA_HASH_CSTR_TO_SDBM(key);
+
+    INA_ASSERT_NOTNULL(entries);
+
+    HASH_FIND_ULONG(entries, &k, entry);
+    if (entry != NULL) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+
+INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_entry_t *entries, 
+                    const char* key, ina_str_t *value)
+{
+    ina_conffile_entry_t *entry = NULL;
+    unsigned long k = INA_HASH_CSTR_TO_SDBM(key);
+
+    INA_ASSERT_NOTNULL(entries);
+
+    HASH_FIND_ULONG(entries, &k, entry);
+    if (entry != NULL && entry->sv != NULL) {
+        *value = ina_str_dup(entry->sv);
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_entry_t *entries, 
+                    const char* key, double *value)
+{
+    ina_conffile_entry_t *entry = NULL;
+    unsigned long k = INA_HASH_CSTR_TO_SDBM(key);
+
+    INA_ASSERT_NOTNULL(entries);
+
+    HASH_FIND_ULONG(entries, &k, entry);
+    if (entry != NULL) {
+        *value = entry->nv;
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_conffile_prepare(ina_conffile_t *cf)
+{
+    INA_ASSERT_NOTNULL(cf);
+
+    if (!INA_SUCCEED(ina_ljit_init(&cf->lctx))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (cf->prepared == INA_YES) {
+        return INA_SUCCESS;
+    }
+
+    /* create the sections table */
+    lua_newtable(cf->lctx->lstate);
+    lua_setglobal(cf->lctx->lstate, __INA_ENUM_SECTIONS);
+
+    /* construct sections table */
+    if (!INA_SUCCEED(__ina_construct_section_table(cf))) {
+        return INA_FAILURE;
+    }
+    cf->prepared = INA_YES;
+    return INA_SUCCESS;
+}
+                    
+INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf)
+{
+    ina_conffile_section_t *s, *stmp;
+
+    INA_ASSERT_NOTNULL(cf);
+
+    /* Almost one section must be there */
+    if (cf->sections == NULL) {
+        return INA_FAILURE;
+    }
+    
+    if (cf->prepared != INA_YES) {
+        if (!INA_SUCCEED(ina_conffile_prepare(cf))) {
+            return INA_ERR_PUSH_LAST;
+        }
+    }
+
+   lua_getglobal(cf->lctx->lstate, __INA_ENUM_SECTIONS);
+
+    /* set the config-file path */
+    lua_pushstring(cf->lctx->lstate, ina_str_cstr(cf->filepath));
+    lua_setglobal(cf->lctx->lstate, "conf_file");
+    
+    /* invoke lua */
+    if (luaL_dostring(cf->lctx->lstate,
+            "local cf = require('lconffile')\n cf.process(sections, conf_file)\n") != 0) {
+        return INA_LJIT_ELUA(cf->lctx);
+    }
+
+    /* process section table */
+    if (!INA_SUCCEED(__ina_process_section_table(cf))) {
+        INA_TRACE_MSG("Failed to process sections");
+        return INA_FAILURE;
+    }
+
+    /* invoke callbacks */
+    HASH_ITER(hh, cf->sections, s, stmp) {
+        INA_TRACE("process section: %s", s->name);
+        if (!s->named) {
+            if (s->section_cb != NULL) {
+                s->section_cb(s->results->entries);
+            }
+        } else {
+            if (s->named_section_cb != NULL) {
+                ina_conffile_section_res_t *r, *rtmp;
+                HASH_ITER(hh, s->results, r, rtmp) {
+                    s->named_section_cb(r->name, r->entries);
+                }
+            }
+        }
+    }
+    return INA_SUCCESS;
+}
+
+static ina_rc_t __ina_add_internal(ina_conffile_t *cf, const char *name, 
+                    int required, ina_conffile_section_cb_t cb1, 
+                    ina_conffile_named_section_cb_t cb2, 
+                    ina_conffile_section_t **section, int named)
+{
+    unsigned long key;
+    ina_conffile_section_t *sp;
+    ina_conffile_section_t *check;
+    
+    if (cf->prepared == INA_YES) {
+        return INA_CONFFILE_EPREPARED;
+    }
+
+    key = INA_HASH_CSTR_TO_SDBM(name);
+    HASH_FIND_ULONG(cf->sections, &key, check);
+    if (check != NULL) {
+        return INA_CONFFILE_EDUPSEC;
+    }
+
+    *section = (ina_conffile_section_t*)ina_mem_alloc(sizeof(ina_conffile_section_t));
+    sp = *section;
+    if (sp == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    sp->id = key;
+    sp->name = ina_str_fromcstr(name);
+    sp->named = named;
+    sp->section_cb = cb1;
+    sp->named_section_cb = cb2;
+    sp->required = required;
+    HASH_ADD_ULONG(cf->sections, id, sp);
+    INA_TRACE("key hash=%ld", sp->id);
+    INA_TRACE("key name=%s", name);
 
     return INA_SUCCESS;
 }
@@ -188,8 +338,11 @@ static ina_rc_t __ina_construct_section_table(ina_conffile_t *cf)
 
     lua_getglobal(lstate, __INA_ENUM_SECTIONS);
 
+    INA_TRACE_MSG("start building confffile sections");
+
     HASH_ITER(hh, cf->sections, s, stmp) {
 
+        INA_TRACE("section->name=%s", s->name);
         lua_pushstring(lstate, s->name);
         lua_newtable(lstate);
 
@@ -218,6 +371,8 @@ static ina_rc_t __ina_construct_section_table(ina_conffile_t *cf)
         lua_newtable(lstate);
 
         HASH_ITER(hh, s->keys, k, ktmp) {
+            INA_TRACE("key->name=%s", k->name);
+            
             lua_pushstring(lstate, k->name);
             lua_newtable(lstate);
 
@@ -226,7 +381,7 @@ static ina_rc_t __ina_construct_section_table(ina_conffile_t *cf)
             lua_rawset(lstate, -3);
 
             lua_pushstring(lstate, __INA_ATTR_TYPENAME);
-            if (k->valuetype == INA_CONFFILE_VALUE_TYPE_STRING) {
+            if (k->value_type == INA_CONFFILE_VALUE_TYPE_STRING) {
                 lua_pushstring(lstate, __INA_VAL_STRING);
             } else {
                 lua_pushstring(lstate, __INA_VAL_NUMBER);
@@ -237,42 +392,6 @@ static ina_rc_t __ina_construct_section_table(ina_conffile_t *cf)
         lua_rawset(lstate, -3);
         lua_rawset(lstate, -3);
     }
-    return INA_SUCCESS;
-}
-
-static ina_rc_t __ina_process_entries(ina_conffile_t *cf, ina_conffile_section_res_t *res)
-{
-    lua_State *lstate = cf->lctx->lstate;
-
-    lua_pushnil(lstate);
-    while(lua_next(lstate, -2)) {
-        int has_value;
-        const char *k = lua_tostring(lstate, -2);
-        const char *tn;
-        ina_conffile_entry_t *entry;
-
-        lua_getfield(lstate, -1 , __INA_ATTR_TYPENAME);
-        tn = lua_tostring(lstate, -1);
-
-        lua_getfield(lstate, -1 , __INA_ATTR_HAS_VALUE);
-        has_value = lua_toboolean(lstate, -1);
-        if (has_value) {
-            entry = (ina_conffile_entry_t*)ina_mem_alloc(sizeof(ina_conffile_entry_t));
-            entry->id = INA_HASH_CSTR_TO_SDBM(k);
-            entry->key = ina_str_fromcstr(k);
-            lua_getfield(lstate, -1 , __INA_ATTR_VALUE);
-            if (strcmp(tn, __INA_VAL_STRING) == 0) {
-                strcpy(entry->sv, lua_tostring(lstate, -1));
-                entry->nv = 0;
-            } else {
-                entry->sv = NULL;
-                entry->nv = lua_tonumber(lstate, -1);
-            }
-            HASH_ADD_ULONG(res->entries, id, entry);
-        }
-        lua_pop(lstate, 1);
-    }
-    lua_pop(lstate, 1);
     return INA_SUCCESS;
 }
 
@@ -287,27 +406,34 @@ static ina_rc_t __ina_process_section_table(ina_conffile_t *cf)
         const char *name;
         int named;
         int configured;
-
+ 
         lua_getfield(lstate, -1 , __INA_ATTR_NAME);
         name = lua_tostring(lstate, -1);
+        INA_TRACE("x-section->name=%s", name);
+        lua_pop(lstate, 1);
 
         lua_getfield(lstate, -1 , __INA_ATTR_NAMED);
         named = lua_toboolean(lstate, -1);
+        INA_TRACE("x-section->named=%d", named);
+        lua_pop(lstate, 1);
 
         lua_getfield(lstate, -1 , __INA_ATTR_CONFIGURED);
         configured = lua_toboolean(lstate, -1);
+        INA_TRACE("x-section->configured=%d", configured);
+        lua_pop(lstate, 1);
 
         if (configured) {
             ina_conffile_section_t *s;
             ina_conffile_section_res_t *res;
-            uint32_t sk = INA_HASH_CSTR_TO_SDBM(name);
+            unsigned long sk = INA_HASH_CSTR_TO_SDBM(name);
+            INA_TRACE("hash=%ld", sk);
 
             HASH_FIND_ULONG(cf->sections, &sk, s);
             INA_ASSERT_NOTNULL(s);
 
             if (!named) {
                 const char *rk = __INA_ATTR_DEFAULT;
-                uint32_t rki = INA_HASH_CSTR_TO_SDBM(rk);
+                unsigned long rki = INA_HASH_CSTR_TO_SDBM(rk);
 
                 res = (ina_conffile_section_res_t*)ina_mem_alloc(sizeof(ina_conffile_section_res_t));
                 res->id = rki;
@@ -323,9 +449,10 @@ static ina_rc_t __ina_process_section_table(ina_conffile_t *cf)
                 lua_pushnil(lstate);
                 while(lua_next(lstate, -2)) {
                     const char *rk;
-                    uint32_t rki;
+                    unsigned long rki;
 
                     rk = lua_tostring(lstate, -2);
+                    INA_TRACE("rk=%s", rk);
                     rki = INA_HASH_CSTR_TO_SDBM(rk);
 
                     res = (ina_conffile_section_res_t*)ina_mem_alloc(sizeof(ina_conffile_section_res_t));
@@ -335,7 +462,6 @@ static ina_rc_t __ina_process_section_table(ina_conffile_t *cf)
 
                     HASH_ADD_ULONG(s->results, id, res);
                     __ina_process_entries(cf, res);
-                    lua_pop(lstate, 1);
                 }
                 lua_pop(lstate, 1);
             }
@@ -345,63 +471,48 @@ static ina_rc_t __ina_process_section_table(ina_conffile_t *cf)
     lua_pop(lstate, 1);
     return INA_SUCCESS;
 }
-
-INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf)
+static ina_rc_t __ina_process_entries(ina_conffile_t *cf, 
+                                      ina_conffile_section_res_t *res)
 {
-    ina_conffile_section_t *s, *stmp;
-    lua_State *lstate;
+    lua_State *lstate = cf->lctx->lstate;
+    INA_TRACE_MSG("entries");
 
-    INA_ASSERT_NOTNULL(cf);
+    lua_pushnil(lstate);
+    while(lua_next(lstate, -2)) {
+        int has_value;
+        const char *k = lua_tostring(lstate, -2);
+        const char *tn;
+        ina_conffile_entry_t *entry;
 
-    if (!INA_SUCCEED(ina_ljit_init(&cf->lctx))) {
-        return INA_ERR_PUSH_LAST;
-    }
+        INA_TRACE("x-entry->name=%s", k);
 
-    lstate = cf->lctx->lstate;
+        lua_getfield(lstate, -1 , __INA_ATTR_TYPENAME);
+        tn = lua_tostring(lstate, -1);
+        INA_TRACE("x-entry->typename=%s", tn);
+        lua_pop(lstate, 1);
 
-    /* set the config-file path */
-    lua_pushstring(lstate, ina_str_cstr(cf->filepath));
-    lua_setglobal(lstate, "conf_file_path");
+        lua_getfield(lstate, -1 , __INA_ATTR_HAS_VALUE);
+        has_value = lua_toboolean(lstate, -1);
+        INA_TRACE("x-entry->has_value=%d", has_value);
+        lua_pop(lstate, 1);
 
-    /* create the sections table */
-    lua_newtable(lstate);
-    lua_setglobal(lstate, __INA_ENUM_SECTIONS);
-
-    /* construct sections table */
-    if (cf->sections == NULL) {
-        if (!INA_SUCCEED(__ina_construct_section_table(cf))) {
-            return INA_FAILURE;
-        }
-    }
-    
-    /* invoke lua */
-    if (luaL_dostring(lstate, "local cf = require(\"conffile\")\n cf.process(sections, conf_file_path)\n") != 0) {
-        return INA_FAILURE;
-    }
-
-    /* process section table */
-    if (!INA_SUCCEED(__ina_process_section_table(cf))) {
-        return INA_FAILURE;
-    }
-
-    /* invoke callbacks */
-    HASH_ITER(hh, cf->sections, s, stmp) {
-        if (!s->named) {
-            if (s->section_cb != NULL) {
-                s->section_cb(s->results->entries);
+        if (has_value) {
+            entry = (ina_conffile_entry_t*)ina_mem_alloc(sizeof(ina_conffile_entry_t));
+            entry->id = INA_HASH_CSTR_TO_SDBM(k);
+            entry->key = ina_str_fromcstr(k);
+            lua_getfield(lstate, -1 , __INA_ATTR_VALUE);
+            if (strcmp(tn, __INA_VAL_STRING) == 0) {
+                entry->sv = ina_str_fromcstr(lua_tostring(lstate, -1));
+                entry->nv = 0;
+            } else {
+                entry->sv = NULL;
+                entry->nv = lua_tonumber(lstate, -1);
             }
-        } else {
-            if (s->named_section_cb != NULL) {
-                ina_conffile_section_res_t *r, *rtmp;
-                HASH_ITER(hh, s->results, r, rtmp) {
-                    s->named_section_cb(r->name, r->entries);
-                }
-            }
+            lua_pop(lstate, 1);
+            HASH_ADD_ULONG(res->entries, id, entry);
         }
+        lua_pop(lstate, 1);
     }
-
-    /* Close LuaJit */
-    ina_ljit_destroy(&cf->lctx);
-
+    lua_pop(lstate, 1);
     return INA_SUCCESS;
 }

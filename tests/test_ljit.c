@@ -67,6 +67,12 @@ void test_ljit_luaL_dostring()
     INA_ASSERT_EQUAL(100, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
+    INA_ASSERT_EQUAL(0, ina_ljit_dostring(ctx, "local t = require(\"test_ljit\")\n return t.test()\n"));
+    ina_err_trace();
+    INA_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
+    INA_ASSERT_EQUAL(99, (int)lua_tonumber(ctx->lstate, -1));
+    lua_pop(ctx->lstate, 1);
+
     INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_appname()\n"));
     INA_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));
     INA_ASSERT_EQUAL(0, strcmp(ina_appname(), (const char *)lua_tostring(ctx->lstate, -1)));

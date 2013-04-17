@@ -7,25 +7,25 @@ SQLITE_PLATFORM_Darwin = macosx
 all: makeheaders_tool bstring sqlite luajit anet skiplist
 
 makeheaders_tool:
-	$(MAKE) -C makeheaders
+	@$(MAKE) -C makeheaders
 
 luajit:
-	$(MAKE) -C luajit
+	@$(MAKE) -C luajit
 
 sqlite:
-	$(MAKE) -C sqlite
+	@$(MAKE) -C sqlite
 
 bstring:
-	$(MAKE) -C bstring
+	@$(MAKE) -C bstring
 
 anet:
-	$(MAKE) -C anet
+	@$(MAKE) -C anet
 
 skiplist:
-	$(MAKE) -C skiplist
+	@$(MAKE) -C skiplist
 
 sds:
-	$(MAKE) -C sds
+	@$(MAKE) -C sds
 
 test: all
 	

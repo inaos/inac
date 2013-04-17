@@ -47,61 +47,75 @@ Iface "lo0" {
 }
 ]]
 
+local function _dump()
+    if type(o) == 'table' then
+        local s = '{ '
+        for k,v in pairs(o) do
+            if type(k) ~= 'number' then k = '"'..k..'"' end
+            s = s .. '['..k..'] = ' .. _dump(v) .. ','
+        end
+        return s .. '} '
+    else
+        return tostring(o)
+    end
+end
+
 local _section_func = function(content)
-	if not content then
-    error("Section argument can't be nil!")
-  end
-  if not type(content) == "table" then
-		error("Section argument must be a table!")
-	end
-	local sn = debug.getinfo(1,"n").name
-	local section = sections[sn]
-	for k,v in pairs(section.keys) do
-    if not content[k] and v.required then
-      error("Key: "..k.." not found in section: "..section.name)
+    if not content then
+        error("Section argument can't be nil!")
     end
-    if content[k] then
-      if not type(content[k]) == v.typename then
-        error("Wrong type for value in key: "..k)
-      end
-      v.value = content[k]
-      v.has_value = true
+    if not type(content) == "table" then
+        error("Section argument must be a table!")
     end
-  end
-  section.configured = true
+    local sn = debug.getinfo(1,"n").name
+    local section = sections[sn]
+    for k,v in pairs(section.keys) do
+        if not content[k] and v.required then
+            error("Key: "..k.." not found in section: "..section.name)  
+        end
+        if content[k] then
+            if not type(content[k]) == v.typename then
+                error("Wrong type for value in key: "..k)
+            end
+            v.value = content[k]
+            v.has_value = true
+        end
+    end
+    section.configured = true
 end
 
 local _named_section_func = function(name)
-  if not name or not type(name) == "string" then
-    error("Section 'name' must be a string!")
-  end
-  local sn = debug.getinfo(1,"n").name
-  return function(content)
-    if not content then
-      error("Section argument can't be nil!")
+    if not name or not type(name) == "string" then
+        error("Section 'name' must be a string!")
     end
-    if not type(content) == "table" then
-      error("Section argument must be a table!")
-    end
-    local section = sections[sn]
-    section.children[name] = {}
-    local subsec = section.children[name]
-    for k,v in pairs(section.keys) do
-      if not content[k] and v.required then
-        error("Key: "..k.." not found in section: "..section.name)
-      end
-      if content[k] then
-        if not type(content[k]) == v.typename then
-          error("Wrong type for value in key: "..k)
+    local sn = debug.getinfo(1,"n").name
+    return function(content)
+        if not content then
+            error("Section argument can't be nil!")
         end
-        subsec[k] = {
-          value = content[k],
-          has_value = true
-        }
-      end
+        if not type(content) == "table" then
+            error("Section argument must be a table!")
+        end
+        local section = sections[sn]
+        section.children[name] = {}
+        local subsec = section.children[name]
+        for k,v in pairs(section.keys) do
+            if not content[k] and v.required then
+                error("Key: "..k.." not found in section: "..section.name)
+            end
+            if content[k] then
+                if not type(content[k]) == v.typename then
+                    error("Wrong type for value in key: "..k)
+                end
+                subsec[k] = {
+                    value = content[k],
+                    has_value = true,
+                    typename = v.typename
+                }
+            end
+        end
+        section.configured = true
     end
-    section.configured = true
-  end
 end
 
 -- create sandbox
@@ -155,22 +169,27 @@ env.math.sin = math.sin
 env.math.sinh = math.sqrt
 env.math.tan = math.tanh
 
+
 -- run code under environment [Lua 5.1]
 local function _run(code)
     local untrusted_function, message = loadstring(code)
     if not untrusted_function then
-      return false, message 
+        return false, message 
     end
     setfenv(untrusted_function, env)
     local ret, initfunc = pcall(untrusted_function)
     return ret, initfunc
 end
 
+conffile.save_sections = function(sections, section_file)
+    local f = io.open(section_file, "w")
+    local code = f:write(_dump(o)) 
+end
+
 conffile.process = function(sections, config_file)
   local f = io.open(config_file, "r")
   local code = f:read("*a")
   f:close()
-
   for sk,section in pairs(sections) do
     if not section.named then
       env[section.name] = _section_func

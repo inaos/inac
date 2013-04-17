@@ -39,28 +39,23 @@ typedef struct ina_ljit_ctx_s {
     lua_State *lstate;
 } ina_ljit_ctx_t;
 
+
+#define INA_LJIT_MODULE(module)                                     \
+    extern const char *luaJIT_BC_##module;                           \
+    INA_API(const void) *__ina_ljit_import_##module (void) {           \
+        __ina_ljit_inac = (const char*)(size_t)luaJIT_BC_##module;   \
+        return  __ina_ljit_inac;                                     \
+    }
+
 /* 
  * Import LuaJIT Bytecode. Works only for modules generated using 
  * standard naming convention.
  */
-#define INA_LJIT_IMPORT(module)                               \
-    extern const char *luaJIT_BC_##module;                    \
-    static const char *__ina_ljit_import_##module (void) {    \
-        return luaJIT_BC_##module;                            \
-    }
+#define INA_LJIT_IMPORT(package, ...)                       \
+    const void  *__ina_ljit_##package = NULL;               \
+    __VA_ARGS__
 
-/* 
- * Expose API tu luajit. 
- */
-#define INA_LJIT_EXPOSE_API(api)
-
-/* 
- * Expose API tu luajit. 
- */
-#define INA_LJIT_EXPOSE(...)                         \
-    static const void *__ina_luajit_export(void) {   \
-     __VA_ARGS__,                                    \
-     }
+#define INA_LJIT_INIT(...)
 
 /*
  * Initalize LuaJIT context
@@ -90,6 +85,11 @@ INA_API(double) ina_ljit_dbl_from_decimal(ina_decimal_t *dec);
  * Call a Lua function
  */
 INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const char *sig, ...);
+
+/* 
+ * Load lua code an execute it
+ */
+INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char* code);
 
 #ifdef __cplusplus
 }

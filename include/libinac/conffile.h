@@ -36,18 +36,20 @@ extern "C" {
 
 /* Availables value types */
 typedef enum ina_conffile_value_type_e {
-    INA_CONFFILE_VALUE_TYPE_STRING = 1,
+    INA_CONFFILE_VALUE_TYPE_STRING = 1, 
     INA_CONFFILE_VALUE_TYPE_NUMBER,
 } ina_conffile_value_type_t;
 
 typedef struct ina_conffile_entry_s ina_conffile_entry_t;
+/* Config file section, can be namen or unnamed */
 typedef struct ina_conffile_section_s ina_conffile_section_t;
 
 /* Config file data */
 typedef struct ina_conffile_s {
-    ina_str_t filepath;
-    ina_ljit_ctx_t *lctx;
-    ina_conffile_section_t *sections;
+    ina_str_t filepath;                /* file path */
+    ina_ljit_ctx_t *lctx;              /* LuaJIT context */
+    ina_conffile_section_t *sections;  /* Holds all sections */
+    int prepared;                      /* INA_YES if prepared */
 } ina_conffile_t;
 
 /* Callback for unnamed sections */
@@ -57,10 +59,16 @@ typedef ina_rc_t (*ina_conffile_named_section_cb_t)(const char *section_name,
                                                 ina_conffile_entry_t *entries);
 
 /*
- * Ininitialize conffie
+ * Initialize a config file.
  *
+ * Parameters
+ * cf        Address of an config file pointer
+ * filepath  Absolute or relaive file path. If filepath is NULL the config
+ *
+ * Rtezurn
  */
 INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf, const char *filepath);
+
 /*
  *
  *
@@ -83,12 +91,15 @@ INA_API(ina_rc_t) ina_conffile_add_named_section(ina_conffile_t *cf,
 INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section, 
                     const char *name, ina_conffile_value_type_t value_type, 
                     int required);
+
+
 /*
  *
  *
  */
 INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_entry_t *entries, 
-                    const char* key, int *has_value);
+                    const char* key);
+
 /*
  *
  *
@@ -99,13 +110,20 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_entry_t *entries,
  *
  *
  */
-INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_entry_t *entries, 
+INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_entry_t *entreos, 
                     const char* key, double *value);
+
+/*
+ *
+ *
+ */
+INA_API(ina_rc_t) ina_conffile_prepare(ina_conffile_t *cf);
 /*
  *
  *
  */
 INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf);
+
 /*
  *
  *
