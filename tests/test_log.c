@@ -35,7 +35,7 @@ void test_log_open_close_console()
     
     cfg = NULL;
 
-    INA_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_STDOUT, INA_LOG_DEBUG));
+    INA_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_STDOUT, INA_LOG_DEBUG, NULL));
     INA_ASSERT_NOTNULL(cfg);
     INA_ASSERT_EQUAL(INA_LOG_STDOUT, cfg->target);
     INA_ASSERT_EQUAL(INA_LOG_DEBUG, cfg->level);
