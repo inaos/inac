@@ -49,10 +49,22 @@ set (SKIPLIST_SRC_DIR ${DEPS_DIR}/skiplist)
 set (SKIPLIST_SRC ${SKIPLIST_SRC_DIR}/skiplist.c)
 add_library(${SKIPLIST_LIB_NAME} ${SKIPLIST_SRC})
 
+
 # END dependencies
 
+SET(LUA_SRCS lconffile.lua)
+FOREACH(LUAFILE ${LUA_SRCS})
+   GET_FILENAME_COMPONENT(BASENAME ${LUAFILE} NAME_WE)
+   SET(SRC ${SRC_DIR}/${LUAFILE})
+   SET(OBJ ${SRC_DIR}/${BASENAME}.obj)
+   SET_SOURCE_FILES_PROPERTIES(${OBJ} PROPERTIES GENERATED TRUE EXTERNAL_OBJECT TRUE)
+   ADD_CUSTOM_COMMAND(OUTPUT ${OBJ}  MAIN_DEPENDENCY ${SRC} ARGS -b ${SRC} ${OBJ} COMMAND luajit.exe)
+   LIST(APPEND LUA_OBJS ${OBJ})
+ENDFOREACH(LUAFILE ${LUA_SRCS})
+
+
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
-                 ${SRC_DIR}/string/bstring.c ${SRC_DIR}/string/cstring.c ${SRC_DIR}/util.c
+                 ${SRC_DIR}/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
                  ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/portable.c 
                  ${SRC_DIR}/ljit.c)
@@ -64,6 +76,6 @@ set (TEST_SRC_DIR "${CMAKE_SOURCE_DIR}/tests")
 set (TEST_SRC ${TEST_SRC_DIR}/test_error.c ${TEST_SRC_DIR}/test_iscp.c ${TEST_SRC_DIR}/test_lib.c 
 	${TEST_SRC_DIR}/test_log.c ${TEST_SRC_DIR}/test_memory.c ${TEST_SRC_DIR}/test_mempool.c 
 	${TEST_SRC_DIR}/test_string.c ${TEST_SRC_DIR}/test_time.c ${TEST_SRC_DIR}/test_timer.c 
-	${TEST_SRC_DIR}/test_util.c ${TEST_SRC_DIR}/test_ljit.c
+	${TEST_SRC_DIR}/test_util.c ${TEST_SRC_DIR}/test_ljit.c ${TEST_SRC_DIR}/test_conffile.c
 )
 add_library(${INAC_TESTLIB_NAME} ${TEST_SRC})

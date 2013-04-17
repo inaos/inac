@@ -80,7 +80,7 @@ INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port)
     }
     return INA_SUCCESS;
 }
-INA_API(ina_rc_t) ina_net_tcp_connect(int* fd, const char *addr, int port)
+INA_API(ina_rc_t) ina_net_tcp_connect(int* fd, const char *addr, int port, int timeout_sec)
 {
     char err[ANET_ERR_LEN];
 
@@ -88,7 +88,36 @@ INA_API(ina_rc_t) ina_net_tcp_connect(int* fd, const char *addr, int port)
     INA_ASSERT_NOTNULL(addr);
     INA_ASSERT_TRUE(port > 0);
 
-    *fd = anetTcpConnect(err, (char*)addr, port);
+    if (timeout_sec > 0) {
+        *fd = anetTcpNonBlockConnect(err, (char*)addr, port);
+        if (*fd != ANET_ERR) {
+            fd_set fdset;
+            struct timeval timeout;
+
+            FD_ZERO(&fdset);
+            FD_SET(*fd, &fdset);
+            timeout.tv_sec = timeout_sec;
+            timeout.tv_usec = 0;
+            if (select(*fd+1, NULL, &fdset, NULL, &timeout) > 0) {     
+                int so_error = 0;
+                socklen_t so_len = sizeof(int); 
+                getsockopt(*fd, SOL_SOCKET, SO_ERROR, (void*)(&so_error), &so_len);
+                if (so_error) {
+                    ina_net_close(*fd);
+                    return INA_NET_ERROR("Could not connect");
+                }
+            } else {
+                ina_net_close(*fd);
+                return INA_NET_ETIMEOUT;
+            }
+            return ina_net_block(*fd);
+        }
+        
+    /* Do a blocking connect */
+    } else {
+        *fd = anetTcpConnect(err, (char*)addr, port);
+    }
+
     if (*fd == ANET_ERR) {
         return INA_NET_ERROR(err);
     }
@@ -218,3 +247,62 @@ INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *s
     }
     return INA_SUCCESS;
 }
+
+
+INA_API(ina_rc_t) ina_net_set_read_timeout(int fd, int msec)
+{
+    struct timeval timeout;      
+    timeout.tv_sec = 0;
+    timeout.tv_usec = msec*1000;
+
+    INA_ASSERT(msec > 0);
+    INA_ASSERT(fd > 0);
+
+     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, 
+                    sizeof(timeout)) < 0) {
+        return INA_NET_ERROR("setsockopt failed\n");
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_set_write_timeout(int fd, int msec) 
+{
+    struct timeval timeout;      
+    timeout.tv_sec = 0;
+    timeout.tv_usec = msec*1000;
+
+    INA_ASSERT(msec > 0);
+    INA_ASSERT(fd > 0);
+
+     if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, 
+                    sizeof(timeout)) < 0) {
+        return INA_NET_ERROR("setsockopt failed\n");
+    }
+    return INA_SUCCESS;
+}
+
+#ifdef INA_OS_WIN32
+INA_API(ina_rc_t) ina_net_block(int fd)
+{
+    unsigned long enable = 1;
+    if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
+        return INA_NET_ERROR("failed to block");
+    }
+    return INA_SUCCESS;
+}
+#else
+INA_API(ina_rc_t)s ina_net_block(int fd)
+{
+    int flags;
+    /* Set the socket nonblocking.
+     * Note that fcntl(2) for F_GETFL and F_SETFL can't be
+     * interrupted by a signal. */
+    if ((flags = fcntl(fd, F_GETFL)) == -1) {
+        return INA_NET_ERROR("fcntl(F_GETFL)");
+    }
+    if (fcntl(fd, F_SETFL, flags & ~O_NONBLOCK) == -1) {
+        return INA_NET_ERROR("fcntl(F_SETFL,O_NONBLOCK): %s");
+    }
+    return INA_SUCCESS;
+}
+#endif

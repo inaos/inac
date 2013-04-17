@@ -227,7 +227,6 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
     }
-
 	/* Make sure to use high-accuracy multimedia-timers for windows */
 #ifdef INA_OS_WIN32
 	timeBeginPeriod(1);
@@ -396,6 +395,9 @@ __ina_signal_handler(int sig)
             if (__cleanup) {
                  __cleanup(sig, 0);
             }
+            /* Try to trace out the source of error */
+            ina_err_trace();
+            /* ... then stop */
             abort();
             break;
         case SIGTERM:

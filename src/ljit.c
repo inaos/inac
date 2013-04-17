@@ -28,8 +28,12 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+/* Import LuaJIT modules */
+INA_LJIT_IMPORT(inac, 
+    INA_LJIT_MODULE(lconffile));
+
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
-{
+{        
     *ctx = (ina_ljit_ctx_t*)ina_mem_alloc(sizeof(ina_ljit_ctx_t));
     if (*ctx == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -54,6 +58,21 @@ INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx)
     ina_mem_free(*ctx);
     *ctx = NULL;
     return INA_SUCCESS;
+}
+
+unsigned long ina_ljit_hash_sbdm(const char *str)
+{
+   return INA_HASH_CSTR_TO_SDBM(str);
+}
+
+void ina_ljit_dbl_to_decimal(double dbl, ina_decimal_t *dec)
+{
+   ina_dbl_to_decimal(dbl, dec);
+}
+
+double ina_ljit_dbl_from_decimal(ina_decimal_t *dec)
+{
+   return(ina_dbl_from_decimal(dec));
 }
 
 INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const char *sig, ...)
@@ -93,7 +112,7 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
     /* do the call */
     nres = strlen(sig);
     if (lua_pcall(ctx->lstate, narg, nres, 0) != 0) {
-        return INA_LJIT_ECALL(lua_tostring(ctx->lstate, -1));
+        return INA_LJIT_ELUA(ctx);
     }
     
     /* retrieve results */
@@ -125,5 +144,15 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
         nres++;
     }
     va_end(vl);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(code);
+    if (luaL_dostring(ctx->lstate, code) != 0) {
+        return INA_LJIT_ELUA(ctx);
+    }
     return INA_SUCCESS;
 }

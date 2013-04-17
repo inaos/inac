@@ -29,6 +29,10 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+void ex(void)
+{
+}
+
 #ifdef INA_OS_WIN32
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
