@@ -2,7 +2,7 @@
 
 The INAOS Common C Library is a collection of header files and library routines 
 used to implement common operations, such as input/output, character string 
-handling,  memory, error and event handling. This library is designed and 
+handling, memory, error and event handling. This library is designed and 
 optimized for singled threaded applications and is used as common base for 
 all INAOS programs/libraries written in C. The library includes a built-in
 LuaJIT engine (http://luajit.org)
@@ -38,46 +38,55 @@ Building on Windows requires some programs to be present on your system.
 
 Build and install the library. Simply type `sudo make && make install`.
 
+### Compile time configuration
+ * `INA_CSTRING_ENABLED`: Enable C-runtime strings (Default)
+ * `INA_BSTRING_ENABLED`: Enable BSTRING string (The Better String Library)
+ * `INA_ISTRING_ENABLED`: Enable INAOS string 
+ * `INA_SYSMEMPOOL_SIZE`: Define the capacity in bytes of the internal memory pool 
+		                  Default is 8 MB		                  
+ * `INA_TRACE_ENABLED`  : Enable/disable tracing. Default enabled.
+ * `INA_TRACE_LEVEL`    : Set trace level (1-3). Default 1.
+ * `INA_LOG_ENABLED`    : Enable/disable logging. Default enabled.
+ * `INA_LOG_LEVEL`      : Set log level from 1 (errors) to 4(debug). Default 3 (info).
+ 
+
+
+All constants are prefaced with INA_ . Other identifiers are prefaced with `ina_`.
+Type names are suffixed with `_t` and typedef‘d so that the struct keyword need
+not be used.
+
 ### Starting to code
 
 Start by including the INOAS library header in your code:
 
 	#include <libinac/lib.h>;
 
-### Compile time configuration
- * CSTRING_ENABLED: Enable C-runtime strings (Default)
- * BSTRING\_ENABLED: Enable BSTRING string (The Better String Library)
- * SYSMEMPOOL\_SIZE: Define the capacity in bytes of the internal memory pool 
-		            Default is 8MB
- * MEMPOOL\_SIZE:    Define the default capacity in bytes for a memory pool 
-		            Default is 8MB
-
-
-All constants are prefixed with INA_. Other identifiers are prefixed with ina_.
-Type names are suffixed with \_t and typedef‘d so that the struct keyword need
-not be used.
-
 ### For library consumers
 Initialize the library context as soon as possible:
 
-	ina_libinit();
+	ina_init(0);
 
-For each call of `ina_initlib()` you have to call `ina_exit()`.
+For each call of `ina_init()` you have to call `ina_exit()`. You can override the 
+size system memory pool by passing the pool size in bytes as argument.  
 
 ### For applications
-For applications, initialize the application context. This must be the first
-function in your program. You must call `ina_exit()` once before you quit 
-your program.
+For applications, initialize the application context with `ina_appinit()`. This must be 
+the first function call in your program. You must call `ina_exit()` once before you quit 
+your program. You can override the system memory pool size by  passing de pool size in
+bytes as third argument.
 
-	int main(int argc, char *argv) 
+	int main(int argc, char **argv,) 
 	{
-	    if (INA_SUCCEED(ina_appinit(argc, argv)) {
+	    if (INA_SUCCEED(ina_appinit(argc, argv, 0, NULL)) {
 	        while (… {
 	            ….
 	        }
 	    }
 	    ina_exit(EXIT_SUCCESS);
 	}
+
+#### Command line options
+
 
 ## Portable Header
 This library provides with his portable header (portable.h) macros, functions 
