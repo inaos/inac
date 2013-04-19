@@ -42,25 +42,27 @@ typedef enum ina_log_level_e {
 
 /* Log backendt */
 typedef enum ina_log_target_e {
-    INA_LOG_STDOUT,
-    INA_LOG_FILE,
+    INA_LOG_STDOUT = 0x0001,
+    INA_LOG_FILE = 0x0002,
 #ifndef WIN32
-    INA_LOG_SYSLOG
+    INA_LOG_SYSLOG = 0x0004
 #endif
 } ina_log_target_t;
 
 typedef struct ina_log_cfg_s {
-    FILE *fp;
+    FILE *fp1;
+	FILE *fp2;
     ina_log_level_t level;
-    ina_log_target_t target;
+    int target;
     ina_str_t logfile;
     ina_str_t syslog_ident;
     int syslog_facility;
+	int pid;
 } ina_log_cfg_t;
 
 
 INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const char* fmt, ...);
-INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target, ina_log_level_t level);
+INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int target, ina_log_level_t level, ina_str_t logfile);
 INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg);
 
 #ifdef __cplusplus
