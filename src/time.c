@@ -92,9 +92,9 @@ INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
 #ifdef INA_OS_WIN32
     QueryPerformanceCounter(&time->tp);
 #else
-	if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
-		return INA_FAILURE;
-	}
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
+        return INA_FAILURE;
+    }
 #endif
     return INA_SUCCESS;
 }

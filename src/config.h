@@ -28,6 +28,11 @@
 #ifndef _LIBINAC_CONIFG_H_
 #define _LIBINAC_CONIFG_H_
 
+/* Enabled logging */
+#ifndef INA_LOG_ENABLED
+#define INA_LOG_ENABLED 1
+#endif
+
 /* Define string code/library to use */
 #ifndef STRING_DEFINED
 #define CSTRING_ENABLED 1
