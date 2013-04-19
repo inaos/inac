@@ -15,7 +15,7 @@ include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${ANE
 set(BSTRING_LIB_NAME "bstring")
 set(ANET_LIB_NAME "anet")
 set(SKIPLIST_LIB_NAME "skiplist")
-set(INAC_LIB_NAME "libinac")
+set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
 #set build-type specific variables
@@ -51,17 +51,6 @@ add_library(${SKIPLIST_LIB_NAME} ${SKIPLIST_SRC})
 
 
 # END dependencies
-
-SET(LUA_SRCS lconffile.lua)
-FOREACH(LUAFILE ${LUA_SRCS})
-   GET_FILENAME_COMPONENT(BASENAME ${LUAFILE} NAME_WE)
-   SET(SRC ${SRC_DIR}/${LUAFILE})
-   SET(OBJ ${SRC_DIR}/${BASENAME}.obj)
-   SET_SOURCE_FILES_PROPERTIES(${OBJ} PROPERTIES GENERATED TRUE EXTERNAL_OBJECT TRUE)
-   ADD_CUSTOM_COMMAND(OUTPUT ${OBJ}  MAIN_DEPENDENCY ${SRC} ARGS -b ${SRC} ${OBJ} COMMAND luajit.exe)
-   LIST(APPEND LUA_OBJS ${OBJ})
-ENDFOREACH(LUAFILE ${LUA_SRCS})
-
 
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
                  ${SRC_DIR}/cstring.c ${SRC_DIR}/util.c

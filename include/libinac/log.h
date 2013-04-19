@@ -37,7 +37,6 @@ extern "C" {
 #define INA_LOG(cfg, level, fmt,  ...) ina_log(cfg, level, fmt, __VA_ARGS__)
 #else
 #define INA_LOG(cfg, level, ...)
-#warning Logging not enabled!
 #endif
 
 #ifndef INA_LOG_LEVEL
@@ -67,29 +66,30 @@ typedef enum ina_log_level_e {
 
 /* Log target */
 typedef enum ina_log_target_e {
-    INA_LOG_STDOUT,
-    INA_LOG_FILE,
+    INA_LOG_STDOUT = 0x0001,
+    INA_LOG_FILE = 0x0002,
 #ifndef WIN32
-    INA_LOG_SYSLOG
+    INA_LOG_SYSLOG = 0x0004
 #endif
 } ina_log_target_t;
 
 /* Log context/configuration */
 typedef struct ina_log_cfg_s {
-    FILE *fp;
+    FILE *fp1;
+    FILE *fp2;
     ina_log_level_t level;
-    ina_log_target_t target;
+    int target;
     ina_str_t logfile;
     ina_str_t syslog_ident;
     int syslog_facility;
+    int pid;
 } ina_log_cfg_t;
-
 
 /*
  * Open a log context for based on a log configuration
  */                          
 INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target, 
-                               ina_log_level_t level);
+                               ina_log_level_t level, const char *logfile);
 
 /*
  * Log a message to current targets and level.

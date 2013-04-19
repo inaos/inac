@@ -30,6 +30,11 @@
 
 #ifdef INA_OS_WIN32
 #define __INA_TIME_INC(vv_ptr) InterlockedExchangeAdd64(vv_ptr, 1)
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#else
+  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#endif
 #else
 #define __INA_TIME_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1) 
 #endif
@@ -46,46 +51,108 @@ static double __ina_lit_to_secs(LARGE_INTEGER * L)
 #endif
 
 
-INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *sec)
+INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
 {
-    INA_ASSERT_NOTNULL(time);
-    INA_ASSERT_NOTNULL(sec);
-#ifdef INA_OS_WIN32
-    *sec = (int)(time->ttp / 1000);
-#else
-    *sec = time->tp.tv_sec;
-#endif
-    return INA_SUCCESS;
+	*time = (ina_time_tsc_t*)ina_mem_alloc(sizeof(ina_time_tsc_t));
+	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *msec)
+INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time)
 {
-#ifdef INA_OS_WIN32
-    int sec;
-#endif
-
-    INA_ASSERT_NOTNULL(time);
-    INA_ASSERT_NOTNULL(msec);
-
-#ifdef INA_OS_WIN32
-    sec = (int)(time->ttp / 1000);
-    *msec = (time_t)(time->ttp - (sec*1000));
-#else
-    *msec = time->tp.tv_usec/1000;
-#endif
-    return INA_SUCCESS;
+	ina_mem_free(*time);
+	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_read_clock(ina_time_t* time)
+INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time)
+{
+	*time = (ina_time_t*)ina_mem_alloc(sizeof(ina_time_t));
+	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time)
+{
+	ina_mem_free(*time);
+	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
 {
 #ifdef INA_OS_WIN32
-    QueryPerformanceCounter(&time->tp);
+	GetSystemTimeAsFileTime(&time->systime);
 #else
-    if (gettimeofday(&time->tp, NULL) == -1) {
+    if (gettimeofday(&time->systime, NULL) == -1) {
         return INA_FAILURE;
     }
 #endif
     return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
+{
+#ifdef INA_OS_WIN32
+    QueryPerformanceCounter(&time->tp);
+#else
+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
+		return INA_FAILURE;
+	}
+#endif
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs, long *nanos)
+{
+#ifdef INA_OS_WIN32
+	double dsecs = __ina_lit_to_secs(&time->tp);
+	double ipart = 0;
+	double fpart = 0;
+	fpart = modf(dsecs, &ipart);
+	*secs = (time_t)ipart;
+	*nanos = (long)(fpart*1000*1000*1000);
+#else
+	*secs = time->tp->tv_sec;
+	*nanos = time->tp->tv_nsec;
+#endif
+	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, long *micros)
+{
+#ifdef INA_OS_WIN32
+	unsigned __int64 tmpres = 0;
+	tmpres |= time->systime.dwHighDateTime;
+    tmpres <<= 32;
+	tmpres |= time->systime.dwLowDateTime;
+	tmpres /= 10;  /*convert into microseconds*/
+	/*converting file time to unix epoch*/
+    tmpres -= DELTA_EPOCH_IN_MICROSECS; 
+    *secs = (long)(tmpres / 1000000UL);
+    *micros = (long)(tmpres % 1000000UL);
+#else
+	*secs = time->systime->tv_sec;
+	*micros = time->systime->tv_usec;
+#endif
+	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, size_t *written, const char *fmt, ina_time_t* time)
+{
+	char *b = (char*)buf;
+	size_t nw = 0;
+	struct tm *mtm;
+	time_t secs;
+	long micros;
+
+	ina_time_sys_seconds_micros(time, &secs, &micros);
+	mtm = localtime(&secs);
+	nw = strftime(b, buflen, fmt, mtm);
+
+	if (nw == 0) {
+		return INA_FAILURE;
+	}
+
+	*written = nw;
+
+	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_sleep(time_t msec)
@@ -172,7 +239,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_
         return INA_SUCCESS;
     }
     /* Read clock */
-    return ina_time_read_clock(&stopwatch->tv->start);
+    return ina_time_read_tsc_clock(&stopwatch->tv->start);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int64_t *stamp_index)
@@ -245,7 +312,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const cha
 
     ts = (&(stopwatch->tv->stamps))+si;
 
-    ina_time_read_clock(&ts->stamp);
+    ina_time_read_tsc_clock(&ts->stamp);
 
     if (user_data1 != NULL) {
         if (strlen(user_data1)+1 < INA_TIME_MAX_USERDATA_LEN) {
@@ -266,7 +333,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 #ifdef INA_OS_WIN32
     LARGE_INTEGER elapsed;
     INA_ASSERT_NOTNULL(stopwatch);
-    ina_time_read_clock(&stopwatch->tv->stop);
+    ina_time_read_tsc_clock(&stopwatch->tv->stop);
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->tv->sec_duration = __ina_lit_to_secs(&elapsed);
 #else
