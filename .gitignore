@@ -11,6 +11,7 @@ tests/test
 tests/test_*.h
 contribs/sqlite/buildall/*
 contribs/luajit/src/luajit.exp
+contribs/luajit/src/luajitd.exp
 contribs/luajit/src/host/buildvm
 contribs/luajit/src/host/minilua
 contribs/luajit/src/host/buildvm_arch.h
@@ -19,6 +20,7 @@ contribs/luajit/src/lj_bcdef.h
 contribs/luajit/src/lua51.dll
 contribs/luajit/src/lua51.exp
 contribs/luajit/src/luajit.exe
+contribs/luajit/src/luajitd.exe
 contribs/luajit/src/*.so
 contribs/makeheaders/makeheaders
 build/*

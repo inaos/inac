@@ -227,7 +227,10 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
     }
-    
+	/* Make sure to use high-accuracy multimedia-timers for windows */
+#ifdef INA_OS_WIN32
+	timeBeginPeriod(1);
+#endif
     return INA_SUCCESS;
 }
 
@@ -276,6 +279,7 @@ INA_API(void) ina_exit(void)
     ina_err_reset();
 
 #ifdef INA_OS_WIN32
+	timeEndPeriod(1);
     WSACleanup();
 #endif
 }
