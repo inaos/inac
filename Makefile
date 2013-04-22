@@ -78,7 +78,7 @@ ifeq (,$(findstring Windows,$(OS)))
 	else
 	endif
 endif
-#export LDFLAGS
+export LDFLAGS
 
 default: release
 
