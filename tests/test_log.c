@@ -35,11 +35,11 @@ void test_log_open_close_console()
     
     cfg = NULL;
 
-    INA_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_STDOUT, INA_LOG_DEBUG, NULL));
-    INA_ASSERT_NOTNULL(cfg);
-    INA_ASSERT_EQUAL(INA_LOG_STDOUT, cfg->target);
-    INA_ASSERT_EQUAL(INA_LOG_DEBUG, cfg->level);
-    INA_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_DEBUG, "Test log entry, var=%d", 2));
-    INA_ASSERT_SUCCEED(ina_log_close(&cfg));
-    INA_ASSERT_NULL(cfg);
+    INA_TEST_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_STDOUT, INA_LOG_DEBUG, NULL));
+    INA_TEST_ASSERT_NOTNULL(cfg);
+    INA_TEST_ASSERT_EQUAL(INA_LOG_STDOUT, cfg->target);
+    INA_TEST_ASSERT_EQUAL(INA_LOG_DEBUG, cfg->level);
+    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_DEBUG, "Test log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log_close(&cfg));
+    INA_TEST_ASSERT_NULL(cfg);
 }

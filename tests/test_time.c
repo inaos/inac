@@ -32,23 +32,23 @@ void test_time_time_stamp()
     ina_stopwatch_t *w = NULL;
     int64_t c = 0;
 
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
-    INA_ASSERT_NOTNULL(w);
-    INA_ASSERT_EQUAL(1, w->id);
-    INA_ASSERT_EQUAL(1024, w->tv->max_stamps);
-    INA_ASSERT_NOTNULL(w->tv);
-    INA_ASSERT_NULL(w->ts);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
+    INA_TEST_ASSERT_NOTNULL(w);
+    INA_TEST_ASSERT_EQUAL(1, w->id);
+    INA_TEST_ASSERT_EQUAL(1024, w->tv->max_stamps);
+    INA_TEST_ASSERT_NOTNULL(w->tv);
+    INA_TEST_ASSERT_NULL(w->ts);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
     while (c--) {
-        INA_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, "1", "2"));
+        INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, "1", "2"));
     }
     c = 0;
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &c))) {
-        INA_ASSERT_NOTNULL(w->ts);
+        INA_TEST_ASSERT_NOTNULL(w->ts);
     }
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
-    INA_ASSERT_EQUAL(10, c);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
+    INA_TEST_ASSERT_EQUAL(10, c);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
 }
 
 void test_time_two_stopwatches()
@@ -59,33 +59,33 @@ void test_time_two_stopwatches()
     time_t sec2  = 0; 
     time_t msec1 = 0;
     time_t msec2 = 0;
-	long nano1 = 0;
-	long nano2 = 0;
+    long nano1 = 0;
+    long nano2 = 0;
 
     INA_TRACE_MSG("test_time_two_stopwatches");
 
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w1, 1, -1));
-    INA_ASSERT_NOTNULL(w1);
-    INA_ASSERT_EQUAL(1, w1->id);
-    INA_ASSERT_NOTNULL(w1->tv);
-    INA_ASSERT_NULL(w1->ts);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w2, 2, -1));
-    INA_ASSERT_NOTNULL(w2);
-    INA_ASSERT_EQUAL(2, w2->id);
-    INA_ASSERT_NOTNULL(w2->tv);
-    INA_ASSERT_NULL(w2->ts);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w1, NULL));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w2, NULL));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w1));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w2));
-	INA_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w1->tv->start, &sec1, &nano1)); 
-    INA_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w2->tv->start, &sec2, &nano2));
-    INA_ASSERT_EQUAL(sec1, sec2);
-	msec1 = nano1*1000*1000;
-	msec2 = nano2*1000*1000;
-    INA_ASSERT_EQUAL(msec1, msec2);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w1));
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w2));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w1, 1, -1));
+    INA_TEST_ASSERT_NOTNULL(w1);
+    INA_TEST_ASSERT_EQUAL(1, w1->id);
+    INA_TEST_ASSERT_NOTNULL(w1->tv);
+    INA_TEST_ASSERT_NULL(w1->ts);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w2, 2, -1));
+    INA_TEST_ASSERT_NOTNULL(w2);
+    INA_TEST_ASSERT_EQUAL(2, w2->id);
+    INA_TEST_ASSERT_NOTNULL(w2->tv);
+    INA_TEST_ASSERT_NULL(w2->ts);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w1, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w2, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w1));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w2));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w1->tv->start, &sec1, &nano1)); 
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w2->tv->start, &sec2, &nano2));
+    INA_TEST_ASSERT_EQUAL(sec1, sec2);
+    msec1 = nano1*1000*1000;
+    msec2 = nano2*1000*1000;
+    INA_TEST_ASSERT_EQUAL(msec1, msec2);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w1));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w2));
 } 
 
 void test_time_stopwatch() 
@@ -100,28 +100,28 @@ void test_time_stopwatch()
     INA_TRACE_MSG("test_time_stopwatch");
 
     gettimeofday(&tv_start, NULL);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
-    INA_ASSERT_EQUAL(0, w->tv->next_stamp);
-    INA_ASSERT_EQUAL(INA_TIME_MAX_STAMPS, w->tv->max_stamps);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
-    INA_ASSERT_EQUAL(0, w->tv->sec_duration);
-    INA_ASSERT_NULL(w->ts);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
-    INA_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
+    INA_TEST_ASSERT_EQUAL(0, w->tv->next_stamp);
+    INA_TEST_ASSERT_EQUAL(INA_TIME_MAX_STAMPS, w->tv->max_stamps);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
+    INA_TEST_ASSERT_EQUAL(0, w->tv->sec_duration);
+    INA_TEST_ASSERT_NULL(w->ts);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
+    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
-    INA_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
+    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
     gettimeofday(&tv_stop, NULL);
 
-    INA_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w->tv->start, &t_start, &n1));
-    INA_ASSERT_EQUAL(tv_start.tv_sec, t_start);
-    INA_ASSERT_EQUAL(tv_start.tv_usec, n1*1000);
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w->tv->start, &t_start, &n1));
+    INA_TEST_ASSERT_EQUAL(tv_start.tv_sec, t_start);
+    INA_TEST_ASSERT_EQUAL(tv_start.tv_usec, n1*1000);
 
-    INA_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w->tv->stop, &t_stop, &n2));
-    INA_ASSERT_EQUAL(tv_stop.tv_sec, t_stop);
-    INA_ASSERT_EQUAL(tv_stop.tv_usec, n2*1000);
-    INA_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
-    INA_ASSERT_NULL(w);
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w->tv->stop, &t_stop, &n2));
+    INA_TEST_ASSERT_EQUAL(tv_stop.tv_sec, t_stop);
+    INA_TEST_ASSERT_EQUAL(tv_stop.tv_usec, n2*1000);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
+    INA_TEST_ASSERT_NULL(w);
 }
  
 void test_time_read_clock() 
@@ -141,15 +141,15 @@ void test_time_read_clock()
     secs2 = 0;
 
     gettimeofday(&tv, NULL);
-    INA_ASSERT_SUCCEED(ina_time_read_sys_clock(&t));
-	INA_ASSERT_SUCCEED(ina_time_sys_seconds_micros(&t, &secs, &us));
-    INA_ASSERT_SUCCEED(ina_time_sys_seconds_micros(&t, &secs2, &us2));
-    INA_ASSERT(secs > 0);
-    INA_ASSERT_EQUAL(secs, secs2);
-    INA_ASSERT_EQUAL(tv.tv_sec, secs);
+    INA_TEST_ASSERT_SUCCEED(ina_time_read_sys_clock(&t));
+	INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(&t, &secs, &us));
+    INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(&t, &secs2, &us2));
+    INA_TEST_ASSERT(secs > 0);
+    INA_TEST_ASSERT_EQUAL(secs, secs2);
+    INA_TEST_ASSERT_EQUAL(tv.tv_sec, secs);
     ms = us/1000;
-    INA_ASSERT(ms > 0);
+    INA_TEST_ASSERT(ms > 0);
     INA_TRACE3("tv.tv_usec=%d", tv.tv_usec);
     INA_TRACE3("ms=%ld", ms);
-    INA_ASSERT_EQUAL(tv.tv_usec/1000, ms);
+    INA_TEST_ASSERT_EQUAL(tv.tv_usec/1000, ms);
 }

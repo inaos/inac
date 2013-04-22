@@ -74,6 +74,7 @@
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
+#include <libinac/test.h>
 
 
 #ifdef __cplusplus
