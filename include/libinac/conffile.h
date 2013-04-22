@@ -34,11 +34,34 @@
 extern "C" {
 #endif
 
-#define INA_CONFFILE(name, filepath, ...)
+#define INA_CONFFILE_FILEPATH(cf, destroy, filepath, ...)                  \
+    ina_conffile_t *__cf = NULL;                                           \
+    if (cf != NULL) __cf = cf;                                             \
+    if (INA_SUCCEED(ina_conffile_init(&__cf, filepath))) {                 \
+        ina_conffile_section_t *__cs = NULL;                               \
+        /*__VA_ARGS__  */                                                      \
+    }                                                                      \
+    if (!INA_SUCCEED(ina_conffile_process(__cf))) abort();                 \
+    if (destroy == INA_YES) ina_conffile_destroy(&__cf);
+
+#define INA_CONFFILE(cf, destroy, ...)  INA_CONFFILE_FILEPATH(cf, destroy, NULL, __VA_ARGS__)
+
+#define INA_CONFFILE_STRING_KEY(name, required) \
+    if (!INA_SUCCEED(ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required))) abort();
+
+#define INA_CONFFILE_NUMBER_KEY(name, required) \
+    if (!INA_SUCCEED(ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_NUMBER, required))) abort();
+
 #define INA_CONFFILE_SECTION(name, required, handler, ...)
+    /*if (INA_SUCCEED(ina_conffile_add_section(__cf, name, required, INA_NO, handler, &__cs))) { \
+    /*__VA_ARGS__                                                                               \
+    }*/
+
 #define INA_CONFFILE_NAMED_SECTION(name, required, handler, ...)
-#define INA_CONFFILE_STRING_KEY(name, required)
-#define INA_CONFFILE_NUMBER_KEY(name, required)
+    /*if (INA_SUCCEED(ina_conffile_add_section(__cf, name, required, INA_YES, handler, &__cs))) { \
+    __VA_ARGS__                                                                                \
+    }*/
+
 
 /* Availables value types */
 typedef enum ina_conffile_value_type_e {
