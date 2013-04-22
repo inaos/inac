@@ -84,22 +84,26 @@ export LDFLAGS
 default: release
 
 all:
-	@echo ============================================================================	
-	@echo building....
+	@echo === INAOS Common C Library - $(INAC_BUILD_TYPE) -  ===
+	@echo Building....
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
-	@echo ============================================================================	
-	@echo INAOS Common C Library
+	@echo === Done ===
+	@echo Architecture: $(OS)
 	@echo Home directory: $(INAC_HOME_DIR)
-	@echo LuaJit: $(INAC_LUAJIT_CMD)
-	@echo Path: $(PATH)
-	@echo ============================================================================	
+	@echo LuaJIT command: $(INAC_LUAJIT_CMD)
+	@echo Lua path: $(INAC_LUA_PATH)
+	@echo Build type: $(INAC_BUILD_TYPE)
 
 release: CFLAGS += -O2 -DINA_LOG_LEVEL=1
 	export CFLAGS
+release: INAC_BUILD_TYPE = release
+	export INAC_BUILD_TYPE
 release: all
 	
 debug: CFLAGS += -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4
 	export CFLAGS
+debug: INAC_BUILD_TYPE = debug
+	export INAC_BUILD_TYPE
 debug: all
 
 .PHONY: clean
