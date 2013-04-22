@@ -61,11 +61,12 @@ void test_conffile_using_macros_autodestroy()
     __named_section_count = 0;
 
     INA_CONFFILE(NULL,
-    INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
-        INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES)),
-    INA_CONFFILE_NAMED_SECTION("iface", INA_YES, __ina_named_section_handler,
-        INA_CONFFILE_STRING_KEY("ip", INA_YES),
-        INA_CONFFILE_STRING_KEY("mask", INA_YES)));
+        INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
+            INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES),
+            INA_CONFFILE_NUMBER_KEY("other-latency", INA_NO)),
+        INA_CONFFILE_NAMED_SECTION("iface", INA_YES, __ina_named_section_handler,
+            INA_CONFFILE_STRING_KEY("ip", INA_YES),
+            INA_CONFFILE_STRING_KEY("mask", INA_YES)));
 
     INA_TEST_ASSERT_EQUAL(1, __section_count);
     INA_TEST_ASSERT_EQUAL(2, __named_section_count);
