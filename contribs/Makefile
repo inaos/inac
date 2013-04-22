@@ -29,25 +29,35 @@
 # ****************************************************************************
 # Set local  settinsg
 # ****************************************************************************
+#CFLAGS_OLD = $(CFLAGS)
+#CFLAGS :=
+#LDFLAGS_OLD = $(LDFLAGS)
+#LDFLAGS :=
+#export CFLAGS 
+#export LDFLAGS
 
-all:
+all: 
 	@echo building contribs
-	$(MAKE) -C makeheaders
 	$(MAKE) -C luajit
+	$(MAKE) -C makeheaders
 	$(MAKE) -C sqlite
 	$(MAKE) -C bstring
 	$(MAKE) -C anet
 	$(MAKE) -C skiplist
+#	$(eval CFLAGS := $(CFLAGS_OLD))
+#	$(eval LDFLAGS := $(LDFLAGS_OLD))
+#	@export CFLAGS
+#	@export LDFLAGS
 
 test: all
 	
 .PHONY: clean
 
 clean:
+	$(MAKE) clean -C luajit
 	$(MAKE) clean -C makeheaders
 	$(MAKE) clean -C bstring
 	$(MAKE) clean -C skiplist
 	$(MAKE) clean -C anet
 	$(MAKE) clean -C sds
-	$(MAKE) clean -C luajit
 	$(MAKE) clean -C sqlite

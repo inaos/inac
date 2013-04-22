@@ -34,7 +34,7 @@ OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
 
 
-all: $(OBJS) ($LIB)
+all: $(OBJS) ($TARGET_LIB)
 	@echo compiling...
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 
@@ -48,8 +48,8 @@ all: $(OBJS) ($LIB)
 
 libinac.a:
 	@echo merge libraries...
-	@ar crs $(LIB) $(OBJS) $(LIBS)
-	@for i in $(DIRS); do ar crs $(LIB) $$i/*.o; done
+	@ar crs $(TARGET_LIB) $(OBJS) $(INC_LIBS)
+	@for i in $(DIRS); do ar crs $(TARGET_LIB) $$i/*.o; done
 
 .PHONY: clean
 

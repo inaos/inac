@@ -48,10 +48,9 @@ export LUA_PATH
 # Compiler setting
 # ****************************************************************************
 CC     = /usr/bin/gcc 
-CFLAGS += -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
+CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
          -I$(INAC_CONTRIBS_DIR)/bstring -I$(INAC_CONTRIBS_DIR)/sqlite \
          -I$(INAC_CONTRIBS_DIR)/skiplist -DINA_LIB=1
-export CC
 export CFLAGS
 export LDFLAGS
 
@@ -63,20 +62,25 @@ DIRS = contribs doc include src tests
 # ****************************************************************************
 # Libraries
 # ****************************************************************************
-LIB=libinac.a
-LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a $(INAC_CONTRIBS_DIR)/bstring/bstring.a \
+TARGET_LIB=libinac.a
+INC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a $(INAC_CONTRIBS_DIR)/bstring/bstring.a \
      $(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a $(INAC_CONTRIBS_DIR)/skiplist/skiplist.a \
      $(INAC_CONTRIBS_DIR)/sqlite/sqlite.a
-export LIB
-export LIBS
+export TARGET_LIB
+export INC_LIBS
 
+# ****************************************************************************
+# Linker settings
+# ****************************************************************************
 ifeq (,$(findstring Windows,$(OS)))
 	ifneq (Darwin,$(shell uname -s))
-		LDFLAGS+= -lm -ldld -lrt
+		LDFLAGS = -lm -ldld -lrt
 	else
 	endif
 endif
-export LDFLAGS
+#export LDFLAGS
+
+default: release
 
 all:
 	@echo ============================================================================	
@@ -92,7 +96,7 @@ release: CFLAGS += -O2 -DINA_LOG_LEVEL=1
 	export CFLAGS
 release: all
 	
-debug: CFLAGS += -v -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4
+debug: CFLAGS += -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4
 	export CFLAGS
 debug: all
 
