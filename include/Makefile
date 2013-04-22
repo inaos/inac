@@ -5,5 +5,4 @@ all: $(HDR)
 .PHONY: clean
 
 clean:
-    
-install: all
+	@echo Headers..

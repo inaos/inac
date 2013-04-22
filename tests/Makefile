@@ -34,8 +34,9 @@ suites.o: $(MAKEHADERS)
 	@$(CC) $(CFLAGS) -c suites.c
 		
 clean:
+	@echo cleaning tests...
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
-	@rm -f *.o test suites.* $(HDR)
+	@-rm -f *.o test suites.* $(HDR)
 
 test: all
 	@for i in $(DIRS); do $(MAKE) test -C $$i; done

@@ -39,7 +39,7 @@ export INAC_CONTRIBS_DIR
 # ****************************************************************************
 INAC_LUAJIT_DIR=$(INAC_CONTRIBS_DIR)/luajit/src/jit
 INAC_LUAJIT_CMD=$(INAC_CONTRIBS_DIR)/luajit/src/luajit -b
-LUA_PATH=$(INAC_LUAJIT_DIR)/?.lua
+LUA_PATH:=$(INAC_LUAJIT_DIR)/?.lua
 export INAC_LUAJIT_DIR
 export INAC_LUAJIT_CMD
 export LUA_PATH
@@ -78,7 +78,7 @@ ifeq (,$(findstring Windows,$(OS)))
 endif
 export LDFLAGS
 
-all: 
+all:
 	@echo ============================================================================	
 	@echo building....
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
@@ -88,20 +88,20 @@ all:
 	@echo LuaJit: $(INAC_LUAJIT_CMD)
 	@echo ============================================================================	
 
+release: CFLAGS += -O2 -DINA_LOG_LEVEL=1
+	export CFLAGS
 release: all
-	CFLAGS += -DINA_LOG_LEVEL=1
-	export CFLAGS
 	
-debug: all
-	CFLAGS += -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4
+debug: CFLAGS += -v -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4
 	export CFLAGS
+debug: all
 
 .PHONY: clean
 
 clean:
 	@echo cleaning...
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
-	@rm -f ChangeLog
+	@-rm -f ChangeLog
 
 test: debug
 	$(MAKE) test -C tests

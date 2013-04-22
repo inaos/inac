@@ -30,39 +30,24 @@
 # Set local  settinsg
 # ****************************************************************************
 
-all: makeheaders_tool anet skiplist bstring sqlite luajit
+all:
 	@echo building contribs
-
-makeheaders_tool:
-	@$(MAKE) -C makeheaders
-
-luajit:
-	@$(MAKE) -C luajit
-
-sqlite:
-	@$(MAKE) -C sqlite
-
-bstring:
-	@$(MAKE) -C bstring
-
-anet:
-	@$(MAKE) -C anet
-
-skiplist:
-	@$(MAKE) -C skiplist
-
-sds:
-	@$(MAKE) -C sds
+	$(MAKE) -C makeheaders
+	$(MAKE) -C luajit
+	$(MAKE) -C sqlite
+	$(MAKE) -C bstring
+	$(MAKE) -C anet
+	$(MAKE) -C skiplist
 
 test: all
 	
-.PHONY: clean makeheaders_tool bstring sqlite luajit sds anet skiplist
+.PHONY: clean
 
 clean:
-	@$(MAKE) clean -C makeheaders
-	@$(MAKE) clean -C bstring
-	@$(MAKE) clean -C skiplist
-	@$(MAKE) clean -C anet
-	@$(MAKE) clean -C sds
-	@$(MAKE) clean -C luajit
-	@$(MAKE) clean -C sqlite
+	$(MAKE) clean -C makeheaders
+	$(MAKE) clean -C bstring
+	$(MAKE) clean -C skiplist
+	$(MAKE) clean -C anet
+	$(MAKE) clean -C sds
+	$(MAKE) clean -C luajit
+	$(MAKE) clean -C sqlite

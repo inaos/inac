@@ -33,25 +33,28 @@ SRC_LUA = $(wildcard *.lua)
 OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
 
-all: $(OBJS) 
+
+all: $(OBJS) ($LIB)
 	@echo compiling...
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
-	@echo merge libraries...
-	@ar crs $(LIB) $(OBJS) $(LIBS)
-	@for i in $(DIRS); do ar crs $(LIB) $$i/*.o; done
 
 %.o: %.c
 	@echo compile $(CC) $<
 	@$(CC) $(CFLAGS) -c $<
 
 %.o: %.lua
-	@echo compile ljit $<
+	@echo compile $(INAC_LUAJIT_CMD) $<
 	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
+
+libinac.a:
+	@echo merge libraries...
+	@ar crs $(LIB) $(OBJS) $(LIBS)
+	@for i in $(DIRS); do ar crs $(LIB) $$i/*.o; done
 
 .PHONY: clean
 
 clean:
-	@echo cleaning...
+	@echo cleaning src...
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
 	@-rm -f *.o *.a
 
