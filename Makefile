@@ -37,9 +37,10 @@ export INAC_CONTRIBS_DIR
 # ****************************************************************************
 # LuaJIT variables
 # ****************************************************************************
-INAC_LUAJIT_DIR=$(INAC_CONTRIBS_DIR)/luajit/src/jit
+INAC_LUAJIT_DIR=$(INAC_CONTRIBS_DIR)/luajit/src
 INAC_LUAJIT_CMD=$(INAC_CONTRIBS_DIR)/luajit/src/luajit -b
-LUA_PATH:=$(INAC_LUAJIT_DIR)/?.lua
+INAC_LUA_PATH=$(INAC_LUAJIT_DIR)/?.lua
+LUA_PATH=$(INAC_LUA_PATH)
 export INAC_LUAJIT_DIR
 export INAC_LUAJIT_CMD
 export LUA_PATH
@@ -90,6 +91,7 @@ all:
 	@echo INAOS Common C Library
 	@echo Home directory: $(INAC_HOME_DIR)
 	@echo LuaJit: $(INAC_LUAJIT_CMD)
+	@echo Path: $(PATH)
 	@echo ============================================================================	
 
 release: CFLAGS += -O2 -DINA_LOG_LEVEL=1

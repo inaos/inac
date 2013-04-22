@@ -9,7 +9,7 @@ MAKEHEADERS = ../contribs/makeheaders/makeheaders
 
 all: $(OBJ) suites.o main.o
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
-	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS) -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000 ../src/$(LIB) 
+	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS) -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000 ../src/$(TARGET_LIB) 
 
 %.o: %.c
 	@echo compiling $<

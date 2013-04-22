@@ -34,8 +34,8 @@ OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
 
 
-all: $(OBJS) ($TARGET_LIB)
-	@echo compiling...
+all: $(OBJS) $(TARGET_LIB)
+	@echo compiling all for $(TARGET_LIB) $(INC_LIBS)...
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 
 %.o: %.c
@@ -47,7 +47,7 @@ all: $(OBJS) ($TARGET_LIB)
 	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
 
 libinac.a:
-	@echo merge libraries...
+	@echo merge libraries... $(TARGET_LIB) $(INC_LIBS)
 	@ar crs $(TARGET_LIB) $(OBJS) $(INC_LIBS)
 	@for i in $(DIRS); do ar crs $(TARGET_LIB) $$i/*.o; done
 
