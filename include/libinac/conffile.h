@@ -34,35 +34,6 @@
 extern "C" {
 #endif
 
-#define INA_CONFFILE_FILEPATH(cf, destroy, filepath, ...)                  \
-    ina_conffile_t *__cf = NULL;                                           \
-    if (cf != NULL) __cf = cf;                                             \
-    if (INA_SUCCEED(ina_conffile_init(&__cf, filepath))) {                 \
-        ina_conffile_section_t *__cs = NULL;                               \
-        /*__VA_ARGS__  */                                                      \
-    }                                                                      \
-    if (!INA_SUCCEED(ina_conffile_process(__cf))) abort();                 \
-    if (destroy == INA_YES) ina_conffile_destroy(&__cf);
-
-#define INA_CONFFILE(cf, destroy, ...)  INA_CONFFILE_FILEPATH(cf, destroy, NULL, __VA_ARGS__)
-
-#define INA_CONFFILE_STRING_KEY(name, required) \
-    if (!INA_SUCCEED(ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required))) abort();
-
-#define INA_CONFFILE_NUMBER_KEY(name, required) \
-    if (!INA_SUCCEED(ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_NUMBER, required))) abort();
-
-#define INA_CONFFILE_SECTION(name, required, handler, ...)
-    /*if (INA_SUCCEED(ina_conffile_add_section(__cf, name, required, INA_NO, handler, &__cs))) { \
-    /*__VA_ARGS__                                                                               \
-    }*/
-
-#define INA_CONFFILE_NAMED_SECTION(name, required, handler, ...)
-    /*if (INA_SUCCEED(ina_conffile_add_section(__cf, name, required, INA_YES, handler, &__cs))) { \
-    __VA_ARGS__                                                                                \
-    }*/
-
-
 /* Availables value types */
 typedef enum ina_conffile_value_type_e {
     INA_CONFFILE_VALUE_TYPE_STRING = 1, 
@@ -129,7 +100,6 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf,
 INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf, 
                     const char *section_name, const char *section_key, 
                     const char* key, double *value);
-
 /*
  *
  *
@@ -166,6 +136,30 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf);
  *
  */
 INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf);
+
+
+#define INA_CONFFILE_STRING_KEY(name, required) \
+ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required)
+
+#define INA_CONFFILE_NUMBER_KEY(name, required) \
+ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_NUMBER, required)
+
+#define INA_CONFFILE_SECTION(name, required, handler, ...) \
+ina_conffile_add_section(__cf, name, required, INA_NO, handler, &__cs); \
+__VA_ARGS__
+
+#define INA_CONFFILE_NAMED_SECTION(name, required, handler, ...) \
+ina_conffile_add_section(__cf, name, required, INA_YES, handler, &__cs); \
+__VA_ARGS__
+
+#define INA_CONFFILE(cf,...)                             \
+    ina_conffile_t *__cf = NULL;                         \
+    ina_conffile_section_t *__cs = NULL;                 \
+    if (cf != NULL) __cf = cf;                           \
+    if (!INA_SUCCEED(ina_conffile_init(&__cf, NULL))) {  \
+        abort();                                         \
+    }                                                    \
+    __VA_ARGS__
 
 #ifdef __cplusplus
 }
