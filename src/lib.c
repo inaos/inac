@@ -156,8 +156,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
                     if (so == NULL) {
                         INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
-                        /* TODO: Specific error */
-                        return INA_FAILURE;
+                        return INA_LIB_EOPT;
                     }
                     /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
@@ -181,8 +180,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
             HASH_ITER(hh, __sopt, so, tmp_so) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
                     __ina_opt_usage();
-                    /* TODO: Specific error */
-                    return INA_FAILURE;
+                    return INA_LIB_EOPT;
                 }
             }
         }
