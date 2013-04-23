@@ -36,7 +36,8 @@ Building on Windows requires some programs to be present on your system.
 
 ### Building on Linux or OS X
 
-Build and install the library. Simply type `sudo make && make install`.
+To build and install the library, simply type `sudo make && make install`. To select
+the debug build, type `make debug`.
 
 ### Compile time configuration
  * `INA_CSTRING_ENABLED`: Enable C-runtime strings (Default)
@@ -51,7 +52,7 @@ Build and install the library. Simply type `sudo make && make install`.
  
 
 
-All constants are prefaced with INA_ . Other identifiers are prefaced with `ina_`.
+All constants are prefaced with `INA_` . Other identifiers are prefaced with `ina_`.
 Type names are suffixed with `_t` and typedef‘d so that the struct keyword need
 not be used.
 
@@ -72,20 +73,63 @@ size system memory pool by passing the pool size in bytes as argument.
 ### For applications
 For applications, initialize the application context with `ina_appinit()`. This must be 
 the first function call in your program. You must call `ina_exit()` once before you quit 
-your program. You can override the system memory pool size by  passing de pool size in
+your program. You can override the system memory pool size by passing the pool size in
 bytes as third argument.
 
 	int main(int argc, char **argv,) 
 	{
 	    if (INA_SUCCEED(ina_appinit(argc, argv, 0, NULL)) {
-	        while (… {
-	            ….
+	        while (... {
+	            ...
 	        }
 	    }
 	    ina_exit(EXIT_SUCCESS);
 	}
 
 #### Command line options
+The library provides a builtin command line processor. For that purpose the 
+`ina_appinit()` takes as firth argument an array of `ina_opt_t` containing the 
+command line options definition consisting in string, number and flag options. 
+Use the designated macros to build the options array. Options are defined with a short, a long option name and a description. On string and number options a default
+value can de defined. 
+
+* `INA_OPT_STRING(short,long,default,description)`: define a string option
+* `INA_OPT_INT(short,long,default,description)`: define a int option
+* `INA_OPT_FLAG(short,long,description)`: define a flag (default is false)
+
+
+Use `INA_OPT(array-name)` to declare the option array:
+
+	INA_OPTS(opt,
+        INA_OPT_STRING("h", "host", NULL, "Hostname"),
+        INA_OPT_INT("p", "port", 999, "Port"),
+        INA_OPT_FLAG("k", "keep-alive", "Keep connection alive")));
+
+Register and parse the options by passing the options array to `ina_appinit()`. 
+The function fails with RC `INA_EOPT` if current command line options don't  
+match with the registered definition and simple a usage screen will be printed 
+out to the standard output.
+
+	if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt)) {
+	    while (... {
+	            ...
+	    }
+
+To query a flag is whenever or not set use `ina_opt_isset()`:
+
+	if (INA_SUCCESS(ina_opt_isset("keep-alive")) {
+
+To get a int value use `ina_opt_get_int()`:
+	
+	int value = 0;
+	ina_opt_get_int("port", &value);
+
+To get a string value use `ina_opt_get_string()`:
+	
+	ina_str_t value = NULL;
+	ina_opt_get_string("host", &value);
+
+The command line options values are preserved for the until the application stops. 
 
 
 ## Portable Header
@@ -213,7 +257,7 @@ The "who" question isn't really easy to implement, so we omitted  it.
 
 Also important: Easy access to error information. That's why we pack the 
 'where', 'what', 'handled or not' and 'abort or not' in one single value. 
-We call it 'Return Code' or simply RC. RC is defined by \`ina\_rc\_t' which is 
+We call it 'Return Code' or simply RC. RC is defined by `ina_rc_t' which is 
 in fact a 32bit unsigned integer value. The RC is packed as follow:
 
 	 32bit |IIIIIIII|IIMMMMMM|OOOOOFHR|RRRRRRRR|
@@ -230,7 +274,7 @@ errors occurred or the last error was handled by a previous caller.
 
 ##### Reason
 This value contain the error code (reason of failure). Values from 1-128 are
-reserved to the INAOS Common C Library.   Define user error codes starting
+reserved to the INAOS Common C Library. Define user error codes starting
 by 129. For instance:
 
 	 #define INAWS_ERR_NOCONNECTION    INA_ERR_USER+1
@@ -290,7 +334,7 @@ identifiers are allowed. Don't define any others.
 
 #### Module identifier
 Clearly identify the source (compilation unit) of error. For instance 
-`INA_MOD_STRING` identify the string compilation unit. Developers can define
+`INA_MOD_STRING` identifies the string compilation unit. Developers can define
 their own identifiers.  
 
 ### Push and peek instead of throw and catch
@@ -307,7 +351,7 @@ He has in fact, depending on the error situation, 4 options:
 4. Abort the program
 
 #### Push
-Use the `INA_ERR_PUSH`macro to push an error to the global error state.
+Use the `INA_ERR_PUSH` macro to push an error to the global error state.
 
 	INA_ERR_PUSH(INAWS_ERR_NOCONNECT, 
 	    INAWS_MOD_SERVER, INA_OSFN_NONE, "Connection failed");
@@ -364,7 +408,7 @@ the most recently  pushed are removed from the error state.
 	    if (!INA_ERR_FATAL(RC)) 
 
 #### Cleanup handler
-There is a posibility to define a callback function which is called in case 
+There is a possibility to define a callback function which is called in case 
 the program is being terminated because of fatal error like segmentation fault
 or an interruption request like ctrl-c.
 Use `ina_err_set_cleanup_handler()` to define such a callback. 
@@ -409,7 +453,7 @@ Main Goals of those components:
 ### LuaJIT API
 
 ### Configuration file
-INAC provide a configuration file parser wich work for C and Lua as well.
+INAC provides a configuration file parser witch works for C and Lua as well.
 
 #### Creating the configuration file
 The configuration file is a pure Lua script and consists of sections. Those 
@@ -432,28 +476,59 @@ number type.
 	    mask="255.0.0.0" 
 	}
 
+Configuration definition 
+
+	sections = {}
+	sections.debug = {
+ 		name = "debug",
+  		named = false,
+  		required = true,
+  		keys = {
+    		command-latency = {
+      			required = true,
+     	 		typename = "number"
+    		},
+   	 		other_latency = {
+      			required = false,
+      			typename = "number"
+    		}
+  		},
+  		configured = false
+	}
+
+	sections.iface = {
+  		name = "iface",
+  		named = true,
+  		required = true,
+  		keys = {
+    		ip = {
+      			required = true,
+      			typename = "string"
+    		},
+    		mask = {
+      			required = true,
+      			typename = "string"
+    		},
+  		},
+  		configured = false
+	}
+	
 #### Working with configuration files
    
-For basic usage use the appropriates macros
-
-Start by declaring a variable to hold the config file instance.
+For basic usage use the appropriates macros. Start by declaring a variable to hold the instance for the configuration file.
    
     ina_conffile_t *cf = NULL;
     
-
 Declare 
 
-    INA_CONFFILE(cf, INA_YES
-    	INA_CONFFILE_SECTION(debug, INA_YES, NULL,
-    		INA_CONFFILE_NUMBER_KEY(command-latency, INA_YES)),
-    	INA_CONFFILE_NAMED_SECTION(iface, INA_NO, NULL,
-    		INA_CONFFILE_STRING_KEY(ip, INA_YES),
-    		INA_CONFFILE_NUMBER_KEY(mask, INA_NO)));
+    INA_CONFFILE(cf,
+    	INA_CONFFILE_SECTION("debug", INA_YES, NULL,
+    		INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES)),
+    	INA_CONFFILE_NAMED_SECTION("iface", INA_NO, NULL,
+    		INA_CONFFILE_STRING_KEY("ip", INA_YES),
+    		INA_CONFFILE_NUMBER_KEY("mask", INA_NO)));
     		
 
-    INA_CONFFILE_WITH_PATH(cf, filepath, auto_destroy
-    	INA_CONFFILE_SECTION(debug, INA_YES, NULL,
- 
 Create a configuration file instance by calling `ina_conffile_init()`.
 
     ina_conffile_t *cf = NULL;
@@ -480,6 +555,33 @@ Define section and keys
    	/* Add a unamed section */
 	ina_conffile_add_section(cf, &section, "iface", INA_YES);
  
+
+Sample processor witten un LUA
+
+	-- sample processor
+	for sk,s in pairs(sections) do
+  		if s.configured then
+    		print(sk)
+    		if not s.named then
+      			for k,v in pairs(s.keys) do
+        			if v.has_value then
+          				print(k,v.value)
+        			end
+      			end
+    		else
+      			for nsk, ns in pairs(s.children) do
+        			print("Named section: "..nsk)
+        			for k,v in pairs(s.keys) do
+          				if ns[k].has_value then
+            				print(k,ns[k].value)
+          				end
+        			end
+      			end
+    		end
+  		end
+	end
+		
+
 ### Testing
 #### Tracing
 INAC provides 2 macros which can be used for print debug messages when DEBUG is defined
