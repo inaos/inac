@@ -59,7 +59,6 @@ export LDFLAGS
 # Subdirectories
 # ****************************************************************************
 DIRS = contribs doc include src tests
-
 # ****************************************************************************
 # Libraries
 # ****************************************************************************
@@ -70,21 +69,11 @@ INC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a $(INAC_CONTRIBS_DIR)/bstring/bstring.a
 export TARGET_LIB
 export INC_LIBS
 
-# ****************************************************************************
-# Linker settings
-# ****************************************************************************
-ifeq (,$(findstring Windows,$(OS)))
-	ifneq (Darwin,$(shell uname -s))
-		LDFLAGS = -lm -ldld -lrt
-	else
-	endif
-endif
-export LDFLAGS
-
 default: release
 
-all:
+all: 
 	@echo === INAOS Common C Library - $(INAC_BUILD_TYPE) -  ===
+	@echo $(INAC_INCLUDES)
 	@echo Building....
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 	@echo === Done ===
@@ -113,9 +102,6 @@ clean:
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
 	@-rm -f ChangeLog
 
-test: debug
+test: 
 	$(MAKE) test -C tests
-
-
-dist: dist NEWS README.md INSTALL COPYING
 

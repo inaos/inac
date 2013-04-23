@@ -7,23 +7,25 @@ BIN = test
 
 MAKEHEADERS = ../contribs/makeheaders/makeheaders
 
+# ****************************************************************************
+# Linker settings
+# ****************************************************************************
 ifeq (,$(findstring Windows,$(OS)))
-  ifeq (Darwin,$(shell uname -s))
-	LDFLAGS += -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000
-  else
-	
-  endif
+	ifneq (Darwin,$(shell uname -s))
+		LDFLAGS = -lm -ldld -lrt
+	else
+		LDFLAGS += -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000
+	endif
 endif
 
 
 all: $(OBJ) suites.o main.o
-	@for i in $(DIRS); do $(MAKE) -C $$i; done
 	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)  ../src/$(TARGET_LIB) 
 
 %.o: %.c
 	@echo compiling $<
 	@$(CC) $(CFLAGS)  -c $<
-	
+
 .PHONY: clean
 
 suites.o: $(MAKEHADERS)
@@ -44,9 +46,7 @@ suites.o: $(MAKEHADERS)
 		
 clean:
 	@echo cleaning tests...
-	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
 	@-rm -f *.o test suites.* $(HDR)
 
 test: all
-	@for i in $(DIRS); do $(MAKE) test -C $$i; done
 	./test

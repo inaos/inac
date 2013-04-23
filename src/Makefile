@@ -33,28 +33,20 @@ SRC_LUA = $(wildcard *.lua)
 OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
 
-all: depend $(OBJS) $(TARGET_LIB)
+all: $(OBJS) $(TARGET_LIB)
 	@echo compiling all for $(TARGET_LIB)...
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 
-depend: .depend
-
-.depend: $(SRCS)
-	rm -f ./.depend
-	$(CC) $(CFLAGS) -MM $^ -MF  ./.depend;
-
-include .depend
-
-%.o: %.c $(INCLUDE)
+%.o: %.c $(INAC_INCLUDES)
 	@echo compile $(CC) $<
 	@$(CC) $(CFLAGS) -c $<
 
 %.o: %.lua
-	@echo compile $(INAC_LUAJIT_CMD) $<
+	@echo compile ljit $<
 	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
 
 libinac.a:
-	@echo merge libraries...
+	@echo merge libraries...  $(INC_LIBS)
 	@ar crs $(TARGET_LIB) $(OBJS) $(INC_LIBS)
 	@for i in $(DIRS); do ar crs $(TARGET_LIB) $$i/*.o; done
 
