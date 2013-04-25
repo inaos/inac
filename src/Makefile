@@ -46,8 +46,7 @@ all: $(OBJS) $(TARGET_LIB)
 	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
 
 libinac.a:
-	@echo merge libraries...  $(INC_LIBS)
-	@ar crs $(TARGET_LIB) $(OBJS) $(INC_LIBS)
+	@ar crs $(TARGET_LIB) $(OBJS)
 	@for i in $(DIRS); do ar crs $(TARGET_LIB) $$i/*.o; done
 
 .PHONY: clean

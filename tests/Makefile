@@ -4,7 +4,6 @@ OBJ = $(SRC:%.c=%.o)
 HDR = $(SRC:%.c=%.h)
 FN  = $(SRC:%.c=%)
 BIN = test
-
 MAKEHEADERS = ../contribs/makeheaders/makeheaders
 
 # ****************************************************************************
@@ -12,15 +11,15 @@ MAKEHEADERS = ../contribs/makeheaders/makeheaders
 # ****************************************************************************
 ifeq (,$(findstring Windows,$(OS)))
 	ifneq (Darwin,$(shell uname -s))
-		LDFLAGS = -lm -ldld -lrt
+		LDFLAGS += -lm -ldld -lrt
 	else
-		LDFLAGS += -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000
+		LDFLAGS += -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000 
 	endif
 endif
 
-
 all: $(OBJ) suites.o main.o
-	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)  ../src/$(TARGET_LIB) 
+	@echo $(TARGET_LIB)
+	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)  ../src/$(TARGET_LIB) $(INC_LIBS)
 
 %.o: %.c
 	@echo compiling $<
