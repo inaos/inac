@@ -137,7 +137,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf);
  */
 INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf);
 
-
+/* */
 #define INA_CONFFILE_STRING_KEY(name, required) \
 ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required)
 
@@ -152,14 +152,16 @@ __VA_ARGS__
 ina_conffile_add_section(__cf, name, required, INA_YES, handler, &__cs); \
 __VA_ARGS__
 
-#define INA_CONFFILE(cf,...)                             \
+#define INA_CONFFILE(cf, ...)                            \
     ina_conffile_t *__cf = NULL;                         \
     ina_conffile_section_t *__cs = NULL;                 \
     if (cf != NULL) __cf = cf;                           \
     if (!INA_SUCCEED(ina_conffile_init(&__cf, NULL))) {  \
         abort();                                         \
     }                                                    \
-    __VA_ARGS__
+    __VA_ARGS__;                                         \
+    ina_conffile_process(__cf);                          \
+    if (cf == NULL) ina_conffile_destroy(&__cf);
 
 #ifdef __cplusplus
 }
