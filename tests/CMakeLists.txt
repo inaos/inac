@@ -19,10 +19,6 @@ else()
 	add_definitions(-DINA_OS_WIN32 -DDEBUG -DTRACE_ENABLED -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
-set(BSTRING_LIB "bstring.lib")
-set(ANET_LIB "anet.lib")
-set(SKIPLIST_LIB "skiplist.lib")
-set(LUAJIT_LIB "luajit.lib")
 set(INAC_LIB "libinac.lib")
 set(INAC_TESTLIB "testinac.lib")
 

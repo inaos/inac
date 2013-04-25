@@ -51,6 +51,7 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <time.h>
 
 #include <contribs/luajit/src/luajit.h>
 #include <contribs/luajit/src/lauxlib.h>
@@ -73,14 +74,15 @@
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
+#include <libinac/test.h>
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define INA_YES 1
-#define INA_NO  0
+#define INA_YES (1)
+#define INA_NO  (0)
 
 #define INA_NUM2STR_X(x) #x
 #define INA_NUM2STR(x) INA_NUM2STR_X(x)

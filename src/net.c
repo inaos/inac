@@ -291,7 +291,7 @@ INA_API(ina_rc_t) ina_net_block(int fd)
     return INA_SUCCESS;
 }
 #else
-INA_API(ina_rc_t)s ina_net_block(int fd)
+INA_API(ina_rc_t) ina_net_block(int fd)
 {
     int flags;
     /* Set the socket nonblocking.

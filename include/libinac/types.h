@@ -66,13 +66,13 @@ static __inline double ina_dbl_from_decimal(ina_decimal_t *dec)
     return ldexp(tmp, dec->exponent);
 }
 
-#ifdef BSTRING_ENABLED
+#ifdef INA_BSTRING_ENABLED
 #include <bstring/bstrlib.h>
 #define ina_str_t bstring
-#ifdef STRING_ENABLED
+#ifdef INA_STRING_ENABLED
 #error String library already defined.
 #endif
-#define STRING_DEFINED 1
+#define INA_STRING_DEFINED 1
 #else
 typedef char * ina_str_t;
 #endif

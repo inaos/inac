@@ -28,6 +28,10 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#if defined(INA_OS_OSX)
+# include <mach/mach_time.h>
+#endif
+
 #ifdef INA_OS_WIN32
 #define __INA_TIME_INC(vv_ptr) InterlockedExchangeAdd64(vv_ptr, 1)
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
@@ -37,6 +41,14 @@
 #endif
 #else
 #define __INA_TIME_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1) 
+#endif
+
+#if defined(INA_OS_LINUX)
+# if defined(CLOCK_MONOTONIC_RAW)
+#  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC_RAW
+# elsei if defined(INA_OS_OSX)
+#  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC
+# endif
 #endif
 
 static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
@@ -53,32 +65,32 @@ static double __ina_lit_to_secs(LARGE_INTEGER * L)
 
 INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
 {
-	*time = (ina_time_tsc_t*)ina_mem_alloc(sizeof(ina_time_tsc_t));
-	return INA_SUCCESS;
+    *time = (ina_time_tsc_t*)ina_mem_alloc(sizeof(ina_time_tsc_t));
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time)
 {
-	ina_mem_free(*time);
-	return INA_SUCCESS;
+    ina_mem_free(*time);
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time)
 {
-	*time = (ina_time_t*)ina_mem_alloc(sizeof(ina_time_t));
-	return INA_SUCCESS;
+    *time = (ina_time_t*)ina_mem_alloc(sizeof(ina_time_t));
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time)
 {
-	ina_mem_free(*time);
-	return INA_SUCCESS;
+    ina_mem_free(*time);
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
 {
 #ifdef INA_OS_WIN32
-	GetSystemTimeAsFileTime(&time->systime);
+    GetSystemTimeAsFileTime(&time->systime);
 #else
     if (gettimeofday(&time->systime, NULL) == -1) {
         return INA_FAILURE;
@@ -91,10 +103,12 @@ INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
 {
 #ifdef INA_OS_WIN32
     QueryPerformanceCounter(&time->tp);
-#else
-	if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
-		return INA_FAILURE;
-	}
+#elif defined(INA_OS_OSX)
+     time->tp = mach_absolute_time();
+#else 
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
+        return INA_FAILURE;
+    }
 #endif
     return INA_SUCCESS;
 }
@@ -102,57 +116,65 @@ INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
 INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
 #ifdef INA_OS_WIN32
-	double dsecs = __ina_lit_to_secs(&time->tp);
-	double ipart = 0;
-	double fpart = 0;
-	fpart = modf(dsecs, &ipart);
-	*secs = (time_t)ipart;
-	*nanos = (long)(fpart*1000*1000*1000);
+    double dsecs = __ina_lit_to_secs(&time->tp);
+    double ipart = 0;
+    double fpart = 0;
+    fpart = modf(dsecs, &ipart);
+    *secs = (time_t)ipart;
+    *nanos = (long)(fpart*1000*1000*1000);
+#elif defined(INA_OS_OSX)
+    int64_t ns;    
+    mach_timebase_info_data_t info;
+    mach_timebase_info(&info);
+    ns = (int64_t)(time->tp);
+    ns *= info.numer;
+    ns /= info.denom;
+    *nanos = (long)ns;
+    *secs /= 1000000000;
 #else
-	*secs = time->tp->tv_sec;
-	*nanos = time->tp->tv_nsec;
+    *secs = time->tp->tv_sec;
+    *nanos = time->tp->tv_nsec;
 #endif
-	return INA_SUCCESS;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, long *micros)
 {
 #ifdef INA_OS_WIN32
-	unsigned __int64 tmpres = 0;
-	tmpres |= time->systime.dwHighDateTime;
+    unsigned __int64 tmpres = 0;
+    tmpres |= time->systime.dwHighDateTime;
     tmpres <<= 32;
-	tmpres |= time->systime.dwLowDateTime;
-	tmpres /= 10;  /*convert into microseconds*/
-	/*converting file time to unix epoch*/
+    tmpres |= time->systime.dwLowDateTime;
+    tmpres /= 10;  /*convert into microseconds*/
+    /*converting file time to unix epoch*/
     tmpres -= DELTA_EPOCH_IN_MICROSECS; 
     *secs = (long)(tmpres / 1000000UL);
     *micros = (long)(tmpres % 1000000UL);
 #else
-	*secs = time->systime->tv_sec;
-	*micros = time->systime->tv_usec;
+    *secs = time->systime.tv_sec;
+    *micros = time->systime.tv_usec;
 #endif
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, size_t *written, const char *fmt, ina_time_t* time)
 {
-	char *b = (char*)buf;
-	size_t nw = 0;
-	struct tm *mtm;
-	time_t secs;
-	long micros;
+    char *b = (char*)buf;
+    size_t nw = 0;
+    struct tm *mtm;
+    time_t secs;
+    long micros;
 
-	ina_time_sys_seconds_micros(time, &secs, &micros);
-	mtm = localtime(&secs);
-	nw = strftime(b, buflen, fmt, mtm);
+    ina_time_sys_seconds_micros(time, &secs, &micros);
+    mtm = localtime(&secs);
+    nw = strftime(b, buflen, fmt, mtm);
 
-	if (nw == 0) {
-		return INA_FAILURE;
-	}
+    if (nw == 0) {
+        return INA_FAILURE;
+    }
 
-	*written = nw;
-
-	return INA_SUCCESS;
+    *written = nw;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_sleep(time_t msec)
@@ -196,6 +218,10 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
     INA_ASSERT_NOTNULL(stopwatch);
 #ifdef INA_OS_WIN32
     if (stopwatch->tv->stop.tp.QuadPart >= stopwatch->tv->start.tp.QuadPart) {
+        return INA_SUCCESS;
+    }
+#elif defined(INA_OS_OSX)
+    if (stopwatch->tv->stop.tp >= stopwatch->tv->start.tp) {
         return INA_SUCCESS;
     }
 #else 
@@ -268,7 +294,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int6
 
     /* Calculate duration if not yet done */
     if (stopwatch->ts->sec_duration == 0) {
-        #ifdef INA_OS_WIN32
+#ifdef INA_OS_WIN32
         LARGE_INTEGER elapsed;
         if (*stamp_index == 0) {
             elapsed.QuadPart = stopwatch->ts->stamp.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
@@ -277,7 +303,16 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int6
            elapsed.QuadPart = stopwatch->ts->stamp.tp.QuadPart - ts->stamp.tp.QuadPart; 
         }
         stopwatch->ts->sec_duration = __ina_lit_to_secs(&elapsed);
-        #else
+#elif defined(INA_OS_OSX)
+        if (*stamp_index == 0) {
+            stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - stopwatch->tv->start.tp);
+            stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp - stopwatch->tv->start.tp) / 10000000.0);
+        } else {
+            ina_stopwatch_ts_t *ts =  (&(stopwatch->tv->stamps))+(*stamp_index-1);
+            stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - ts->stamp.tp);
+            stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp - ts->stamp.tp) / 10000000.0);         
+        } 
+#else
         if (*stamp_index == 0) {
             stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0);
@@ -286,7 +321,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int6
             stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - ts->stamp.tp.tv_sec);
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_usec - ts->stamp.tp.tv_usec) / 10000000.0);         
         } 
-        #endif
+#endif
         stopwatch->ts->msec_duration= stopwatch->ts->sec_duration*1000;
         stopwatch->ts->usec_duration = stopwatch->ts->sec_duration*1000*1000;
     }
@@ -336,6 +371,8 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->tv->sec_duration = __ina_lit_to_secs(&elapsed);
+#elif defined(INA_OS_OSX)
+
 #else
     INA_ASSERT_NOTNULL(stopwatch);
     ina_time_read_clock(&stopwatch->tv->stop);

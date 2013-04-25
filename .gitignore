@@ -5,6 +5,7 @@
 *.obj
 *.lib
 *.html
+*.depend
 tests/suites.c
 tests/suites.h
 tests/test
