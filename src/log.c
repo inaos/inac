@@ -50,12 +50,12 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const
 }
 
 INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target, 
-                                ina_log_level_t level, ina_str_t logfile)
+                                ina_log_level_t level, const char  *logfile)
 {
     *cfg = (ina_log_cfg_t*)ina_mem_alloc(sizeof(ina_log_cfg_t));
     (*cfg)->fp1 = NULL;
-	(*cfg)->fp2 = NULL;
-    (*cfg)->logfile = logfile;
+    (*cfg)->fp2 = NULL;
+    (*cfg)->logfile = ina_str_fromcstr(logfile);
     (*cfg)->target = target;
     (*cfg)->level = level;
     (*cfg)->syslog_facility = 0;
@@ -90,9 +90,9 @@ __ina_init(ina_log_cfg_t *cfg)
         cfg->fp2 = (cfg->logfile == NULL) ? stdout : fopen(ina_str_cstr(cfg->logfile),"a");
     }
 #ifdef WIN32
-	cfg->pid = (int)GetCurrentProcessId();
+    cfg->pid = (int)GetCurrentProcessId();
 #else
-	cfg->pid = (int)getpid();
+    cfg->pid = (int)getpid();
 #endif
     return INA_SUCCESS;
 }
@@ -101,35 +101,35 @@ static ina_rc_t
 __ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const char *msg) {
     const char *c = ".-*#";
     time_t now = time(NULL);
-    
+
     char buf[64];
     strftime(buf,sizeof(buf),"%d %b %H:%M:%S",localtime(&now));
 
 #ifdef WIN32
-	if (cfg->fp1 != NULL) {
-		fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-	}
-	if (cfg->fp2 != NULL) {
-		fprintf(cfg->fp2,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-	}
+    if (cfg->fp1 != NULL) {
+        fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
+    }
+    if (cfg->fp2 != NULL) {
+        fprintf(cfg->fp2,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
+    }
 #else
     if (cfg->target == INA_LOG_SYSLOG) {
         syslog(cfg->syslog_facility, "%s", msg);
     }
     else {
-		if (cfg->fp1 != NULL) {
-			fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-		}
-		if (cfg->fp2 != NULL) {
-			fprintf(cfg->fp2,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-		}
+        if (cfg->fp1 != NULL) {
+            fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
+        }
+        if (cfg->fp2 != NULL) {
+            fprintf(cfg->fp2,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
+        }
     }
 #endif
-	if (cfg->fp1 != NULL) {
-		fflush(cfg->fp1);
-	}
+    if (cfg->fp1 != NULL) {
+        fflush(cfg->fp1);
+    }
     if (cfg->fp2 != NULL) {
-		fflush(cfg->fp2);
-	}
+        fflush(cfg->fp2);
+    }
     return INA_SUCCESS;
 }

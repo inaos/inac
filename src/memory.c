@@ -177,7 +177,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     }
 
     if (size == 0) {
-        size = __INA_MEM_ALIGN(MEMPOOL_SIZE);
+        size = __INA_MEM_ALIGN(INA_MEMPOOL_SIZE);
     }
     __pools = (__ina_mplist_t*)__ina_mp_malloc(sizeof(__ina_mplist_t));
     if (__pools == NULL) {

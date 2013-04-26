@@ -52,11 +52,10 @@ typedef struct ina_conffile_s {
     int prepared;                      /* INA_YES if prepared */
 } ina_conffile_t;
 
-/* Callback for unnamed sections */
-typedef ina_rc_t (*ina_conffile_section_cb_t)(ina_conffile_entry_t *entries);
-/* Callback for namend sections */
-typedef ina_rc_t (*ina_conffile_named_section_cb_t)(const char *section_name, 
-                                                ina_conffile_entry_t *entries);
+/* Callback sections  */
+typedef ina_rc_t (*ina_conffile_section_cb_t)(const char *section_name, 
+                                              const char *section_key,
+                                              ina_conffile_entry_t *entries);
 
 /*
  * Initialize a config file.
@@ -65,52 +64,60 @@ typedef ina_rc_t (*ina_conffile_named_section_cb_t)(const char *section_name,
  * cf        Address of an config file pointer
  * filepath  Absolute or relaive file path. If filepath is NULL the config
  *
- * Rtezurn
  */
 INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf, const char *filepath);
 
 /*
- *
+ * Add a section.
  *
  */
 INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, const char *name, 
-                    int required, ina_conffile_section_cb_t cb, 
+                    int required, int named, ina_conffile_section_cb_t cb, 
                     ina_conffile_section_t **section);
 /*
- *
- *
- */
-INA_API(ina_rc_t) ina_conffile_add_named_section(ina_conffile_t *cf, 
-                    const char *name, int required, 
-                    ina_conffile_named_section_cb_t cb, 
-                    ina_conffile_section_t **section);
-/*
- *
+ * Add a value key to a configuration section.
  *
  */
 INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section, 
                     const char *name, ina_conffile_value_type_t value_type, 
                     int required);
+/*
+ * Query if a value with key and section exists
+ */ 
+INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_t *cf, 
+                    const char *section_name, const char *section_key, 
+                    const char* key);
+/*
+ * Get a string value for section and key
+ */
+INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf, 
+                    const char *section_name, const char *section_key, 
+                    const char* key, ina_str_t *value);
 
-
+/*
+ * Get a number value for section an key
+ */
+INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf, 
+                    const char *section_name, const char *section_key, 
+                    const char* key, double *value);
 /*
  *
  *
  */
-INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_entry_t *entries, 
+INA_API(ina_rc_t) ina_conffile_has_value_in_entries(ina_conffile_entry_t *entries, 
                     const char* key);
 
 /*
  *
  *
  */
-INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_entry_t *entries, 
+INA_API(ina_rc_t) ina_conffile_get_string_from_entries(ina_conffile_entry_t *entries, 
                     const char* key, ina_str_t *value);
 /*
  *
  *
  */
-INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_entry_t *entreos, 
+INA_API(ina_rc_t) ina_conffile_get_number_from_entries(ina_conffile_entry_t *entries, 
                     const char* key, double *value);
 
 /*
@@ -129,6 +136,30 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf);
  *
  */
 INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf);
+
+
+#define INA_CONFFILE_STRING_KEY(name, required) \
+ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required)
+
+#define INA_CONFFILE_NUMBER_KEY(name, required) \
+ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_NUMBER, required)
+
+#define INA_CONFFILE_SECTION(name, required, handler, ...) \
+ina_conffile_add_section(__cf, name, required, INA_NO, handler, &__cs); \
+__VA_ARGS__
+
+#define INA_CONFFILE_NAMED_SECTION(name, required, handler, ...) \
+ina_conffile_add_section(__cf, name, required, INA_YES, handler, &__cs); \
+__VA_ARGS__
+
+#define INA_CONFFILE(cf,...)                             \
+    ina_conffile_t *__cf = NULL;                         \
+    ina_conffile_section_t *__cs = NULL;                 \
+    if (cf != NULL) __cf = cf;                           \
+    if (!INA_SUCCEED(ina_conffile_init(&__cf, NULL))) {  \
+        abort();                                         \
+    }                                                    \
+    __VA_ARGS__
 
 #ifdef __cplusplus
 }

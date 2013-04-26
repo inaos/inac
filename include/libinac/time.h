@@ -47,8 +47,10 @@ typedef struct ina_time_s {
 typedef struct ina_time_tsc_s {
 #ifdef WIN32
     LARGE_INTEGER tp;
+#elif defined(INA_OS_OSX)
+    uint64_t tp;
 #else
-	struct timespec tp;
+    struct timespec tp;
 #endif
 } ina_time_tsc_t;
 

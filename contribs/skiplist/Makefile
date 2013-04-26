@@ -1,15 +1,16 @@
 SRC = $(wildcard *.c)
-OBJ = $(SRC:%.c=%.o) $(DIRS:%=%.o)
-CFLAGS = -Wall -std=c89 -g -DDEBUG -pedantic -Wcomment
-LIB = skiplist.a
+OBJS = $(SRC:%.c=%.o) $(DIRS:%=%.o)
+THIS_LIB = skiplist.a
 
 
-all: $(OBJ)
-	ar rcs $(LIB) $(OBJ)
+all: $(OBJS)
+	@ar rcs $(THIS_LIB) $(OBJS)
+
 %.o: %.c
-	$(CC) $(CFLAGS) -v -c  $<
-	
+	@echo compile $(CC) $<
+	@$(CC) $(CFLAGS) -c $<
+
 .PHONY: clean
 
 clean:
-	-rm -f *.o
+	@-rm -f *.o
