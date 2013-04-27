@@ -32,12 +32,12 @@ void test_error_repush_success()
 {
     INA_TRACE_MSG("test_error_repush_success");
 
-    INA_ASSERT_SUCCESS(ina_err_reset());
-    INA_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 
-    INA_ASSERT_SUCCEED(INA_ERR_REPUSH(INA_SUCCESS));
-    INA_ASSERT_SUCCESS(INA_ERR_REPUSH(INA_SUCCESS));
-    INA_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCEED(INA_ERR_REPUSH(INA_SUCCESS));
+    INA_TEST_ASSERT_SUCCESS(INA_ERR_REPUSH(INA_SUCCESS));
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 }
 
 void test_error_repush()
@@ -46,8 +46,8 @@ void test_error_repush()
 
     INA_TRACE_MSG("test_error_repush");
     
-    INA_ASSERT_SUCCESS(ina_err_reset());
-    INA_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
     
     INA_ERR_EMSGLEN;
     INA_ERR_EMSGFMT;
@@ -56,15 +56,15 @@ void test_error_repush()
     INA_ERR_PUSH_LAST;
     
     rc = ina_err_peek();
-    INA_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
-    INA_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
-    INA_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
-    INA_ASSERT_EQUAL(INA_EMSGFMT, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL(INA_EMSGFMT, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
-    INA_ASSERT_EQUAL(INA_EMSGLEN, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL(INA_EMSGLEN, INA_RC_REASON(rc));
 }
 void test_error_push_a_million_errors()
 {
@@ -72,12 +72,12 @@ void test_error_push_a_million_errors()
 
     INA_TRACE_MSG("test_error_push_a_million_errors");
     
-    INA_ASSERT_SUCCESS(ina_err_reset());
-    INA_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 
     for (i = 0; i < 1000000; ++i) {
         INA_ERR_PUSH(1,2,5, "test error");
-        INA_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
+        INA_TEST_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
     }
 }
 
@@ -91,13 +91,13 @@ void test_error_message_formatting()
     msg1 = ina_str_fromcstr("Message size error");
     msg2 = ina_str_newlen(100);
 
-    INA_ASSERT_NOTNULL(msg1);
-    INA_ASSERT_NOTNULL(msg2);
+    INA_TEST_ASSERT_NOTNULL(msg1);
+    INA_TEST_ASSERT_NOTNULL(msg2);
     
-    INA_ASSERT_SUCCESS(ina_err_reset());
-    INA_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
     INA_ERR_EMSGLEN;
-    INA_ASSERT_EQUAL(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
+    INA_TEST_ASSERT_EQUAL(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
     INA_TRACE("msg2=%s", ina_str_cstr(msg2));
 }
 
@@ -115,8 +115,8 @@ void test_error_push_and_peek()
 
     INA_TRACE_MSG("test_error_push_and_peek");
 
-    INA_ASSERT_SUCCESS(ina_err_reset());
-    INA_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 
     for (i = 0; i < 10; ++i) {
         INA_ERR_PUSH_BASIC(300+i, "This is an error");
@@ -125,7 +125,7 @@ void test_error_push_and_peek()
      i = 0;
      rc = INA_ERR_PEEK_FIRST;
      while (!(rc = ina_err_peek_next(rc))) {
-         INA_ASSERT_FALSE(INA_SUCCEED(rc));
+         INA_TEST_ASSERT_FALSE(INA_SUCCEED(rc));
      }
 }
 
@@ -136,21 +136,21 @@ void test_error_push_and_clear()
 
     INA_TRACE_MSG("test_error_push_and_clear");
 
-    INA_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
-    INA_ASSERT_EQUAL(rc1, ina_err_peek());
-    INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
-    INA_ASSERT_EQUAL(ina_err_peek(), ina_err_peek_last());
+    INA_TEST_ASSERT_EQUAL(rc1, ina_err_peek());
+    INA_TEST_ASSERT_EQUAL(rc1, ina_err_peek_last());
+    INA_TEST_ASSERT_EQUAL(ina_err_peek(), ina_err_peek_last());
 
     rc2 = INA_ERR_PUSH(1,2,5, "test error");
-    INA_ASSERT_EQUAL(rc2, ina_err_peek());
-    INA_ASSERT_NOTEQUAL(rc1, ina_err_peek());
-    INA_ASSERT_EQUAL(rc1, ina_err_peek_last());
-    INA_ASSERT_NOTEQUAL(rc1, rc2);
+    INA_TEST_ASSERT_EQUAL(rc2, ina_err_peek());
+    INA_TEST_ASSERT_NOTEQUAL(rc1, ina_err_peek());
+    INA_TEST_ASSERT_EQUAL(rc1, ina_err_peek_last());
+    INA_TEST_ASSERT_NOTEQUAL(rc1, rc2);
 
-    INA_ASSERT_SUCCESS(ina_err_reset());
-    INA_ASSERT_SUCCESS(ina_err_peek());
-    INA_ASSERT_SUCCESS(ina_err_peek_last());
+    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek_last());
  }
 
 void test_error_pack_rc() 
@@ -170,22 +170,22 @@ void test_error_pack_rc()
     INA_TRACE3("func = %u", INA_RC_OSFN(rc));
     INA_TRACE3("reason = %u", INA_RC_REASON(rc));
     
-    INA_ASSERT_EQUAL(rcc, rc);
-    INA_ASSERT_EQUAL(1, INA_RC_MOD(rc));
-    INA_ASSERT_EQUAL(2, INA_RC_OSFN(rc));
-    INA_ASSERT_EQUAL(7, INA_RC_REASON(rc));
-    INA_ASSERT_EQUAL(4, INA_RC_ID(rc));
-    INA_ASSERT_FALSE(INA_RC_FATAL(rc));
+    INA_TEST_ASSERT_EQUAL(rcc, rc);
+    INA_TEST_ASSERT_EQUAL(1, INA_RC_MOD(rc));
+    INA_TEST_ASSERT_EQUAL(2, INA_RC_OSFN(rc));
+    INA_TEST_ASSERT_EQUAL(7, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL(4, INA_RC_ID(rc));
+    INA_TEST_ASSERT_FALSE(INA_RC_FATAL(rc));
     
     rc = INA_RC_PACK(15,15,255,1023);
-    INA_ASSERT_EQUAL(15, INA_RC_MOD(rc));
-    INA_ASSERT_EQUAL(15, INA_RC_OSFN(rc));
-    INA_ASSERT_EQUAL(255, INA_RC_REASON(rc));
-    INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));   
+    INA_TEST_ASSERT_EQUAL(15, INA_RC_MOD(rc));
+    INA_TEST_ASSERT_EQUAL(15, INA_RC_OSFN(rc));
+    INA_TEST_ASSERT_EQUAL(255, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL(1023, INA_RC_ID(rc));   
 
     rc = INA_RC_PACK(63,31,511,1023);
-    INA_ASSERT_EQUAL(63, INA_RC_MOD(rc));
-    INA_ASSERT_EQUAL(31, INA_RC_OSFN(rc));
-    INA_ASSERT_EQUAL(511, INA_RC_REASON(rc));
-    INA_ASSERT_EQUAL(1023, INA_RC_ID(rc));
+    INA_TEST_ASSERT_EQUAL(63, INA_RC_MOD(rc));
+    INA_TEST_ASSERT_EQUAL(31, INA_RC_OSFN(rc));
+    INA_TEST_ASSERT_EQUAL(511, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL(1023, INA_RC_ID(rc));
 } 

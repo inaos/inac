@@ -129,7 +129,10 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
 
 INA_API(void *) ina_mem_alloc(size_t size)
 {
-    return __ina_malloc(size);
+    void *p;
+    p = __ina_malloc(size);
+    ina_mem_set(p, 0, size);
+    return p;
 }
 
 INA_API(void) ina_mem_free(void *ptr)
@@ -174,7 +177,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     }
 
     if (size == 0) {
-        size = __INA_MEM_ALIGN(MEMPOOL_SIZE);
+        size = __INA_MEM_ALIGN(INA_MEMPOOL_SIZE);
     }
     __pools = (__ina_mplist_t*)__ina_mp_malloc(sizeof(__ina_mplist_t));
     if (__pools == NULL) {
@@ -324,6 +327,31 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
         }
     }
     return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool)
+{
+    __ina_mplist_t *ref;
+    __ina_mplist_t *next;
+
+    INA_ASSERT_NOTNULL(label);
+    
+     if (__pools == NULL) {
+         return INA_FAILURE;
+     }
+
+     next = __pools->next;
+     ref = NULL;
+     while (next != NULL) {
+         if (next->active == 1) {
+             if (next->pool->label != NULL && strcmp(next->pool->label, label) == 0) {
+                 *pool = next->pool;
+                 return INA_SUCCESS;
+             }
+         }
+         next = next->next;
+     }
+     return INA_FAILURE;
 }
 
 INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info)

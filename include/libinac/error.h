@@ -46,16 +46,19 @@ extern "C" {
 #define INA_ERR_MSGLEN  512
 
 /* Module identifiers */
-#define INA_MOD_UNKNOWN 0
-#define INA_MOD_MEMORY  1
-#define INA_MOD_STRING  2
-#define INA_MOD_ERROR   3
-#define INA_MOD_ULLC    4
-#define INA_MOD_ISCP    5
-#define INA_MOD_NET     7
-#define INA_MOD_LOG     8
-#define INA_MOD_TIME    9
-#define INA_MOD_TIMER   10
+#define INA_MOD_UNKNOWN  0
+#define INA_MOD_MEMORY   1
+#define INA_MOD_STRING   2
+#define INA_MOD_ERROR    3
+#define INA_MOD_ULLC     4
+#define INA_MOD_ISCP     5
+#define INA_MOD_NET      7
+#define INA_MOD_LOG      8
+#define INA_MOD_TIME     9
+#define INA_MOD_TIMER    10
+#define INA_MOD_LJIT     11
+#define INA_MOD_CONFFILE 12
+#define INA_MOD_LIB      13
 
 /* OS function identifiers */
 #define INA_OSFN_NONE    0
@@ -81,6 +84,9 @@ extern "C" {
 #define INA_EREAD    14
 #define INA_EWRITE   15
 #define INA_EWAIT    16
+#define INA_EEXCALL  17
+#define INA_ETIMEOUT 18
+#define INA_EOPT     20
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -197,20 +203,43 @@ extern "C" {
 
 /* Net-Module errors */
 #define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
+#define INA_NET_ERROR2(r, s) INA_ERR_PUSH(r, INA_MOD_NET, INA_OSFN_NONE, s)
+#define INA_NET_ETIMEOUT INA_NET_ERROR2(INA_ETIMEOUT, "Net timeout")
 
 /* ISCP errors */
 #define INA_ISCP_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ISCP, INA_OSFN_NONE, s)
-#define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set send callback");
-#define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set recv callback");
-#define INA_ISCP_ERETNCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set retn callback");
-#define INA_ISCP_EOPENCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set open callback");
-#define INA_ISCP_ECLSECB INA_ISCP_ERROR(INA_EINVAL, "Failed to set clse callback");
-#define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registred");
-#define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed");
-#define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed");
-#define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed");
-#define INA_ISCP_EWAIT INA_ISCP_ERROR(INA_EWAIT, "waiting for object");
-#define INA_ISCP_ETYPE INA_ISCP_ERROR(INA_EINVAL, "invalid parameter type");
+#define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set send callback")
+#define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set recv callback")
+#define INA_ISCP_ERETNCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set retn callback")
+#define INA_ISCP_EOPENCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set open callback")
+#define INA_ISCP_ECLSECB INA_ISCP_ERROR(INA_EINVAL, "Failed to set clse callback")
+#define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registred")
+#define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed")
+#define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed")
+#define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed")
+#define INA_ISCP_EWAIT INA_ISCP_ERROR(INA_EWAIT, "waiting for object")
+#define INA_ISCP_ETYPE INA_ISCP_ERROR(INA_EINVAL, "invalid parameter type")
+
+/* LuaJIT errors */
+#define INA_LJIT_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LJIT, INA_OSFN_NONE, s)
+#define INA_LJIT_EALLOC INA_LJIT_ERROR(INA_EALLOC, "Bad memory alloc")
+#define INA_LJIT_ERESULT INA_LJIT_ERROR(INA_EINVAL, "Wong result type")
+#define INA_LJIT_EPARAM INA_LJIT_ERROR(INA_EINVAL, "Wong argument type")
+#define INA_LJIT_ENSTATE INA_LJIT_ERROR(INA_EALLOC, "Failed to create new Lua state")
+#define INA_LJIT_ELUA(ptr_ljit) \
+        INA_LJIT_ERROR(INA_EEXCALL, lua_tostring(ptr_ljit->lstate, -1)); \
+        lua_pop(ptr_ljit->lstate, 1)
+
+/* Configuration file errors */
+#define INA_CONFFILE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CONFFILE, INA_OSFN_NONE, s)
+#define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(EINVAL, "Duplicate section");
+#define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(EINVAL, "Duplicate key");
+#define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(EINVAL, "Already prepared");
+
+/* Core library errors */
+#define INA_LIB_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LIB, INA_OSFN_NONE, s)
+#define INA_LIB_EOPT INA_LIB_ERROR(INA_EOPT, "Command line option parsing failed");
+
 
 /* Error information */
 typedef struct ina_error_s {

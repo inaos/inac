@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,30 @@
 extern "C" {
 #endif
 
+/* Base log macros, user INA_LOG_DEBUG/INFO/WARNING/ERROR instead */
+#ifdef INA_LOG_ENABLED
+#define INA_LOG(cfg, level, fmt,  ...) ina_log(cfg, level, fmt, __VA_ARGS__)
+#else
+#define INA_LOG(cfg, level, ...)
+#endif
+
+#ifndef INA_LOG_LEVEL
+#define INA_LOG_LEVEL 3
+#endif
+
+#if INA_LOG_LEVEL>0
+#define INA_LOG_ERROR(cfg,fmt,...)   INA_LOG(cfg, INA_LOG_ERROR, __VA_ARGS__)
+#endif
+#if INA_LOG_LEVEL>1
+#define INA_LOG_WARNING(cfg,fmt,...) INA_LOG(cfg, INA_LOG_WARNING, __VA_ARGS__)
+#endif
+#if INA_LOG_LEVEL>2
+#define INA_LOG_INFO(cfg,fmt,...)    INA_LOG(cfg, INA_LOG_INFO, __VA_ARGS__)
+#endif
+#if INA_LOG_LEVEL>3
+#define INA_LOG_DEBUG(cfg,fmt,...)   INA_LOG(cfg, INA_LOG_DEBUG, __VA_ARGS__)
+#endif
+
 /* Log level */
 typedef enum ina_log_level_e {
     INA_LOG_DEBUG,
@@ -40,27 +64,42 @@ typedef enum ina_log_level_e {
     INA_LOG_ERROR
 } ina_log_level_t;
 
-/* Log backendt */
+/* Log target */
 typedef enum ina_log_target_e {
-    INA_LOG_STDOUT,
-    INA_LOG_FILE,
+    INA_LOG_STDOUT = 0x0001,
+    INA_LOG_FILE = 0x0002,
 #ifndef WIN32
-    INA_LOG_SYSLOG
+    INA_LOG_SYSLOG = 0x0004
 #endif
 } ina_log_target_t;
 
+/* Log context/configuration */
 typedef struct ina_log_cfg_s {
-    FILE *fp;
+    FILE *fp1;
+    FILE *fp2;
     ina_log_level_t level;
-    ina_log_target_t target;
+    int target;
     ina_str_t logfile;
     ina_str_t syslog_ident;
     int syslog_facility;
+    int pid;
 } ina_log_cfg_t;
 
+/*
+ * Open a log context for based on a log configuration
+ */                          
+INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target, 
+                               ina_log_level_t level, const char *logfile);
 
-INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const char* fmt, ...);
-INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target, ina_log_level_t level);
+/*
+ * Log a message to current targets and level.
+ */
+INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, 
+                          const char* fmt, ...);
+
+/*
+ * Close a log context
+ */
 INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg);
 
 #ifdef __cplusplus

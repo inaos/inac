@@ -212,11 +212,12 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
  * INA_FAILURE if an error occured
  */
 INA_API(ina_rc_t) ina_mempool_init(size_t size);
-/*
- * Destroy all memory pools and release allocated memory. To reuse memory
- * a ina_mempool_init() must be called.
- */
+/* Cleanup */
 INA_API(ina_rc_t) ina_mempool_destroy(void);
+/* Informations */
+INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info);
+/* Get a named memory pool */
+INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool);
 /*
  * Query information about a memory pool
  */

@@ -156,8 +156,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
                     if (so == NULL) {
                         INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
-                        /* TODO: Specific error */
-                        return INA_FAILURE;
+                        return INA_LIB_EOPT;
                     }
                     /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
@@ -181,8 +180,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
             HASH_ITER(hh, __sopt, so, tmp_so) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
                     __ina_opt_usage();
-                    /* TODO: Specific error */
-                    return INA_FAILURE;
+                    return INA_LIB_EOPT;
                 }
             }
         }
@@ -227,6 +225,10 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
     }
+	/* Make sure to use high-accuracy multimedia-timers for windows */
+#ifdef INA_OS_WIN32
+	timeBeginPeriod(1);
+#endif
     return INA_SUCCESS;
 }
 
@@ -275,6 +277,7 @@ INA_API(void) ina_exit(void)
     ina_err_reset();
 
 #ifdef INA_OS_WIN32
+	timeEndPeriod(1);
     WSACleanup();
 #endif
 }
@@ -390,6 +393,9 @@ __ina_signal_handler(int sig)
             if (__cleanup) {
                  __cleanup(sig, 0);
             }
+            /* Try to trace out the source of error */
+            ina_err_trace();
+            /* ... then stop */
             abort();
             break;
         case SIGTERM:

@@ -28,6 +28,9 @@
 #ifndef _LIBINAC_NET_H__
 #define _LIBINAC_NET_H__
 
+/*
+ * INAOS Network API
+ */
 
 #include <libinac/lib.h>
 
@@ -35,19 +38,81 @@
 extern "C" {
 #endif
 
+/*
+ * Resovle an host name into to a ip address
+ * 
+ * Parameters
+ * host     Hostname
+ * ipbuf    Char buffer for ip address
+ *
+ * Return Value
+ * INA_SUCCES if no error occured.
+ */
 INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf);
 
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr);
-INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port);
-INA_API(ina_rc_t) ina_net_tcp_connect(int *fd, const char *addr, int port);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_tcp_connect(int *fd, const char *addr, int port, int timeout_sec);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* nb_write);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_nonblock(int fd);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_block(int fd);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_set_read_timeout(int fd, int msec);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_set_write_timeout(int fd, int msec);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_close(int fd);
 
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_udp_bind(int* fd, const char *addr, int port);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *source);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *source);
 
 #ifdef __cplusplus
