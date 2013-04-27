@@ -8,13 +8,17 @@ set (LUA_INCLUDE_DIR "${DEPS_DIR}/luajit-2.0.1/src")
 set (ANET_INCLUDE_DIR "${DEPS_DIR}/anet")
 set (BSTRING_INCLUDE_DIR "${DEPS_DIR}/bstring")
 set (SKIPLIST_INCLUDE_DIR "${DEPS_DIR}/skiplist")
+set (HTTP_INCULDE_DIR "${DEPS_DIR}/http-parser")
+set (RAPIDXML_INCLUDE_DIR "${DEPS_DIR}/rapidxml")
 
 include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${ANET_INCLUDE_DIR}" 
-					"${BSTRING_INCLUDE_DIR}" "${SKIPLIST_INCLUDE_DIR}" "${LUA_INCLUDE_DIR}")
+					"${BSTRING_INCLUDE_DIR}" "${SKIPLIST_INCLUDE_DIR}" "${LUA_INCLUDE_DIR}"
+					"${HTTP_INCULDE_DIR}" "${RAPIDXML_INCLUDE_DIR}")
 
 set(BSTRING_LIB_NAME "bstring")
 set(ANET_LIB_NAME "anet")
 set(SKIPLIST_LIB_NAME "skiplist")
+set(HTTP_LIB_NAME "http_parser")
 set(INAC_LIB_NAME "libinac")
 set(INAC_TESTLIB_NAME "testinac")					
 					
@@ -49,12 +53,17 @@ set (SKIPLIST_SRC_DIR ${DEPS_DIR}/skiplist)
 set (SKIPLIST_SRC ${SKIPLIST_SRC_DIR}/skiplist.c)
 add_library(${SKIPLIST_LIB_NAME} ${SKIPLIST_SRC})
 
+# HTTP-PARSER
+set (HTTP_SRC_DIR ${DEPS_DIR}/http-parser)
+set (HTTP_SRC ${HTTP_SRC_DIR}/http_parser.c)
+add_library(${HTTP_LIB_NAME} ${HTTP_SRC})
+
 # END dependencies
 
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
                  ${SRC_DIR}/string/bstring.c ${SRC_DIR}/string/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
-                 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/portable.c)
+                 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/portable.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
@@ -63,6 +72,6 @@ set (TEST_SRC_DIR "${CMAKE_SOURCE_DIR}/tests")
 set (TEST_SRC ${TEST_SRC_DIR}/test_error.c ${TEST_SRC_DIR}/test_iscp.c ${TEST_SRC_DIR}/test_lib.c 
 	${TEST_SRC_DIR}/test_log.c ${TEST_SRC_DIR}/test_memory.c ${TEST_SRC_DIR}/test_mempool.c 
 	${TEST_SRC_DIR}/test_string.c ${TEST_SRC_DIR}/test_time.c ${TEST_SRC_DIR}/test_timer.c 
-	${TEST_SRC_DIR}/test_util.c
+	${TEST_SRC_DIR}/test_util.c ${TEST_SRC_DIR}/test_http.c ${TEST_SRC_DIR}/test_xml.c 
 )
 add_library(${INAC_TESTLIB_NAME} ${TEST_SRC})
