@@ -26,34 +26,21 @@
 # OF SUCH DAMAGE.
 #
 
-# ****************************************************************************
-# Set local  settinsg
-# ****************************************************************************
-#CFLAGS_OLD = $(CFLAGS)
-#CFLAGS :=
-#LDFLAGS_OLD = $(LDFLAGS)
-#LDFLAGS :=
-#export CFLAGS 
-#export LDFLAGS
-
 all: 
-	@echo building contribs
+	@echo building contribs...
 	$(MAKE) -C luajit
 	$(MAKE) -C makeheaders
 	$(MAKE) -C sqlite
 	$(MAKE) -C bstring
 	$(MAKE) -C anet
 	$(MAKE) -C skiplist
-#	$(eval CFLAGS := $(CFLAGS_OLD))
-#	$(eval LDFLAGS := $(LDFLAGS_OLD))
-#	@export CFLAGS
-#	@export LDFLAGS
 
 test: all
 	
 .PHONY: clean
 
 clean:
+	@echo cleaning contribs...
 	$(MAKE) clean -C luajit
 	$(MAKE) clean -C makeheaders
 	$(MAKE) clean -C bstring
