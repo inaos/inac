@@ -310,4 +310,3 @@ void emit_asm(BuildCtx *ctx)
   }
   fprintf(ctx->fp, "\n");
 }
-

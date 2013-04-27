@@ -35,13 +35,13 @@
 
      INA_TRACE_MSG("test_string_simple_allocation_with_pool");
 
-     INA_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
+     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
 
      str1 = ina_str_pfromcstr("hallo", pool);
-     INA_ASSERT_NOTNULL(str1);
-     INA_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
+     INA_TEST_ASSERT_NOTNULL(str1);
+     INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
      str2 = ina_str_pdup(str1, pool);
-     INA_ASSERT_NOTNULL(str2);
+     INA_TEST_ASSERT_NOTNULL(str2);
      ina_str_destroy(str1);
      ina_str_destroy(str2);
 }
@@ -54,10 +54,10 @@ void test_string_simple_allocation_without_pool()
     INA_TRACE_MSG("test_string_simple_allocation_without_pool");
     
     str1 = ina_str_fromcstr("hallo");
-    INA_ASSERT_NOTNULL(str1);
-    INA_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
+    INA_TEST_ASSERT_NOTNULL(str1);
+    INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
     str2 = ina_str_dup(str1);
-    INA_ASSERT_NOTNULL(str2);
+    INA_TEST_ASSERT_NOTNULL(str2);
     ina_str_destroy(str1);
     ina_str_destroy(str2);
 }

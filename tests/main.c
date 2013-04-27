@@ -30,6 +30,7 @@
 #include "suites.h"
 
 #define INAC_ERROR_TEST_TRACE INA_ERR_PUSH(129,1,2,"Test Trace")
+#define INAC_TEST_INT_PARAM 121
 
 static int __cleanup_called = 0;
 static int __ina_cleanup_handler(const int sig, const int error) 
@@ -40,12 +41,13 @@ static int __ina_cleanup_handler(const int sig, const int error)
 
 int main(int argc,  char** argv) 
 { 
-    INA_TRACE_MSG("TEST START");
-    
     INA_OPTS(opt,
         INA_OPT_FLAG("s", "spawn", "Flag for spwan-test"),
         INA_OPT_STRING("r", "run", "all", "Test to run"),
+        INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test integer param"),
         INA_OPT_INT("x", "repeat", 1, "repeat x times selected tests"));
+
+	INA_TRACE_MSG("TEST START");
     
     if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
         ina_str_t run = NULL;

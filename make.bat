@@ -1,85 +1,156 @@
 @echo off
 
-SET BUILD_DIR=buildall
-SET LUAJIT=contribs\luajit-2.0.0\src\luajit.exe
-SET LIB_CMD=lib /nologo
-SET LUA_PATH=contribs\luajit-2.0.0\src\?.lua
-SET BUILD_TYPE=Debug
-SET MAKEHEADERS=..\%BUILD_DIR%\makeheaders.exe
+REM
+REM Copyright (c) 2013, INAOS GmbH
+REM All rights reserved.
+REM
+REM Redistribution and use in source and binary forms, with or without
+REM modification, are permitted provided that the following conditions are met:
+REM     * Redistributions of source code must retain the above copyright
+REM       notice, this list of conditions and the following disclaimer.
+REM     * Redistributions in binary form must reproduce the above copyright
+REM       notice, this list of conditions and the following disclaimer in the
+REM       documentation and/or other materials provided with the distribution.
+REM     * Neither the name of the INAOS GmbH nor the names of its contributors
+REM       may be used to endorse or promote products derived from this software 
+REM       without specific prior written permission.
+REM
+REM THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+REM AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+REM IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+REM ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
+REM INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+REM (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+REM SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+REM CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+REM STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+REM ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+REM OF SUCH DAMAGE.
+REM
 
-if not "%1" == "" goto set_build_type
+REM Set general Environment variables
+REM ---------------------------------
 
-:setup_cmake
-SET CMAKE_CMD=cmake
-SET CMAKE_CMD=%CMAKE_CMD% -DCMAKE_BUILD_TYPE=%BUILD_TYPE%
-SET CMAKE_CMD=%CMAKE_CMD% -G"NMake Makefiles"
+SET INAC_HOME=%CD%
+SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
-if not defined INCLUDE goto :fail
-
-if not exist %BUILD_DIR% goto make_build_dir
-
-:build_lua
-
-if not exist %BUILD_DIR%\lua goto make_lua_dir
-
-%LUAJIT% -b src\conffile.lua %BUILD_DIR%\lua\conffile.obj
-
-%LIB_CMD% /OUT:%BUILD_DIR%\inac-lua.lib %BUILD_DIR%\lua\*.obj
-
-goto build
-
-:set_build_type
-SET BUILD_TYPE=%1
-goto setup_cmake
-
-:make_build_dir
-mkdir %BUILD_DIR%
-goto build_lua
-
-:make_lua_dir
-mkdir %BUILD_DIR%\lua
-goto build_lua
-
-:build
-
-cd %BUILD_DIR%
-call %CMAKE_CMD% ..
-
-nmake
-
-cd..
-cd tests
-
-for /r %%i in (test_*.c) do %MAKEHEADERS% %%i
-
-echo #ifndef _SUITES_H_ > suites.h
-echo #define _SUITES_H_ >> suites.h
-for /r %%i in (test_*.h) do echo #include "%%i" >> suites.h
-
-echo #include "suites.h" > suites.c
-echo void runtests() { >> suites.c
-for /r %%z in (test_*.h) do (
-	for /F "eol=/ tokens=2" %%i in (%%z) do echo %%i >> suites.c
+if not defined INCLUDE (
+	if not defined VS110COMNTOOLS goto fail_vs_2012
+	if not exist "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" goto fail_vs_2012
+	call "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" x86
 )
-echo } >> suites.c;
-echo void runtests(); >> suites.h
-echo #endif >> suites.h
 
-mkdir build
-cd build
-call %CMAKE_CMD% ..
-nmake
-cd..
+if not exist %INAC_BUILD_SCRIPT% goto fail_no_build_script
 
-cd..
+REM Determine build-type and build-stage
+if not "%2" == "" (
+	call %INAC_BUILD_SCRIPT% %1 %2 eval_params
+) else (
+	call %INAC_BUILD_SCRIPT% %1 dummy eval_params
+)
+if not defined INAC_W32_BUILD_TYPE goto exit
+if not defined INAC_W32_BUILD_STAGE goto exit
+if "%INAC_W32_BUILD_STAGE%" == "dummy" goto exit
+if not "%INAC_W32_BUILD_STAGE%" == "clean" (
+	if "%INAC_W32_BUILD_TYPE%" == "dummy" goto exit
+)
 
-goto success
+REM Build 3rd party
+REM ---------------------------------
 
-:success
-echo.
-echo === Successfully built inac for Windows ===
+REM build luajit
+cd contribs\luajit\src
+if not exist msvcbuild.bat goto fail_no_luajit1
+if not exist msvcbuild_debug.bat goto fail_no_luajit2
+if "%INAC_W32_BUILD_STAGE%" == "clean" (
+	if exist lua51.lib del lua51.lib
+	if exist lua51d.lib del lua51d.lib
+) else (
+	if "%INAC_W32_BUILD_TYPE%" == "debug" (
+		if not exist lua51d.lib (
+			call msvcbuild_debug.bat static
+		)
+	)
+	if "%INAC_W32_BUILD_TYPE%" == "release" (
+		if not exist lua51.lib (
+			call msvcbuild.bat static
+		)
+	)
+)
+cd %INAC_HOME%
+
+REM build sqlite
+call contribs\sqlite\make.bat %1 %2
+
+REM reset the main environment variables because they might have been deleted by the previous build
+SET INAC_HOME=%CD%
+SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
+REM Build INAC
+REM ---------------------------------
+
+SET INAC_WIN32_BUILD_NAME=inac
+SET INAC_WIN32_PROJECT_DIR=.
+SET INAC_WIN32_C_SOURCE_DIR=.
+SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
+
+call %INAC_BUILD_SCRIPT% %1 %2
+
+REM reset the main environment variables because they might have been deleted by the previous build
+SET INAC_HOME=%CD%
+SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
+SET INAC_WIN32_BUILD_NAME=inac
+SET INAC_WIN32_PROJECT_DIR=.
+SET INAC_WIN32_LUA_SOURCE_DIR=src
+SET INAC_WIN32_LUA_LIB_NAME=libinac_lua.lib
+
+call %INAC_BUILD_SCRIPT% %1 %2
+if not "%INAC_W32_BUILD_STAGE%" == "clean" (
+	LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib
+)
+
+REM reset the main environment variables because they might have been deleted by the previous build
+SET INAC_HOME=%CD%
+SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
+SET INAC_WIN32_BUILD_NAME=inac
+SET INAC_WIN32_PROJECT_DIR=.
+SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
+SET INAC_WIN32_C_TEST_SOURCE_DIR=tests
+SET INAC_WIN32_C_TEST_MAKEHEADERS=..\buildall\makeheaders.exe
+SET INAC_WIN32_C_TEST_SUITE_EXEC=buildtest\test.exe
+
+call %INAC_BUILD_SCRIPT% %1 %2
+
 goto exit
 
-:fail
-echo You must open a "Visual Studio .NET Command Prompt" to run this script
+:fail_vs_2012
+echo Error: Something is wrong with your INAC_HOME setting: %INAC_HOME%
+goto exit
+
+:fail_no_build_script
+echo Error: Something is wrong with your INAC_HOME setting: %INAC_HOME%
+goto exit
+
+:fail_no_luajit1
+echo Error: Luajit build script msvcbuild.bat not found
+goto exit
+
+:fail_no_luajit2
+echo Error: Luajit debug build script msvcbuild.bat not found
+goto exit
+
+
 :exit
+
+REM Clean-up
+REM ---------------------------------
+
+SET INAC_W32_BUILD_TYPE=
+SET INAC_W32_BUILD_STAGE=
+
+SET INAC_HOME=
+SET INAC_BUILD_SCRIPT=
+
+goto:eof

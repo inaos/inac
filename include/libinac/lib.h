@@ -51,6 +51,11 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <time.h>
+
+#include <contribs/luajit/src/luajit.h>
+#include <contribs/luajit/src/lauxlib.h>
+#include <contribs/luajit/src/lualib.h>
 
 #include <libinac/portable.h>
 #include <libinac/types.h>
@@ -64,17 +69,23 @@
 #include <libinac/ullc.h>
 #include <libinac/net.h>
 #include <libinac/iscp.h>
+#include <libinac/ljit.h>
 #include <libinac/conffile.h>
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
+#include <libinac/test.h>
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define INA_YES 1
-#define INA_NO  0
+#define INA_YES (1)
+#define INA_NO  (0)
+
+#define INA_NUM2STR_X(x) #x
+#define INA_NUM2STR(x) INA_NUM2STR_X(x)
 /*
  * Version
  */
@@ -100,7 +111,7 @@ extern "C" {
  
 /* Add int option */
 #define INA_OPT_INT(short_opt, long_opt, dft, desc)       \
- { short_opt, long_opt, INA_OPT_TYPE_INT, #dft, desc }
+ { short_opt, long_opt, INA_OPT_TYPE_INT, INA_NUM2STR(dft), desc }
 
 /* Define options map */
 #define INA_OPTS(name, ...)         \

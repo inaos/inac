@@ -26,9 +26,9 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
-#include "../config.h"
+#include "config.h"
 
-#ifdef CSTRING_ENABLED
+#ifdef INA_CSTRING_ENABLED
 
 INA_API(ina_str_t) ina_str_newlen(size_t len)
 {
