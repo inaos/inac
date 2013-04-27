@@ -366,8 +366,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             ina_iscp_cmd_t *cmd;
             ina_iscp_param_t *params;
             int ci;
-            uint32_t crc;
             ina_iscp_rc_t irc;
+            uint32_t crc = 0;
  
             INA_TRACE2("Message received with cmd_id %d", msg.cmd_id);
             INA_TRACE3("- msg.cmd_id->%d", msg.cmd_id);
