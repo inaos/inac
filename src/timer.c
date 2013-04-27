@@ -26,19 +26,16 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
+#include <contribs/skiplist/skiplist.h>
 #include "config.h"
-#include <skiplist.h>
 
 struct ina_timer_s {
     skiplist events;
     uint64_t next_event_id;
-    time_t last_time;
 } ina_timer_s;
 
 /* Skip list compare callback */
 static int __ina_cmp(const void *, const void *);
-/* Read clock time */
-static ina_rc_t __ina_read_clock(ina_time_t*);
 /* Get current time */
 static ina_rc_t __ina_get_time(time_t*, time_t*);
 /* Get current time and add milliseconds to the time value */
@@ -69,11 +66,8 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
     }
     t = *timer;
     t->next_event_id = 0;
-    t->last_time = time(NULL);
     t->events = skiplist_create(__ina_cmp, sentinal);
-#ifdef INA_OS_WIN32
-    timeBeginPeriod(1);
-#endif
+
     return INA_SUCCESS;
 }
 
@@ -88,9 +82,7 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
     skiplist_destroy((*timer)->events);
     ina_mem_free(*timer);
     *timer = NULL;
-#ifdef INA_OS_WIN32
-    timeEndPeriod(1);
-#endif
+
     return INA_SUCCESS;
 }
 
@@ -125,31 +117,17 @@ INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e
 
 INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer)
 {
-    time_t now = time(NULL);
     time_t now_sec, now_msec;
     ina_time_event_t *e;
 
     INA_ASSERT_NOTNULL(timer);
 
     /* 
-     * If the system clock is moved to the future, and then set back to the
-     * right value, time events may be delayed in a random way. Often this
-     * means that scheduled operations will not be performed soon enough.
-     *
-     * Here we try to detect system clock skews, and force all the time
-     * events to be processed ASAP when this happens: the idea is that
-     * processing events earlier is less dangerous than delaying them
-     * indefinitely, and practice suggests it is. 
-     */
-    if (now < timer->last_time) {
-        skipnode n;
-        ina_time_event_t *e;
-        SKIPLIST_FOREACH(timer->events, n) {
-            e = (ina_time_event_t*)skipnode_item(n);
-            e->when_sec = 0;
-        }
-    }
-    timer->last_time = now;
+	 * We do not need to handle clock-skew!
+	 * Since we're using a monotonic increasing clock. 
+	 * Check the function calls in __ina_get_time to get 
+	 * a better idea.
+	 */
 
     e = __ina_search_nearest_event(timer);
     if (e == NULL) {
@@ -235,30 +213,20 @@ static int
 }
 
 static ina_rc_t 
-__ina_read_clock(ina_time_t *time)
-{
-#ifdef WIN32
-    time->ttp = timeGetTime();
-#else
-    if (gettimeofday(&time->tp, NULL) == -1) {
-        return INA_FAILURE;
-    }
-#endif
-    return INA_SUCCESS;
-}
-
-static ina_rc_t 
 __ina_get_time(time_t *sec, time_t *msec)
 {
-    ina_time_t t;
+    ina_time_tsc_t t;
+	long nanos;
 
     INA_ASSERT_NOTNULL(sec);
     INA_ASSERT_NOTNULL(msec);
 
-    __ina_read_clock(&t);
+    ina_time_read_tsc_clock(&t);
 
-    ina_time_get_seconds(&t, sec);
-    ina_time_get_milliseconds(&t, msec);
+	ina_time_tsc_seconds_nanos(&t, sec, &nanos);
+    
+	*msec = nanos*1000*1000;
+
     return INA_SUCCESS;
 }
 
