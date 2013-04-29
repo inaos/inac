@@ -4,7 +4,7 @@ OBJ = $(SRC:%.c=%.o)
 HDR = $(SRC:%.c=%.h)
 FN  = $(SRC:%.c=%)
 BIN = test
-MAKEHEADERS = ../contribs/makeheaders/makeheaders
+MAKEHEADERS = $(INAC_CONTRIBS_DIR)/makeheaders/makeheaders
 
 # ****************************************************************************
 # Linker settings
