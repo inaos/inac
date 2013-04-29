@@ -125,6 +125,9 @@ extern "C" {
  * - Multi producer handling
  */
 
+#define INA_ULLC_MAX_PRODUCERS (64)
+#define INA_ULLC_MAX_CONSUMERS (64)
+
 /* Context types */
 typedef enum ina_ullc_ctx_type_e {
     INA_ULLC_CTX_PRODUCER = 0,
@@ -158,28 +161,48 @@ typedef struct ina_ullc_rb_s {
     ina_semkey_t semkey; /*FIXME: multiple producer */
 } ina_ullc_rb_t;
 
-/* consumer */
-typedef struct ina_ullc_consumer_s {
+/* ULLC ring cursor */
+typedef struct ina_ullc_cursor_s {
     volatile int64_t alive;
     volatile int64_t cursor;
- } ina_ullc_consumer_t;
+ } ina_ullc_cursor_t;
 
 /* ullc context */
 typedef struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
-	ina_mempool_t *pool;            /* memory-pool */
+    ina_mempool_t *pool;            /* memory-pool */
     ina_ullc_ctx_type_t type;       /* type of context */
     ina_handle_t sem_handle;        /* semaphore handle */
     ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
-    ina_ullc_consumer_t *c_offset;  /* consumer(s) */
+    ina_ullc_cursor_t *c_offset;    /* consumer(s) */
     unsigned char *data;            /* slot data */
 } ina_ullc_ctx_t;
 
-#define INA_ULLC_PRODUCER_CREATE(type, version, slots, consumers, name, ws, ctx) \
-    ina_ullc_producer_create(version, sizeof(type), slots, consumers, name, ws, ctx)
-#define INA_ULLC_CONSUMER_CREATE(type, version, slots, consumers, name, ctx) \
-        ina_ullc_consumer_create(version, sizeof(type), slots, consumers, name, ctx)
+/* ULLC Ring buffer info */
+typedef struct ina_ullc_rb_info_s {
+    int    ring_version;            /* Ring version */
+    size_t num_write_op;            /* Number of write operation */
+    int64_t last_writer;            /* Last writing producer */
+    size_t num_read_op;             /* Nr. od read operations */
+    int64_t last_reader;            /* Last reading consumer */
+    size_t num_producers;           /* Nr of producers */
+    size_t num_producers_alive;     /* Nr of active producers */
+    size_t num_consumers;           /* Max nr. of consumers */
+    size_t num_consumers_alive;     /* Nr of active consumers */
+    size_t mem_size;                /* Allocated size in bytes */
+    size_t slot_size;               /* Size in bytes for each slot */
+    size_t num_slots;               /* Nr of slots */
+    int64_t current_slot;           /* Last commited slot */
+    ina_ullc_cursor_t c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
+    ina_ullc_cursor_t p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */    
+} ina_ullc_rb_info_t;
+
+#define INA_ULLC_PRODUCER_CREATE(type, version, slots, producers, consumers, name, ws, ctx) \
+    ina_ullc_producer_create(version, sizeof(type), slots, producers, consumers, name, ws, ctx)
+#define INA_ULLC_CONSUMER_CREATE(type, version, slots, producers, consumers, name, ctx) \
+    ina_ullc_consumer_create(version, sizeof(type), slots, producers, consumers, name, ctx)
+    
 /* Clain an item */
 #define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
 /* Commit an item */
@@ -199,10 +222,17 @@ typedef struct ina_ullc_ctx_s {
 #define INA_ULLC_SIGNAL_RELEASE(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_RELEASE)
 
 /*
+ * Get current ring status informations
+ */
+INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *info);
+
+/*
  *  Create a producer
  */
-INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, size_t slots, int num_consumers,
-                            const ina_str_t name, ina_ullc_wait_strategy ws, ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, 
+                    size_t slots, int producers, int num_consumers,
+                    const ina_str_t name, ina_ullc_wait_strategy ws, 
+                    ina_ullc_ctx_t **ctx);
 /*
  *  Destroy a producer
  */
@@ -230,7 +260,9 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_
 /*
  * Create a consumer
  */
-INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size, size_t slots, 
+INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size, 
+                                    size_t slots, 
+                                    int producers,
                                     int num_consumers, 
                                     const ina_str_t name, 
                                     ina_ullc_ctx_t **ctx);

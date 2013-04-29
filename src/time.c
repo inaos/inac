@@ -46,9 +46,10 @@
 #if defined(INA_OS_LINUX)
 # if defined(CLOCK_MONOTONIC_RAW)
 #  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC_RAW
-# elsei if defined(INA_OS_OSX)
-#  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC
 # endif
+#endif
+#if defined(INA_OS_OSX)
+#  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC
 #endif
 
 static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
@@ -375,7 +376,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 
 #else
     INA_ASSERT_NOTNULL(stopwatch);
-    ina_time_read_clock(&stopwatch->tv->stop);
+    ina_time_read_tsc_clock(&stopwatch->tv->stop);
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
     stopwatch->tv->sec_duration += ((stopwatch->tv->stop.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
 #endif

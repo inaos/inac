@@ -63,8 +63,57 @@ static ina_rc_t __ina_sem_operation(ina_ullc_ctx_t*, ina_ullc_signal_type st);
 static ina_rc_t __ina_ullc_ring_create(ina_ullc_rb_t**, ina_ullc_ctx_t*, int,
                             size_t, size_t, int , const ina_str_t, int);
 
-INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, size_t slots, int num_consumers,
-                            const ina_str_t name, ina_ullc_wait_strategy ws, ina_ullc_ctx_t **ctx)
+
+INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *info)
+{
+    ina_mempool_t *m = NULL;
+    ina_ullc_rb_t *rb = NULL;
+    size_t c = 0;
+
+    INA_ASSERT_NOTNULL(rb);
+    INA_ASSERT_NOTNULL(info);
+
+    if (!INA_SUCCEED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, ina_str_fromcstr(name)))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
+    if (rb == NULL) {
+        ina_mempool_release(m, INA_YES);
+        return INA_ERR_PUSH_LAST;
+    }
+
+    info->ring_version = rb->version;
+    info->num_write_op = 0;
+    info->last_writer = 0;
+    info->num_read_op = 0;
+    info->last_reader = 0;
+    info->num_producers = 0;
+    info->num_producers_alive = 0;
+    info->num_consumers = rb->num_consumers;
+    info->num_consumers_alive = 0;
+    info->mem_size = m->size;
+    info->slot_size = rb->size;
+    info->num_slots = rb->slots;
+    info->current_slot = rb->cursor;
+    /*for (c = 0; c < info->num_producers; ++c) {
+        if (p->alive) {
+            info->num_producers_alive++;
+        }
+    }
+    for (c = 0; c < info->num_consumers; ++c) {
+        if (p->alive) {
+            info->num_consumers_alive++;
+        }
+    }*/
+
+    ina_mempool_release(m, INA_YES);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, 
+                            size_t slots, int  num_producers, int num_consumers,
+                            const ina_str_t name, ina_ullc_wait_strategy ws,
+                            ina_ullc_ctx_t **ctx)
 {
     ina_ullc_ctx_t* pctx;
     
@@ -103,7 +152,7 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, size_t slot
     pctx->ws = ws;
     pctx->ring = pctx->ring;
     pctx->data = ((unsigned char*)pctx->ring) + sizeof(ina_ullc_rb_t);
-    pctx->c_offset = (ina_ullc_consumer_t*)&pctx->data[(pctx->ring->slots-1)*pctx->ring->size]+sizeof(ina_ullc_consumer_t);
+    pctx->c_offset = (ina_ullc_cursor_t*)&pctx->data[(pctx->ring->slots-1)*pctx->ring->size]+sizeof(ina_ullc_cursor_t);
     return __ina_sem_create(pctx);
 }
 
@@ -178,10 +227,10 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size, 
-                        size_t slots, int num_consumers, const ina_str_t name,
-                        ina_ullc_ctx_t **ctx)
+                        size_t slots, int num_producers, int num_consumers, 
+                        const ina_str_t name, ina_ullc_ctx_t **ctx)
 {
-    ina_ullc_consumer_t *cons;
+    ina_ullc_cursor_t *cons;
     ina_ullc_ctx_t* ccxt;
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
@@ -205,7 +254,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
     ccxt->sem_handle = 0;
     ccxt->ring = ccxt->ring;
     ccxt->data = ((unsigned char*)ccxt->ring) + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_consumer_t*)&ccxt->data[(ccxt->ring->slots-1)*ccxt->ring->size]+sizeof(ina_ullc_consumer_t);
+    cons = (ina_ullc_cursor_t*)&ccxt->data[(ccxt->ring->slots-1)*ccxt->ring->size]+sizeof(ina_ullc_cursor_t);
     while (ccxt->id < num_consumers) {
         ccxt->c_offset = &cons[ccxt->id];
         if (__INA_ULLC_SWAP(&ccxt->c_offset->alive, 0, 1) == 0) {
@@ -308,7 +357,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
     }
 
     mem_size = (sizeof(ina_ullc_rb_t)+size*slots)+
-                 (sizeof(ina_ullc_consumer_t)*num_consumers);
+                 (sizeof(ina_ullc_cursor_t)*num_consumers);
 
 	ctx->pool = NULL;
 

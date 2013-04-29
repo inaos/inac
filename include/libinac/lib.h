@@ -71,6 +71,7 @@
 #include <libinac/iscp.h>
 #include <libinac/ljit.h>
 #include <libinac/conffile.h>
+#include <libinac/http.h>
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>

@@ -51,7 +51,9 @@ export LUA_PATH
 CC     = /usr/bin/gcc 
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
          -I$(INAC_CONTRIBS_DIR)/bstring -I$(INAC_CONTRIBS_DIR)/sqlite \
-         -I$(INAC_CONTRIBS_DIR)/skiplist -DINA_LIB=1
+         -I$(INAC_CONTRIBS_DIR)/skiplist 
+CFLAGS += -DINA_LIB=1
+CFLAGS += -DINA_CSTRING_ENALBED=1
 export CFLAGS
 export LDFLAGS
 
@@ -73,14 +75,10 @@ default: release
 
 all: 
 	@echo === INAOS Common C Library - $(INAC_BUILD_TYPE) -  ===
-	@echo $(INAC_INCLUDES)
 	@echo Building....
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 	@echo === Done ===
 	@echo Architecture: $(OS)
-	@echo Home directory: $(INAC_HOME_DIR)
-	@echo LuaJIT command: $(INAC_LUAJIT_CMD)
-	@echo Lua path: $(INAC_LUA_PATH)
 	@echo Build type: $(INAC_BUILD_TYPE)
 
 release: CFLAGS += -O2 -DINA_LOG_LEVEL=1
