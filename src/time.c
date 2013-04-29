@@ -133,13 +133,14 @@ INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs,
     *nanos = (long)ns;
     *secs /= 1000000000;
 #else
-    *secs = time->tp->tv_sec;
-    *nanos = time->tp->tv_nsec;
+    *secs = time->tp.tv_sec;
+    *nanos = time->tp.tv_nsec;
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, long *micros)
+INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, 
+						long *micros)
 {
 #ifdef INA_OS_WIN32
     unsigned __int64 tmpres = 0;
@@ -230,7 +231,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
         return INA_FAILURE;
     }
     if (stopwatch->tv->stop.tp.tv_sec == stopwatch->tv->start.tp.tv_sec) {
-        if (stopwatch->tv->stop.tp.tv_usec < stopwatch->tv->start.tp.tv_usec) {
+        if (stopwatch->tv->stop.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec) {
             return INA_FAILURE;
         }
     }
@@ -316,11 +317,11 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, int6
 #else
         if (*stamp_index == 0) {
             stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
-            stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0);
+            stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_nsec - stopwatch->tv->start.tp.tv_nsec) / 10000000.0);
         } else {
             ina_stopwatch_ts_t *ts =  (&(stopwatch->tv->stamps))+(*stamp_index-1);
             stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - ts->stamp.tp.tv_sec);
-            stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_usec - ts->stamp.tp.tv_usec) / 10000000.0);         
+            stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_nsec - ts->stamp.tp.tv_nsec) / 10000000.0);         
         } 
 #endif
         stopwatch->ts->msec_duration= stopwatch->ts->sec_duration*1000;
@@ -378,7 +379,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     INA_ASSERT_NOTNULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - stopwatch->tv->start.tp.tv_sec);
-    stopwatch->tv->sec_duration += ((stopwatch->tv->stop.tp.tv_usec - stopwatch->tv->start.tp.tv_usec) / 10000000.0); 
+    stopwatch->tv->sec_duration += ((stopwatch->tv->stop.tp.tv_nsec - stopwatch->tv->start.tp.tv_nsec) / 10000000.0); 
 #endif
     stopwatch->tv->msec_duration= stopwatch->tv->sec_duration*1000;
     stopwatch->tv->usec_duration = stopwatch->tv->sec_duration*1000*1000;    
