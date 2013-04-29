@@ -68,7 +68,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
 {
     ina_mempool_t *m = NULL;
     ina_ullc_rb_t *rb = NULL;
-    size_t c = 0;
+    /* size_t c = 0; */
 
     INA_ASSERT_NOTNULL(rb);
     INA_ASSERT_NOTNULL(info);
