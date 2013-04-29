@@ -50,10 +50,17 @@ export LUA_PATH
 # ****************************************************************************
 CC     = /usr/bin/gcc 
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
-         -I$(INAC_CONTRIBS_DIR)/bstring -I$(INAC_CONTRIBS_DIR)/sqlite \
-         -I$(INAC_CONTRIBS_DIR)/skiplist 
+         -I$(INAC_CONTRIBS_DIR) 
 CFLAGS += -DINA_LIB=1
+
+# ****************************************************************************
+# String implementation
+# ****************************************************************************
 CFLAGS += -DINA_CSTRING_ENALBED=1
+#CFLAGS += -DINA_BSTRING_ENALBED=1
+#CFLAGS += -DINA_ISTRING_ENALBED=1
+#CFLAGS += -DINA_ISTRING_ENALBED=1
+
 export CFLAGS
 export LDFLAGS
 
@@ -64,12 +71,20 @@ DIRS = contribs doc include src tests
 # ****************************************************************************
 # Libraries
 # ****************************************************************************
-TARGET_LIB=libinac.a
-INC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a $(INAC_CONTRIBS_DIR)/bstring/bstring.a \
+INAC_LIB=libinac.a
+INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
      $(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a $(INAC_CONTRIBS_DIR)/skiplist/skiplist.a \
      $(INAC_CONTRIBS_DIR)/sqlite/sqlite.a
-export TARGET_LIB
-export INC_LIBS
+ifeq (1,$(INA_BSTRING_ENABLED))
+	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/bstring/bstring.a
+endif
+ifeq (1,$(INA_SSTRING_ENABLED))
+  	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/sds/sds.a
+endif
+
+
+export INAC_LIB
+export INAC_LIBS
 
 default: release
 
