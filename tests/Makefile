@@ -9,9 +9,10 @@ MAKEHEADERS = ../contribs/makeheaders/makeheaders
 # ****************************************************************************
 # Linker settings
 # ****************************************************************************
+LDFLAGS += ../src/$(TARGET_LIB) $(INC_LIBS)
 ifeq (,$(findstring Windows,$(OS)))
 	ifneq (Darwin,$(shell uname -s))
-		LDFLAGS += -lm -ldld -lrt
+		LDFLAGS += -lm -lrt -ldl
 	else
 		LDFLAGS += -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000 
 	endif
@@ -19,7 +20,7 @@ endif
 
 all: $(OBJ) suites.o main.o
 	@echo $(TARGET_LIB)
-	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)  ../src/$(TARGET_LIB) $(INC_LIBS)
+	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)
 
 %.o: %.c
 	@echo compiling $<
