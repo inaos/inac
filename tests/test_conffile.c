@@ -105,7 +105,7 @@ void test_conffile_process_without_filepath()
 void test_conffile_init_destroy()
 {
     ina_conffile_t *cf = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
     INA_TEST_ASSERT_NOTNULL(cf);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
     INA_TEST_ASSERT_NULL(cf);
