@@ -4,22 +4,23 @@ OBJ = $(SRC:%.c=%.o)
 HDR = $(SRC:%.c=%.h)
 FN  = $(SRC:%.c=%)
 BIN = test
-MAKEHEADERS = ../contribs/makeheaders/makeheaders
+MAKEHEADERS = $(INAC_CONTRIBS_DIR)/makeheaders/makeheaders
 
 # ****************************************************************************
 # Linker settings
 # ****************************************************************************
+LDFLAGS += ../src/$(INAC_LIB) $(INAC_LIBS)
 ifeq (,$(findstring Windows,$(OS)))
 	ifneq (Darwin,$(shell uname -s))
-		LDFLAGS += -lm -ldld -lrt
+		LDFLAGS += -lm -lrt -ldl
 	else
 		LDFLAGS += -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000 
 	endif
 endif
 
 all: $(OBJ) suites.o main.o
-	@echo $(TARGET_LIB)
-	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)  ../src/$(TARGET_LIB) $(INC_LIBS)
+	@echo $(INAC_LIB)
+	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)
 
 %.o: %.c
 	@echo compiling $<
