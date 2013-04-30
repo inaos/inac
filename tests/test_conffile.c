@@ -77,10 +77,8 @@ void test_conffile_process_without_filepath()
     __section_count = 0;
     __named_section_count = 0;
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf, NULL));
-    INA_TRACE("filepath=%s", ina_str_cstr(cf->filepath));
-    INA_TEST_ASSERT_EQUAL(0, strcmp(ina_str_cstr(cf->filepath), "test.conf"));
-    
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
+ 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "Debug", INA_YES, INA_NO, __ina_section_handler, &cs));
     INA_TEST_ASSERT_NOTNULL(cs);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
@@ -95,7 +93,8 @@ void test_conffile_process_without_filepath()
     __section_count = 0;
     __named_section_count = 0;
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
+    INA_TEST_ASSERT_EQUAL(0, strcmp(ina_str_cstr(cf->filepath), "test.conf"));
     INA_TEST_ASSERT_EQUAL(1, __section_count);
     INA_TEST_ASSERT_EQUAL(2, __named_section_count);
     
@@ -106,7 +105,7 @@ void test_conffile_process_without_filepath()
 void test_conffile_init_destroy()
 {
     ina_conffile_t *cf = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
     INA_TEST_ASSERT_NOTNULL(cf);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
     INA_TEST_ASSERT_NULL(cf);
