@@ -65,8 +65,8 @@ void test_conffile_using_macros_autodestroy()
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_STRING_KEY("mask", INA_YES)));
 
-    INA_TEST_ASSERT_EQUAL(1, __section_count);
-    INA_TEST_ASSERT_EQUAL(2, __named_section_count);
+    INA_TEST_ASSERT_EQUAL(2, __section_count);
+    INA_TEST_ASSERT_EQUAL(4, __named_section_count);
 }
 
 void test_conffile_process_without_filepath()
