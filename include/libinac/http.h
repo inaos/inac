@@ -33,28 +33,31 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
- 
-typedef enum http_method ina_http_method_t;
-typedef enum http_parser_type ina_http_parser_type_t;
-typedef enum flags ina_http_flags_t;
-typedef enum http_parser_url_fields ina_http_url_fields;
 
-typedef struct ina_http_ctx_s {
-/* FIXME */
-} ina_http_ctx_t;
+typedef enum ina_http_parser_type_e {
+	INA_HTTP_PARSER_TYPE_REQUEST, 
+	INA_HTTP_PARSER_TYPE_RESPONSE, 
+	INA_HTTP_PARSER_TYPE_BOTH
+} ina_http_parser_type_t;
 
-/* probably opaque */
+/* opaque */
 typedef struct ina_http_parser_s ina_http_parser_t;
 
-/* probably opaque */
+/* opaque */
 typedef struct ina_http_url_s ina_http_url_t;
 
+/* opaque */
 typedef struct ina_http_header_s ina_http_header_t;
+
+typedef struct ina_http_ctx_s {
+	int parser_pool_size;
+	ina_http_parser_t *parsers;
+} ina_http_ctx_t;
 
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_init(ina_http_ctx_t **ctx, int parser_pool_size);
+INA_API(ina_rc_t) ina_http_init(ina_http_ctx_t **ctx, ina_http_parser_type_t parser_type, int parser_pool_size);
 /*
  * 
  */
@@ -74,7 +77,7 @@ INA_API(ina_rc_t) ina_http_parser_url_get(ina_http_parser_t *p, ina_http_url_t *
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_url_get_field(ina_http_url_t *url, uint16_t mask, uint16_t *offset, uint16_t *len);
+INA_API(ina_rc_t) ina_http_url_get_field(ina_http_url_t *url, uint16_t mask, const char **begin, uint16_t *len);
 /*
  * 
  */
@@ -82,7 +85,7 @@ INA_API(ina_rc_t) ina_http_url_get_port(ina_http_url_t *url, uint16_t *port);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_parser_header_first(ina_http_parser_t *p, ina_http_header_t **header);
+INA_API(ina_rc_t) ina_http_parser_header_first(ina_http_parser_t *p, ina_http_header_t **first);
 /*
  * 
  */
@@ -90,23 +93,23 @@ INA_API(ina_rc_t) ina_http_parser_header_next(ina_http_parser_t *p, ina_http_hea
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_parser_header_by_name(ina_http_parser_t *p, ina_http_header_t **header);
+INA_API(ina_rc_t) ina_http_parser_header_by_name(ina_http_parser_t *p, const char *name, ina_http_header_t **header);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_parser_header_get_field(ina_http_parser_t *p, ina_http_header_t *header, ina_str_t *field);
+INA_API(ina_rc_t) ina_http_parser_header_get_field(ina_http_parser_t *p, ina_http_header_t *header, const char **begin, size_t *len);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_parser_header_get_value(ina_http_parser_t *p, ina_http_header_t *header, ina_str_t *value);
+INA_API(ina_rc_t) ina_http_parser_header_get_value(ina_http_parser_t *p, ina_http_header_t *header, const char **begin, size_t *len);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_parser_payload_get(ina_http_parser_t *p, unsigned char **payload);
+INA_API(ina_rc_t) ina_http_parser_payload_get(ina_http_parser_t *p, unsigned char **payload, size_t *payload_len);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_parser_status_code(ina_http_parser_t *p, short *status);
+INA_API(ina_rc_t) ina_http_parser_status_code(ina_http_parser_t *p, unsigned short *status);
 /*
  * 
  */
@@ -114,7 +117,7 @@ INA_API(ina_rc_t) ina_http_parser_method(ina_http_parser_t *p, int *method);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_http_parser_httpversion(ina_http_parser_t *p, short *major, short *minor);
+INA_API(ina_rc_t) ina_http_parser_httpversion(ina_http_parser_t *p, unsigned short *major, unsigned short *minor);
 /*
  * 
  */
