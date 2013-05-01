@@ -248,21 +248,63 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
  */
 INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf);
 
-/* */
+/*
+ *  Add a string value key to the configration file.
+ *  
+ *  Parameters
+ *  name	string	Name of value key
+ *  required	boolean	Define if value is reuired or optional
+ */
 #define INA_CONFFILE_STRING_KEY(name, required) \
 ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required)
 
+/*
+ * Add a number value key to the confiuration file.
+ *
+ * Parameters
+ * name		string	Name of value key
+ * required	boolean	Define if value is required or optional
+ */
 #define INA_CONFFILE_NUMBER_KEY(name, required) \
 ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_NUMBER, required)
 
+/* 
+ * Add an unnamed section to the configration file.
+ *
+ * Parameters
+ * name		string	 Section name
+ * required	boolean	 Define if the section is required or optional
+ * handler	callback Callback for section handling
+ * ...          Nested INA_CONFFILE_STRING_KEY or INA_CONFFILE_NUMBER key
+ *              macros for adding key values
+ */
 #define INA_CONFFILE_SECTION(name, required, handler, ...) \
 ina_conffile_add_section(__cf, name, required, INA_NO, handler, &__cs); \
 __VA_ARGS__
 
+/*
+ * Add a named section to the configuration file.
+ *
+ * Parameters
+ * name		string	Section name
+ * required	boolean	Define if the section is required or optional
+ * handler	callback Callback to handle section
+ * ...		INA_CONFFILE_STRING_KEY or INA_CONFFILE_NUMBER_KEY to add
+ * 		value keys to the section
+ */
 #define INA_CONFFILE_NAMED_SECTION(name, required, handler, ...) \
 ina_conffile_add_section(__cf, name, required, INA_YES, handler, &__cs); \
 __VA_ARGS__
 
+/*
+ * Define configration file using the standard pattern. 
+ *
+ * Parameters
+ * cf	Pointer to a configuration file. NULL if it's not itended to use
+ *      the configration values after  processing the configuration file
+ * ...  Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add 
+ *      named or unamed section to the configuration file
+ */
 #define INA_CONFFILE(cf, ...)                            \
     ina_conffile_t *__cf = NULL;                         \
     ina_conffile_section_t *__cs = NULL;                 \
