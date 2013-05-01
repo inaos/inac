@@ -27,6 +27,90 @@
  */
 #include <libinac/lib.h>
 
+void test_ina_str_newlen()
+{
+    
+}
+
+void test_ina_str_pnewlen()
+{
+    
+}
+
+void test_ina_str_fromcstr()
+{
+    
+}
+
+void test_ina_str_destroy()
+{
+    
+}
+
+void test_ina_str_dup()
+{
+    
+}
+
+void test_ina_str_pdup()
+{
+    
+}
+
+void test_ina_str_cstr()
+{
+    
+}
+
+void test_ina_str_cpy()
+{
+    
+}
+
+void test_ina_str_ncpy()
+{
+    
+}
+
+void test_ina_str_cat()
+{
+    
+}
+
+void test_ina_str_ncat()
+{
+    
+}
+
+void test_ina_str_len()
+{
+    
+}
+
+void test_ina_str_cmp()
+{
+    
+}
+
+void test_ina_str_ncmp()
+{
+    
+}
+
+void test_ina_str_str()
+{
+    
+}
+
+void test_ina_str_rchr()
+{
+    
+}
+
+void test_ina_str_vsprintf()
+{
+    
+}
  void test_string_simple_allocation_with_pool() 
  {
 	 ina_str_t str1;

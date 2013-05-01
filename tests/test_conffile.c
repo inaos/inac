@@ -59,8 +59,8 @@ void test_conffile_using_macros_autodestroy()
 {
     INA_CONFFILE(NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
-            INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES),
-            INA_CONFFILE_NUMBER_KEY("other-latency", INA_NO)),
+            INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
+            INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO)),
         INA_CONFFILE_NAMED_SECTION("iface", INA_YES, __ina_named_section_handler,
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_STRING_KEY("mask", INA_YES)));
@@ -74,18 +74,20 @@ void test_conffile_process_without_filepath()
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t *cs = NULL;
 
+    INA_TRACE_MSG("test_conffile_process_without_filepath");
+
     __section_count = 0;
     __named_section_count = 0;
     
     INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
  
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "Debug", INA_YES, INA_NO, __ina_section_handler, &cs));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "debug", INA_YES, INA_NO, __ina_section_handler, &cs));
     INA_TEST_ASSERT_NOTNULL(cs);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "other_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_NO));
     
     cs = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "Iface", INA_YES, INA_YES, __ina_named_section_handler, &cs));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "iface", INA_YES, INA_YES, __ina_named_section_handler, &cs));
     INA_TEST_ASSERT_NOTNULL(cs);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "ip", INA_CONFFILE_VALUE_TYPE_STRING, INA_YES));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "mask", INA_CONFFILE_VALUE_TYPE_STRING, INA_YES));
@@ -105,6 +107,9 @@ void test_conffile_process_without_filepath()
 void test_conffile_init_destroy()
 {
     ina_conffile_t *cf = NULL;
+
+    INA_TRACE_MSG("test_conffile_init_destroy");
+
     INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
     INA_TEST_ASSERT_NOTNULL(cf);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
