@@ -10,6 +10,7 @@ MAKEHEADERS = $(INAC_CONTRIBS_DIR)/makeheaders/makeheaders
 # Linker settings
 # ****************************************************************************
 LDFLAGS += ../src/$(INAC_LIB) $(INAC_LIBS)
+
 ifeq (,$(findstring Windows,$(OS)))
 	ifneq (Darwin,$(shell uname -s))
 		LDFLAGS += -lm -lrt -ldl
@@ -18,9 +19,9 @@ ifeq (,$(findstring Windows,$(OS)))
 	endif
 endif
 
+
 all: $(OBJ) suites.o main.o
-	@echo $(INAC_LIB)
-	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS)
+	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) -Wl,-E $(LDFLAGS)
 
 %.o: %.c
 	@echo compiling $<
