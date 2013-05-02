@@ -41,21 +41,23 @@ static int __ina_cleanup_handler(const int sig, const int error)
 
 int main(int argc,  char** argv) 
 { 
+    ina_str_t run = NULL;
+    int repeat = 0;
+
     INA_OPTS(opt,
-        INA_OPT_FLAG("s", "spawn", "Flag for spwan-test"),
-        INA_OPT_STRING("r", "run", "all", "Test to run"),
+        INA_OPT_FLAG("h", "helper", "Start a helper"),
+        INA_OPT_STRING("r", "run", "all", "Test or heloe to run"),
         INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test integer param"),
         INA_OPT_INT("x", "repeat", 1, "repeat x times selected tests"));
 
-	INA_TRACE_MSG("TEST START");
-    
-    if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
-        ina_str_t run = NULL;
-        int repeat = 0;
+    if (!INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
+        return EXIT_FAILURE;
+    }
 
-        ina_opt_get_string("run", &run);
-        ina_opt_get_int("x", &repeat);
-        
+    ina_opt_get_string("run", &run);
+    ina_opt_get_int("x", &repeat);
+
+    if (!INA_SUCCEED(ina_opt_isset("h"))) {
         while (repeat--) {
             runtests(ina_str_cstr(run));
         }
@@ -64,9 +66,8 @@ int main(int argc,  char** argv)
 
         /* this test program should alway exits with a failure */
         INAC_ERROR_TEST_TRACE;
+    } else {
+        runhelper(ina_str_cstr(run));
     }
-
-    INA_TRACE_MSG("TEST END");
-    
     return EXIT_SUCCESS;
 }
