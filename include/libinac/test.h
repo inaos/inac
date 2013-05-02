@@ -34,6 +34,10 @@
 extern "C" {
 #endif
 
+#define INA_TEST_HELPER(name)      \
+void ina_test_helper_##name(int argc, char **argv)
+
+
 /* Max tests for on suite */
 #define INA_TEST_MAX_TESTS (512)
 
