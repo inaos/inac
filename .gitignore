@@ -24,6 +24,12 @@ contribs/luajit/src/lua51.exp
 contribs/luajit/src/luajit.exe
 contribs/luajit/src/luajitd.exe
 contribs/luajit/src/*.so
+contribs/luajit/src/jit/vmdef.lua
+contribs/luajit/src/lj_ffdef.h
+contribs/luajit/src/lj_folddef.h
+contribs/luajit/src/lj_libdef.h
+contribs/luajit/src/lj_recdef.h
+contribs/luajit/src/lj_vm.s
 contribs/makeheaders/makeheaders
 build/*
 buildall/*
