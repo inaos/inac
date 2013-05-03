@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 typedef struct ina_xml_ctx_s {
-/* FIXME */
+	int parser_pool_size;
 } ina_xml_ctx_t;
 
 /* Probably opaque */

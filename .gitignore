@@ -10,6 +10,7 @@ tests/suites.c
 tests/suites.h
 tests/test
 tests/test_*.h
+contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/luajit/src/luajit.exp
 contribs/luajit/src/luajitd.exp

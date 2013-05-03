@@ -28,88 +28,79 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+//#include <rapidxml.hpp>
 
-INA_API(ina_rc_t) ina_http_init(ina_http_ctx_t **ctx, int parser_pool_size)
+INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size, int iterator_pool_size)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_destroy(ina_http_ctx_t **ctx)
+INA_API(ina_rc_t) ina_xml_destory(ina_xml_ctx_t **ctx)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_borrow(ina_http_ctx_t *ctx, ina_http_parser_t **p)
+INA_API(ina_rc_t) ina_xml_parser_borrow(ina_xml_ctx_t *ctx, ina_xml_parser_t **p)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_release(ina_http_ctx_t *ctx, ina_http_parser_t **p)
+INA_API(ina_rc_t) ina_xml_parser_release(ina_xml_ctx_t *ctx, ina_xml_parser_t **p)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_url_get(ina_http_parser_t *p, ina_http_url_t **url)
+INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, ina_xml_elem_t **root)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_url_get_field(ina_http_url_t *url, uint16_t mask, uint16_t *offset, uint16_t *len)
+INA_API(ina_rc_t) ina_xml_parser_borrow_itr(ina_xml_parser_t *p, ina_xml_itr_t **itr)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_url_get_port(ina_http_url_t *url, uint16_t *port)
+INA_API(ina_rc_t) ina_xml_parser_release_itr(ina_xml_parser_t *p, ina_xml_itr_t **itr)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_header_first(ina_http_parser_t *p, ina_http_header_t **header)
+INA_API(ina_rc_t) ina_xml_parser_get_child_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t *itr)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_header_next(ina_http_parser_t *p, ina_http_header_t **next)
+INA_API(ina_rc_t) ina_xml_itr_next(ina_xml_itr_t *itr, ina_xml_elem_t **elem)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_header_by_name(ina_http_parser_t *p, ina_http_header_t **header)
+INA_API(ina_rc_t) ina_xml_elem_name(ina_xml_elem_t *elem, ina_str_t *name)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_header_get_field(ina_http_parser_t *p, ina_http_header_t *header, ina_str_t *field)
+INA_API(ina_rc_t) ina_xml_elem_value(ina_xml_elem_t *elem, ina_str_t *value)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_header_get_value(ina_http_parser_t *p, ina_http_header_t *header, ina_str_t *value)
+INA_API(ina_rc_t) ina_xml_parser_get_attr_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t *attr_itr)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_payload_get(ina_http_parser_t *p, unsigned char **payload)
+INA_API(ina_rc_t) ina_xml_attr_itr_next(ina_xml_itr_t *itr, ina_xml_attr_t **attr)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_status_code(ina_http_parser_t *p, short *status)
+INA_API(ina_rc_t) ina_xml_attr_name(ina_xml_attr_t *attr, ina_str_t *name)
 {
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_http_parser_method(ina_http_parser_t *p, int *method)
-{
-	return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_http_parser_httpversion(ina_http_parser_t *p, short *major, short *minor)
-{
-	return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, size_t inlen, int *more)
+INA_API(ina_rc_t) ina_xml_attr_value(ina_xml_attr_t *attr, ina_str_t *value)
 {
 	return INA_SUCCESS;
 }
