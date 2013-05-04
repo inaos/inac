@@ -87,32 +87,46 @@ typedef struct ina_test_testcase_s {
 
 /* Section holding test cases */
 #ifdef INA_OS_OSX
+#define INA_TEST_SECTION_PUSH
 #define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
+#elif INA_OS_WIN32
+#pragma section(".inatest", read)
+#define INA_TEST_SECTION  
+#define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
+#define INA_TEST_SECTION_PUSH
 #define INA_TEST_SECTION __attribute__ ((unused,section (".inatest")))
 #endif
 
 /* Testcase data defines. For internal purpose only */
 #define INA_TEST_STRUCT(sname, tname, _skip, __data, __setup, __teardown) \
+    INA_TEST_SECTION_PUSH                                                 \
     ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
-        .suite_name=#sname, \
-        .test_name=#tname, \
-        .run = INA_TEST_FNAME(sname, tname),\
-        .skip = _skip, \
-        .data = __data, \
-        .setup = (ina_test_setup_cb_t)__setup,\
-        .teardown = (ina_test_teardown_cb_t)__teardown,\
-        .magic = INA_TEST_MAGIC }
+        #sname, \
+        #tname, \
+        INA_TEST_FNAME(sname, tname),\
+        _skip, \
+        __data, \
+        (ina_test_setup_cb_t)__setup,\
+        (ina_test_teardown_cb_t)__teardown,\
+        INA_TEST_MAGIC }
 
 /* Define data for a test suite */
 #define INA_TEST_DATA(sname) struct sname##_data
 /* Define setup code für a suite */ 
+#ifndef INA_OS_WIN32
 #define INA_TEST_SETUP(sname) \
 void __attribute__ ((weak)) sname##_setup(struct sname##_data* data)
 /* Define teardown code for a suite */
 #define INA_TEST_TEARDOWN(sname) \
 void __attribute__ ((weak)) sname##_teardown(struct sname##_data* data)
-
+#else
+#define INA_TEST_SETUP(sname) \
+void __declspec(selectany) sname##_setup(struct sname##_data* data)
+/* Define teardown code for a suite */
+#define INA_TEST_TEARDOWN(sname) \
+void __declspec(selectany) sname##_teardown(struct sname##_data* data)
+#endif
 /* Declare test case. For internal purpose only. */
 #define INA_TEST_DECL(sname, tname, _skip) \
         void INA_TEST_FNAME(sname, tname)(); \
