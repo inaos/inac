@@ -468,3 +468,10 @@ INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, 
 
 	return INA_SUCCESS;
 }
+
+INA_API(ina_rc_t) ina_http_parser_should_keep_alive(ina_http_parser_t *p, int *should_keep_alive)
+{
+	*should_keep_alive = http_should_keep_alive(&p->intp);
+	return INA_SUCCESS;
+}
+

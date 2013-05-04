@@ -40,6 +40,28 @@ typedef enum ina_http_parser_type_e {
 	INA_HTTP_PARSER_TYPE_BOTH
 } ina_http_parser_type_t;
 
+typedef enum ina_http_parser_method_e {
+	INA_HTTP_PARSER_METHOD_DELETE,
+  	INA_HTTP_PARSER_METHOD_GET,
+  	INA_HTTP_PARSER_METHOD_HEAD,
+  	INA_HTTP_PARSER_METHOD_POST,
+  	INA_HTTP_PARSER_METHOD_PUT,
+  	INA_HTTP_PARSER_METHOD_CONNECT,
+  	INA_HTTP_PARSER_METHOD_OPTIONS,
+  	INA_HTTP_PARSER_METHOD_TRACE,
+} ina_http_parser_method_t;
+
+typedef enum http_parser_url_fields_e {
+	INA_HTTP_PARSER_UF_SCHEMA    = 0,
+	INA_HTTP_PARSER_UF_HOST      = 1,
+	INA_HTTP_PARSER_UF_PORT      = 2,
+	INA_HTTP_PARSER_UF_PATH      = 3,
+	INA_HTTP_PARSER_UF_QUERY     = 4,
+	INA_HTTP_PARSER_UF_FRAGMENT  = 5,
+	INA_HTTP_PARSER_UF_USERINFO  = 6,
+	INA_HTTP_PARSER_UF_MAX        = 7
+} http_parser_url_fields_t;
+
 /* opaque */
 typedef struct ina_http_parser_s ina_http_parser_t;
 
@@ -122,6 +144,10 @@ INA_API(ina_rc_t) ina_http_parser_httpversion(ina_http_parser_t *p, unsigned sho
  * 
  */
 INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, size_t inlen, int *more);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_http_parser_should_keep_alive(ina_http_parser_t *p, int *should_keep_alive);
 			
 #ifdef __cplusplus
 }
