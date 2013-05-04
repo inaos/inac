@@ -33,11 +33,6 @@ endif()
 
 # BEGIN dependencies
 
-# MAKEHEADERS
-set (MAKEHEADERS_SRC_DIR ${DEPS_DIR}/makeheaders)
-set (MAKEHEADERS_SRC ${MAKEHEADERS_SRC_DIR}/makeheaders.c)
-add_executable(makeheaders ${MAKEHEADERS_SRC})
-
 # BSTRING
 set (BSTRING_SRC_DIR ${DEPS_DIR}/bstring)
 set (BSTRING_SRC ${BSTRING_SRC_DIR}/bsafe.c ${BSTRING_SRC_DIR}/bstraux.c ${BSTRING_SRC_DIR}/bstrlib.c)
@@ -63,8 +58,8 @@ add_library(${HTTP_LIB_NAME} ${HTTP_SRC})
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
                  ${SRC_DIR}/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
-				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
-				 ${SRC_DIR}/portable.c)
+		 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
+		 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c, ${SRC_DIR}/test.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
