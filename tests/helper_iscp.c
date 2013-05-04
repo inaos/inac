@@ -36,12 +36,12 @@ static int __cleanup_handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
-static ina_rc_t __command_1_handler(int cmd_id, int count, ina_iscp_params_t * params)
+static ina_rc_t __command_1_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {
     return INA_SUCCESS;
 }
 
-static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_params_t * params)
+static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {
     __running = 0;
     return INA_SUCCESS;
@@ -51,7 +51,7 @@ INA_TEST_HELPER(iscp_tcp_server) {
 
     INA_ISCP_CMDS(cmds,
            INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
-           INA_SICP_SENDRECV_CMD(2, 1, __command_2_handler));
+           INA_ISCP_SENDRECV_CMD(2, 1, __command_2_handler));
 
      ina_set_cleanup_handler(__cleanup_handler);
 
@@ -59,12 +59,12 @@ INA_TEST_HELPER(iscp_tcp_server) {
          return INA_ERR_PUSH_LAST;
      }
 
-    if (!INA_SUCCEED(ina_iscp_regsiter_ex(&__iscp, cmds))) {
+    if (!INA_SUCCEED(ina_iscp_register_ex(__iscp, cmds))) {
         return INA_ERR_PUSH_LAST;
     }
     
-    while (_running) {
-        ina_iscp_recv(iscp, 1, 0);
+    while (__running) {
+        ina_iscp_recv(__iscp, 1, 0);
         ina_time_sleep(10);
     }
     return INA_SUCCESS;
