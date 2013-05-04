@@ -42,7 +42,6 @@ REM * INAC_WIN32_PROJECT_DIR: Directory reference for detailed artefacts - Requi
 REM * INAC_WIN32_C_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
 REM * INAC_WIN32_C_TEST_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
 REM * INAC_WIN32_C_TEST_SUITE_EXEC: Executable that invokes the test-suite, relative to PROJECT_DIR - Optional
-REM * INAC_WIN32_C_TEST_MAKEHEADERS: makeheaders.exe to generate c-test-suits, relative to INAC_WIN32_C_TEST_SOURCE_DIR - Optional
 REM * INAC_WIN32_LUA_TEST_SUITE_EXEC: Execute a Lua script to run a Lua test-suite - Optional
 REM * INAC_WIN32_C_BUILD_TOOL: Either 'cmake-nmake' or 'cmake-vs' - Optional
 REM * INAC_WIN32_LUA_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
@@ -214,23 +213,6 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 			rmdir /s /q %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		)
 	) else (
-		if defined INAC_WIN32_C_TEST_MAKEHEADERS (
-			cd %INAC_WIN32_C_TEST_SOURCE_DIR%
-			if not exist %INAC_WIN32_C_TEST_MAKEHEADERS% goto fail_makeheaders
-			for /r %%i in (test_*.c) do %INAC_WIN32_C_TEST_MAKEHEADERS% %%i
-			echo #ifndef _SUITES_H_ > suites.h
-			echo #define _SUITES_H_ >> suites.h
-			for /r %%i in (test_*.h) do echo #include "%%i" >> suites.h
-			echo #include "suites.h" > suites.c
-			echo void runtests^(const char* pattern^) { >> suites.c
-			for /r %%z in (test_*.h) do (
-				for /F "eol=/ tokens=2" %%i in (%%z) do echo %%i >> suites.c
-			)
-			echo } >> suites.c
-			echo void runtests^(const char* pattern^); >> suites.h
-			echo #endif >> suites.h
-			cd %INAC_WIN32_OLD_DIR%
-		)
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR% mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
@@ -396,7 +378,6 @@ if defined INAC_WIN32_C_BUILD_TOOL SET INAC_WIN32_C_BUILD_TOOL=
 if defined INAC_WIN32_LUA_SOURCE_DIR SET INAC_WIN32_LUA_SOURCE_DIR=
 if defined INAC_WIN32_LUA_LIB_NAME SET INAC_WIN32_LUA_LIB_NAME=
 if defined INAC_WIN32_CODE_GEN_SCRIPT SET INAC_WIN32_CODE_GEN_SCRIPT=
-if defined INAC_WIN32_C_TEST_MAKEHEADERS SET INAC_WIN32_C_TEST_MAKEHEADERS=
 
 goto:eof
 

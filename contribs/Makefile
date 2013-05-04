@@ -29,7 +29,6 @@
 all: 
 	@echo building contribs...
 	$(MAKE) -C luajit
-	$(MAKE) -C makeheaders
 	$(MAKE) -C sqlite
 	$(MAKE) -C bstring
 	$(MAKE) -C anet
@@ -42,7 +41,6 @@ test: all
 clean:
 	@echo cleaning contribs...
 	$(MAKE) clean -C luajit
-	$(MAKE) clean -C makeheaders
 	$(MAKE) clean -C bstring
 	$(MAKE) clean -C skiplist
 	$(MAKE) clean -C anet
