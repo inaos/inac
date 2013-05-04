@@ -33,6 +33,10 @@
 #include <dlfcn.h>
 #endif
 
+#ifdef INA_OS_WIN32
+#define snprintf sprintf_s
+#endif
+
 #define __INA_MSG_SIZE 4096
 
 typedef int (*ina_test_filter_fn_t)(ina_test_testcase_t*);
@@ -96,6 +100,8 @@ static void __ina_msg_end() {
 
 INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
  {
+	 int size;
+
      va_list argp;
      if (is_error != INA_YES) {
          __ina_msg_start(INA_CIO_ANSI_BLUE, "MSG");
@@ -104,7 +110,7 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
      }
 
      va_start(argp, fmt);
-     int size = vsnprintf(__errormsg, __errorsize, fmt, argp);
+     size = vsnprintf(__errormsg, __errorsize, fmt, argp);
      __errorsize -= size;
      __errormsg += size;
      va_end(argp);
@@ -226,14 +232,19 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     static int num_skip = 0;
     static int index = 1;
     static ina_test_filter_fn_t filter = __ina_suite_all;
+	static ina_test_testcase_t* test;
+	ina_test_testcase_t* begin;
+	ina_test_testcase_t* end;
+	const char* color;
+	char results[80];
 
     if (argc == 2) {
         __suite_name = argv[1];
         filter = __ina_suite_filter;
     }
  
-    ina_test_testcase_t* begin = &INA_TEST_TNAME(suite, test);
-    ina_test_testcase_t* end = &INA_TEST_TNAME(suite, test);
+    begin = &INA_TEST_TNAME(suite, test);
+    end = &INA_TEST_TNAME(suite, test);
  
     while (1) {
         ina_test_testcase_t* t = begin-1;
@@ -247,7 +258,6 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     }
     end++;
 
-    static ina_test_testcase_t* test;
     for (test = begin; test != end; test++) {
         if (test == &__ina_test_suite_test) continue;
         if (filter(test)) total++;
@@ -299,8 +309,7 @@ INA_API(int) ina_test_run(int argc, char *argv[])
         }
     }
 
-    const char* color = (num_fail) ? INA_CIO_ANSI_BRED : INA_CIO_ANSI_GREEN;
-    char results[80];
+    color = (num_fail) ? INA_CIO_ANSI_BRED : INA_CIO_ANSI_GREEN;
     sprintf(results, "RESULTS: %d tests (%d ok, %d failed, %d skipped)", total, num_ok, num_fail, num_skip);
     ina_cio_print(color, results);
     return num_fail;

@@ -30,7 +30,7 @@
 
 #include <libinac/utlist.h>
 
-#include <http_parser.h>
+#include <contribs/http-parser/http_parser.h>
 
 /* keep the initial size bigger then the alloc size for the pool to work */
 #define __INA_HTTP_INITIAL_HEADER_POOL_SIZE 16

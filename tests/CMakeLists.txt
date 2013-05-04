@@ -27,8 +27,7 @@ if(WIN32)
 endif(WIN32)
 
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
-set (LIBS ${LIB_DIR}/${INAC_LIB} ${LIB_DIR}/${INAC_TESTLIB} ${LIB_DIR}/${BSTRING_LIB} 
-	${LIB_DIR}/${SKIPLIST_LIB} ${LIB_DIR}/${ANET_LIB}  ${DEPS_DIR}/luajit/src/${LUAJIT_LIB})
+set (LIBS ${LIB_DIR}/${INAC_LIB} ${LIB_DIR}/${INAC_TESTLIB})
 
 AUX_SOURCE_DIRECTORY(. TEST_SRC)
 add_executable(test ${TEST_SRC})
