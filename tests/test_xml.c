@@ -54,8 +54,8 @@ void test_simple_xml()
 	ina_xml_ctx_t *ctx;
 	ina_xml_parser_t *parser;
 	ina_xml_elem_t *root;
+	ina_xml_elem_t *itr;
 	ina_str_t source = ina_str_fromcstr(test_xml);
-	ina_xml_itr_t *itr;
 	const char *name;
 	const char *value;
 	size_t len;	
@@ -70,11 +70,11 @@ void test_simple_xml()
 	INA_TEST_ASSERT_SUCCEED(ina_xml_elem_value(root, &value, &len));
 	INA_TEST_ASSERT(strncmp("5.0 for US Messages", value, len) == 0);
 
-	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_get_child_itr(parser, root, &itr));			 
-	INA_TEST_ASSERT_NOTNULL(itr);
+	
+	INA_TEST_ASSERT_SUCCEED(ina_xml_elem_next(root, &itr));
 	while (itr != NULL) {
-		ina_xml_elem_t *rev;
-		ina_xml_itr_next(itr, &rev);
+
+		ina_xml_elem_next(itr, &itr);
 	}
 
 	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_release(ctx, &parser));

@@ -4,10 +4,12 @@
 using namespace rapidxml;
 
 typedef struct rapidxml_attr_s {
+	rapidxml_node_t *node;
 	xml_attribute<> *attr;
 } rapidxml_attr_t;
 
 typedef struct rapidxml_node_s {
+	rapidxml_doc_t *doc;
 	xml_node<> *node;
 	rapidxml_attr_t attr_ptr;
 } rapidxml_node_t;
@@ -20,7 +22,6 @@ typedef struct rapidxml_doc_s {
 int rapidxml_parser_init(rapidxml_doc_t **doc)
 {
 	*doc = (rapidxml_doc_t*)malloc(sizeof(rapidxml_doc_t));
-	
 	(*doc)->doc = new xml_document<>();
 	
 	return 0;
@@ -43,24 +44,18 @@ int rapidxml_parser_reset(rapidxml_doc_t *doc)
 	return 0;
 }
 
-int rapidxml_parser_get_root(rapidxml_doc_t *doc, rapidxml_node_t **node)
+int rapidxml_parser_root(rapidxml_doc_t *doc, rapidxml_node_t **root)
 {
 	doc->node_ptr.node = doc->doc->first_node();
-        *node = &doc->node_ptr;
+	doc->node_ptr.doc = doc;
+    *root = &doc->node_ptr;
 	return 0;
 }
 
-int rapidxml_parser_first_child(rapidxml_doc_t *doc, rapidxml_node_t *parent, rapidxml_node_t **node)
+int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next)
 {
-	doc->node_ptr.node = parent->node->next_sibling();
-	*node = &doc->node_ptr;	
-	return 0;
-}
-
-int rapidxml_parser_next_child(rapidxml_doc_t *doc, rapidxml_node_t *node, rapidxml_node_t **next)
-{
-	doc->node_ptr.node = doc->node_ptr.node->next_sibling();
-	*next = &doc->node_ptr;
+	node->doc->node_ptr.node = node->node->next_sibling();
+	*next = &node->doc->node_ptr;
 	return 0;
 }
 
@@ -81,14 +76,15 @@ int rapidxml_node_get_value(rapidxml_node_t *node, const char **value, size_t *l
 int rapidxml_node_first_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
 {
 	node->attr_ptr.attr = node->node->first_attribute();
+	node->attr_ptr.node = node;
 	*attr = &node->attr_ptr;
 	return 0;
 }
 
-int rapidxml_node_next_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
+int rapidxml_attribute_next(rapidxml_attr_t *attr, rapidxml_attr_t **next)
 {
-	node->attr_ptr.attr = node->attr_ptr.attr->next_attribute();
-	*attr = &node->attr_ptr;
+	attr->node->attr_ptr.attr = attr->node->attr_ptr.attr->next_attribute();
+	*next = &attr->node->attr_ptr;
 	return 0;
 }
 

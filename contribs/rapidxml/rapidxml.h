@@ -27,11 +27,9 @@ RAPIDXML_EXPORT_SHARED int rapidxml_parser_exec(rapidxml_doc_t *doc, const char 
 
 RAPIDXML_EXPORT_SHARED int rapidxml_parser_reset(rapidxml_doc_t *doc);
 
-RAPIDXML_EXPORT_SHARED int rapidxml_parser_get_root(rapidxml_doc_t *doc, rapidxml_node_t **node);
+RAPIDXML_EXPORT_SHARED int rapidxml_parser_root(rapidxml_doc_t *doc, rapidxml_node_t **root);
 
-RAPIDXML_EXPORT_SHARED int rapidxml_parser_first_child(rapidxml_doc_t *doc, rapidxml_node_t *parent, rapidxml_node_t **child);
-
-RAPIDXML_EXPORT_SHARED int rapidxml_parser_next_child(rapidxml_doc_t *doc, rapidxml_node_t *node,  rapidxml_node_t **next);
+RAPIDXML_EXPORT_SHARED int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next);
 
 RAPIDXML_EXPORT_SHARED int rapidxml_node_get_name(rapidxml_node_t *node, const char **name, size_t *len);
 
@@ -39,7 +37,7 @@ RAPIDXML_EXPORT_SHARED int rapidxml_node_get_value(rapidxml_node_t *node, const 
 
 RAPIDXML_EXPORT_SHARED int rapidxml_node_first_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr);
 
-RAPIDXML_EXPORT_SHARED int rapidxml_node_next_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr);
+RAPIDXML_EXPORT_SHARED int rapidxml_attribute_next(rapidxml_attr_t *attr, rapidxml_attr_t **next);
 
 RAPIDXML_EXPORT_SHARED int rapidxml_attribute_get_name(rapidxml_attr_t *, const char **name, size_t *len);
 

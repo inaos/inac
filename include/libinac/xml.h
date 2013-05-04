@@ -38,7 +38,6 @@ extern "C" {
 typedef struct ina_xml_parser_s ina_xml_parser_t;
 typedef struct ina_xml_elem_s ina_xml_elem_t;
 typedef struct ina_xml_attr_s ina_xml_attr_t;
-typedef struct ina_xml_itr_s ina_xml_itr_t;
 
 typedef struct ina_xml_ctx_s {
 	int parser_pool_size;
@@ -68,11 +67,7 @@ INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, 
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_parser_get_child_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t **itr);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_xml_itr_next(ina_xml_itr_t *itr, ina_xml_elem_t **elem);
+INA_API(ina_rc_t) ina_xml_elem_next(ina_xml_elem_t *elem, ina_xml_elem_t **next);
 /*
  * 
  */
@@ -84,11 +79,11 @@ INA_API(ina_rc_t) ina_xml_elem_value(ina_xml_elem_t *elem, const char **value, s
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_parser_get_attr_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t **attr_itr);
+INA_API(ina_rc_t) ina_xml_elem_attr_first(ina_xml_elem_t *elem, ina_xml_attr_t **first);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_attr_itr_next(ina_xml_itr_t *itr, ina_xml_attr_t **attr);
+INA_API(ina_rc_t) ina_xml_attr_next(ina_xml_attr_t *attr, ina_xml_attr_t **next);
 /*
  * 
  */

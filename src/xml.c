@@ -37,19 +37,13 @@ struct ina_xml_attr_s {
 } ina_xml_attr_s;
 
 struct ina_xml_elem_s {
+	ina_xml_attr_t *attr;
 	rapidxml_node_t *elem;
 } ina_xml_elem_s;
-
-struct ina_xml_itr_s {
-	rapidxml_doc_t *doc;
-	ina_xml_elem_t elem;
-	ina_xml_attr_t attr;
-} ina_xml_itr_s;
 
 struct ina_xml_parser_s {
 	rapidxml_doc_t *doc;
 	ina_xml_elem_t root;
-	ina_xml_itr_t iter;
 	struct ina_xml_parser_s *next;
 	struct ina_xml_parser_s *prev;
 } ina_xml_parser_s;
@@ -65,7 +59,6 @@ INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size)
 	for (i = 0; i < parser_pool_size; i++) {
 		ina_xml_parser_t *p = (ina_xml_parser_t*)ina_mem_alloc(sizeof(ina_xml_parser_t));
 		rapidxml_parser_init(&p->doc);
-		p->iter.doc = p->doc;
 		DL_APPEND((*ctx)->parsers, p);	
 	}
 	
@@ -136,7 +129,7 @@ INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, 
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
 	}
-	if (rapidxml_parser_get_root(p->doc, &p->root.elem) > 0) {
+	if (rapidxml_parser_root(p->doc, &p->root.elem) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
 	}
@@ -145,23 +138,13 @@ INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, 
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_xml_parser_get_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t **itr)
+INA_API(ina_rc_t) ina_xml_elem_next(ina_xml_elem_t *elem, ina_xml_elem_t **next)
 {
-	if (rapidxml_parser_first_child(p->doc, elem->elem, &p->iter.elem.elem) > 0) {
+	if (rapidxml_node_next(elem->elem, &elem->elem) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
 	}
-	*itr = &p->iter;	
-	return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_xml_itr_next(ina_xml_itr_t *itr, ina_xml_elem_t **elem)
-{
-	if (rapidxml_parser_next_child(itr->doc, itr->elem.elem, &itr->elem.elem) > 0) {
-		/* FIXME: proper error handling */
-		return INA_FAILURE;
-	}
-	*elem = &itr->elem;
+	*next = elem;
 	return INA_SUCCESS;
 }
 
@@ -183,23 +166,23 @@ INA_API(ina_rc_t) ina_xml_elem_value(ina_xml_elem_t *elem, const char **name, si
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_xml_parser_get_attr_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t **attr_itr)
+INA_API(ina_rc_t) ina_xml_elem_attr_first(ina_xml_elem_t *elem, ina_xml_attr_t **first)
 {
-	if (rapidxml_node_first_attribute(p->iter.elem.elem, &p->iter.attr.attr) > 0) {
+	if (rapidxml_node_first_attribute(elem->elem, &elem->attr->attr) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
 	}
-	*attr_itr = &p->iter;
+	*first = elem->attr;
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_xml_attr_itr_next(ina_xml_itr_t *itr, ina_xml_attr_t **attr)
+INA_API(ina_rc_t) ina_xml_attr_next(ina_xml_attr_t *attr, ina_xml_attr_t **next)
 {
-	if (rapidxml_node_next_attribute(itr->elem.elem, &itr->attr.attr) > 0) {
+	if (rapidxml_attribute_next(attr->attr, &attr->attr) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
 	}
-	*attr = &itr->attr;
+	*next = attr;
 	return INA_SUCCESS;
 }
 
