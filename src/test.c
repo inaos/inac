@@ -26,46 +26,12 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
+#include "config.h"
 
-static ina_iscp_ctx_t *__iscp = NULL;
-static int __running = 0;
-
-static int __cleanup_handler(const int sig, const int error) 
+/*
+ * Start a Helper
+ */
+ina_rc_t ina_test_runhelper(const char* cmd)
 {
-    ina_iscp_destroy(&__iscp);
-    return EXIT_SUCCESS;
-}
 
-static ina_rc_t __command_1_handler(int cmd_id, int count, ina_iscp_params_t * params)
-{
-    return INA_SUCCESS;
-}
-
-static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_params_t * params)
-{
-    __running = 0;
-    return INA_SUCCESS;
-}
-
-INA_TEST_HELPER(iscp_tcp_server) {
-
-    INA_ISCP_CMDS(cmds,
-           INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
-           INA_SICP_SENDRECV_CMD(2, 1, __command_2_handler));
-
-     ina_set_cleanup_handler(__cleanup_handler);
-
-     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, "127.0.0.1", 7777))) {
-         return INA_ERR_PUSH_LAST;
-     }
-
-    if (!INA_SUCCEED(ina_iscp_regsiter_ex(&__iscp, cmds))) {
-        return INA_ERR_PUSH_LAST;
-    }
-    
-    while (_running) {
-        ina_iscp_recv(iscp, 1, 0);
-        ina_time_sleep(10);
-    }
-    return INA_SUCCESS;
 }

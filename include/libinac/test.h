@@ -34,9 +34,16 @@
 extern "C" {
 #endif
 
-#define INA_TEST_HELPER(name)      \
-void ina_test_helper_##name(int argc, char **argv)
+/* Define an test helper */
+#define INA_TEST_HELPER(name) \
+void ina_test__helper_##name(int argc, char **argv)
 
+#define INA_TEST_HELPER_SPAWN(name, ...) \
+    ina_test_runhelper("-h "#name, __VA_ARGS)
+    
+#define INA_TEST_HELPER_STOP(name)
+
+#define INA_TEST(name) void ina_test__##name(void)
 
 /* Max tests for on suite */
 #define INA_TEST_MAX_TESTS (512)
@@ -53,26 +60,10 @@ void ina_test_helper_##name(int argc, char **argv)
 #define INA_TEST_ASSERT_SUCCEED(v) INA_TEST_ASSERT_TRUE(INA_SUCCEED(v))
 #define INA_TEST_ASSERT_NOTSUCCEED(v) INA_TEST_ASSERT_FALSE(INA_SUCCEED(v))
 
-/* Forward declaration */
-typedef struct ina_test_case_s ina_test_testcase_t;
-/* Testcase function */
-typedef void (*ina_test_fn_t)(ina_test_testcase_t *);
-/* Test case */
-struct ina_test_case_s {
-    char* name;
-    ina_test_fn_t fn;
-    size_t failed;
-    size_t runs;
-    const char* error_msg;
-} ina_test_case_t;
-
-/* Test suite */
-typedef struct ina_test_suite_s {
-    size_t count;
-    size_t failures;
-    ina_test_testcase_t *tests[INA_TEST_MAX_TESTS];
-} ina_test_suite_t;
-
+/*
+ * Start a Helper
+ */
+ina_rc_t ina_test_runhelper(const char* name, ...);
 
 #ifdef __cplusplus
 }
