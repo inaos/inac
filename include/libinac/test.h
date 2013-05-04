@@ -36,7 +36,7 @@ extern "C" {
 
 /* Define an test helper */
 #define INA_TEST_HELPER(name) \
-void ina_test__helper_##name(int argc, char **argv)
+INA_API(ina_rc_t) ina_test__helper_##name(int argc, char **argv)
 
 #define INA_TEST_HELPER_SPAWN(name, ...) \
     ina_test_runhelper("-h "#name, __VA_ARGS)
