@@ -9,6 +9,7 @@
     #else
         #define RAPIDXML_EXPORT_SHARED
     #endif
+    #include <sys/types.h>
 #endif
 
 /* opaque */
@@ -26,9 +27,11 @@ RAPIDXML_EXPORT_SHARED int rapidxml_parser_exec(rapidxml_doc_t *doc, const char 
 
 RAPIDXML_EXPORT_SHARED int rapidxml_parser_reset(rapidxml_doc_t *doc);
 
-RAPIDXML_EXPORT_SHARED int rapidxml_parser_first_child(rapidxml_doc_t *doc, rapidxml_node_t **node);
+RAPIDXML_EXPORT_SHARED int rapidxml_parser_get_root(rapidxml_doc_t *doc, rapidxml_node_t **node);
 
-RAPIDXML_EXPORT_SHARED int rapidxml_parser_next_child(rapidxml_doc_t *doc, rapidxml_node_t **node);
+RAPIDXML_EXPORT_SHARED int rapidxml_parser_first_child(rapidxml_doc_t *doc, rapidxml_node_t *parent, rapidxml_node_t **child);
+
+RAPIDXML_EXPORT_SHARED int rapidxml_parser_next_child(rapidxml_doc_t *doc, rapidxml_node_t *node,  rapidxml_node_t **next);
 
 RAPIDXML_EXPORT_SHARED int rapidxml_node_get_name(rapidxml_node_t *node, const char **name, size_t *len);
 

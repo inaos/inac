@@ -43,17 +43,24 @@ int rapidxml_parser_reset(rapidxml_doc_t *doc)
 	return 0;
 }
 
-int rapidxml_parser_first_child(rapidxml_doc_t *doc, rapidxml_node_t **node)
+int rapidxml_parser_get_root(rapidxml_doc_t *doc, rapidxml_node_t **node)
 {
 	doc->node_ptr.node = doc->doc->first_node();
-	*node = &doc->node_ptr;
+        *node = &doc->node_ptr;
 	return 0;
 }
 
-int rapidxml_parser_next_child(rapidxml_doc_t *doc, rapidxml_node_t **node)
+int rapidxml_parser_first_child(rapidxml_doc_t *doc, rapidxml_node_t *parent, rapidxml_node_t **node)
+{
+	doc->node_ptr.node = parent->node->next_sibling();
+	*node = &doc->node_ptr;	
+	return 0;
+}
+
+int rapidxml_parser_next_child(rapidxml_doc_t *doc, rapidxml_node_t *node, rapidxml_node_t **next)
 {
 	doc->node_ptr.node = doc->node_ptr.node->next_sibling();
-	*node = &doc->node_ptr;
+	*next = &doc->node_ptr;
 	return 0;
 }
 

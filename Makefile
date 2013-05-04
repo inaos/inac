@@ -51,7 +51,8 @@ export LUA_PATH
 CC     = /usr/bin/gcc 
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
          -I$(INAC_CONTRIBS_DIR)/bstring -I$(INAC_CONTRIBS_DIR)/sqlite \
-         -I$(INAC_CONTRIBS_DIR)/skiplist -DINA_LIB=1
+         -I$(INAC_CONTRIBS_DIR)/skiplist -I$(INAC_CONTRIBS_DIR)/http-parser \
+         -I$(INAC_CONTRIBS_DIR)/rapidxml -DINA_LIB=1
 export CFLAGS
 export LDFLAGS
 

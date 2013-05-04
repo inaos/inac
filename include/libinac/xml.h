@@ -34,25 +34,21 @@
 extern "C" {
 #endif
 
-typedef struct ina_xml_ctx_s {
-	int parser_pool_size;
-} ina_xml_ctx_t;
-
-/* Probably opaque */
+/* Opaque structures */
 typedef struct ina_xml_parser_s ina_xml_parser_t;
-
 typedef struct ina_xml_elem_s ina_xml_elem_t;
 typedef struct ina_xml_attr_s ina_xml_attr_t;
-
-/* Probably opaque */
 typedef struct ina_xml_itr_s ina_xml_itr_t;
 
-
+typedef struct ina_xml_ctx_s {
+	int parser_pool_size;
+	ina_xml_parser_t *parsers;
+} ina_xml_ctx_t;
 
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size, int iterator_pool_size);
+INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size);
 /*
  * 
  */
@@ -72,14 +68,6 @@ INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, 
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_parser_borrow_itr(ina_xml_parser_t *p, ina_xml_itr_t **itr);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_xml_parser_release_itr(ina_xml_parser_t *p, ina_xml_itr_t **itr);
-/*
- * 
- */
 INA_API(ina_rc_t) ina_xml_parser_get_child_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t *itr);
 /*
  * 
@@ -88,15 +76,15 @@ INA_API(ina_rc_t) ina_xml_itr_next(ina_xml_itr_t *itr, ina_xml_elem_t **elem);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_elem_name(ina_xml_elem_t *elem, ina_str_t *name);
+INA_API(ina_rc_t) ina_xml_elem_name(ina_xml_elem_t *elem, const char **name, size_t *len);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_elem_value(ina_xml_elem_t *elem, ina_str_t *value);
+INA_API(ina_rc_t) ina_xml_elem_value(ina_xml_elem_t *elem, const char **value, size_t *len);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_parser_get_attr_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t *attr_itr);
+INA_API(ina_rc_t) ina_xml_parser_get_attr_itr(ina_xml_parser_t *p, ina_xml_elem_t *elem, ina_xml_itr_t **attr_itr);
 /*
  * 
  */
@@ -104,11 +92,11 @@ INA_API(ina_rc_t) ina_xml_attr_itr_next(ina_xml_itr_t *itr, ina_xml_attr_t **att
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_attr_name(ina_xml_attr_t *attr, ina_str_t *name);
+INA_API(ina_rc_t) ina_xml_attr_name(ina_xml_attr_t *attr, const char **name, size_t *len);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_attr_value(ina_xml_attr_t *attr, ina_str_t *value);
+INA_API(ina_rc_t) ina_xml_attr_value(ina_xml_attr_t *attr, const char **value, size_t *len);
 
 #ifdef __cplusplus
 }

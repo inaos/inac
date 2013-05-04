@@ -30,6 +30,7 @@ contribs/luajit/src/lj_folddef.h
 contribs/luajit/src/lj_libdef.h
 contribs/luajit/src/lj_recdef.h
 contribs/luajit/src/lj_vm.s
+contribs/luajit/src/luajit
 contribs/makeheaders/makeheaders
 build/*
 buildall/*

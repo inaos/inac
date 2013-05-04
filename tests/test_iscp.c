@@ -217,7 +217,7 @@ void test_iscp_send_recv_checkparams()
 
 void test_iscp_send_local()
 {
-   ina_iscp_ctx_t *ctx = NULL;
+   /*ina_iscp_ctx_t *ctx = NULL;*/
 
    __send_count = 0;
 

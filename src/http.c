@@ -36,13 +36,13 @@
 #define __INA_HTTP_INITIAL_HEADER_POOL_SIZE 16
 #define __INA_HTTP_INITIAL_HEADER_ALLOC_SIZE 8
 
-typedef struct ina_http_url_s {
+struct ina_http_url_s {
 	const char *begin;
 	size_t len;
 	struct http_parser_url iu;
-} ina_http_url_t;
+} ina_http_url_s;
 
-typedef struct ina_http_header_s {
+struct ina_http_header_s {
 	uint32_t key;
 	const char *field_begin;
 	size_t field_len;
@@ -51,9 +51,9 @@ typedef struct ina_http_header_s {
 	UT_hash_handle hh;
 	struct ina_http_header_s *prev;
 	struct ina_http_header_s *next;
-} ina_http_header_t;
+} ina_http_header_s;
 
-typedef struct ina_http_parser_s {
+struct ina_http_parser_s {
 	int finished;
 	int ipt; /* internal http_parser_type */
 	struct http_parser intp; /* internal parser */
@@ -69,7 +69,7 @@ typedef struct ina_http_parser_s {
 	struct http_parser_settings settings;
 	struct ina_http_parser_s *prev;
 	struct ina_http_parser_s *next;
-} ina_http_parser_t;
+} ina_http_parser_s;
 
 static int __ina_http_on_body(http_parser *parser, const char *at, size_t length)
 {
