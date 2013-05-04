@@ -33,8 +33,8 @@ SRC_LUA = $(wildcard *.lua)
 OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
 
-all: $(OBJS) $(TARGET_LIB)
-	@echo compiling all for $(TARGET_LIB)...
+all: $(OBJS) $(INAC_LIB)
+	@echo compiling all for $(INAC_LIB)...
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 
 %.o: %.c $(INAC_INCLUDES)
@@ -46,8 +46,8 @@ all: $(OBJS) $(TARGET_LIB)
 	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
 
 libinac.a:
-	@ar crs $(TARGET_LIB) $(OBJS)
-	@for i in $(DIRS); do ar crs $(TARGET_LIB) $$i/*.o; done
+	@ar crs $(INAC_LIB) $(OBJS)
+	@for i in $(DIRS); do ar crs $(INAC_LIB) $$i/*.o; done
 
 .PHONY: clean
 

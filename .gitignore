@@ -1,5 +1,6 @@
 .DS_Store
 .Makefile.swp
+*.swp
 *.o
 *.a
 *.obj
@@ -19,6 +20,7 @@ contribs/luajit/src/host/minilua
 contribs/luajit/src/host/buildvm_arch.h
 contribs/luajit/src/libluajit.so
 contribs/luajit/src/lj_bcdef.h
+contribs/luajit/src/lj_vm.s
 contribs/luajit/src/lua51.dll
 contribs/luajit/src/lua51.exp
 contribs/luajit/src/luajit.exe

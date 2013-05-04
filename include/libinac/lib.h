@@ -52,6 +52,7 @@
 #include <math.h>
 #include <float.h>
 #include <time.h>
+#include <ctype.h>
 
 #include <contribs/luajit/src/luajit.h>
 #include <contribs/luajit/src/lauxlib.h>
