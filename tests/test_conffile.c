@@ -33,9 +33,9 @@ static int __named_section_count = 0;
 static ina_rc_t __ina_section_handler(const char* section_name, const char* section_key, ina_conffile_entry_t *entries)
 {
     double command_latency = 0;
-    INA_TEST_ASSERT_NOTNULL(section_name);
+    INA_TEST_ASSERT_NOT_NULL(section_name);
     INA_TEST_ASSERT_NULL(section_key);
-    INA_TEST_ASSERT_NOTNULL(entries);
+    INA_TEST_ASSERT_NOT_NULL(entries);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "command_latency"));
     INA_TEST_ASSERT_NOTSUCCEED(ina_conffile_has_value_in_entries(entries, "other_latency"));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_number_from_entries(entries, "command_latency", &command_latency));
@@ -49,13 +49,13 @@ static ina_rc_t __ina_named_section_handler(const char *section_name, const char
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "ip"));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "mask"));
 
-    INA_TEST_ASSERT_NOTNULL(section_name);
-    INA_TEST_ASSERT_NOTNULL(section_key);
-    INA_TEST_ASSERT_NOTNULL(entries);
+    INA_TEST_ASSERT_NOT_NULL(section_name);
+    INA_TEST_ASSERT_NOT_NULL(section_key);
+    INA_TEST_ASSERT_NOT_NULL(entries);
     __named_section_count++;
     return INA_SUCCESS;
 }
-void test_conffile_using_macros_autodestroy()
+INA_TEST(conffile , using_macros_autodestroy)
 {
     INA_CONFFILE(NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
@@ -69,12 +69,10 @@ void test_conffile_using_macros_autodestroy()
     INA_TEST_ASSERT_EQUAL(4, __named_section_count);
 }
 
-void test_conffile_process_without_filepath()
+INA_TEST(conffile, process_without_filepath)
 {
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t *cs = NULL;
-
-    INA_TRACE_MSG("test_conffile_process_without_filepath");
 
     __section_count = 0;
     __named_section_count = 0;
@@ -82,13 +80,13 @@ void test_conffile_process_without_filepath()
     INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
  
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "debug", INA_YES, INA_NO, __ina_section_handler, &cs));
-    INA_TEST_ASSERT_NOTNULL(cs);
+    INA_TEST_ASSERT_NOT_NULL(cs);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "other_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_NO));
     
     cs = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "iface", INA_YES, INA_YES, __ina_named_section_handler, &cs));
-    INA_TEST_ASSERT_NOTNULL(cs);
+    INA_TEST_ASSERT_NOT_NULL(cs);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "ip", INA_CONFFILE_VALUE_TYPE_STRING, INA_YES));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "mask", INA_CONFFILE_VALUE_TYPE_STRING, INA_YES));
     
@@ -104,14 +102,12 @@ void test_conffile_process_without_filepath()
     INA_TEST_ASSERT_NULL(cf);
 
 }
-void test_conffile_init_destroy()
+INA_TEST(conffile, init_destroy)
 {
     ina_conffile_t *cf = NULL;
 
-    INA_TRACE_MSG("test_conffile_init_destroy");
-
     INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
-    INA_TEST_ASSERT_NOTNULL(cf);
+    INA_TEST_ASSERT_NOT_NULL(cf);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
     INA_TEST_ASSERT_NULL(cf);
 }

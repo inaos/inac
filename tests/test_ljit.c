@@ -27,17 +27,15 @@
  */
 #include <libinac/lib.h>
 
-void test_ljit_call()
+INA_TEST(ljit, call)
 {
     ina_ljit_ctx_t *ctx = NULL;
     double r = 0;
     char *rs = NULL;
 
-    INA_TRACE_MSG("test_ljit_call");
-
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
-    INA_TEST_ASSERT_NOTNULL(ctx);
-    INA_TEST_ASSERT_NOTNULL(ctx->lstate);
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
     INA_TEST_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
     lua_getglobal(ctx->lstate, "t");
@@ -52,15 +50,13 @@ void test_ljit_call()
     INA_TEST_ASSERT_NULL(ctx);
 }
 
-void test_ljit_luaL_dostring()
+INA_TEST(ljit, luaL_dostring)
 {
     ina_ljit_ctx_t *ctx = NULL;
 
-    INA_TRACE_MSG("test_ljit_luaL_dostring");
-
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
-    INA_TEST_ASSERT_NOTNULL(ctx);
-    INA_TEST_ASSERT_NOTNULL(ctx->lstate);
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
     INA_TEST_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "return 100\n"));
     INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
@@ -91,27 +87,24 @@ void test_ljit_luaL_dostring()
     INA_TEST_ASSERT_NULL(ctx);
 }
 
-void test_ljit_init_destroy()
+INA_TEST(ljit, init_destroy)
 {
     ina_ljit_ctx_t *ctx = NULL;
     
-    INA_TRACE_MSG("test_ljit_init_destroy");
-
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
-    INA_TEST_ASSERT_NOTNULL(ctx);
-    INA_TEST_ASSERT_NOTNULL(ctx->lstate);
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
     INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
 }
 
-void test_ljit_open_close_state_native() 
+INA_TEST(ljit, open_close_state_native)
 {
  
     lua_State *lstate = luaL_newstate();
-    INA_TRACE_MSG("test_ljit_open_close_state_native");
 
-    INA_TEST_ASSERT_NOTNULL(lstate);
+    INA_TEST_ASSERT_NOT_NULL(lstate);
     luaL_openlibs(lstate);
     lua_close(lstate);
 }

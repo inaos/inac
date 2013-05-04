@@ -28,10 +28,8 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-void test_error_repush_success()
+INA_TEST(error, repush_success)
 {
-    INA_TRACE_MSG("test_error_repush_success");
-
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 
@@ -40,12 +38,10 @@ void test_error_repush_success()
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 }
 
-void test_error_repush()
+INA_TEST(error, repush)
 {
     ina_rc_t rc;
 
-    INA_TRACE_MSG("test_error_repush");
-    
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
     
@@ -66,12 +62,12 @@ void test_error_repush()
     rc = ina_err_peek_next(rc);
     INA_TEST_ASSERT_EQUAL(INA_EMSGLEN, INA_RC_REASON(rc));
 }
-void test_error_push_a_million_errors()
+
+INA_TEST(error, push_a_million_errors)
 {
     size_t i;
 
-    INA_TRACE_MSG("test_error_push_a_million_errors");
-    
+   
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 
@@ -81,18 +77,16 @@ void test_error_push_a_million_errors()
     }
 }
 
-void test_error_message_formatting()
+INA_TEST(error, message_formatting)
 {
     ina_str_t msg1;
     ina_str_t msg2;
 
-    INA_TRACE_MSG("test_error_message_formatting");
-
     msg1 = ina_str_fromcstr("Message size error");
     msg2 = ina_str_newlen(100);
 
-    INA_TEST_ASSERT_NOTNULL(msg1);
-    INA_TEST_ASSERT_NOTNULL(msg2);
+    INA_TEST_ASSERT_NOT_NULL(msg1);
+    INA_TEST_ASSERT_NOT_NULL(msg2);
     
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
@@ -101,19 +95,17 @@ void test_error_message_formatting()
     INA_TRACE("msg2=%s", ina_str_cstr(msg2));
 }
 
-void test_error_macros()
+INA_TEST(error, macros)
 {
      INA_ERR_EMSGLEN;
      INA_ERR_EMSGFMT;
      INA_STR_EALLOC;
 }
 
-void test_error_push_and_peek()
+INA_TEST(error, push_and_peek)
 {
     size_t i;
     ina_rc_t rc;
-
-    INA_TRACE_MSG("test_error_push_and_peek");
 
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
@@ -129,12 +121,10 @@ void test_error_push_and_peek()
      }
 }
 
-void test_error_push_and_clear()
+INA_TEST(error, push_and_clear)
 {
 	ina_rc_t rc1;
     ina_rc_t rc2;
-
-    INA_TRACE_MSG("test_error_push_and_clear");
 
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
@@ -144,22 +134,20 @@ void test_error_push_and_clear()
 
     rc2 = INA_ERR_PUSH(1,2,5, "test error");
     INA_TEST_ASSERT_EQUAL(rc2, ina_err_peek());
-    INA_TEST_ASSERT_NOTEQUAL(rc1, ina_err_peek());
+    INA_TEST_ASSERT_NOT_EQUAL(rc1, ina_err_peek());
     INA_TEST_ASSERT_EQUAL(rc1, ina_err_peek_last());
-    INA_TEST_ASSERT_NOTEQUAL(rc1, rc2);
+    INA_TEST_ASSERT_NOT_EQUAL(rc1, rc2);
 
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek_last());
  }
 
-void test_error_pack_rc() 
+INA_TEST(test, error_pack_rc) 
 {
 	ina_rc_t rcc;
     ina_rc_t rc;
 
-    INA_TRACE_MSG("test_error_pack_rc");
-    
     rcc = 16846855;
     rc = 0;
     rc = INA_RC_PACK(1,2,7,4);
