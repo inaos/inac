@@ -27,16 +27,16 @@
  */
 #include <libinac/lib.h>
 
-void test_time_time_stamp()
+INA_TEST(time,time_stamp)
 {
     ina_stopwatch_t *w = NULL;
     int64_t c = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
-    INA_TEST_ASSERT_NOTNULL(w);
+    INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_EQUAL(1, w->id);
     INA_TEST_ASSERT_EQUAL(1024, w->tv->max_stamps);
-    INA_TEST_ASSERT_NOTNULL(w->tv);
+    INA_TEST_ASSERT_NOT_NULL(w->tv);
     INA_TEST_ASSERT_NULL(w->ts);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
     while (c--) {
@@ -44,14 +44,14 @@ void test_time_time_stamp()
     }
     c = 0;
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &c))) {
-        INA_TEST_ASSERT_NOTNULL(w->ts);
+        INA_TEST_ASSERT_NOT_NULL(w->ts);
     }
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     INA_TEST_ASSERT_EQUAL(10, c);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
 }
 
-void test_time_two_stopwatches()
+INA_TEST(time, two_stopwatches)
 {
     ina_stopwatch_t *w1 = NULL;
     ina_stopwatch_t *w2 = NULL;
@@ -62,17 +62,15 @@ void test_time_two_stopwatches()
     long nano1 = 0;
     long nano2 = 0;
 
-    INA_TRACE_MSG("test_time_two_stopwatches");
-
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w1, 1, -1));
-    INA_TEST_ASSERT_NOTNULL(w1);
+    INA_TEST_ASSERT_NOT_NULL(w1);
     INA_TEST_ASSERT_EQUAL(1, w1->id);
-    INA_TEST_ASSERT_NOTNULL(w1->tv);
+    INA_TEST_ASSERT_NOT_NULL(w1->tv);
     INA_TEST_ASSERT_NULL(w1->ts);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w2, 2, -1));
-    INA_TEST_ASSERT_NOTNULL(w2);
+    INA_TEST_ASSERT_NOT_NULL(w2);
     INA_TEST_ASSERT_EQUAL(2, w2->id);
-    INA_TEST_ASSERT_NOTNULL(w2->tv);
+    INA_TEST_ASSERT_NOT_NULL(w2->tv);
     INA_TEST_ASSERT_NULL(w2->ts);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w1, NULL));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w2, NULL));
@@ -88,16 +86,14 @@ void test_time_two_stopwatches()
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w2));
 } 
 
-void test_time_stopwatch() 
+INA_TEST(time, stopwatch) 
 {
     struct timeval tv_start;
     struct timeval tv_stop;
     ina_stopwatch_t *w;
     time_t t_start;
     time_t t_stop;
-	long n1 = 0, n2 = 0;
-
-    INA_TRACE_MSG("test_time_stopwatch");
+    long n1 = 0, n2 = 0;
 
     gettimeofday(&tv_start, NULL);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
@@ -124,17 +120,16 @@ void test_time_stopwatch()
     INA_TEST_ASSERT_NULL(w);
 }
  
-void test_time_read_clock() 
+INA_TEST(time,read_clock) 
 {
     struct timeval tv;
     ina_time_t t;
     time_t ms;
     time_t secs;
     time_t secs2;
-	long us = 0;
-	long us2 = 0;
+    long us = 0;
+    long us2 = 0;
 
-    INA_TRACE_MSG("test_time_read_clock");
 
     ms = 0;
     secs = 0;

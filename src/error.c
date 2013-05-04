@@ -228,14 +228,14 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
 
 INA_API(ina_rc_t) ina_err_trace(void)
 {
-    ina_rc_t rc;
+    ina_rc_t rc = INA_SUCCESS;
     char str[2048];
     int n;
 
     INA_ASSERT(__initialized);
 
     if (INA_SUCCEED(ina_err_peek())) {
-        return INA_SUCCESS;
+        return rc;
     }
 
     printf("%s\n", "**** UNHANDLED ERROR START ******");

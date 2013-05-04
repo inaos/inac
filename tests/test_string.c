@@ -27,37 +27,118 @@
  */
 #include <libinac/lib.h>
 
- void test_string_simple_allocation_with_pool() 
- {
-	 ina_str_t str1;
-     ina_str_t str2;
-     ina_mempool_t *pool;
-
-     INA_TRACE_MSG("test_string_simple_allocation_with_pool");
-
-     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
-
-     str1 = ina_str_pfromcstr("hallo", pool);
-     INA_TEST_ASSERT_NOTNULL(str1);
-     INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
-     str2 = ina_str_pdup(str1, pool);
-     INA_TEST_ASSERT_NOTNULL(str2);
-     ina_str_destroy(str1);
-     ina_str_destroy(str2);
+INA_TEST_SKIP(string, ina_str_newlen)
+{
+    
 }
 
-void test_string_simple_allocation_without_pool() 
+INA_TEST_SKIP(string, ina_str_pnewlen)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_fromcstr)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_destroy)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_dup)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_pdup)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_cstr)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_cpy)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_ncpy)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_cat)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_ncat)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_len)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_cmp)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_ncmp)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_str)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_rchr)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_vsprintf)
+{
+    
+}
+
+INA_TEST(string, simple_allocation_with_pool) 
+{
+    ina_str_t str1;
+    ina_str_t str2;
+    ina_mempool_t *pool;
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
+
+    str1 = ina_str_pfromcstr("hallo", pool);
+    INA_TEST_ASSERT_NOT_NULL(str1);
+    INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
+    str2 = ina_str_pdup(str1, pool);
+    INA_TEST_ASSERT_NOT_NULL(str2);
+    ina_str_destroy(str1);
+    ina_str_destroy(str2);
+}
+
+INA_TEST(string, simple_allocation_without_pool)
 {
 	ina_str_t str1;
     ina_str_t str2;
-
-    INA_TRACE_MSG("test_string_simple_allocation_without_pool");
     
     str1 = ina_str_fromcstr("hallo");
-    INA_TEST_ASSERT_NOTNULL(str1);
+    INA_TEST_ASSERT_NOT_NULL(str1);
     INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
     str2 = ina_str_dup(str1);
-    INA_TEST_ASSERT_NOTNULL(str2);
+    INA_TEST_ASSERT_NOT_NULL(str2);
     ina_str_destroy(str1);
     ina_str_destroy(str2);
 }

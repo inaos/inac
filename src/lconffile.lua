@@ -1,4 +1,4 @@
-local conffile = {}
+local lconffile = {}
 
 local function _dump()
     if type(o) == 'table' then
@@ -134,12 +134,12 @@ local function _run(code)
     return ret, initfunc
 end
 
-conffile.save_sections = function(sections, section_file)
+lconffile.save_sections = function(sections, section_file)
     local f = io.open(section_file, "w")
     local code = f:write(_dump(o)) 
 end
 
-conffile.process = function(sections, config_file)
+lconffile.process = function(sections, config_file)
   local f = io.open(config_file, "r")
   if not f then
     error("Error opening file")
@@ -169,4 +169,4 @@ conffile.process = function(sections, config_file)
   end
 end
 
-return conffile
+return lconffile

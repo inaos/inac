@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -20,47 +20,52 @@
  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <stdio.h>
 #include <libinac/lib.h>
 
-#define INAC_TEST_INT_PARAM 121
+static ina_iscp_ctx_t *__iscp = NULL;
+static int __running = 0;
 
-static int __cleanup_called = 0;
-static int __ina_cleanup_handler(const int sig, const int error) 
+static int __cleanup_handler(const int sig, const int error) 
 {
-    ++__cleanup_called;
+    ina_iscp_destroy(&__iscp);
     return EXIT_SUCCESS;
 }
 
-int main(int argc,  char** argv) 
-{ 
-    ina_str_t run = NULL;
-    int repeat = 0;
+static ina_rc_t __command_1_handler(int cmd_id, int count, ina_iscp_params_t * params)
+{
+    return INA_SUCCESS;
+}
 
-    INA_OPTS(opt,
-        INA_OPT_FLAG("h", "helper", "Start a helper"),
-        INA_OPT_STRING("r", "run", "all", "Test or helper to run"),
-        INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test integer param"),
-        INA_OPT_INT("x", "repeat", 1, "repeat x times selected tests"));
+static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_params_t * params)
+{
+    __running = 0;
+    return INA_SUCCESS;
+}
 
-    if (!INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
-        return EXIT_FAILURE;
+INA_TEST_HELPER(iscp_tcp_server) {
+
+    INA_ISCP_CMDS(cmds,
+           INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
+           INA_SICP_SENDRECV_CMD(2, 1, __command_2_handler));
+
+     ina_set_cleanup_handler(__cleanup_handler);
+
+     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, "127.0.0.1", 7777))) {
+         return INA_ERR_PUSH_LAST;
+     }
+
+    if (!INA_SUCCEED(ina_iscp_regsiter_ex(&__iscp, cmds))) {
+        return INA_ERR_PUSH_LAST;
     }
-
-    ina_opt_get_string("run", &run);
-    ina_opt_get_int("x", &repeat);
-
-    if (!INA_SUCCEED(ina_opt_isset("h"))) {
-        while (repeat--) {
-            ina_test_run(argc, argv);
-        }
-
-        ina_set_cleanup_handler(__ina_cleanup_handler);
+    
+    while (_running) {
+        ina_iscp_recv(iscp, 1, 0);
+        ina_time_sleep(10);
     }
-    return EXIT_SUCCESS;
+    return INA_SUCCESS;
 }

@@ -27,16 +27,14 @@
  */
 #include <libinac/lib.h>
 
-void test_log_open_close_console() 
+INA_TEST(log, open_close_console)
 {
     ina_log_cfg_t *cfg;
-    
-    INA_TRACE_MSG("test_log_open_close_console");
     
     cfg = NULL;
 
     INA_TEST_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_STDOUT, INA_LOG_DEBUG, NULL));
-    INA_TEST_ASSERT_NOTNULL(cfg);
+    INA_TEST_ASSERT_NOT_NULL(cfg);
     INA_TEST_ASSERT_EQUAL(INA_LOG_STDOUT, cfg->target);
     INA_TEST_ASSERT_EQUAL(INA_LOG_DEBUG, cfg->level);
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_DEBUG, "Test log entry, var=%d", 2));

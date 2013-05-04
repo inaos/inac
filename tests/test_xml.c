@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -20,47 +20,11 @@
  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <stdio.h>
 #include <libinac/lib.h>
 
-#define INAC_TEST_INT_PARAM 121
 
-static int __cleanup_called = 0;
-static int __ina_cleanup_handler(const int sig, const int error) 
-{
-    ++__cleanup_called;
-    return EXIT_SUCCESS;
-}
-
-int main(int argc,  char** argv) 
-{ 
-    ina_str_t run = NULL;
-    int repeat = 0;
-
-    INA_OPTS(opt,
-        INA_OPT_FLAG("h", "helper", "Start a helper"),
-        INA_OPT_STRING("r", "run", "all", "Test or helper to run"),
-        INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test integer param"),
-        INA_OPT_INT("x", "repeat", 1, "repeat x times selected tests"));
-
-    if (!INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
-        return EXIT_FAILURE;
-    }
-
-    ina_opt_get_string("run", &run);
-    ina_opt_get_int("x", &repeat);
-
-    if (!INA_SUCCEED(ina_opt_isset("h"))) {
-        while (repeat--) {
-            ina_test_run(argc, argv);
-        }
-
-        ina_set_cleanup_handler(__ina_cleanup_handler);
-    }
-    return EXIT_SUCCESS;
-}

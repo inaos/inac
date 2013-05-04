@@ -40,126 +40,281 @@ typedef enum ina_conffile_value_type_e {
     INA_CONFFILE_VALUE_TYPE_NUMBER,
 } ina_conffile_value_type_t;
 
+/* Confiuration file entry */
 typedef struct ina_conffile_entry_s ina_conffile_entry_t;
-/* Config file section, can be namen or unnamed */
+/* Configuration file section, can be namen or unnamed */
 typedef struct ina_conffile_section_s ina_conffile_section_t;
 
-/* Config file data */
+/* Configuration file data */
 typedef struct ina_conffile_s {
-    ina_str_t filepath;                /* file path */
+    ina_str_t filepath;                /* Filepath */
     ina_ljit_ctx_t *lctx;              /* LuaJIT context */
-    ina_conffile_section_t *sections;  /* Holds all sections */
+    ina_conffile_section_t *sections;  /* Holds all sections  */
     int prepared;                      /* INA_YES if prepared */
 } ina_conffile_t;
 
-/* Callback sections  */
+/* 
+ * Callback for section procession, called by ina_conffile_processs() 
+ *
+ * Arguments
+ * section_name	    Name of the current processing section.
+ * section_key	    Key of current named section, NULL for unamed sections.
+ * entries	    Section entries, see ina_conffile_has_value_in_entries(),
+ *                  ina_conffile_get_string_from_section() or 
+ *                  ina_conffile_get_number_from_section() for retrieve values
+ *                  from section entries.
+ *
+ * Return Value
+ * Returning other than INA_SUCCESS will stop the configuration file 
+ * processing.
+ */
 typedef ina_rc_t (*ina_conffile_section_cb_t)(const char *section_name, 
                                               const char *section_key,
                                               ina_conffile_entry_t *entries);
 
 /*
- * Initialize a config file.
+ * Initialize a configuration file.
  *
  * Parameters
- * cf        Address of an config file pointer
- * filepath  Absolute or relaive file path. If filepath is NULL the config
+ * cf        Pointer to configuration file pointer
  *
+ * Return Value
+ * INA_SUCCESS if no error occured.
  */
-INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf, const char *filepath);
+INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf);
 
 /*
- * Add a section.
+ * Add a section to the configuration file. A section can be named or unnamned.
  *
+ * Parameters
+ * cf	   	Configuration file
+ * name    	Section name
+ * required	INA_YES to define a required section, otherwise INA_NO.
+ * named	INA_YES to mark the section as a named section, otherwise
+ *  		INA_NO.
+ * cb		Callback to process the entries for that section or NULL if
+ * 		entries should not be proccessed.
+ * section	Pointer to an section pointer. Contains the newly created
+ * 		section or NULL if any error occured.
+ *
+ * Return Value
+ * INA_SUCCESS if section was created successfully.
  */
-INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, const char *name, 
-                    int required, int named, ina_conffile_section_cb_t cb, 
-                    ina_conffile_section_t **section);
+INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, const char *name,
+			int required, int named, ina_conffile_section_cb_t cb, 
+			ina_conffile_section_t **section);
+
 /*
  * Add a value key to a configuration section.
  *
+ * Parameters
+ * section	Configuration file section
+ * name		Name of value key
+ * value_type	Define the type of value bind the key. A value can be a string
+ *		(INA_CONFFILE_VALUE_TYPE_STRING) or a number 
+ *		(INA_CONFFILE_VALUE_TYPE_NUMBER)
+ * required	Mark an value key as required by passing INA_YES. By passing
+ *		INA_NO value key is marked as optional.
+ *
+ * Return Value
+ * INA_SUCCESS if value key was successfuly added.  
  */
 INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section, 
                     const char *name, ina_conffile_value_type_t value_type, 
                     int required);
 /*
- * Query if a value with key and section exists
+ * Query if a value with key and section exists in a configuration file.
+ *
+ * Parameters
+ * cf		Pointer to a configuration file.
+ * section_name	Section name
+ * section_key	Section key for named section, NULL for unamed section
+ * key		Name of value key
+ *
+ * Return Value
+ * INA_SUCCESS  Value exists
+ * INA_FAILURE  Value dosen't exists
  */ 
 INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_t *cf, 
                     const char *section_name, const char *section_key, 
                     const char* key);
+
 /*
- * Get a string value for section and key
+ * Get a string value for section and key from a configuration file.
+ *
+ * Parameters
+ * cf		Configuration file
+ * section_name	Section name
+ * section_key	Section key for named section, NULL for unamed section
+ * key		Name of value key
+ * value	Output string containing the value
+ *
+ * Return Value
+ * INA_SUCCESS	Value found
+ * INA_FAILURE	Value not found
  */
 INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf, 
                     const char *section_name, const char *section_key, 
                     const char* key, ina_str_t *value);
 
 /*
- * Get a number value for section an key
+ * Get a number value for section and key from a configuration file.
+ *
+ * Parameters
+ * cf		Configuration file
+ * section_name	Section name
+ * section_key	Section key for named section, NULL for unamed section
+ * key          Name of value key
+ * value	Output double containing the number value
+ *
+ * Return Value
+ * INA_SUCCESS	Value found
+ * INA_FAILURE	Value not found
  */
 INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf, 
                     const char *section_name, const char *section_key, 
                     const char* key, double *value);
-/*
- *
- *
- */
-INA_API(ina_rc_t) ina_conffile_has_value_in_entries(ina_conffile_entry_t *entries, 
-                    const char* key);
 
 /*
+ * Query if a value with key exists in a section. Use this function in 
+ * a section processing callback.
  *
+ * Parameters
+ * entries  Section entries obtained from callback
+ * key	    Key for value
  *
+ * Return Value
+ * INA_SUCCESS	Value exists
+ * INA_FAILURE	Value doesn't exists
  */
-INA_API(ina_rc_t) ina_conffile_get_string_from_entries(ina_conffile_entry_t *entries, 
-                    const char* key, ina_str_t *value);
-/*
- *
- *
- */
-INA_API(ina_rc_t) ina_conffile_get_number_from_entries(ina_conffile_entry_t *entries, 
-                    const char* key, double *value);
+INA_API(ina_rc_t) ina_conffile_has_value_in_entries(
+		    ina_conffile_entry_t *entries, const char* key);
 
 /*
+ * Get a string value from a section. Use this function in a section processing
+ * callback.
  *
+ * Parameters
+ * entries  Section entries obtained from callback
+ * key	    Key for value
+ * value    Output string containing the value
  *
+ * Return Value
+ * INA_SUCCESS	Value found
+ * INA_FAILURE	Value not found
  */
-INA_API(ina_rc_t) ina_conffile_prepare(ina_conffile_t *cf);
+INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
+		    ina_conffile_entry_t *entries, const char* key, 
+		    ina_str_t *value);
 /*
+ * Get a number value from a section. Use this function in a section processing
+ * callback.
  *
+ * Parameters
+ * entries  Section entries obtained from callback
+ * key	    Key for value
+ * value    Output double containing the value
  *
+ * Return Value
+ * INA_SUCCESS	Value found
+ * INA_FAILURE	Value not found
  */
-INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf);
+INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
+		    ina_conffile_entry_t *entries, const char* key, 
+		    double *value);
 
 /*
+ * Process a configuration file.
  *
+ * Parameters
+ * cf	    Configuration file
+ * filepath Absolute or relative file path. If filepath is NULL the config-
+ *          uration file must be located in the working directory and named
+ *          [binary-name].conf.
  *
+ * Return Value
+ * INA_SUCCESS if no error occured.
+ */
+INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath);
+
+/*
+ * Destroy a confiuration file.
+ *
+ * Parameters
+ * cf	Pointer of a configuration file pointer.
+ *
+ * Return Value
+ * INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf);
 
-
+/*
+ *  Add a string value key to the configration file.
+ *  
+ *  Parameters
+ *  name	string	Name of value key
+ *  required	boolean	Define if value is reuired or optional
+ */
 #define INA_CONFFILE_STRING_KEY(name, required) \
 ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required)
 
+/*
+ * Add a number value key to the confiuration file.
+ *
+ * Parameters
+ * name		string	Name of value key
+ * required	boolean	Define if value is required or optional
+ */
 #define INA_CONFFILE_NUMBER_KEY(name, required) \
 ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_NUMBER, required)
 
+/* 
+ * Add an unnamed section to the configration file.
+ *
+ * Parameters
+ * name		string	 Section name
+ * required	boolean	 Define if the section is required or optional
+ * handler	callback Callback for section handling
+ * ...          Nested INA_CONFFILE_STRING_KEY or INA_CONFFILE_NUMBER key
+ *              macros for adding key values
+ */
 #define INA_CONFFILE_SECTION(name, required, handler, ...) \
 ina_conffile_add_section(__cf, name, required, INA_NO, handler, &__cs); \
 __VA_ARGS__
 
+/*
+ * Add a named section to the configuration file.
+ *
+ * Parameters
+ * name		string	Section name
+ * required	boolean	Define if the section is required or optional
+ * handler	callback Callback to handle section
+ * ...		INA_CONFFILE_STRING_KEY or INA_CONFFILE_NUMBER_KEY to add
+ * 		value keys to the section
+ */
 #define INA_CONFFILE_NAMED_SECTION(name, required, handler, ...) \
 ina_conffile_add_section(__cf, name, required, INA_YES, handler, &__cs); \
 __VA_ARGS__
 
-#define INA_CONFFILE(cf,...)                             \
+/*
+ * Define configration file using the standard pattern. 
+ *
+ * Parameters
+ * cf	Pointer to a configuration file. NULL if it's not itended to use
+ *      the configration values after  processing the configuration file
+ * ...  Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add 
+ *      named or unamed section to the configuration file
+ */
+#define INA_CONFFILE(cf, ...)                            \
     ina_conffile_t *__cf = NULL;                         \
     ina_conffile_section_t *__cs = NULL;                 \
     if (cf != NULL) __cf = cf;                           \
-    if (!INA_SUCCEED(ina_conffile_init(&__cf, NULL))) {  \
+    if (!INA_SUCCEED(ina_conffile_init(&__cf)))       {  \
         abort();                                         \
     }                                                    \
-    __VA_ARGS__
+    __VA_ARGS__;                                         \
+    ina_conffile_process(__cf, NULL);                    \
+    if (cf == NULL) ina_conffile_destroy(&__cf);
 
 #ifdef __cplusplus
 }
