@@ -11,6 +11,7 @@ tests/suites.c
 tests/suites.h
 tests/test
 tests/test_*.h
+contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/luajit/src/luajit.exp
 contribs/luajit/src/luajitd.exp
@@ -25,6 +26,13 @@ contribs/luajit/src/lua51.exp
 contribs/luajit/src/luajit.exe
 contribs/luajit/src/luajitd.exe
 contribs/luajit/src/*.so
+contribs/luajit/src/jit/vmdef.lua
+contribs/luajit/src/lj_ffdef.h
+contribs/luajit/src/lj_folddef.h
+contribs/luajit/src/lj_libdef.h
+contribs/luajit/src/lj_recdef.h
+contribs/luajit/src/lj_vm.s
+contribs/luajit/src/luajit
 contribs/makeheaders/makeheaders
 build/*
 buildall/*

@@ -215,7 +215,7 @@ INA_TEST(iscp, send_recv_checkparams)
 
 INA_TEST(iscp, send_local)
 {
-   ina_iscp_ctx_t *ctx = NULL;
+   /*ina_iscp_ctx_t *ctx = NULL;*/
 
    __send_count = 0;
 
