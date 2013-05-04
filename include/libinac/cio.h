@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -20,47 +20,47 @@
  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <stdio.h>
+#ifndef _LIBINAC_CIO_H_
+#define _LIBINAC_CIO_H_
+
 #include <libinac/lib.h>
 
-#define INAC_TEST_INT_PARAM 121
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-static int __cleanup_called = 0;
-static int __ina_cleanup_handler(const int sig, const int error) 
-{
-    ++__cleanup_called;
-    return EXIT_SUCCESS;
+/* ANSI color codes */
+#define INA_CIO_ANSI_BLACK    "\033[0;30m"
+#define INA_CIO_ANSI_RED      "\033[0;31m"
+#define INA_CIO_ANSI_GREEN    "\033[0;32m"
+#define INA_CIO_ANSI_YELLOW   "\033[0;33m"
+#define INA_CIO_ANSI_BLUE     "\033[0;34m"
+#define INA_CIO_ANSI_MAGENTA  "\033[0;35m"
+#define INA_CIO_ANSI_CYAN     "\033[0;36m"
+#define INA_CIO_ANSI_GREY     "\033[0;37m"
+#define INA_CIO_ANSI_DARKGREY "\033[01;30m"
+#define INA_CIO_ANSI_BRED     "\033[01;31m"
+#define INA_CIO_ANSI_BGREEN   "\033[01;32m"
+#define INA_CIO_ANSI_BYELLOW  "\033[01;33m"
+#define INA_CIO_ANSI_BBLUE    "\033[01;34m"
+#define INA_CIO_ANSI_BMAGENTA "\033[01;35m"
+#define INA_CIO_ANSI_BCYAN    "\033[01;36m"
+#define INA_CIO_ANSI_WHITE    "\033[01;37m"
+#define INA_CIO_ANSI_NORMAL   "\033[0m"
+
+
+/*
+ * Print text
+ */
+INA_API(ina_rc_t) ina_cio_print(const char *clr, const char* text);
+
+
+#ifdef __cplusplus
 }
-
-int main(int argc,  char** argv) 
-{ 
-    ina_str_t run = NULL;
-    int repeat = 0;
-
-    INA_OPTS(opt,
-        INA_OPT_FLAG("h", "helper", "Start a helper"),
-        INA_OPT_STRING("r", "run", "all", "Test or helper to run"),
-        INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test integer param"),
-        INA_OPT_INT("x", "repeat", 1, "repeat x times selected tests"));
-
-    if (!INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
-        return EXIT_FAILURE;
-    }
-
-    ina_opt_get_string("run", &run);
-    ina_opt_get_int("x", &repeat);
-
-    if (!INA_SUCCEED(ina_opt_isset("h"))) {
-        while (repeat--) {
-            ina_test_run(argc, argv);
-        }
-
-        ina_set_cleanup_handler(__ina_cleanup_handler);
-    }
-    return EXIT_SUCCESS;
-}
+#endif
+#endif

@@ -366,8 +366,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             ina_iscp_cmd_t *cmd;
             ina_iscp_param_t *params;
             int ci;
-            uint32_t crc;
             ina_iscp_rc_t irc;
+            /* uint32_t crc = 0; */
  
             INA_TRACE2("Message received with cmd_id %d", msg.cmd_id);
             INA_TRACE3("- msg.cmd_id->%d", msg.cmd_id);
@@ -388,10 +388,10 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                 return ina_err_peek();
             }
 
-            /* Validate CRC */
+            /* Validate CRC 
             INA_TRACE3("crc pos=%ld", msg.length-sizeof(uint32_t));
             crc = *(uint32_t*)&((unsigned char*)(&msg))[msg.length-sizeof(uint32_t)];
-            INA_TRACE3("crc=%u crc-length=%ld", crc, msg.length-sizeof(uint32_t));
+            INA_TRACE3("crc=%u crc-length=%ld", crc, msg.length-sizeof(uint32_t));*/
 
             /*if (crc != ina_util_crc32(0, (unsigned char*)msg, msg->length-sizeof(uint32_t))) {
                 INA_TRACE("Invalid crc (%d)", crc);

@@ -34,41 +34,189 @@
 extern "C" {
 #endif
 
-/* Max tests for on suite */
-#define INA_TEST_MAX_TESTS (512)
+/* Define an test helper */
+#define INA_TEST_HELPER(name) \
+void ina_test__helper_##name(int argc, char **argv)
+
+#define INA_TEST_HELPER_SPAWN(name, ...) \
+    ina_test_runhelper("-h "#name, __VA_ARGS)
+    
+#define INA_TEST_HELPER_STOP(name)
+
 
 #define INA_TEST_ASSERT(cond) assert(cond)
-#define INA_TEST_ASSERT_FALSE(v) INA_TEST_ASSERT(!v)
-#define INA_TEST_ASSERT_TRUE(v) INA_TEST_ASSERT(v)
-#define INA_TEST_ASSERT_NULL(v) INA_TEST_ASSERT(v == NULL)
-#define INA_TEST_ASSERT_NOTNULL(v) INA_TEST_ASSERT(v != NULL)
-#define INA_TEST_ASSERT_EQUAL(expected, actual) INA_TEST_ASSERT(expected == actual)
-#define INA_TEST_ASSERT_NOTEQUAL(nexpected, actual) INA_TEST_ASSERT(nexpected != actual)
 #define INA_TEST_ASSERT_SUCCESS(v) INA_TEST_ASSERT_EQUAL(INA_SUCCESS, v)
 #define INA_TEST_ASSERT_FAILURE(v) INA_TEST_ASSERT_EQUAL(INA_FAILURE, v)
 #define INA_TEST_ASSERT_SUCCEED(v) INA_TEST_ASSERT_TRUE(INA_SUCCEED(v))
 #define INA_TEST_ASSERT_NOTSUCCEED(v) INA_TEST_ASSERT_FALSE(INA_SUCCEED(v))
+#define INA_TEST_ASSERT_STR(exp, real) ina_assert_str(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_DATA(exp, expsize, real, realsize) ina_test_assert_data(exp, expsize, real, realsize, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL(exp, real) ina_test_assert_equal(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL(exp, real) ina_test_assert_not_equal(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NULL(real) ina_test_assert_null((void*)real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_NULL(real) ina_test_assert_not_null(real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_SAME(exp, real) ina_test_assert_same(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_SAME(exp, real) ina_test_assert_not_same(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_TRUE(real) ina_test_assert_true(real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_FALSE(real) ina_test_assert_false(real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_FAIL() ina_test_assert_fail(__FILE__, __LINE__)
 
-/* Forward declaration */
-typedef struct ina_test_case_s ina_test_testcase_t;
-/* Testcase function */
-typedef void (*ina_test_fn_t)(ina_test_testcase_t *);
+/* Setup callback */
+typedef void (*ina_test_setup_cb_t)(void*);
+/* Teardown callback */
+typedef void (*ina_test_teardown_cb_t)(void*);
+
 /* Test case */
-struct ina_test_case_s {
-    char* name;
-    ina_test_fn_t fn;
-    size_t failed;
-    size_t runs;
-    const char* error_msg;
-} ina_test_case_t;
+typedef struct ina_test_testcase_s {
+    const char* suite_name;
+    const char* test_name; 
+    void (*run)();
+    int skip;
+    void *data;
+    ina_test_setup_cb_t setup;
+    ina_test_teardown_cb_t teardown;
+    unsigned int magic;
+} ina_test_testcase_t;
 
-/* Test suite */
-typedef struct ina_test_suite_s {
-    size_t count;
-    size_t failures;
-    ina_test_testcase_t *tests[INA_TEST_MAX_TESTS];
-} ina_test_suite_t;
+/* Test function name. For internal purpose only. */
+#define INA_TEST_FNAME(sname, tname) __ina_test_##sname##_##tname##_run
+/* Test struct name. For internal purpose only */
+#define INA_TEST_TNAME(sname, tname) __ina_test_##sname##_##tname
+/* Magic Word: Dead code. For internal purpose only */
+#define INA_TEST_MAGIC (0xDEADC0DE)
 
+/* Section holding test cases */
+#ifdef INA_OS_OSX
+#define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
+#else
+#define INA_TEST_SECTION __attribute__ ((unused,section (".inatest")))
+#endif
+
+/* Testcase data defines. For internal purpose only */
+#define INA_TEST_STRUCT(sname, tname, _skip, __data, __setup, __teardown) \
+    ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
+        .suite_name=#sname, \
+        .test_name=#tname, \
+        .run = INA_TEST_FNAME(sname, tname),\
+        .skip = _skip, \
+        .data = __data, \
+        .setup = (ina_test_setup_cb_t)__setup,\
+        .teardown = (ina_test_teardown_cb_t)__teardown,\
+        .magic = INA_TEST_MAGIC }
+
+/* Define data for a test suite */
+#define INA_TEST_DATA(sname) struct sname##_data
+/* Define setup code für a suite */ 
+#define INA_TEST_SETUP(sname) \
+void __attribute__ ((weak)) sname##_setup(struct sname##_data* data)
+/* Define teardown code for a suite */
+#define INA_TEST_TEARDOWN(sname) \
+void __attribute__ ((weak)) sname##_teardown(struct sname##_data* data)
+
+/* Declare test case. For internal purpose only. */
+#define INA_TEST_DECL(sname, tname, _skip) \
+        void INA_TEST_FNAME(sname, tname)(); \
+        INA_TEST_STRUCT(sname, tname, _skip, NULL, NULL, NULL);\
+        void INA_TEST_FNAME(sname, tname)()
+
+
+/* Declare Test case with fixture. For internal purpose only. */
+#ifdef INA_OS_OSX
+#define INA_SETUP_FNAME(sname) NULL
+#define INA_TEARDOWN_FNAME(sname) NULL
+#else
+#define INA_SETUP_FNAME(sname) sname##_setup
+#define INA_TEARDOWN_FNAME(sname) sname##_teardown
+#endif
+#define INA_TEST_DECL_FIXTURE(sname, tname, _skip) \
+        static struct sname##_data  __ina_test_##sname##_data; \
+    INA_TEST_SETUP(sname); \
+    INA_TEST_TEARDOWN(sname); \
+    void INA_TEST_FNAME(sname, tname)(struct sname##_data* data); \
+    INA_TEST_STRUCT(sname, tname, _skip, &__ina_test_##sname##_data, INA_SETUP_FNAME(sname), INA_TEARDOWN_FNAME(sname)); \
+    void INA_TEST_FNAME(sname, tname)(struct sname##_data* data)
+
+/* Define test case */
+#define INA_TEST(sname, tname) INA_TEST_DECL(sname, tname, 0)
+/* Skip a text case */
+#define INA_TEST_SKIP(sname, tname) INA_TEST_DECL(sname, tname, 1)
+/* Define test case unsing fixture features */
+#define INA_TEST_FIXTURE(sname, tname) INA_TEST_DECL_FXITURE(sname, tname, 0)
+/* Skip test case with fixture features */
+#define INA_TEST_FIXTURE_SKIP(sname, tname) INA_TEST_DECL_FIXTURE(sname, tname, 1)
+
+/* Print out message */
+#define INA_TEST_MSG(fmt, ...) ina_test_msg(INA_NO, fmt, __VA_ARGS__)
+/* Print out a error message */
+#define INA_TEST_ERR(fmt, ...) ina_test_msg(INA_YES, fmt, __VA_ARGS__)
+
+/*
+ * Printout a message
+ */
+INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_str(const char* exp, const char* real, const char* caller, int line);
+
+/*
+ *
+ */
+INA_API(void) assert_data(const unsigned char* exp, int expsize,
+                const unsigned char* real, int realsize,
+                const char* caller, int line);
+/*
+ *
+ */
+INA_API(void) ina_test_assert_equal(long exp, long real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_equal(long exp, long real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_null(const void *real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_null(const void *real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_same(const void *exp,  const void *real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_same(const void *exp,  const void *real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_true(int real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_false(int real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_fail(const char *caller, int line);
+
+
+
+/*
+ * Run tests
+ */
+INA_API(int) ina_test_run(int argc, char *argv[]);
 
 #ifdef __cplusplus
 }
