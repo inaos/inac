@@ -27,4 +27,58 @@
  */
 #include <libinac/lib.h>
 
+const char *test_xml =
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+"<?xml-stylesheet type=\"text/xsl\" href=\"./ClientHTML.xsl\"?><protocol>"
+"<version>5.0 for US Messages</version>"
+"<revisions>"
+"    <revision type=\"Draft\" version=\"5.0\" author=\"Hans Muster\" date=\"07/16/2008\"/>"
+"    <revision type=\"Draft\" version=\"5.0b ($Rev: $)\" author=\"Hans Muster\" date=\"07/20/2008\"/>"
+"    <revision type=\"Draft\" version=\"5.0c\" author=\"John Doe\" date=\"10/21/2008\"/>"
+"    <revision type=\"Release\" version=\"5.0d\" author=\"Hans Muster\" date=\"10/30/2008\"/>"
+"    <revision type=\"Release\" version=\"5.0e\" author=\"Hans Muster\" date=\"11/3/2008\"/>"
+"    <revision type=\"Release\" version=\"5.0f\" author=\"John Doe\" date=\"12/01/2008\"/>"
+"    <revision type=\"Release\" version=\"5.0g\" author=\"John Doe\" date=\"12/08/2008\"/>"
+"    <revision type=\"Release\" version=\"5.0h\" author=\"John Doe\" date=\"12/17/2008\"/>"
+"    <revision type=\"Release\" version=\"5.0i\" author=\"John Doe\" date=\"01/09/2009\"/>"
+"    <revision type=\"Release\" version=\"5.0j\" author=\"John Doe\" date=\"05/04/2009\"/>"
+"    <revision type=\"Release\" version=\"5.0k\" author=\"John Doe\" date=\"06/22/2009\"/>"
+"    <revision type=\"Beta\" version=\"5.0l\" author=\"Hans Muster\" date=\"02/15/2010\"/>"
+"    <revision type=\"Beta\" version=\"5.0m\" author=\"Hans Muster\" date=\"02/25/2010\"/>"
+"    <revision type=\"Beta\" version=\"5.0n\" author=\"Hans Muster\" date=\"03/25/2010\"/>"
+"    <revision type=\"Beta\" version=\"5.0o\" author=\"Hans Muster\" date=\"04/14/2010\"/>"
+"</revisions>";
 
+void test_simple_xml()
+{
+	ina_xml_ctx_t *ctx;
+	ina_xml_parser_t *parser;
+	ina_xml_elem_t *root;
+	ina_str_t source = ina_str_fromcstr(test_xml);
+	ina_xml_itr_t *itr;
+	const char *name;
+	const char *value;
+	size_t len;	
+
+	INA_TEST_ASSERT_SUCCEED(ina_xml_init(&ctx, 16));
+	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_borrow(ctx, &parser));
+
+	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute(parser, source, &root)); 
+
+	INA_TEST_ASSERT_SUCCEED(ina_xml_elem_name(root, &name, &len));
+	INA_TEST_ASSERT(strncmp("version", name, len) == 0);
+	INA_TEST_ASSERT_SUCCEED(ina_xml_elem_value(root, &value, &len));
+	INA_TEST_ASSERT(strncmp("5.0 for US Messages", value, len) == 0);
+
+	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_get_child_itr(parser, root, &itr));			 
+	INA_TEST_ASSERT_NOTNULL(itr);
+	while (itr != NULL) {
+		ina_xml_elem_t *rev;
+		ina_xml_itr_next(itr, &rev);
+	}
+
+	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_release(ctx, &parser));
+	INA_TEST_ASSERT_SUCCEED(ina_xml_destory(&ctx));	
+	
+	ina_str_destroy(source);
+}
