@@ -27,6 +27,11 @@
  */
 #include <libinac/lib.h>
 
+#undef TRUE
+#define TRUE 1
+#undef FALSE
+#define FALSE 0
+
 #define MAX_HEADERS 13
 #define MAX_ELEMENT_SIZE 2048
 
@@ -55,18 +60,13 @@ struct message {
   unsigned short http_major;
   unsigned short http_minor;
 
-  int message_begin_cb_called;
-  int headers_complete_cb_called;
-  int message_complete_cb_called;
-  int message_complete_on_eof;
   int body_is_final;
 };
 
 const struct message requests[] =
 #define REQUEST_1 0
-{ {.name= "firefox get"
-  ,.type= INA_HTTP_PARSER_TYPE_REQUEST
-  ,.raw= "GET /favicon.ico HTTP/1.1\r\n"
+{ {"firefox get"
+  ,"GET /favicon.ico HTTP/1.1\r\n"
          "Host: 0.0.0.0=5000\r\n"
          "User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9) Gecko/2008061015 Firefox/3.0\r\n"
          "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
@@ -76,18 +76,22 @@ const struct message requests[] =
          "Keep-Alive: 300\r\n"
          "Connection: keep-alive\r\n"
          "\r\n"
-  ,.should_keep_alive= TRUE
-  ,.message_complete_on_eof= FALSE
-  ,.http_major= 1
-  ,.http_minor= 1
-  ,.method= INA_HTTP_PARSER_METHOD_GET
-  ,.query_string= ""
-  ,.fragment= ""
-  ,.request_path= "/favicon.ico"
-  ,.request_url= "/favicon.ico"
-  ,.num_headers= 8
-  ,.headers=
-    { { "Host", "0.0.0.0=5000" }
+  ,INA_HTTP_PARSER_TYPE_REQUEST
+  ,INA_HTTP_PARSER_METHOD_GET
+  ,0
+  ,"/favicon.ico"
+  ,"/favicon.ico"
+  ,""
+  ,""
+  ,""
+  ,0
+  ,""
+  ,""
+  ,0
+  ,8
+  ,0
+  ,{ 
+      { "Host", "0.0.0.0=5000" }
     , { "User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9) Gecko/2008061015 Firefox/3.0" }
     , { "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" }
     , { "Accept-Language", "en-us,en;q=0.5" }
@@ -95,34 +99,48 @@ const struct message requests[] =
     , { "Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.7" }
     , { "Keep-Alive", "300" }
     , { "Connection", "keep-alive" }
-    }
-  ,.body= ""
+   }
+  ,TRUE
+  ,""
+  ,1
+  ,1
+  ,0
   }
-, {.name= NULL } /* sentinel */
+, { NULL } /* sentinel */
 };
 
 const struct message responses[] =
 #define RESPONSE_1 0
-{ {.name="no carriage ret"
-  ,.type= INA_HTTP_PARSER_TYPE_RESPONSE
-  ,.raw= "HTTP/1.1 200 OK\n"
+{ { "no carriage ret"
+  ,"HTTP/1.1 200 OK\n"
          "Content-Type: text/html; charset=utf-8\n"
          "Connection: close\n"
          "\n"
          "these headers are from http://news.ycombinator.com/"
-  ,.should_keep_alive= FALSE
-  ,.message_complete_on_eof= TRUE
-  ,.http_major= 1
-  ,.http_minor= 1
-  ,.status_code= 200
-  ,.num_headers= 2
-  ,.headers=
-    { {"Content-Type", "text/html; charset=utf-8" }
-    , {"Connection", "close" }
-    }
-  ,.body= "these headers are from http://news.ycombinator.com/"
+  ,INA_HTTP_PARSER_TYPE_RESPONSE
+  ,INA_HTTP_PARSER_METHOD_GET
+  ,200
+  ,""
+  ,""
+  ,""
+  ,""
+  ,"these headers are from http://news.ycombinator.com/"
+  ,0
+  ,""
+  ,""
+  ,0
+  ,2
+  ,0
+  ,{ {"Content-Type", "text/html; charset=utf-8" }
+   , {"Connection", "close" }
+   }
+  ,FALSE
+  ,""
+  ,1
+  ,1
+  ,0
   }
-, {.name= NULL } /* sentinel */
+, { NULL } /* sentinel */
 };
 
 void test_http_simple_req_resp()
