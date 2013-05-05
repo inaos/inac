@@ -56,16 +56,18 @@ INA_TEST_HELPER(iscp, tcp_server) {
      ina_set_cleanup_handler(__cleanup_handler);
 
      if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, "127.0.0.1", 7777))) {
-         return INA_ERR_PUSH_LAST;
+         *retval = ina_err_peek();
+         return;
      }
 
     if (!INA_SUCCEED(ina_iscp_register_ex(__iscp, cmds))) {
-        return INA_ERR_PUSH_LAST;
+        *retval = ina_err_peek();
+        return;
     }
     
     while (__running) {
         ina_iscp_recv(__iscp, 1, 0);
         ina_time_sleep(10);
     }
-    *retval INA_SUCCESS;
+    *retval = INA_SUCCESS;
 }
