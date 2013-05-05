@@ -51,16 +51,18 @@ static const char* __helper_name;
 static INA_TEST(suite, test) { }
 
 static int __ina_suite_all(ina_test_testcase_t* t) {
-    return 1;
+    return t->is_helper == 0;
 }
 
 static int __ina_suite_filter(ina_test_testcase_t* t) { 
-    return strncmp(__suite_name, t->suite_name, strlen(__suite_name)) == 0;
+    return (strncmp(__suite_name, t->suite_name, strlen(__suite_name)) == 0) &&
+        t->is_helper == 0;
 }
 
 static int __ina_helper_filter(ina_test_testcase_t* t) { 
     return (strncmp(__suite_name, t->suite_name, strlen(__suite_name)) == 0) &&
-        (strncmp(__helper_name, t->suite_name, strlen(__helper_name)) == 0);
+        (strncmp(__helper_name, t->suite_name, strlen(__helper_name)) == 0) &&
+        t->is_helper == 1;
 }
 
 #ifdef INA_OS_OSX

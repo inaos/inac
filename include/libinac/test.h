@@ -158,10 +158,10 @@ typedef struct ina_test_testcase_s {
     INA_TEST_STRUCT(sname, tname, _skip, 0, &__ina_test_##sname##_data, INA_SETUP_FNAME(sname), INA_TEARDOWN_FNAME(sname)); \
     void INA_TEST_FNAME(sname, tname)(struct sname##_data* data)
 
-#define INA_HELPER_DECL(sname, tname) \
-        void INA_TEST_FNAME(sname, tname)(int *retval, int argc, char **argv); \
-        INA_TEST_STRUCT(sname, tname, 0, 1, NULL, NULL, NULL);\
-        void INA_TEST_FNAME(sname, tname)(int *retval, int argc, char **argv)
+#define INA_HELPER_DECL(sname, hname) \
+        void INA_TEST_FNAME(sname, hname)(int *retval, int argc, char **argv); \
+        INA_TEST_STRUCT(sname, hname, 1, 1, NULL, NULL, NULL);\
+        void INA_TEST_FNAME(sname, hname)(int *retval, int argc, char **argv)
 
 /* Define test case */
 #define INA_TEST(sname, tname) INA_TEST_DECL(sname, tname, 0)
@@ -172,7 +172,7 @@ typedef struct ina_test_testcase_s {
 /* Skip test case with fixture features */
 #define INA_TEST_FIXTURE_SKIP(sname, tname) INA_TEST_DECL_FIXTURE(sname, tname, 1)
 /* Define helper */
-#define INA_TEST_HELPER(sname, hname) INA_HELPER_DECL(helper_##sname, helper__##hname)
+#define INA_TEST_HELPER(sname, hname) INA_HELPER_DECL(sname, hname)
 /* Print out message */
 #define INA_TEST_MSG(fmt, ...) ina_test_msg(INA_NO, fmt, __VA_ARGS__)
 /* Print out a error message */
