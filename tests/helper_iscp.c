@@ -55,7 +55,7 @@ INA_TEST_HELPER(iscp, tcp_server) {
 
      ina_set_cleanup_handler(__cleanup_handler);
 
-     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, "127.0.0.1", 7777))) {
+     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, "127.0.0.1", 9999))) {
          *retval = ina_err_peek();
          return;
      }

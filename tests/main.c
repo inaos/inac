@@ -59,6 +59,7 @@ int main(int argc,  char** argv)
         while (repeat--) {
             ina_test_run(argc, argv);
         }
+
         ina_set_cleanup_handler(__ina_cleanup_handler);
     } else {
         return ina_test_helper_run(argc, argv);
