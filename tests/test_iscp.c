@@ -138,15 +138,17 @@ INA_TEST(iscp, send_tcp)
     INA_TEST_ASSERT_NULL(iscp);
     INA_TEST_ASSERT_SUCCESS(ina_iscp_create_tcp(&iscp, "127.0.0.1", 9999));
     INA_TEST_ASSERT_NOT_NULL(iscp);
-    INA_TEST_ASSERT_SUCCEED(ina_iscp_register(iscp, 1, 3, __check_params_handler));
-    INA_TEST_ASSERT_SUCCEED(ina_iscp_register(iscp, 2, 0, __stop_handler));
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_register(iscp, 1, 3, NULL));
 
     hid = INA_TEST_HELPER_START(iscp, tcp_server, NULL);
+    INA_ASSERT_TRUE(hid > 0);
     INA_TEST_ASSERT_SUCCEED(ina_iscp_send(iscp, 1, 
                             INA_ISCP_TYPE_INT64, 20,
                             INA_ISCP_TYPE_DBL, 5.2,
                             INA_ISCP_TYPE_STR, "test"));
-    
+                            
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_destroy(&iscp));
+    INA_TEST_ASSERT_NULL(iscp);
 }
 
 INA_TEST(iscp, send_recv_checkparams)
