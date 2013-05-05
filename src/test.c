@@ -276,8 +276,8 @@ INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_na
     PROCESS_INFORMATION pi;
     char cmdline[256];
     
-    sprintf(cmdline, "\"test.exe -h %s, %s", suite_name, helper_name)s;
-	CreateProcess(NULL, cmdline, eNULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
+    sprintf(cmdline, "\"test.exe -h %s, %s", suite_name, helper_name);
+	CreateProcess(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
     return pi.dwProcessId;
 #endif
 }
