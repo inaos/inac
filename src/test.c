@@ -235,7 +235,7 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
 }
 
 INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_name, ...) {
-
+#ifndef INA_OS_WIN32
     char* args[16];
     pid_t pid = fork();
     int n;
@@ -266,6 +266,13 @@ INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_na
        _exit(127);
    }
    return pid;
+#else
+    PROCESS_INFORMATION pi;
+
+    char szCmdline[] = "\"C:\\Program Files\\MyApp\" -L -S";
+	CreateProcess(NULL, szCmdline, NULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
+    return pi.hProcess;
+#endif
 }
 
 /*
