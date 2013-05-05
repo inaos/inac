@@ -43,18 +43,22 @@ extern "C" {
     ina_test_helper_stop(id)
 
 #define INA_TEST_ASSERT(v) INA_TEST_ASSERT_TRUE(v)
-#define INA_TEST_ASSERT_SUCCESS(v) INA_TEST_ASSERT_EQUAL(INA_SUCCESS, v)
-#define INA_TEST_ASSERT_FAILURE(v) INA_TEST_ASSERT_EQUAL(INA_FAILURE, v)
+#define INA_TEST_ASSERT_SUCCESS(v) INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, v)
+#define INA_TEST_ASSERT_FAILURE(v) INA_TEST_ASSERT_EQUAL_INTEGER(INA_FAILURE, v)
 #define INA_TEST_ASSERT_SUCCEED(v) INA_TEST_ASSERT_TRUE(INA_SUCCEED(v))
 #define INA_TEST_ASSERT_NOTSUCCEED(v) INA_TEST_ASSERT_FALSE(INA_SUCCEED(v))
 #define INA_TEST_ASSERT_STR(exp, real) \
     ina_test_assert_str(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_DATA(exp, expsize, real, realsize) \
     ina_test_assert_data(exp, expsize, real, realsize, __FILE__, __LINE__)
-#define INA_TEST_ASSERT_EQUAL(exp, real) \
-    ina_test_assert_equal(exp, real, __FILE__, __LINE__)
-#define INA_TEST_ASSERT_NOT_EQUAL(exp, real) \
-    ina_test_assert_not_equal(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_INTEGER(exp, real) \
+    ina_test_assert_equal_integer(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_FLOATING(exp, real) \
+    ina_test_assert_equal_floating(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_INTEGER(exp, real) \
+    ina_test_assert_not_equal_integer(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_FLOATING(exp, real) \
+    ina_test_assert_not_equal_floating(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NULL(real) \
     ina_test_assert_null((void*)real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NOT_NULL(real) \
@@ -203,13 +207,22 @@ INA_API(void) ina_test_assert_data(const unsigned char* exp, int expsize,
 /*
  *
  */
-INA_API(void) ina_test_assert_equal(double exp, double real, const char *caller, 
+INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, const char *caller, 
                                     int line);
-
 /*
  *
  */
-INA_API(void) ina_test_assert_not_equal(double exp, double real, 
+INA_API(void) ina_test_assert_equal_floating(double exp, double real, const char *caller, 
+                                    int line);
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, 
+                                        const char *caller, int line);
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_equal_floating(double exp, double real, 
                                         const char *caller, int line);
 
 /*

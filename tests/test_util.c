@@ -31,32 +31,32 @@ INA_TEST(util, sdbm_macro)
 {
     ina_str_t str;
     str = ina_str_fromcstr("test");
-    INA_TEST_ASSERT_EQUAL(1195757874, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
-    INA_TEST_ASSERT_NOT_EQUAL(3632233, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(1195757874, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
 }
 
 INA_TEST(util, sdbm)
 {
     ina_str_t str;
     str = ina_str_fromcstr("test");
-    INA_TEST_ASSERT_EQUAL(1195757874, ina_util_hash_sdbm(0, str, ina_str_len(str)));
-    INA_TEST_ASSERT_NOT_EQUAL(3632233, ina_util_hash_sdbm(0, str, ina_str_len(str)));
-    INA_TEST_ASSERT_EQUAL(1732587620, ina_util_hash_sdbm(1195757874, str, ina_str_len(str)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(1195757874, ina_util_hash_sdbm(0, str, ina_str_len(str)));
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_util_hash_sdbm(0, str, ina_str_len(str)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(1732587620, ina_util_hash_sdbm(1195757874, str, ina_str_len(str)));
 }
 
 INA_TEST(util, crc32_macro)
 {
     ina_str_t str;
     str = ina_str_fromcstr("test");
-    INA_TEST_ASSERT_EQUAL(3632233996, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
-    INA_TEST_ASSERT_NOT_EQUAL(3632233, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(3632233996, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
 }
 
 INA_TEST(util, crc32)
 {
     ina_str_t str;
     str = ina_str_fromcstr("test");
-    INA_TEST_ASSERT_EQUAL(3632233996, ina_util_hash_crc32(0, str, ina_str_len(str)));
-    INA_TEST_ASSERT_NOT_EQUAL(3632233, ina_util_hash_crc32(0, str, ina_str_len(str)));
-    INA_TEST_ASSERT_EQUAL(3966352177, ina_util_hash_crc32(3632233996, str, ina_str_len(str)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(3632233996, ina_util_hash_crc32(0, str, ina_str_len(str)));
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_util_hash_crc32(0, str, ina_str_len(str)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(3966352177, ina_util_hash_crc32(3632233996, str, ina_str_len(str)));
 }
