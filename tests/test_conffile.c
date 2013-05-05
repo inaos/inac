@@ -39,7 +39,7 @@ static ina_rc_t __ina_section_handler(const char* section_name, const char* sect
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "command_latency"));
     INA_TEST_ASSERT_NOTSUCCEED(ina_conffile_has_value_in_entries(entries, "other_latency"));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_number_from_entries(entries, "command_latency", &command_latency));
-    INA_TEST_ASSERT_EQUAL(1000, command_latency);
+    INA_TEST_ASSERT_EQUAL(1000.0, command_latency);
     __section_count++;
     return INA_SUCCESS;
 }

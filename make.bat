@@ -86,13 +86,20 @@ REM reset the main environment variables because they might have been deleted by
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
+REM build rapidxml
+call contribs\rapidxml\make.bat %1 %2
+
+REM reset the main environment variables because they might have been deleted by the previous build
+SET INAC_HOME=%CD%
+SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
 REM Build INAC
 REM ---------------------------------
 
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.
 SET INAC_WIN32_C_SOURCE_DIR=.
-SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
+SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
 
 call %INAC_BUILD_SCRIPT% %1 %2
 
@@ -107,7 +114,15 @@ SET INAC_WIN32_LUA_LIB_NAME=libinac_lua.lib
 
 call %INAC_BUILD_SCRIPT% %1 %2
 if not "%INAC_W32_BUILD_STAGE%" == "clean" (
-	LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib
+	if "%INAC_W32_BUILD_TYPE%" == "debug" (
+		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
+			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+			%INAC_HOME%\contribs\luajit\src\lua51d.lib
+	) else (
+		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
+			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+			%INAC_HOME%\contribs\luajit\src\lua51.lib
+	)
 )
 
 REM reset the main environment variables because they might have been deleted by the previous build
@@ -116,7 +131,7 @@ SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.
-SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
+SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
 SET INAC_WIN32_C_TEST_SOURCE_DIR=tests
 SET INAC_WIN32_C_TEST_SUITE_EXEC=buildtest\test.exe
 
