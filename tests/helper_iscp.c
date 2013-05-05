@@ -64,7 +64,9 @@ INA_TEST_HELPER(iscp, tcp_server) {
         *retval = ina_err_peek();
         return;
     }
-    
+
+    __running = 1;
+
     while (__running) {
         ina_iscp_recv(__iscp, 1, 0);
         ina_time_sleep(10);

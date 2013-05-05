@@ -61,7 +61,7 @@ static int __ina_suite_filter(ina_test_testcase_t* t) {
 
 static int __ina_helper_filter(ina_test_testcase_t* t) { 
     return (strncmp(__suite_name, t->suite_name, strlen(__suite_name)) == 0) &&
-        (strncmp(__helper_name, t->suite_name, strlen(__helper_name)) == 0) &&
+        (strncmp(__helper_name, t->test_name, strlen(__helper_name)) == 0) &&
         t->is_helper == 1;
 }
 
@@ -288,14 +288,16 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     ina_test_testcase_t* end;
     static int retval = EXIT_FAILURE;
 
-    if (argc < 4) {
+
+    if (argc < 3) {
         return retval;
     }
-    
+        
     __suite_name = argv[2];
     __helper_name = argv[3];
     filter = __ina_helper_filter;
  
+    INA_TRACE_MSG(__suite_name);
     begin = &INA_TEST_TNAME(suite, test);
     end = &INA_TEST_TNAME(suite, test);
  
@@ -320,9 +322,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
             continue;
         }
         if (filter(test)) {
-            if (test->is_helper) {
-                test->run(&retval, argc, argv);
-            }
+            test->run(&retval, argc, argv);
         }
     }
     return retval;
