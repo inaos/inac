@@ -270,10 +270,11 @@ INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_na
    return pid;
 #else
     PROCESS_INFORMATION pi;
-
-    char szCmdline[] = "\"C:\\Program Files\\MyApp\" -L -S";
-	CreateProcess(NULL, szCmdline, NULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
-    return pi.hProcess;
+    char cmdline[256];
+    
+    sprintf(cmdline, "\"test.exe -h %s, %s", suite_name, helper_name)s;
+	CreateProcess(NULL, cmdline, eNULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
+    return pi.dwProcessId;
 #endif
 }
 
