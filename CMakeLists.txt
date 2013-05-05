@@ -11,9 +11,8 @@ set (HTTP_INCULDE_DIR "${DEPS_DIR}/http-parser")
 set (RAPIDXML_INCLUDE_DIR "${DEPS_DIR}/rapidxml")
 
 
-include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${ANET_INCLUDE_DIR}" 
-                    "${BSTRING_INCLUDE_DIR}" "${SKIPLIST_INCLUDE_DIR}" "${CMAKE_SOURCE_DIR}"
-					"${HTTP_INCULDE_DIR}" "${RAPIDXML_INCLUDE_DIR}")
+include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}"
+					"${DEPS_DIR}")
 
 set(BSTRING_LIB_NAME "bstring")
 set(ANET_LIB_NAME "anet")
@@ -59,7 +58,7 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
                  ${SRC_DIR}/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
 				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
-				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c, ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c)
+				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 

@@ -26,7 +26,7 @@
  * OF SUCH DAMAGE.
  */
 #ifdef WIN32
-#include <redis_win_compat.h>
+#include <contribs/anet/redis_win_compat.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>

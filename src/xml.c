@@ -30,7 +30,7 @@
 
 #include <libinac/utlist.h>
 
-#include <rapidxml.h>
+#include <contribs/rapidxml/rapidxml.h>
 
 struct ina_xml_attr_s {
 	rapidxml_attr_t *attr;
