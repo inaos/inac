@@ -18,6 +18,8 @@ set(BSTRING_LIB_NAME "bstring")
 set(ANET_LIB_NAME "anet")
 set(SKIPLIST_LIB_NAME "skiplist")
 set(HTTP_LIB_NAME "http_parser")
+set(SQLITE_LIB_NAME "sqlite")
+set(RAPIDXML_LIB_NAME "rapidxml")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -47,10 +49,20 @@ set (SKIPLIST_SRC_DIR ${DEPS_DIR}/skiplist)
 set (SKIPLIST_SRC ${SKIPLIST_SRC_DIR}/skiplist.c)
 add_library(${SKIPLIST_LIB_NAME} ${SKIPLIST_SRC})
 
+# SQLITE
+set (SQLITE_SRC_DIR ${DEPS_DIR}/sqlite)
+set (SQLITE_SRC ${SQLITE_SRC_DIR}/sqlite3.c)
+add_library(${SQLITE_LIB_NAME} ${SQLITE_SRC})
+
 # HTTP-PARSER
 set (HTTP_SRC_DIR ${DEPS_DIR}/http-parser)
 set (HTTP_SRC ${HTTP_SRC_DIR}/http_parser.c)
 add_library(${HTTP_LIB_NAME} ${HTTP_SRC})
+
+# RAPIDXML
+set (RAPIDXML_SRC_DIR ${DEPS_DIR}/rapidxml)
+set (RAPIDXML_SRC ${RAPIDXML_SRC_DIR}/rapidxml.c)
+add_library(${RAPIDXML_LIB_NAME} ${RAPIDXML_SRC})
 
 # END dependencies
 
