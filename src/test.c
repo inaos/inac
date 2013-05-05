@@ -119,7 +119,8 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
      return INA_SUCCESS;
  }
 
-INA_API(void) ina_test_assert_str(const char* exp, const char*  real, const char* caller, int line) 
+INA_API(void) ina_test_assert_str(const char *exp, const char *real, 
+                const char *caller, int line) 
 {
     if ((exp == NULL && real != NULL) ||
         (exp != NULL && real == NULL) ||
@@ -129,12 +130,17 @@ INA_API(void) ina_test_assert_str(const char* exp, const char*  real, const char
     }
 }
 
-INA_API(void) ina_test_assert_data(const unsigned char* exp, int expsize,
-                  const unsigned char* real, int realsize,
-                  const char* caller, int line) {
+INA_API(void) ina_test_assert_data(const unsigned char *exp, int expsize,
+                  const unsigned char *real, int realsize,
+                  const char *caller, int line) 
+{
     int i;
     if (expsize != realsize) {
-        INA_TEST_ERR("%s:%d  expected %d bytes, got %d", caller, line, expsize, realsize);
+        INA_TEST_ERR("%s:%d  expected %d bytes, got %d", 
+                        caller, 
+                        line, 
+                        expsize, 
+                        realsize);
         longjmp(__err, 1);
     }
     for (i=0; i<expsize; i++) {
@@ -146,7 +152,8 @@ INA_API(void) ina_test_assert_data(const unsigned char* exp, int expsize,
     }
 }
 
-INA_API(void) ina_test_assert_equal(long exp, long real, const char *caller, int line) 
+INA_API(void) ina_test_assert_equal(long exp, long real, const char *caller, 
+                int line) 
 {
     if (exp != real) {
         INA_TEST_ERR("%s:%d  expected %ld, got %ld", caller, line, exp, real);
@@ -154,7 +161,8 @@ INA_API(void) ina_test_assert_equal(long exp, long real, const char *caller, int
     }
 }
 
-INA_API(void) ina_test_assert_not_equal(long exp, long real, const char *caller, int line) 
+INA_API(void) ina_test_assert_not_equal(long exp, long real, const char *caller, 
+                int line) 
 {
     if ((exp) == (real)) {
         INA_TEST_ERR("%s:%d  should not be %ld", caller, line, real);
@@ -162,7 +170,8 @@ INA_API(void) ina_test_assert_not_equal(long exp, long real, const char *caller,
     }
 }
 
-INA_API(void) ina_test_assert_null(const void* real, const char *caller, int line) 
+INA_API(void) ina_test_assert_null(const void* real, const char *caller, 
+                int line) 
 {
     if ((real) != NULL) {
         INA_TEST_ERR("%s:%d  should be NULL", caller, line);
@@ -170,7 +179,8 @@ INA_API(void) ina_test_assert_null(const void* real, const char *caller, int lin
     }
 }
 
-INA_API(void) ina_test_assert_not_null(const void *real, const char *caller, int line) 
+INA_API(void) ina_test_assert_not_null(const void *real, const char *caller,
+                int line) 
 {
     if (real == NULL) {
         INA_TEST_ERR("%s:%d  should not be NULL", caller, line);
@@ -178,7 +188,8 @@ INA_API(void) ina_test_assert_not_null(const void *real, const char *caller, int
     }
 }
 
-INA_API(void) ina_test_assert_same(const void *exp, const void *real, const char *caller, int line) 
+INA_API(void) ina_test_assert_same(const void *exp, const void *real,
+                    const char *caller, int line)
 {
     if (&real != &exp) {
         INA_TEST_ERR("%s:%d  should be SAME", caller, line);
@@ -186,7 +197,8 @@ INA_API(void) ina_test_assert_same(const void *exp, const void *real, const char
     }
 }
 
-INA_API(void) ina_test_assert_not_same(const void *exp, const void *real, const char *caller, int line) 
+INA_API(void) ina_test_assert_not_same(const void *exp, const void *real, 
+                    const char *caller, int line) 
 {
     if (&real == &exp) {
         INA_TEST_ERR("%s:%d  should not be SAME", caller, line);
@@ -194,7 +206,7 @@ INA_API(void) ina_test_assert_not_same(const void *exp, const void *real, const 
     }
 }
 
-INA_API(void) ina_test_assert_true(int real, const char *caller, int line) 
+INA_API(void) ina_test_assert_true(int real, const char *caller, int line)
 {
     if ((real) == 0) {
         INA_TEST_ERR("%s:%d  should be true", caller, line);
@@ -202,7 +214,7 @@ INA_API(void) ina_test_assert_true(int real, const char *caller, int line)
     }
 }
 
-INA_API(void) ina_test_assert_false(int real, const char *caller, int line) 
+INA_API(void) ina_test_assert_false(int real, const char *caller, int line)
 {
     if ((real) != 0) {
         INA_TEST_ERR("%s:%d  should be false", caller, line);
@@ -210,7 +222,7 @@ INA_API(void) ina_test_assert_false(int real, const char *caller, int line)
     }
 }
 
-INA_API(void) ina_test_assert_fail(const char *caller, int line) 
+INA_API(void) ina_test_assert_fail(const char *caller, int line)
 { 
     INA_TEST_ERR("%s:%d  shouldn't come here", caller, line);
     longjmp(__err, 1);
@@ -232,11 +244,11 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     static int num_skip = 0;
     static int index = 1;
     static ina_test_filter_fn_t filter = __ina_suite_all;
-	static ina_test_testcase_t* test;
-	ina_test_testcase_t* begin;
-	ina_test_testcase_t* end;
-	const char* color;
-	char results[80];
+    static ina_test_testcase_t* test;
+    ina_test_testcase_t* begin;
+    ina_test_testcase_t* end;
+    const char* color;
+    char results[80];
 
     if (argc == 2) {
         __suite_name = argv[1];
@@ -248,23 +260,33 @@ INA_API(int) ina_test_run(int argc, char *argv[])
  
     while (1) {
         ina_test_testcase_t* t = begin-1;
-        if (t->magic != INA_TEST_MAGIC) break;
+        if (t->magic != INA_TEST_MAGIC) {
+            break;
+        }
         begin--;
     }
     while (1) {
         ina_test_testcase_t* t = end+1;
-        if (t->magic != INA_TEST_MAGIC) break;
+        if (t->magic != INA_TEST_MAGIC) {
+            break;
+        }
         end++;
     }
     end++;
 
     for (test = begin; test != end; test++) {
-        if (test == &__ina_test_suite_test) continue;
-        if (filter(test)) total++;
+        if (test == &__ina_test_suite_test) {
+            continue;
+        }
+        if (filter(test)) {
+            total++;
+        }
     }
 
     for (test = begin; test != end; test++) {
-        if (test == &__ina_test_suite_test) continue;
+        if (test == &__ina_test_suite_test) {
+            continue;
+        }
         if (filter(test)) {
             __errorbuffer[0] = 0;
             __errorsize = __INA_MSG_SIZE-1;
@@ -285,7 +307,6 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                         test->teardown = __ina_find_symbol(test, "teardown");
                     }
 #endif
-
                     if (test->setup) {
                         test->setup(test->data);
                     }
@@ -293,7 +314,6 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                         test->run(test->data);
                     }
                     test->run();
-                    
                     if (test->teardown) {
                         test->teardown(test->data);
                     }
@@ -303,14 +323,21 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                     ina_cio_print(INA_CIO_ANSI_BRED, "[FAIL]");
                     num_fail++;
                 }
-                if (__errorsize != __INA_MSG_SIZE-1) printf("%s", __errorbuffer);
+                if (__errorsize != __INA_MSG_SIZE-1) {
+                    printf("%s", __errorbuffer);
+                }
             }
             index++;
         }
     }
 
     color = (num_fail) ? INA_CIO_ANSI_BRED : INA_CIO_ANSI_GREEN;
-    sprintf(results, "RESULTS: %d tests (%d ok, %d failed, %d skipped)", total, num_ok, num_fail, num_skip);
+    sprintf(results, "RESULTS: %d tests (%d ok, %d failed, %d skipped)", 
+                total, 
+                num_ok, 
+                num_fail, 
+                num_skip);
+
     ina_cio_print(color, results);
     return num_fail;
 }
