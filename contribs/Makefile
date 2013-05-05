@@ -33,6 +33,8 @@ all:
 	$(MAKE) -C bstring
 	$(MAKE) -C anet
 	$(MAKE) -C skiplist
+	$(MAKE) library -C http-parser
+	$(MAKE) -C rapidxml
 
 test: all
 	
@@ -46,3 +48,5 @@ clean:
 	$(MAKE) clean -C anet
 	$(MAKE) clean -C sds
 	$(MAKE) clean -C sqlite
+	$(MAKE) clean -C http-parser
+	$(MAKE) clean -C rapidxml

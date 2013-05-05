@@ -36,6 +36,23 @@ static int __cleanup_handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
+static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, ina_iscp_param_t *params)
+{
+    if (cmd_id != 3) {
+        return INA_FAILURE;
+    }
+    if (count != 1) {
+        return INA_FAILURE;
+    }
+    if (params->type != INA_ISCP_TYPE_DBL) {
+        return INA_FAILURE;
+    }
+    if (params->value.d >= 0) {
+        return INA_FAILURE;
+    }    
+    return INA_SUCCESS;
+}
+
 static ina_rc_t __command_1_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {
     return INA_SUCCESS;
@@ -51,7 +68,8 @@ INA_TEST_HELPER(iscp, tcp_server) {
 
     INA_ISCP_CMDS(cmds,
            INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
-           INA_ISCP_SENDRECV_CMD(2, 1, __command_2_handler));
+           INA_ISCP_SENDRECV_CMD(2, 1, __command_2_handler),
+           INA_ISCP_SENDRECV_CMD(3, 1, __receive_negaitve_double_handler));
 
      ina_set_cleanup_handler(__cleanup_handler);
 

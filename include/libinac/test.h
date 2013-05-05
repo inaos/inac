@@ -34,9 +34,11 @@
 extern "C" {
 #endif
 
-#define INA_TEST_HELPER_START(sname, hname, ...) \
-    ina_test_helper_start(#sname, #hname,  __VA_ARGS__)
-    
+#define INA_TEST_HELPER_START(hid, sname, hname, ...)                \
+    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname); \
+    hid = ina_test_helper_start(#sname, #hname,  __VA_ARGS__);       \
+    INA_TEST_ASSERT_TRUE(hid > 0)
+
 #define INA_TEST_HELPER_STOP(id) \
     ina_test_helper_stop(id)
 
@@ -94,13 +96,16 @@ typedef struct ina_test_testcase_s {
 
 /* Section holding test cases */
 #ifdef INA_OS_OSX
+#define INA_TEST_ATTR_WEAK __attribute__ ((weak)) 
 #define INA_TEST_SECTION_PUSH
 #define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
 #elif INA_OS_WIN32
 #pragma section(".inatest", read)
+#define INA_TEST_ATTR_WEAK
 #define INA_TEST_SECTION  
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
+#define INA_TEST_ATTR_WEAK __attribute__ ((weak)) 
 #define INA_TEST_SECTION_PUSH
 #define INA_TEST_SECTION __attribute__ ((unused,section (".inatest")))
 #endif
@@ -124,10 +129,10 @@ typedef struct ina_test_testcase_s {
 /* Define setup code für a suite */ 
 #ifndef INA_OS_WIN32
 #define INA_TEST_SETUP(sname) \
-    void __attribute__ ((weak)) sname##_setup(struct sname##_data* data)
+    void sname##_setup(struct sname##_data* data)
 /* Define teardown code for a suite */
 #define INA_TEST_TEARDOWN(sname) \
-    void __attribute__ ((weak)) sname##_teardown(struct sname##_data* data)
+    void sname##_teardown(struct sname##_data* data)
 #else
 #define INA_TEST_SETUP(sname) \
     void __declspec(selectany) sname##_setup(struct sname##_data* data)
@@ -151,7 +156,7 @@ typedef struct ina_test_testcase_s {
 #define INA_TEARDOWN_FNAME(sname) sname##_teardown
 #endif
 #define INA_TEST_DECL_FIXTURE(sname, tname, _skip) \
-        static struct sname##_data  __ina_test_##sname##_data; \
+    static struct sname##_data  __ina_test_##sname##_data; \
     INA_TEST_SETUP(sname); \
     INA_TEST_TEARDOWN(sname); \
     void INA_TEST_FNAME(sname, tname)(struct sname##_data* data); \
@@ -168,7 +173,7 @@ typedef struct ina_test_testcase_s {
 /* Skip a text case */
 #define INA_TEST_SKIP(sname, tname) INA_TEST_DECL(sname, tname, 1)
 /* Define test case unsing fixture features */
-#define INA_TEST_FIXTURE(sname, tname) INA_TEST_DECL_FXITURE(sname, tname, 0)
+#define INA_TEST_FIXTURE(sname, tname) INA_TEST_DECL_FIXTURE(sname, tname, 0)
 /* Skip test case with fixture features */
 #define INA_TEST_FIXTURE_SKIP(sname, tname) INA_TEST_DECL_FIXTURE(sname, tname, 1)
 /* Define helper */

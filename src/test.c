@@ -239,34 +239,38 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
 INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_name, ...) {
 #ifndef INA_OS_WIN32
     char* args[16];
-    pid_t pid = fork();
     int n;
     va_list ap;
+
+    INA_TRACE_MSG("Start");
+
+    pid_t pid = fork();
     
     if (pid < 0) {
          perror("fork");
          return -1;
      }
-
+     
      if (pid == 0) {
        /* child */
        n = 0;
 
        args[n] = "./test";
-       args[n++] = "test";
        args[n++] = "-h";
        args[n++] = (char*)suite_name;
        args[n++] = (char*)helper_name;
-       va_start(ap, helper_name);
+       /*va_start(ap, helper_name);
        while (*helper_name) {
            args[n++] = va_arg(ap, char *);
        }
-       va_end(ap);
+       va_end(ap);*/
        args[n++] = NULL;
        execvp(args[0], args);
+       INA_TRACE_MSG("Failed helper");
        perror("execvp()");
        _exit(127);
    }
+   ina_time_sleep(500);
    return pid;
 #else
     PROCESS_INFORMATION pi;
@@ -276,6 +280,11 @@ INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_na
 	CreateProcess(NULL, cmdline, eNULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
     return pi.dwProcessId;
 #endif
+}
+
+INA_API(ina_rc_t) ina_test_helper_stop(int hid)
+{
+    return INA_SUCCESS;
 }
 
 /*
@@ -298,7 +307,6 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     __helper_name = argv[3];
     filter = __ina_helper_filter;
  
-    INA_TRACE_MSG(__suite_name);
     begin = &INA_TEST_TNAME(suite, test);
     end = &INA_TEST_TNAME(suite, test);
  
