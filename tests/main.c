@@ -61,6 +61,8 @@ int main(int argc,  char** argv)
         }
 
         ina_set_cleanup_handler(__ina_cleanup_handler);
+    } else {
+        return ina_test_helper_run(argc, argv);
     }
     return EXIT_SUCCESS;
 }

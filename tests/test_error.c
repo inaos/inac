@@ -92,7 +92,7 @@ INA_TEST(error, message_formatting)
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
     INA_ERR_EMSGLEN;
     INA_TEST_ASSERT_EQUAL(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
-    INA_TRACE("msg2=%s", ina_str_cstr(msg2));
+    INA_TEST_MSG("msg2=%s", ina_str_cstr(msg2));
 }
 
 INA_TEST(error, macros)

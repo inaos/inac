@@ -46,6 +46,7 @@ static char*       __errormsg;
 static char        __errorbuffer[__INA_MSG_SIZE];
 static jmp_buf     __err;
 static const char* __suite_name;
+static const char* __helper_name;
 
 static INA_TEST(suite, test) { }
 
@@ -55,6 +56,11 @@ static int __ina_suite_all(ina_test_testcase_t* t) {
 
 static int __ina_suite_filter(ina_test_testcase_t* t) { 
     return strncmp(__suite_name, t->suite_name, strlen(__suite_name)) == 0;
+}
+
+static int __ina_helper_filter(ina_test_testcase_t* t) { 
+    return (strncmp(__suite_name, t->suite_name, strlen(__suite_name)) == 0) &&
+        (strncmp(__helper_name, t->suite_name, strlen(__helper_name)) == 0);
 }
 
 #ifdef INA_OS_OSX
@@ -152,7 +158,7 @@ INA_API(void) ina_test_assert_data(const unsigned char *exp, int expsize,
     }
 }
 
-INA_API(void) ina_test_assert_equal(long exp, long real, const char *caller, 
+INA_API(void) ina_test_assert_equal(double exp, double real, const char *caller, 
                 int line) 
 {
     if (exp != real) {
@@ -161,7 +167,7 @@ INA_API(void) ina_test_assert_equal(long exp, long real, const char *caller,
     }
 }
 
-INA_API(void) ina_test_assert_not_equal(long exp, long real, const char *caller, 
+INA_API(void) ina_test_assert_not_equal(double exp, double real, const char *caller, 
                 int line) 
 {
     if ((exp) == (real)) {
@@ -228,12 +234,89 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
     longjmp(__err, 1);
 }
 
+INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_name, ...) {
+
+    char* args[16];
+    pid_t pid = fork();
+    int n;
+    va_list ap;
+    
+    if (pid < 0) {
+         perror("fork");
+         return -1;
+     }
+
+     if (pid == 0) {
+       /* child */
+       n = 0;
+
+       args[n] = "./test";
+       args[n++] = "test";
+       args[n++] = "-h";
+       args[n++] = (char*)suite_name;
+       args[n++] = (char*)helper_name;
+       va_start(ap, helper_name);
+       while (*helper_name) {
+           args[n++] = va_arg(ap, char *);
+       }
+       va_end(ap);
+       args[n++] = NULL;
+       execvp(args[0], args);
+       perror("execvp()");
+       _exit(127);
+   }
+   return pid;
+}
+
 /*
  * Start a Helper
  */
-INA_API(ina_rc_t) ina_test_runhelper(const char* cmd)
+INA_API(int) ina_test_helper_run(int argc, char *argv[])
 {
-    return INA_SUCCESS;
+    static ina_test_filter_fn_t filter = __ina_suite_all;
+    static ina_test_testcase_t* test;
+    ina_test_testcase_t* begin;
+    ina_test_testcase_t* end;
+    static int retval = EXIT_FAILURE;
+
+    if (argc < 4) {
+        return retval;
+    }
+    
+    __suite_name = argv[2];
+    __helper_name = argv[3];
+    filter = __ina_helper_filter;
+ 
+    begin = &INA_TEST_TNAME(suite, test);
+    end = &INA_TEST_TNAME(suite, test);
+ 
+    while (1) {
+        ina_test_testcase_t* t = begin-1;
+        if (t->magic != INA_TEST_MAGIC) {
+            break;
+        }
+        begin--;
+    }
+    while (1) {
+        ina_test_testcase_t* t = end+1;
+        if (t->magic != INA_TEST_MAGIC) {
+            break;
+        }
+        end++;
+    }
+    end++;
+
+     for (test = begin; test != end; test++) {
+        if (test == &__ina_test_suite_test) {
+            continue;
+        }
+        if (filter(test)) {
+            if (test->is_helper) {
+                test->run(&retval, argc, argv);
+            }
+        }
+    }
+    return retval;
 }
 
 INA_API(int) ina_test_run(int argc, char *argv[])

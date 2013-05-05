@@ -34,25 +34,22 @@
 extern "C" {
 #endif
 
-/* Define an test helper */
-#define INA_TEST_HELPER(name) \
-    INA_API(ina_rc_t) __ina_test_helper_##name(int argc, char **argv)
-
-#define INA_TEST_HELPER_SPAWN(name, ...) \
-    ina_test_runhelper("-h "#name, __VA_ARGS)
+#define INA_TEST_HELPER_START(sname, hname, ...) \
+    ina_test_helper_start(#sname, #hname,  __VA_ARGS__)
     
-#define INA_TEST_HELPER_STOP(name)
+#define INA_TEST_HELPER_STOP(id) \
+    ina_test_helper_stop(id)
 
-
+#define INA_TEST_ASSERT(v) INA_TEST_ASSERT_TRUE(v)
 #define INA_TEST_ASSERT_SUCCESS(v) INA_TEST_ASSERT_EQUAL(INA_SUCCESS, v)
 #define INA_TEST_ASSERT_FAILURE(v) INA_TEST_ASSERT_EQUAL(INA_FAILURE, v)
 #define INA_TEST_ASSERT_SUCCEED(v) INA_TEST_ASSERT_TRUE(INA_SUCCEED(v))
 #define INA_TEST_ASSERT_NOTSUCCEED(v) INA_TEST_ASSERT_FALSE(INA_SUCCEED(v))
-#define INA_TEST_ASSERT_STR(exp, real) \ 
-    ina_assert_str(exp, real, __FILE__, __LINE__)
-#define INA_TEST_ASSERT_DATA(exp, expsize, real, realsize) \ 
+#define INA_TEST_ASSERT_STR(exp, real) \
+    ina_test_assert_str(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_DATA(exp, expsize, real, realsize) \
     ina_test_assert_data(exp, expsize, real, realsize, __FILE__, __LINE__)
-#define INA_TEST_ASSERT_EQUAL(exp, real) \ 
+#define INA_TEST_ASSERT_EQUAL(exp, real) \
     ina_test_assert_equal(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NOT_EQUAL(exp, real) \
     ina_test_assert_not_equal(exp, real, __FILE__, __LINE__)
@@ -81,6 +78,7 @@ typedef struct ina_test_testcase_s {
     const char* test_name; 
     void (*run)();
     int skip;
+    int is_helper;
     void *data;
     ina_test_setup_cb_t setup;
     ina_test_teardown_cb_t teardown;
@@ -108,13 +106,14 @@ typedef struct ina_test_testcase_s {
 #endif
 
 /* Testcase data defines. For internal purpose only */
-#define INA_TEST_STRUCT(sname, tname, _skip, __data, __setup, __teardown) \
+#define INA_TEST_STRUCT(sname, tname, _skip, __helper, __data, __setup, __teardown) \
     INA_TEST_SECTION_PUSH                                                 \
     ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
         #sname, \
         #tname, \
         INA_TEST_FNAME(sname, tname),\
         _skip, \
+        __helper, \
         __data, \
         (ina_test_setup_cb_t)__setup,\
         (ina_test_teardown_cb_t)__teardown,\
@@ -139,7 +138,7 @@ typedef struct ina_test_testcase_s {
 /* Declare test case. For internal purpose only. */
 #define INA_TEST_DECL(sname, tname, _skip) \
         void INA_TEST_FNAME(sname, tname)(); \
-        INA_TEST_STRUCT(sname, tname, _skip, NULL, NULL, NULL);\
+        INA_TEST_STRUCT(sname, tname, _skip, 0, NULL, NULL, NULL);\
         void INA_TEST_FNAME(sname, tname)()
 
 
@@ -156,8 +155,13 @@ typedef struct ina_test_testcase_s {
     INA_TEST_SETUP(sname); \
     INA_TEST_TEARDOWN(sname); \
     void INA_TEST_FNAME(sname, tname)(struct sname##_data* data); \
-    INA_TEST_STRUCT(sname, tname, _skip, &__ina_test_##sname##_data, INA_SETUP_FNAME(sname), INA_TEARDOWN_FNAME(sname)); \
+    INA_TEST_STRUCT(sname, tname, _skip, 0, &__ina_test_##sname##_data, INA_SETUP_FNAME(sname), INA_TEARDOWN_FNAME(sname)); \
     void INA_TEST_FNAME(sname, tname)(struct sname##_data* data)
+
+#define INA_HELPER_DECL(sname, tname) \
+        void INA_TEST_FNAME(sname, tname)(int *retval, int argc, char **argv); \
+        INA_TEST_STRUCT(sname, tname, 0, 1, NULL, NULL, NULL);\
+        void INA_TEST_FNAME(sname, tname)(int *retval, int argc, char **argv)
 
 /* Define test case */
 #define INA_TEST(sname, tname) INA_TEST_DECL(sname, tname, 0)
@@ -167,7 +171,8 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_FIXTURE(sname, tname) INA_TEST_DECL_FXITURE(sname, tname, 0)
 /* Skip test case with fixture features */
 #define INA_TEST_FIXTURE_SKIP(sname, tname) INA_TEST_DECL_FIXTURE(sname, tname, 1)
-
+/* Define helper */
+#define INA_TEST_HELPER(sname, hname) INA_HELPER_DECL(helper_##sname, helper__##hname)
 /* Print out message */
 #define INA_TEST_MSG(fmt, ...) ina_test_msg(INA_NO, fmt, __VA_ARGS__)
 /* Print out a error message */
@@ -193,13 +198,13 @@ INA_API(void) ina_test_assert_data(const unsigned char* exp, int expsize,
 /*
  *
  */
-INA_API(void) ina_test_assert_equal(long exp, long real, const char *caller, 
+INA_API(void) ina_test_assert_equal(double exp, double real, const char *caller, 
                                     int line);
 
 /*
  *
  */
-INA_API(void) ina_test_assert_not_equal(long exp, long real, 
+INA_API(void) ina_test_assert_not_equal(double exp, double real, 
                                         const char *caller, int line);
 
 /*
@@ -241,7 +246,20 @@ INA_API(void) ina_test_assert_false(int real, const char *caller, int line);
  */
 INA_API(void) ina_test_assert_fail(const char *caller, int line);
 
+/*
+ *
+ */
+INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_name, ...);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_test_helper_stop(int hid);
+
+/*
+ *
+ */
+INA_API(int) ina_test_helper_run(int argc, char *argv[]);
 
 /*
  * Run tests
