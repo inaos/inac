@@ -274,6 +274,11 @@ INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_na
    return pid;
 }
 
+INA_API(ina_rc_t) ina_test_helper_stop(int hid)
+{
+    return INA_SUCCESS;
+}
+
 /*
  * Start a Helper
  */
