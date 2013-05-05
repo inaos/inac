@@ -237,7 +237,7 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
 }
 
 INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_name, ...) {
-
+#ifndef INA_OS_WIN32
     char* args[16];
     int n;
     va_list ap;
@@ -272,6 +272,14 @@ INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_na
    }
    ina_time_sleep(500);
    return pid;
+#else
+    PROCESS_INFORMATION pi;
+    char cmdline[256];
+    
+    sprintf(cmdline, "\"test.exe -h %s, %s", suite_name, helper_name);
+	CreateProcess(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
+    return pi.dwProcessId;
+#endif
 }
 
 INA_API(ina_rc_t) ina_test_helper_stop(int hid)

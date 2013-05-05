@@ -135,10 +135,10 @@ typedef struct ina_test_testcase_s {
     void sname##_teardown(struct sname##_data* data)
 #else
 #define INA_TEST_SETUP(sname) \
-    void __declspec(selectany) sname##_setup(struct sname##_data* data)
+    void  sname##_setup(struct sname##_data* data)
 /* Define teardown code for a suite */
 #define INA_TEST_TEARDOWN(sname) \
-    void __declspec(selectany) sname##_teardown(struct sname##_data* data)
+    void sname##_teardown(struct sname##_data* data)
 #endif
 /* Declare test case. For internal purpose only. */
 #define INA_TEST_DECL(sname, tname, _skip) \
