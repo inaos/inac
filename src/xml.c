@@ -58,7 +58,7 @@ INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size)
 	
 	for (i = 0; i < parser_pool_size; i++) {
 		ina_xml_parser_t *p = (ina_xml_parser_t*)ina_mem_alloc(sizeof(ina_xml_parser_t));
-		rapidxml_parser_init(&p->doc);
+		rapidxml_parser_init(&p->doc, 0, NULL, ina_mem_alloc, ina_mem_free);
 		DL_APPEND((*ctx)->parsers, p);	
 	}
 	
