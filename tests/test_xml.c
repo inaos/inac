@@ -49,7 +49,7 @@ const char *test_xml =
 "    <revision type=\"Beta\" version=\"5.0o\" author=\"Hans Muster\" date=\"04/14/2010\"/>"
 "</revisions>";
 
-void test_simple_xml()
+INA_TEST(xml, simple_xml)
 {
 	ina_xml_ctx_t *ctx;
 	ina_xml_parser_t *parser;

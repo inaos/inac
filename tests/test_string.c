@@ -122,7 +122,7 @@ INA_TEST(string, simple_allocation_with_pool)
 
     str1 = ina_str_pfromcstr("hallo", pool);
     INA_TEST_ASSERT_NOT_NULL(str1);
-    INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(strlen("hallo"), ina_str_len(str1));
     str2 = ina_str_pdup(str1, pool);
     INA_TEST_ASSERT_NOT_NULL(str2);
     ina_str_destroy(str1);
@@ -136,7 +136,7 @@ INA_TEST(string, simple_allocation_without_pool)
     
     str1 = ina_str_fromcstr("hallo");
     INA_TEST_ASSERT_NOT_NULL(str1);
-    INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(strlen("hallo"), ina_str_len(str1));
     str2 = ina_str_dup(str1);
     INA_TEST_ASSERT_NOT_NULL(str2);
     ina_str_destroy(str1);

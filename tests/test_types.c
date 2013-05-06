@@ -36,14 +36,14 @@ INA_TEST(test, types_decimal)
 
     ina_dbl_to_decimal(dbl1, &d1);
     ina_dbl_to_decimal(dbl2, &d2);
-    INA_TEST_ASSERT_EQUAL(d1.exponent, d2.exponent);
-    INA_TEST_ASSERT_EQUAL(d1.mantissa, d2.mantissa);
-    INA_TEST_ASSERT_EQUAL(1.0, ina_dbl_from_decimal(&d1));
-    INA_TEST_ASSERT_EQUAL(1.0, ina_dbl_from_decimal(&d2));
+    INA_TEST_ASSERT_EQUAL_FLOATING(d1.exponent, d2.exponent);
+    INA_TEST_ASSERT_EQUAL_INTEGER(d1.mantissa, d2.mantissa);
+    INA_TEST_ASSERT_EQUAL_FLOATING(1.0, ina_dbl_from_decimal(&d1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(1.0, ina_dbl_from_decimal(&d2));
     ina_dbl_to_decimal(2.5, &d1);
-    INA_TEST_ASSERT_NOT_EQUAL(d1.exponent, d2.exponent);
-    INA_TEST_ASSERT_NOT_EQUAL(d1.mantissa, d2.mantissa);
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(d1.exponent, d2.exponent);
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(d1.mantissa, d2.mantissa);
     ina_cpy_decimal(&d1, &d2);
-    INA_TEST_ASSERT_EQUAL(d1.exponent, d2.exponent);
-    INA_TEST_ASSERT_EQUAL(d1.mantissa, d2.mantissa);    
+    INA_TEST_ASSERT_EQUAL_FLOATING(d1.exponent, d2.exponent);
+    INA_TEST_ASSERT_EQUAL_INTEGER(d1.mantissa, d2.mantissa);    
 }

@@ -48,8 +48,6 @@ static jmp_buf     __err;
 static const char* __suite_name;
 static const char* __helper_name;
 
-static INA_TEST(suite, test) { }
-
 static int __ina_suite_all(ina_test_testcase_t* t) {
     return t->is_helper == 0;
 }
@@ -160,7 +158,7 @@ INA_API(void) ina_test_assert_data(const unsigned char *exp, int expsize,
     }
 }
 
-INA_API(void) ina_test_assert_equal(double exp, double real, const char *caller, 
+INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, const char *caller, 
                 int line) 
 {
     if (exp != real) {
@@ -169,7 +167,25 @@ INA_API(void) ina_test_assert_equal(double exp, double real, const char *caller,
     }
 }
 
-INA_API(void) ina_test_assert_not_equal(double exp, double real, const char *caller, 
+INA_API(void) ina_test_assert_equal_floating(double exp, double real, const char *caller, 
+                int line) 
+{
+    if (exp != real) {
+        INA_TEST_ERR("%s:%d  expected %ld, got %ld", caller, line, exp, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, const char *caller, 
+                int line) 
+{
+    if ((exp) == (real)) {
+        INA_TEST_ERR("%s:%d  should not be %ld", caller, line, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_not_equal_floating(double exp, double real, const char *caller, 
                 int line) 
 {
     if ((exp) == (real)) {
