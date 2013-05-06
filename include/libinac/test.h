@@ -43,18 +43,22 @@ extern "C" {
     ina_test_helper_stop(id)
 
 #define INA_TEST_ASSERT(v) INA_TEST_ASSERT_TRUE(v)
-#define INA_TEST_ASSERT_SUCCESS(v) INA_TEST_ASSERT_EQUAL(INA_SUCCESS, v)
-#define INA_TEST_ASSERT_FAILURE(v) INA_TEST_ASSERT_EQUAL(INA_FAILURE, v)
+#define INA_TEST_ASSERT_SUCCESS(v) INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, v)
+#define INA_TEST_ASSERT_FAILURE(v) INA_TEST_ASSERT_EQUAL_INTEGER(INA_FAILURE, v)
 #define INA_TEST_ASSERT_SUCCEED(v) INA_TEST_ASSERT_TRUE(INA_SUCCEED(v))
 #define INA_TEST_ASSERT_NOTSUCCEED(v) INA_TEST_ASSERT_FALSE(INA_SUCCEED(v))
 #define INA_TEST_ASSERT_STR(exp, real) \
     ina_test_assert_str(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_DATA(exp, expsize, real, realsize) \
     ina_test_assert_data(exp, expsize, real, realsize, __FILE__, __LINE__)
-#define INA_TEST_ASSERT_EQUAL(exp, real) \
-    ina_test_assert_equal(exp, real, __FILE__, __LINE__)
-#define INA_TEST_ASSERT_NOT_EQUAL(exp, real) \
-    ina_test_assert_not_equal(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_INTEGER(exp, real) \
+    ina_test_assert_equal_integer(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_FLOATING(exp, real) \
+    ina_test_assert_equal_floating(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_INTEGER(exp, real) \
+    ina_test_assert_not_equal_integer(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_FLOATING(exp, real) \
+    ina_test_assert_not_equal_floating(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NULL(real) \
     ina_test_assert_null((void*)real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NOT_NULL(real) \
@@ -100,9 +104,11 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_SECTION_PUSH
 #define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
 #elif INA_OS_WIN32
+/*#pragma section(".inatest$a", read)*/
+/*#pragma section(".inatest$u", read)*/
 #pragma section(".inatest", read)
-#define INA_TEST_ATTR_WEAK
-#define INA_TEST_SECTION  
+#define INA_TEST_ATTR_WEAK __declspec(selectany)
+#define INA_TEST_SECTION 
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
 #define INA_TEST_ATTR_WEAK __attribute__ ((weak)) 
@@ -112,8 +118,8 @@ typedef struct ina_test_testcase_s {
 
 /* Testcase data defines. For internal purpose only */
 #define INA_TEST_STRUCT(sname, tname, _skip, __helper, __data, __setup, __teardown) \
-    INA_TEST_SECTION_PUSH                                                 \
-    ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
+    INA_TEST_SECTION_PUSH                                                \
+    static ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
         #sname, \
         #tname, \
         INA_TEST_FNAME(sname, tname),\
@@ -183,6 +189,8 @@ typedef struct ina_test_testcase_s {
 /* Print out a error message */
 #define INA_TEST_ERR(fmt, ...) ina_test_msg(INA_YES, fmt, __VA_ARGS__)
 
+static INA_TEST(suite, test) { }
+
 /*
  * Printout a message
  */
@@ -203,13 +211,22 @@ INA_API(void) ina_test_assert_data(const unsigned char* exp, int expsize,
 /*
  *
  */
-INA_API(void) ina_test_assert_equal(double exp, double real, const char *caller, 
+INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, const char *caller, 
                                     int line);
-
 /*
  *
  */
-INA_API(void) ina_test_assert_not_equal(double exp, double real, 
+INA_API(void) ina_test_assert_equal_floating(double exp, double real, const char *caller, 
+                                    int line);
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, 
+                                        const char *caller, int line);
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_equal_floating(double exp, double real, 
                                         const char *caller, int line);
 
 /*
@@ -269,7 +286,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
 /*
  * Run tests
  */
-INA_API(int) ina_test_run(int argc, char *argv[]);
+int ina_test_run(int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

@@ -50,17 +50,17 @@ INA_TEST(lib,opt)
     INA_TEST_ASSERT_NOT_NULL(l_str_value);
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_string("run", &s_str_value));
     INA_TEST_ASSERT_NOT_NULL(s_str_value);
-    INA_TEST_ASSERT_EQUAL(0, ina_str_cmp(l_str_value, s_str_value));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, ina_str_cmp(l_str_value, s_str_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("repeat", &l_int_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("x", &s_int_value));
-    INA_TEST_ASSERT_EQUAL(s_int_value, l_int_value);
+    INA_TEST_ASSERT_EQUAL_FLOATING(s_int_value, l_int_value);
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("t", &s_int_value));
-    INA_TEST_ASSERT_EQUAL(121, s_int_value);
+    INA_TEST_ASSERT_EQUAL_FLOATING(121, s_int_value);
 }
 INA_TEST(lib,appname)
 {
     INA_TEST_ASSERT_NOT_NULL(ina_appname());
-    INA_TEST_ASSERT_EQUAL(0, strcmp("test", ina_appname()));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp("test", ina_appname()));
 }
 
 INA_TEST(lib, set_signal_handler)

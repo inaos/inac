@@ -143,7 +143,7 @@ const struct message responses[] =
 , { NULL } /* sentinel */
 };
 
-void test_http_simple_req_resp()
+INA_TEST(http, simple_req_resp)
 {
 	ina_http_ctx_t *ctx;
 	ina_http_parser_t *parser;
@@ -166,19 +166,19 @@ void test_http_simple_req_resp()
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_execute(parser, requests[0].raw, strlen(requests[0].raw), &more));
 	
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_should_keep_alive(parser, &skal));
-	INA_TEST_ASSERT_EQUAL(requests[0].should_keep_alive, skal);
+	INA_TEST_ASSERT_EQUAL_FLOATING(requests[0].should_keep_alive, skal);
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_method(parser, &met));
-	INA_TEST_ASSERT_EQUAL(requests[0].method, met);
+	INA_TEST_ASSERT_EQUAL_FLOATING(requests[0].method, met);
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_httpversion(parser, &vmj, &vmi));
-	INA_TEST_ASSERT_EQUAL(requests[0].http_major, vmj);
-	INA_TEST_ASSERT_EQUAL(requests[0].http_minor, vmi);
+	INA_TEST_ASSERT_EQUAL_FLOATING(requests[0].http_major, vmj);
+	INA_TEST_ASSERT_EQUAL_FLOATING(requests[0].http_minor, vmi);
 	
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_url_get(parser, &url));
 	INA_TEST_ASSERT_SUCCEED(ina_http_url_get_field(url, INA_HTTP_PARSER_UF_PATH, &begin, &ulen));
 		
 	INA_TEST_ASSERT(strncmp("/favicon.ico", begin, 12) == 0);
 	INA_TEST_ASSERT_SUCCEED(ina_http_url_get_port(url, &port));
-	INA_TEST_ASSERT_EQUAL(80, port);
+	INA_TEST_ASSERT_EQUAL_FLOATING(80, port);
 
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_first(parser, &h));
 	while (h != NULL) {
@@ -196,9 +196,9 @@ void test_http_simple_req_resp()
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_execute(parser, responses[0].raw, strlen(responses[0].raw), &more));
 
         INA_TEST_ASSERT_SUCCEED(ina_http_parser_should_keep_alive(parser, &skal));
-	INA_TEST_ASSERT_EQUAL(responses[0].should_keep_alive, skal);	
+	INA_TEST_ASSERT_EQUAL_FLOATING(responses[0].should_keep_alive, skal);	
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_status_code(parser, &status));
-	INA_TEST_ASSERT_EQUAL(responses[0].status_code, status);	
+	INA_TEST_ASSERT_EQUAL_FLOATING(responses[0].status_code, status);	
 
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_release(ctx, &parser));
 	INA_TEST_ASSERT_SUCCEED(ina_http_destroy(&ctx));	
