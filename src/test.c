@@ -48,8 +48,6 @@ static jmp_buf     __err;
 static const char* __suite_name;
 static const char* __helper_name;
 
-static INA_TEST(suite, test) { }
-
 static int __ina_suite_all(ina_test_testcase_t* t) {
     return t->is_helper == 0;
 }

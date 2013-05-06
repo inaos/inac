@@ -104,9 +104,11 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_SECTION_PUSH
 #define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
 #elif INA_OS_WIN32
+/*#pragma section(".inatest$a", read)*/
+/*#pragma section(".inatest$u", read)*/
 #pragma section(".inatest", read)
-#define INA_TEST_ATTR_WEAK
-#define INA_TEST_SECTION  
+#define INA_TEST_ATTR_WEAK __declspec(selectany)
+#define INA_TEST_SECTION 
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
 #define INA_TEST_ATTR_WEAK __attribute__ ((weak)) 
@@ -116,8 +118,8 @@ typedef struct ina_test_testcase_s {
 
 /* Testcase data defines. For internal purpose only */
 #define INA_TEST_STRUCT(sname, tname, _skip, __helper, __data, __setup, __teardown) \
-    INA_TEST_SECTION_PUSH                                                 \
-    ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
+    INA_TEST_SECTION_PUSH                                                \
+    static ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
         #sname, \
         #tname, \
         INA_TEST_FNAME(sname, tname),\
@@ -186,6 +188,8 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_MSG(fmt, ...) ina_test_msg(INA_NO, fmt, __VA_ARGS__)
 /* Print out a error message */
 #define INA_TEST_ERR(fmt, ...) ina_test_msg(INA_YES, fmt, __VA_ARGS__)
+
+static INA_TEST(suite, test) { }
 
 /*
  * Printout a message
@@ -282,7 +286,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
 /*
  * Run tests
  */
-INA_API(int) ina_test_run(int argc, char *argv[]);
+int ina_test_run(int argc, char *argv[]);
 
 #ifdef __cplusplus
 }
