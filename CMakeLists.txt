@@ -74,12 +74,3 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
-# Test-Cases
-set (TEST_SRC_DIR "${CMAKE_SOURCE_DIR}/tests")
-set (TEST_SRC ${TEST_SRC_DIR}/test_error.c ${TEST_SRC_DIR}/test_iscp.c ${TEST_SRC_DIR}/test_lib.c 
-	${TEST_SRC_DIR}/test_log.c ${TEST_SRC_DIR}/test_memory.c ${TEST_SRC_DIR}/test_mempool.c 
-	${TEST_SRC_DIR}/test_string.c ${TEST_SRC_DIR}/test_time.c ${TEST_SRC_DIR}/test_timer.c 
-	${TEST_SRC_DIR}/test_util.c ${TEST_SRC_DIR}/test_ljit.c ${TEST_SRC_DIR}/test_conffile.c 
-	${TEST_SRC_DIR}/test_http.c ${TEST_SRC_DIR}/test_xml.c ${TEST_SRC_DIR}/test_types.c
-)
-add_library(${INAC_TESTLIB_NAME} ${TEST_SRC})

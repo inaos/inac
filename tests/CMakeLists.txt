@@ -16,18 +16,17 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
 	add_definitions(-DINA_OS_WIN32 -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)
 else()
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DDEBUG -DTRACE_ENABLED -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-DINA_OS_WIN32 -DDEBUG -DTRACE_ENABLED -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 set(INAC_LIB "libinac.lib")
-set(INAC_TESTLIB "testinac.lib")
 
 if(WIN32)
 	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib)
 endif(WIN32)
 
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
-set (LIBS ${LIB_DIR}/${INAC_LIB} ${LIB_DIR}/${INAC_TESTLIB})
+set (LIBS ${LIB_DIR}/${INAC_LIB})
 
 AUX_SOURCE_DIRECTORY(. TEST_SRC)
 add_executable(test ${TEST_SRC})
