@@ -34,31 +34,83 @@
 extern "C" {
 #endif
 
-/* ANSI color codes */
-#define INA_CIO_ANSI_BLACK    "\033[0;30m"
-#define INA_CIO_ANSI_RED      "\033[0;31m"
-#define INA_CIO_ANSI_GREEN    "\033[0;32m"
-#define INA_CIO_ANSI_YELLOW   "\033[0;33m"
-#define INA_CIO_ANSI_BLUE     "\033[0;34m"
-#define INA_CIO_ANSI_MAGENTA  "\033[0;35m"
-#define INA_CIO_ANSI_CYAN     "\033[0;36m"
-#define INA_CIO_ANSI_GREY     "\033[0;37m"
-#define INA_CIO_ANSI_DARKGREY "\033[01;30m"
-#define INA_CIO_ANSI_BRED     "\033[01;31m"
-#define INA_CIO_ANSI_BGREEN   "\033[01;32m"
-#define INA_CIO_ANSI_BYELLOW  "\033[01;33m"
-#define INA_CIO_ANSI_BBLUE    "\033[01;34m"
-#define INA_CIO_ANSI_BMAGENTA "\033[01;35m"
-#define INA_CIO_ANSI_BCYAN    "\033[01;36m"
-#define INA_CIO_ANSI_WHITE    "\033[01;37m"
-#define INA_CIO_ANSI_NORMAL   "\033[0m"
+/* Color codes */
+typedef enum ina_cio_colors_e  {
+    INA_CIO_COLOR_BLACK, 
+    INA_CIO_COLOR_BLUE, 
+    INA_CIO_COLOR_RED, 
+    INA_CIO_COLOR_MAGENTA,
+    INA_CIO_COLOR_GREEN,
+    INA_CIO_COLOR_CYAN,
+    INA_CIO_COLOR_YELLOW, 
+    INA_CIO_COLOR_WHITE,
+    INA_CIO_COLOR_UNDEFINED
+} ina_cio_color_t;
 
+/* Cursor position */
+typedef struct ina_cio_pos_s {
+    uint8_t row;
+    uint8_t col;
+} ina_cio_pos_t;
+
+/* Cursor attributs */
+typedef struct ina_cio_attribs_s {
+    ina_cio_color_t bg_color; /* background color */
+    ina_cio_color_t fg_color; /* forground color */
+} ina_cio_attribs_t;
 
 /*
- * Print text
+ * Initialization
  */
-INA_API(ina_rc_t) ina_cio_print(const char *clr, const char* text);
+INA_API(ina_rc_t) ina_cio_init(void);
 
+/*
+ * Clear screen
+ */
+INA_API(ina_rc_t) ina_cio_clear(void);
+
+/*
+ * Get limits in rows and columns
+ */
+INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos);
+
+/*
+ * Show or hide the cursor
+ */
+INA_API(ina_rc_t) ina_cio_show_cursor(int show);
+
+/*
+ * Set attributes
+ */
+INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs);
+
+/*
+ * Get attributes
+ */
+INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs);
+
+/*
+ * Get current position.
+ */
+INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos);
+
+/*
+ * Move cursor to given position
+ */
+INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos);
+
+/*
+ * Move cursor to given position
+ */
+INA_API(ina_rc_t) ina_cio_move_to_row_and_col(uint8_t row, uint8_t col);
+
+/*
+ * Print a string ti the standard output
+ */
+INA_API(int) ina_cio_printf(int8_t row, int8_t col, 
+                                    ina_cio_color_t fg_color, 
+                                    ina_cio_color_t bg_color, 
+                                    const char* fmt, ...);
 
 #ifdef __cplusplus
 }
