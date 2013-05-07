@@ -1,0 +1,555 @@
+/*
+ * Copyright (c) 2013, INAOS GmbH
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the INAOS GmbH nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software 
+ *       without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ */
+#include <libinac/lib.h>
+
+#define arysize(ary)	(sizeof(ary)/sizeof((ary)[0]))
+
+struct ina_cron_task_s {
+	ina_str_t cmd;
+	ina_str_t working_dir;
+	ina_str_t pattern;
+	int running;
+	int pid;
+	int ready;
+	char mins[60]; /* 0-59 */
+    char hours[24];	/* 0-23 */
+    char days[32]; /* 1-31 */
+    char mons[12]; /* 0-11 */
+    char dow[7]; /* 0-6, beginning sunday */
+	UT_hash_handle hh;
+} ina_cron_task_s;
+
+struct ina_cron_task_itr_s {
+    ina_cron_task_t *cursor;
+} ina_cron_task_itr_s;
+
+const char *dow_array[] = {
+    "sun",
+    "mon",
+    "tue",
+    "wed",
+    "thu",
+    "fri",
+    "sat",
+
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    NULL
+};
+
+const char *mon_array[] = {
+    "jan",
+    "feb",
+    "mar",
+    "apr",
+    "may",
+    "jun",
+    "jul",
+    "aug",
+    "sep",
+    "oct",
+    "nov",
+    "dec",
+
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+    NULL
+};
+
+/*
+ *
+ */
+static char *__parse_field(char *ary, int modvalue, int off, const char **names, char *ptr)
+{
+    char *base = ptr;
+    int n1 = -1;
+    int n2 = -1;
+
+    if (base == NULL) {
+    	return(NULL);
+	}
+
+    while (*ptr != ' ' && *ptr != '\t' && *ptr != '\n') {
+        int skip = 0;
+
+		/*
+		 * Handle numeric digit or symbol or '*'
+		 */
+        if (*ptr == '*') {
+			n1 = 0;	/* everything will be filled */
+			n2 = modvalue - 1;
+            skip = 1;
+			++ptr;
+		} 
+		else if (*ptr >= '0' && *ptr <= '9') {
+			if (n1 < 0) {
+				n1 = strtol(ptr, &ptr, 10) + off;
+			}
+			else {
+				n2 = strtol(ptr, &ptr, 10) + off;
+			}
+			skip = 1;
+		} else if (names) {
+			int i;
+			for (i = 0; names[i]; ++i) {
+				if (strncmp(ptr, names[i], strlen(names[i])) == 0) {
+					break;
+				}
+			}
+			if (names[i]) {
+				ptr += strlen(names[i]);
+				if (n1 < 0) {
+					n1 = i;
+				}
+				else {
+					n2 = i;
+				}
+				skip = 1;
+			}
+		}
+
+		/*
+		 * handle optional range '-'
+		 */
+		if (skip == 0) {
+			return(NULL);
+		}
+		if (*ptr == '-' && n2 < 0) {
+			++ptr;
+			continue;
+		}
+
+		/*
+		 * collapse single-value ranges, handle skipmark, and fill
+		 * in the character array appropriately.
+		 */
+		if (n2 < 0) {
+			n2 = n1;
+		}
+
+		if (*ptr == '/') {
+			skip = strtol(ptr + 1, &ptr, 10);
+		}
+
+		/*
+		 * fill array, using a failsafe is the easiest way to prevent
+		 * an endless loop
+		 */
+        {
+            int s0 = 1;
+			int failsafe = 1024;
+
+            --n1;
+            do {
+                n1 = (n1 + 1) % modvalue;
+				if (--s0 == 0) {
+					ary[n1 % modvalue] = 1;
+					s0 = skip;
+				}
+			} while (n1 != n2 && --failsafe);
+
+			if (failsafe == 0) {
+				return(NULL);
+			}
+		}
+		if (*ptr != ',') {
+			break;
+		}
+		++ptr;
+		n1 = -1;
+		n2 = -1;
+    }
+
+    if (*ptr != ' ' && *ptr != '\t' && *ptr != '\n') {
+        return(NULL);
+    }
+
+    while (*ptr == ' ' || *ptr == '\t' || *ptr == '\n') {
+        ++ptr;
+	}
+
+    return(ptr);
+}
+/*
+ *
+ */
+static void __fix_day_dow(ina_cron_task_t *task)
+{
+    unsigned short i;
+    short weekUsed = 0;
+    short daysUsed = 0;
+
+    for (i = 0; i < arysize(task->dow); ++i) {
+        if (task->dow[i] == 0) {
+            weekUsed = 1;
+            break;
+		}
+    }
+    for (i = 0; i < arysize(task->days); ++i) {
+        if (task->days[i] == 0) {
+            daysUsed = 1;
+            break;
+		}
+    }
+    if (weekUsed && !daysUsed) {
+        memset(task->days, 0, sizeof(task->days));
+    }
+    if (daysUsed && !weekUsed) {
+        memset(task->dow, 0, sizeof(task->dow));
+    }
+}
+/*
+ *
+ */
+static ina_rc_t __parse_cron_pattern(char *pattern_buf, ina_cron_task_t *task)
+{
+	/*
+	 * parse date ranges
+	 */
+	pattern_buf = __parse_field(task->mins, 60, 0, NULL, pattern_buf);
+	pattern_buf = __parse_field(task->hours,  24, 0, NULL, pattern_buf);
+	pattern_buf = __parse_field(task->days, 32, 0, NULL, pattern_buf);
+	pattern_buf = __parse_field(task->mons, 12, -1, mon_array, pattern_buf);
+	pattern_buf = __parse_field(task->dow, 7, 0, dow_array, pattern_buf);
+
+	/*
+	 * check failure
+	 */
+	if (pattern_buf == NULL) {
+		/* FIXME proper error handling */
+		return INA_FAILURE;
+	}
+
+	/*
+	 * fix days and dow - if one is not * and the other
+	 * is *, the other is set to 0, and vise-versa
+	 */
+	__fix_day_dow(task);
+
+	return INA_SUCCESS;
+}
+/*
+ * determine which jobs need to be run.  Under normal conditions, the
+ * period is about a minute (one scan).  Worst case it will be one
+ * hour (60 scans).
+ */
+static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
+{
+    short njobs = 0;
+    time_t t;
+
+    /*
+     * Find jobs > t1 and <= t2
+     */
+    for (t = t1 - t1 % 60; t <= t2; t += 60) {
+		if (t > t1) {
+			ina_cron_task_t *task, *ttmp;
+			struct tm *tp = localtime(&t);
+	    
+			/* iterate through tasks */
+			HASH_ITER(hh, ctx->task_head, task, ttmp) {
+				if (task->mins[tp->tm_min] && task->hours[tp->tm_hour] &&
+						(task->days[tp->tm_mday] || task->dow[tp->tm_wday]) &&
+						task->mons[tp->tm_mon]) {
+					if (task->pid > 0) {
+						/* process already running */
+					}
+					else if (task->pid == 0) {
+						task->pid = -1;
+						task->ready = 1;
+						++njobs;
+					}
+				}
+			}
+		}
+	}
+    return(njobs);
+}
+/*
+ *
+ */
+static void __run_jobs(ina_cron_ctx_t *ctx)
+{
+    ina_cron_task_t *task, *ttmp;
+	
+	/* iterate through tasks */
+	HASH_ITER(hh, ctx->task_head, task, ttmp) {
+		if (task->ready && task->pid < 0) {
+			task->ready = 0;
+			
+		}
+
+		/* FIXME */
+		//RunJob(file, line);
+		
+		if (task->pid < 0) {
+		    task->ready = 1;
+		}
+		else if (task->pid > 0) {
+			task->running = 1;
+		}
+	}
+}
+/*
+ * Check for job completion, return number of jobs still running after
+ * all done.
+ */
+static int __check_jobs(ina_cron_ctx_t *ctx)
+{
+	ina_cron_task_t *t, *ttmp;
+	int still_running = 0;
+	
+    /* iterate through tasks */
+	HASH_ITER(hh, ctx->task_head, t, ttmp) {
+		if (t->running) {
+			t->running = 0;			
+			if (t->pid > 0) {
+				//int status;
+				/* FIXME */
+                /* check whether the process with given pid is still running */
+				//int r = wait4(line->cl_Pid, &status, WNOHANG, NULL);
+				//if (r < 0 || r == t->pid) {
+					/* FIXME */
+					//EndJob(file, line);
+				/*	if (t->pid) {
+						t->running = 1;
+					}
+				}
+				else if (r == 0) {
+					t->running = 1;
+				}*/
+			}
+		}
+	}	
+	still_running += t->running;
+    
+    return(still_running);
+}
+
+static void __free_task(ina_cron_task_t **task)
+{
+    ina_cron_task_t *t = *task;
+
+    if (t->cmd != NULL) {
+        ina_str_destroy(t->cmd);
+    }
+    if (t->working_dir != NULL) {
+        ina_str_destroy(t->cmd);
+    }
+    if (t->pattern != NULL) {
+        ina_str_destroy(t->pattern);
+    }
+    ina_mem_free(*task);
+}
+
+INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx, ina_cron_load_cb load_cb, ina_cron_save_cb save_cb)
+{
+	*ctx = (ina_cron_ctx_t*)ina_mem_alloc(sizeof(ina_cron_ctx_t));
+	if (load_cb) {
+		(*ctx)->load_cb = load_cb;
+		/* load tasks */
+		(*ctx)->load_cb(*ctx);
+	}
+	else {
+		(*ctx)->load_cb = NULL;
+	}
+	if (save_cb) {
+		(*ctx)->save_cb = save_cb;
+	}
+	else {
+		(*ctx)->save_cb = NULL;
+	}
+	(*ctx)->data = NULL;
+	(*ctx)->task_head = NULL;
+	(*ctx)->t1 = time(NULL);
+	(*ctx)->t2 = 0;
+	(*ctx)->stime = 60;
+	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
+{
+	ina_cron_task_t *t, *ttmp;
+	
+    HASH_ITER(hh, (*ctx)->task_head, t, ttmp) {
+		HASH_DELETE(hh, (*ctx)->task_head, t);
+		__free_task(&t);
+	}
+	
+	ina_mem_free(*ctx);
+	
+	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const char *pattern, 
+	int persistent, ina_str_t cmd, ina_str_t working_dir)
+{
+	ina_cron_task_t *task = NULL;
+    ina_str_t skey = ina_str_fromcstr(id);
+    unsigned long key = INA_HASH_STR_TO_SDBM(skey);
+	
+	/* check if we already have this task - by using the ID */
+	HASH_FIND_ULONG(ctx->task_head, &key, task);
+	
+	/* create a new task */
+	if (task == NULL) {
+		char *buf = (char*)ina_mem_alloc(strlen(pattern)+1);
+		buf = strcpy(buf, pattern);
+		
+		task = (ina_cron_task_t*)ina_mem_alloc(sizeof(ina_cron_task_t));
+		task->cmd = ina_str_dup(cmd);
+		task->working_dir = ina_str_dup(working_dir);
+        task->pattern = ina_str_fromcstr(pattern);
+		task->running = 0;
+		task->pid = -1;
+		task->ready = 0;
+		
+		__parse_cron_pattern(buf, task);
+		
+		ina_mem_free(buf);
+		
+		/* persist if required */
+        if (ctx->save_cb && persistent) {
+			ctx->save_cb(ctx, task);
+		}
+	}
+	
+	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, int *suggested_next_time)
+{
+	time_t dt;
+	
+	ctx->t2 = time(NULL);
+	dt = ctx->t2 - ctx->t1;
+	
+	/*
+	 * check for disparity. A reverse-indexed disparity
+	 * less then an hour causes us to effectively sleep until we
+	 * match the original time (i.e. no re-execution of jobs that
+	 * have just been run). A forward-indexed disparity less then
+	 * an hour causes intermediate jobs to be run, but only once
+	 * in the worst case.
+	 *
+	 * when running jobs, the inequality used is greater but not
+	 * equal to t1, and less then or equal to t2.
+	 */
+	if (dt < -60*60 || dt > 60*60) {
+		ctx->t1 = ctx->t2;
+	}
+	else if (dt > 0) {
+		__test_jobs(ctx, ctx->t1, ctx->t2);
+		__run_jobs(ctx);
+		if (__check_jobs(ctx) > 0) {
+		   ctx->stime = 10;
+		}
+		else {
+		   ctx->stime = 60;
+		}
+		ctx->t1 = ctx->t2;
+	}
+	
+	*suggested_next_time = (ctx->stime + 1) - (short)(time(NULL) % ctx->stime);
+	
+	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_ctx_t *ctx, ina_cron_task_itr_t **iter)
+{
+    *iter = (ina_cron_task_itr_t*)ina_mem_alloc(sizeof(ina_cron_task_itr_t));
+    (*iter)->cursor = ctx->task_head;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_task_free_iter(ina_cron_task_itr_t **iter)
+{
+    ina_mem_free(*iter);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_task_next(ina_cron_task_itr_t *iter, ina_cron_task_t **task)
+{
+    iter->cursor = (ina_cron_task_t*)iter->cursor->hh.next;
+    *task = iter->cursor;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx, const char *id, ina_cron_task_t **task)
+{
+    ina_cron_task_t *t;
+    ina_str_t skey;
+    unsigned long key;
+    
+    skey = ina_str_fromcstr(id);
+    key = INA_HASH_STR_TO_SDBM(skey);
+    HASH_FIND_ULONG(ctx->task_head, &key, t);
+
+    if (t != NULL) {
+        *task = t;
+    }
+    else {
+        *task = NULL;
+    }
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task, int *running)
+{
+    *running = task->running;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx, ina_cron_task_t *task)
+{
+    HASH_DELETE(hh, ctx->task_head, task);
+    __free_task(&task);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pattern)
+{
+    *pattern = task->pattern;
+    return INA_SUCCESS;
+}

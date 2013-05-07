@@ -76,6 +76,7 @@
 #include <libinac/xml.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
+#include <libinac/cron.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
 #include <libinac/test.h>
