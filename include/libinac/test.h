@@ -34,13 +34,17 @@
 extern "C" {
 #endif
 
-#define INA_TEST_HELPER_START(hid, sname, hname, ...)                \
-    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname); \
-    hid = ina_test_helper_start(#sname, #hname,  __VA_ARGS__);       \
+#define INA_TEST_HELPER_SPAWN(hid, sname, hname, ...)                     \
+    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname);      \
+    hid = ina_test_helper_spawn(#sname, #hname, INA_NO,  __VA_ARGS__);   \
     INA_TEST_ASSERT_TRUE(hid > 0)
 
-#define INA_TEST_HELPER_STOP(id) \
-    ina_test_helper_stop(id)
+#define INA_TEST_HELPER_WAIT(hid, sname, hname, ...)                     \
+    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname);      \
+    hid = ina_test_helper_spawn(#sname, #hname, INA_YES,  __VA_ARGS__);   \
+    INA_TEST_ASSERT_TRUE(hid > 0)
+
+#define INA_TEST_HELPER_STOP(id) ina_test_helper_stop(id)
 
 #define INA_TEST_ASSERT(v) INA_TEST_ASSERT_TRUE(v)
 #define INA_TEST_ASSERT_SUCCESS(v) INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, v)
@@ -102,13 +106,11 @@ typedef struct ina_test_testcase_s {
 #ifdef INA_OS_OSX
 #define INA_TEST_ATTR_WEAK __attribute__ ((weak)) 
 #define INA_TEST_SECTION_PUSH
-#define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
+#define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA,.inatest")))
 #elif INA_OS_WIN32
-/*#pragma section(".inatest$a", read)*/
-/*#pragma section(".inatest$u", read)*/
 #pragma section(".inatest", read)
 #define INA_TEST_ATTR_WEAK __declspec(selectany)
-#define INA_TEST_SECTION 
+#define INA_TEST_SECTION
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
 #define INA_TEST_ATTR_WEAK __attribute__ ((weak)) 
@@ -188,8 +190,6 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_MSG(fmt, ...) ina_test_msg(INA_NO, fmt, __VA_ARGS__)
 /* Print out a error message */
 #define INA_TEST_ERR(fmt, ...) ina_test_msg(INA_YES, fmt, __VA_ARGS__)
-
-static INA_TEST(suite, test) { }
 
 /*
  * Printout a message
@@ -271,7 +271,7 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line);
 /*
  *
  */
-INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_name, ...);
+INA_API(int) ina_test_helper_spawn(const char *suite_name, const char* helper_name, int wait, ...);
 
 /*
  *
