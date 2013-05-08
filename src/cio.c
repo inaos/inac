@@ -106,14 +106,14 @@ INA_API(ina_rc_t) ina_cio_init(void)
 
 INA_API(ina_rc_t) ina_cio_clear(void)
 {
-       INA_ASSERT(__initialized);
-
 #ifdef INA_OS_WIN32
     COORD pos = { 0, 0 };
     DWORD cars;
     HANDLE hStdOut = GetStdHandle( STD_OUTPUT_HANDLE );
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     DWORD dwConSize;
+
+    INA_ASSERT(__initialized);
 
     if( hStdOut != INVALID_HANDLE_VALUE
         && GetConsoleScreenBufferInfo(hStdOut, &csbi)) {
@@ -137,6 +137,7 @@ INA_API(ina_rc_t) ina_cio_clear(void)
         );
     }
 #else
+    INA_ASSERT(__initialized);
     ina_str_cpy(__cmd, (char*)__CSI);
     ina_str_cat(__cmd, (char*)__cmd_clear);
     printf( "%s", __cmd);
@@ -146,18 +147,20 @@ INA_API(ina_rc_t) ina_cio_clear(void)
 
 INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 {
+#ifdef INA_OS_WIN32
+    CONSOLE_SCREEN_BUFFER_INFO info;
+#endif
+
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(pos);
-
     pos->row = pos->col = 0;
 
-#ifdef INA_OS_WIN2
-    CONSOLE_SCREEN_BUFFER_INFO info;
+#ifdef INA_OS_WIN32
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
     pos->row = info.srWindow.Bottom + 1;
     pos->col = info.srWindow.Right + 1;
 #else
-    pos->row = __INA_LAST_ROW;
+    pos->row = __INA_LAST_ROW;s
     pos->col = __INA_LAST_COL;
 #endif
     return INA_SUCCESS;
@@ -171,7 +174,7 @@ INA_API(ina_rc_t) ina_cio_show_cursor(int show)
     info.dwSize = 10;
     info.bVisible = (BOOL) show;
     SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
-else
+#else
     printf("%s?25%c", CSI, show ?'h':'l');
 #endif
     return INA_SUCCESS;
@@ -215,14 +218,17 @@ INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 
 INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 {
+#ifdef INA_OS_WIN32
+    CONSOLE_SCREEN_BUFFER_INFO info;
+#endif
+
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(pos);
 
-#ifdef SO_WINDOWS
-    CONSOLE_SCREEN_BUFFER_INFO info;
+#ifdef INA_OS_WIN32
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
     pos->row = info.dwCursorPosition.Y;
-    pos->col = infoPantalla.dwCursorPosition.X;
+    pos->col = info.dwCursorPosition.X;
 #else
     /* FIXME */
     pos->row = 0;
@@ -238,23 +244,25 @@ INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos)
     return ina_cio_move_to_row_and_col(pos->row, pos->col);
 }
 
-INA_API(ina_rc_t) ina_cio_move_to_row_and_col(uint8_t row, uint8_t col)
+INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
 {
-    INA_ASSERT(__initialized);
 #ifdef INA_OS_WIN32
     COORD pos;
+
+    INA_ASSERT(__initialized);
 
     pos.X = col;
     pos.Y = row;
 
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 #else
+    INA_ASSERT(__initialized);
     printf( "%s%d;%dH", __CSI, row + 1, col + 1);
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(int) ina_cio_printf(int8_t row, int8_t col, 
+INA_API(int) ina_cio_printf(int16_t row, int16_t col, 
                                     ina_cio_color_t fg_color, 
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...)
