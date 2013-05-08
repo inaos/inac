@@ -1375,6 +1375,12 @@ int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next)
 	return 0;
 }
 
+int rapidxml_node_last(rapidxml_node_t *node, rapidxml_node_t **last)
+{
+	*last = __node_last_node(node, NULL, 0, 1);
+	return 0;
+}
+
 int rapidxml_node_get_name(rapidxml_node_t *node, const char **name, size_t *len)
 {
 	*name = node->name;
@@ -1395,10 +1401,22 @@ int rapidxml_node_first_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
 	return 0;
 }
 
+int rapidxml_node_last_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
+{
+	*attr = __node_last_attribute(node, NULL, 0, 1);
+	return 0;
+}
+
 int rapidxml_attribute_next(rapidxml_attr_t *attr, rapidxml_attr_t **next)
 {
 	*next = __attr_next_attribute(attr, NULL, 0, 1);
 	return 0;
+}
+
+int rapidxml_attribute_previous(rapidxml_attr_t *attr, rapidxml_attr_t **previous)
+{
+    *previous = __attr_previous_attribute(attr, NULL, 0, 1);
+    return 0;
 }
 
 int rapidxml_attribute_get_name(rapidxml_attr_t *attr, const char **name, size_t *len)
