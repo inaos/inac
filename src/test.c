@@ -246,19 +246,19 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
     longjmp(__err, 1);
 }
 
-INA_API(int) ina_test_helper_spawn(const char *suite_name, const char* helper_name, int wait, ...) {
+INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_name, const char* helper_name, int32_t wait_msec, ...) {
 #ifndef INA_OS_WIN32
     char* args[16];
     int n;
-    va_list ap;
 
     INA_TRACE_MSG("Start");
+    INA_ASSERT_NOTNULL(hid);
 
     pid_t pid = fork();
     
     if (pid < 0) {
          perror("fork");
-         return -1;
+         return INA_FAILURE;
      }
      
      if (pid == 0) {
@@ -279,21 +279,53 @@ INA_API(int) ina_test_helper_spawn(const char *suite_name, const char* helper_na
        INA_TRACE_MSG("Failed helper");
        perror("execvp()");
        _exit(127);
-   }
-   ina_time_sleep(500);
-   return pid;
+    }
+    hid->pid = pid;
+    ina_time_sleep(500);
+    return INA_SUCCESS;
 #else
     PROCESS_INFORMATION pi;
+    STARTUPINFOA si;
+    DWORD dwExitCode;
     char cmdline[256];
+    char exepath[MAX_PATH];
     
-    sprintf(cmdline, "\"test.exe -h %s, %s", suite_name, helper_name);
-	CreateProcess(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
-    return pi.dwProcessId;
+    GetModuleFileName(NULL, exepath, MAX_PATH-1);
+    sprintf(cmdline, "\"%s\" -h %h %s", exepath, suite_name, helper_name);
+    ina_mem_set(&si, 0, sizeof(si));
+    ina_mem_set(&pi, 0, sizeof(pi));
+    si.cb = sizeof(si);
+
+    if (CreateProcess(NULL, cmdline, 0, 0, FALSE, 
+            CREATE_DEFAULT_ERROR_MODE, 0, 0,
+            &si, &pi) != FALSE) {
+        if (wait_msec > 0) {
+            dwExitCode = WaitForSingleObject(pi.hProcess, 500);
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+            hid->hProcess = NULL;
+            hid->hThread = NULL;
+        } else {
+            hid->hProcess = pi.hProcess;
+            hid->hThread = pi.hThread;
+        }
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
 #endif
 }
 
-INA_API(ina_rc_t) ina_test_helper_stop(int hid)
+INA_API(ina_rc_t) ina_test_helper_stop(ina_test_hid_t *hid)
 {
+    INA_ASSERT_NOTNULL(hid);
+#ifdef INA_OS_WIN32
+    CloseHandle(hid->hProcess);
+    CloseHandle(hid->hThread);
+    hid->hProcess = NULL;
+    hid->hThread = NULL;
+#else
+    kill(hid->pid, SIGKILL);
+#endif
     return INA_SUCCESS;
 }
 
@@ -359,7 +391,6 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     ina_test_testcase_t* begin;
     ina_test_testcase_t* end;
     ina_cio_color_t color;
-    char results[80];
 
     if (argc == 2) {
         __suite_name = argv[1];
@@ -445,13 +476,14 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                     printf("%s", __errorbuffer);
                 }
             }
-	    printf("%s", "\n");
+            printf("%s", "\n");
             index++;
         }
     }
 
     color = (num_fail) ? INA_CIO_COLOR_RED : INA_CIO_COLOR_GREEN;
-    printf(            results, "RESULTS: %d tests (%d ok, %d failed, %d skipped)", 
+    ina_cio_printf(-1,-1, color, INA_CIO_COLOR_UNDEFINED, 
+                "RESULTS: %d tests (%d ok, %d failed, %d skipped)", 
                 total, 
                 num_ok, 
                 num_fail, 

@@ -49,8 +49,8 @@ typedef enum ina_cio_colors_e  {
 
 /* Cursor position */
 typedef struct ina_cio_pos_s {
-    uint8_t row;
-    uint8_t col;
+    int16_t row;
+    int16_t col;
 } ina_cio_pos_t;
 
 /* Cursor attributs */
@@ -104,12 +104,12 @@ INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos);
 /*
  * Move cursor to given position
  */
-INA_API(ina_rc_t) ina_cio_move_to_row_and_col(uint8_t row, uint8_t col);
+INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col);
 
 /*
  * Print a string ti the standard output
  */
-INA_API(int) ina_cio_printf(int8_t row, int8_t col, 
+INA_API(int) ina_cio_printf(int16_t row, int16_t col, 
                                     ina_cio_color_t fg_color, 
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...);

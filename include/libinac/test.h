@@ -34,15 +34,24 @@
 extern "C" {
 #endif
 
+#ifdef INA_OS_WIN32
+typedef struct ina_test_hid_s {
+    HANDLE hProcess;
+    HANDLE hThread;
+} ina_test_hid_t;
+#else
+typedef struct ina_test_hid_s {
+    pid_t pid;
+} ina_test_hid_t;
+#endif
+
 #define INA_TEST_HELPER_SPAWN(hid, sname, hname, ...)                     \
     INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname);      \
-    hid = ina_test_helper_spawn(#sname, #hname, INA_NO,  __VA_ARGS__);   \
-    INA_TEST_ASSERT_TRUE(hid > 0)
+    INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, INA_NO,  __VA_ARGS__)); 
 
 #define INA_TEST_HELPER_WAIT(hid, sname, hname, ...)                     \
     INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname);      \
-    hid = ina_test_helper_spawn(#sname, #hname, INA_YES,  __VA_ARGS__);   \
-    INA_TEST_ASSERT_TRUE(hid > 0)
+    INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, INA_YES,  __VA_ARGS__));
 
 #define INA_TEST_HELPER_STOP(id) ina_test_helper_stop(id)
 
@@ -271,12 +280,12 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line);
 /*
  *
  */
-INA_API(int) ina_test_helper_spawn(const char *suite_name, const char* helper_name, int wait, ...);
+INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_name, const char* helper_name, int32_t wait_msec, ...);
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_test_helper_stop(int hid);
+INA_API(ina_rc_t) ina_test_helper_stop(ina_test_hid_t *hid);
 
 /*
  *
