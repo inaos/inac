@@ -1277,7 +1277,7 @@ static void __document_parse(rapidxml_doc_t *doc, char *text)
         {
 			rapidxml_node_t *node;
             ++text;     /* Skip '<' */
-            if (node = __document_parse_node(doc, text)) {
+            if ((node = __document_parse_node(doc, text))) {
 				__node_append_node(doc->root, node);
 			}
         }
