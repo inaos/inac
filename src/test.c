@@ -82,6 +82,9 @@ static void *__ina_find_symbol(ina_test_testcase_t *test, const char *fname)
 }
 #endif
 
+static void __ina_signal_handler(int sig) {
+    longjmp(__err, 1);
+}
 
 INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
  {
@@ -89,9 +92,9 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
      va_list argp;
      
      if (is_error != INA_YES) {
-         size = sprintf(__errormsg, "%s", "MSG: ");
+         size = sprintf(__errormsg, "%s", "     MSG: ");
     } else {
-        size = sprintf(__errormsg, "%s", "ERR: ");
+        size = sprintf(__errormsg, "%s", "     ERR: ");
     }
     __errorsize -= size;
     __errormsg += size;
@@ -431,8 +434,12 @@ INA_API(int) ina_test_run(int argc, char *argv[])
 
                 num_skip++;
             } else {
-                int result = setjmp(__err);
-                if (result == 0) {
+                void* old_sigabrt_handler = signal(SIGABRT, 
+                    __ina_signal_handler);
+                void* old_sigsegv_handler = signal(SIGSEGV, 
+                    __ina_signal_handler);
+
+                if (setjmp(__err) == 0) {
 #ifdef INA_OS_OSX
                     if (!test->setup) {
                         test->setup = __ina_find_symbol(test, "setup");
@@ -464,6 +471,9 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                 if (__errorsize != __INA_MSG_SIZE-1) {
                     printf("%s", __errorbuffer);
                 }
+                
+                signal(SIGABRT, old_sigabrt_handler);
+                signal(SIGSEGV, old_sigsegv_handler);
             }
             index++;
         }

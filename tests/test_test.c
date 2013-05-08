@@ -44,3 +44,12 @@ INA_TEST_TEARDOWN(test) {
 INA_TEST_FIXTURE_SKIP(test, fixture) {
     INA_TEST_ASSERT_EQUAL_INTEGER(1, data->x);
 }
+
+INA_TEST(test, handle_sigabrt) {
+    abort();
+}
+
+INA_TEST(test, handle_sigfault) {
+    ina_conffile_t *cf = NULL;
+    INA_TEST_ASSERT_NOT_NULL(cf->filepath);
+}
