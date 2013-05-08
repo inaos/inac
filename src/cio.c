@@ -27,6 +27,7 @@
  */
 #include <libinac/lib.h>
 #include "config.h"
+#include <signal.h>
 
 #ifdef INA_OS_WIN32
 static short int __fg_colors[INA_CIO_COLOR_UNDEFINED + 1];
@@ -55,6 +56,8 @@ static void __ina_init_colors(void)
     __bg_colors[INA_CIO_COLOR_UNDEFINED] = 0;
 }
 #else
+#define _isatty isatty
+#define _fileno fileno
 #define __INA_MAX_CMD_BUFLEN  (32)
 #define __INA_LAST_ROW        (25)
 #define __INA_LAST_COL        (80)
@@ -130,7 +133,7 @@ INA_API(ina_rc_t) ina_cio_clear(void)
         FillConsoleOutputAttribute(
                 hStdOut,
                 __bg_colors[__attribs.bg_color] | 
-		__fg_colors[__attribs.fg_color],
+                __fg_colors[__attribs.fg_color],
                 dwConSize,
                 pos,
                 &cars
@@ -160,7 +163,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
     pos->row = info.srWindow.Bottom + 1;
     pos->col = info.srWindow.Right + 1;
 #else
-    pos->row = __INA_LAST_ROW;s
+    pos->row = __INA_LAST_ROW;
     pos->col = __INA_LAST_COL;
 #endif
     return INA_SUCCESS;
@@ -175,7 +178,7 @@ INA_API(ina_rc_t) ina_cio_show_cursor(int show)
     info.bVisible = (BOOL) show;
     SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
 #else
-    printf("%s?25%c", CSI, show ?'h':'l');
+    printf("%s?25%c", __CSI, show ?'h':'l');
 #endif
     return INA_SUCCESS;
 }
@@ -272,35 +275,40 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     ina_cio_attribs_t new_attribs;
     va_list args;
     int size;
+    int setattribs;
 
     INA_ASSERT(__initialized);
 
-    ina_cio_get_pos(&pos);
+    if ((setattribs = _isatty(_fileno(stdout)))) {
+        ina_cio_get_pos(&pos);
 
-    if (row >= 0)  {
-        pos.row = (uint8_t)row;
-    }
-    if (col >= 0) {
-        pos.col = (uint8_t)col;
-    }
+        if (row >= 0)  {
+            pos.row = (uint8_t)row;
+        }
+        if (col >= 0) {
+            pos.col = (uint8_t)col;
+        }
 
-    ina_cio_get_attribs(&attribs);
+        ina_cio_get_attribs(&attribs);
     
-    if (fg_color != INA_CIO_COLOR_UNDEFINED) {
-        new_attribs.fg_color = fg_color;
-    } else {
-        new_attribs.fg_color = attribs.fg_color;
+        if (fg_color != INA_CIO_COLOR_UNDEFINED) {
+            new_attribs.fg_color = fg_color;
+        } else {
+            new_attribs.fg_color = attribs.fg_color;
+        }
+        if (bg_color != INA_CIO_COLOR_UNDEFINED) {
+            new_attribs.bg_color = bg_color;
+        } else {
+            new_attribs.bg_color = attribs.bg_color;
+        }
+        ina_cio_set_attribs(&new_attribs);
     }
-    if (bg_color != INA_CIO_COLOR_UNDEFINED) {
-        new_attribs.bg_color = bg_color;
-    } else {
-        new_attribs.bg_color = attribs.bg_color;
-    }
-    ina_cio_set_attribs(&new_attribs);
-
     va_start(args, fmt);
     size = vprintf(fmt, args);
     va_end(args);
-    ina_cio_set_attribs(&attribs);
+    
+    if (setattribs) {
+        ina_cio_set_attribs(&attribs);
+    }
     return size;
 }
