@@ -567,7 +567,7 @@ static unsigned char __test_whitespace(char c)
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* E */
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   /* F */
     };
-	return __lookup_whitespace[c];
+	return __lookup_whitespace[(unsigned char)c];
 }
 /*
  *
@@ -595,7 +595,7 @@ static unsigned char __test_node_name_pred(char c)
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  /* E */
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1   /* F */
     };
-	return __lookup_node_name[c];
+	return __lookup_node_name[(unsigned char)c];
 }
 /*
  *
@@ -623,7 +623,7 @@ static unsigned char __test_attr_name_pred(char c)
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  /* E */
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1   /* F */
     };
-	return __lookup_attribute_name[c];
+	return __lookup_attribute_name[(unsigned char)c];
 }
 /*
  *
@@ -673,10 +673,10 @@ static unsigned char __test_attr_value_pred(char quote, char c)
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1   /* F */
     };
 	if (quote == '\'') {
-		return __lookup_attribute_data_1[c];
+		return __lookup_attribute_data_1[(unsigned char)c];
 	}
 	else {
-		return __lookup_attribute_data_2[c];
+		return __lookup_attribute_data_2[(unsigned char)c];
 	}
 }
 /*
@@ -705,7 +705,7 @@ static unsigned char __test_text_pred(char c)
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  /* E */
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1   /* F */
     };
-	return __lookup_text[c];
+	return __lookup_text[(unsigned char)c];
 }
 /*
  *
@@ -874,7 +874,7 @@ static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *
 				rapidxml_node_t *child;
                 /* Child node */
                 ++text;     /* Skip '<' */
-                if (child = __document_parse_node(doc, text)) {
+                if ((child = __document_parse_node(doc, text))) {
                     __node_append_node(node, child);
 				}
             }
