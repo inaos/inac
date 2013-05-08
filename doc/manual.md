@@ -603,7 +603,7 @@ INAC provides a built-in test framework. This framework is almost independent fr
 Features  
 
  * Easy adding tests with minimal effort. Non header files required.
- * Supports test suites.
+ * Supports test suites
  * Supports fixtures (setup, teardown)
  * Easy to parse output
  * Colored output
@@ -613,6 +613,7 @@ Features
 Possibles improvements :
  * Possibility to add small description to each test for documentation purpose.
  * Variable output format
+ * Display elapsed time
  
 To add your first test to a test suite simply the following lines of code.
 

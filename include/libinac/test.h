@@ -115,7 +115,7 @@ typedef struct ina_test_testcase_s {
 #ifdef INA_OS_OSX
 #define INA_TEST_ATTR_WEAK __attribute__ ((weak)) 
 #define INA_TEST_SECTION_PUSH
-#define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA,.inatest")))
+#define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
 #elif INA_OS_WIN32
 #pragma section(".inatest", read)
 #define INA_TEST_ATTR_WEAK __declspec(selectany)
@@ -130,7 +130,7 @@ typedef struct ina_test_testcase_s {
 /* Testcase data defines. For internal purpose only */
 #define INA_TEST_STRUCT(sname, tname, _skip, __helper, __data, __setup, __teardown) \
     INA_TEST_SECTION_PUSH                                                \
-    static ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
+    ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
         #sname, \
         #tname, \
         INA_TEST_FNAME(sname, tname),\
@@ -174,7 +174,7 @@ typedef struct ina_test_testcase_s {
 #endif
 #define INA_TEST_DECL_FIXTURE(sname, tname, _skip) \
     static struct sname##_data  __ina_test_##sname##_data; \
-    INA_TEST_SETUP(sname); \
+    INA_TEST_SETUP(sname);  \
     INA_TEST_TEARDOWN(sname); \
     void INA_TEST_FNAME(sname, tname)(struct sname##_data* data); \
     INA_TEST_STRUCT(sname, tname, _skip, 0, &__ina_test_##sname##_data, INA_SETUP_FNAME(sname), INA_TEARDOWN_FNAME(sname)); \

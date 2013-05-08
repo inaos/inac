@@ -27,7 +27,7 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST(test, types_decimal)
+INA_TEST(types, types_decimal)
 {
     ina_decimal_t d1;
     ina_decimal_t d2;

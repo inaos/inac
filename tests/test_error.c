@@ -143,7 +143,7 @@ INA_TEST(error, push_and_clear)
     INA_TEST_ASSERT_SUCCESS(ina_err_peek_last());
  }
 
-INA_TEST(test, error_pack_rc) 
+INA_TEST(error, error_pack_rc) 
 {
 	ina_rc_t rcc;
     ina_rc_t rc;
