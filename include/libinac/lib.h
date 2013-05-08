@@ -42,6 +42,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <minwindef.h>
+#include <wincon.h>
 #endif
 
 #include <stdio.h>

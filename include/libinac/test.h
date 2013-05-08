@@ -34,13 +34,26 @@
 extern "C" {
 #endif
 
-#define INA_TEST_HELPER_START(hid, sname, hname, ...)                \
-    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname); \
-    hid = ina_test_helper_start(#sname, #hname,  __VA_ARGS__);       \
-    INA_TEST_ASSERT_TRUE(hid > 0)
+#ifdef INA_OS_WIN32
+typedef struct ina_test_hid_s {
+    HANDLE hProcess;
+    HANDLE hThread;
+} ina_test_hid_t;
+#else
+typedef struct ina_test_hid_s {
+    pid_t pid;
+} ina_test_hid_t;
+#endif
 
-#define INA_TEST_HELPER_STOP(id) \
-    ina_test_helper_stop(id)
+#define INA_TEST_HELPER_SPAWN(hid, sname, hname, ...)                     \
+    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname);      \
+    INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, INA_NO,  __VA_ARGS__)); 
+
+#define INA_TEST_HELPER_WAIT(hid, sname, hname, ...)                     \
+    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname);      \
+    INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, INA_YES,  __VA_ARGS__));
+
+#define INA_TEST_HELPER_STOP(id) ina_test_helper_stop(id)
 
 #define INA_TEST_ASSERT(v) INA_TEST_ASSERT_TRUE(v)
 #define INA_TEST_ASSERT_SUCCESS(v) INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, v)
@@ -105,8 +118,8 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
 #elif INA_OS_WIN32
 #pragma section(".inatest", read)
-#define INA_TEST_ATTR_WEAK
-#define INA_TEST_SECTION  
+#define INA_TEST_ATTR_WEAK __declspec(selectany)
+#define INA_TEST_SECTION
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
 #define INA_TEST_ATTR_WEAK __attribute__ ((weak)) 
@@ -116,7 +129,7 @@ typedef struct ina_test_testcase_s {
 
 /* Testcase data defines. For internal purpose only */
 #define INA_TEST_STRUCT(sname, tname, _skip, __helper, __data, __setup, __teardown) \
-    INA_TEST_SECTION_PUSH                                                 \
+    INA_TEST_SECTION_PUSH                                                \
     ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = { \
         #sname, \
         #tname, \
@@ -161,7 +174,7 @@ typedef struct ina_test_testcase_s {
 #endif
 #define INA_TEST_DECL_FIXTURE(sname, tname, _skip) \
     static struct sname##_data  __ina_test_##sname##_data; \
-    INA_TEST_SETUP(sname); \
+    INA_TEST_SETUP(sname);  \
     INA_TEST_TEARDOWN(sname); \
     void INA_TEST_FNAME(sname, tname)(struct sname##_data* data); \
     INA_TEST_STRUCT(sname, tname, _skip, 0, &__ina_test_##sname##_data, INA_SETUP_FNAME(sname), INA_TEARDOWN_FNAME(sname)); \
@@ -267,12 +280,12 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line);
 /*
  *
  */
-INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_name, ...);
+INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_name, const char* helper_name, int32_t wait_msec, ...);
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_test_helper_stop(int hid);
+INA_API(ina_rc_t) ina_test_helper_stop(ina_test_hid_t *hid);
 
 /*
  *
@@ -282,7 +295,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
 /*
  * Run tests
  */
-INA_API(int) ina_test_run(int argc, char *argv[]);
+int ina_test_run(int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

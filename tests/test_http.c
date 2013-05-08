@@ -143,7 +143,7 @@ const struct message responses[] =
 , { NULL } /* sentinel */
 };
 
-void test_http_simple_req_resp()
+INA_TEST(http, simple_req_resp)
 {
 	ina_http_ctx_t *ctx;
 	ina_http_parser_t *parser;

@@ -567,7 +567,7 @@ static unsigned char __test_whitespace(char c)
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  /* E */
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   /* F */
     };
-	return __lookup_whitespace[c];
+	return __lookup_whitespace[(unsigned char)c];
 }
 /*
  *
@@ -595,7 +595,7 @@ static unsigned char __test_node_name_pred(char c)
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  /* E */
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1   /* F */
     };
-	return __lookup_node_name[c];
+	return __lookup_node_name[(unsigned char)c];
 }
 /*
  *
@@ -623,7 +623,7 @@ static unsigned char __test_attr_name_pred(char c)
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  /* E */
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1   /* F */
     };
-	return __lookup_attribute_name[c];
+	return __lookup_attribute_name[(unsigned char)c];
 }
 /*
  *
@@ -673,10 +673,10 @@ static unsigned char __test_attr_value_pred(char quote, char c)
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1   /* F */
     };
 	if (quote == '\'') {
-		return __lookup_attribute_data_1[c];
+		return __lookup_attribute_data_1[(unsigned char)c];
 	}
 	else {
-		return __lookup_attribute_data_2[c];
+		return __lookup_attribute_data_2[(unsigned char)c];
 	}
 }
 /*
@@ -705,7 +705,7 @@ static unsigned char __test_text_pred(char c)
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  /* E */
         1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1   /* F */
     };
-	return __lookup_text[c];
+	return __lookup_text[(unsigned char)c];
 }
 /*
  *
@@ -874,7 +874,7 @@ static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *
 				rapidxml_node_t *child;
                 /* Child node */
                 ++text;     /* Skip '<' */
-                if (child = __document_parse_node(doc, text)) {
+                if ((child = __document_parse_node(doc, text))) {
                     __node_append_node(node, child);
 				}
             }
@@ -1257,8 +1257,10 @@ static void __document_parse(rapidxml_doc_t *doc, char *text)
 	assert(text);
             
     /* Remove current contents */
-    __node_remove_all_nodes(doc->root);
-	__node_remove_all_attributes(doc->root);
+    if (doc->root != NULL) {
+        __node_remove_all_nodes(doc->root);
+	    __node_remove_all_attributes(doc->root);
+	}
             
     /* Parse BOM, if any */
     __document_parse_bom(text);
@@ -1277,7 +1279,7 @@ static void __document_parse(rapidxml_doc_t *doc, char *text)
         {
 			rapidxml_node_t *node;
             ++text;     /* Skip '<' */
-            if (node = __document_parse_node(doc, text)) {
+            if ((node = __document_parse_node(doc, text))) {
 				__node_append_node(doc->root, node);
 			}
         }
@@ -1291,6 +1293,9 @@ static void __document_parse(rapidxml_doc_t *doc, char *text)
  */
 static void __document_clean(rapidxml_doc_t *doc)
 {
+    if (doc->root == NULL) {
+        return;
+    }
 	__node_remove_all_nodes(doc->root);
 	__node_remove_all_attributes(doc->root);
 	__mempool_clear(&doc->mempool);
@@ -1375,6 +1380,12 @@ int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next)
 	return 0;
 }
 
+int rapidxml_node_last(rapidxml_node_t *node, rapidxml_node_t **last)
+{
+	*last = __node_last_node(node, NULL, 0, 1);
+	return 0;
+}
+
 int rapidxml_node_get_name(rapidxml_node_t *node, const char **name, size_t *len)
 {
 	*name = node->name;
@@ -1395,10 +1406,22 @@ int rapidxml_node_first_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
 	return 0;
 }
 
+int rapidxml_node_last_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
+{
+	*attr = __node_last_attribute(node, NULL, 0, 1);
+	return 0;
+}
+
 int rapidxml_attribute_next(rapidxml_attr_t *attr, rapidxml_attr_t **next)
 {
 	*next = __attr_next_attribute(attr, NULL, 0, 1);
 	return 0;
+}
+
+int rapidxml_attribute_previous(rapidxml_attr_t *attr, rapidxml_attr_t **previous)
+{
+    *previous = __attr_previous_attribute(attr, NULL, 0, 1);
+    return 0;
 }
 
 int rapidxml_attribute_get_name(rapidxml_attr_t *attr, const char **name, size_t *len)

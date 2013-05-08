@@ -47,8 +47,7 @@ static char        __errorbuffer[__INA_MSG_SIZE];
 static jmp_buf     __err;
 static const char* __suite_name;
 static const char* __helper_name;
-
-static INA_TEST(suite, test) { }
+INA_TEST(suite, test) { }
 
 static int __ina_suite_all(ina_test_testcase_t* t) {
     return t->is_helper == 0;
@@ -72,8 +71,6 @@ static void *__ina_find_symbol(ina_test_testcase_t *test, const char *fname)
     char *symbol_name = (char *) malloc(len + 1);
     memset(symbol_name, 0, len + 1);
     snprintf(symbol_name, len + 1, "%s_%s", test->suite_name, fname);
-
-    //fprintf(stderr, ">>>> dlsym: loading %s\n", symbol_name);
     void *symbol = dlsym(RTLD_DEFAULT, symbol_name);
     if (!symbol) {
         //fprintf(stderr, ">>>> ERROR: %s\n", dlerror());
@@ -86,44 +83,28 @@ static void *__ina_find_symbol(ina_test_testcase_t *test, const char *fname)
 #endif
 
 
-static void __ina_msg_start(const char* color, const char* title) {
-    int size;
-    size = snprintf(__errormsg, __errorsize, "%s", color);
-    __errorsize -= size;
-    __errormsg += size;
-    size = snprintf(__errormsg, __errorsize, "  %s: ", title);
-    __errorsize -= size;
-    __errormsg += size;
-}
-
-static void __ina_msg_end() {
-    int size;
-    size = snprintf(__errormsg, __errorsize, INA_CIO_ANSI_NORMAL);
-    __errorsize -= size;
-    __errormsg += size;
-    size = snprintf(__errormsg, __errorsize, "\n");
-    __errorsize -= size;
-    __errormsg += size;
-}
-
 INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
  {
-	 int size;
-
+     int size;
      va_list argp;
+     
      if (is_error != INA_YES) {
-         __ina_msg_start(INA_CIO_ANSI_BLUE, "MSG");
-     } else {
-         __ina_msg_start(INA_CIO_ANSI_YELLOW, "ERR");
-     }
-
+         size = sprintf(__errormsg, "%s", "MSG: ");
+    } else {
+        size = sprintf(__errormsg, "%s", "ERR: ");
+    }
+    __errorsize -= size;
+    __errormsg += size;
+    
      va_start(argp, fmt);
      size = vsnprintf(__errormsg, __errorsize, fmt, argp);
+     va_end(argp); 
      __errorsize -= size;
      __errormsg += size;
-     va_end(argp);
-
-     __ina_msg_end();
+    
+     size = sprintf(__errormsg, "%s", "\n");
+     __errorsize -= size;
+     __errormsg += size;
      return INA_SUCCESS;
  }
 
@@ -254,19 +235,19 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
     longjmp(__err, 1);
 }
 
-INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_name, ...) {
+INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_name, const char* helper_name, int32_t wait_msec, ...) {
 #ifndef INA_OS_WIN32
     char* args[16];
     int n;
-    va_list ap;
 
     INA_TRACE_MSG("Start");
+    INA_ASSERT_NOTNULL(hid);
 
     pid_t pid = fork();
     
     if (pid < 0) {
          perror("fork");
-         return -1;
+         return INA_FAILURE;
      }
      
      if (pid == 0) {
@@ -277,8 +258,8 @@ INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_na
        args[n++] = "-h";
        args[n++] = (char*)suite_name;
        args[n++] = (char*)helper_name;
-       /*va_start(ap, helper_name);
-       while (*helper_name) {
+       /*va_start(ap, wait);
+       while (*wait) {
            args[n++] = va_arg(ap, char *);
        }
        va_end(ap);*/
@@ -287,21 +268,53 @@ INA_API(int) ina_test_helper_start(const char *suite_name, const char* helper_na
        INA_TRACE_MSG("Failed helper");
        perror("execvp()");
        _exit(127);
-   }
-   ina_time_sleep(500);
-   return pid;
+    }
+    hid->pid = pid;
+    ina_time_sleep(500);
+    return INA_SUCCESS;
 #else
     PROCESS_INFORMATION pi;
+    STARTUPINFOA si;
+    DWORD dwExitCode;
     char cmdline[256];
+    char exepath[MAX_PATH];
     
-    sprintf(cmdline, "\"test.exe -h %s, %s", suite_name, helper_name);
-	CreateProcess(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
-    return pi.dwProcessId;
+    GetModuleFileName(NULL, exepath, MAX_PATH-1);
+    sprintf(cmdline, "\"%s\" -h %h %s", exepath, suite_name, helper_name);
+    ina_mem_set(&si, 0, sizeof(si));
+    ina_mem_set(&pi, 0, sizeof(pi));
+    si.cb = sizeof(si);
+
+    if (CreateProcess(NULL, cmdline, 0, 0, FALSE, 
+            CREATE_DEFAULT_ERROR_MODE, 0, 0,
+            &si, &pi) != FALSE) {
+        if (wait_msec > 0) {
+            dwExitCode = WaitForSingleObject(pi.hProcess, 500);
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+            hid->hProcess = NULL;
+            hid->hThread = NULL;
+        } else {
+            hid->hProcess = pi.hProcess;
+            hid->hThread = pi.hThread;
+        }
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
 #endif
 }
 
-INA_API(ina_rc_t) ina_test_helper_stop(int hid)
+INA_API(ina_rc_t) ina_test_helper_stop(ina_test_hid_t *hid)
 {
+    INA_ASSERT_NOTNULL(hid);
+#ifdef INA_OS_WIN32
+    CloseHandle(hid->hProcess);
+    CloseHandle(hid->hThread);
+    hid->hProcess = NULL;
+    hid->hThread = NULL;
+#else
+    kill(hid->pid, SIGKILL);
+#endif
     return INA_SUCCESS;
 }
 
@@ -366,8 +379,7 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     static ina_test_testcase_t* test;
     ina_test_testcase_t* begin;
     ina_test_testcase_t* end;
-    const char* color;
-    char results[80];
+    ina_cio_color_t color;
 
     if (argc == 2) {
         __suite_name = argv[1];
@@ -413,7 +425,10 @@ INA_API(int) ina_test_run(int argc, char *argv[])
             printf("TEST %d/%d %s:%s ", index, total, test->suite_name, test->test_name);
             fflush(stdout);
             if (test->skip) {
-                ina_cio_print(INA_CIO_ANSI_BYELLOW, "[SKIPPED]");
+                ina_cio_printf(-1,-1, INA_CIO_COLOR_YELLOW, 
+                        INA_CIO_COLOR_UNDEFINED, 
+                        "[SKIPPED]\n");
+
                 num_skip++;
             } else {
                 int result = setjmp(__err);
@@ -436,10 +451,14 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                     if (test->teardown) {
                         test->teardown(test->data);
                     }
-                    ina_cio_print(INA_CIO_ANSI_BGREEN, "[OK]");
+                    ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
+                            INA_CIO_COLOR_UNDEFINED, 
+                            "[OK]\n");
                     num_ok++;
                 } else {
-                    ina_cio_print(INA_CIO_ANSI_BRED, "[FAIL]");
+                    ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
+                            INA_CIO_COLOR_UNDEFINED, 
+                            "[FAIL]\n");
                     num_fail++;
                 }
                 if (__errorsize != __INA_MSG_SIZE-1) {
@@ -450,13 +469,12 @@ INA_API(int) ina_test_run(int argc, char *argv[])
         }
     }
 
-    color = (num_fail) ? INA_CIO_ANSI_BRED : INA_CIO_ANSI_GREEN;
-    sprintf(results, "RESULTS: %d tests (%d ok, %d failed, %d skipped)", 
+    color = (num_fail) ? INA_CIO_COLOR_RED : INA_CIO_COLOR_GREEN;
+    ina_cio_printf(-1,-1, color, INA_CIO_COLOR_UNDEFINED, 
+                "RESULTS: %d tests (%d ok, %d failed, %d skipped)\n", 
                 total, 
                 num_ok, 
                 num_fail, 
                 num_skip);
-
-    ina_cio_print(color, results);
     return num_fail;
 }

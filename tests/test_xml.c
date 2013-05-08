@@ -49,36 +49,79 @@ const char *test_xml =
 "    <revision type=\"Beta\" version=\"5.0o\" author=\"Hans Muster\" date=\"04/14/2010\"/>"
 "</revisions>";
 
-void test_simple_xml()
+INA_TEST(xml, simple_xml)
 {
-	ina_xml_ctx_t *ctx;
-	ina_xml_parser_t *parser;
-	ina_xml_elem_t *root;
-	ina_xml_elem_t *itr;
-	ina_str_t source = ina_str_fromcstr(test_xml);
-	const char *name;
-	const char *value;
-	size_t len;	
+    ina_xml_ctx_t *ctx;
+    ina_xml_parser_t *parser;
+    ina_xml_elem_t *root;
+    ina_xml_elem_t *itr;
+    ina_str_t source = ina_str_fromcstr(test_xml);
+    const char *name;
+    const char *value;
+    size_t len;	
 
-	INA_TEST_ASSERT_SUCCEED(ina_xml_init(&ctx, 16));
-	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_borrow(ctx, &parser));
+    INA_TEST_ASSERT_SUCCEED(ina_xml_init(&ctx, 16));
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_borrow(ctx, &parser));
 
-	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute(parser, source, &root)); 
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute(parser, source, &root)); 
 
-	INA_TEST_ASSERT_SUCCEED(ina_xml_elem_name(root, &name, &len));
-	INA_TEST_ASSERT(strncmp("version", name, len) == 0);
-	INA_TEST_ASSERT_SUCCEED(ina_xml_elem_value(root, &value, &len));
-	INA_TEST_ASSERT(strncmp("5.0 for US Messages", value, len) == 0);
+    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_name(root, &name, &len));
+    INA_TEST_ASSERT(strncmp("version", name, len) == 0);
+    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_value(root, &value, &len));
+    INA_TEST_ASSERT(strncmp("5.0 for US Messages", value, len) == 0);
 
-	
-	INA_TEST_ASSERT_SUCCEED(ina_xml_elem_next(root, &itr));
-	while (itr != NULL) {
+    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_next(root, &itr));
+    while (itr != NULL) {
+        ina_xml_elem_next(itr, &itr);
+    }
 
-		ina_xml_elem_next(itr, &itr);
-	}
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_release(ctx, &parser));
+    INA_TEST_ASSERT_SUCCEED(ina_xml_destory(&ctx));	
+    ina_str_destroy(source);
+}
 
-	INA_TEST_ASSERT_SUCCEED(ina_xml_parser_release(ctx, &parser));
-	INA_TEST_ASSERT_SUCCEED(ina_xml_destory(&ctx));	
-	
-	ina_str_destroy(source);
+
+INA_TEST_SKIP(xml, parser_init) {
+}
+
+INA_TEST_SKIP(xml, parser_destroy) {
+}
+
+INA_TEST_SKIP(xml, parser_exec) {
+}
+
+INA_TEST_SKIP(xml, parser_reset) {
+}
+
+INA_TEST_SKIP(xml, parser_root)  {
+}
+
+INA_TEST_SKIP(xml, node_next) {
+}
+
+INA_TEST_SKIP(xml, node_last) {
+}
+
+INA_TEST_SKIP(xml, node_get_name) {
+}
+
+INA_TEST_SKIP(xml, node_get_value) {
+}
+
+INA_TEST_SKIP(xml, node_first_attribute) {
+}
+
+INA_TEST_SKIP(xml, node_last_attribute) {
+}
+
+INA_TEST_SKIP(xml, attribute_next) {
+}
+
+INA_TEST_SKIP(xml, attribute_previous) {
+}
+
+INA_TEST_SKIP(xml, attribute_get_name) {
+}
+
+INA_TEST_SKIP(xml, attribute_get_value) {
 }
