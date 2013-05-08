@@ -108,9 +108,14 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
      va_start(argp, fmt);
      size = vsnprintf(__errormsg, __errorsize, fmt, argp);
      va_end(argp);
+     ina_cio_printf(-1,-1,INA_CIO_COLOR_UNDEFINED, 
+		     INA_CIO_COLOR_UNDEFINED, 
+		     __errormsg);
      __errorsize -= size;
      __errormsg += size;
-     ina_cio_printf(-1,-1,color,  INA_CIO_COLOR_UNDEFINED, __errormsg);     
+     size = printf("%s", "\n");
+     __errorsize -= size;
+     __errormsg += size;
      return INA_SUCCESS;
  }
 
@@ -433,13 +438,14 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                 } else {
                     ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
                             INA_CIO_COLOR_UNDEFINED, 
-                            "[OK]");
+                            "[FAIL]");
                     num_fail++;
                 }
                 if (__errorsize != __INA_MSG_SIZE-1) {
                     printf("%s", __errorbuffer);
                 }
             }
+	    printf("%s", "\n");
             index++;
         }
     }

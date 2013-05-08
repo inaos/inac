@@ -57,6 +57,8 @@ typedef struct ina_cio_pos_s {
 typedef struct ina_cio_attribs_s {
     ina_cio_color_t bg_color; /* background color */
     ina_cio_color_t fg_color; /* forground color */
+    uint8_t strong;
+    uint8_t blink;
 } ina_cio_attribs_t;
 
 /*

@@ -29,8 +29,8 @@
 #include "config.h"
 
 #ifdef INA_OS_WIN32
-static short int __fg_colors[ UndefinedColor + 1 ];
-static short int __bg_colors[ UndefinedColor + 1 ];
+static short int __fg_colors[INA_CIO_COLOR_UNDEFINED + 1];
+static short int __bg_colors[INA_CIO_COLOR_UNDEFINED + 1 ];
 
 static void __ina_init_colors(void)
 {
@@ -58,8 +58,8 @@ static void __ina_init_colors(void)
 #define __INA_MAX_CMD_BUFLEN  (32)
 #define __INA_LAST_ROW        (25)
 #define __INA_LAST_COL        (80)
-          
-static const char * __CSI = "\33[";
+/* ANSI color codes */
+static const char * __CSI = "\033[";
 static const char * __cmd_clear = "2J";
 
 static char __cmd[__INA_MAX_CMD_BUFLEN];
@@ -68,25 +68,25 @@ static char __bg_colors[INA_CIO_COLOR_UNDEFINED + 1][__INA_MAX_CMD_BUFLEN];
 
 static void __ina_init_colors(void)
 {
-    sprintf(__fg_colors[INA_CIO_COLOR_BLACK], "%s%s", __CSI, "30m" );
-    sprintf(__fg_colors[INA_CIO_COLOR_BLUE], "%s%s", __CSI, "34m" );
-    sprintf(__fg_colors[INA_CIO_COLOR_RED], "%s%s", __CSI, "31m" );
-    sprintf(__fg_colors[INA_CIO_COLOR_MAGENTA], "%s%s", __CSI, "35m" );
-    sprintf(__fg_colors[INA_CIO_COLOR_GREEN], "%s%s", __CSI, "32m" );
-    sprintf(__fg_colors[INA_CIO_COLOR_CYAN], "%s%s", __CSI, "36m" );
-    sprintf(__fg_colors[INA_CIO_COLOR_YELLOW], "%s%s", __CSI, "93m" );
-    sprintf(__fg_colors[INA_CIO_COLOR_WHITE], "%s%s", __CSI, "37m" );
-    sprintf(__fg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "30m" );
+    sprintf(__fg_colors[INA_CIO_COLOR_BLACK], "%s%s", __CSI, "30m");
+    sprintf(__fg_colors[INA_CIO_COLOR_BLUE], "%s%s", __CSI, "34m");
+    sprintf(__fg_colors[INA_CIO_COLOR_RED], "%s%s", __CSI, "31m");
+    sprintf(__fg_colors[INA_CIO_COLOR_MAGENTA], "%s%s", __CSI, "35m");
+    sprintf(__fg_colors[INA_CIO_COLOR_GREEN], "%s%s", __CSI, "32m");
+    sprintf(__fg_colors[INA_CIO_COLOR_CYAN], "%s%s", __CSI, "36m");
+    sprintf(__fg_colors[INA_CIO_COLOR_YELLOW], "%s%s", __CSI, "33m");
+    sprintf(__fg_colors[INA_CIO_COLOR_WHITE], "%s%s", __CSI, "37m");
+    sprintf(__fg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "30m");
 
-    sprintf(__bg_colors[INA_CIO_COLOR_BLACK], "%s%s", __CSI, "40m" );
-    sprintf(__bg_colors[INA_CIO_COLOR_BLUE], "%s%s", __CSI, "44m" );
-    sprintf(__bg_colors[INA_CIO_COLOR_RED], "%s%s", __CSI, "41m" );
-    sprintf(__bg_colors[INA_CIO_COLOR_MAGENTA], "%s%s", __CSI, "45m" );
-    sprintf(__bg_colors[INA_CIO_COLOR_GREEN], "%s%s", __CSI, "42m" );
-    sprintf(__bg_colors[INA_CIO_COLOR_CYAN], "%s%s", __CSI, "46m" );
-    sprintf(__bg_colors[INA_CIO_COLOR_YELLOW], "%s%s", __CSI, "103m" );
-    sprintf(__bg_colors[INA_CIO_COLOR_WHITE], "%s%s", __CSI, "47m" );
-    sprintf(__bg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "40m" );
+    sprintf(__bg_colors[INA_CIO_COLOR_BLACK], "%s%s", __CSI, "40m");
+    sprintf(__bg_colors[INA_CIO_COLOR_BLUE], "%s%s", __CSI, "44m");
+    sprintf(__bg_colors[INA_CIO_COLOR_RED], "%s%s", __CSI, "41m");
+    sprintf(__bg_colors[INA_CIO_COLOR_MAGENTA], "%s%s", __CSI, "45m");
+    sprintf(__bg_colors[INA_CIO_COLOR_GREEN], "%s%s", __CSI, "42m");
+    sprintf(__bg_colors[INA_CIO_COLOR_CYAN], "%s%s", __CSI, "46m");
+    sprintf(__bg_colors[INA_CIO_COLOR_YELLOW], "%s%s", __CSI, "43m");
+    sprintf(__bg_colors[INA_CIO_COLOR_WHITE], "%s%s", __CSI, "47m");
+    sprintf(__bg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "40m");
 }
 #endif
 
@@ -98,8 +98,8 @@ INA_API(ina_rc_t) ina_cio_init(void)
     if (!__initialized) {
         __ina_init_colors();
         __attribs.fg_color = INA_CIO_COLOR_WHITE;
-        __attribs.bg_color = INA_CIO_COLOR_BLACK;
-        __initialized = INA_YES;
+	__attribs.bg_color = INA_CIO_COLOR_BLACK;
+	__initialized = INA_YES;
     }
     return INA_SUCCESS;
 }
@@ -129,7 +129,8 @@ INA_API(ina_rc_t) ina_cio_clear(void)
 
         FillConsoleOutputAttribute(
                 hStdOut,
-                winPaperColors[ libAttrs.paper ] | winInkColors[ libAttrs.ink ],
+                __bg_colors[__attribs.bg_color] | 
+		__fg_colors[__attribs.fg_color],
                 dwConSize,
                 pos,
                 &cars
@@ -194,7 +195,7 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
     );
 #else
     printf("%s%s", __fg_colors[__attribs.fg_color],
-            __bg_colors[__attribs.fg_color]);
+            __bg_colors[__attribs.bg_color]);
 #endif
     return INA_SUCCESS;
 }
@@ -287,7 +288,7 @@ INA_API(int) ina_cio_printf(int8_t row, int8_t col,
     } else {
         new_attribs.bg_color = attribs.bg_color;
     }
-    ina_cio_set_attribs(&attribs);
+    ina_cio_set_attribs(&new_attribs);
 
     va_start(args, fmt);
     size = vprintf(fmt, args);
