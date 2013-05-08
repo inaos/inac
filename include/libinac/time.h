@@ -37,12 +37,22 @@ extern "C" {
 /* Time value */
 typedef struct ina_time_s {
 #ifdef WIN32
-    LARGE_INTEGER tp;
-    DWORD ttp;
+    FILETIME systime;
 #else
-    struct timeval tp;
+    struct timeval systime;
 #endif
 } ina_time_t;
+
+/* Time Stamp Counter */
+typedef struct ina_time_tsc_s {
+#ifdef WIN32
+    LARGE_INTEGER tp;
+#elif defined(INA_OS_OSX)
+    uint64_t tp;
+#else
+    struct timespec tp;
+#endif
+} ina_time_tsc_t;
 
 #define INA_TIME_MAX_USERDATA_LEN (30)
 #define INA_TIME_MAX_STAMPS       (1024)
@@ -81,7 +91,7 @@ typedef struct ina_time_s {
 
 /* Stopwatch timestamps */
 typedef struct ina_stopwatch_ts_s {
-    ina_time_t stamp;
+    ina_time_tsc_t stamp;
     char user_data1[INA_TIME_MAX_USERDATA_LEN];
     char user_data2[INA_TIME_MAX_USERDATA_LEN];
     double sec_duration;
@@ -91,8 +101,8 @@ typedef struct ina_stopwatch_ts_s {
 
 /* Stopwatch  data */
 typedef struct ina_stopwatch_tv_s {
-    ina_time_t start;
-    ina_time_t stop;
+    ina_time_tsc_t start;
+    ina_time_tsc_t stop;
     size_t max_stamps;
     volatile int64_t next_stamp;
     double sec_duration;
@@ -115,17 +125,42 @@ typedef struct ina_stopwatch_s {
  */
 INA_API(ina_rc_t) ina_time_sleep(time_t msec);
 /*
- * Read current time.
+ * Allocate TSC time in the default mempool
  */
-INA_API(ina_rc_t) ina_time_read_clock(ina_time_t* time);
+INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time);
 /*
- * Extract seconds from a time value
+ * Free TSC time from the default mempool
  */
-INA_API(ina_rc_t) ina_time_get_seconds(ina_time_t *time, time_t *sec);
-/* 
- * Extract milliseconds from a time value
+INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time);
+/*
+ * Allocate System time in the default mempool
  */
-INA_API(ina_rc_t) ina_time_get_milliseconds(ina_time_t *time, time_t *msec);
+INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time);
+/*
+ * Free System time from the default mempool
+ */
+INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
+/*
+ * Read the Time Stamp Counter
+ */
+INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time);
+/*
+ * Read the System-Clock
+ */
+INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time);
+/*
+ * Read the second and nano-second part of the TSC
+ */
+INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs, long *nanos);
+/*
+ * Convert the ina_time_t to a UNIX timestamp and micro-seconds
+ */
+INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, long *micros);
+/*
+ * Basically strftime
+ */
+INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, size_t *written, const char *fmt, ina_time_t* time);
+
 /*
  * Create a new stopwatch
  */
@@ -138,7 +173,6 @@ INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id);
  * Read a timestamp from a stopwatch
  */
 INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t *stopwatch, int64_t *index);
-
 /*
  * Create a new stopwatch
  */

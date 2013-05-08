@@ -58,6 +58,7 @@ extern "C" {
 #define INA_MOD_TIMER    10
 #define INA_MOD_LJIT     11
 #define INA_MOD_CONFFILE 12
+#define INA_MOD_LIB      13
 
 /* OS function identifiers */
 #define INA_OSFN_NONE    0
@@ -85,6 +86,7 @@ extern "C" {
 #define INA_EWAIT    16
 #define INA_EEXCALL  17
 #define INA_ETIMEOUT 18
+#define INA_EOPT     20
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -228,10 +230,15 @@ extern "C" {
         INA_LJIT_ERROR(INA_EEXCALL, lua_tostring(ptr_ljit->lstate, -1)); \
         lua_pop(ptr_ljit->lstate, 1)
 
+/* Configuration file errors */
 #define INA_CONFFILE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CONFFILE, INA_OSFN_NONE, s)
 #define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(EINVAL, "Duplicate section");
 #define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(EINVAL, "Duplicate key");
 #define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(EINVAL, "Already prepared");
+
+/* Core library errors */
+#define INA_LIB_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LIB, INA_OSFN_NONE, s)
+#define INA_LIB_EOPT INA_LIB_ERROR(INA_EOPT, "Command line option parsing failed");
 
 
 /* Error information */

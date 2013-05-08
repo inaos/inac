@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <libinac/lib.h>
  
-void test_memory_memfn()
+INA_TEST_SKIP(test,memory_memfn)
 {
-    INA_TRACE_MSG("test_memory_memfn");
 }

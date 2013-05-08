@@ -156,8 +156,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
                     if (so == NULL) {
                         INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
-                        /* TODO: Specific error */
-                        return INA_FAILURE;
+                        return INA_LIB_EOPT;
                     }
                     /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
@@ -181,8 +180,7 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
             HASH_ITER(hh, __sopt, so, tmp_so) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
                     __ina_opt_usage();
-                    /* TODO: Specific error */
-                    return INA_FAILURE;
+                    return INA_LIB_EOPT;
                 }
             }
         }
@@ -215,6 +213,11 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     signal(SIGSTOP, __ina_signal_handler);
 #endif
 
+   /* initailized console */
+    if (!INA_SUCCEED(ina_cio_init())) {
+        return INA_ERR_PUSH_LAST;
+    }
+
     /* initalize global memory functions */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     /* initalize global memory functions for memory pools */
@@ -227,7 +230,10 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
     }
-    
+	/* Make sure to use high-accuracy multimedia-timers for windows */
+#ifdef INA_OS_WIN32
+	timeBeginPeriod(1);
+#endif
     return INA_SUCCESS;
 }
 
@@ -276,6 +282,7 @@ INA_API(void) ina_exit(void)
     ina_err_reset();
 
 #ifdef INA_OS_WIN32
+	timeEndPeriod(1);
     WSACleanup();
 #endif
 }
@@ -383,10 +390,11 @@ __ina_signal_handler(int sig)
 
     exitcode = 3;
     switch (sig) {
+        case SIGABRT:
+        return;
         case SIGFPE:
         case SIGILL:
         case SIGSEGV:
-        case SIGABRT:
             INA_TRACE_MSG("programm error signal received!");
             if (__cleanup) {
                  __cleanup(sig, 0);

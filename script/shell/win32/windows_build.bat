@@ -42,7 +42,6 @@ REM * INAC_WIN32_PROJECT_DIR: Directory reference for detailed artefacts - Requi
 REM * INAC_WIN32_C_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
 REM * INAC_WIN32_C_TEST_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
 REM * INAC_WIN32_C_TEST_SUITE_EXEC: Executable that invokes the test-suite, relative to PROJECT_DIR - Optional
-REM * INAC_WIN32_C_TEST_MAKEHEADERS: makeheaders.exe to generate c-test-suits, relative to INAC_WIN32_C_TEST_SOURCE_DIR - Optional
 REM * INAC_WIN32_LUA_TEST_SUITE_EXEC: Execute a Lua script to run a Lua test-suite - Optional
 REM * INAC_WIN32_C_BUILD_TOOL: Either 'cmake-nmake' or 'cmake-vs' - Optional
 REM * INAC_WIN32_LUA_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
@@ -148,6 +147,7 @@ REM rule 1
 SET INAC_BUILD_C_OR_LUA_VALID=
 if defined INAC_WIN32_C_SOURCE_DIR SET INAC_BUILD_C_OR_LUA_VALID=1
 if defined INAC_WIN32_LUA_SOURCE_DIR SET INAC_BUILD_C_OR_LUA_VALID=1
+if defined INAC_WIN32_C_TEST_SOURCE_DIR SET INAC_BUILD_C_OR_LUA_VALID=1
 if not defined INAC_BUILD_C_OR_LUA_VALID goto fail_rule_1
 
 REM rule 2
@@ -213,23 +213,6 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 			rmdir /s /q %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		)
 	) else (
-		if defined INAC_WIN32_C_TEST_MAKEHEADERS (
-			cd %INAC_WIN32_C_TEST_SOURCE_DIR%
-			if not exist %INAC_WIN32_C_TEST_MAKEHEADERS% goto fail_makeheaders
-			for /r %%i in (test_*.c) do %INAC_WIN32_C_TEST_MAKEHEADERS% %%i
-			echo #ifndef _SUITES_H_ > suites.h
-			echo #define _SUITES_H_ >> suites.h
-			for /r %%i in (test_*.h) do echo #include "%%i" >> suites.h
-			echo #include "suites.h" > suites.c
-			echo void runtests^(const char* pattern^) { >> suites.c
-			for /r %%z in (test_*.h) do (
-				for /F "eol=/ tokens=2" %%i in (%%z) do echo %%i >> suites.c
-			)
-			echo } >> suites.c
-			echo void runtests^(const char* pattern^); >> suites.h
-			echo #endif >> suites.h
-			cd %INAC_WIN32_OLD_DIR%
-		)
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR% mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
@@ -275,6 +258,12 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 				%INAC_W32_LUAJIT% -b %%i %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%%~nxi.obj
 			)
 		)
+		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\bc.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\bc.obj
+		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\bcsave.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\bcsave.obj
+		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dis_x64.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dis_x64.obj
+		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dis_x86.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dis_x86.obj
+		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\v.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\v.obj
+		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\vmdef.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\vmdef.obj
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dump.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dump.obj
 	)
 	cd %INAC_WIN32_OLD_DIR%
@@ -282,7 +271,7 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 
 REM build a lib file from the lua-byte code - if necessary
 if defined INAC_WIN32_LUA_LIB_NAME (
-	%INAC_W32_LIB_CMD% /OUT:%INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%INAC_WIN32_LUA_LIB_NAME% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
+	%INAC_W32_LIB_CMD% /OUT:%INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\%INAC_WIN32_LUA_LIB_NAME% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
 )
 
 echo Build for %INAC_WIN32_BUILD_NAME% successful
@@ -389,7 +378,6 @@ if defined INAC_WIN32_C_BUILD_TOOL SET INAC_WIN32_C_BUILD_TOOL=
 if defined INAC_WIN32_LUA_SOURCE_DIR SET INAC_WIN32_LUA_SOURCE_DIR=
 if defined INAC_WIN32_LUA_LIB_NAME SET INAC_WIN32_LUA_LIB_NAME=
 if defined INAC_WIN32_CODE_GEN_SCRIPT SET INAC_WIN32_CODE_GEN_SCRIPT=
-if defined INAC_WIN32_C_TEST_MAKEHEADERS SET INAC_WIN32_C_TEST_MAKEHEADERS=
 
 goto:eof
 

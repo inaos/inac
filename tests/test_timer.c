@@ -27,42 +27,38 @@
  */
 #include <libinac/lib.h>
 
-void test_timer_event()
+INA_TEST(timer, event)
 {
     ina_timer_t *t;
     ina_time_event_t *e1;
     ina_time_event_t *e2;
 
-    INA_TRACE_MSG("test_timer_event");
-    
     t = NULL;
     e1 = NULL;
     e2 = NULL;
-    INA_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_ASSERT_NOTNULL(t);
-    INA_ASSERT_SUCCEED(ina_timer_destroy(&t));
-    INA_ASSERT_NULL(t);
-    INA_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_ASSERT_NOTNULL(t);
+    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
+    INA_TEST_ASSERT_NOT_NULL(t);
+    INA_TEST_ASSERT_SUCCEED(ina_timer_destroy(&t));
+    INA_TEST_ASSERT_NULL(t);
+    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
+    INA_TEST_ASSERT_NOT_NULL(t);
     e1 = ina_timer_create_event(t, 1000);
-    INA_ASSERT_SUCCEED(ina_err_peek());
-    INA_ASSERT_NOTNULL(e1);
+    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_NOT_NULL(e1);
     ina_time_sleep(1000);
     e2 = ina_timer_next_event(t);
-    INA_ASSERT_SUCCEED(ina_err_peek());
-    INA_ASSERT_NOTNULL(e2);
-    INA_ASSERT_EQUAL(e2, e1);
+    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_NOT_NULL(e2);
+    INA_TEST_ASSERT_SAME(e2, e1);
 }
-void test_timer_init_destroy() 
-{
-  
-    ina_timer_t *t;
 
-    INA_TRACE_MSG("test_timer_init_destroy");
+INA_TEST(timer,init_destroy)
+{
+    ina_timer_t *t;
     
     t = NULL;
-    INA_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_ASSERT_NOTNULL(t);
-    INA_ASSERT_SUCCEED(ina_timer_destroy(&t));
-    INA_ASSERT_NULL(t);
+    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
+    INA_TEST_ASSERT_NOT_NULL(t);
+    INA_TEST_ASSERT_SUCCEED(ina_timer_destroy(&t));
+    INA_TEST_ASSERT_NULL(t);
 }

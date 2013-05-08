@@ -1,39 +1,39 @@
 cmake_minimum_required (VERSION 2.6)
+SET(MSVC_INCREMENTAL_DEFAULT ON)
 project (inactest)
+
+STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
+${CMAKE_EXE_LINKER_FLAGS_DEBUG})
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO ${replacementFlags}" )
+
+STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags3
+${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
+SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/INCREMENTAL:NO
+${replacementFlags3}" )
 
 set (DEPS_DIR "${CMAKE_SOURCE_DIR}/../contribs")
 
-set (ANET_INCLUDE_DIR "${DEPS_DIR}/anet")
-set (BSTRING_INCLUDE_DIR "${DEPS_DIR}/bstring")
-set (SKIPLIST_INCLUDE_DIR "${DEPS_DIR}/skiplist")
-
-include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/../include" "${ANET_INCLUDE_DIR}" 
-                    "${BSTRING_INCLUDE_DIR}" "${SKIPLIST_INCLUDE_DIR}" "${CMAKE_SOURCE_DIR}/.." )
+include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/../include" 
+                     "${DEPS_DIR}" "${CMAKE_SOURCE_DIR}/.." )
 
 #set build-type specific variables
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-DINA_OS_WIN32 -D_CRT_SECURE_NO_WARNINGS)
 else()
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DDEBUG -DTRACE_ENABLED -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-DINA_OS_WIN32 -DDEBUG -DINA_TRACE_ENABLED -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
-set(BSTRING_LIB "bstring.lib")
-set(ANET_LIB "anet.lib")
-set(SKIPLIST_LIB "skiplist.lib")
-set(LUAJIT_LIB "luajit.lib")
 set(INAC_LIB "libinac.lib")
-set(INAC_TESTLIB "testinac.lib")
 
 if(WIN32)
 	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib)
 endif(WIN32)
 
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
-set (LIBS ${LIB_DIR}/${INAC_LIB} ${LIB_DIR}/${INAC_TESTLIB} ${LIB_DIR}/${BSTRING_LIB} 
-	${LIB_DIR}/${SKIPLIST_LIB} ${LIB_DIR}/${ANET_LIB}  ${DEPS_DIR}/luajit/src/${LUAJIT_LIB})
+set (LIBS ${LIB_DIR}/${INAC_LIB})
 
 AUX_SOURCE_DIRECTORY(. TEST_SRC)
-add_executable(test ${TEST_SRC} lconffile.obj)
+add_executable(test ${TEST_SRC})
 target_link_libraries(test ${PLATFORM_LIBS} ${LIBS})

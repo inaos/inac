@@ -27,91 +27,84 @@
  */
 #include <libinac/lib.h>
 
-void test_ljit_call()
+INA_TEST(ljit, call)
 {
     ina_ljit_ctx_t *ctx = NULL;
     double r = 0;
     char *rs = NULL;
 
-    INA_TRACE_MSG("test_ljit_call");
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_ASSERT_SUCCEED(ina_ljit_init(&ctx));
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(ctx->lstate);
-
-    INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
     lua_getglobal(ctx->lstate, "t");
     
-    INA_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", 10, 5, &r));
-    INA_ASSERT_EQUAL(50, r);
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", 10, 5, &r));
+    INA_TEST_ASSERT_EQUAL_FLOATING(50, r);
     
-    INA_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "<s", &rs));
-    INA_ASSERT_EQUAL(0, strcmp(ina_appname(), rs));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "<s", &rs));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_appname(), rs));
 
-    INA_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
-    INA_ASSERT_NULL(ctx);
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
 }
 
-void test_ljit_luaL_dostring()
+INA_TEST(ljit, luaL_dostring)
 {
     ina_ljit_ctx_t *ctx = NULL;
 
-    INA_TRACE_MSG("test_ljit_luaL_dostring");
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_ASSERT_SUCCEED(ina_ljit_init(&ctx));
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(ctx->lstate);
-
-    INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "return 100\n"));
-    INA_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_ASSERT_EQUAL(100, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "return 100\n"));
+    INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(100, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_ASSERT_EQUAL(0, ina_ljit_dostring(ctx, "local t = require(\"test_ljit\")\n return t.test()\n"));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, ina_ljit_dostring(ctx, "local t = require(\"test_ljit\")\n return t.test()\n"));
     ina_err_trace();
-    INA_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_ASSERT_EQUAL(99, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(99, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_appname()\n"));
-    INA_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));
-    INA_ASSERT_EQUAL(0, strcmp(ina_appname(), (const char *)lua_tostring(ctx->lstate, -1)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_appname()\n"));
+    INA_TEST_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_appname(), (const char *)lua_tostring(ctx->lstate, -1)));
     lua_pop(ctx->lstate, 1);
     
     lua_pushnumber(ctx->lstate, 5);
     lua_setglobal(ctx->lstate, "d1");
     lua_pushnumber(ctx->lstate, 10);
     lua_setglobal(ctx->lstate, "d2");
-    INA_ASSERT_EQUAL(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_params(d1, d2)\n"));
-    INA_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_ASSERT_EQUAL(50, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_params(d1, d2)\n"));
+    INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(50, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
-    INA_ASSERT_NULL(ctx);
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
 }
 
-void test_ljit_init_destroy()
+INA_TEST(ljit, init_destroy)
 {
     ina_ljit_ctx_t *ctx = NULL;
     
-    INA_TRACE_MSG("test_ljit_init_destroy");
-
-    INA_ASSERT_SUCCEED(ina_ljit_init(&ctx));
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(ctx->lstate);
-    INA_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
-    INA_ASSERT_NULL(ctx);
-    INA_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
 }
 
-void test_ljit_open_close_state_native() 
+INA_TEST(ljit, open_close_state_native)
 {
  
     lua_State *lstate = luaL_newstate();
-    INA_TRACE_MSG("test_ljit_open_close_state_native");
 
-    INA_ASSERT_NOTNULL(lstate);
+    INA_TEST_ASSERT_NOT_NULL(lstate);
     luaL_openlibs(lstate);
     lua_close(lstate);
 }

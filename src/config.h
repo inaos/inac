@@ -28,19 +28,24 @@
 #ifndef _LIBINAC_CONIFG_H_
 #define _LIBINAC_CONIFG_H_
 
+/* Enabled logging */
+#ifndef INA_LOG_ENABLED
+#define INA_LOG_ENABLED 1
+#endif
+
 /* Define string code/library to use */
-#ifndef STRING_DEFINED
-#define CSTRING_ENABLED 1
+#ifndef INA_STRING_DEFINED
+#define INA_CSTRING_ENABLED 1
 #endif
 
 /* Define default sys mem pool size */
-#ifndef SYSMEMPOOL_SIZE
-#define SYSMEMPOOL_SIZE  8*1024*1024
+#ifndef INA_SYSMEMPOOL_SIZE
+#define INA_SYSMEMPOOL_SIZE  8*1024*1024
 #endif
 
 /* Define default mem pool size */
-#ifndef MEMPOOL_SIZE
-#define MEMPOOL_SIZE  8*1024*1024
+#ifndef INA_MEMPOOL_SIZE
+#define INA_MEMPOOL_SIZE  8*1024*1024
 #endif
 
 

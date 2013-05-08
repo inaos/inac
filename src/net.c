@@ -26,7 +26,7 @@
  * OF SUCH DAMAGE.
  */
 #ifdef WIN32
-#include <redis_win_compat.h>
+#include <contribs/anet/redis_win_compat.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -291,7 +291,7 @@ INA_API(ina_rc_t) ina_net_block(int fd)
     return INA_SUCCESS;
 }
 #else
-INA_API(ina_rc_t)s ina_net_block(int fd)
+INA_API(ina_rc_t) ina_net_block(int fd)
 {
     int flags;
     /* Set the socket nonblocking.

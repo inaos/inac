@@ -1,44 +1,36 @@
 DIRS = $(shell ls -p |grep /)
 SRC = $(wildcard test*.c)
+SRC += $(wildcard helper*.c)
 OBJ = $(SRC:%.c=%.o)
-HDR = $(SRC:%.c=%.h)
 FN  = $(SRC:%.c=%)
 BIN = test
 
-MAKEHEADERS = ../contribs/makeheaders/makeheaders
-CFLAGS = -Wall -std=c89 -g -I../include -I../ -DINA_LIB -DDEBUG -DTRACE_ENABLED
+# ****************************************************************************
+# Linker settings
+# ****************************************************************************
+LDFLAGS += ../src/$(INAC_LIB) $(INAC_LIBS)
+
+ifeq (,$(findstring Windows,$(OS)))
+	ifneq (Darwin,$(shell uname -s))
+		LDFLAGS += -Wl,-E -lm -lrt -ldl
+	else
+		LDFLAGS += -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000 
+	endif
+endif
 
 
-all: $(OBJ) suites.o main.o
-	@for i in $(DIRS); do $(MAKE) -C $$i; done
-	@$(CC) $(CFLAGS) -o $(BIN) main.o suites.o $(OBJ) $(LDFLAGS) -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000 ../src/libinac.a ../contribs/anet/anet.a ../contribs/skiplist/skiplist.a ../contribs/luajit/src/libluajit.a
+all: $(OBJ)  main.o
+	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS)
 
 %.o: %.c
 	@echo compiling $<
-	@$(CC) $(CFLAGS) -I../include -I../ -c $<
-	
+	@$(CC) $(CFLAGS)  -c $<
+
 .PHONY: clean
 
-suites.o: $(MAKEHADERS)
-	@echo making test headers...
-	@echo "#ifndef _SUITES_H_" > suites.h
-	@echo "#define _SUITES_H_" >> suites.h
-	@echo "#include \"suites.h\"" > suites.c
-	@echo "void runtests(const char* pattern) {" >> suites.c
-	@for i in $(FN); do \
-		$(MAKEHEADERS) $$i.c; \
-		cat $$i.h | sed '1d' | sed -e 's/^ *[^ ]* //' >> suites.c; \
-		echo "#include \""$$i.h\" >> suites.h; \
-	done
-	@echo "}" >> suites.c;
-	@echo "void runtests(const char* pattern);" >> suites.h
-	@echo "#endif" >> suites.h
-	@$(CC) $(CFLAGS) -c suites.c
-		
 clean:
-	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
-	@rm -f *.o test suites.* $(HDR)
+	@echo cleaning tests...
+	@-rm -f *.o test suites.*
 
 test: all
-	@for i in $(DIRS); do $(MAKE) test -C $$i; done
 	./test

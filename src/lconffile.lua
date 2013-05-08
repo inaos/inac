@@ -1,51 +1,4 @@
-local conffile = {}
-
---[[sections = {}
-sections.Debug = {
-  name = "Debug",
-  named = false,
-  required = true,
-  keys = {
-    command_latency = {
-      required = true,
-      typename = "number"
-    },
-    other_latency = {
-      required = false,
-      typename = "number"
-    }
-  },
-  configured = false
-}
-sections.Iface = {
-  name = "Iface",
-  named = true,
-  required = true,
-  keys = {
-    ip = {
-      required = true,
-      typename = "string"
-    },
-    mask = {
-      required = true,
-      typename = "string"
-    },
-  },
-  configured = false
-}
-]]
-
--- Example config
---example =
---[[
-Debug {
-	command_latency=1000
-}
-Iface "lo0" { 
-	ip="127.0.0.1", 
-	mask="255.0.0.0" 
-}
-]]
+local lconffile = {}
 
 local function _dump()
     if type(o) == 'table' then
@@ -181,13 +134,16 @@ local function _run(code)
     return ret, initfunc
 end
 
-conffile.save_sections = function(sections, section_file)
+lconffile.save_sections = function(sections, section_file)
     local f = io.open(section_file, "w")
     local code = f:write(_dump(o)) 
 end
 
-conffile.process = function(sections, config_file)
+lconffile.process = function(sections, config_file)
   local f = io.open(config_file, "r")
+  if not f then
+    error("Error opening file")
+  end
   local code = f:read("*a")
   f:close()
   for sk,section in pairs(sections) do
@@ -213,29 +169,4 @@ conffile.process = function(sections, config_file)
   end
 end
 
-return conffile
-
--- sample processor
---[[
-for sk,s in pairs(sections) do
-  if s.configured then
-    print(sk)
-    if not s.named then
-      for k,v in pairs(s.keys) do
-        if v.has_value then
-          print(k,v.value)
-        end
-      end
-    else
-      for nsk, ns in pairs(s.children) do
-        print("Named section: "..nsk)
-        for k,v in pairs(s.keys) do
-          if ns[k].has_value then
-            print(k,ns[k].value)
-          end
-        end
-      end
-    end
-  end
-end
-]]
+return lconffile

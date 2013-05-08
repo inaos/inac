@@ -7,15 +7,20 @@ set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set (ANET_INCLUDE_DIR "${DEPS_DIR}/anet")
 set (BSTRING_INCLUDE_DIR "${DEPS_DIR}/bstring")
 set (SKIPLIST_INCLUDE_DIR "${DEPS_DIR}/skiplist")
+set (HTTP_INCULDE_DIR "${DEPS_DIR}/http-parser")
+set (RAPIDXML_INCLUDE_DIR "${DEPS_DIR}/rapidxml")
 
 
-include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${ANET_INCLUDE_DIR}" 
-                    "${BSTRING_INCLUDE_DIR}" "${SKIPLIST_INCLUDE_DIR}" "${CMAKE_SOURCE_DIR}")
+include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}"
+					"${DEPS_DIR}")
 
 set(BSTRING_LIB_NAME "bstring")
 set(ANET_LIB_NAME "anet")
 set(SKIPLIST_LIB_NAME "skiplist")
-set(INAC_LIB_NAME "libinac")
+set(HTTP_LIB_NAME "http_parser")
+set(SQLITE_LIB_NAME "sqlite")
+set(RAPIDXML_LIB_NAME "rapidxml")
+set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
 #set build-type specific variables
@@ -28,11 +33,6 @@ else()
 endif()
 
 # BEGIN dependencies
-
-# MAKEHEADERS
-set (MAKEHEADERS_SRC_DIR ${DEPS_DIR}/makeheaders)
-set (MAKEHEADERS_SRC ${MAKEHEADERS_SRC_DIR}/makeheaders.c)
-add_executable(makeheaders ${MAKEHEADERS_SRC})
 
 # BSTRING
 set (BSTRING_SRC_DIR ${DEPS_DIR}/bstring)
@@ -49,33 +49,28 @@ set (SKIPLIST_SRC_DIR ${DEPS_DIR}/skiplist)
 set (SKIPLIST_SRC ${SKIPLIST_SRC_DIR}/skiplist.c)
 add_library(${SKIPLIST_LIB_NAME} ${SKIPLIST_SRC})
 
+# SQLITE
+set (SQLITE_SRC_DIR ${DEPS_DIR}/sqlite)
+set (SQLITE_SRC ${SQLITE_SRC_DIR}/sqlite3.c)
+add_library(${SQLITE_LIB_NAME} ${SQLITE_SRC})
+
+# HTTP-PARSER
+set (HTTP_SRC_DIR ${DEPS_DIR}/http-parser)
+set (HTTP_SRC ${HTTP_SRC_DIR}/http_parser.c)
+add_library(${HTTP_LIB_NAME} ${HTTP_SRC})
+
+# RAPIDXML
+set (RAPIDXML_SRC_DIR ${DEPS_DIR}/rapidxml)
+set (RAPIDXML_SRC ${RAPIDXML_SRC_DIR}/rapidxml.c)
+add_library(${RAPIDXML_LIB_NAME} ${RAPIDXML_SRC})
 
 # END dependencies
-
-SET(LUA_SRCS lconffile.lua)
-FOREACH(LUAFILE ${LUA_SRCS})
-   GET_FILENAME_COMPONENT(BASENAME ${LUAFILE} NAME_WE)
-   SET(SRC ${SRC_DIR}/${LUAFILE})
-   SET(OBJ ${SRC_DIR}/${BASENAME}.obj)
-   SET_SOURCE_FILES_PROPERTIES(${OBJ} PROPERTIES GENERATED TRUE EXTERNAL_OBJECT TRUE)
-   ADD_CUSTOM_COMMAND(OUTPUT ${OBJ}  MAIN_DEPENDENCY ${SRC} ARGS -b ${SRC} ${OBJ} COMMAND luajit.exe)
-   LIST(APPEND LUA_OBJS ${OBJ})
-ENDFOREACH(LUAFILE ${LUA_SRCS})
-
 
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
                  ${SRC_DIR}/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
-                 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/portable.c 
-                 ${SRC_DIR}/ljit.c)
+				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
+				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
-# Test-Cases
-set (TEST_SRC_DIR "${CMAKE_SOURCE_DIR}/tests")
-set (TEST_SRC ${TEST_SRC_DIR}/test_error.c ${TEST_SRC_DIR}/test_iscp.c ${TEST_SRC_DIR}/test_lib.c 
-	${TEST_SRC_DIR}/test_log.c ${TEST_SRC_DIR}/test_memory.c ${TEST_SRC_DIR}/test_mempool.c 
-	${TEST_SRC_DIR}/test_string.c ${TEST_SRC_DIR}/test_time.c ${TEST_SRC_DIR}/test_timer.c 
-	${TEST_SRC_DIR}/test_util.c ${TEST_SRC_DIR}/test_ljit.c ${TEST_SRC_DIR}/test_conffile.c
-)
-add_library(${INAC_TESTLIB_NAME} ${TEST_SRC})

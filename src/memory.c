@@ -177,7 +177,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     }
 
     if (size == 0) {
-        size = __INA_MEM_ALIGN(MEMPOOL_SIZE);
+        size = __INA_MEM_ALIGN(INA_MEMPOOL_SIZE);
     }
     __pools = (__ina_mplist_t*)__ina_mp_malloc(sizeof(__ina_mplist_t));
     if (__pools == NULL) {
@@ -331,7 +331,6 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
 
 INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool)
 {
-    __ina_mplist_t *ref;
     __ina_mplist_t *next;
 
     INA_ASSERT_NOTNULL(label);
@@ -341,7 +340,6 @@ INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool
      }
 
      next = __pools->next;
-     ref = NULL;
      while (next != NULL) {
          if (next->active == 1) {
              if (next->pool->label != NULL && strcmp(next->pool->label, label) == 0) {

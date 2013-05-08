@@ -42,6 +42,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <minwindef.h>
+#include <wincon.h>
 #endif
 
 #include <stdio.h>
@@ -51,6 +53,8 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <time.h>
+#include <ctype.h>
 
 #include <contribs/luajit/src/luajit.h>
 #include <contribs/luajit/src/lauxlib.h>
@@ -70,17 +74,21 @@
 #include <libinac/iscp.h>
 #include <libinac/ljit.h>
 #include <libinac/conffile.h>
+#include <libinac/http.h>
+#include <libinac/xml.h>
 #include <libinac/util.h>
+#include <libinac/cio.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
+#include <libinac/test.h>
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define INA_YES 1
-#define INA_NO  0
+#define INA_YES (1)
+#define INA_NO  (0)
 
 #define INA_NUM2STR_X(x) #x
 #define INA_NUM2STR(x) INA_NUM2STR_X(x)
