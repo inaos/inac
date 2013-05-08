@@ -27,37 +27,36 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_SKIP(string, ina_str_newlen)
+INA_TEST(string, ina_str_newlen)
+{   
+}
+
+INA_TEST(string, ina_str_pnewlen)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_pnewlen)
+INA_TEST(string, ina_str_fromcstr)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_fromcstr)
+INA_TEST(string, ina_str_destroy)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_destroy)
+INA_TEST(string, ina_str_dup)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_dup)
+INA_TEST(string, ina_str_pdup)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_pdup)
-{
-    
-}
-
-INA_TEST_SKIP(string, ina_str_cstr)
+INA_TEST(string, ina_str_cstr)
 {
     
 }
@@ -67,47 +66,47 @@ INA_TEST_SKIP(string, ina_str_cpy)
     
 }
 
-INA_TEST_SKIP(string, ina_str_ncpy)
+INA_TEST(string, ina_str_ncpy)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_cat)
+INA_TEST(string, ina_str_cat)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_ncat)
+INA_TEST(string, ina_str_ncat)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_len)
+INA_TEST(string, ina_str_len)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_cmp)
+INA_TEST(string, ina_str_cmp)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_ncmp)
+INA_TEST(string, ina_str_ncmp)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_str)
+INA_TEST(string, ina_str_str)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_rchr)
+INA_TEST(string, ina_str_rchr)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_vsprintf)
+INA_TEST(string, ina_str_vsprintf)
 {
     
 }
