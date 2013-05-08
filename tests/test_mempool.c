@@ -71,7 +71,7 @@ INA_TEST(mempool, min_allowed_size)
     INA_TEST_ASSERT_NOT_NULL(pool);
 }
 
-INA_TEST(test, mempool_bad_dalloc)
+INA_TEST(mempool, mempool_bad_dalloc)
 {
     void *ptr;
     ina_mempool_t *pool;

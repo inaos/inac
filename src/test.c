@@ -47,7 +47,7 @@ static char        __errorbuffer[__INA_MSG_SIZE];
 static jmp_buf     __err;
 static const char* __suite_name;
 static const char* __helper_name;
-static INA_TEST(suite, test) { }
+INA_TEST(suite, test) { }
 
 static int __ina_suite_all(ina_test_testcase_t* t) {
     return t->is_helper == 0;
@@ -71,8 +71,6 @@ static void *__ina_find_symbol(ina_test_testcase_t *test, const char *fname)
     char *symbol_name = (char *) malloc(len + 1);
     memset(symbol_name, 0, len + 1);
     snprintf(symbol_name, len + 1, "%s_%s", test->suite_name, fname);
-
-    //fprintf(stderr, ">>>> dlsym: loading %s\n", symbol_name);
     void *symbol = dlsym(RTLD_DEFAULT, symbol_name);
     if (!symbol) {
         //fprintf(stderr, ">>>> ERROR: %s\n", dlerror());
@@ -88,32 +86,23 @@ static void *__ina_find_symbol(ina_test_testcase_t *test, const char *fname)
 INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
  {
      int size;
-     ina_cio_color_t color;
      va_list argp;
      
      if (is_error != INA_YES) {
-         color = INA_CIO_COLOR_BLUE;
-         size = ina_cio_printf(-1,-1, INA_CIO_COLOR_BLUE, 
-                    INA_CIO_COLOR_UNDEFINED, 
-                    "MSG:");
+         size = sprintf(__errormsg, "%s", "MSG: ");
     } else {
-        color = INA_CIO_COLOR_RED;
-        size = ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
-                   INA_CIO_COLOR_UNDEFINED, 
-                   "ERR:");
+        size = sprintf(__errormsg, "%s", "ERR: ");
     }
     __errorsize -= size;
     __errormsg += size;
-
+    
      va_start(argp, fmt);
      size = vsnprintf(__errormsg, __errorsize, fmt, argp);
-     va_end(argp);
-     ina_cio_printf(-1,-1,INA_CIO_COLOR_UNDEFINED, 
-		     INA_CIO_COLOR_UNDEFINED, 
-		     __errormsg);
+     va_end(argp); 
      __errorsize -= size;
      __errormsg += size;
-     size = printf("%s", "\n");
+    
+     size = sprintf(__errormsg, "%s", "\n");
      __errorsize -= size;
      __errormsg += size;
      return INA_SUCCESS;
@@ -433,12 +422,12 @@ INA_API(int) ina_test_run(int argc, char *argv[])
             __errorbuffer[0] = 0;
             __errorsize = __INA_MSG_SIZE-1;
             __errormsg = __errorbuffer;
-            printf("%d/%d %s:%s ", index, total, test->suite_name, test->test_name);
+            printf("TEST %d/%d %s:%s ", index, total, test->suite_name, test->test_name);
             fflush(stdout);
             if (test->skip) {
                 ina_cio_printf(-1,-1, INA_CIO_COLOR_YELLOW, 
                         INA_CIO_COLOR_UNDEFINED, 
-                        "[SKIPPED]");
+                        "[SKIPPED]\n");
 
                 num_skip++;
             } else {
@@ -464,26 +453,25 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                     }
                     ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
                             INA_CIO_COLOR_UNDEFINED, 
-                            "[OK]");
+                            "[OK]\n");
                     num_ok++;
                 } else {
                     ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
                             INA_CIO_COLOR_UNDEFINED, 
-                            "[FAIL]");
+                            "[FAIL]\n");
                     num_fail++;
                 }
                 if (__errorsize != __INA_MSG_SIZE-1) {
                     printf("%s", __errorbuffer);
                 }
             }
-            printf("%s", "\n");
             index++;
         }
     }
 
     color = (num_fail) ? INA_CIO_COLOR_RED : INA_CIO_COLOR_GREEN;
     ina_cio_printf(-1,-1, color, INA_CIO_COLOR_UNDEFINED, 
-                "RESULTS: %d tests (%d ok, %d failed, %d skipped)", 
+                "RESULTS: %d tests (%d ok, %d failed, %d skipped)\n", 
                 total, 
                 num_ok, 
                 num_fail, 
