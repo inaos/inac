@@ -213,6 +213,11 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     signal(SIGSTOP, __ina_signal_handler);
 #endif
 
+   /* initailized console */
+    if (!INA_SUCCEED(ina_cio_init())) {
+        return INA_ERR_PUSH_LAST;
+    }
+
     /* initalize global memory functions */
     ina_mem_set_fn(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     /* initalize global memory functions for memory pools */
