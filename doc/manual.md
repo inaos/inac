@@ -584,6 +584,9 @@ Sample processor witten un LUA
 
 ### Testing
 #### Tracing
+Tracing feature can be enabled an disabled by combiler time settings `INA_TRACE_ENABLED`.  Also the
+tracing level can be define at compile time. The library know about 3 tracing levels. Trace messages
+are ended by a newline "\n" 
 INAC provides 2 macros which can be used for print debug messages when DEBUG is defined
 	INA_TRACE
 	INA_TRACE_MSG
@@ -591,8 +594,66 @@ Use `INA_TRACE_MSG` to print simple messages and `INA_TRACE` to print debug mess
 
 	INA_TRACE_MSG("Server started");
 	INA_TRACE("Buffer size is %d", bufsize);
+	INA_TRACE1("Same as the %s macro", "INA_TRACE");
+	INA_TRACE2("A bit more %s trace", "detailed");
+	INA_TRACE3("A %s trace", "fully detailed"); 
 
 #### Unit testing
+INAC provides a built-in test framework. This framework is almost independent from the library itself. 
+Features  
+
+ * Easy adding tests with minimal effort. Non header files required.
+ * Supports test suites.
+ * Supports fixtures (setup, teardown)
+ * Easy to parse output
+ * Colored output
+ * Supports skipping
+ * Minimal memory footprint (no allocations)
+ 
+Possibles improvements :
+ * Possibility to add small description to each test for documentation purpose.
+ * Variable output format
+ 
+To add your first test to a test suite simply the following lines of code.
+
+    INA_TEST(my_suite, my_first_test_with_inac) {
+    	INA_ASSERT_FLOATING(1.0, 1.0);
+	}
+
+
+To added fixtures to your test use `INA_TEST_FIXTURE` macro. Fixtures need a fixture data struct which is 
+defined by `INA_TEST_DATA` macro.  Optionally you cann define a setup and teardown for your test. Setup and 
+Teardown is call on any test in the suite.  Fixture data is passed to Setup/Teardown and Run of any test in
+the suite.  Follow the next sample. 
+
+	INA_TEST_DATA(iscp_tcp) {
+    	ina_iscp_ctx_t *iscp;
+	};
+
+	INA_TEST_SETUP(iscp_tcp) {
+    	ina_iscp_create_tcp(&data->iscp, "127.0.0.1", 9999);
+	}
+
+	INA_TEST_TEARDOWN(iscp_tcp) {
+    	ina_iscp_destroy(&data->iscp);
+	}
+
+	INA_TEST_FIXTURE(iscp_tcp, send_negative_double) {
+      	INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 3, 3, NULL));
+      	INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 1, INA_ISCP_TYPE_DBL, -3.2));
+	}
+
+NOTE: Do not forget the semicolon after `INA_TEST_DATA()`
+
+
+To skip existing test use the _SKIP version of `INA_TEST` or `INA_TEST_FIXTURE`. 
+
+    INA_TEST_SKIP(my_suite, my_first_test_with_inac) {
+    	INA_ASSERT_FLOATING(1.0, 1.0);
+	}
+
+
+	
 #### Performance testing
 
 
