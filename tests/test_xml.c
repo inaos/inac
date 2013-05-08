@@ -82,3 +82,49 @@ INA_TEST(xml, simple_xml)
 	
 	ina_str_destroy(source);
 }
+
+
+INA_TEST_SKIP(xml, parser_init) {
+}
+
+INA_TEST_SKIP(xml, parser_destroy) {
+}
+
+INA_TEST_SKIP(xml, parser_exec) {
+}
+
+INA_TEST_SKIP(xml, parser_reset) {
+}
+
+INA_TEST_SKIP(xml, parser_root)  {
+}
+
+INA_TEST_SKIP(xml, node_next) {
+}
+
+INA_TEST_SKIP(xml, node_last) {
+}
+
+INA_TEST_SKIP(xml, node_get_name) {
+}
+
+INA_TEST_SKIP(xml, node_get_value) {
+}
+
+INA_TEST_SKIP(xml, node_first_attribute) {
+}
+
+INA_TEST_SKIP(xml, node_last_attribute) {
+}
+
+INA_TEST_SKIP(xml, attribute_next) {
+}
+
+INA_TEST_SKIP(xml, attribute_previous) {
+}
+
+INA_TEST_SKIP(xml, attribute_get_name) {
+}
+
+INA_TEST_SKIP(xml, attribute_get_value) {
+}

@@ -1257,8 +1257,10 @@ static void __document_parse(rapidxml_doc_t *doc, char *text)
 	assert(text);
             
     /* Remove current contents */
-    __node_remove_all_nodes(doc->root);
-	__node_remove_all_attributes(doc->root);
+    if (doc->root != NULL) {
+        __node_remove_all_nodes(doc->root);
+	    __node_remove_all_attributes(doc->root);
+	}
             
     /* Parse BOM, if any */
     __document_parse_bom(text);
@@ -1291,6 +1293,9 @@ static void __document_parse(rapidxml_doc_t *doc, char *text)
  */
 static void __document_clean(rapidxml_doc_t *doc)
 {
+    if (doc->root == NULL) {
+        return;
+    }
 	__node_remove_all_nodes(doc->root);
 	__node_remove_all_attributes(doc->root);
 	__mempool_clear(&doc->mempool);
