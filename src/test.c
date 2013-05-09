@@ -240,10 +240,15 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
     longjmp(__err, 1);
 }
 
-INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_name, const char* helper_name, int32_t wait_msec, ...) {
-#ifndef INA_OS_WIN32
+INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, 
+                        const char *suite_name, 
+                        const char* helper_name, 
+                        int32_t wait_msec, ...)
+{
+    va_list ap;
     char* args[16];
     int n;
+#ifndef INA_OS_WIN32
 
     INA_ASSERT_NOTNULL(hid);
 
@@ -258,15 +263,13 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
        /* child */
        n = 0;
 
-       args[n] = __binpath;
+       args[n] = (char*)__binpath;
        args[n++] = "-h";
        args[n++] = (char*)suite_name;
        args[n++] = (char*)helper_name;
-       /*va_start(ap, wait);
-       while (*wait) {
-           args[n++] = va_arg(ap, char *);
-       }
-       va_end(ap);*/
+       va_start(ap, wait_msec);
+       while ((args[n++] = va_arg(ap, char *)));
+       va_end(ap);
        args[n++] = NULL;
        execvp(args[0], args);
        perror("execvp()");
@@ -281,10 +284,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     DWORD dwExitCode;
     char cmdline[256];
     char exepath[MAX_PATH];
-    char *args[16];
-    size_t n = 0;
     size_t i;
-    va_list ap;
 
     
     INA_ASSERT_NOTNULL(hid);
