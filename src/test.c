@@ -247,7 +247,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
 {
     va_list ap;
     char* args[16];
-    int n;
+    size_t n = 0;
 #ifndef INA_OS_WIN32
 
     INA_ASSERT_NOTNULL(hid);
@@ -286,13 +286,10 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     char exepath[MAX_PATH];
     size_t i;
 
-    
     INA_ASSERT_NOTNULL(hid);
 
     va_start(ap, wait_msec);
-    while (wait_msec) {
-        args[n++] = va_arg(ap, char *);
-    }
+    while ((args[n++] = va_arg(ap, char *)));
     va_end(ap);
   
     GetModuleFileName(NULL, exepath, MAX_PATH-1);
