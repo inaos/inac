@@ -678,18 +678,21 @@ From the command line prompt you can start all tests or a single suite
 	
     
 #### Helpers 
-A more advanced feature of this test framework are provided by helper macros. The framework supports in-situ 
-helper and external helpers as well. Each helper is started in a new process. 
+A more advanced feature of this test framework are provided by helper macros. The framework supports 
+in-situ helper and external helpers as well. Each helper is started in a new process. Further it's 
+possible chose to between wait/or spawn
 
 ##### Adding in-situ Helpers
-In-situ helpers are compiled directly in the test binary by using the `INA_TEST_HELPER`macro. The macro takes
-two arguments: the suite name and helper name. The `argc` and `argv` from the `main()` function are available in 
-the code body.
+In-situ helpers are compiled directly in the test binary by using the `INA_TEST_HELPER`macro. The macro
+takes two arguments: the suite name and helper name. The `argc` and `argv` from the `main()` function 
+are available in the code body. Each Helper should assign a valid RC to `retval` before leaving.
 
 	INA_HELPER(tcp, dummy_dns_server) {
 	  /* Starting coding your dummy tcp DNS server */
 	  if (argc > 0) {
 	  	...
+
+	  *revtval = EXIT_SUCCESS;
 	}
 
 ##### Invoking in-situ Helpers	
@@ -697,7 +700,7 @@ the code body.
     INA_TEST(tcp, dns_ping) {
     	/* Invoke helper */
     	ina_test_hid_t hid;
-   		INA_TEST_HELPER_INVOKE(tcp, dummy_dns_server, "127.0.0.1", 9001);
+   		INA_TEST_HELPER_INVOKE(tcp, dummy_dns_server, "127.0.0.1", "9001", NULL);
    		
         /* Make some tests */
 		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
@@ -709,7 +712,7 @@ the code body.
 	INA_TEST(ullc, read_ring_buffer) {
     	/* Invoke helper */
     	ina_test_hid_t hid;
-   		INA_TEST_HELPER_INVOKE_WAIT(tcp, create_ring_buffer, 5000);
+   		INA_TEST_HELPER_INVOKE_WAIT(tcp, create_ring_buffer, 5000, NULL);
    		
         /* Make some tests */
 		INA_TEST_ASSERT_TRUE(read_ring_buffer());
@@ -727,7 +730,7 @@ To test or start an in-situ helper from the command line juste type
     INA_TEST(tcp, dns_ping) {
     	/* Invoke helper */
     	ina_test_hid_t hid;
-   		INA_TEST_HELPER_CMD("c:/test/dns.exe "127.0.0.1", 9001);
+   		INA_TEST_HELPER_CMD(&hid, "c:/test/dns.exe" "127.0.0.1", "9001");
    		
         /* Make some tests */
 		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
@@ -739,7 +742,7 @@ To test or start an in-situ helper from the command line juste type
    INA_TEST(tcp, dns_ping) {
     	/* Invoke helper */
     	ina_test_hid_t hid;
-   		INA_TEST_HELPER_CMD_WAIT("c:/test/dns.exe, 5000, "127.0.0.1", 9001);
+   		INA_TEST_HELPER_CMD_WAIT("c:/test/dns.exe", 5000, "127.0.0.1", "9001");
    		
         /* Make some tests */
 		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
