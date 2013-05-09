@@ -67,60 +67,60 @@ INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size)
 
 INA_API(ina_rc_t) ina_xml_destroy(ina_xml_ctx_t **ctx)
 {
-	ina_xml_ctx_t *c = *ctx;
-	ina_xml_parser_t *p, *ptmp;
-	int cnt = 0;
+    ina_xml_ctx_t *c = *ctx;
+    ina_xml_parser_t *p, *ptmp;
+    int cnt = 0;
 
-	INA_ASSERT_NOTNULL(*ctx);	
+    INA_ASSERT_NOTNULL(*ctx);
 
-	DL_FOREACH_SAFE(c->parsers, p, ptmp) {
-		rapidxml_parser_destroy(&p->doc);
-		DL_DELETE(c->parsers, p);
-		ina_mem_free(p);
-		cnt++;
-	}
+    DL_FOREACH_SAFE(c->parsers, p, ptmp) {
+        rapidxml_parser_destroy(&p->doc);
+        DL_DELETE(c->parsers, p);
+        ina_mem_free(p);
+        cnt++;
+    }
 
-	ina_mem_free(*ctx);
+    ina_mem_free(*ctx);
 
-	if (cnt != c->parser_pool_size) {
-		/* FIXME: push proper error */
-		return INA_FAILURE;
-	}
-
-	return INA_SUCCESS;
+    if (cnt != c->parser_pool_size) {
+        /* FIXME: push proper error */
+        return INA_FAILURE;
+    }
+    *ctx = NULL;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_xml_parser_borrow(ina_xml_ctx_t *ctx, ina_xml_parser_t **p)
 {
-	INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(ctx);
 
-        /* we ran out of parsers */
-        if (ctx->parsers == NULL) {
-                *p = NULL;
-                return INA_FAILURE;
-        }
+    /* we ran out of parsers */
+    if (ctx->parsers == NULL) {
+        *p = NULL;
+        return INA_FAILURE;
+    }
 
-        /* return the head and delete from the list */
-        *p = ctx->parsers;
-        DL_DELETE(ctx->parsers, *p);
+    /* return the head and delete from the list */
+    *p = ctx->parsers;
+    DL_DELETE(ctx->parsers, *p);
 
-	rapidxml_parser_reset((*p)->doc);
+    rapidxml_parser_reset((*p)->doc);
 
-	return INA_SUCCESS;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_xml_parser_release(ina_xml_ctx_t *ctx, ina_xml_parser_t **p)
 {
-	ina_xml_parser_t *parser = *p;
+    ina_xml_parser_t *parser = *p;
 
-        INA_ASSERT_NOTNULL(ctx);
-        INA_ASSERT_NOTNULL(parser);
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(parser);
 
-        /* return parser */
-        DL_APPEND(ctx->parsers, parser);
-        p = NULL;
+    /* return parser */
+    DL_APPEND(ctx->parsers, parser);
+    *p = NULL;
 
-	return INA_SUCCESS;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, ina_xml_elem_t **root)
