@@ -65,10 +65,11 @@ struct rapidxml_doc_s {
 	rapidxml_parse_error_handler err_handler;
 	__rapidxml_mempool_t mempool;
 	rapidxml_node_t *root;
+    char *text;
 } rapidxml_doc_s;
 
 /* forward decls */
-static rapidxml_node_t *__document_parse_node(rapidxml_doc_t *doc, char *text);
+static rapidxml_node_t *__document_parse_node(rapidxml_doc_t *doc);
 
 /*
  * Find length of the string
@@ -710,78 +711,80 @@ static unsigned char __test_text_pred(char c)
 /*
  *
  */
-static void __document_skip(test_func test, char *text)
+static char* __document_skip(test_func test, char *text)
 {
     char *tmp = text;
     while (test(*tmp)) {
         ++tmp;
 	}
+    return tmp;
 }
 /*
  *
  */
-static void __document_skip2(test_func2 test, char arg, char *text)
+static char* __document_skip2(test_func2 test, char arg, char *text)
 {
     char *tmp = text;
     while (test(arg, *tmp)) {
         ++tmp;
 	}
+    return tmp;
 }
 /*
  *
  */
-static void __document_parse_node_attributes(rapidxml_doc_t *doc, rapidxml_node_t *node, char *text)
+static void __document_parse_node_attributes(rapidxml_doc_t *doc, rapidxml_node_t *node)
 {
 	rapidxml_attr_t *attribute;
 
 	/* For all attributes */
-	while (__test_attr_name_pred(*text))
+	while (__test_attr_name_pred(*doc->text))
     {
 		char quote;
 		char *value, *end;
 
         /* Extract attribute name */
-        char *name = text;
-        ++text;     /* Skip first character of attribute name */
-		__document_skip(__test_attr_name_pred, text);
-        if (text == name) {
+        char *name = doc->text;
+        ++doc->text;     /* Skip first character of attribute name */
+		__document_skip(__test_attr_name_pred, doc->text);
+        if (doc->text == name) {
 			doc->err_handler("expected attribute name", name);
 		}
 
         /* Create new attribute */
         attribute = __mempool_allocate_attribute(&doc->mempool, NULL, NULL, 0, 0);
         attribute->name = name;
-		attribute->name_size = text - name;
+		attribute->name_size = doc->text - name;
 		
 		__node_append_attribute(node, attribute);
 
         /* Skip whitespace after attribute name */
-		__document_skip(__test_whitespace, text);
+		__document_skip(__test_whitespace, doc->text);
 
         /* Skip = */
-        if (*text != '=') {
-			doc->err_handler("expected =", text);
+        if (*doc->text != '=') {
+			doc->err_handler("expected =", doc->text);
 		}
-        ++text;
+        ++doc->text;
 
         /* Skip whitespace after = */
-        __document_skip(__test_whitespace, text);
+        __document_skip(__test_whitespace, doc->text);
 
         /* Skip quote and remember if it was ' or " */
-        quote = *text;
+        quote = *doc->text;
         if (quote != '\'' && quote != '"') {
-			doc->err_handler("expected ' or \"", text);
+			doc->err_handler("expected ' or \"", doc->text);
 		}
-        ++text;
+        ++doc->text;
 
         /* Extract attribute value and expand char refs in it */
-        value = text;
-		end = text;
+        value = doc->text;
+		end = doc->text;
         if (quote == '\'') {
-			__document_skip2(__test_attr_value_pred, '\'', text);
+			doc->text = __document_skip2(__test_attr_value_pred, '\'', doc->text);
 		}
         else {
-			__document_skip2(__test_attr_value_pred, '"', text);
+			doc->text = __document_skip2(__test_attr_value_pred, '"', doc->text);
 		}
                 
         /* Set attribute value */
@@ -789,13 +792,13 @@ static void __document_parse_node_attributes(rapidxml_doc_t *doc, rapidxml_node_
 		attribute->value_size = end - value;
                 
         /* Make sure that end quote is present */
-        if (*text != quote) {
-            doc->err_handler("expected ' or \"", text);
+        if (*doc->text != quote) {
+            doc->err_handler("expected ' or \"", doc->text);
 		}
-        ++text;     /* Skip quote */
+        ++doc->text;     /* Skip quote */
 
         /* Skip whitespace after attribute value */
-        __document_skip(__test_whitespace, text);
+        doc->text = __document_skip(__test_whitespace, doc->text);
     }
 }
 /*
@@ -806,7 +809,7 @@ static char __document_parse_and_append_data(rapidxml_node_t *node, char *text)
     /* Skip until end of data */
     char *value = text, *end;
     
-	__document_skip(__test_text_pred, text);
+	text = __document_skip(__test_text_pred, text);
 	end = text;
 
 	if (node->value == NULL) {
@@ -820,7 +823,7 @@ static char __document_parse_and_append_data(rapidxml_node_t *node, char *text)
 /*
  *
  */
-static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *node, char *text)
+static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *node)
 {
 	/* For all children and text */
     while (1)
@@ -828,8 +831,8 @@ static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *
 		char next_char;
 
         /* Skip whitespace between > and node contents */
-        __document_skip(__test_whitespace, text);
-        next_char = *text;
+        doc->text = __document_skip(__test_whitespace, doc->text);
+        next_char = *doc->text;
 
     /*
 	 * After data nodes, instead of continuing the loop, control jumps here.
@@ -845,36 +848,36 @@ static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *
                 
         /* Node closing or child node */
         case '<':
-            if (text[1] == '/') {
+            if (doc->text[1] == '/') {
                 /* Node closing */
-                text += 2;      /* Skip '</' */
+                doc->text += 2;      /* Skip '</' */
 				if (doc->flags & RAPIDXML_PARSE_FLAG_VALIDATE_CLOSING_TAGS)
                 {
                     /* Skip and validate closing tag name */
-                    char *closing_name = text;
-					__document_skip(__test_node_name_pred, text);
-                    if (!__compare(node->name, node->name_size, closing_name, text - closing_name, 1)) {
-						doc->err_handler("invalid closing tag name", text);
+                    char *closing_name = doc->text;
+					doc->text = __document_skip(__test_node_name_pred, doc->text);
+                    if (!__compare(node->name, node->name_size, closing_name, doc->text - closing_name, 1)) {
+						doc->err_handler("invalid closing tag name", doc->text);
 					}
                 }
                 else
                 {
                     /* No validation, just skip name */
-                    __document_skip(__test_node_name_pred, text);
+                    doc->text = __document_skip(__test_node_name_pred, doc->text);
                 }
                 /* Skip remaining whitespace after node name */
-                __document_skip(__test_whitespace, text);
-                if (*text != '>') {
-					doc->err_handler("expected >", text);
+                doc->text = __document_skip(__test_whitespace, doc->text);
+                if (*doc->text != '>') {
+					doc->err_handler("expected >", doc->text);
 				}
-                ++text;     /* Skip '>' */
+                ++doc->text;     /* Skip '>' */
                 return;     /* Node closed, finished parsing contents */
             }
             else {
 				rapidxml_node_t *child;
                 /* Child node */
-                ++text;     /* Skip '<' */
-                if ((child = __document_parse_node(doc, text))) {
+                ++doc->text;     /* Skip '<' */
+                if ((child = __document_parse_node(doc))) {
                     __node_append_node(node, child);
 				}
             }
@@ -882,11 +885,11 @@ static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *
 
         /* End of data - error */
         case '\0':
-			doc->err_handler("unexpected end of data", text);
+			doc->err_handler("unexpected end of data", doc->text);
 
         /* Data node */
         default:
-            next_char = __document_parse_and_append_data(node, text);
+            next_char = __document_parse_and_append_data(node, doc->text);
             goto after_data_node;   /* Bypass regular processing after data nodes */
 
         }
@@ -895,40 +898,40 @@ static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *
 /*
  *
  */
-static rapidxml_node_t *__document_parse_element(rapidxml_doc_t *doc, char *text)
+static rapidxml_node_t *__document_parse_element(rapidxml_doc_t *doc)
 {
 	/* Create element node */
 	rapidxml_node_t *element = __mempool_allocate_node(&doc->mempool, RAPIDXML_NODE_TYPE_ELEMENT, NULL, NULL, 0, 0);
 
     /* Extract element name */
-    char *name = text;
-	__document_skip(__test_node_name_pred, text);
-    if (text == name) {
-		doc->err_handler("expected element name", text);
+    char *name = doc->text;
+	doc->text = __document_skip(__test_node_name_pred, doc->text);
+    if (doc->text == name) {
+		doc->err_handler("expected element name", doc->text);
 	}
     element->name = name;
-	element->name_size = text - name;
+	element->name_size = doc->text - name;
             
     /* Skip whitespace between element name and attributes or > */
-	__document_skip(__test_whitespace, text);
+	doc->text = __document_skip(__test_whitespace, doc->text);
 
     /* Parse attributes, if any */
-    __document_parse_node_attributes(doc, element, text);
+    __document_parse_node_attributes(doc, element);
 
     /* Determine ending type */
-    if (*text == '>') {
-        ++text;
-		__document_parse_node_content(doc, element, text);
+    if (*doc->text == '>') {
+        ++doc->text;
+		__document_parse_node_content(doc, element);
     }
-    else if (*text == '/') {
-        ++text;
-        if (*text != '>') {
-			doc->err_handler("expected >", text);
+    else if (*doc->text == '/') {
+        ++doc->text;
+        if (*doc->text != '>') {
+			doc->err_handler("expected >", doc->text);
 		}
-        ++text;
+        ++doc->text;
     }
     else {
-		doc->err_handler("expected >", text);
+		doc->err_handler("expected >", doc->text);
 	}
 
     /* Return parsed element */
@@ -937,20 +940,20 @@ static rapidxml_node_t *__document_parse_element(rapidxml_doc_t *doc, char *text
 /*
  *
  */
-static rapidxml_node_t *__document_parse_declaration(rapidxml_doc_t *doc, char *text)
+static rapidxml_node_t *__document_parse_declaration(rapidxml_doc_t *doc)
 {
 	rapidxml_node_t *declaration;
 	/* If parsing of declaration is disabled */
 	if (!(doc->flags & RAPIDXML_PARSE_FLAG_DECLARATION_NODE))
     {
         /* Skip until end of declaration */
-        while (text[0] != '?' || text[1] != '>') {
-            if (!text[0]) {
-				doc->err_handler("unexpected end of data", text);
+        while (doc->text[0] != '?' || doc->text[1] != '>') {
+            if (!doc->text[0]) {
+				doc->err_handler("unexpected end of data", doc->text);
 			}
-            ++text;
+            ++doc->text;
         }
-        text += 2;    /* Skip '?>' */
+        doc->text += 2;    /* Skip '?>' */
         return 0;
     }
 
@@ -958,23 +961,23 @@ static rapidxml_node_t *__document_parse_declaration(rapidxml_doc_t *doc, char *
     declaration = __mempool_allocate_node(&doc->mempool, RAPIDXML_NODE_TYPE_DECLARATION, NULL, NULL, 0, 0);
 
     /* Skip whitespace before attributes or ?> */
-	__document_skip(__test_whitespace, text);
+	doc->text = __document_skip(__test_whitespace, doc->text);
 
     /* Parse declaration attributes */
-	__document_parse_node_attributes(doc, declaration, text);
+	__document_parse_node_attributes(doc, declaration);
             
     /* Skip ?> */
-    if (text[0] != '?' || text[1] != '>') {
-		doc->err_handler("expected ?>", text);
+    if (doc->text[0] != '?' || doc->text[1] != '>') {
+		doc->err_handler("expected ?>", doc->text);
 	}
-    text += 2;
+    doc->text += 2;
             
     return declaration;
 }
 /*
  *
  */
-static rapidxml_node_t *__document_parse_pi(rapidxml_doc_t *doc, char *text)
+static rapidxml_node_t *__document_parse_pi(rapidxml_doc_t *doc)
 {
 	/* If creation of PI nodes is enabled */
 	if (doc->flags & RAPIDXML_PARSE_FLAG_PI_NODES) {
@@ -983,51 +986,51 @@ static rapidxml_node_t *__document_parse_pi(rapidxml_doc_t *doc, char *text)
         rapidxml_node_t *pi = __mempool_allocate_node(&doc->mempool, RAPIDXML_NODE_TYPE_PI, NULL, NULL, 0, 0);
 
         /* Extract PI target name */
-        char *name = text;
-		__document_skip(__test_node_name_pred, text);
-        if (text == name) {
-			doc->err_handler("expected PI target", text);
+        char *name = doc->text;
+		doc->text = __document_skip(__test_node_name_pred, doc->text);
+        if (doc->text == name) {
+			doc->err_handler("expected PI target", doc->text);
 		}
         pi->name = name;
-		pi->name_size = text - name;
+		pi->name_size = doc->text - name;
                 
         /* Skip whitespace between pi target and pi */
-		__document_skip(__test_whitespace, text);
+		doc->text = __document_skip(__test_whitespace, doc->text);
 
         /* Remember start of pi */
-        value = text;
+        value = doc->text;
                 
         /* Skip to '?>' */
-        while (text[0] != '?' || text[1] != '>') {
-            if (*text == '\0') {
-				doc->err_handler("unexpected end of data", text);
+        while (doc->text[0] != '?' || doc->text[1] != '>') {
+            if (*doc->text == '\0') {
+				doc->err_handler("unexpected end of data", doc->text);
 			}
-            ++text;
+            ++doc->text;
         }
 
         /* Set pi value (verbatim, no entity expansion or whitespace normalization) */
         pi->value = value;
-		pi->value_size = text - value;
+		pi->value_size = doc->text - value;
                 
-        text += 2; /* Skip '?>' */
+        doc->text += 2; /* Skip '?>' */
         return pi;
     }
     else {
         /* Skip to '?>' */
-        while (text[0] != '?' || text[1] != '>') {
-            if (*text == '\0') {
-				doc->err_handler("unexpected end of data", text);
+        while (doc->text[0] != '?' || doc->text[1] != '>') {
+            if (*doc->text == '\0') {
+				doc->err_handler("unexpected end of data", doc->text);
 			}
-            ++text;
+            ++doc->text;
         }
-        text += 2;  /* Skip '?>' */
+        doc->text += 2;  /* Skip '?>' */
         return NULL;
     }
 }
 /*
  *
  */
-static rapidxml_node_t *__document_parse_comment(rapidxml_doc_t *doc, char *text)
+static rapidxml_node_t *__document_parse_comment(rapidxml_doc_t *doc)
 {
 	char *value;
 	rapidxml_node_t *comment;
@@ -1035,40 +1038,40 @@ static rapidxml_node_t *__document_parse_comment(rapidxml_doc_t *doc, char *text
 	/* If parsing of comments is disabled */
 	if (!(doc->flags & RAPIDXML_PARSE_FLAG_COMMENT_NODES)) {
         /* Skip until end of comment */
-        while (text[0] != '-' || text[1] != '-' || text[2] != '>') {
-            if (!text[0]) {
-				doc->err_handler("unexpected end of data", text);
+        while (doc->text[0] != '-' || doc->text[1] != '-' || doc->text[2] != '>') {
+            if (!doc->text[0]) {
+				doc->err_handler("unexpected end of data", doc->text);
 			}
-            ++text;
+            ++doc->text;
         }
-        text += 3;     /* Skip '-->' */
+        doc->text += 3;     /* Skip '-->' */
         return NULL;   /* Do not produce comment node */
     }
 
     /* Remember value start */
-    value = text;
+    value = doc->text;
 
     /* Skip until end of comment */
-    while (text[0] != '-' || text[1] != '-' || text[2] != '>') {
-        if (!text[0]) {
-			doc->err_handler("unexpected end of data", text);
+    while (doc->text[0] != '-' || doc->text[1] != '-' || doc->text[2] != '>') {
+        if (!doc->text[0]) {
+			doc->err_handler("unexpected end of data", doc->text);
 		}
-        ++text;
+        ++doc->text;
     }
 
     /* Create comment node */
     comment = __mempool_allocate_node(&doc->mempool, RAPIDXML_NODE_TYPE_COMMENT, NULL, NULL, 0, 0);
     comment->value = value;
-	comment->value_size = text - value;
+	comment->value_size = doc->text - value;
             
-    text += 3;     /* Skip '-->' */
+    doc->text += 3;     /* Skip '-->' */
 
     return comment;
 }
 /*
  *
  */
-static rapidxml_node_t *__document_parse_cdata(rapidxml_doc_t *doc, char *text)
+static rapidxml_node_t *__document_parse_cdata(rapidxml_doc_t *doc)
 {
 	char *value;
 	rapidxml_node_t *cdata;
@@ -1076,73 +1079,73 @@ static rapidxml_node_t *__document_parse_cdata(rapidxml_doc_t *doc, char *text)
 	/* If CDATA is disabled */
 	if (doc->flags & RAPIDXML_PARSE_FLAG_NO_DATA_NODES) {
         /* Skip until end of cdata */
-        while (text[0] != ']' || text[1] != ']' || text[2] != '>') {
-            if (!text[0]) {
-				doc->err_handler("unexpected end of data", text);
+        while (doc->text[0] != ']' || doc->text[1] != ']' || doc->text[2] != '>') {
+            if (!doc->text[0]) {
+				doc->err_handler("unexpected end of data", doc->text);
 			}
-            ++text;
+            ++doc->text;
         }
-        text += 3;      /* Skip ]]> */
+        doc->text += 3;      /* Skip ]]> */
         return 0;       /* Do not produce CDATA node */
     }
 
     /* Skip until end of cdata */
-    value = text;
-    while (text[0] != ']' || text[1] != ']' || text[2] != '>') {
-        if (!text[0]) {
-			doc->err_handler("unexpected end of data", text);
+    value = doc->text;
+    while (doc->text[0] != ']' || doc->text[1] != ']' || doc->text[2] != '>') {
+        if (!doc->text[0]) {
+			doc->err_handler("unexpected end of data", doc->text);
 		}
-        ++text;
+        ++doc->text;
     }
 
     /* Create new cdata node */
     cdata = __mempool_allocate_node(&doc->mempool, RAPIDXML_NODE_TYPE_CDATA, NULL, NULL, 0, 0);
 	cdata->value = value;
-	cdata->value_size = text - value;
+	cdata->value_size = doc->text - value;
 
-    text += 3;      /* Skip ]]> */
+    doc->text += 3;      /* Skip ]]> */
     return cdata;
 }
 /*
  *
  */
-static rapidxml_node_t *__document_parse_doctype(rapidxml_doc_t *doc, char *text)
+static rapidxml_node_t *__document_parse_doctype(rapidxml_doc_t *doc)
 {
 	/* Remember value start */
-    char *value = text;
+    char *value = doc->text;
 	int depth;
 
     /* Skip to > */
-    while (*text != '>') {
+    while (*doc->text != '>') {
         /* Determine character type */
-        switch (*text)
+        switch (*doc->text)
         {
                 
         /* If '[' encountered, scan for matching ending ']' using naive algorithm with depth */
         /* This works for all W3C test files except for 2 most wicked */
         case '[':
         {
-            ++text;     /* Skip '[' */
+            ++doc->text;     /* Skip '[' */
             depth = 1;
             while (depth > 0) {
-                switch (*text)
+                switch (*doc->text)
                 {
                     case '[': ++depth; break;
                     case ']': --depth; break;
-					case 0: doc->err_handler("unexpected end of data", text);
+					case 0: doc->err_handler("unexpected end of data", doc->text);
                 }
-                ++text;
+                ++doc->text;
             }
             break;
         }
                 
         /* Error on end of text */
         case '\0':
-			doc->err_handler("unexpected end of data", text);
+			doc->err_handler("unexpected end of data", doc->text);
                 
         /* Other character, skip it */
         default:
-            ++text;
+            ++doc->text;
 
         }
     }
@@ -1152,99 +1155,99 @@ static rapidxml_node_t *__document_parse_doctype(rapidxml_doc_t *doc, char *text
         /* Create a new doctype node */
         rapidxml_node_t *doctype = __mempool_allocate_node(&doc->mempool, RAPIDXML_NODE_TYPE_DOCTYPE, NULL, NULL, 0, 0);
         doctype->value = value;
-		doctype->value_size = text - value;
+		doctype->value_size = doc->text - value;
 
-        text += 1;      /* skip '>' */
+        doc->text += 1;      /* skip '>' */
         return doctype;
     }
     else {
-        text += 1;      /* skip '>' */
+        doc->text += 1;      /* skip '>' */
         return 0;
     }
 }
 /*
  *
  */
-static rapidxml_node_t *__document_parse_node(rapidxml_doc_t *doc, char *text)
+static rapidxml_node_t *__document_parse_node(rapidxml_doc_t *doc)
 {
 	/* Parse proper node type */
-    switch (text[0])
+    switch (doc->text[0])
     {
 
     /* <... */
     default: 
         /* Parse and append element node */
-		return __document_parse_element(doc, text);
+		return __document_parse_element(doc);
 
     /* <?... */
     case '?': 
-        ++text;     /* Skip ? */
-        if ((text[0] == 'x' || text[0] == 'X') &&
-            (text[1] == 'm' || text[1] == 'M') && 
-            (text[2] == 'l' || text[2] == 'L') &&
-            __test_whitespace(text[3]))
+        ++doc->text;     /* Skip ? */
+        if ((doc->text[0] == 'x' || doc->text[0] == 'X') &&
+            (doc->text[1] == 'm' || doc->text[1] == 'M') && 
+            (doc->text[2] == 'l' || doc->text[2] == 'L') &&
+            __test_whitespace(doc->text[3]))
         {
             /* '<?xml ' - xml declaration */
-            text += 4;      /* Skip 'xml ' */
-            return __document_parse_declaration(doc, text);
+            doc->text += 4;      /* Skip 'xml ' */
+            return __document_parse_declaration(doc);
         }
         else
         {
             /* Parse PI */
-            return __document_parse_pi(doc, text);
+            return __document_parse_pi(doc);
         }
             
     /* <!... */
     case '!': 
 
         /* Parse proper subset of <! node */
-        switch (text[1])    
+        switch (doc->text[1])    
         {
                 
         /* <!- */
         case '-':
-            if (text[2] == '-')
+            if (doc->text[2] == '-')
             {
                 /* '<!--' - xml comment */
-                text += 3;     /* Skip '!--' */
-                return __document_parse_comment(doc, text);
+                doc->text += 3;     /* Skip '!--' */
+                return __document_parse_comment(doc);
             }
             break;
 
         /* <![ */
         case '[':
-            if (text[2] == 'C' && text[3] == 'D' && text[4] == 'A' && 
-                text[5] == 'T' && text[6] == 'A' && text[7] == '[')
+            if (doc->text[2] == 'C' && doc->text[3] == 'D' && doc->text[4] == 'A' && 
+                doc->text[5] == 'T' && doc->text[6] == 'A' && doc->text[7] == '[')
             {
                 /* '<![CDATA[' - cdata */
-                text += 8;     /* Skip '![CDATA[' */
-                return __document_parse_cdata(doc, text);
+                doc->text += 8;     /* Skip '![CDATA[' */
+                return __document_parse_cdata(doc);
             }
             break;
 
         /* <!D */
         case 'D':
-            if (text[2] == 'O' && text[3] == 'C' && text[4] == 'T' && 
-                text[5] == 'Y' && text[6] == 'P' && text[7] == 'E' && 
-                __test_whitespace(text[8]))
+            if (doc->text[2] == 'O' && doc->text[3] == 'C' && doc->text[4] == 'T' && 
+                doc->text[5] == 'Y' && doc->text[6] == 'P' && doc->text[7] == 'E' && 
+                __test_whitespace(doc->text[8]))
             {
                 /* '<!DOCTYPE ' - doctype */
-                text += 9;      /* skip '!DOCTYPE ' */
-                return __document_parse_doctype(doc, text);
+                doc->text += 9;      /* skip '!DOCTYPE ' */
+                return __document_parse_doctype(doc);
             }
 
         }   /* switch */
 
         /* Attempt to skip other, unrecognized node types starting with <! */
-        ++text;     /* Skip ! */
-        while (*text != '>')
+        ++doc->text;     /* Skip ! */
+        while (*doc->text != '>')
         {
-            if (*text == 0) {
-				doc->err_handler("unexpected end of data", text);
+            if (*doc->text == 0) {
+				doc->err_handler("unexpected end of data", doc->text);
 			}
-            ++text;
+            ++doc->text;
         }
-        ++text;     /* Skip '>' */
+        ++doc->text;     /* Skip '>' */
         return NULL;   /* No node recognized */
 
     }
@@ -1252,10 +1255,12 @@ static rapidxml_node_t *__document_parse_node(rapidxml_doc_t *doc, char *text)
 /*
  *
  */
-static void __document_parse(rapidxml_doc_t *doc, char *text)
+static void __document_parse(rapidxml_doc_t *doc, char* text)
 {
 	assert(text);
-            
+ 
+    doc->text = text;
+
     /* Remove current contents */
     if (doc->root != NULL) {
         __node_remove_all_nodes(doc->root);
@@ -1263,28 +1268,28 @@ static void __document_parse(rapidxml_doc_t *doc, char *text)
 	}
             
     /* Parse BOM, if any */
-    __document_parse_bom(text);
+    __document_parse_bom(doc->text);
 
     /* Parse children */
     while (1) {
 
         /* Skip whitespace before node */
-        __document_skip(__test_whitespace, text);
-        if (*text == 0) {
+        doc->text = __document_skip(__test_whitespace, doc->text);
+        if (*doc->text == 0) {
             break;
 		}
 
         /* Parse and append new child */
-        if (*text == '<')
+        if (*doc->text == '<')
         {
 			rapidxml_node_t *node;
-            ++text;     /* Skip '<' */
-            if ((node = __document_parse_node(doc, text))) {
+            ++doc->text;     /* Skip '<' */
+            if ((node = __document_parse_node(doc))) {
 				__node_append_node(doc->root, node);
 			}
         }
         else {
-			doc->err_handler("expected <", text);
+			doc->err_handler("expected <", doc->text);
 		}
     }
 }
