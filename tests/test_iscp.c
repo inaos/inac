@@ -258,7 +258,7 @@ INA_TEST_SKIP(iscp, setup)
     INA_TEST_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 4, __null_handler2));
 }
 
-INA_TEST_SKIP(test, iscp_regsiter_ex)
+INA_TEST_SKIP(iscp, iscp_regsiter_ex)
 {
     ina_iscp_ctx_t *ctx = NULL;
     ina_iscp_cmd_t cmds[] = {
