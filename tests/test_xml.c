@@ -49,43 +49,70 @@ const char *test_xml =
 "    <revision type=\"Beta\" version=\"5.0o\" author=\"Hans Muster\" date=\"04/14/2010\"/>"
 "</revisions>";
 
-INA_TEST(xml, simple_xml)
-{
+
+INA_TEST(xml_init, parser_init_destroy) {
+    ina_xml_ctx_t *ctx = NULL;
+    ina_xml_parser_t *parser = NULL;
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_init(&ctx, 16));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_EQUAL_INTEGER(16, ctx->parser_pool_size);
+    INA_TEST_ASSERT_NOT_NULL(ctx->parsers);
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_borrow(ctx, &parser));
+    INA_TEST_ASSERT_NOT_NULL(parser);
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_release(ctx, &parser));
+    INA_TEST_ASSERT_NULL(parser);
+    INA_TEST_ASSERT_SUCCEED(ina_xml_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
+}
+
+INA_TEST_DATA(xml) {
     ina_xml_ctx_t *ctx;
     ina_xml_parser_t *parser;
     ina_xml_elem_t *root;
     ina_xml_elem_t *itr;
-    ina_str_t source = ina_str_fromcstr(test_xml);
+    ina_str_t source;
+};
+INA_TEST_SETUP(xml) {
+    data->ctx = NULL;
+    data->parser = NULL;
+    data->root = NULL;
+    data->itr = NULL;
+    data->source = ina_str_fromcstr(test_xml);
+    ina_xml_init(&data->ctx, 16);
+    ina_xml_parser_borrow(data->ctx, &data->parser);
+}
+
+INA_TEST_TEARDOWN(xml) {
+    ina_xml_parser_release(data->ctx, &data->parser);
+    ina_xml_destroy(&data->ctx);	
+    ina_str_destroy(data->source);
+    data->source = NULL;
+    data->itr = NULL;
+    data->root = NULL;
+
+}
+ 
+INA_TEST_FIXTURE(xml, simple_parsing)
+{
     const char *name;
     const char *value;
     size_t len;	
 
-    INA_TEST_ASSERT_SUCCEED(ina_xml_init(&ctx, 16));
-    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_borrow(ctx, &parser));
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute(data->parser, data->source, &data->root)); 
 
-    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute(parser, source, &root)); 
-
-    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_name(root, &name, &len));
+    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_name(data->root, &name, &len));
     INA_TEST_ASSERT(strncmp("version", name, len) == 0);
-    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_value(root, &value, &len));
+    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_value(data->root, &value, &len));
     INA_TEST_ASSERT(strncmp("5.0 for US Messages", value, len) == 0);
 
-    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_next(root, &itr));
-    while (itr != NULL) {
-        ina_xml_elem_next(itr, &itr);
+    INA_TEST_ASSERT_SUCCEED(ina_xml_elem_next(data->root, &data->itr));
+    while (data->itr != NULL) {
+        ina_xml_elem_next(data->itr, &data->itr);
     }
-
-    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_release(ctx, &parser));
-    INA_TEST_ASSERT_SUCCEED(ina_xml_destory(&ctx));	
-    ina_str_destroy(source);
 }
 
 
-INA_TEST_SKIP(xml, parser_init) {
-}
-
-INA_TEST_SKIP(xml, parser_destroy) {
-}
 
 INA_TEST_SKIP(xml, parser_exec) {
 }
