@@ -30,8 +30,8 @@
 
 INA_TEST_HELPER(net, non_blocking_echo_server) {
 
-    int fd;
-    int cfd;
+    int fd = -1;
+    int cfd = -1;
     const char *addr = "127.0.0.1";
     int port = 8033;
     unsigned char buffer[100];
@@ -58,7 +58,7 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
             }
         }
 
-        if (cfd == -1) {
+        if (cfd != -1) {
             if (INA_SUCCEED(ina_net_read(cfd, buffer, 100, &nb_read))) {
                 if (nb_read > 0) {
                     ina_net_write(cfd, buffer, nb_read, &nb_read);

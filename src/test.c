@@ -285,7 +285,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     INA_ASSERT_NOTNULL(hid);
 
     GetModuleFileName(NULL, exepath, MAX_PATH-1);
-    sprintf(cmdline, "\"%s\" -h %h %s", exepath, suite_name, helper_name);
+    sprintf(cmdline, "\"%s\" -h %s %s", exepath, suite_name, helper_name);
     ina_mem_set(&si, 0, sizeof(si));
     ina_mem_set(&pi, 0, sizeof(pi));
     si.cb = sizeof(si);
@@ -293,8 +293,11 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     if (CreateProcess(NULL, cmdline, 0, 0, FALSE, 
             CREATE_DEFAULT_ERROR_MODE, 0, 0,
             &si, &pi) != FALSE) {
+        if (wait_msec < 0) {
+            wait_msec = INFINITE;
+        }
         if (wait_msec > 0) {
-            dwExitCode = WaitForSingleObject(pi.hProcess, 500);
+            dwExitCode = WaitForSingleObject(pi.hProcess, wait_msec);
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
             hid->hProcess = NULL;
@@ -313,6 +316,7 @@ INA_API(ina_rc_t) ina_test_helper_stop(ina_test_hid_t *hid)
 {
     INA_ASSERT_NOTNULL(hid);
 #ifdef INA_OS_WIN32
+    TerminateProcess(hid->hProcess, 0);
     CloseHandle(hid->hProcess);
     CloseHandle(hid->hThread);
     hid->hProcess = NULL;
@@ -334,18 +338,9 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     ina_test_testcase_t* end;
     static int retval = EXIT_FAILURE;
 
-    if (argc < 1) {
-        return retval;
-    }
-    if (strcmp(argv[1], "-h")==0) {
-        return ina_test_helper_run(argc, argv);
-    }
-
     if (argc < 3) {
         return retval;
     }
-        
-    __binpath = argv[0];
     __suite_name = argv[2];
     __helper_name = argv[3];
     filter = __ina_helper_filter;
@@ -392,6 +387,14 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     ina_test_testcase_t* begin;
     ina_test_testcase_t* end;
     ina_cio_color_t color;
+
+    __binpath = argv[0];
+
+    if (argc > 2) {
+        if (strcmp(argv[1], "-h")==0) {
+            return ina_test_helper_run(argc, argv);
+        }
+    }
 
     if (argc == 2) {
         __suite_name = argv[1];
@@ -443,12 +446,8 @@ INA_API(int) ina_test_run(int argc, char *argv[])
 
                 num_skip++;
             } else {
-                void* old_sigabrt_handler = signal(SIGABRT, 
-                    __ina_signal_handler);
-                void* old_sigsegv_handler = signal(SIGSEGV, 
-                    __ina_signal_handler);
-
-                if (setjmp(__err) == 0) {
+                 void* old_sigabrt_handler = NULL;
+                 void* old_sigsegv_handler = NULL;
 #ifdef INA_OS_OSX
                     if (!test->setup) {
                         test->setup = __ina_find_symbol(test, "setup");
@@ -460,12 +459,16 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                     if (test->setup) {
                         test->setup(test->data);
                     }
+                    old_sigabrt_handler = signal(SIGABRT, 
+                           __ina_signal_handler);
+                    old_sigsegv_handler = signal(SIGSEGV, 
+                    __ina_signal_handler);
+
+                if (setjmp(__err) == 0) {
                     if (test->data) {
                         test->run(test->data);
-                    }
-                    test->run();
-                    if (test->teardown) {
-                        test->teardown(test->data);
+                    } else {
+                        test->run();
                     }
                     ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
                             INA_CIO_COLOR_UNDEFINED, 
@@ -477,12 +480,15 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                             "[FAIL]\n");
                     num_fail++;
                 }
+                signal(SIGABRT, old_sigabrt_handler);
+                signal(SIGSEGV, old_sigsegv_handler);
+                if (test->teardown) {
+                    test->teardown(test->data);
+                }
+
                 if (__errorsize != __INA_MSG_SIZE-1) {
                     printf("%s", __errorbuffer);
                 }
-                
-                signal(SIGABRT, old_sigabrt_handler);
-                signal(SIGSEGV, old_sigsegv_handler);
             }
             index++;
         }
