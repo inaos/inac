@@ -276,7 +276,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
        _exit(127);
     }
     hid->pid = pid;
-    ina_time_sleep(wait_msecs);
+    ina_time_sleep(wait_msec);
     return INA_SUCCESS;
 #else
     PROCESS_INFORMATION pi;
