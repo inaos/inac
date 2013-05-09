@@ -391,7 +391,6 @@ __ina_signal_handler(int sig)
     exitcode = 3;
     switch (sig) {
         case SIGABRT:
-        return;
         case SIGFPE:
         case SIGILL:
         case SIGSEGV:
