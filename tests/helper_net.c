@@ -28,14 +28,26 @@
 #include <libinac/lib.h>
 
 
+/*
+ * Poor Poeple Echo Server
+ */
 INA_TEST_HELPER(net, non_blocking_echo_server) {
 
     int fd = -1;
     int cfd = -1;
-    const char *addr = "127.0.0.1";
-    int port = 8033;
-    unsigned char buffer[100];
+    const char *addr;
+    int port;
+    unsigned char buffer[4096];
     int nb_read;
+
+  
+    if (argc < 4) {
+        *retval = EXIT_FAILURE;
+    }
+
+    addr = argv[2];
+    port = atoi(argv[3]);
+    ina_mem_set(buffer, 0, 4096);
 
     if (!INA_SUCCEED(ina_net_tcp_server(&fd, port, addr))) {
         *retval = ina_err_peek();
