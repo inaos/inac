@@ -47,6 +47,8 @@ static char        __errorbuffer[__INA_MSG_SIZE];
 static jmp_buf     __err;
 static const char* __suite_name;
 static const char* __helper_name;
+static const char* __binpath;
+
 INA_TEST(suite, test) { }
 
 static int __ina_suite_all(ina_test_testcase_t* t) {
@@ -243,7 +245,6 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     char* args[16];
     int n;
 
-    INA_TRACE_MSG("Start");
     INA_ASSERT_NOTNULL(hid);
 
     pid_t pid = fork();
@@ -257,7 +258,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
        /* child */
        n = 0;
 
-       args[n] = "./test";
+       args[n] = __binpath;
        args[n++] = "-h";
        args[n++] = (char*)suite_name;
        args[n++] = (char*)helper_name;
@@ -268,7 +269,6 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
        va_end(ap);*/
        args[n++] = NULL;
        execvp(args[0], args);
-       INA_TRACE_MSG("Failed helper");
        perror("execvp()");
        _exit(127);
     }
@@ -282,6 +282,8 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     char cmdline[256];
     char exepath[MAX_PATH];
     
+    INA_ASSERT_NOTNULL(hid);
+
     GetModuleFileName(NULL, exepath, MAX_PATH-1);
     sprintf(cmdline, "\"%s\" -h %h %s", exepath, suite_name, helper_name);
     ina_mem_set(&si, 0, sizeof(si));
@@ -332,11 +334,18 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     ina_test_testcase_t* end;
     static int retval = EXIT_FAILURE;
 
+    if (argc < 1) {
+        return retval;
+    }
+    if (strcmp(argv[1], "-h")==0) {
+        return ina_test_helper_run(argc, argv);
+    }
 
     if (argc < 3) {
         return retval;
     }
         
+    __binpath = argv[0];
     __suite_name = argv[2];
     __helper_name = argv[3];
     filter = __ina_helper_filter;
