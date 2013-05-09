@@ -64,7 +64,7 @@ static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_param_t *par
     return INA_SUCCESS;
 }
 
-INA_TEST_HELPER(iscp, tcp_server) {
+INA_TEST_HELPER(iscp_tcp, tcp_server) {
 
     INA_ISCP_CMDS(cmds,
            INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
