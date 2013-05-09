@@ -57,7 +57,7 @@ typedef struct ina_test_hid_s {
         INA_TEST_HELPER_INVOKE(hid, NULL, cmd, ...)
 
 #define INA_TEST_HELPER_CMD_WAIT(hid, cmd, ...)  \
-        INA_TEST_HELPER_INVOKE(hid, NULL, cmd, ...)
+        INA_TEST_HELPER_INVOKE_WAIT(hid, NULL, cmd, msec...)
 
 #define INA_TEST_HELPER_STOP(id) ina_test_helper_stop(id)
 
