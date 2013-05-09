@@ -281,11 +281,26 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     DWORD dwExitCode;
     char cmdline[256];
     char exepath[MAX_PATH];
+    char *args[16];
+    size_t n = 0;
+    size_t i;
+    va_list ap;
+
     
     INA_ASSERT_NOTNULL(hid);
 
+    va_start(ap, wait_msec);
+    while (wait_msec) {
+        args[n++] = va_arg(ap, char *);
+    }
+    va_end(ap);
+  
     GetModuleFileName(NULL, exepath, MAX_PATH-1);
-    sprintf(cmdline, "\"%s\" -h %s %s", exepath, suite_name, helper_name);
+    sprintf(cmdline, "\"%s\" -h %s %s ", exepath, suite_name, helper_name);
+    for (i = 0; i < n; i++) {
+        strcat(cmdline, args[i]);
+        strcat(cmdline, " ");
+    }
     ina_mem_set(&si, 0, sizeof(si));
     ina_mem_set(&pi, 0, sizeof(pi));
     si.cb = sizeof(si);
@@ -419,6 +434,10 @@ INA_API(int) ina_test_run(int argc, char *argv[])
         end++;
     }
     end++;
+
+#ifdef INA_OS_WIN32
+    _set_abort_behavior( 0, _WRITE_ABORT_MSG);
+#endif
 
     for (test = begin; test != end; test++) {
         if (test == &__ina_test_suite_test) {
