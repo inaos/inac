@@ -27,9 +27,10 @@
  */
 #include <libinac/lib.h>
 #include "config.h"
-#include <signal.h>
 
 #ifdef INA_OS_WIN32
+#include <io.h>
+
 static short int __fg_colors[INA_CIO_COLOR_UNDEFINED + 1];
 static short int __bg_colors[INA_CIO_COLOR_UNDEFINED + 1 ];
 
