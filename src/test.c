@@ -263,25 +263,30 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
        /* child */
        n = 0;
 
-       args[n++] = (char*)__binpath;
-       args[n++] = "-h";
-       args[n++] = (char*)suite_name;
-       args[n++] = (char*)helper_name;
-       va_start(ap, wait_msec);
-       while ((args[n++] = va_arg(ap, char *)));
-       va_end(ap);
-       execvp(args[0], args);
-       perror("execvp()");
-       _exit(127);
+        if (suite_name != NULL) {
+            args[n++] = (char*)__binpath;
+            args[n++] = "-h";
+            args[n++] = (char*)suite_name;
+            args[n++] = (char*)helper_name;
+        } else {
+            args[n++] = helper_name;
+        }
+
+        va_start(ap, wait_msec);
+        while ((args[n++] = va_arg(ap, char *)));
+        va_end(ap);
+        execvp(args[0], args);
+        perror("execvp()");
+        _exit(127);
     }
     hid->pid = pid;
     if (wait_msec < 0) { 
-	int exitcode = 0;
-	waitpid(pid, &exitcode, WNOHANG);
+        int exitcode = 0;
+        waitpid(pid, &exitcode, WNOHANG);
     } else if (wait_msec > 0) {
-	ina_time_sleep(wait_msec);
+        ina_time_sleep(wait_msec);
     } else {
-	ina_time_sleep(100);
+        ina_time_sleep(100);
     }
     return INA_SUCCESS;
 #else
@@ -290,7 +295,6 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     DWORD dwExitCode;
     char cmdline[256];
     char exepath[MAX_PATH];
-    size_t i;
 
     INA_ASSERT_NOTNULL(hid);
 
@@ -298,11 +302,19 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     while ((args[n++] = va_arg(ap, char *)));
     va_end(ap);
   
-    GetModuleFileName(NULL, exepath, MAX_PATH-1);
-    sprintf(cmdline, "\"%s\" -h %s %s ", exepath, suite_name, helper_name);
-    for (i = 0; i < n; i++) {
-        strcat(cmdline, args[i]);
-        strcat(cmdline, " ");
+    /* Start a in-situ helper */
+    if (suite_name != NULL) {
+        GetModuleFileName(NULL, exepath, MAX_PATH-1);
+        sprintf(cmdline, "\"%s\" -h %s %s ", exepath, suite_name, helper_name);
+    /* .. or an external one if non suite name is NULL */
+    } else {
+        sprintf(cmdline, "\"%s\" ", helper_name);
+    }
+    /* Append arguments */
+    n = 0;
+    while(args[n++]) {
+         strcat(cmdline, args[n]);
+         strcat(cmdline, " ");
     }
     ina_mem_set(&si, 0, sizeof(si));
     ina_mem_set(&pi, 0, sizeof(pi));
