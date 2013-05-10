@@ -22,5 +22,4 @@ testljit.test = function()
     return 99
 end
 
-
 return testljit

@@ -28,6 +28,6 @@
 #include <stdio.h>
 #include <libinac/lib.h>
  
-INA_TEST_SKIP(memmory, memory_memfn)
+INA_TEST(memmory, memory_memfn)
 {
 }

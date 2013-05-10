@@ -61,7 +61,7 @@ INA_TEST(string, ina_str_cstr)
     
 }
 
-INA_TEST_SKIP(string, ina_str_cpy)
+INA_TEST(string, ina_str_cpy)
 {
     
 }
