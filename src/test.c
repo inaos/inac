@@ -240,40 +240,49 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
     longjmp(__err, 1);
 }
 
-INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_name, const char* helper_name, int32_t wait_msec, ...) {
-#ifndef INA_OS_WIN32
+INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, 
+                        const char *suite_name, 
+                        const char* helper_name, 
+                        int32_t wait_msec, ...)
+{
+    va_list ap;
     char* args[16];
-    int n;
+    size_t n = 0;
+#ifndef INA_OS_WIN32
 
     INA_ASSERT_NOTNULL(hid);
 
     pid_t pid = fork();
-    
+   
     if (pid < 0) {
          perror("fork");
          return INA_FAILURE;
-     }
+    }
      
-     if (pid == 0) {
+    if (pid == 0) {
        /* child */
        n = 0;
 
-       args[n] = __binpath;
+       args[n++] = (char*)__binpath;
        args[n++] = "-h";
        args[n++] = (char*)suite_name;
        args[n++] = (char*)helper_name;
-       /*va_start(ap, wait);
-       while (*wait) {
-           args[n++] = va_arg(ap, char *);
-       }
-       va_end(ap);*/
-       args[n++] = NULL;
+       va_start(ap, wait_msec);
+       while ((args[n++] = va_arg(ap, char *)));
+       va_end(ap);
        execvp(args[0], args);
        perror("execvp()");
        _exit(127);
     }
     hid->pid = pid;
-    ina_time_sleep(500);
+    if (wait_msec < 0) { 
+	int exitcode = 0;
+	waitpid(pid, &exitcode, WNOHANG);
+    } else if (wait_msec > 0) {
+	ina_time_sleep(wait_msec);
+    } else {
+	ina_time_sleep(100);
+    }
     return INA_SUCCESS;
 #else
     PROCESS_INFORMATION pi;
@@ -281,18 +290,12 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     DWORD dwExitCode;
     char cmdline[256];
     char exepath[MAX_PATH];
-    char *args[16];
-    size_t n = 0;
     size_t i;
-    va_list ap;
 
-    
     INA_ASSERT_NOTNULL(hid);
 
     va_start(ap, wait_msec);
-    while (wait_msec) {
-        args[n++] = va_arg(ap, char *);
-    }
+    while ((args[n++] = va_arg(ap, char *)));
     va_end(ap);
   
     GetModuleFileName(NULL, exepath, MAX_PATH-1);

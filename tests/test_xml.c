@@ -29,7 +29,6 @@
 
 const char *test_xml =
 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-"<?xml-stylesheet type=\"text/xsl\" href=\"./ClientHTML.xsl\"?><protocol>"
 "<version>5.0 for US Messages</version>"
 "<revisions>"
 "    <revision type=\"Draft\" version=\"5.0\" author=\"Hans Muster\" date=\"07/16/2008\"/>"
