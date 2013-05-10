@@ -40,7 +40,7 @@ INA_TEST(ljit, call)
     INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
     lua_getglobal(ctx->lstate, "t");
     
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", 10, 5, &r));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", (double)10, (double)5, &r));
     INA_TEST_ASSERT_EQUAL_FLOATING(50, r);
     
     INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "<s", &rs));

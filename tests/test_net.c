@@ -41,7 +41,7 @@ INA_TEST_SETUP(net) {
     INA_TEST_HELPER_INVOKE(&data->hid, net, non_blocking_echo_server, 
         __INA_TCP_ADDR, 
          INA_NUM2STR(__INA_TCP_PORT),
-	 NULL);
+         NULL);
 }
 
 INA_TEST_TEARDOWN(net) {

@@ -685,14 +685,22 @@ possible chose to between wait/or spawn
 ##### Adding in-situ Helpers
 In-situ helpers are compiled directly in the test binary by using the `INA_TEST_HELPER`macro. The macro
 takes two arguments: the suite name and helper name. The `argc` and `argv` from the `main()` function 
-are available in the code body. Each Helper should assign a valid RC to `retval` before leaving.
+are available in the code body. For easy use and access use  Each Helper should assign a valid RC to `retval` before leaving.
 
-	INA_HELPER(tcp, dummy_dns_server) {
+	INA_TEST_HELPER(tcp, dummy_dns_server) {
+	  const char* addr;
+	  int port;
+	  
+	  /* We need 2 arguments
+	  INA_TEST_HELPER_CHECK_ARGC(2);
+	  /* Get arguments */
+	  addr = INA_TEST_HELPER_CARG(0);
+	  port = INA_TEST_HELPER_IARG(1);
+
 	  /* Starting coding your dummy tcp DNS server */
-	  if (argc > 0) {
 	  	...
 
-	  *revtval = EXIT_SUCCESS;
+      INA_TEST_HELPER_SET_RC(EXIT_SUCCESS);
 	}
 
 ##### Invoking in-situ Helpers	
