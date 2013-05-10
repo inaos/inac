@@ -746,7 +746,7 @@ static void __document_parse_node_attributes(rapidxml_doc_t *doc, rapidxml_node_
         /* Extract attribute name */
         char *name = doc->text;
         ++doc->text;     /* Skip first character of attribute name */
-		__document_skip(__test_attr_name_pred, doc->text);
+		doc->text = __document_skip(__test_attr_name_pred, doc->text);
         if (doc->text == name) {
 			doc->err_handler("expected attribute name", name);
 		}
@@ -759,7 +759,7 @@ static void __document_parse_node_attributes(rapidxml_doc_t *doc, rapidxml_node_
 		__node_append_attribute(node, attribute);
 
         /* Skip whitespace after attribute name */
-		__document_skip(__test_whitespace, doc->text);
+		doc->text = __document_skip(__test_whitespace, doc->text);
 
         /* Skip = */
         if (*doc->text != '=') {
