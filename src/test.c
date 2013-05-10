@@ -203,7 +203,7 @@ INA_API(void) ina_test_assert_not_null(const void *real, const char *caller,
 INA_API(void) ina_test_assert_same(const void *exp, const void *real,
                     const char *caller, int line)
 {
-    if (&real != &exp) {
+    if (real != exp) {
         INA_TEST_ERR("%s:%d  should be SAME", caller, line);
         longjmp(__err, 1);
     }
@@ -212,7 +212,7 @@ INA_API(void) ina_test_assert_same(const void *exp, const void *real,
 INA_API(void) ina_test_assert_not_same(const void *exp, const void *real, 
                     const char *caller, int line) 
 {
-    if (&real == &exp) {
+    if (real == exp) {
         INA_TEST_ERR("%s:%d  should not be SAME", caller, line);
         longjmp(__err, 1);
     }
