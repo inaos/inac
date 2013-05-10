@@ -252,14 +252,14 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
 
     INA_ASSERT_NOTNULL(hid);
 
-    pid_t pid = 0;
-    /*
+    pid_t pid = fork();
+   
     if (pid < 0) {
          perror("fork");
          return INA_FAILURE;
-     }
+    }
      
-     if (pid == 0) {*/
+    if (pid == 0) {
        /* child */
        n = 0;
 
@@ -270,13 +270,19 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
        va_start(ap, wait_msec);
        while ((args[n++] = va_arg(ap, char *)));
        va_end(ap);
-       args[n++] = NULL;
        execvp(args[0], args);
        perror("execvp()");
        _exit(127);
-    /*}*/
+    }
     hid->pid = pid;
-    ina_time_sleep(wait_msec);
+    if (wait_msec < 0) { 
+	int exitcode = 0;
+	waitpid(pid, &exitcode, WNOHANG);
+    } else if (wait_msec > 0) {
+	ina_time_sleep(wait_msec);
+    } else {
+	ina_time_sleep(100);
+    }
     return INA_SUCCESS;
 #else
     PROCESS_INFORMATION pi;

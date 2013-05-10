@@ -50,11 +50,11 @@ typedef struct ina_test_hid_s {
 #define INA_TEST_HELPER_IARG(n) atoi(argv[4+n])
 #define INA_TEST_HELPER_INVOKE(hid, sname, hname, ...)                     \
     INA_TEST_MSG("starting helper %s", #hname);      \
-    INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, 0, __VA_ARGS__)); 
+    INA_TEST_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, 0, __VA_ARGS__)); 
 
 #define INA_TEST_HELPER_INVOKE_WAIT(hid, sname, hname, msec, ...)           \
     INA_TEST_MSG("starting helper %s", #hname);      \
-    INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, msec, __VA_ARGS__));
+    INA_TEST_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, msec, __VA_ARGS__));
 
 #define INA_TEST_HELPER_CMD(hid, cmd, ...)      \
         INA_TEST_HELPER_INVOKE(hid, NULL, cmd, ...)
