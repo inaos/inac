@@ -138,13 +138,23 @@ INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, 
 	return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_xml_elem_first(ina_xml_elem_t *elem, ina_xml_elem_t **first)
+{
+	if (rapidxml_node_first(elem->elem, &elem->elem) > 0) {
+		/* FIXME: proper error handling */
+		return INA_FAILURE;
+	}
+	*first = elem;
+	return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_xml_elem_next(ina_xml_elem_t *elem, ina_xml_elem_t **next)
 {
 	if (rapidxml_node_next(elem->elem, &elem->elem) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
 	}
-	*next = elem;
+    *next = elem;
 	return INA_SUCCESS;
 }
 
