@@ -45,6 +45,9 @@ typedef struct ina_test_hid_s {
 } ina_test_hid_t;
 #endif
 
+/* Set the return code inside a main function */
+#define INA_TEST_HELPER_SET_RC(rc) *retval = rc
+/* Check if min argument passed, if not exit with EXIX_FAILURE */
 #define INA_TEST_HELPER_CHECK_ARGC(c) if (argc<(3+c)) { *retval = EXIT_FAILURE; return; }
 #define INA_TEST_HELPER_CARG(n) argv[4+n]
 #define INA_TEST_HELPER_IARG(n) atoi(argv[4+n])
