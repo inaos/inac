@@ -1382,18 +1382,30 @@ int rapidxml_parser_root(rapidxml_doc_t *doc, rapidxml_node_t **root)
 
 int rapidxml_node_first(rapidxml_node_t *node, rapidxml_node_t **first)
 {
+    if (node == NULL) {
+        *first = NULL;
+        return 1;
+    }
 	*first = __node_first_node(node, NULL, 0, 1);
 	return 0;
 }
 
 int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next)
 {
+    if (node == NULL) {
+        *next = NULL;
+        return 1;
+    }
 	*next = __node_next_sibling(node, NULL, 0, 1);
 	return 0;
 }
 
 int rapidxml_node_last(rapidxml_node_t *node, rapidxml_node_t **last)
 {
+    if (node == NULL) {
+        *last = NULL;
+        return 1;
+    }
 	*last = __node_last_node(node, NULL, 0, 1);
 	return 0;
 }
@@ -1413,25 +1425,41 @@ int rapidxml_node_get_value(rapidxml_node_t *node, const char **value, size_t *l
 }
 
 int rapidxml_node_first_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
-{
+{ 
+    if (node == NULL) {
+        *attr = NULL;
+        return 1;
+    }
 	*attr = __node_first_attribute(node, NULL, 0, 1);
 	return 0;
 }
 
 int rapidxml_node_last_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
 {
+    if (node == NULL) {
+        *attr = NULL;
+        return 1;
+    }
 	*attr = __node_last_attribute(node, NULL, 0, 1);
 	return 0;
 }
 
 int rapidxml_attribute_next(rapidxml_attr_t *attr, rapidxml_attr_t **next)
 {
+    if (attr == NULL) {
+        *next = NULL;
+        return 1;
+    }
 	*next = __attr_next_attribute(attr, NULL, 0, 1);
 	return 0;
 }
 
 int rapidxml_attribute_previous(rapidxml_attr_t *attr, rapidxml_attr_t **previous)
 {
+    if (attr == NULL) {
+        *previous = NULL;
+        return 1;
+    }
     *previous = __attr_previous_attribute(attr, NULL, 0, 1);
     return 0;
 }
