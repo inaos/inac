@@ -789,7 +789,7 @@ static void __document_parse_node_attributes(rapidxml_doc_t *doc, rapidxml_node_
                 
         /* Set attribute value */
         attribute->value = value;
-		attribute->value_size = end - value;
+		attribute->value_size = doc->text - end;
                 
         /* Make sure that end quote is present */
         if (*doc->text != quote) {
@@ -804,13 +804,13 @@ static void __document_parse_node_attributes(rapidxml_doc_t *doc, rapidxml_node_
 /*
  *
  */
-static char __document_parse_and_append_data(rapidxml_node_t *node, char *text)
+static char __document_parse_and_append_data(rapidxml_doc_t * doc, rapidxml_node_t *node)
 {
     /* Skip until end of data */
-    char *value = text, *end;
+    char *value = doc->text, *end;
     
-	text = __document_skip(__test_text_pred, text);
-	end = text;
+	doc->text = __document_skip(__test_text_pred, doc->text);
+	end = doc->text;
 
 	if (node->value == NULL) {
 		node->value = value;
@@ -818,7 +818,7 @@ static char __document_parse_and_append_data(rapidxml_node_t *node, char *text)
 	}     
     
     /* Return character that ends data */
-    return *text;
+    return *doc->text;
 }
 /*
  *
@@ -889,7 +889,7 @@ static void __document_parse_node_content(rapidxml_doc_t *doc, rapidxml_node_t *
 
         /* Data node */
         default:
-            next_char = __document_parse_and_append_data(node, doc->text);
+            next_char = __document_parse_and_append_data(doc, node);
             goto after_data_node;   /* Bypass regular processing after data nodes */
 
         }
@@ -1266,6 +1266,7 @@ static void __document_parse(rapidxml_doc_t *doc, char* text)
         __node_remove_all_nodes(doc->root);
 	    __node_remove_all_attributes(doc->root);
 	}
+    doc->root =  __mempool_allocate_node(&doc->mempool, RAPIDXML_NODE_TYPE_DOCUMENT, NULL,NULL,0,0);
             
     /* Parse BOM, if any */
     __document_parse_bom(doc->text);
@@ -1376,6 +1377,12 @@ int rapidxml_parser_reset(rapidxml_doc_t *doc)
 int rapidxml_parser_root(rapidxml_doc_t *doc, rapidxml_node_t **root)
 {
 	*root = doc->root;
+	return 0;
+}
+
+int rapidxml_node_first(rapidxml_node_t *node, rapidxml_node_t **first)
+{
+	*first = __node_first_node(node, NULL, 0, 1);
 	return 0;
 }
 
