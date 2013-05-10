@@ -27,6 +27,17 @@
  */
 #include <libinac/lib.h>
 
+INA_TEST(timer,init_destroy)
+{
+    ina_timer_t *t;
+
+    t = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
+    INA_TEST_ASSERT_NOT_NULL(t);
+    INA_TEST_ASSERT_SUCCEED(ina_timer_destroy(&t));
+    INA_TEST_ASSERT_NULL(t);
+}
+ 
 INA_TEST(timer, event)
 {
     ina_timer_t *t;
@@ -42,7 +53,7 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_NULL(t);
     INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
-    e1 = ina_timer_create_event(t, 1000);
+    e1 = ina_timer_create_event(t, 900);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NOT_NULL(e1);
     ina_time_sleep(1000);
@@ -50,15 +61,4 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
-}
-
-INA_TEST(timer,init_destroy)
-{
-    ina_timer_t *t;
-    
-    t = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_destroy(&t));
-    INA_TEST_ASSERT_NULL(t);
 }
