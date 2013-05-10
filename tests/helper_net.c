@@ -40,13 +40,10 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
     unsigned char buffer[4096];
     int nb_read;
 
-  
-    if (argc < 4) {
-        *retval = EXIT_FAILURE;
-    }
-
-    addr = argv[2];
-    port = atoi(argv[3]);
+    INA_TEST_HELPER_CHECK_ARGC(2);
+    addr = INA_TEST_HELPER_CARG(0);
+    port = INA_TEST_HELPER_IARG(1);
+ 
     ina_mem_set(buffer, 0, 4096);
 
     if (!INA_SUCCEED(ina_net_tcp_server(&fd, port, addr))) {

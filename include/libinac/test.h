@@ -45,6 +45,9 @@ typedef struct ina_test_hid_s {
 } ina_test_hid_t;
 #endif
 
+#define INA_TEST_HELPER_CHECK_ARGC(c) if (argc<(3+c)) { *retval = EXIT_FAILURE; return; }
+#define INA_TEST_HELPER_CARG(n) argv[4+n]
+#define INA_TEST_HELPER_IARG(n) atoi(argv[4+n])
 #define INA_TEST_HELPER_INVOKE(hid, sname, hname, ...)                     \
     INA_TEST_MSG("starting helper %s", #hname);      \
     INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, 0, __VA_ARGS__)); 

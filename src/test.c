@@ -252,18 +252,18 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
 
     INA_ASSERT_NOTNULL(hid);
 
-    pid_t pid = fork();
-    
+    pid_t pid = 0;
+    /*
     if (pid < 0) {
          perror("fork");
          return INA_FAILURE;
      }
      
-     if (pid == 0) {
+     if (pid == 0) {*/
        /* child */
        n = 0;
 
-       args[n] = (char*)__binpath;
+       args[n++] = (char*)__binpath;
        args[n++] = "-h";
        args[n++] = (char*)suite_name;
        args[n++] = (char*)helper_name;
@@ -274,7 +274,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
        execvp(args[0], args);
        perror("execvp()");
        _exit(127);
-    }
+    /*}*/
     hid->pid = pid;
     ina_time_sleep(wait_msec);
     return INA_SUCCESS;
