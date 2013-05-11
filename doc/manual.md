@@ -694,8 +694,8 @@ are available in the code body. For easy use and access use  Each Helper should 
 	  /* We need 2 arguments
 	  INA_TEST_HELPER_CHECK_ARGC(2);
 	  /* Get arguments */
-	  addr = INA_TEST_HELPER_CARG(0);
-	  port = INA_TEST_HELPER_IARG(1);
+	  addr = INA_TEST_HELPER_CHAR_ARG(0);
+	  port = INA_TEST_HELPER_INTEGER_ARG(1);
 
 	  /* Starting coding your dummy tcp DNS server */
 	  	...
