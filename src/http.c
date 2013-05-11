@@ -458,11 +458,9 @@ INA_API(ina_rc_t) ina_http_parser_httpversion(ina_http_parser_t *p, unsigned sho
 
 INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, size_t inlen, int *more)
 {
-	size_t read;
-
 	INA_ASSERT_NOTNULL(p);
 	
-	read = http_parser_execute(&p->intp, &p->settings, in, inlen);
+	http_parser_execute(&p->intp, &p->settings, in, inlen);
 	p->finished = http_body_is_final(&p->intp);
 	*more = p->finished;
 

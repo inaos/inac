@@ -36,6 +36,7 @@
 #include <sys/sem.h>
 #include <sys/syslog.h>
 #include <sys/time.h>
+#include <sys/wait.h>
 #include <spawn.h>
 #include <unistd.h>
 #endif

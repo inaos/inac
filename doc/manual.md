@@ -15,31 +15,31 @@ High level objectives:
 * Ease of maintenance, testing and debugging
 * Fully documented
 
-## Getting started
+# Getting started
 
-### Building on Windows
+## Building on Windows
 
 Building on Windows requires some programs to be present on your system.
 
-#### Prerequisites
+### Prerequisites
 
 * [Visual Studio 2012][1]
 * [CMake][2]
   * Use the binary installer you don't need to build from source
   * Make sure you add cmake to your PATH
 
-#### Build
+### Build
 
 * Open a Visual Studio command prompt
 * Navigate to the INAC root folder
 * Type: make.bat all debug
 
-### Building on Linux or OS X
+## Building on Linux or OS X
 
 To build and install the library, simply type `sudo make && make install`. To select
 the debug build, type `make debug`.
 
-### Compile time configuration
+## Compile time configuration
  * `INA_CSTRING_ENABLED`: Enable C-runtime strings (Default)
  * `INA_BSTRING_ENABLED`: Enable BSTRING string (The Better String Library)
  * `INA_ISTRING_ENABLED`: Enable INAOS string 
@@ -56,13 +56,13 @@ All constants are prefaced with `INA_` . Other identifiers are prefaced with `in
 Type names are suffixed with `_t` and typedef‘d so that the struct keyword need
 not be used.
 
-### Starting to code
+## Starting to code
 
 Start by including the INOAS library header in your code:
 
 	#include <libinac/lib.h>;
 
-### For library consumers
+## For library consumers
 Initialize the library context as soon as possible:
 
 	ina_init(0);
@@ -70,7 +70,7 @@ Initialize the library context as soon as possible:
 For each call of `ina_init()` you have to call `ina_exit()`. You can override the 
 size system memory pool by passing the pool size in bytes as argument.  
 
-### For applications
+## For applications
 For applications, initialize the application context with `ina_appinit()`. This must be 
 the first function call in your program. You must call `ina_exit()` once before you quit 
 your program. You can override the system memory pool size by passing the pool size in
@@ -86,7 +86,7 @@ bytes as third argument.
 	    ina_exit(EXIT_SUCCESS);
 	}
 
-#### Command line options
+### Command line options
 The library provides a builtin command line processor. For that purpose the 
 `ina_appinit()` takes as firth argument an array of `ina_opt_t` containing the 
 command line options definition consisting in string, number and flag options. 
@@ -132,11 +132,11 @@ To get a string value use `ina_opt_get_string()`:
 The command line options values are preserved for the until the application stops. 
 
 
-## Portable Header
+# Portable Header
 This library provides with his portable header (portable.h) macros, functions 
 and types to help writing cross-platform libraries and applications.
 
-### Compiler detection
+## Compiler detection
 A macro for each compiler will be defined if detected. The following compilers 
 are  currently detected. 
 
@@ -157,7 +157,7 @@ The name of detected compiler is defined by the `INA_COMPILER_STRING` macro.
 A warning is thrown by compile time if no compiler was detected.
  
 
-### Target OS detection
+## Target OS detection
 Following target operating systems are currently supported and defined if detected.
 
 * AIX: `INA_OS_AIX`
@@ -187,7 +187,7 @@ Following target operating systems are currently supported and defined if detect
 The name of detected target os is defined by the `INA_OS_STRING` macro.
 
 
-### Target CPU detection
+## Target CPU detection
 Following target CPUs are currently supported and defined if detected. The name
 of detected target CPU is defined by the `INA_CPU_STRING` macro.
 
@@ -207,13 +207,13 @@ of detected target CPU is defined by the `INA_CPU_STRING` macro.
 * Sparc/64: `INA_CPU_SPARC64`
 * Sparc/32: `INA_CPU_SPARC`
 
-### Integral types
+## Integral types
 
-### Misc macros
+## Misc macros
 
-## API Reference
+# API Reference
 
-### Library Version
+## Library Version
 The INAOS Common C Library version is of the form A.B.C, where A is the major 
 version, B is the minor version and C is the micro version. If the micro 
 version is zero, it’s omitted from the version string, i.e. the version string 
@@ -245,10 +245,10 @@ e.g.:
 	/* Code specific to version 1.2.1 and above */
 	#endif
 
-### Strings
+## Strings
 
 
-### Error handling
+## Error handling
 
 A good error handling should know as much as possible about an error. Things
 like when, where, what, who, is it handed or not, and "should I abort my 
@@ -270,9 +270,9 @@ in fact a 32bit unsigned integer value. The RC is packed as follow:
 To know if an error occurred use `INA_SUCCEED` macro, which returns `1` if no
 errors occurred or the last error was handled by a previous caller.
 
-#### Return Code
+### Return Code
 
-##### Reason
+#### Reason
 This value contain the error code (reason of failure). Values from 1-128 are
 reserved to the INAOS Common C Library. Define user error codes starting
 by 129. For instance:
@@ -285,7 +285,7 @@ We can get access to the reason by ÌNA\_RC\_REASON\` macro.
 	   case INAWS_TOOMANY_FILES:
 	      .....
 
-##### Fatal Flag
+#### Fatal Flag
 Indicate whenever you should about the program. Use `INA_ERR_FATAL(rc)` to 
 verify a fatal condition. For instance:
 
@@ -294,7 +294,7 @@ verify a fatal condition. For instance:
 	    if (INA_ERR_FATAL(rc)) {
 	       --- abort here
   
-##### Handled Flag
+#### Handled Flag
 Indicate if an error was handled by a previous caller. Use `ina_err_clear` to
 mark an error as handled. For instance:
 	rc = inaws_server_start(...
@@ -311,7 +311,7 @@ Once an error is marked as handled, there is no way to reset it to
 removed  from the error state.
 
 
-##### OS function identifier
+#### OS function identifier
 Give us the possibility to inform the caller about system function failure . 
 For instance `fopen()`. In such a case the caller could retry with other 
 parameters/values or let the user know about the real cause of failure. 
@@ -407,7 +407,7 @@ the most recently  pushed are removed from the error state.
 	    rc = ina_err_peek();
 	    if (!INA_ERR_FATAL(RC)) 
 
-#### Cleanup handler
+### Cleanup handler
 There is a possibility to define a callback function which is called in case 
 the program is being terminated because of fatal error like segmentation fault
 or an interruption request like ctrl-c.
@@ -415,13 +415,13 @@ Use `ina_err_set_cleanup_handler()` to define such a callback.
 Keep in mind that this cleanup handler will be called only in case of abnormal
 program termination.
 
-#### Utilities
+### Utilities
 The error handling module of this library provide two useful functions. They 
 are used internally but they are for public use as well.
 
 - `ina_err_trace()` printout current error state to the standard output.
 
-### Memory Handling
+## Memory Handling
 The INAOS Common C Library provide custom memory allocation and memory pooling.
 Main Goals of those components:
 
@@ -431,31 +431,31 @@ Main Goals of those components:
 - Hide complexity. In fact consumers doesn't have to care about releasing
   previously allocated memory.
 
-#### Architecture
-##### Internal memory pool
-##### Allocator
-##### Memory Pool
-###### Fixed sized pool
-###### Dynamic sized pool
-###### Auto sized pool
-###### Using shared memory
-##### Memory strategies
-###### Standard
-###### Best fit
-#### Using the API
-##### Working with pools
-#### Error codes
+### Architecture
+#### Internal memory pool
+#### Allocator
+#### Memory Pool
+##### Fixed sized pool
+##### Dynamic sized pool
+##### Auto sized pool
+##### Using shared memory
+#### Memory strategies
+##### Standard
+##### Best fit
+### Using the API
+#### Working with pools
+### Error codes
 
-### High-Level Communication : ISCP
+## High-Level Communication : ISCP
 
-### Time & Timer
+## Time & Timer
 
-### LuaJIT API
+## LuaJIT API
 
-### Configuration file
+## Configuration file
 INAC provides a configuration file parser witch works for C and Lua as well.
 
-#### Creating the configuration file
+### Creating the configuration file
 The configuration file is a pure Lua script and consists of sections. Those 
 section can be named or unnamed and they contains one more key/value pairs.
 Sections and keys can be marked as required. Values for key can be string or
@@ -513,7 +513,7 @@ Configuration definition
   		configured = false
 	}
 	
-#### Working with configuration files
+### Working with configuration files
    
 For basic usage use the appropriates macros. Start by declaring a variable to hold the instance for the configuration file.
    
@@ -582,8 +582,8 @@ Sample processor witten un LUA
 	end
 		
 
-### Testing
-#### Tracing
+## Testing
+### Tracing
 Tracing feature can be enabled an disabled by combiler time settings `INA_TRACE_ENABLED`.  Also the
 tracing level can be define at compile time. The library know about 3 tracing levels. Trace messages
 are ended by a newline "\n" 
@@ -598,9 +598,10 @@ Use `INA_TRACE_MSG` to print simple messages and `INA_TRACE` to print debug mess
 	INA_TRACE2("A bit more %s trace", "detailed");
 	INA_TRACE3("A %s trace", "fully detailed"); 
 
-#### Unit testing
+### Unit testing
 INAC provides a built-in test framework. This framework is almost independent from the library itself. 
-Features  
+
+#### Features  
 
  * Easy adding tests with minimal effort. Non header files required.
  * Supports test suites
@@ -609,12 +610,17 @@ Features
  * Colored output
  * Supports skipping
  * Minimal memory footprint (no allocations)
+ * Supports test helpers
+ * Working the same way on Linux/OS-X/Win 
  
 Possibles improvements :
  * Possibility to add small description to each test for documentation purpose.
  * Variable output format
  * Display elapsed time
  
+
+
+#### Adding tests 
 To add your first test to a test suite simply the following lines of code.
 
     INA_TEST(my_suite, my_first_test_with_inac) {
@@ -622,6 +628,7 @@ To add your first test to a test suite simply the following lines of code.
 	}
 
 
+#### Adding fixtures  
 To added fixtures to your test use `INA_TEST_FIXTURE` macro. Fixtures need a fixture data struct which is 
 defined by `INA_TEST_DATA` macro.  Optionally you cann define a setup and teardown for your test. Setup and 
 Teardown is call on any test in the suite.  Fixture data is passed to Setup/Teardown and Run of any test in
@@ -646,14 +653,111 @@ the suite.  Follow the next sample.
 
 NOTE: Do not forget the semicolon after `INA_TEST_DATA()`
 
-
+#### How to skip tests 
 To skip existing test use the _SKIP version of `INA_TEST` or `INA_TEST_FIXTURE`. 
 
     INA_TEST_SKIP(my_suite, my_first_test_with_inac) {
     	INA_ASSERT_FLOATING(1.0, 1.0);
 	}
+	
+    INA_TEST_FIXTURE(iscp_tcp, send_negative_double) {
 
 
+#### How to run the test suites
+To run the tests simply call `ina_test_run()` by passing arguments count and arguments received from
+the command line.
+
+	int main(int argc, char** argv) 
+	{ 
+    	ina_test_run(argc, argv);
+
+From the command line prompt you can start all tests or a single suite
+	
+	./test
+	./test test_suite
+	
+    
+#### Helpers 
+A more advanced feature of this test framework are provided by helper macros. The framework supports 
+in-situ helper and external helpers as well. Each helper is started in a new process. Further it's 
+possible chose to between wait/or spawn
+
+##### Adding in-situ Helpers
+In-situ helpers are compiled directly in the test binary by using the `INA_TEST_HELPER`macro. The macro
+takes two arguments: the suite name and helper name. The `argc` and `argv` from the `main()` function 
+are available in the code body. For easy use and access use  Each Helper should assign a valid RC to `retval` before leaving.
+
+	INA_TEST_HELPER(tcp, dummy_dns_server) {
+	  const char* addr;
+	  int port;
+	  
+	  /* We need 2 arguments
+	  INA_TEST_HELPER_CHECK_ARGC(2);
+	  /* Get arguments */
+	  addr = INA_TEST_HELPER_CARG(0);
+	  port = INA_TEST_HELPER_IARG(1);
+
+	  /* Starting coding your dummy tcp DNS server */
+	  	...
+
+      INA_TEST_HELPER_SET_RC(EXIT_SUCCESS);
+	}
+
+##### Invoking in-situ Helpers	
+
+    INA_TEST(tcp, dns_ping) {
+    	/* Invoke helper */
+    	ina_test_hid_t hid;
+   		INA_TEST_HELPER_INVOKE(tcp, dummy_dns_server, "127.0.0.1", "9001", NULL);
+   		
+        /* Make some tests */
+		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
+		
+		/* Kill helper process */
+		INA_TEST_HELPER_STOP(hid);
+	}
+	
+	INA_TEST(ullc, read_ring_buffer) {
+    	/* Invoke helper */
+    	ina_test_hid_t hid;
+   		INA_TEST_HELPER_INVOKE_WAIT(tcp, create_ring_buffer, 5000, NULL);
+   		
+        /* Make some tests */
+		INA_TEST_ASSERT_TRUE(read_ring_buffer());
+		
+	}
+
+	
+To test or start an in-situ helper from the command line juste type
+
+	./test -h suite_name helper_name
+
+  
+##### External Helpers
+
+    INA_TEST(tcp, dns_ping) {
+    	/* Invoke helper */
+    	ina_test_hid_t hid;
+   		INA_TEST_HELPER_CMD(&hid, "c:/test/dns.exe" "127.0.0.1", "9001");
+   		
+        /* Make some tests */
+		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
+		
+		/* Kill helper process */
+		INA_TEST_HELPER_STOP(hid);
+	}
+  
+   INA_TEST(tcp, dns_ping) {
+    	/* Invoke helper */
+    	ina_test_hid_t hid;
+   		INA_TEST_HELPER_CMD_WAIT("c:/test/dns.exe", 5000, "127.0.0.1", "9001");
+   		
+        /* Make some tests */
+		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
+	}
+  
+
+   
 	
 #### Performance testing
 

@@ -63,6 +63,8 @@ int rapidxml_parser_reset(rapidxml_doc_t *doc);
 
 int rapidxml_parser_root(rapidxml_doc_t *doc, rapidxml_node_t **root);
 
+int rapidxml_node_first(rapidxml_node_t *node, rapidxml_node_t **first);
+
 int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next);
 
 int rapidxml_node_get_name(rapidxml_node_t *node, const char **name, size_t *len);

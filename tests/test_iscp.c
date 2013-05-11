@@ -135,7 +135,7 @@ INA_TEST_DATA(iscp_tcp) {
 };
 
 INA_TEST_SETUP(iscp_tcp) {
-    INA_TEST_HELPER_SPAWN(&data->hid, iscp, tcp_server, NULL);
+    INA_TEST_HELPER_INVOKE(&data->hid, iscp_tcp, tcp_server, NULL);
     ina_iscp_create_tcp(&data->iscp, "127.0.0.1", 9999);
 }
 
@@ -144,31 +144,20 @@ INA_TEST_TEARDOWN(iscp_tcp) {
     ina_iscp_destroy(&data->iscp);
 }
 
-INA_TEST_FIXTURE_SKIP(iscp_tcp, send_negative_double) {
+INA_TEST_FIXTURE(iscp_tcp, send_negative_double) {
       INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 3, 3, NULL));
       INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 1, INA_ISCP_TYPE_DBL, -3.2));
 }
 
+INA_TEST_FIXTURE(iscp_tcp, send_tcp) {
+    INA_TEST_ASSERT_NOT_NULL(data->iscp);
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 1, 3, NULL));
 
-INA_TEST(iscp, send_tcp)
-{   
-    ina_test_hid_t hid;
-    ina_iscp_ctx_t *iscp = NULL;
-
-    INA_TEST_ASSERT_SUCCEED(ina_iscp_destroy(&iscp));
-    INA_TEST_ASSERT_NULL(iscp);
-    INA_TEST_ASSERT_SUCCESS(ina_iscp_create_tcp(&iscp, "127.0.0.1", 9999));
-    INA_TEST_ASSERT_NOT_NULL(iscp);
-    INA_TEST_ASSERT_SUCCEED(ina_iscp_register(iscp, 1, 3, NULL));
-
-    INA_TEST_HELPER_SPAWN(&hid, iscp, tcp_server, NULL);
-    INA_TEST_ASSERT_SUCCEED(ina_iscp_send(iscp, 1, 
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 1, 
                             INA_ISCP_TYPE_INT64, 20,
                             INA_ISCP_TYPE_DBL, 5.2,
                             INA_ISCP_TYPE_STR, "test"));
                             
-    INA_TEST_ASSERT_SUCCEED(ina_iscp_destroy(&iscp));
-    INA_TEST_ASSERT_NULL(iscp);
 }
 
 INA_TEST_SKIP(iscp, send_recv_checkparams)
@@ -269,7 +258,7 @@ INA_TEST_SKIP(iscp, setup)
     INA_TEST_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 4, __null_handler2));
 }
 
-INA_TEST_SKIP(test, iscp_regsiter_ex)
+INA_TEST_SKIP(iscp, iscp_regsiter_ex)
 {
     ina_iscp_ctx_t *ctx = NULL;
     ina_iscp_cmd_t cmds[] = {

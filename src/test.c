@@ -47,6 +47,8 @@ static char        __errorbuffer[__INA_MSG_SIZE];
 static jmp_buf     __err;
 static const char* __suite_name;
 static const char* __helper_name;
+static const char* __binpath;
+
 INA_TEST(suite, test) { }
 
 static int __ina_suite_all(ina_test_testcase_t* t) {
@@ -82,6 +84,9 @@ static void *__ina_find_symbol(ina_test_testcase_t *test, const char *fname)
 }
 #endif
 
+static void __ina_signal_handler(int sig) {
+    longjmp(__err, 1);
+}
 
 INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
  {
@@ -89,9 +94,9 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
      va_list argp;
      
      if (is_error != INA_YES) {
-         size = sprintf(__errormsg, "%s", "MSG: ");
+         size = sprintf(__errormsg, "%s", "     MSG: ");
     } else {
-        size = sprintf(__errormsg, "%s", "ERR: ");
+        size = sprintf(__errormsg, "%s", "     ERR: ");
     }
     __errorsize -= size;
     __errormsg += size;
@@ -198,7 +203,7 @@ INA_API(void) ina_test_assert_not_null(const void *real, const char *caller,
 INA_API(void) ina_test_assert_same(const void *exp, const void *real,
                     const char *caller, int line)
 {
-    if (&real != &exp) {
+    if (real != exp) {
         INA_TEST_ERR("%s:%d  should be SAME", caller, line);
         longjmp(__err, 1);
     }
@@ -207,7 +212,7 @@ INA_API(void) ina_test_assert_same(const void *exp, const void *real,
 INA_API(void) ina_test_assert_not_same(const void *exp, const void *real, 
                     const char *caller, int line) 
 {
-    if (&real == &exp) {
+    if (real == exp) {
         INA_TEST_ERR("%s:%d  should not be SAME", caller, line);
         longjmp(__err, 1);
     }
@@ -235,42 +240,54 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
     longjmp(__err, 1);
 }
 
-INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_name, const char* helper_name, int32_t wait_msec, ...) {
-#ifndef INA_OS_WIN32
+INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, 
+                        const char *suite_name, 
+                        const char* helper_name, 
+                        int32_t wait_msec, ...)
+{
+    va_list ap;
     char* args[16];
-    int n;
+    size_t n = 0;
+#ifndef INA_OS_WIN32
 
-    INA_TRACE_MSG("Start");
     INA_ASSERT_NOTNULL(hid);
 
     pid_t pid = fork();
-    
+   
     if (pid < 0) {
          perror("fork");
          return INA_FAILURE;
-     }
+    }
      
-     if (pid == 0) {
+    if (pid == 0) {
        /* child */
        n = 0;
 
-       args[n] = "./test";
-       args[n++] = "-h";
-       args[n++] = (char*)suite_name;
-       args[n++] = (char*)helper_name;
-       /*va_start(ap, wait);
-       while (*wait) {
-           args[n++] = va_arg(ap, char *);
-       }
-       va_end(ap);*/
-       args[n++] = NULL;
-       execvp(args[0], args);
-       INA_TRACE_MSG("Failed helper");
-       perror("execvp()");
-       _exit(127);
+        if (suite_name != NULL) {
+            args[n++] = (char*)__binpath;
+            args[n++] = "-h";
+            args[n++] = (char*)suite_name;
+            args[n++] = (char*)helper_name;
+        } else {
+            args[n++] = helper_name;
+        }
+
+        va_start(ap, wait_msec);
+        while ((args[n++] = va_arg(ap, char *)));
+        va_end(ap);
+        execvp(args[0], args);
+        perror("execvp()");
+        _exit(127);
     }
     hid->pid = pid;
-    ina_time_sleep(500);
+    if (wait_msec < 0) { 
+        int exitcode = 0;
+        waitpid(pid, &exitcode, WNOHANG);
+    } else if (wait_msec > 0) {
+        ina_time_sleep(wait_msec);
+    } else {
+        ina_time_sleep(100);
+    }
     return INA_SUCCESS;
 #else
     PROCESS_INFORMATION pi;
@@ -278,9 +295,27 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     DWORD dwExitCode;
     char cmdline[256];
     char exepath[MAX_PATH];
-    
-    GetModuleFileName(NULL, exepath, MAX_PATH-1);
-    sprintf(cmdline, "\"%s\" -h %h %s", exepath, suite_name, helper_name);
+
+    INA_ASSERT_NOTNULL(hid);
+
+    va_start(ap, wait_msec);
+    while ((args[n++] = va_arg(ap, char *)));
+    va_end(ap);
+  
+    /* Start a in-situ helper */
+    if (suite_name != NULL) {
+        GetModuleFileName(NULL, exepath, MAX_PATH-1);
+        sprintf(cmdline, "\"%s\" -h %s %s ", exepath, suite_name, helper_name);
+    /* .. or an external one if non suite name is NULL */
+    } else {
+        sprintf(cmdline, "\"%s\" ", helper_name);
+    }
+    /* Append arguments */
+    n = 0;
+    while(args[n++]) {
+         strcat(cmdline, args[n]);
+         strcat(cmdline, " ");
+    }
     ina_mem_set(&si, 0, sizeof(si));
     ina_mem_set(&pi, 0, sizeof(pi));
     si.cb = sizeof(si);
@@ -288,8 +323,11 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_n
     if (CreateProcess(NULL, cmdline, 0, 0, FALSE, 
             CREATE_DEFAULT_ERROR_MODE, 0, 0,
             &si, &pi) != FALSE) {
+        if (wait_msec < 0) {
+            wait_msec = INFINITE;
+        }
         if (wait_msec > 0) {
-            dwExitCode = WaitForSingleObject(pi.hProcess, 500);
+            dwExitCode = WaitForSingleObject(pi.hProcess, wait_msec);
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
             hid->hProcess = NULL;
@@ -308,6 +346,7 @@ INA_API(ina_rc_t) ina_test_helper_stop(ina_test_hid_t *hid)
 {
     INA_ASSERT_NOTNULL(hid);
 #ifdef INA_OS_WIN32
+    TerminateProcess(hid->hProcess, 0);
     CloseHandle(hid->hProcess);
     CloseHandle(hid->hThread);
     hid->hProcess = NULL;
@@ -329,11 +368,9 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     ina_test_testcase_t* end;
     static int retval = EXIT_FAILURE;
 
-
     if (argc < 3) {
         return retval;
     }
-        
     __suite_name = argv[2];
     __helper_name = argv[3];
     filter = __ina_helper_filter;
@@ -381,6 +418,14 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     ina_test_testcase_t* end;
     ina_cio_color_t color;
 
+    __binpath = argv[0];
+
+    if (argc > 2) {
+        if (strcmp(argv[1], "-h")==0) {
+            return ina_test_helper_run(argc, argv);
+        }
+    }
+
     if (argc == 2) {
         __suite_name = argv[1];
         filter = __ina_suite_filter;
@@ -404,6 +449,10 @@ INA_API(int) ina_test_run(int argc, char *argv[])
         end++;
     }
     end++;
+
+#ifdef INA_OS_WIN32
+    _set_abort_behavior( 0, _WRITE_ABORT_MSG);
+#endif
 
     for (test = begin; test != end; test++) {
         if (test == &__ina_test_suite_test) {
@@ -431,8 +480,8 @@ INA_API(int) ina_test_run(int argc, char *argv[])
 
                 num_skip++;
             } else {
-                int result = setjmp(__err);
-                if (result == 0) {
+                 void* old_sigabrt_handler = NULL;
+                 void* old_sigsegv_handler = NULL;
 #ifdef INA_OS_OSX
                     if (!test->setup) {
                         test->setup = __ina_find_symbol(test, "setup");
@@ -444,12 +493,16 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                     if (test->setup) {
                         test->setup(test->data);
                     }
+                    old_sigabrt_handler = signal(SIGABRT, 
+                           __ina_signal_handler);
+                    old_sigsegv_handler = signal(SIGSEGV, 
+                    __ina_signal_handler);
+
+                if (setjmp(__err) == 0) {
                     if (test->data) {
                         test->run(test->data);
-                    }
-                    test->run();
-                    if (test->teardown) {
-                        test->teardown(test->data);
+                    } else {
+                        test->run();
                     }
                     ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
                             INA_CIO_COLOR_UNDEFINED, 
@@ -461,6 +514,12 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                             "[FAIL]\n");
                     num_fail++;
                 }
+                signal(SIGABRT, old_sigabrt_handler);
+                signal(SIGSEGV, old_sigsegv_handler);
+                if (test->teardown) {
+                    test->teardown(test->data);
+                }
+
                 if (__errorsize != __INA_MSG_SIZE-1) {
                     printf("%s", __errorbuffer);
                 }

@@ -45,13 +45,25 @@ typedef struct ina_test_hid_s {
 } ina_test_hid_t;
 #endif
 
-#define INA_TEST_HELPER_SPAWN(hid, sname, hname, ...)                     \
-    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname);      \
-    INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, INA_NO,  __VA_ARGS__)); 
+/* Set the return code inside a main function */
+#define INA_TEST_HELPER_SET_RC(rc) *retval = rc
+/* Check if min argument passed, if not exit with EXIX_FAILURE */
+#define INA_TEST_HELPER_CHECK_ARGC(c) if (argc<(3+c)) { *retval = EXIT_FAILURE; return; }
+#define INA_TEST_HELPER_CARG(n) argv[4+n]
+#define INA_TEST_HELPER_IARG(n) atoi(argv[4+n])
+#define INA_TEST_HELPER_INVOKE(hid, sname, hname, ...)                     \
+    INA_TEST_MSG("starting helper %s", #hname);      \
+    INA_TEST_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, 0, __VA_ARGS__)); 
 
-#define INA_TEST_HELPER_WAIT(hid, sname, hname, ...)                     \
-    INA_TEST_MSG("starting helper %s for suite %s", #sname, #hname);      \
-    INA_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, INA_YES,  __VA_ARGS__));
+#define INA_TEST_HELPER_INVOKE_WAIT(hid, sname, hname, msec, ...)           \
+    INA_TEST_MSG("starting helper %s", #hname);      \
+    INA_TEST_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, msec, __VA_ARGS__));
+
+#define INA_TEST_HELPER_CMD(hid, cmd, ...)      \
+        INA_TEST_HELPER_INVOKE(hid, NULL, cmd, ...)
+
+#define INA_TEST_HELPER_CMD_WAIT(hid, cmd, ...)  \
+        INA_TEST_HELPER_INVOKE_WAIT(hid, NULL, cmd, msec...)
 
 #define INA_TEST_HELPER_STOP(id) ina_test_helper_stop(id)
 
@@ -280,7 +292,10 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line);
 /*
  *
  */
-INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, const char *suite_name, const char* helper_name, int32_t wait_msec, ...);
+INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, 
+                    const char *suite_name, 
+                    const char* helper_name, 
+                    int32_t wait_msec, ...);
 
 /*
  *
