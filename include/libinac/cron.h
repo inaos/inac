@@ -94,11 +94,7 @@ INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pa
 /*
  * 
  */
-INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx, ina_cron_task_t *task);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, int *suggested_next_time);
+INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggested_next_time);
 
 #ifdef __cplusplus
 }

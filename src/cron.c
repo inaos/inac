@@ -30,11 +30,15 @@
 #define arysize(ary)	(sizeof(ary)/sizeof((ary)[0]))
 
 struct ina_cron_task_s {
+    unsigned long key;
 	ina_str_t cmd;
 	ina_str_t working_dir;
 	ina_str_t pattern;
 	int running;
 	int pid;
+#ifdef INA_OS_WIN32
+    HANDLE hproc;
+#endif
 	int ready;
 	char mins[60]; /* 0-59 */
     char hours[24];	/* 0-23 */
@@ -294,7 +298,7 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
 					if (task->pid > 0) {
 						/* process already running */
 					}
-					else if (task->pid == 0) {
+					else {
 						task->pid = -1;
 						task->ready = 1;
 						++njobs;
@@ -308,6 +312,35 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
 /*
  *
  */
+static void __run_job(ina_cron_task_t *t)
+{
+#ifdef INA_OS_WIN32
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    LPSTR cmd;
+    BOOL success;
+    DWORD le;
+        
+    cmd = (LPSTR)ina_mem_alloc(sizeof(ina_str_len(t->cmd)+1));
+    cmd = strcpy(cmd, ina_str_cstr(t->cmd));
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    success = CreateProcess(NULL, cmd, NULL, NULL, FALSE, 
+        NORMAL_PRIORITY_CLASS, NULL, ina_str_cstr(t->working_dir), &si, &pi);
+    
+    t->hproc = pi.hProcess;
+    t->pid = GetProcessId(t->hproc);
+
+    ina_mem_free(cmd);
+#else
+#endif
+}
+/*
+ *
+ */
 static void __run_jobs(ina_cron_ctx_t *ctx)
 {
     ina_cron_task_t *task, *ttmp;
@@ -316,17 +349,15 @@ static void __run_jobs(ina_cron_ctx_t *ctx)
 	HASH_ITER(hh, ctx->task_head, task, ttmp) {
 		if (task->ready && task->pid < 0) {
 			task->ready = 0;
-			
-		}
-
-		/* FIXME */
-		//RunJob(file, line);
+            
+            __run_job(task);
 		
-		if (task->pid < 0) {
-		    task->ready = 1;
-		}
-		else if (task->pid > 0) {
-			task->running = 1;
+		    if (task->pid < 0) {
+		        task->ready = 1;
+		    }
+		    else if (task->pid > 0) {
+			    task->running = 1;
+		    }
 		}
 	}
 }
@@ -342,27 +373,22 @@ static int __check_jobs(ina_cron_ctx_t *ctx)
     /* iterate through tasks */
 	HASH_ITER(hh, ctx->task_head, t, ttmp) {
 		if (t->running) {
-			t->running = 0;			
-			if (t->pid > 0) {
-				//int status;
-				/* FIXME */
-                /* check whether the process with given pid is still running */
-				//int r = wait4(line->cl_Pid, &status, WNOHANG, NULL);
-				//if (r < 0 || r == t->pid) {
-					/* FIXME */
-					//EndJob(file, line);
-				/*	if (t->pid) {
-						t->running = 1;
-					}
-				}
-				else if (r == 0) {
-					t->running = 1;
-				}*/
-			}
+#ifdef INA_OS_WIN32
+            DWORD ec;
+            GetExitCodeProcess(t->hproc, &ec);
+            if (ec == STILL_ACTIVE) {
+                t->running = 1;
+            }
+            else {
+                t->running = 0;
+                t->pid = -1;
+                t->hproc = NULL;
+            }
+#endif
 		}
+        still_running += t->running;
 	}	
-	still_running += t->running;
-    
+	
     return(still_running);
 }
 
@@ -417,6 +443,8 @@ INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
 	}
 	
 	ina_mem_free(*ctx);
+
+    *ctx = NULL;
 	
 	return INA_SUCCESS;
 }
@@ -427,24 +455,35 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
 	ina_cron_task_t *task = NULL;
     ina_str_t skey = ina_str_fromcstr(id);
     unsigned long key = INA_HASH_STR_TO_SDBM(skey);
+    
+    ina_str_destroy(skey);
 	
 	/* check if we already have this task - by using the ID */
 	HASH_FIND_ULONG(ctx->task_head, &key, task);
 	
 	/* create a new task */
 	if (task == NULL) {
-		char *buf = (char*)ina_mem_alloc(strlen(pattern)+1);
+        size_t slen = strlen(pattern);
+		char *buf = (char*)ina_mem_alloc(slen+2);
 		buf = strcpy(buf, pattern);
+        buf[slen] = '\n';
 		
 		task = (ina_cron_task_t*)ina_mem_alloc(sizeof(ina_cron_task_t));
-		task->cmd = ina_str_dup(cmd);
+		task->key = key;
+        task->cmd = ina_str_dup(cmd);
 		task->working_dir = ina_str_dup(working_dir);
         task->pattern = ina_str_fromcstr(pattern);
 		task->running = 0;
 		task->pid = -1;
-		task->ready = 0;
+        task->ready = 0;
+#ifdef INA_OS_WIN32
+        task->hproc = NULL;
+#endif
 		
-		__parse_cron_pattern(buf, task);
+        if (!INA_SUCCEED(__parse_cron_pattern(buf, task))) {
+            ina_mem_free(buf);
+            return ina_err_peek();
+        }
 		
 		ina_mem_free(buf);
 		
@@ -452,16 +491,18 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
         if (ctx->save_cb && persistent) {
 			ctx->save_cb(ctx, task);
 		}
+
+        HASH_ADD_ULONG(ctx->task_head, key, task);
 	}
 	
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, int *suggested_next_time)
+INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggested_next_time)
 {
 	time_t dt;
 	
-	ctx->t2 = time(NULL);
+	ctx->t2 = now;
 	dt = ctx->t2 - ctx->t1;
 	
 	/*
@@ -538,13 +579,6 @@ INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx, const char *id, ina_c
 INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task, int *running)
 {
     *running = task->running;
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx, ina_cron_task_t *task)
-{
-    HASH_DELETE(hh, ctx->task_head, task);
-    __free_task(&task);
     return INA_SUCCESS;
 }
 
