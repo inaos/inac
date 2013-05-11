@@ -121,5 +121,3 @@ INA_TEST_FIXTURE(net, tcp_write_read_1000_times) {
     }
 }
 
-}
-
