@@ -45,6 +45,8 @@ INA_TEST_SETUP(net) {
 }
 
 INA_TEST_TEARDOWN(net) {
+    ina_net_close(data->client_fd);
+    data->client_fd = -1;
     INA_TEST_HELPER_STOP(&data->hid);
 }
 
@@ -62,5 +64,62 @@ INA_TEST_FIXTURE(net, tcp_connect_5sec_timeout) {
                             __INA_TCP_PORT,
                             5000));
     INA_TEST_ASSERT_SUCCEED(ina_net_close(data->client_fd));
+}
+
+INA_TEST_FIXTURE(net, tcp_write_read) {
+    char buffer[1024];
+    int nb_read = 0;
+    int nb_write = 0;
+    
+    INA_TEST_ASSERT_SUCCEED(ina_net_tcp_connect(&data->client_fd,  
+                            __INA_TCP_ADDR, 
+                            __INA_TCP_PORT,
+                            5000));
+    INA_TEST_MSG("conected to %s:%d", __INA_TCP_ADDR, __INA_TCP_PORT);
+
+    ina_mem_set(buffer, 0, 1024);
+    strcpy(buffer, "hello");
+    INA_TEST_MSG("write %s", buffer);    
+    INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
+                            (const unsigned char*)buffer,
+                            strlen(buffer), &nb_read));
+
+    ina_mem_set(buffer, 0, 1024);
+    INA_TEST_ASSERT_SUCCEED(ina_net_read(data->client_fd, 
+                            (unsigned char*)buffer, 1024,
+                            &nb_write));
+    INA_TEST_MSG("read %d bytes:%s", nb_read, buffer);
+    INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
+}
+
+
+INA_TEST_FIXTURE(net, tcp_write_read_1000_times) {
+    char buffer[1024];
+    int nb_read = 0;
+    int nb_write = 0;
+    int c = 1000;
+    
+    INA_TEST_ASSERT_SUCCEED(ina_net_tcp_connect(&data->client_fd,  
+                            __INA_TCP_ADDR, 
+                            __INA_TCP_PORT,
+                            5000));
+    INA_TEST_MSG("conected to %s:%d", __INA_TCP_ADDR, __INA_TCP_PORT);
+    
+    INA_TEST_MSG("write/reed 1000 times %s", buffer);
+    while (c--) {
+        ina_mem_set(buffer, 0, 1024);
+        strcpy(buffer, "hello");
+        INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
+                                (const unsigned char*)buffer,
+                                strlen(buffer), &nb_read));
+
+        ina_mem_set(buffer, 0, 1024);
+        INA_TEST_ASSERT_SUCCEED(ina_net_read(data->client_fd, 
+                                (unsigned char*)buffer, 1024,
+                                &nb_write));
+        INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
+    }
+}
+
 }
 

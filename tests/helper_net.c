@@ -58,22 +58,26 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
      }
 
      while (1) {
-        if (INA_SUCCEED(ina_net_tcp_accept(&cfd, fd, NULL, NULL))) {
-            if (cfd != -1) {
-                if (!INA_SUCCEED(ina_net_nonblock(cfd))) {
-                    ina_net_close(cfd);
-                    cfd = -1;
+        if (cfd == -1) {
+            if (INA_SUCCEED(ina_net_tcp_accept(&cfd, fd, NULL, NULL))) {
+                if (cfd != -1) {
+                    if (!INA_SUCCEED(ina_net_nonblock(cfd))) {
+                        ina_net_close(cfd);
+                        cfd = -1;
+                    }
                 }
             }
         }
 
         if (cfd != -1) {
-            if (INA_SUCCEED(ina_net_read(cfd, buffer, 100, &nb_read))) {
+            if (INA_SUCCEED(ina_net_read(cfd, buffer, 4096, &nb_read))) {
                 if (nb_read > 0) {
                     ina_net_write(cfd, buffer, nb_read, &nb_read);
+               } else {
+                   cfd = -1;
                }
            }
        }
-       ina_time_sleep(300);
+       ina_time_sleep(5);
    }
 }
