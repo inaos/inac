@@ -32,7 +32,7 @@
 #undef FALSE
 #define FALSE 0
 
-#define MAX_HEADERS 13
+#define MAX_HEADERS 32
 #define MAX_ELEMENT_SIZE 2048
 
 struct message {
@@ -106,6 +106,74 @@ const struct message requests[] =
   ,1
   ,0
   }
+
+#define REQUEST_2 1
+, {"many headers"
+  ,"GET /favicon.ico HTTP/1.1\r\n"
+         "Host: 0.0.0.0=5000\r\n"
+         "User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9) Gecko/2008061015 Firefox/3.0\r\n"
+         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+         "Accept-Language: en-us,en;q=0.5\r\n"
+         "Accept-Encoding: gzip,deflate\r\n"
+         "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7\r\n"
+         "Keep-Alive: 300\r\n"
+         "Connection: keep-alive\r\n"
+         "Test1: value1\r\n"
+         "Test2: value2\r\n"
+         "Test3: value3\r\n"
+         "Test4: value4\r\n"
+         "Test5: value5\r\n"
+         "Test6: value6\r\n"
+         "Test7: value7\r\n"
+         "Test8: value8\r\n"
+         "Test9: value9\r\n"
+         "Test10: value10\r\n"
+         "Test11: value11\r\n"
+         "Test12: value12\r\n"
+         "\r\n"
+  ,INA_HTTP_PARSER_TYPE_REQUEST
+  ,INA_HTTP_PARSER_METHOD_GET
+  ,0
+  ,"/favicon.ico"
+  ,"/favicon.ico"
+  ,""
+  ,""
+  ,""
+  ,0
+  ,""
+  ,""
+  ,0
+  ,20
+  ,0
+  ,{ 
+      { "Host", "0.0.0.0=5000" }
+    , { "User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9) Gecko/2008061015 Firefox/3.0" }
+    , { "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" }
+    , { "Accept-Language", "en-us,en;q=0.5" }
+    , { "Accept-Encoding", "gzip,deflate" }
+    , { "Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.7" }
+    , { "Keep-Alive", "300" }
+    , { "Connection", "keep-alive" }
+    , { "Test1", "value1" }
+    , { "Test2", "value2" }
+    , { "Test3", "value3" }
+    , { "Test4", "value4" }
+    , { "Test5", "value5" }
+    , { "Test6", "value6" }
+    , { "Test7", "value7" }
+    , { "Test8", "value8" }
+    , { "Test9", "value9" }
+    , { "Test10", "value10" }
+    , { "Test11", "value11" }
+    , { "Test12", "value12" }
+   }
+  ,TRUE
+  ,""
+  ,1
+  ,1
+  ,0
+  }
+
 , { NULL } /* sentinel */
 };
 
@@ -160,25 +228,26 @@ INA_TEST(http, simple_req_resp)
 	int z = 0;
 	unsigned short status = 0;
 
-	INA_TEST_ASSERT_SUCCEED(ina_http_init(&ctx, INA_HTTP_PARSER_TYPE_BOTH, 16));
+	INA_TEST_ASSERT_SUCCEED(ina_http_init(&ctx, INA_HTTP_PARSER_TYPE_BOTH, 2));
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_borrow(ctx, &parser));		
 	
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_execute(parser, requests[0].raw, strlen(requests[0].raw), &more));
-	
+	INA_TEST_ASSERT_EQUAL_INTEGER(0, more);
+
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_should_keep_alive(parser, &skal));
-	INA_TEST_ASSERT_EQUAL_FLOATING(requests[0].should_keep_alive, skal);
+	INA_TEST_ASSERT_EQUAL_INTEGER(requests[0].should_keep_alive, skal);
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_method(parser, &met));
-	INA_TEST_ASSERT_EQUAL_FLOATING(requests[0].method, met);
+	INA_TEST_ASSERT_EQUAL_INTEGER(requests[0].method, met);
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_httpversion(parser, &vmj, &vmi));
-	INA_TEST_ASSERT_EQUAL_FLOATING(requests[0].http_major, vmj);
-	INA_TEST_ASSERT_EQUAL_FLOATING(requests[0].http_minor, vmi);
+	INA_TEST_ASSERT_EQUAL_INTEGER(requests[0].http_major, vmj);
+	INA_TEST_ASSERT_EQUAL_INTEGER(requests[0].http_minor, vmi);
 	
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_url_get(parser, &url));
 	INA_TEST_ASSERT_SUCCEED(ina_http_url_get_field(url, INA_HTTP_PARSER_UF_PATH, &begin, &ulen));
 		
 	INA_TEST_ASSERT(strncmp("/favicon.ico", begin, 12) == 0);
 	INA_TEST_ASSERT_SUCCEED(ina_http_url_get_port(url, &port));
-	INA_TEST_ASSERT_EQUAL_FLOATING(80, port);
+	INA_TEST_ASSERT_EQUAL_INTEGER(0, port);
 
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_first(parser, &h));
 	while (h != NULL) {
@@ -186,19 +255,38 @@ INA_TEST(http, simple_req_resp)
 		INA_TEST_ASSERT(strncmp(requests[0].headers[z][0], begin, len) == 0);
 		INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_get_value(parser, h, &begin, &len));
 		INA_TEST_ASSERT(strncmp(requests[0].headers[z][1], begin, len) == 0);
-		z++;	
+		z++;
+        INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_next(parser, &h));
 	}
-	INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_next(parser, &h));
 
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_release(ctx, &parser));
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_borrow(ctx, &parser));
 
-	INA_TEST_ASSERT_SUCCEED(ina_http_parser_execute(parser, responses[0].raw, strlen(responses[0].raw), &more));
+    INA_TEST_ASSERT_SUCCEED(ina_http_parser_execute(parser, requests[1].raw, strlen(requests[1].raw), &more));
+	INA_TEST_ASSERT_EQUAL_INTEGER(0, more);
 
-        INA_TEST_ASSERT_SUCCEED(ina_http_parser_should_keep_alive(parser, &skal));
-	INA_TEST_ASSERT_EQUAL_FLOATING(responses[0].should_keep_alive, skal);	
+    INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_first(parser, &h));
+    z = 0;
+	while (h != NULL) {
+		INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_get_field(parser, h, &begin, &len));
+		INA_TEST_ASSERT(strncmp(requests[1].headers[z][0], begin, len) == 0);
+		INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_get_value(parser, h, &begin, &len));
+		INA_TEST_ASSERT(strncmp(requests[1].headers[z][1], begin, len) == 0);
+		z++;
+        INA_TEST_ASSERT_SUCCEED(ina_http_parser_header_next(parser, &h));
+	}
+
+    INA_TEST_ASSERT_SUCCEED(ina_http_parser_release(ctx, &parser));
+	INA_TEST_ASSERT_SUCCEED(ina_http_parser_borrow(ctx, &parser));
+
+	INA_TEST_ASSERT_SUCCEED(ina_http_parser_execute(parser, responses[0].raw, strlen(responses[0].raw), &more));
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, more);
+    INA_TEST_ASSERT_SUCCEED(ina_http_parser_eof(parser));
+
+    INA_TEST_ASSERT_SUCCEED(ina_http_parser_should_keep_alive(parser, &skal));
+	INA_TEST_ASSERT_EQUAL_INTEGER(responses[0].should_keep_alive, skal);	
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_status_code(parser, &status));
-	INA_TEST_ASSERT_EQUAL_FLOATING(responses[0].status_code, status);	
+	INA_TEST_ASSERT_EQUAL_INTEGER(responses[0].status_code, status);	
 
 	INA_TEST_ASSERT_SUCCEED(ina_http_parser_release(ctx, &parser));
 	INA_TEST_ASSERT_SUCCEED(ina_http_destroy(&ctx));	
