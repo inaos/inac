@@ -145,6 +145,10 @@ INA_API(ina_rc_t) ina_http_parser_httpversion(ina_http_parser_t *p, unsigned sho
  */
 INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, size_t inlen, int *more);
 /*
+ * 
+ */
+INA_API(ina_rc_t) ina_http_parser_eof(ina_http_parser_t *p);
+/*
  *
  */
 INA_API(ina_rc_t) ina_http_parser_should_keep_alive(ina_http_parser_t *p, int *should_keep_alive);
