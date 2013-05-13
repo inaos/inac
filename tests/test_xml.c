@@ -66,7 +66,6 @@ INA_TEST(xml_init, parser_init_destroy) {
 
 INA_TEST(xml_init, parser_init_destroy_1000_times) {
     ina_xml_ctx_t *ctx = NULL;
-    ina_xml_parser_t *parser = NULL;
     int c = 1000;
 
     while (c--) {
