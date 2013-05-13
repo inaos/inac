@@ -396,6 +396,8 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
             }
             if (pool->size < size && pool->cf&INA_MEM_AUTOSIZE) {
                 size = __INA_MEM_ALIGN(pool->size * 2);
+            } else {
+                size = pool->size;
             }
             /* FIXME: Push an error , if fails */
             /* FXIME: shm can not handled in chunks ! */
