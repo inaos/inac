@@ -179,8 +179,6 @@ INA_API(ina_rc_t) ina_xml_elem_value(ina_xml_elem_t *elem, const char **name, si
 
 INA_API(ina_rc_t) ina_xml_elem_attr_first(ina_xml_elem_t *elem, ina_xml_attr_t **first)
 {
-    ina_xml_attr_t *tmp = NULL;
-
 	if (rapidxml_node_first_attribute(elem->elem, &elem->attr.attr) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
