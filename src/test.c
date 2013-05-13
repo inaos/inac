@@ -269,7 +269,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
             args[n++] = (char*)suite_name;
             args[n++] = (char*)helper_name;
         } else {
-            args[n++] = helper_name;
+            args[n++] = (char*)helper_name;
         }
 
         va_start(ap, wait_msec);

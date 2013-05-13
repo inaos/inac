@@ -140,6 +140,10 @@ static int __ina_http_on_message_begin(http_parser *parser)
 
 static int __ina_http_on_message_complete(http_parser *parser)
 {
+    ina_http_parser_t *p = (ina_http_parser_t*)parser->data;
+
+    p->finished = 1;
+
 	return 0;
 }
 
@@ -270,25 +274,20 @@ INA_API(ina_rc_t) ina_http_parser_release(ina_http_ctx_t *ctx, ina_http_parser_t
 	INA_ASSERT_NOTNULL(ctx);
 	INA_ASSERT_NOTNULL(p);
 
-	/* clean-up headers */
+	/* clean-up headers
+     * if we grew the header pool not a problem we adjust dynamically to the 
+     * appropriate usage scanario for the parser
+     */
 	HASH_ITER(hh, p->headers, h, htmp) {
-		if (p->header_pool_size == __INA_HTTP_INITIAL_HEADER_POOL_SIZE) {
-			break;
-		}
+        h->field_begin = NULL;
+		h->field_len = 0;
+		h->value_begin = NULL;
+		h->value_len = 0;
 		DL_APPEND(p->header_pool, h);
 		HASH_DELETE(hh, p->headers, h);
 		p->headers_used--;
-		p->header_pool_size++;
-	}
-	if (p->headers_used > 0) {
-		HASH_ITER(hh, p->headers, h, htmp) {
-			HASH_DELETE(hh, p->headers, h);
-			ina_mem_free(h);
-			p->headers_used--;
-		}
 	}
 
-	INA_ASSERT_EQUAL(__INA_HTTP_INITIAL_HEADER_POOL_SIZE, p->header_pool_size);
 	INA_ASSERT_EQUAL(0, p->headers_used);
 	INA_ASSERT_EQUAL(0, HASH_COUNT(p->headers));
 
@@ -355,8 +354,10 @@ INA_API(ina_rc_t) ina_http_parser_header_next(ina_http_parser_t *p, ina_http_hea
 	if (!p->finished) {
 		return INA_FAILURE;
 	}
-	p->itr = p->itr->next;
-	*next = p->itr;
+
+    p->itr = (ina_http_header_t*)p->itr->hh.next;
+    *next = p->itr;
+	
 	return INA_SUCCESS;
 }
 
@@ -458,13 +459,39 @@ INA_API(ina_rc_t) ina_http_parser_httpversion(ina_http_parser_t *p, unsigned sho
 
 INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, size_t inlen, int *more)
 {
+    size_t nread;
+
 	INA_ASSERT_NOTNULL(p);
 	
-	http_parser_execute(&p->intp, &p->settings, in, inlen);
-	p->finished = http_body_is_final(&p->intp);
-	*more = p->finished;
+	nread = http_parser_execute(&p->intp, &p->settings, in, inlen);
+
+    if (nread != inlen) {
+        return INA_FAILURE;
+    }
+
+    if (p->finished) {
+	    *more = 0;
+    }
+    else {
+        *more = 1;
+    }
 
 	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_http_parser_eof(ina_http_parser_t *p)
+{
+    size_t nread;
+    INA_ASSERT_NOTNULL(p);
+
+    nread = http_parser_execute(&p->intp, &p->settings, NULL, 0);
+    if (nread != 0) {
+        return INA_FAILURE;
+    }
+
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, p->finished);
+
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_http_parser_should_keep_alive(ina_http_parser_t *p, int *should_keep_alive)

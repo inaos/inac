@@ -71,7 +71,35 @@ INA_TEST(mempool, min_allowed_size)
     INA_TEST_ASSERT_NOT_NULL(pool);
 }
 
-INA_TEST(mempool, mempool_bad_dalloc)
+INA_TEST(mempool, auto_resize) {
+
+    ina_mempool_t *pool;
+    ina_mempool_info_t mi;
+    unsigned char *buffer;
+    int c = 1000;
+
+    /* clear error state and assure it's clean */
+    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 2048, INA_MEM_AUTOSIZE, NULL));
+    buffer = ina_mempool_dalloc(pool, 1024);
+    INA_TEST_ASSERT_NOT_NULL(buffer);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
+    INA_TEST_ASSERT_EQUAL_INTEGER(2048, mi.size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1024, mi.used);
+    while (c--) {
+        buffer = ina_mempool_dalloc(pool, 1024);
+        INA_TEST_ASSERT_NOT_NULL(buffer);
+
+        INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
+        INA_TEST_ASSERT_EQUAL_INTEGER( 2048*(1000-c), mi.size);
+        INA_TEST_ASSERT_EQUAL_INTEGER(1024*(1000-c)+1024, mi.used); 
+    }
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, 1));
+}
+
+INA_TEST(mempool, bad_dalloc)
 {
     void *ptr;
     ina_mempool_t *pool;
