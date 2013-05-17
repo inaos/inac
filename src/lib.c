@@ -382,7 +382,7 @@ static void
 __ina_signal_handler(int sig)
 {
     int exitcode;
-    
+
     if (__sig != 0) {
         return;
     }
@@ -394,14 +394,14 @@ __ina_signal_handler(int sig)
         case SIGFPE:
         case SIGILL:
         case SIGSEGV:
-            INA_TRACE_MSG("programm error signal received!");
             if (__cleanup) {
                  __cleanup(sig, 0);
             }
+            fprintf(stderr, "Error: signal %d:\n", sig);
             /* Try to trace out the source of error */
             ina_err_trace();
-            /* ... then stop */
-            abort();
+            ina_err_backtrace();    
+            exit(exitcode);
             break;
         case SIGTERM:
         case SIGINT:
