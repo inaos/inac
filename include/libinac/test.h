@@ -72,8 +72,10 @@ typedef struct ina_test_hid_s {
 #define INA_TEST_ASSERT_FAILURE(v) INA_TEST_ASSERT_EQUAL_INTEGER(INA_FAILURE, v)
 #define INA_TEST_ASSERT_SUCCEED(v) INA_TEST_ASSERT_TRUE(INA_SUCCEED(v))
 #define INA_TEST_ASSERT_NOTSUCCEED(v) INA_TEST_ASSERT_FALSE(INA_SUCCEED(v))
-#define INA_TEST_ASSERT_STR(exp, real) \
-    ina_test_assert_str(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_STR(exp, real) \
+    ina_test_assert_equal_str(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_STR(exp, real) \
+    ina_test_assert_not_equal_str(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_DATA(exp, expsize, real, realsize) \
     ina_test_assert_data(exp, expsize, real, realsize, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_EQUAL_INTEGER(exp, real) \
@@ -220,7 +222,13 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...);
 /*
  *
  */
-INA_API(void) ina_test_assert_str(const char *exp, const char *real, 
+INA_API(void) ina_test_assert_equal_str(const char *exp, const char *real, 
+                                  const char* caller, int line);
+                                  
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_equal_str(const char *exp, const char *real, 
                                   const char* caller, int line);
 
 /*

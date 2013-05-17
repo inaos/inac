@@ -113,13 +113,24 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
      return INA_SUCCESS;
  }
 
-INA_API(void) ina_test_assert_str(const char *exp, const char *real, 
+INA_API(void) ina_test_assert_equal_str(const char *exp, const char *real, 
                 const char *caller, int line) 
 {
     if ((exp == NULL && real != NULL) ||
         (exp != NULL && real == NULL) ||
         (exp && real && strcmp(exp, real) != 0)) {
         INA_TEST_ERR("%s:%d  expected '%s', got '%s'", caller, line, exp, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_not_equal_str(const char *exp, const char *real, 
+                const char *caller, int line) 
+{
+    if ((exp == NULL && real == NULL) ||
+        (exp == real) ||
+        (exp && real && strcmp(exp, real) == 0)) {
+        INA_TEST_ERR("%s:%d  not expected '%s'", caller, line, exp);
         longjmp(__err, 1);
     }
 }
@@ -419,7 +430,7 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     ina_cio_color_t color;
 
     __binpath = argv[0];
-
+    
     if (argc > 2) {
         if (strcmp(argv[1], "-h")==0) {
             return ina_test_helper_run(argc, argv);
@@ -430,7 +441,6 @@ INA_API(int) ina_test_run(int argc, char *argv[])
         __suite_name = argv[1];
         filter = __ina_suite_filter;
     }
- 
     begin = &INA_TEST_TNAME(suite, test);
     end = &INA_TEST_TNAME(suite, test);
  

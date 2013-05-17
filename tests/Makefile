@@ -12,7 +12,7 @@ LDFLAGS += ../src/$(INAC_LIB) $(INAC_LIBS)
 
 ifeq (,$(findstring Windows,$(OS)))
 	ifneq (Darwin,$(shell uname -s))
-		LDFLAGS += -Wl,-E -lm -lrt -ldl
+		LDFLAGS += -rdynamic -Wl,-E -lm -lrt -ldl
 	else
 		LDFLAGS += -undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000 
 	endif
@@ -20,7 +20,7 @@ endif
 
 
 all: $(OBJ)  main.o
-	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS)
+	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS) 
 
 %.o: %.c
 	@echo compiling $<
@@ -30,7 +30,7 @@ all: $(OBJ)  main.o
 
 clean:
 	@echo cleaning tests...
-	@-rm -f *.o test suites.*
+	@-rm -f *.o test
 
 test: all
 	./test
