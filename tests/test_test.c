@@ -71,3 +71,5 @@ INA_TEST(test, assert_data) {
     const char* real = "test";
     INA_TEST_ASSERT_DATA((const unsigned char*)exp, 4, (const unsigned char*)real, 4);
 }
+
+INA_TEST(test, )
