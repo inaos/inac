@@ -334,12 +334,20 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
 INA_API(ina_rc_t) ina_err_reset(void);
 
 /*
- * Makes a trace to the stdout of the current error state.
+ * Makes a trace to the stderr of the current error state.
  *
  * Return Value
  * INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_err_trace(void);
+
+/*
+ * Makes a backrace to the stderr of the current error state.
+ *
+ * Return Value
+ * INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_err_backtrace(void);
 
 /*
  * Format the error message for a given RC.

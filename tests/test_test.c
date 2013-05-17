@@ -41,7 +41,11 @@ INA_TEST_TEARDOWN(test) {
     data->x -= 1;
 }
 
-INA_TEST_FIXTURE(test, fixture) {
+INA_TEST_FIXTURE(test, fixture_setup) {
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, data->x);
+}
+
+INA_TEST_FIXTURE(test, fixture_teardown) {
     INA_TEST_ASSERT_EQUAL_INTEGER(1, data->x);
 }
 
@@ -52,4 +56,18 @@ INA_TEST_SKIP(test, handle_sigabrt) {
 INA_TEST_SKIP(test, handle_sigfault) {
     ina_conffile_t *cf = NULL;
     INA_TEST_ASSERT_NOT_NULL(cf->filepath);
+}
+
+INA_TEST(test, assert_equal_str) {
+    INA_TEST_ASSERT_EQUAL_STR("test", "test");
+}
+
+INA_TEST(test, assert_not_equal_str) {
+    INA_TEST_ASSERT_NOT_EQUAL_STR("test", "test-1");
+}
+
+INA_TEST(test, assert_data) {
+    const char* exp = "test";
+    const char* real = "test";
+    INA_TEST_ASSERT_DATA((const unsigned char*)exp, 4, (const unsigned char*)real, 4);
 }

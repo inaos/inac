@@ -48,7 +48,7 @@ const char *test_xml =
 "    <revision type=\"Beta\" version=\"5.0o\" author=\"Hans Muster\" date=\"04/14/2010\"/>"
 "</revisions>";
 
-INA_TEST(xml_init, parser_init_destroy) {
+INA_TEST(xml, parser_init_destroy) {
     ina_xml_ctx_t *ctx = NULL;
     ina_xml_parser_t *parser = NULL;
 
@@ -64,9 +64,8 @@ INA_TEST(xml_init, parser_init_destroy) {
     INA_TEST_ASSERT_NULL(ctx);
 }
 
-INA_TEST(xml_init, parser_init_destroy_1000_times) {
+INA_TEST(xml, parser_init_destroy_1000_times) {
     ina_xml_ctx_t *ctx = NULL;
-    ina_xml_parser_t *parser = NULL;
     int c = 1000;
 
     while (c--) {
@@ -79,7 +78,7 @@ INA_TEST(xml_init, parser_init_destroy_1000_times) {
     }
 }
 
-INA_TEST(xml_init, parser_borrow) {
+INA_TEST(xml, parser_borrow) {
     ina_xml_ctx_t *ctx = NULL;
     ina_xml_parser_t *parser[20];
     int c = 0;
