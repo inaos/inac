@@ -153,6 +153,7 @@ typedef struct ina_ullc_rb_s {
     char magic;
     int version;
     int num_consumers;
+    int num_producers;
     size_t size;
     size_t slots;
     volatile int64_t cursor;
@@ -176,6 +177,7 @@ typedef struct ina_ullc_ctx_s {
     ina_ullc_wait_strategy ws;      /* wait strategy */
     ina_ullc_rb_t *ring;            /* ring buffer */
     ina_ullc_cursor_t *c_offset;    /* consumer(s) */
+    ina_ullc_cursor_t *p_offset;    /* prodducers */
     unsigned char *data;            /* slot data */
 } ina_ullc_ctx_t;
 
@@ -195,7 +197,7 @@ typedef struct ina_ullc_rb_info_s {
     size_t num_slots;               /* Nr of slots */
     int64_t current_slot;           /* Last commited slot */
     ina_ullc_cursor_t c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
-    ina_ullc_cursor_t p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */    
+    ina_ullc_cursor_t p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */
 } ina_ullc_rb_info_t;
 
 #define INA_ULLC_PRODUCER_CREATE(type, version, slots, producers, consumers, name, ws, ctx) \
