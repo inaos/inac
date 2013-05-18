@@ -94,7 +94,7 @@ INA_TEST(xml_init, parser_borrow) {
     }
     INA_TEST_ASSERT_EQUAL_INTEGER(ctx->parser_pool_size, c);
 
-    while (c  && INA_SUCCEED(ina_xml_parser_release(ctx, &parser[c--])));
+    while (c  && INA_SUCCEED(ina_xml_parser_release(ctx, &parser[--c])));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, c);
     INA_TEST_ASSERT_SUCCEED(ina_xml_destroy(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
