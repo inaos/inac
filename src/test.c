@@ -48,6 +48,7 @@ static jmp_buf     __err;
 static const char* __suite_name;
 static const char* __helper_name;
 static const char* __binpath;
+static int         __last_signal = 0;
 
 INA_TEST(suite, test) { }
 
@@ -249,6 +250,14 @@ INA_API(void) ina_test_assert_fail(const char *caller, int line)
 { 
     INA_TEST_ERR("%s:%d  shouldn't come here", caller, line);
     longjmp(__err, 1);
+}
+
+INA_API(void) ina_test_assert_signal(int signal, const char *caller, int line)
+{ 
+    if (__last_signal != signal) {
+        INA_TEST_ERR("%s:%d  expected signal %d", caller, line, signal);
+        longjmp(__err, 1);
+    }
 }
 
 INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, 

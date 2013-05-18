@@ -72,4 +72,9 @@ INA_TEST(test, assert_data) {
     INA_TEST_ASSERT_DATA((const unsigned char*)exp, 4, (const unsigned char*)real, 4);
 }
 
-INA_TEST(test, )
+INA_TEST(test, assert_equal_floating) {
+    const float exp = 3.3;
+    const float real = 3.3;
+    INA_TEST_ASSERT_EQUAL_FLOATING(exp, real);
+}
+

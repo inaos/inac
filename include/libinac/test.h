@@ -99,6 +99,7 @@ typedef struct ina_test_hid_s {
 #define INA_TEST_ASSERT_FALSE(real) \
     ina_test_assert_false(real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_FAIL() ina_test_assert_fail(__FILE__, __LINE__)
+#define INA_TEST_ASSERT_SIGNAL(sig) ina_test_assert_signal(__FILE__, __LINE__)
 
 /* Setup callback */
 typedef void (*ina_test_setup_cb_t)(void*);
@@ -296,6 +297,11 @@ INA_API(void) ina_test_assert_false(int real, const char *caller, int line);
  *
  */
 INA_API(void) ina_test_assert_fail(const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_signal(int sig, const char *caller, int line);
 
 /*
  *
