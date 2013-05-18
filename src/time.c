@@ -236,6 +236,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
         if (stopwatch->tv->stop.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec) {
             return INA_FAILURE;
         }
+        return INA_SUCCESS;
     }
 #endif
     return INA_FAILURE; 
