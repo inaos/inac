@@ -43,6 +43,8 @@ extern "C" {
 #define INA_MEM_AUTOSIZE    2
 /* Fill chunks */
 #define INA_MEM_BESTFIT     4
+/* Child pool */
+#define INA_MEM_CHILD       8
 /* Use shared memory */
 #define INA_MEM_SHARED        32
 /* Open or create shared memory */
