@@ -42,11 +42,12 @@ INA_TEST(time,time_stamp)
     while (c--) {
         INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, "1", "2"));
     }
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     c = 0;
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &c))) {
         INA_TEST_ASSERT_NOT_NULL(w->ts);
+        ++c;
     }
-    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     INA_TEST_ASSERT_EQUAL_INTEGER(10, c);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
 }
