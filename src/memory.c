@@ -391,17 +391,18 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
     if ((pool->current->pos + size > pool->current->end) || 
         (pool->current->pos + size < pool->current->pos)) {
         if (pool->cf&INA_MEM_DYNAMIC) {
+            size_t nsize = 0;
             if (pool->cf&INA_MEM_BESTFIT) {
                  /* TODO: Best Fit strategy */
             }
             if (pool->size < size && pool->cf&INA_MEM_AUTOSIZE) {
-                size = __INA_MEM_ALIGN(pool->size * 2);
+                nsize = __INA_MEM_ALIGN(pool->size * 2);
             } else {
-                size = pool->size;
+                nsize = pool->size;
             }
             /* FIXME: Push an error , if fails */
             /* FXIME: shm can not handled in chunks ! */
-            ina_mempool_create(&pool->current->child, size, pool->cf, pool->label);
+            ina_mempool_create(&pool->current->child, nsize, pool->cf, pool->label);
             pool->current = pool->current->child;
         } else {
             INA_MEM_EALLOC;
