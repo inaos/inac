@@ -246,6 +246,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
             return INA_MEM_ESHMALLOC;
         }
     } else {
+ 	(*pool)->shm_handle = 0;
         (*pool)->m = __ina_mp_malloc(size);
     }
 
@@ -259,24 +260,26 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         __ina_memset((*pool)->m, 0, size);
     }
 
-    last = __pools;
-    while (last != NULL && last->next != NULL) {
-        last = last->next;
-    }
+    if (!(cf&INA_MEM_CHILD)) {
+    	last = __pools;
+    	while (last != NULL && last->next != NULL) {
+            last = last->next;
+    	}
 
-    next = (__ina_mplist_t*)__ina_mp_malloc(sizeof(__ina_mplist_t));
-    if (next == NULL) {
-        ina_mem_free((*pool)->label);
-        __ina_mp_free((*pool)->m);
-        __ina_mp_free(*pool);
-        *pool = NULL;
-        return ina_err_peek();
-    }
-    if (last != NULL) {
-        last->next = next;
-        next->next = NULL;
-        next->pool = *pool;
-        next->active = 1;
+    	next = (__ina_mplist_t*)__ina_mp_malloc(sizeof(__ina_mplist_t));
+    	if (next == NULL) {
+            ina_mem_free((*pool)->label);
+            __ina_mp_free((*pool)->m);
+            __ina_mp_free(*pool);
+            *pool = NULL;
+           return ina_err_peek();
+        }
+    	if (last != NULL) {
+            last->next = next;
+            next->next = NULL;
+            next->pool = *pool;
+            next->active = 1;
+        }
     }
     INA_TRACE2("New memory pool: size = %ld", (*pool)->size);
     return INA_SUCCESS;
@@ -402,7 +405,9 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
             }
             /* FIXME: Push an error , if fails */
             /* FXIME: shm can not handled in chunks ! */
-            ina_mempool_create(&pool->current->child, nsize, pool->cf, pool->label);
+            ina_mempool_create(&pool->current->child, nsize, 
+			    	pool->cf|INA_MEM_CHILD, 
+				pool->label);
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
         } else {
@@ -494,6 +499,7 @@ INA_API(ina_rc_t) ina_mempool_destroy(void)
         if (next->active == 1) {
             /* FXIME: error handling */
             ina_mempool_release(next->pool, 1);
+	    next->active = 0;
         }
         next = next->next;
     }
