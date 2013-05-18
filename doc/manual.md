@@ -71,14 +71,14 @@ For each call of `ina_init()` you have to call `ina_exit()`. You can override th
 size system memory pool by passing the pool size in bytes as argument.  
 
 ## For applications
-For applications, initialize the application context with `ina_appinit()`. This must be 
+For applications, initialize the application context with `ina_app_init()`. This must be 
 the first function call in your program. You must call `ina_exit()` once before you quit 
 your program. You can override the system memory pool size by passing the pool size in
 bytes as third argument.
 
 	int main(int argc, char **argv,) 
 	{
-	    if (INA_SUCCEED(ina_appinit(argc, argv, 0, NULL)) {
+	    if (INA_SUCCEED(ina_app_init(argc, argv, 0, NULL)) {
 	        while (... {
 	            ...
 	        }
@@ -90,8 +90,9 @@ bytes as third argument.
 The library provides a builtin command line processor. For that purpose the 
 `ina_appinit()` takes as firth argument an array of `ina_opt_t` containing the 
 command line options definition consisting in string, number and flag options. 
-Use the designated macros to build the options array. Options are defined with a short, a long option name and a description. On string and number options a default
-value can de defined. 
+Use the designated macros to build the options array. Options are defined with 
+a short, a long option name and a description. On string and number options a 
+default value can de defined. 
 
 * `INA_OPT_STRING(short,long,default,description)`: define a string option
 * `INA_OPT_INT(short,long,default,description)`: define a int option
@@ -110,7 +111,7 @@ The function fails with RC `INA_EOPT` if current command line options don't
 match with the registered definition and simple a usage screen will be printed 
 out to the standard output.
 
-	if (INA_SUCCEED(ina_appinit(argc, argv, 0, opt)) {
+	if (INA_SUCCEED(ina_app_init(argc, argv, 0, opt)) {
 	    while (... {
 	            ...
 	    }

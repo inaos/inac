@@ -37,7 +37,7 @@ int main(int argc,  char** argv)
         INA_OPT_FLAG("h", "helper", "Start a helper"),
         INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test integer param"));
 
-    if (!INA_SUCCEED(ina_appinit(argc, argv, 0, opt))) {
+    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
         return EXIT_FAILURE;
     }
     return ina_test_run(argc, argv);

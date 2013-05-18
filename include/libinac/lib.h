@@ -150,7 +150,12 @@ typedef int (*ina_cleanup_handler_t) (const int, const int);
 /*
  * Return the program name
  */
-INA_API(const char*) ina_appname(void);
+INA_API(const char*) ina_app_get_name(void);
+
+/*
+ * Return path to the running application
+ */
+INA_API(const char*) ina_app_get_path(void);
 
 /*
  * Startup application with argc, argv in order to deal with 
@@ -167,7 +172,7 @@ INA_API(const char*) ina_appname(void);
  * Return:
  * INA_SUCCESS  if no error occured
  */
-INA_API(ina_rc_t) ina_appinit(const int argc,  char **argv, size_t pool_size, ina_opt_t *opt);
+INA_API(ina_rc_t) ina_app_init(const int argc,  char **argv, size_t pool_size, ina_opt_t *opt);
 
 /*
  * Check whenever an option is available.

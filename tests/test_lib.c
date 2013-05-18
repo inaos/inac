@@ -35,7 +35,7 @@ static int __handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
-INA_TEST(lib,opt)
+INA_TEST(lib, opt)
 {
     int l_int_value = 1;
     ina_str_t l_str_value = NULL;
@@ -57,10 +57,15 @@ INA_TEST(lib,opt)
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("t", &s_int_value));
     INA_TEST_ASSERT_EQUAL_FLOATING(121, s_int_value);
 }
-INA_TEST(lib,appname)
+INA_TEST(lib, appname)
 {
-    INA_TEST_ASSERT_NOT_NULL(ina_appname());
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp("test", ina_appname()));
+    INA_TEST_ASSERT_NOT_NULL(ina_app_get_name());
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp("test", ina_app_get_name()));
+}
+
+INA_TEST(lib, apppath)
+{
+    INA_TEST_ASSERT_NOT_NULL(ina_app_get_path());
 }
 
 INA_TEST(lib, set_signal_handler)
