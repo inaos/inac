@@ -272,6 +272,7 @@ INA_API(ina_rc_t) ina_err_backtrace(void)
     free(fn);
     fprintf(stderr, "%s\n", "**** BACKTRACE  END ******");
 #endif
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_err_coredump(void) {
