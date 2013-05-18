@@ -44,7 +44,7 @@ INA_TEST(ljit, call)
     INA_TEST_ASSERT_EQUAL_FLOATING(50, r);
     
     INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "<s", &rs));
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_appname(), rs));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_app_get_name(), rs));
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
@@ -70,8 +70,8 @@ INA_TEST(ljit, luaL_dostring)
     lua_pop(ctx->lstate, 1);
 
     INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_appname()\n"));
-    INA_TEST_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_appname(), (const char *)lua_tostring(ctx->lstate, -1)));
+    INA_TEST_ASSERT_TRUE(lua_isstring(ctx->lstate, 1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_app_get_name(), (const char *)lua_tostring(ctx->lstate, -1)));
     lua_pop(ctx->lstate, 1);
     
     lua_pushnumber(ctx->lstate, 5);
