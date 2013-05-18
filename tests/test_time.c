@@ -30,7 +30,7 @@
 INA_TEST(time,time_stamp)
 {
     ina_stopwatch_t *w = NULL;
-    int64_t c = 0;
+    int64_t c = 10;
 
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
     INA_TEST_ASSERT_NOT_NULL(w);
