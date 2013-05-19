@@ -142,8 +142,9 @@ INA_TEST_DATA(time_ipc) {
 };
 
 INA_TEST_SETUP(time_ipc) {
-    INA_TEST_HELPER_INVOKE(&data->hid, time_ipc, create_stopwatch, 
-        INA_NUM2STR(888));
+    INA_TEST_HELPER_INVOKE(&data->hid, time_ipc, stopwatch_create, 
+        INA_NUM2STR(888),
+	NULL);
 }
 
 INA_TEST_TEARDOWN(time_ipc) {

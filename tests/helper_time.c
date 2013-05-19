@@ -37,8 +37,6 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     INA_TEST_HELPER_CHECK_ARGC(1);
     id = INA_TEST_HELPER_IARG(0);
 
-    INA_TRACE("Start stopwatch %d", id);
-
     if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, id, -1))) {
         INA_TEST_HELPER_SET_RC(ina_err_peek());
         return;
@@ -51,7 +49,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     INA_TIME_STOPWATCH_STAMP1(w, __FILE__);
     ina_time_sleep(10);
     INA_TIME_STOPWATCH_STAMP2(w, __FILE__, INA_NUM2STR(__LINE__));
-    ina_time_sleep(3000);
+    ina_time_sleep(25000);
     INA_TIME_STOPWATCH_DESTROY(&w);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
