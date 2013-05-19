@@ -313,7 +313,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     PROCESS_INFORMATION pi;
     STARTUPINFOA si;
     DWORD dwExitCode;
-    char cmdline[256];
+    char cmdline[MAX_PATH];
     char exepath[MAX_PATH];
 
     INA_ASSERT_NOTNULL(hid);
@@ -333,7 +333,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     /* Append arguments */
     n = 0;
     while(args[n++]) {
-         strcat(cmdline, args[n]);
+         strcat(cmdline, args[n-1]);
          strcat(cmdline, " ");
     }
     ina_mem_set(&si, 0, sizeof(si));
