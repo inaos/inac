@@ -254,7 +254,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, 
-				ina_time_t *start)
+                                           ina_time_t *start)
 {
     INA_ASSERT_NOTNULL(stopwatch);
     /* Duration = 0, indicate stopwwatch is running */
@@ -274,7 +274,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch,
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, 
-				int64_t *stamp_index)
+                                                int64_t *stamp_index)
 {
     INA_ASSERT_NOTNULL(stopwatch);
 
