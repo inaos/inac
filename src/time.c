@@ -221,12 +221,12 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
 {
     INA_ASSERT_NOTNULL(stopwatch);
 #ifdef INA_OS_WIN32
-    if (stopwatch->tv->stop.tp.QuadPart >= stopwatch->tv->start.tp.QuadPart) {
-        return INA_SUCCESS;
+    if (stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart) {
+        return INA_FAILURE;
     }
 #elif defined(INA_OS_OSX)
-    if (stopwatch->tv->stop.tp >= stopwatch->tv->start.tp) {
-        return INA_SUCCESS;
+    if (stopwatch->tv->stop.tp < stopwatch->tv->start.tp) {
+        return INA_FAILURE;
     }
 #else 
     if (stopwatch->tv->stop.tp.tv_sec <  stopwatch->tv->start.tp.tv_sec) {
@@ -236,10 +236,9 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
         if (stopwatch->tv->stop.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec) {
             return INA_FAILURE;
         }
-        return INA_SUCCESS;
     }
 #endif
-    return INA_FAILURE; 
+    return INA_SUCCESS; 
 }
 
 

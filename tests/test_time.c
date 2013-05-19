@@ -58,8 +58,6 @@ INA_TEST(time, two_stopwatches)
     ina_stopwatch_t *w2 = NULL;
     time_t sec1  = 0;
     time_t sec2  = 0; 
-    time_t msec1 = 0;
-    time_t msec2 = 0;
     long nano1 = 0;
     long nano2 = 0;
 
@@ -77,12 +75,12 @@ INA_TEST(time, two_stopwatches)
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w2, NULL));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w1));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w2));
-    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w1->tv->start, &sec1, &nano1)); 
-    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w2->tv->start, &sec2, &nano2));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w1->tv->start, 
+			    &sec1, &nano1)); 
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w2->tv->start, 
+			    &sec2, &nano2));
     INA_TEST_ASSERT_EQUAL_INTEGER(sec1, sec2);
-    msec1 = nano1*1000*1000;
-    msec2 = nano2*1000*1000;
-    INA_TEST_ASSERT_EQUAL_INTEGER(msec1, msec2);
+    INA_TEST_ASSERT_TRUE(nano1< nano2);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w1));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w2));
 } 
@@ -90,11 +88,7 @@ INA_TEST(time, two_stopwatches)
 INA_TEST(time, stopwatch) 
 {
     struct timeval tv_start;
-    struct timeval tv_stop;
     ina_stopwatch_t *w;
-    time_t t_start;
-    time_t t_stop;
-    long n1 = 0, n2 = 0;
 
     gettimeofday(&tv_start, NULL);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
@@ -104,19 +98,11 @@ INA_TEST(time, stopwatch)
     INA_TEST_ASSERT_EQUAL_FLOATING(0, w->tv->sec_duration);
     INA_TEST_ASSERT_NULL(w->ts);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
+    ina_time_sleep(1);
     INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
-    /*INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));*/
-    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
-    gettimeofday(&tv_stop, NULL);
-
-    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w->tv->start, &t_start, &n1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(tv_start.tv_usec, t_start);
-    INA_TEST_ASSERT_EQUAL_FLOATING(tv_start.tv_usec, n1*1000);
-
-    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w->tv->stop, &t_stop, &n2));
-    INA_TEST_ASSERT_EQUAL_INTEGER(tv_stop.tv_sec, t_stop);
-    INA_TEST_ASSERT_EQUAL_FLOATING(tv_stop.tv_usec, n2*1000);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
     INA_TEST_ASSERT_NULL(w);
 }
