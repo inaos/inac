@@ -49,7 +49,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     INA_TIME_STOPWATCH_STAMP1(w, __FILE__);
     ina_time_sleep(10);
     INA_TIME_STOPWATCH_STAMP2(w, __FILE__, INA_NUM2STR(__LINE__));
-    ina_time_sleep(25000);
+    ina_time_sleep(3000);
     INA_TIME_STOPWATCH_DESTROY(&w);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

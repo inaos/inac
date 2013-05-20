@@ -205,7 +205,7 @@ INA_TEST_SETUP(mempool_ipc)
 INA_TEST_TEARDOWN(mempool_ipc)
 {
     INA_TEST_HELPER_STOP(&data->hid);
-    ina_mempool_release(data->mp, 1);
+    ina_mempool_release(data->mp, INA_YES);
 }
 
 INA_TEST_FIXTURE(mempool_ipc, mempool_create)
