@@ -26,35 +26,30 @@
  */
 #include <libinac/lib.h>
 
-/* 
- * Create a stop watch with an given ID, makes 3 time stamps each 10 ms
- * beetween.
- */
-INA_TEST_HELPER(time_ipc, stopwatch_create) {
-    int32_t id;
-    ina_stopwatch_t *w = NULL;
 
-    INA_TEST_HELPER_CHECK_ARGC(1);
-    id = INA_TEST_HELPER_IARG(0);
+INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
+    const char *label;
+    size_t size;
+    ina_mempool_t *mp = NULL;
+    int32_t *v;
+    int32_t c;
 
-    if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, id, -1))) {
-        INA_TEST_HELPER_SET_RC(ina_err_peek());
-        return;
+    INA_TEST_HELPER_CHECK_ARGC(2);
+    label = INA_TEST_HELPER_CARG(0);
+    size = INA_TEST_HELPER_IARG(1);
+
+    if (!INA_SUCCEED(ina_mempool_create(&mp, size, 
+        INA_MEM_SHARED|INA_MEM_SHARED_CREATE, ina_str_fromcstr(label)))) {
+            INA_TEST_HELPER_SET_RC(ina_err_peek());
+            return;
     }
-    
-    INA_TIME_STOPWATCH_START(w);
-    ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP(w);
-    ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP1(w, __FILE__);
-    ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP2(w, __FILE__, INA_NUM2STR(__LINE__));
-    
-    /* wait kill signal */
-    while (1) {
-        ina_time_sleep(1000);
+
+    c = 0;
+    v = (int32_t*)ina_mempool_dalloc(mp, size);
+    while (c  < (size/sizeof(int32_t))) {
+        *v = c++;
+        v++;
     }
-    
-    INA_TIME_STOPWATCH_DESTROY(&w);
+    ina_time_sleep(10000);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

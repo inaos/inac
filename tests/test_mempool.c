@@ -186,3 +186,41 @@ INA_TEST(mempool,syspool)
     INA_TEST_ASSERT_EQUAL_FLOATING((10*1024*1024), mi.size);
     INA_TEST_ASSERT_EQUAL_FLOATING(__INA_MEM_ALIGN(2*1024*1024), mi.used);
 }
+
+INA_TEST_DATA(mempool_ipc) {
+    ina_test_hid_t hid;
+    ina_mempool_t *mp;
+};
+
+INA_TEST_SETUP(mempool_ipc)
+{
+    INA_TEST_HELPER_INVOKE(&data->hid, mempool_ipc, 
+        mempool_create_and_fill_int32_values,
+        "/ina_test_mempool_ipc", 
+        INA_NUM2STR(1024*sizeof(int32_t)), 
+        NULL);
+    data->mp = NULL;
+}
+
+INA_TEST_TEARDOWN(mempool_ipc)
+{
+    INA_TEST_HELPER_STOP(&data->hid);
+    ina_mempool_release(data->mp, INA_YES);
+}
+
+INA_TEST_FIXTURE(mempool_ipc, mempool_create)
+{
+    int32_t *v = NULL;
+    int32_t c = 0;
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&data->mp, 
+        1024*sizeof(int32_t),
+        INA_MEM_SHARED,
+        "/ina_test_mempool_ipc"));
+    
+    v = (int32_t*)ina_mempool_dalloc(data->mp, sizeof(int32_t));
+    while (c < 1024) {
+        INA_TEST_ASSERT_EQUAL_INTEGER(c, *v);
+        v++;
+    }
+}
