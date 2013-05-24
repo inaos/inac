@@ -267,7 +267,9 @@ INA_API(ina_rc_t) ina_err_backtrace(void)
     size = backtrace(fnptr, 30);
     char** fn = backtrace_symbols(fnptr, size);
     for (i = 0; i < size; i++) {
-        fprintf(stderr, "%s\n", fn[i]);
+        if (i > 3) {
+            fprintf(stderr, "%s\n", fn[i]);
+        }
     }
     free(fn);
     fprintf(stderr, "%s\n", "**** BACKTRACE  END ******");
