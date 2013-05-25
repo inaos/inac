@@ -73,11 +73,12 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
             if (INA_SUCCEED(ina_net_read(cfd, buffer, 4096, &nb_read))) {
                 if (nb_read > 0) {
                     ina_net_write(cfd, buffer, nb_read, &nb_read);
-               } else {
-                   cfd = -1;
                }
-           }
+           } else {
+               ina_net_close(cfd);
+               cfd = -1;
+            }
        }
-       ina_time_sleep(5);
+       ina_time_sleep(300);
    }
 }
