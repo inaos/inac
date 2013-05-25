@@ -152,7 +152,7 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
     pctx->ws = ws;
     pctx->ring = pctx->ring;
     pctx->data = ((unsigned char*)pctx->ring) + sizeof(ina_ullc_rb_t);
-    pctx->c_offset = (ina_ullc_cursor_t*)&pctx->data[(pctx->ring->slots-1)*pctx->ring->size]+sizeof(ina_ullc_cursor_t);
+    pctx->c_offset = (ina_ullc_cursor_t*)&pctx->data[(pctx->ring->slots)*pctx->ring->size]+sizeof(ina_ullc_cursor_t);
     pctx->p_offset = pctx->c_offset += num_consumers;
     return __ina_sem_create(pctx);
 }
@@ -255,7 +255,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
     ccxt->sem_handle = 0;
     ccxt->ring = ccxt->ring;
     ccxt->data = ((unsigned char*)ccxt->ring) + sizeof(ina_ullc_rb_t);
-    cons = (ina_ullc_cursor_t*)&ccxt->data[(ccxt->ring->slots-1)*ccxt->ring->size]+sizeof(ina_ullc_cursor_t);
+    cons = (ina_ullc_cursor_t*)&ccxt->data[(ccxt->ring->slots)*ccxt->ring->size]+sizeof(ina_ullc_cursor_t);
     while (ccxt->id < num_consumers) {
         ccxt->c_offset = &cons[ccxt->id];
         if (__INA_ULLC_SWAP(&ccxt->c_offset->alive, 0, 1) == 0) {
