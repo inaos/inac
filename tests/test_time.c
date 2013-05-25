@@ -154,6 +154,9 @@ INA_TEST_TEARDOWN(time_ipc) {
 INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
     int64_t c = 0;
 
+    /* We need to wait that the heler has done his work */
+    ina_time_sleep(500);
+
     INA_TEST_ASSERT_SUCCEED(INA_TIME_STOPWATCH_OPEN(&data->w, 888));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(data->w));
 
