@@ -32,7 +32,7 @@ INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
     size_t size;
     ina_mempool_t *mp = NULL;
     int32_t *v;
-    int32_t c;
+    size_t c;
 
     INA_TEST_HELPER_CHECK_ARGC(2);
     label = INA_TEST_HELPER_CARG(0);
