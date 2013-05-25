@@ -82,7 +82,7 @@ INA_TEST(mempool, auto_resize) {
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 2048, INA_MEM_AUTOSIZE, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
     buffer = ina_mempool_dalloc(pool, 1024);
     INA_TEST_ASSERT_NOT_NULL(buffer);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
@@ -212,6 +212,8 @@ INA_TEST_FIXTURE(mempool_ipc, mempool_create)
 {
     int32_t *v = NULL;
     int32_t c = 0;
+    
+    ina_time_sleep(500);
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&data->mp, 
         1024*sizeof(int32_t),
@@ -222,5 +224,6 @@ INA_TEST_FIXTURE(mempool_ipc, mempool_create)
     while (c < 1024) {
         INA_TEST_ASSERT_EQUAL_INTEGER(c, *v);
         v++;
+        c++;
     }
 }
