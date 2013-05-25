@@ -284,7 +284,7 @@ static int anetTcpGenericConnect(char *err, char *addr, int port, int flags)
     }
     if (connect(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
 #ifdef WIN32
-		if (WSAGetLastError() == WSAEINPROGRESS &&
+		if ((WSAGetLastError() == WSAEINPROGRESS || WSAGetLastError() == WSAEWOULDBLOCK)  &&
 			flags & ANET_CONNECT_NONBLOCK)
 			return(s);
 #else
@@ -294,7 +294,7 @@ static int anetTcpGenericConnect(char *err, char *addr, int port, int flags)
 #endif
         
 #ifdef WIN32
-		anetSetError(err, "connect: %s", strerror(WSAGetLastError()));
+		anetSetError(err, "connect: %s (%d)", strerror(WSAGetLastError()), WSAGetLastError());
 		closesocket(s);
 		WSACleanup();
 #else
