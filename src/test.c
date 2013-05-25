@@ -306,7 +306,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     } else if (wait_msec > 0) {
         ina_time_sleep(wait_msec);
     } else {
-        ina_time_sleep(100);
+        ina_time_sleep(500);
     }
     return INA_SUCCESS;
 #else
@@ -356,6 +356,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
             hid->hProcess = pi.hProcess;
             hid->hThread = pi.hThread;
         }
+        ina_time_sleep(500);
         return INA_SUCCESS;
     }
     return INA_FAILURE;
