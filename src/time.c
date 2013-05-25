@@ -338,7 +338,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 				    ts->stamp.tp.tv_nsec) / 10000000.0);         
         } 
 #endif
-        stopwatch->ts->msec_duration= stopwatch->ts->sec_duration*1000;
+        stopwatch->ts->msec_duration = stopwatch->ts->sec_duration*1000;
         stopwatch->ts->usec_duration = stopwatch->ts->sec_duration*1000*1000;
     }
     return INA_SUCCESS;

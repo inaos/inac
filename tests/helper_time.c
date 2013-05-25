@@ -33,6 +33,7 @@
 INA_TEST_HELPER(time_ipc, stopwatch_create) {
     int32_t id;
     ina_stopwatch_t *w = NULL;
+    char user_data[INA_TIME_MAX_USERDATA_LEN+10];
 
     INA_TEST_HELPER_CHECK_ARGC(1);
     id = INA_TEST_HELPER_IARG(0);
@@ -41,20 +42,25 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
         INA_TEST_HELPER_SET_RC(ina_err_peek());
         return;
     }
-    
+
+    ina_mem_set(&user_data, (int)"a", INA_TIME_MAX_USERDATA_LEN+8);
+    user_data[INA_TIME_MAX_USERDATA_LEN+9] = '\0';
+
     INA_TIME_STOPWATCH_START(w);
     ina_time_sleep(10);
     INA_TIME_STOPWATCH_STAMP(w);
     ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP1(w, __FILE__);
+    INA_TIME_STOPWATCH_STAMP1(w, "user_data1");
     ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP2(w, __FILE__, INA_NUM2STR(__LINE__));
+    INA_TIME_STOPWATCH_STAMP2(w, "user_data1", "user_data2");
+    ina_time_sleep(10);
+    INA_TIME_STOPWATCH_STAMP2(w, user_data, user_data);
     
     /* wait kill signal */
     while (1) {
         ina_time_sleep(1000);
     }
-    
+
     INA_TIME_STOPWATCH_DESTROY(&w);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

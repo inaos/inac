@@ -153,10 +153,30 @@ INA_TEST_TEARDOWN(time_ipc) {
 
 INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
     int64_t c = 0;
+
     INA_TEST_ASSERT_SUCCEED(INA_TIME_STOPWATCH_OPEN(&data->w, 888));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(data->w));
+
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(data->w, &c))) {
+        INA_TEST_ASSERT_NOT_NULL(data->w->ts);
+
+        if (c == 0) {
+            INA_TEST_ASSERT_EQUAL_STR("", data->w->ts->user_data1);
+            INA_TEST_ASSERT_EQUAL_STR("", data->w->ts->user_data2);
+        }
+        else if (c == 1) {
+            INA_TEST_ASSERT_EQUAL_STR("user_data1", data->w->ts->user_data1);
+            INA_TEST_ASSERT_EQUAL_STR("", data->w->ts->user_data2);
+        }
+        else if (c == 2) {
+            INA_TEST_ASSERT_EQUAL_STR("user_data1", data->w->ts->user_data1);
+            INA_TEST_ASSERT_EQUAL_STR("user_data2", data->w->ts->user_data2);
+        }
+        else if (c == 3) {
+            INA_TEST_ASSERT_EQUAL_STR("", data->w->ts->user_data1);
+            INA_TEST_ASSERT_EQUAL_STR("", data->w->ts->user_data2);
+        }
         ++c;
     }
-    INA_TEST_ASSERT_EQUAL_INTEGER(c, 3);
+    INA_TEST_ASSERT_EQUAL_INTEGER(c, 4);
 }
