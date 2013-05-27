@@ -65,21 +65,27 @@ static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_param_t *par
 }
 
 INA_TEST_HELPER(iscp_tcp, tcp_server) {
+    const char *addr;
+    int32_t port;
 
     INA_ISCP_CMDS(cmds,
            INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
            INA_ISCP_SENDRECV_CMD(2, 1, __command_2_handler),
            INA_ISCP_SENDRECV_CMD(3, 1, __receive_negaitve_double_handler));
 
+     INA_TEST_HELPER_CHECK_ARGC(2);
+     addr = INA_TEST_HELPER_CARG(0);
+     port = INA_TEST_HELPER_IARG(1);
+
      ina_set_cleanup_handler(__cleanup_handler);
 
-     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, "127.0.0.1", 9999))) {
-         *retval = ina_err_peek();
+     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, addr, port))) {
+         INA_TEST_HELPER_SET_RC(ina_err_peek());
          return;
      }
 
     if (!INA_SUCCEED(ina_iscp_register_ex(__iscp, cmds))) {
-        *retval = ina_err_peek();
+        INA_TEST_HELPER_SET_RC(ina_err_peek());
         return;
     }
 
@@ -89,5 +95,5 @@ INA_TEST_HELPER(iscp_tcp, tcp_server) {
         ina_iscp_recv(__iscp, 1, 0);
         ina_time_sleep(10);
     }
-    *retval = INA_SUCCESS;
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

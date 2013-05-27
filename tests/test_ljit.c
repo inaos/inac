@@ -33,18 +33,21 @@ INA_TEST(ljit, call)
     double r = 0;
     char *rs = NULL;
 
+    ina_err_reset();
+
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
     lua_getglobal(ctx->lstate, "t");
     
     INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", (double)10, (double)5, &r));
     INA_TEST_ASSERT_EQUAL_FLOATING(50, r);
     
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "<s", &rs));
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_app_get_name(), rs));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "ina_app_get_name", "<s", &rs));
+    INA_TEST_ASSERT_EQUAL_STR(ina_app_get_name(), rs);
+    INA_TEST_ASSERT_SAME(ina_app_get_name(), rs);
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
@@ -58,29 +61,28 @@ INA_TEST(ljit, luaL_dostring)
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "return 100\n"));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "return 100\n"));
     INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_TEST_ASSERT_EQUAL_FLOATING(100, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_INTEGER(100, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, ina_ljit_dostring(ctx, "local t = require(\"test_ljit\")\n return t.test()\n"));
-    ina_err_trace();
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_ljit_dostring(ctx, "local t = require(\"test_ljit\")\n return t.test()\n"));
     INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_TEST_ASSERT_EQUAL_FLOATING(99, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_INTEGER(99, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_appname()\n"));
-    INA_TEST_ASSERT_TRUE(lua_isstring(ctx->lstate, 1));
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_app_get_name(), (const char *)lua_tostring(ctx->lstate, -1)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_app_get_name()\n"));
+    INA_TEST_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_STR(ina_app_get_name(), (const char *)lua_tostring(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
     
     lua_pushnumber(ctx->lstate, 5);
     lua_setglobal(ctx->lstate, "d1");
     lua_pushnumber(ctx->lstate, 10);
     lua_setglobal(ctx->lstate, "d2");
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_params(d1, d2)\n"));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_params(d1, d2)\n"));
     INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_TEST_ASSERT_EQUAL_FLOATING(50, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_INTEGER(50, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));

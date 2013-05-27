@@ -53,7 +53,7 @@ INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
     
     /* Run until kill signal */
     while (1) {
-        ina_time_sleep(10000);
+        ina_time_sleep(1000);
     }
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

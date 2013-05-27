@@ -135,7 +135,7 @@ INA_TEST_DATA(iscp_tcp) {
 };
 
 INA_TEST_SETUP(iscp_tcp) {
-    INA_TEST_HELPER_INVOKE(&data->hid, iscp_tcp, tcp_server, NULL);
+    INA_TEST_HELPER_INVOKE(&data->hid, iscp_tcp, tcp_server, "127.0.0.1", "9999", NULL);
     ina_iscp_create_tcp(&data->iscp, "127.0.0.1", 9999);
 }
 

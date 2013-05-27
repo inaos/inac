@@ -83,11 +83,11 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     }
 
     info->ring_version = rb->version;
-    info->num_write_op = 0;
+    info->num_write_op = rb->next_ptr;
     info->last_writer = 0;
-    info->num_read_op = 0;
+    info->num_read_op = rb->cursor;
     info->last_reader = 0;
-    info->num_producers = 0;
+    info->num_producers = rb->num_producers;
     info->num_producers_alive = 0;
     info->num_consumers = rb->num_consumers;
     info->num_consumers_alive = 0;

@@ -128,9 +128,3 @@ INA_TEST(test_assert, assert_false) {
     INA_TEST_ASSERT_FALSE(0);
     INA_TEST_ASSERT_FALSE(2!=2);
 }
-
-
-
-
-
-

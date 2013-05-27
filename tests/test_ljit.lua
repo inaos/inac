@@ -1,17 +1,14 @@
 local ffi = require("ffi")
 
 ffi.cdef [[
-    const char* ina_appname(void);
+    const char* ina_app_get_name(void);
     ]]
 
 local testljit = {}
 
-
-testljit.test_appname = function()
-    local name = ffi.new("const char[1]")
-    name = ffi.C.ina_appname()
-    print(name)
-    return ffi.string(name)
+testljit.test_app_get_name = function()
+    local name = ffi.C.ina_app_get_name()
+    return ffi.string(name);
 end
 
 testljit.test_params = function(p1,p2)

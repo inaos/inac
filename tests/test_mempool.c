@@ -212,9 +212,7 @@ INA_TEST_FIXTURE(mempool_ipc, mempool_create)
 {
     int32_t *v = NULL;
     int32_t c = 0;
-    
-    ina_time_sleep(500);
-
+ 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&data->mp, 
         1024*sizeof(int32_t),
         INA_MEM_SHARED,
