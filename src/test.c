@@ -35,6 +35,14 @@
 
 #ifdef INA_OS_WIN32
 #define snprintf sprintf_s
+struct ina_test_hid_s {
+    HANDLE hProcess;
+    HANDLE hThread;
+};
+#else
+struct ina_test_hid_s {
+    pid_t pid;
+};
 #endif
 
 #define __INA_MSG_SIZE 4096
