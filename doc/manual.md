@@ -106,7 +106,7 @@ Use `INA_OPT(array-name)` to declare the option array:
         INA_OPT_INT("p", "port", 999, "Port"),
         INA_OPT_FLAG("k", "keep-alive", "Keep connection alive")));
 
-Register and parse the options by passing the options array to `ina_appinit()`. 
+Register and parse the options by passing the options array to `ina_app_init()`. 
 The function fails with RC `INA_EOPT` if current command line options don't  
 match with the registered definition and simple a usage screen will be printed 
 out to the standard output.
@@ -462,58 +462,58 @@ section can be named or unnamed and they contains one more key/value pairs.
 Sections and keys can be marked as required. Values for key can be string or
 number type.  
 
-	-- Unnamed section
-	debug {
-	    command-latency=1000
-	}
-	-- Named section with key lo1
-	iface "lo1" { 
-	    ip="127.0.0.2", 
-	    mask="255.0.0.0" 
-	}
-	-- Named section with key lo0
-	iface "lo0" { 
-	    ip="127.0.0.1", 
-	    mask="255.0.0.0" 
-	}
+    -- Unnamed section
+    debug {
+        command-latency=1000
+    }
+    -- Named section with key lo1
+    iface "lo1" { 
+        ip="127.0.0.2", 
+        mask="255.0.0.0" 
+    }
+    -- Named section with key lo0
+    iface "lo0" { 
+        ip="127.0.0.1", 
+        mask="255.0.0.0" 
+    }
 
 Configuration definition 
 
-	sections = {}
-	sections.debug = {
- 		name = "debug",
-  		named = false,
-  		required = true,
-  		keys = {
-    		command-latency = {
-      			required = true,
-     	 		typename = "number"
-    		},
-   	 		other_latency = {
-      			required = false,
-      			typename = "number"
-    		}
-  		},
-  		configured = false
-	}
+    sections = {}
+    sections.debug = {
+        name = "debug",
+        named = false,
+        required = true,
+        keys = {
+            command-latency = {
+                required = true,
+                typename = "number"
+            },
+            other_latency = {
+                required = false,
+                typename = "number"
+            }
+        },
+        configured = false
+    }
 
-	sections.iface = {
-  		name = "iface",
-  		named = true,
-  		required = true,
-  		keys = {
-    		ip = {
-      			required = true,
-      			typename = "string"
-    		},
-    		mask = {
-      			required = true,
-      			typename = "string"
-    		},
-  		},
-  		configured = false
-	}
-	
+    sections.iface = {
+        name = "iface",
+        named = true,
+        required = true,
+        keys = {
+            ip = {
+                required = true,
+                typename = "string"
+            },
+            mask = {
+                required = true,
+                typename = "string"
+            },
+        },
+        configured = false
+    }
+
 ### Working with configuration files
    
 For basic usage use the appropriates macros. Start by declaring a variable to hold the instance for the configuration file.
@@ -523,12 +523,12 @@ For basic usage use the appropriates macros. Start by declaring a variable to ho
 Declare 
 
     INA_CONFFILE(cf,
-    	INA_CONFFILE_SECTION("debug", INA_YES, NULL,
-    		INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES)),
-    	INA_CONFFILE_NAMED_SECTION("iface", INA_NO, NULL,
-    		INA_CONFFILE_STRING_KEY("ip", INA_YES),
-    		INA_CONFFILE_NUMBER_KEY("mask", INA_NO)));
-    		
+        INA_CONFFILE_SECTION("debug", INA_YES, NULL,
+            INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES)),
+        INA_CONFFILE_NAMED_SECTION("iface", INA_NO, NULL,
+            INA_CONFFILE_STRING_KEY("ip", INA_YES),
+            INA_CONFFILE_NUMBER_KEY("mask", INA_NO)));
+
 
 Create a configuration file instance by calling `ina_conffile_init()`.
 
@@ -545,43 +545,44 @@ Remember that each instance need to be destroyed with `ina_conffile_destroy()`.
 
 Define section and keys
    	
-	ina_conffile_section_t *section = NULL;
-     
-   	/* Add a unnamed section */
-   	ina_conffile_add_section(cf, &section, "debug", INA_YES);
-   	
-   	/* Add a key for a numeric required value to a section */
-   	ina_conffile_add_key(section, "command-latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES);
-   	
-   	/* Add a unamed section */
-	ina_conffile_add_section(cf, &section, "iface", INA_YES);
- 
+    ina_conffile_section_t *section = NULL;
+    
+    /* Add a unnamed section */
+    ina_conffile_add_section(cf, &section, "debug", INA_YES);
+    
+    /* Add a key for a numeric required value to a section */
+    ina_conffile_add_key(section, "command-latency", 
+        INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES);
+        
+    /* Add a unamed section */
+    ina_conffile_add_section(cf, &section, "iface", INA_YES);
+
 
 Sample processor witten un LUA
 
-	-- sample processor
-	for sk,s in pairs(sections) do
-  		if s.configured then
-    		print(sk)
-    		if not s.named then
-      			for k,v in pairs(s.keys) do
-        			if v.has_value then
-          				print(k,v.value)
-        			end
-      			end
-    		else
-      			for nsk, ns in pairs(s.children) do
-        			print("Named section: "..nsk)
-        			for k,v in pairs(s.keys) do
-          				if ns[k].has_value then
-            				print(k,ns[k].value)
-          				end
-        			end
-      			end
-    		end
-  		end
-	end
-		
+    -- sample processor
+    for sk,s in pairs(sections) do
+      if s.configured then
+          print(sk)
+          if not s.named then
+              for k,v in pairs(s.keys) do
+                  if v.has_value then
+                      print(k,v.value)
+                  end
+               end
+           else
+               for nsk, ns in pairs(s.children) do
+                   print("Named section: "..nsk)
+                   for k,v in pairs(s.keys) do
+                       if ns[k].has_value then
+                           print(k,ns[k].value)
+                       end
+                    end
+                end
+            end
+        end
+    end
+
 
 ## Testing
 ### Tracing
@@ -593,11 +594,11 @@ INAC provides 2 macros which can be used for print debug messages when DEBUG is 
 	INA_TRACE_MSG
 Use `INA_TRACE_MSG` to print simple messages and `INA_TRACE` to print debug messages having var args.
 
-	INA_TRACE_MSG("Server started");
-	INA_TRACE("Buffer size is %d", bufsize);
-	INA_TRACE1("Same as the %s macro", "INA_TRACE");
-	INA_TRACE2("A bit more %s trace", "detailed");
-	INA_TRACE3("A %s trace", "fully detailed"); 
+    INA_TRACE_MSG("Server started");
+    INA_TRACE("Buffer size is %d", bufsize);
+    INA_TRACE1("Same as the %s macro", "INA_TRACE");
+    INA_TRACE2("A bit more %s trace", "detailed");
+    INA_TRACE3("A %s trace", "fully detailed"); 
 
 ### Unit testing
 INAC provides a built-in test framework. This framework is almost independent from the library itself. 
@@ -625,32 +626,30 @@ Possibles improvements :
 To add your first test to a test suite simply the following lines of code.
 
     INA_TEST(my_suite, my_first_test_with_inac) {
-    	INA_ASSERT_FLOATING(1.0, 1.0);
-	}
+        INA_ASSERT_FLOATING(1.0, 1.0);
+    }
 
 
 #### Adding fixtures  
-To added fixtures to your test use `INA_TEST_FIXTURE` macro. Fixtures need a fixture data struct which is 
-defined by `INA_TEST_DATA` macro.  Optionally you cann define a setup and teardown for your test. Setup and 
-Teardown is call on any test in the suite.  Fixture data is passed to Setup/Teardown and Run of any test in
-the suite.  Follow the next sample. 
+To added fixtures to your test use `INA_TEST_FIXTURE` macro. Fixtures need a fixture data struct which is defined by `INA_TEST_DATA` macro.  Optionally you cann define a setup and teardown for your test. Setup and Teardown is call on any test in the suite.  Fixture data is passed to Setup/Teardown and Run of any test in the suite.  Follow the next sample. 
 
-	INA_TEST_DATA(iscp_tcp) {
-    	ina_iscp_ctx_t *iscp;
-	};
+    INA_TEST_DATA(iscp_tcp) {
+        ina_iscp_ctx_t *iscp;
+    };
 
-	INA_TEST_SETUP(iscp_tcp) {
-    	ina_iscp_create_tcp(&data->iscp, "127.0.0.1", 9999);
-	}
+    INA_TEST_SETUP(iscp_tcp) {
+        ina_iscp_create_tcp(&data->iscp, "127.0.0.1", 9999);
+    }
 
-	INA_TEST_TEARDOWN(iscp_tcp) {
-    	ina_iscp_destroy(&data->iscp);
-	}
+    INA_TEST_TEARDOWN(iscp_tcp) {
+        ina_iscp_destroy(&data->iscp);
+    }
 
-	INA_TEST_FIXTURE(iscp_tcp, send_negative_double) {
-      	INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 3, 3, NULL));
-      	INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 1, INA_ISCP_TYPE_DBL, -3.2));
-	}
+    INA_TEST_FIXTURE(iscp_tcp, send_negative_double) {
+        INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 3, 3, NULL));
+        INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 1, 
+            INA_ISCP_TYPE_DBL, -3.2));
+    }
 
 NOTE: Do not forget the semicolon after `INA_TEST_DATA()`
 
@@ -658,9 +657,9 @@ NOTE: Do not forget the semicolon after `INA_TEST_DATA()`
 To skip existing test use the _SKIP version of `INA_TEST` or `INA_TEST_FIXTURE`. 
 
     INA_TEST_SKIP(my_suite, my_first_test_with_inac) {
-    	INA_ASSERT_FLOATING(1.0, 1.0);
-	}
-	
+        INA_ASSERT_FLOATING(1.0, 1.0);
+    }
+
     INA_TEST_FIXTURE(iscp_tcp, send_negative_double) {
 
 
@@ -668,98 +667,96 @@ To skip existing test use the _SKIP version of `INA_TEST` or `INA_TEST_FIXTURE`.
 To run the tests simply call `ina_test_run()` by passing arguments count and arguments received from
 the command line.
 
-	int main(int argc, char** argv) 
-	{ 
-    	ina_test_run(argc, argv);
+    int main(int argc, char** argv) 
+    { 
+        ina_test_run(argc, argv);
 
 From the command line prompt you can start all tests or a single suite
-	
-	./test
-	./test test_suite
-	
+
+    ./test
+    ./test test_suite
+
     
 #### Helpers 
-A more advanced feature of this test framework are provided by helper macros. The framework supports 
-in-situ helper and external helpers as well. Each helper is started in a new process. Further it's 
-possible chose to between wait/or spawn
+A more advanced feature of this test framework are provided by helper macros.
+The framework supports in-situ helper and external helpers as well. Each helper is started in a new process. Further it's possible chose to between wait/or spawn mode.
 
 ##### Adding in-situ Helpers
-In-situ helpers are compiled directly in the test binary by using the `INA_TEST_HELPER`macro. The macro
-takes two arguments: the suite name and helper name. The `argc` and `argv` from the `main()` function 
-are available in the code body. For easy use and access use  Each Helper should assign a valid RC to `retval` before leaving.
+In-situ helpers are compiled directly in the test binary by using the
+`INA_TEST_HELPER`macro. The macro takes two arguments: the suite name and
+helper name. The `argc` and `argv` from the `main()` function are available in the code body. For easy use and access use  Each Helper should assign a valid RC to `retval` before leaving.
 
-	INA_TEST_HELPER(tcp, dummy_dns_server) {
-	  const char* addr;
-	  int port;
-	  
-	  /* We need 2 arguments
-	  INA_TEST_HELPER_CHECK_ARGC(2);
-	  /* Get arguments */
-	  addr = INA_TEST_HELPER_CHAR_ARG(0);
-	  port = INA_TEST_HELPER_INTEGER_ARG(1);
+    INA_TEST_HELPER(tcp, dummy_dns_server) {
+        const char* addr;
+        int port;
 
-	  /* Starting coding your dummy tcp DNS server */
-	  	...
+        /* We need 2 arguments
+        INA_TEST_HELPER_CHECK_ARGC(2);
+        /* Get arguments */
+        addr = INA_TEST_HELPER_CHAR_ARG(0);
+        port = INA_TEST_HELPER_INTEGER_ARG(1);
 
-      INA_TEST_HELPER_SET_RC(EXIT_SUCCESS);
-	}
+        /* Starting coding your dummy tcp DNS server */
+            ...
+
+        INA_TEST_HELPER_SET_RC(EXIT_SUCCESS);
+    }
+
 
 ##### Invoking in-situ Helpers	
+Use `INA_TEST_HELPER_INVOKE` to start a child helper process.
 
     INA_TEST(tcp, dns_ping) {
-    	/* Invoke helper */
-    	ina_test_hid_t hid;
-   		INA_TEST_HELPER_INVOKE(tcp, dummy_dns_server, "127.0.0.1", "9001", NULL);
-   		
-        /* Make some tests */
-		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
-		
-		/* Kill helper process */
-		INA_TEST_HELPER_STOP(hid);
-	}
-	
-	INA_TEST(ullc, read_ring_buffer) {
-    	/* Invoke helper */
-    	ina_test_hid_t hid;
-   		INA_TEST_HELPER_INVOKE_WAIT(tcp, create_ring_buffer, 5000, NULL);
-   		
-        /* Make some tests */
-		INA_TEST_ASSERT_TRUE(read_ring_buffer());
-		
-	}
+        /* Invoke helper */
+        ina_test_hid_t hid;
+        INA_TEST_HELPER_INVOKE(&hid, tcp, dummy_dns_server, "127.0.0.1", 
+                                "9001", NULL);
 
-	
+        /* Make some tests */
+        INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
+
+        /* Kill helper process */
+        INA_TEST_HELPER_STOP(hid);
+    }
+
+    INA_TEST(ullc, read_ring_buffer) {
+        /* Invoke helper */
+        ina_test_hid_t hid;
+        INA_TEST_HELPER_INVOKE_WAIT(&hid&, tcp, create_ring_buffer, 5000, NULL);
+
+        /* Make some tests */
+        INA_TEST_ASSERT_TRUE(read_ring_buffer());
+    }
+
 To test or start an in-situ helper from the command line juste type
 
-	./test -h suite_name helper_name
+    ./test -h suite_name helper_name
 
   
 ##### External Helpers
 
     INA_TEST(tcp, dns_ping) {
-    	/* Invoke helper */
-    	ina_test_hid_t hid;
-   		INA_TEST_HELPER_CMD(&hid, "c:/test/dns.exe" "127.0.0.1", "9001");
-   		
+        /* Invoke helper */
+        ina_test_hid_t hid;
+        INA_TEST_HELPER_CMD(&hid, "c:/test/dns.exe" "127.0.0.1", "9001", NULL);
+
         /* Make some tests */
-		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
-		
-		/* Kill helper process */
-		INA_TEST_HELPER_STOP(hid);
-	}
+        INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
+
+        /* Kill helper process */
+        INA_TEST_HELPER_STOP(hid);
+    }
   
    INA_TEST(tcp, dns_ping) {
-    	/* Invoke helper */
-    	ina_test_hid_t hid;
-   		INA_TEST_HELPER_CMD_WAIT("c:/test/dns.exe", 5000, "127.0.0.1", "9001");
-   		
-        /* Make some tests */
-		INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
-	}
-  
+        /* Invoke helper */
+        ina_test_hid_t hid;
+        INA_TEST_HELPER_CMD_WAIT("c:/test/dns.exe", 5000, "127.0.0.1", 
+                                    "9001", NULL);
 
-   
-	
+        /* Make some tests */
+        INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));  
+    }
+
 #### Performance testing
 
 
