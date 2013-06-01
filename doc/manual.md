@@ -518,7 +518,8 @@ Configuration definition
 
 ### Working with configuration files
    
-For basic usage use the appropriates macros. Start by declaring a variable to hold the instance for the configuration file.
+For basic usage use the appropriates macros. Start by declaring a variable to
+hold the instance for the configuration file.
    
     ina_conffile_t *cf = NULL;
     
@@ -530,7 +531,6 @@ Declare
         INA_CONFFILE_NAMED_SECTION("iface", INA_NO, NULL,
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_NUMBER_KEY("mask", INA_NO)));
-
 
 Create a configuration file instance by calling `ina_conffile_init()`.
 
@@ -681,12 +681,16 @@ From the command line prompt you can start all tests or a single suite
     
 #### Helpers 
 A more advanced feature of this test framework are provided by helper macros.
-The framework supports in-situ helper and external helpers as well. Each helper is started in a new process. Further it's possible chose to between wait/or spawn mode.
+The framework supports in-situ helper and external helpers as well. Each helper
+is started in a new process. Further it's possible chose to between 
+wait/or spawn mode.
 
 ##### Adding in-situ Helpers
 In-situ helpers are compiled directly in the test binary by using the
 `INA_TEST_HELPER`macro. The macro takes two arguments: the suite name and
-helper name. The `argc` and `argv` from the `main()` function are available in the code body. For easy use and access use  Each Helper should assign a valid RC to `retval` before leaving.
+helper name. The `argc` and `argv` from the `main()` function are available in
+the code body. For easy use and access use  Each Helper should assign a valid
+RC to `retval` before leaving.
 
     INA_TEST_HELPER(tcp, dummy_dns_server) {
         const char* addr;
