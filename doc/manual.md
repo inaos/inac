@@ -36,25 +36,26 @@ Building on Windows requires some programs to be present on your system.
 
 ## Building on Linux or OS X
 
-To build and install the library, simply type `sudo make && make install`. To select
-the debug build, type `make debug`.
+To build the library, simply type `sudo make`. To select the debug build, 
+type `sudo make debug`.
 
 ## Compile time configuration
  * `INA_CSTRING_ENABLED`: Enable C-runtime strings (Default)
  * `INA_BSTRING_ENABLED`: Enable BSTRING string (The Better String Library)
  * `INA_ISTRING_ENABLED`: Enable INAOS string 
- * `INA_SYSMEMPOOL_SIZE`: Define the capacity in bytes of the internal memory pool 
-		                  Default is 8 MB		                  
+ * `INA_SYSMEMPOOL_SIZE`: Define the capacity in bytes of the internal memory 
+                          pool. Default is 8 MB		                  
  * `INA_TRACE_ENABLED`  : Enable/disable tracing. Default enabled.
  * `INA_TRACE_LEVEL`    : Set trace level (1-3). Default 1.
  * `INA_LOG_ENABLED`    : Enable/disable logging. Default enabled.
- * `INA_LOG_LEVEL`      : Set log level from 1 (errors) to 4(debug). Default 3 (info).
+ * `INA_LOG_LEVEL`      : Set log level from 1 (errors) to 4(debug). 
+                          Default 3 (info).
  
 
 
-All constants are prefaced with `INA_` . Other identifiers are prefaced with `ina_`.
-Type names are suffixed with `_t` and typedef‘d so that the struct keyword need
-not be used.
+All constants are prefaced with `INA_` . Other identifiers are prefaced with
+`ina_`. Type names are suffixed with `_t` and typedef‘d so that the struct 
+keyword need not be used.
 
 ## Starting to code
 
@@ -67,14 +68,14 @@ Initialize the library context as soon as possible:
 
 	ina_init(0);
 
-For each call of `ina_init()` you have to call `ina_exit()`. You can override the 
-size system memory pool by passing the pool size in bytes as argument.  
+For each call of `ina_init()` you have to call `ina_exit()`. You can override
+the size system memory pool by passing the pool size in bytes as argument.  
 
 ## For applications
-For applications, initialize the application context with `ina_app_init()`. This must be 
-the first function call in your program. You must call `ina_exit()` once before you quit 
-your program. You can override the system memory pool size by passing the pool size in
-bytes as third argument.
+For applications, initialize the application context with `ina_app_init()`. 
+This must be  the first function call in your program. You must call 
+`ina_exit()` once before you quit  your program. You can override the system 
+memory pool size by passing the pool size in bytes as third argument.
 
 	int main(int argc, char **argv,) 
 	{
@@ -88,7 +89,7 @@ bytes as third argument.
 
 ### Command line options
 The library provides a builtin command line processor. For that purpose the 
-`ina_appinit()` takes as firth argument an array of `ina_opt_t` containing the 
+`ina_app_init()` takes as firth argument an array of `ina_opt_t` containing the 
 command line options definition consisting in string, number and flag options. 
 Use the designated macros to build the options array. Options are defined with 
 a short, a long option name and a description. On string and number options a 
@@ -130,8 +131,8 @@ To get a string value use `ina_opt_get_string()`:
 	ina_str_t value = NULL;
 	ina_opt_get_string("host", &value);
 
-The command line options values are preserved for the until the application stops. 
-
+The command line options values are preserved for the until the application 
+stops. 
 
 # Portable Header
 This library provides with his portable header (portable.h) macros, functions 
@@ -159,7 +160,8 @@ A warning is thrown by compile time if no compiler was detected.
  
 
 ## Target OS detection
-Following target operating systems are currently supported and defined if detected.
+Following target operating systems are currently supported and defined if 
+detected.
 
 * AIX: `INA_OS_AIX`
 * Amiga: `INA_OS_AMIGA`
