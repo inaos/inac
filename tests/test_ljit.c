@@ -27,6 +27,7 @@
  */
 #include <libinac/lib.h>
 
+
 INA_TEST(ljit, call)
 {
     ina_ljit_ctx_t *ctx = NULL;
@@ -39,13 +40,16 @@ INA_TEST(ljit, call)
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n"));
-    lua_getglobal(ctx->lstate, "t");
-    
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "test_params", "dd<d", (double)10, (double)5, &r));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, 
+                                    "x = require(\"test_ljit\")\n"));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "x.test_params", "dd<d", 
+                                            (double)10, 
+                                            (double)5, 
+                                            &r));
     INA_TEST_ASSERT_EQUAL_FLOATING(50, r);
     
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "ina_app_get_name", "<s", &rs));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "x.test_app_get_name", "<s", &rs));
     INA_TEST_ASSERT_EQUAL_STR(ina_app_get_name(), rs);
     INA_TEST_ASSERT_SAME(ina_app_get_name(), rs);
 
@@ -72,8 +76,8 @@ INA_TEST(ljit, luaL_dostring)
     lua_pop(ctx->lstate, 1);
 
     INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_app_get_name()\n"));
-    INA_TEST_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));
-    INA_TEST_ASSERT_EQUAL_STR(ina_app_get_name(), (const char *)lua_tostring(ctx->lstate, -1));
+    /*INA_TEST_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));*/
+    INA_TEST_ASSERT_EQUAL_STR(ina_app_get_name(), *(const char **)lua_topointer(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
     
     lua_pushnumber(ctx->lstate, 5);
@@ -103,7 +107,6 @@ INA_TEST(ljit, init_destroy)
 
 INA_TEST(ljit, open_close_state_native)
 {
- 
     lua_State *lstate = luaL_newstate();
 
     INA_TEST_ASSERT_NOT_NULL(lstate);

@@ -8,7 +8,7 @@ local testljit = {}
 
 testljit.test_app_get_name = function()
     local name = ffi.C.ina_app_get_name()
-    return ffi.string(name);
+    return name
 end
 
 testljit.test_params = function(p1,p2)
@@ -17,6 +17,14 @@ end
 
 testljit.test = function()
     return 99
+end
+
+testljit.test_boolean_true = function()
+    return true
+end
+
+testljit.test_boolean_false = function()
+    return false
 end
 
 return testljit

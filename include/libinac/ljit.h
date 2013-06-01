@@ -39,12 +39,21 @@ typedef struct ina_ljit_ctx_s {
     lua_State *lstate;
 } ina_ljit_ctx_t;
 
+/* Cast Lua raw cdata pointer to a typed pointer */
+#define INA_LJIT_TOCSTRING(ctx, index) INA_LJIT_TOPOINTER(ctx, index, const char*)
+#define INA_LJIT_TOPOINTER(ctx, index, type) *(type*)ina_ljit_checkcdata(ctx, index)
+#define INA_LJIT_TOINTEGER(ctx, index) lua_tointeger(cxt->lstate, index)
+#define INA_LJIT_TODOUBLE(ctx, index) lua_tonumber(ctx->lstate, index)
+#define INA_LJIT_TOBOOLEAN(ctx, index) lua_toboolean(ctx->lstate, index)
 
-#define INA_LJIT_MODULE(module)                                     \
-    extern const char *luaJIT_BC_##module;                           \
+/*
+ * Import a LuaJIT module.
+ */
+#define INA_LJIT_MODULE(module)                                        \
+    extern const char *luaJIT_BC_##module;                             \
     INA_API(const void) *__ina_ljit_import_##module (void) {           \
-        __ina_ljit_inac = (const char*)(size_t)luaJIT_BC_##module;   \
-        return  __ina_ljit_inac;                                     \
+        __ina_ljit_inac = (const char*)(size_t)luaJIT_BC_##module;     \
+        return  __ina_ljit_inac;                                       \
     }
 
 /* 
@@ -61,6 +70,7 @@ typedef struct ina_ljit_ctx_s {
  * Initalize LuaJIT context
  */
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx);
+
 /*
  * Destroy LuaJIT context
  */
@@ -90,6 +100,16 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
  * Load lua code an execute it
  */
 INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char* code);
+
+/*
+ * Printout lua stack
+ */
+INA_API(ina_rc_t) ina_ljit_dump_stack(ina_ljit_ctx_t *ctx);
+
+/*
+ *
+ */
+INA_API(void*) ina_ljit_checkcdata(ina_ljit_ctx_t *ctx, int narg);
 
 #ifdef __cplusplus
 }
