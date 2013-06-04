@@ -221,12 +221,12 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
 {
     INA_ASSERT_NOTNULL(stopwatch);
 #ifdef INA_OS_WIN32
-    if (stopwatch->tv->stop.tp.QuadPart >= stopwatch->tv->start.tp.QuadPart) {
-        return INA_SUCCESS;
+    if (stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart) {
+        return INA_FAILURE;
     }
 #elif defined(INA_OS_OSX)
-    if (stopwatch->tv->stop.tp >= stopwatch->tv->start.tp) {
-        return INA_SUCCESS;
+    if (stopwatch->tv->stop.tp < stopwatch->tv->start.tp) {
+        return INA_FAILURE;
     }
 #else 
     if (stopwatch->tv->stop.tp.tv_sec <  stopwatch->tv->start.tp.tv_sec) {
@@ -238,7 +238,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
         }
     }
 #endif
-    return INA_FAILURE; 
+    return INA_SUCCESS; 
 }
 
 
@@ -254,7 +254,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, 
-				ina_time_t *start)
+                                           ina_time_t *start)
 {
     INA_ASSERT_NOTNULL(stopwatch);
     /* Duration = 0, indicate stopwwatch is running */
@@ -274,7 +274,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch,
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, 
-				int64_t *stamp_index)
+                                                int64_t *stamp_index)
 {
     INA_ASSERT_NOTNULL(stopwatch);
 
@@ -338,7 +338,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 				    ts->stamp.tp.tv_nsec) / 10000000.0);         
         } 
 #endif
-        stopwatch->ts->msec_duration= stopwatch->ts->sec_duration*1000;
+        stopwatch->ts->msec_duration = stopwatch->ts->sec_duration*1000;
         stopwatch->ts->usec_duration = stopwatch->ts->sec_duration*1000*1000;
     }
     return INA_SUCCESS;
@@ -389,7 +389,8 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->tv->sec_duration = __ina_lit_to_secs(&elapsed);
 #elif defined(INA_OS_OSX)
-
+    ina_time_read_tsc_clock(&stopwatch->tv->stop);
+    stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp - stopwatch->tv->stop.tp) / 1000000000;
 #else
     INA_ASSERT_NOTNULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);

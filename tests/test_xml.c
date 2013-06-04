@@ -94,7 +94,7 @@ INA_TEST(xml_init, parser_borrow) {
     }
     INA_TEST_ASSERT_EQUAL_INTEGER(ctx->parser_pool_size, c);
 
-    while (INA_SUCCEED(ina_xml_parser_release(ctx, &parser[--c])));
+    while (c  && INA_SUCCEED(ina_xml_parser_release(ctx, &parser[--c])));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, c);
     INA_TEST_ASSERT_SUCCEED(ina_xml_destroy(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
@@ -255,9 +255,6 @@ INA_TEST_FIXTURE(xml, elem_attr_first) {
 INA_TEST_FIXTURE(xml, attr_next)
 {
     ina_xml_attr_t *attr;
-    const char *name;
-    const char *value;
-    size_t len;
     int c = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute(data->parser, data->source, &data->root));
@@ -266,20 +263,31 @@ INA_TEST_FIXTURE(xml, attr_next)
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_first(data->itr, &data->itr));
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_attr_first(data->itr, &attr));
     INA_TEST_ASSERT_NOT_NULL(attr);
-    INA_TEST_ASSERT_SUCCEED(ina_xml_attr_name(attr, &name, &len));
-    INA_TEST_ASSERT_NOT_NULL(name);
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, len);
-    INA_TEST_ASSERT(strncmp("type", name, len) == 0);
-    INA_TEST_ASSERT_SUCCEED(ina_xml_attr_value(attr, &value, &len));
-    INA_TEST_ASSERT_NOT_NULL(value);
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, len);
-    INA_TEST_ASSERT(strncmp("Draft", value, len) == 0);
     while (INA_SUCCEED(ina_xml_attr_next(attr, &attr))) {
         c++;
     }
     INA_TEST_ASSERT_EQUAL_INTEGER(4, c);
 }
 
-INA_TEST_FIXTURE_SKIP(xml, attr_name_and_value)
+INA_TEST_FIXTURE(xml, attr_name_and_value)
 {
+    ina_xml_attr_t *attr;
+      const char *name;
+      const char *value;
+      size_t len;
+
+      INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute(data->parser, data->source, &data->root));
+      INA_TEST_ASSERT_SUCCEED(ina_xml_elem_first(data->root, &data->itr));
+      INA_TEST_ASSERT_SUCCEED(ina_xml_elem_next(data->itr, &data->itr));
+      INA_TEST_ASSERT_SUCCEED(ina_xml_elem_first(data->itr, &data->itr));
+      INA_TEST_ASSERT_SUCCEED(ina_xml_elem_attr_first(data->itr, &attr));
+      INA_TEST_ASSERT_NOT_NULL(attr);
+      INA_TEST_ASSERT_SUCCEED(ina_xml_attr_name(attr, &name, &len));
+      INA_TEST_ASSERT_NOT_NULL(name);
+      INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, len);
+      INA_TEST_ASSERT(strncmp("type", name, len) == 0);
+      INA_TEST_ASSERT_SUCCEED(ina_xml_attr_value(attr, &value, &len));
+      INA_TEST_ASSERT_NOT_NULL(value);
+      INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, len);
+      INA_TEST_ASSERT(strncmp("Draft", value, len) == 0);
 }

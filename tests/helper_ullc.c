@@ -27,58 +27,26 @@
  */
 #include <libinac/lib.h>
 
+/* Create a single */
+INA_TEST_HELPER(ullc, create_single_producer) {
+    const char* name;
+    int32_t num_consumers;
+    ina_ullc_ctx_t *ctx = NULL;
 
-/*
- * Poor Poeple Echo Server
- */
-INA_TEST_HELPER(net, non_blocking_echo_server) {
-
-    int fd = -1;
-    int cfd = -1;
-    const char *addr;
-    int port;
-    unsigned char buffer[4096];
-    int nb_read;
-
-    INA_TEST_HELPER_CHECK_ARGC(2);
-    addr = INA_TEST_HELPER_CARG(0);
-    port = INA_TEST_HELPER_IARG(1);
- 
-    ina_mem_set(buffer, 0, 4096);
-
-    if (!INA_SUCCEED(ina_net_tcp_server(&fd, port, addr))) {
-        *retval = ina_err_peek();
-        return;
-     }
-
-     if (!INA_SUCCEED(ina_net_nonblock(fd))) {
-         ina_net_close(fd);
-         *retval = ina_err_peek();
-         return;
-     }
-
-     while (1) {
-        if (cfd == -1) {
-            if (INA_SUCCEED(ina_net_tcp_accept(&cfd, fd, NULL, NULL))) {
-                if (cfd != -1) {
-                    if (!INA_SUCCEED(ina_net_nonblock(cfd))) {
-                        ina_net_close(cfd);
-                        cfd = -1;
-                    }
-                }
-            }
-        }
-
-        if (cfd != -1) {
-            if (INA_SUCCEED(ina_net_read(cfd, buffer, 4096, &nb_read))) {
-                if (nb_read > 0) {
-                    ina_net_write(cfd, buffer, nb_read, &nb_read);
-               }
-           } else {
-               ina_net_close(cfd);
-               cfd = -1;
-            }
-       }
-       ina_time_sleep(300);
-   }
+    INA_TEST_HELPER_CHECK_ARGC(1);
+    name = INA_TEST_HELPER_CARG(0);
+    num_consumers =
+    
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
+
+INA_TEST_HELPER(ullc, create_multi_producer) {
+    const char* name;
+    ina_ullc_ctx_t *ctx = NULL;
+
+    INA_TEST_HELPER_CHECK_ARGC(1);
+    name = INA_TEST_HELPER_CARG(0);
+    
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+}
+    

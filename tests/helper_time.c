@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2013, INAOS GmbH
+/* Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,73 +26,41 @@
  */
 #include <libinac/lib.h>
 
-static ina_iscp_ctx_t *__iscp = NULL;
-static int __running = 0;
+/* 
+ * Create a stop watch with an given ID, makes 3 time stamps each 10 ms
+ * beetween.
+ */
+INA_TEST_HELPER(time_ipc, stopwatch_create) {
+    int32_t id;
+    ina_stopwatch_t *w = NULL;
+    char user_data[INA_TIME_MAX_USERDATA_LEN+10];
 
-static int __cleanup_handler(const int sig, const int error) 
-{
-    ina_iscp_destroy(&__iscp);
-    return EXIT_SUCCESS;
-}
+    INA_TEST_HELPER_CHECK_ARGC(1);
+    id = INA_TEST_HELPER_IARG(0);
 
-static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, ina_iscp_param_t *params)
-{
-    if (cmd_id != 3) {
-        return INA_FAILURE;
-    }
-    if (count != 1) {
-        return INA_FAILURE;
-    }
-    if (params->type != INA_ISCP_TYPE_DBL) {
-        return INA_FAILURE;
-    }
-    if (params->value.d >= 0) {
-        return INA_FAILURE;
-    }    
-    return INA_SUCCESS;
-}
-
-static ina_rc_t __command_1_handler(int cmd_id, int count, ina_iscp_param_t *params)
-{
-    return INA_SUCCESS;
-}
-
-static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_param_t *params)
-{
-    __running = 0;
-    return INA_SUCCESS;
-}
-
-INA_TEST_HELPER(iscp_tcp, tcp_server) {
-    const char *addr;
-    int32_t port;
-
-    INA_ISCP_CMDS(cmds,
-           INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
-           INA_ISCP_SENDRECV_CMD(2, 1, __command_2_handler),
-           INA_ISCP_SENDRECV_CMD(3, 1, __receive_negaitve_double_handler));
-
-     INA_TEST_HELPER_CHECK_ARGC(2);
-     addr = INA_TEST_HELPER_CARG(0);
-     port = INA_TEST_HELPER_IARG(1);
-
-     ina_set_cleanup_handler(__cleanup_handler);
-
-     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, addr, port))) {
-         INA_TEST_HELPER_SET_RC(ina_err_peek());
-         return;
-     }
-
-    if (!INA_SUCCEED(ina_iscp_register_ex(__iscp, cmds))) {
+    if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, id, -1))) {
         INA_TEST_HELPER_SET_RC(ina_err_peek());
         return;
     }
 
-    __running = 1;
+    ina_mem_set(&user_data, (int)"a", INA_TIME_MAX_USERDATA_LEN+8);
+    user_data[INA_TIME_MAX_USERDATA_LEN+9] = '\0';
 
-    while (__running) {
-        ina_iscp_recv(__iscp, 1, 0);
-        ina_time_sleep(10);
+    INA_TIME_STOPWATCH_START(w);
+    ina_time_sleep(10);
+    INA_TIME_STOPWATCH_STAMP(w);
+    ina_time_sleep(10);
+    INA_TIME_STOPWATCH_STAMP1(w, "user_data1");
+    ina_time_sleep(10);
+    INA_TIME_STOPWATCH_STAMP2(w, "user_data1", "user_data2");
+    ina_time_sleep(10);
+    INA_TIME_STOPWATCH_STAMP2(w, user_data, user_data);
+    
+    /* wait kill signal */
+    while (1) {
+        ina_time_sleep(1000);
     }
+
+    INA_TIME_STOPWATCH_DESTROY(&w);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

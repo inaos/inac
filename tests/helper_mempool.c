@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2013, INAOS GmbH
+/* Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,57 +27,33 @@
 #include <libinac/lib.h>
 
 
-/*
- * Poor Poeple Echo Server
- */
-INA_TEST_HELPER(net, non_blocking_echo_server) {
-
-    int fd = -1;
-    int cfd = -1;
-    const char *addr;
-    int port;
-    unsigned char buffer[4096];
-    int nb_read;
+INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
+    const char *label;
+    size_t size;
+    ina_mempool_t *mp = NULL;
+    int32_t *v;
+    size_t c;
 
     INA_TEST_HELPER_CHECK_ARGC(2);
-    addr = INA_TEST_HELPER_CARG(0);
-    port = INA_TEST_HELPER_IARG(1);
- 
-    ina_mem_set(buffer, 0, 4096);
+    label = INA_TEST_HELPER_CARG(0);
+    size = INA_TEST_HELPER_IARG(1);
 
-    if (!INA_SUCCEED(ina_net_tcp_server(&fd, port, addr))) {
-        *retval = ina_err_peek();
-        return;
-     }
+    if (!INA_SUCCEED(ina_mempool_create(&mp, size, 
+        INA_MEM_SHARED|INA_MEM_SHARED_CREATE, ina_str_fromcstr(label)))) {
+            INA_TEST_HELPER_SET_RC(ina_err_peek());
+            return;
+    }
 
-     if (!INA_SUCCEED(ina_net_nonblock(fd))) {
-         ina_net_close(fd);
-         *retval = ina_err_peek();
-         return;
-     }
-
-     while (1) {
-        if (cfd == -1) {
-            if (INA_SUCCEED(ina_net_tcp_accept(&cfd, fd, NULL, NULL))) {
-                if (cfd != -1) {
-                    if (!INA_SUCCEED(ina_net_nonblock(cfd))) {
-                        ina_net_close(cfd);
-                        cfd = -1;
-                    }
-                }
-            }
-        }
-
-        if (cfd != -1) {
-            if (INA_SUCCEED(ina_net_read(cfd, buffer, 4096, &nb_read))) {
-                if (nb_read > 0) {
-                    ina_net_write(cfd, buffer, nb_read, &nb_read);
-               }
-           } else {
-               ina_net_close(cfd);
-               cfd = -1;
-            }
-       }
-       ina_time_sleep(300);
-   }
+    c = 0;
+    v = (int32_t*)ina_mempool_dalloc(mp, size);
+    while (c  < (size/sizeof(int32_t))) {
+        *v = c++;
+        v++;
+    }
+    
+    /* Run until kill signal */
+    while (1) {
+        ina_time_sleep(1000);
+    }
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

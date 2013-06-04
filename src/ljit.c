@@ -79,16 +79,33 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
 {
     va_list vl;
     int narg;
-    int nres;;
+    int nres;
+    char *cfname;
 
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(ctx->lstate);
 
-    va_start(vl, sig);
-    lua_getglobal(ctx->lstate, fname);  /* get function */
+    /* Global function or object method? */
+    if (!(cfname = strchr(fname, '.'))) {
+        lua_getglobal(ctx->lstate, fname);  /* get function */
+        INA_TRACE("fname=%s", fname);
+    } else {    
+        ina_str_t obj_name = ina_str_fromcstr(fname);
+        char *obj_name_c = (char*)ina_str_cstr(obj_name);
+        obj_name_c[cfname - fname] = '\0';
+        INA_TRACE3("obj_name_c=%s", obj_name_c);
+        lua_getglobal(ctx->lstate, obj_name_c);
+        cfname++;
+        INA_TRACE3("cfname=%s", cfname);
+        lua_getfield(ctx->lstate, -1, cfname);
+        ina_str_destroy(obj_name);
+    }
 
+    va_start(vl, sig);
+    
     /* push arguments */
     narg = 0;
+    
     while (*sig) {
         switch (*sig++) {
             case 'd':  
@@ -100,14 +117,16 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
             case 's':
                 lua_pushstring(ctx->lstate, va_arg(vl, char *));
                 break;
-            case '>':
-              goto endwhile;
+            case '<':
+                goto endwhile;
+                break;
             default:
-              return INA_LJIT_EPARAM;
+                return INA_LJIT_EPARAM;
          }
          narg++;
          luaL_checkstack(ctx->lstate, 1, "too many arguments");
     } endwhile:
+
 
     /* do the call */
     nres = strlen(sig);
@@ -133,10 +152,13 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
               break;
 
             case 's':  /* string result */
-              if (!lua_isstring(ctx->lstate, nres)) {
+              if (lua_isstring(ctx->lstate, nres)) {
+                  *va_arg(vl, const char **) = lua_tostring(ctx->lstate, nres);
+              } else if (lua_type(ctx->lstate, nres) == 10) { 
+                  *va_arg(vl, const char **) = INA_LJIT_TOCSTRING(ctx, nres);
+              } else {
                   return INA_LJIT_ERESULT;
               }
-              *va_arg(vl, const char **) = lua_tostring(ctx->lstate, nres);
               break;
             default:
               return INA_LJIT_EPARAM;
@@ -144,6 +166,7 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
         nres++;
     }
     va_end(vl);
+    lua_pop(ctx->lstate, 1);
     return INA_SUCCESS;
 }
 
@@ -154,5 +177,31 @@ INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
     if (luaL_dostring(ctx->lstate, code) != 0) {
         return INA_LJIT_ELUA(ctx);
     }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ljit_dump_stack(ina_ljit_ctx_t *ctx)
+{
+    int i = lua_gettop(ctx->lstate);
+    fprintf(stdout, " \n----------------  Lua Stack Dump ----------------\n" );
+    while(i) {
+        int t = lua_type(ctx->lstate, i);
+        switch (t) {
+            case LUA_TSTRING:
+                fprintf(stdout, "%d:`%s'\n", i, lua_tostring(ctx->lstate, i));
+                break;
+            case LUA_TBOOLEAN:
+                  fprintf(stdout, "%d: %s\n",i,lua_toboolean(ctx->lstate, i) ? "true" : "false");
+                  break;
+            case LUA_TNUMBER:
+                  fprintf(stdout, "%d: %g\n",  i, lua_tonumber(ctx->lstate, i));
+                  break;
+            default: 
+                fprintf(stdout, "%d: %s\n", i, lua_typename(ctx->lstate, t)); 
+                break;  
+        }
+        i--;
+    }
+    fprintf(stdout, "--------------- Lua Stack Dump Finished ---------------\n" );
     return INA_SUCCESS;
 }
