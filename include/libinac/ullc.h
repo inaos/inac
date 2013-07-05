@@ -126,7 +126,8 @@ extern "C" {
  */
 
 #define INA_ULLC_MAX_PRODUCERS (64)
-#define INA_ULLC_MAX_CONSUMERS (64)
+#define INA_ULLC_MAX_CONSUMERS (INA_ULLC_MAX_PRODUCERS)
+#define INA_ULLC_MAX_FLAGS     (INA_ULLC_MAX_PRODUCERS)
 
 /* Context types */
 typedef enum ina_ullc_ctx_type_e {
@@ -151,9 +152,9 @@ typedef enum ina_ullc_wait_strategy_e {
 /* ring buffer (shared mem) */
 typedef struct ina_ullc_rb_s {
     char magic;
-    int version;
-    int num_consumers;
-    int num_producers;
+    int16_t version;
+    int32_t num_consumers;
+    int32_t num_producers;
     size_t size;
     size_t slots;
     volatile int64_t cursor;
@@ -199,6 +200,13 @@ typedef struct ina_ullc_rb_info_s {
     ina_ullc_cursor_t c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
     ina_ullc_cursor_t p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */
 } ina_ullc_rb_info_t;
+
+
+/* ULLC flag set */
+typedef struct ina_ullc_flags_s {
+    ina_mempool_t *pool;            /* shared memory-pool */
+    int64_t *f;                     /* flags  */
+} ina_ullc_flags_t;
 
 #define INA_ULLC_PRODUCER_CREATE(type, version, slots, producers, consumers, name, ws, ctx) \
     ina_ullc_producer_create(version, sizeof(type), slots, producers, consumers, name, ws, ctx)
@@ -286,6 +294,38 @@ INA_API(ina_rc_t) ina_ullc_consumer_twait(ina_ullc_ctx_t *ctx);
 INA_API(ina_rc_t) ina_ullc_consumer_swait(ina_ullc_ctx_t *ctx);
 INA_API(ina_rc_t) ina_ullc_consumer_swait_begin(ina_ullc_ctx_t *ctx);
 INA_API(ina_rc_t) ina_ullc_consumer_swait_end(ina_ullc_ctx_t *ctx);
+
+
+/*
+ * Create an ULLC flag set
+ */
+INA_API(ina_rc_t) ina_ullc_flags_create(const char* name, int num_flags, 
+                                        ina_ullc_flags_t **flags);
+/*
+ * Open an ULLC flag set
+ */
+INA_API(ina_rc_t) ina_ullc_flags_open(const char* name, int num_flags, 
+                                        ina_ullc_flags_t **flags);
+/*
+ * Destory an ULLC flag set
+ */
+INA_API(ina_rc_t) ina_ullc_flags_destroy(ina_ullc_flags_t **flags);
+
+/*
+ * Get a single ULLC flag
+ */
+INA_API(ina_rc_t) ina_ullc_flags_get(ina_ullc_flags_t *flags, int id, 
+                                        int64_t **v);
+/*
+ * Set a single ULLC flag
+ */
+INA_API(ina_rc_t) ina_ullc_flags_set(ina_ullc_flags_t *flags, int id, 
+                                        int64_t **new_v);
+/*
+ * Wait for one or more flags changed
+ */
+INA_API(ina_rc_t) ina_ullc_flags_wait_for_change(ina_ullc_flags_t **flags, 
+                        int64_t mask, int wait_msec);
 
 #ifdef __cplusplus
 }
