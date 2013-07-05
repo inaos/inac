@@ -319,7 +319,6 @@ static void __run_job(ina_cron_task_t *t)
     PROCESS_INFORMATION pi;
     LPSTR cmd;
     BOOL success;
-    DWORD le;
         
     cmd = (LPSTR)ina_mem_alloc(sizeof(ina_str_len(t->cmd)+1));
     cmd = strcpy(cmd, ina_str_cstr(t->cmd));

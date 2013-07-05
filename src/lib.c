@@ -63,13 +63,20 @@ static __ina_sopt_t *__sopt = NULL;
 static __ina_lopt_t *__lopt = NULL;
 /* that's our program name */
 static ina_str_t __appname = NULL;
+/* That's our app path */
+static ina_str_t __apppath = NULL;
 
-INA_API(const char*) ina_appname(void)
+INA_API(const char*) ina_app_get_name(void)
 {
     return ina_str_cstr(__appname);
 }
 
-INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina_opt_t *opt) 
+INA_API(const char*) ina_app_get_path(void)
+{
+    return ina_str_cstr(__apppath);
+}
+
+INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, ina_opt_t *opt) 
 {
     if (!INA_SUCCEED(ina_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
@@ -81,6 +88,8 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
             basename++;
         }
         __appname = ina_str_fromcstr(basename);
+        /* FIXME: not sure for all platforms */
+        __apppath = ina_str_fromcstr(argv[0]);
     }
 
     if (opt != NULL) {
@@ -382,7 +391,7 @@ static void
 __ina_signal_handler(int sig)
 {
     int exitcode;
-    
+
     if (__sig != 0) {
         return;
     }
@@ -394,14 +403,14 @@ __ina_signal_handler(int sig)
         case SIGFPE:
         case SIGILL:
         case SIGSEGV:
-            INA_TRACE_MSG("programm error signal received!");
             if (__cleanup) {
                  __cleanup(sig, 0);
             }
+            fprintf(stderr, "Error: signal %d:\n", sig);
             /* Try to trace out the source of error */
             ina_err_trace();
-            /* ... then stop */
-            abort();
+            ina_err_backtrace();    
+            exit(exitcode);
             break;
         case SIGTERM:
         case SIGINT:

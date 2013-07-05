@@ -333,7 +333,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
     	cf->filepath = ina_str_fromcstr(filepath);
     }
     if (cf->filepath == NULL) {
-        cf->filepath = ina_str_vsprintf("%s.conf", ina_appname());
+        cf->filepath = ina_str_vsprintf("%s.conf", ina_app_get_name());
     }
 
     lua_pushstring(cf->lctx->lstate, ina_str_cstr(cf->filepath));

@@ -238,20 +238,42 @@ INA_API(ina_rc_t) ina_err_trace(void)
         return rc;
     }
 
-    printf("%s\n", "**** UNHANDLED ERROR START ******");
+    fprintf(stderr, "%s\n", "**** UNHANDLED ERROR START ******");
 
     rc = ina_err_peek();
     n = __state.c;
     while (n--) {
         if (INA_SUCCEED(ina_err_fmtmsg(__state.errors[n].rc, str, 2048))) {
-            printf("%s\n", str);
+            fprintf(stderr, "%s\n", str);
         } else {
-            printf("%s\n", "**** FATAL ERROR  ******");
+            fprintf(stderr, "%s\n", "**** FATAL ERROR  ******");
             return INA_FAILURE;
         }
     }
-    printf("%s\n", "**** UNHANDLED ERROR END   ******");
 
+    fprintf(stderr, "%s\n", "**** UNHANDLED ERROR END ******");
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_err_backtrace(void)
+{
+#ifndef INA_OS_WIN32
+    void *fnptr[30];
+    size_t size;
+    int i;
+
+    fprintf(stderr, "%s\n", "**** BACKTRACE START ******");
+    size = backtrace(fnptr, 30);
+    char** fn = backtrace_symbols(fnptr, size);
+    for (i = 0; i < size; i++) {
+        if (i > 3) {
+            fprintf(stderr, "%s\n", fn[i]);
+        }
+    }
+    free(fn);
+    fprintf(stderr, "%s\n", "**** BACKTRACE  END ******");
+#endif
     return INA_SUCCESS;
 }
 

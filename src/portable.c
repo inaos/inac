@@ -43,20 +43,27 @@ void ex(void)
 
 INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-    FILETIME ft;
-    unsigned __int64 tmpres = 0;
     static int tzflag;
 
     if (NULL != tv) {
+        ULARGE_INTEGER ul; /* As specified on MSDN. */
+        FILETIME ft;
+
+        /* Returns a 64-bit value representing the number of
+           100-nanosecond intervals since January 1, 1601 (UTC). */
         GetSystemTimeAsFileTime(&ft);
-        tmpres |= ft.dwHighDateTime;
-        tmpres <<= 32;
-        tmpres |= ft.dwLowDateTime;
-        /*converting file time to unix epoch*/
-        tmpres -= DELTA_EPOCH_IN_MICROSECS; 
-        tmpres /= 10;  /*convert into microseconds*/
-        tv->tv_sec = (long)(tmpres / 1000000UL);
-        tv->tv_usec = (long)(tmpres % 1000000UL);
+
+        /* Fill ULARGE_INTEGER low and high parts. */
+        ul.LowPart = ft.dwLowDateTime;
+        ul.HighPart = ft.dwHighDateTime;
+        /* Convert to microseconds. */
+        ul.QuadPart /= 10ULL;
+        /* Remove Windows to UNIX Epoch delta. */
+        ul.QuadPart -= 11644473600000000ULL;
+        /* Modulo to retrieve the microseconds. */
+        tv->tv_usec = (long) (ul.QuadPart % 1000000LL);
+        /* Divide to retrieve the seconds. */
+        tv->tv_sec = (long) (ul.QuadPart / 1000000LL);
     }
     if (NULL != tz) {
         if (!tzflag) {

@@ -200,6 +200,7 @@ extern "C" {
 #define INA_ULLC_EINSLOTS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument slots")
 #define INA_ULLC_EINSIZE INA_ULLC_ERROR(INA_EINVAL, "Invalid argument size")
 #define INA_ULLC_EINCONSUMERS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument consumers")
+#define INA_ULLC_EINPRODUCERS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument producers")
 
 /* Net-Module errors */
 #define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
@@ -333,12 +334,20 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
 INA_API(ina_rc_t) ina_err_reset(void);
 
 /*
- * Makes a trace to the stdout of the current error state.
+ * Makes a trace to the stderr of the current error state.
  *
  * Return Value
  * INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_err_trace(void);
+
+/*
+ * Makes a backrace to the stderr of the current error state.
+ *
+ * Return Value
+ * INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_err_backtrace(void);
 
 /*
  * Format the error message for a given RC.
