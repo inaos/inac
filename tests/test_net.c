@@ -49,7 +49,7 @@ INA_TEST_TEARDOWN(net) {
         ina_net_close(data->client_fd);
     }
     data->client_fd = -1;
-    INA_TEST_HELPER_STOP(&data->hid);
+    INA_TEST_HELPER_TERMINATE(&data->hid);
 }
 
 INA_TEST_FIXTURE(net, tcp_connect_no_timeout) {

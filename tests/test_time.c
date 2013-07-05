@@ -148,7 +148,7 @@ INA_TEST_SETUP(time_ipc) {
 }
 
 INA_TEST_TEARDOWN(time_ipc) {
-    INA_TEST_HELPER_STOP(&data->hid);
+    INA_TEST_HELPER_TERMINATE(&data->hid);
 }
 
 INA_TEST_FIXTURE(time_ipc, stopwatch_open) {

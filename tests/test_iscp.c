@@ -140,7 +140,7 @@ INA_TEST_SETUP(iscp_tcp) {
 }
 
 INA_TEST_TEARDOWN(iscp_tcp) {
-    INA_TEST_HELPER_STOP(&data->hid);
+    INA_TEST_HELPER_TERMINATE(&data->hid);
     ina_iscp_destroy(&data->iscp);
 }
 

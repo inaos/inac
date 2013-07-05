@@ -722,7 +722,7 @@ Use `INA_TEST_HELPER_INVOKE` to start a child helper process.
         INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
 
         /* Kill helper process */
-        INA_TEST_HELPER_STOP(hid);
+        INA_TEST_HELPER_TERMINATE(hid);
     }
 
     INA_TEST(ullc, read_ring_buffer) {
@@ -750,7 +750,7 @@ To test or start an in-situ helper from the command line juste type
         INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));
 
         /* Kill helper process */
-        INA_TEST_HELPER_STOP(hid);
+        INA_TEST_HELPER_TERMINATE(hid);
     }
   
    INA_TEST(tcp, dns_ping) {

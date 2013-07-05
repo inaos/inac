@@ -35,14 +35,6 @@
 
 #ifdef INA_OS_WIN32
 #define snprintf sprintf_s
-struct ina_test_hid_s {
-    HANDLE hProcess;
-    HANDLE hThread;
-};
-#else
-struct ina_test_hid_s {
-    pid_t pid;
-};
 #endif
 
 #define __INA_MSG_SIZE 4096
@@ -97,7 +89,7 @@ static void __ina_signal_handler(int sig) {
     longjmp(__err, 1);
 }
 
-INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...)
+INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
  {
      int size;
      va_list argp;
@@ -133,31 +125,31 @@ INA_API(void) ina_test_assert_equal_str(const char *exp, const char *real,
     }
 }
 
-INA_API(void) ina_test_assert_not_equal_str(const char *exp, const char *real, 
+INA_API(void) ina_test_assert_not_equal_str(const char *nexp, const char *real, 
                 const char *caller, int line) 
 {
-    if ((exp == NULL && real == NULL) ||
-        (exp == real) ||
-        (exp && real && strcmp(exp, real) == 0)) {
-        INA_TEST_ERR("%s:%d  not expected '%s'", caller, line, exp);
+    if ((nexp == NULL && real == NULL) ||
+        (nexp == real) ||
+        (nexp && real && strcmp(nexp, real) == 0)) {
+        INA_TEST_ERR("%s:%d  not expected '%s'", caller, line, nexp);
         longjmp(__err, 1);
     }
 }
 
-INA_API(void) ina_test_assert_data(const unsigned char *exp, int expsize,
-                  const unsigned char *real, int realsize,
+INA_API(void) ina_test_assert_data(const unsigned char *exp, size_t exp_size,
+                  const unsigned char *real, size_t real_size,
                   const char *caller, int line) 
 {
-    int i;
-    if (expsize != realsize) {
+    size_t i;
+    if (exp_size != real_size) {
         INA_TEST_ERR("%s:%d  expected %d bytes, got %d", 
                         caller, 
                         line, 
-                        expsize, 
-                        realsize);
+                        exp_size, 
+                        real_size);
         longjmp(__err, 1);
     }
-    for (i=0; i<expsize; i++) {
+    for (i = 0; i < exp_size; i++) {
         if (exp[i] != real[i]) {
             INA_TEST_ERR("%s:%d expected 0x%02x at offset %d got 0x%02x",
                     caller, line, exp[i], i, real[i]);
@@ -288,9 +280,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     }
      
     if (pid == 0) {
-       /* child */
-       n = 0;
-
+ 
         if (suite_name != NULL) {
             args[n++] = (char*)__binpath;
             args[n++] = "-h";
@@ -303,16 +293,21 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
         va_start(ap, wait_msec);
         while ((args[n++] = va_arg(ap, char *)));
         va_end(ap);
+        
         execvp(args[0], args);
         perror("execvp()");
         _exit(127);
     }
+    
+    /* Store pid */
     hid->pid = pid;
+
     if (wait_msec < 0) { 
         int exitcode = 0;
         waitpid(pid, &exitcode, WNOHANG);
     } else if (wait_msec > 0) {
         ina_time_sleep(wait_msec);
+        ina_test_helper_terminate(hid);
     } else {
         ina_time_sleep(500);
     }
@@ -351,18 +346,15 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     if (CreateProcess(NULL, cmdline, 0, 0, FALSE, 
             CREATE_DEFAULT_ERROR_MODE, 0, 0,
             &si, &pi) != FALSE) {
+        hid->hProcess = pi.hProcess;
+        hid->hThread = pi.hThread;
+        
         if (wait_msec < 0) {
             wait_msec = INFINITE;
         }
-        if (wait_msec > 0) {
+        if (wait_msec != 0) {
             dwExitCode = WaitForSingleObject(pi.hProcess, wait_msec);
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-            hid->hProcess = NULL;
-            hid->hThread = NULL;
-        } else {
-            hid->hProcess = pi.hProcess;
-            hid->hThread = pi.hThread;
+            ina_test_helper_terminate(hid);
         }
         ina_time_sleep(500);
         return INA_SUCCESS;
@@ -371,17 +363,21 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
 #endif
 }
 
-INA_API(ina_rc_t) ina_test_helper_stop(ina_test_hid_t *hid)
+INA_API(ina_rc_t) ina_test_helper_terminate(ina_test_hid_t *hid)
 {
     INA_ASSERT_NOTNULL(hid);
 #ifdef INA_OS_WIN32
-    TerminateProcess(hid->hProcess, 0);
-    CloseHandle(hid->hProcess);
-    CloseHandle(hid->hThread);
-    hid->hProcess = NULL;
-    hid->hThread = NULL;
+    if (hid->hProcess != NULL) {
+        TerminateProcess(hid->hProcess, 0);
+        CloseHandle(hid->hProcess);
+        CloseHandle(hid->hThread);
+        hid->hProcess = NULL;
+        hid->hThread = NULL;
+    }
 #else
-    kill(hid->pid, SIGKILL);
+    if (hid->pid > 0) { 
+        kill(hid->pid, SIGKILL);
+    }
 #endif
     return INA_SUCCESS;
 }
@@ -479,11 +475,11 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     end++;
 
 #ifdef INA_OS_WIN32
-    _set_abort_behavior( 0, _WRITE_ABORT_MSG);
+    _set_abort_behavior(0, _WRITE_ABORT_MSG);
 #endif
 
     for (test = begin; test != end; test++) {
-        if (test == &__ina_test_suite_test) {
+        if (test == &INA_TEST_TNAME(suite, test)) {
             continue;
         }
         if (filter(test)) {
@@ -508,23 +504,21 @@ INA_API(int) ina_test_run(int argc, char *argv[])
 
                 num_skip++;
             } else {
-                 void* old_sigabrt_handler = NULL;
-                 void* old_sigsegv_handler = NULL;
+                void* old_sigabrt_handler = NULL;
+                void* old_sigsegv_handler = NULL;
 #ifdef INA_OS_OSX
-                    if (!test->setup) {
-                        test->setup = __ina_find_symbol(test, "setup");
-                    }
-                    if (!test->teardown) {
-                        test->teardown = __ina_find_symbol(test, "teardown");
-                    }
+                if (!test->setup) {
+                    test->setup = __ina_find_symbol(test, "setup");
+                }
+                if (!test->teardown) {
+                    test->teardown = __ina_find_symbol(test, "teardown");
+                }
 #endif
-                    if (test->setup) {
-                        test->setup(test->data);
-                    }
-                    old_sigabrt_handler = signal(SIGABRT, 
-                           __ina_signal_handler);
-                    old_sigsegv_handler = signal(SIGSEGV, 
-                    __ina_signal_handler);
+                if (test->setup) {
+                    test->setup(test->data);
+                }
+                old_sigabrt_handler = signal(SIGABRT, __ina_signal_handler);
+                old_sigsegv_handler = signal(SIGSEGV, __ina_signal_handler);
 
                 if (setjmp(__err) == 0) {
                     if (test->data) {

@@ -41,6 +41,17 @@ extern "C" {
 /* Test helper handle */
 typedef struct ina_test_hid_s ina_test_hid_t;
 
+#ifdef INA_OS_WIN32
+struct ina_test_hid_s {
+    HANDLE hProcess;
+    HANDLE hThread;
+};
+#else
+struct ina_test_hid_s {
+    pid_t pid;
+};
+#endif
+
 /* Invoke test helper, returns immediately after starting the helper. If
  * helper could non be started or returns an error an assertion will fail.    
  *
@@ -50,9 +61,9 @@ typedef struct ina_test_hid_s ina_test_hid_t;
  * hname Helper name
  * ...   Arguments to pass to the helper. All arguments must be of type char*
  */
-#define INA_TEST_HELPER_INVOKE(hid, sname, hname, ...)                     \
-    INA_TEST_MSG("starting helper %s", #hname);                            \
-    INA_TEST_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, 0,  \
+#define INA_TEST_HELPER_INVOKE(hid, sname, hname, ...)                      \
+    INA_TEST_MSG("starting helper %s", #hname);                             \
+    INA_TEST_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, 0,   \
                               __VA_ARGS__)); 
 
 /* Invoke test helper, waits child process to terminate for msec, helper 
@@ -70,9 +81,8 @@ typedef struct ina_test_hid_s ina_test_hid_t;
     INA_TEST_ASSERT_SUCCEED(ina_test_helper_spawn(hid, #sname, #hname, msec,\
                               __VA_ARGS__));
 
-/* Invoke external test helper. Waits child process to terminate for msec, 
- * helper process is killed before returning.  If helper could non be started 
- * or returns an error an assertion will fail.    
+/* Invoke external test helper, returns immediately after starting the helper.
+ * If helper could non be started or returns an error an assertion will fail.
  *
  * Parameters
  * hid   Pointer to a helper handle 
@@ -82,8 +92,9 @@ typedef struct ina_test_hid_s ina_test_hid_t;
 #define INA_TEST_HELPER_CMD(hid, cmd, ...)                                  \
     INA_TEST_HELPER_INVOKE(hid, NULL, cmd, ...)
 
-/* Invoke external test helper, returns immediately after starting the helper. 
- * If helper could non be started or returns an error an assertion will fail.    
+/* Invoke external test helper. Waits child process to terminate for msec, 
+ * helper process is killed before returning.  If helper could non be started 
+ * or returns an error an assertion will fail.    
  *
  * Parameters
  * hid   Pointer to a helper handle 
@@ -98,8 +109,8 @@ typedef struct ina_test_hid_s ina_test_hid_t;
  * Parameters
  * hid  Pointer to a valid helper handle
  */         
-#define INA_TEST_HELPER_STOP(hid)                                           \
-    ina_test_helper_stop(hid)
+#define INA_TEST_HELPER_TERMINATE(hid)                                      \
+    ina_test_helper_terminate(hid)
 
 /* Exit from Helper with return code */
 #define INA_TEST_HELPER_EXIT(rc)                                            \
@@ -134,7 +145,7 @@ typedef struct ina_test_hid_s ina_test_hid_t;
  *             -1 to wait until process terminate. 
  * 
  * Return Value
- * INA_SUCCESS no error occured
+ * INA_SUCCESS  no error occured
  *
  */
 INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, 
@@ -142,9 +153,15 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
                        const char *helper_name, 
                        int32_t wait_msec, ...);
 /*
+ * Terminate a helper child process.
  *
+ * Parameters
+ * hid      Pointer to a valid helper handle
+ *
+ * Return Value
+ * Always INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_test_helper_stop(ina_test_hid_t *hid);
+INA_API(ina_rc_t) ina_test_helper_terminate(ina_test_hid_t *hid);
 
 /*
  *
@@ -195,6 +212,114 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
     ina_test_assert_fail(__FILE__, __LINE__)
 #define INA_TEST_ASSERT_SIGNAL(sig)                                         \
     ina_test_assert_signal(__FILE__, __LINE__)
+
+/*
+ * Assert a string to be equal.
+ *
+ * Parameters
+ * exp      Expected string
+ * real     Real string
+ * caller   Caller function name calling this assert
+ * line     Caller line number
+ */
+INA_API(void) ina_test_assert_equal_str(const char *exp, const char *real, 
+                                  const char *caller, int line);
+                                  
+/*
+ * Assert a string not to be equal.
+ *
+ * Parameters
+ * exp      Not expected string
+ * real     Real string
+ * caller   Caller function name calling this assert
+ * line     Caller line number
+ */
+INA_API(void) ina_test_assert_not_equal_str(const char *nexp, const char *real, 
+                                  const char *caller, int line);
+
+/*
+ * Assert data chunk to be equal.
+ *
+ * Parameters:
+ * exp       Pointer to expected data
+ * real      Pointer to real data
+ * exp_size  Expected size in bytes
+ * real_size Real size in bytes
+ * caller    Caller function name calling this assert
+ * line      Caller line number
+ */
+INA_API(void) ina_test_assert_data(const unsigned char* exp, size_t exp_size,
+                                   const unsigned char* real, size_t real_size,
+                                   const char *caller, int line);
+/*
+ * 
+ */
+INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, 
+                                    const char *caller, int line);
+/*
+ *
+ */
+INA_API(void) ina_test_assert_equal_floating(double exp, double real, 
+                                    const char *caller, int line);
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, 
+                                        const char *caller, int line);
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_equal_floating(double exp, double real, 
+                                        const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_null(const void *real, const char *caller, 
+                                   int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_null(const void *real, const char *caller, 
+                                       int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_same(const void *exp,  const void *real, 
+                                   const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_not_same(const void *exp,  const void *real, 
+                                       const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_true(int real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_false(int real, const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_fail(const char *caller, int line);
+
+/*
+ *
+ */
+INA_API(void) ina_test_assert_signal(int sig, const char *caller, int line);
+
+
+/*
+ * TEST HANDLING
+ */
 
 /* Setup callback */
 typedef void (*ina_test_setup_cb_t)(void*);
@@ -263,9 +388,9 @@ typedef struct ina_test_testcase_s {
 #endif
 /* Declare test case. For internal purpose only. */
 #define INA_TEST_DECL(sname, tname, _skip)                                  \
-        void INA_TEST_FNAME(sname, tname)();                                \
-        INA_TEST_STRUCT(sname, tname, _skip, 0, NULL, NULL, NULL);          \
-        void INA_TEST_FNAME(sname, tname)()
+    void INA_TEST_FNAME(sname, tname)();                                    \
+    INA_TEST_STRUCT(sname, tname, _skip, 0, NULL, NULL, NULL);              \
+    void INA_TEST_FNAME(sname, tname)()
 
 
 /* Declare Test case with fixture. For internal purpose only. */
@@ -284,7 +409,6 @@ typedef struct ina_test_testcase_s {
     INA_TEST_STRUCT(sname, tname, _skip, 0, &__ina_test_##sname##_data,     \
         INA_SETUP_FNAME(sname), INA_TEARDOWN_FNAME(sname));                 \
     void INA_TEST_FNAME(sname, tname)(struct sname##_data* data)
-
 #define INA_HELPER_DECL(sname, hname)                                       \
     void INA_TEST_FNAME(sname, hname)(int *retval, int argc, char **argv);  \
     INA_TEST_STRUCT(sname, hname, 1, 1, NULL, NULL, NULL);                  \
@@ -292,112 +416,43 @@ typedef struct ina_test_testcase_s {
 
 /* Define test case */
 #define INA_TEST(sname, tname) INA_TEST_DECL(sname, tname, 0)
-/* Skip a text case */
+/* Skip a test case */
 #define INA_TEST_SKIP(sname, tname) INA_TEST_DECL(sname, tname, 1)
-/* Define test case unsing fixture features */
-#define INA_TEST_FIXTURE(sname, tname) INA_TEST_DECL_FIXTURE(sname, tname, 0)
+
+/* Define test case using fixture features */
+#define INA_TEST_FIXTURE(sname, tname) \
+    INA_TEST_DECL_FIXTURE(sname, tname, 0)
+
 /* Skip test case with fixture features */
-#define INA_TEST_FIXTURE_SKIP(sname, tname) INA_TEST_DECL_FIXTURE(sname, tname, 1)
+#define INA_TEST_FIXTURE_SKIP(sname, tname) \
+    INA_TEST_DECL_FIXTURE(sname, tname, 1)
+
 /* Define helper */
 #define INA_TEST_HELPER(sname, hname) INA_HELPER_DECL(sname, hname)
+
 /* Print out message */
 #define INA_TEST_MSG(fmt, ...) ina_test_msg(INA_NO, fmt, __VA_ARGS__)
 /* Print out a error message */
 #define INA_TEST_ERR(fmt, ...) ina_test_msg(INA_YES, fmt, __VA_ARGS__)
 
 /*
- * Printout a message
- */
-INA_API(ina_rc_t) ina_test_msg(int is_error, char *fmt, ...);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_equal_str(const char *exp, const char *real, 
-                                  const char* caller, int line);
-                                  
-/*
- *
- */
-INA_API(void) ina_test_assert_not_equal_str(const char *exp, const char *real, 
-                                  const char* caller, int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_data(const unsigned char* exp, int expsize,
-                                   const unsigned char* real, int realsize,
-                                   const char* caller, int line);
-/*
- *
- */
-INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, 
-                                    const char *caller, int line);
-/*
- *
- */
-INA_API(void) ina_test_assert_equal_floating(double exp, double real, 
-                                    const char *caller, int line);
-/*
- *
- */
-INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, 
-                                        const char *caller, int line);
-/*
- *
- */
-INA_API(void) ina_test_assert_not_equal_floating(double exp, double real, 
-                                        const char *caller, int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_null(const void *real, const char *caller, 
-                                   int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_not_null(const void *real, const char *caller, 
-                                       int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_same(const void *exp,  const void *real, 
-                                   const char *caller, int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_not_same(const void *exp,  const void *real, 
-                                       const char *caller, int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_true(int real, const char *caller, int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_false(int real, const char *caller, int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_fail(const char *caller, int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_signal(int sig, const char *caller, int line);
-
-
-/*
  * Run tests
  */
 int ina_test_run(int argc, char *argv[]);
+
+/*
+ * Printout a message.
+ *
+ * Parameters
+ * is_error     INA_YES to print a error message
+ * fmt          Message format
+ * ...          Message arguments
+ *
+ * Return Value
+ * INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...);
+
 
 #ifdef __cplusplus
 }
