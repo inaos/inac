@@ -36,12 +36,15 @@
 #include <sys/sem.h>
 #include <sys/syslog.h>
 #include <sys/time.h>
+#include <sys/wait.h>
 #include <spawn.h>
 #include <unistd.h>
 #endif
 
 #ifdef _WIN32
 #include <windows.h>
+#include <minwindef.h>
+#include <wincon.h>
 #endif
 
 #include <stdio.h>
@@ -76,6 +79,7 @@
 #include <libinac/xml.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
+#include <libinac/cron.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
 #include <libinac/test.h>

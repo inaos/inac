@@ -39,7 +39,7 @@ static ina_rc_t __ina_section_handler(const char* section_name, const char* sect
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "command_latency"));
     INA_TEST_ASSERT_NOTSUCCEED(ina_conffile_has_value_in_entries(entries, "other_latency"));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_number_from_entries(entries, "command_latency", &command_latency));
-    INA_TEST_ASSERT_EQUAL(1000.0, command_latency);
+    INA_TEST_ASSERT_EQUAL_FLOATING(1000.0, command_latency);
     __section_count++;
     return INA_SUCCESS;
 }
@@ -65,8 +65,8 @@ INA_TEST(conffile , using_macros_autodestroy)
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_STRING_KEY("mask", INA_YES)));
 
-    INA_TEST_ASSERT_EQUAL(2, __section_count);
-    INA_TEST_ASSERT_EQUAL(4, __named_section_count);
+    INA_TEST_ASSERT_EQUAL_FLOATING(2, __section_count);
+    INA_TEST_ASSERT_EQUAL_FLOATING(4, __named_section_count);
 }
 
 INA_TEST(conffile, process_without_filepath)
@@ -94,9 +94,9 @@ INA_TEST(conffile, process_without_filepath)
     __named_section_count = 0;
     
     INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
-    INA_TEST_ASSERT_EQUAL(0, strcmp(ina_str_cstr(cf->filepath), "test.conf"));
-    INA_TEST_ASSERT_EQUAL(1, __section_count);
-    INA_TEST_ASSERT_EQUAL(2, __named_section_count);
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "test.conf"));
+    INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
+    INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     
     INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
     INA_TEST_ASSERT_NULL(cf);

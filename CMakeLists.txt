@@ -70,16 +70,8 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
                  ${SRC_DIR}/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
 				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
-				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c)
+				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c 
+				 ${SRC_DIR}/cron.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
-# Test-Cases
-set (TEST_SRC_DIR "${CMAKE_SOURCE_DIR}/tests")
-set (TEST_SRC ${TEST_SRC_DIR}/test_error.c ${TEST_SRC_DIR}/test_iscp.c ${TEST_SRC_DIR}/test_lib.c 
-	${TEST_SRC_DIR}/test_log.c ${TEST_SRC_DIR}/test_memory.c ${TEST_SRC_DIR}/test_mempool.c 
-	${TEST_SRC_DIR}/test_string.c ${TEST_SRC_DIR}/test_time.c ${TEST_SRC_DIR}/test_timer.c 
-	${TEST_SRC_DIR}/test_util.c ${TEST_SRC_DIR}/test_ljit.c ${TEST_SRC_DIR}/test_conffile.c 
-	${TEST_SRC_DIR}/test_http.c ${TEST_SRC_DIR}/test_xml.c
-)
-add_library(${INAC_TESTLIB_NAME} ${TEST_SRC})

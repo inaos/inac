@@ -51,7 +51,7 @@ INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_xml_destory(ina_xml_ctx_t **ctx);
+INA_API(ina_rc_t) ina_xml_destroy(ina_xml_ctx_t **ctx);
 /*
  * 
  */
@@ -64,6 +64,10 @@ INA_API(ina_rc_t) ina_xml_parser_release(ina_xml_ctx_t *ctx, ina_xml_parser_t **
  * 
  */
 INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, ina_xml_elem_t **root);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_xml_elem_first(ina_xml_elem_t *elem, ina_xml_elem_t **first);
 /*
  * 
  */

@@ -27,87 +27,86 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_SKIP(string, ina_str_newlen)
+INA_TEST(string, ina_str_newlen)
+{   
+}
+
+INA_TEST(string, ina_str_pnewlen)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_pnewlen)
+INA_TEST(string, ina_str_fromcstr)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_fromcstr)
+INA_TEST(string, ina_str_destroy)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_destroy)
+INA_TEST(string, ina_str_dup)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_dup)
+INA_TEST(string, ina_str_pdup)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_pdup)
+INA_TEST(string, ina_str_cstr)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_cstr)
+INA_TEST(string, ina_str_cpy)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_cpy)
+INA_TEST(string, ina_str_ncpy)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_ncpy)
+INA_TEST(string, ina_str_cat)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_cat)
+INA_TEST(string, ina_str_ncat)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_ncat)
+INA_TEST(string, ina_str_len)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_len)
+INA_TEST(string, ina_str_cmp)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_cmp)
+INA_TEST(string, ina_str_ncmp)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_ncmp)
+INA_TEST(string, ina_str_str)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_str)
+INA_TEST(string, ina_str_rchr)
 {
     
 }
 
-INA_TEST_SKIP(string, ina_str_rchr)
-{
-    
-}
-
-INA_TEST_SKIP(string, ina_str_vsprintf)
+INA_TEST(string, ina_str_vsprintf)
 {
     
 }
@@ -122,7 +121,7 @@ INA_TEST(string, simple_allocation_with_pool)
 
     str1 = ina_str_pfromcstr("hallo", pool);
     INA_TEST_ASSERT_NOT_NULL(str1);
-    INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(strlen("hallo"), ina_str_len(str1));
     str2 = ina_str_pdup(str1, pool);
     INA_TEST_ASSERT_NOT_NULL(str2);
     ina_str_destroy(str1);
@@ -136,7 +135,7 @@ INA_TEST(string, simple_allocation_without_pool)
     
     str1 = ina_str_fromcstr("hallo");
     INA_TEST_ASSERT_NOT_NULL(str1);
-    INA_TEST_ASSERT_EQUAL(strlen("hallo"), ina_str_len(str1));
+    INA_TEST_ASSERT_EQUAL_FLOATING(strlen("hallo"), ina_str_len(str1));
     str2 = ina_str_dup(str1);
     INA_TEST_ASSERT_NOT_NULL(str2);
     ina_str_destroy(str1);
