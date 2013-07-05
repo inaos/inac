@@ -34,27 +34,23 @@
 extern "C" {
 #endif
 
-ina_rc_t (*ina_cron_load_cb)(ina_cron_ctx_t *ctx);
-ina_rc_t (*ina_cron_save_cb)(ina_cron_ctx_t *ctx, ina_cron_task_t *task);
+/* forward decl */
+struct ina_cron_ctx_s;
+
+typedef struct ina_cron_task_s ina_cron_task_t;
+
+typedef ina_rc_t (*ina_cron_load_cb)(struct ina_cron_ctx_s *ctx);
+typedef ina_rc_t (*ina_cron_save_cb)(struct ina_cron_ctx_s *ctx, ina_cron_task_t *task);
 
 typedef struct ina_cron_ctx_s {
-	ina_cron_load_cb load_cb;
+    ina_cron_load_cb load_cb;
 	ina_cron_save_cb save_cb;
 	void *data;
+	ina_cron_task_t *task_head;
+	time_t t1;
+	time_t t2;
+	short stime;
 } ina_cron_ctx_t;
-
-/* make this an opaque type and move to impl */
-typedef struct ina_cron_task_s {
-	ina_str_t cmd;
-	ina_str_t working_dir;
-	int running;
-	int pid;
-	char mins[60]; /* 0-59 */
-    char hours[24];	/* 0-23 */
-    char days[32]; /* 1-31 */
-    char mons[12]; /* 0-11 */
-    char dow[7]; /* 0-6, beginning sunday */
-} ina_cron_task_t;
 
 typedef struct ina_cron_task_itr_s ina_cron_task_itr_t;
 
@@ -69,7 +65,7 @@ INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_task_itr_t **iter);
+INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_ctx_t *ctx, ina_cron_task_itr_t **iter);
 /*
  * 
  */
@@ -82,7 +78,7 @@ INA_API(ina_rc_t) ina_cron_task_next(ina_cron_task_itr_t *iter, ina_cron_task_t 
  * 
  */
 INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const char *pattern, 
-	int persistent, ina_str_t cmd, ina_str_t working_dir, ina_cron_task_t **task);
+	int persistent, ina_str_t cmd, ina_str_t working_dir);
 /*
  * 
  */	
@@ -90,15 +86,15 @@ INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx, const char *id, ina_c
 /*
  * 
  */
-INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task);
+INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task, int *running);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_task_t *task);
+INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pattern);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx);
+INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggested_next_time);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,57 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST(timer,init_destroy)
-{
-    ina_timer_t *t;
 
-    t = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_destroy(&t));
-    INA_TEST_ASSERT_NULL(t);
-}
+/*
+ * Poor Poeple Echo Server
+ */
+INA_TEST_HELPER(net, non_blocking_echo_server) {
+
+    int fd = -1;
+    int cfd = -1;
+    const char *addr;
+    int port;
+    unsigned char buffer[4096];
+    int nb_read;
+
+    INA_TEST_HELPER_CHECK_ARGC(2);
+    addr = INA_TEST_HELPER_CARG(0);
+    port = INA_TEST_HELPER_IARG(1);
  
-INA_TEST(timer, event)
-{
-    ina_timer_t *t;
-    ina_time_event_t *e1;
-    ina_time_event_t *e2;
+    ina_mem_set(buffer, 0, 4096);
 
-    t = NULL;
-    e1 = NULL;
-    e2 = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_destroy(&t));
-    INA_TEST_ASSERT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_TEST_ASSERT_NOT_NULL(t);
-    e1 = ina_timer_create_event(t, 900);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
-    INA_TEST_ASSERT_NOT_NULL(e1);
-    ina_time_sleep(1000);
-    e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
-    INA_TEST_ASSERT_NOT_NULL(e2);
-    INA_TEST_ASSERT_SAME(e2, e1);
+    if (!INA_SUCCEED(ina_net_tcp_server(&fd, port, addr))) {
+        *retval = ina_err_peek();
+        return;
+     }
+
+     if (!INA_SUCCEED(ina_net_nonblock(fd))) {
+         ina_net_close(fd);
+         *retval = ina_err_peek();
+         return;
+     }
+
+     while (1) {
+        if (cfd == -1) {
+            if (INA_SUCCEED(ina_net_tcp_accept(&cfd, fd, NULL, NULL))) {
+                if (cfd != -1) {
+                    if (!INA_SUCCEED(ina_net_nonblock(cfd))) {
+                        ina_net_close(cfd);
+                        cfd = -1;
+                    }
+                }
+            }
+        }
+
+        if (cfd != -1) {
+            if (INA_SUCCEED(ina_net_read(cfd, buffer, 4096, &nb_read))) {
+                if (nb_read > 0) {
+                    ina_net_write(cfd, buffer, nb_read, &nb_read);
+               } else {
+                   cfd = -1;
+               }
+           }
+       }
+       ina_time_sleep(5);
+   }
 }

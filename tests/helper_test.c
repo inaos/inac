@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,11 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST(timer,init_destroy)
-{
-    ina_timer_t *t;
 
-    t = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_destroy(&t));
-    INA_TEST_ASSERT_NULL(t);
+INA_TEST_HELPER(test, spawn_and_wait) {
+    
 }
- 
-INA_TEST(timer, event)
-{
-    ina_timer_t *t;
-    ina_time_event_t *e1;
-    ina_time_event_t *e2;
 
-    t = NULL;
-    e1 = NULL;
-    e2 = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_destroy(&t));
-    INA_TEST_ASSERT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
-    INA_TEST_ASSERT_NOT_NULL(t);
-    e1 = ina_timer_create_event(t, 900);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
-    INA_TEST_ASSERT_NOT_NULL(e1);
-    ina_time_sleep(1000);
-    e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
-    INA_TEST_ASSERT_NOT_NULL(e2);
-    INA_TEST_ASSERT_SAME(e2, e1);
+INA_TEST_HELPER(test, spawn_and_forget) {
+    
 }

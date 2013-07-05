@@ -50,7 +50,7 @@ INA_TEST(mempool, fill_zero)
     buf = (unsigned char*)ina_mempool_dalloc(pool, size);
     INA_TEST_ASSERT_NOT_NULL(pool);
     while (size--) {
-        INA_TEST_ASSERT_EQUAL(*(buf++), 0);
+        INA_TEST_ASSERT_EQUAL_FLOATING(*(buf++), 0);
     }
 }
 INA_TEST(mempool, min_allowed_size)
@@ -66,12 +66,12 @@ INA_TEST(mempool, min_allowed_size)
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE-100, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
-    INA_TEST_ASSERT_EQUAL(INA_MEM_MIN_POOL_SIZE, mi.size);
+    INA_TEST_ASSERT_EQUAL_FLOATING(INA_MEM_MIN_POOL_SIZE, mi.size);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
 }
 
-INA_TEST(test, mempool_bad_dalloc)
+INA_TEST(mempool, mempool_bad_dalloc)
 {
     void *ptr;
     ina_mempool_t *pool;
@@ -90,7 +90,7 @@ INA_TEST(test, mempool_bad_dalloc)
     ptr = ina_mempool_dalloc(pool, 2048);
     INA_TEST_ASSERT_NULL(ptr);
     INA_TEST_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
-    INA_TEST_ASSERT_EQUAL(INA_EALLOC , INA_RC_REASON(ina_err_peek()));
+    INA_TEST_ASSERT_EQUAL_FLOATING(INA_EALLOC , INA_RC_REASON(ina_err_peek()));
 }
 
 INA_TEST(mempool, destroy_syspool_1000_times)
@@ -121,8 +121,8 @@ INA_TEST(mempool,destroy_syspool_1000_times_and_recreate)
         INA_TEST_ASSERT_SUCCESS(ina_mempool_destroy());
         INA_TEST_ASSERT_SUCCESS(ina_mempool_init(0));
         INA_TEST_ASSERT_SUCCESS(ina_mempool_getinfo(NULL, &mi));
-        INA_TEST_ASSERT_EQUAL(0, mi.children);
-        INA_TEST_ASSERT_EQUAL(8*1024*1024, mi.size);
+        INA_TEST_ASSERT_EQUAL_FLOATING(0, mi.children);
+        INA_TEST_ASSERT_EQUAL_FLOATING(8*1024*1024, mi.size);
     }
 }
 
@@ -139,22 +139,22 @@ INA_TEST(mempool,syspool)
     INA_TEST_ASSERT_SUCCESS(ina_mempool_destroy());
     INA_TEST_ASSERT_SUCCESS(ina_mempool_init(0));
     INA_TEST_ASSERT_SUCCESS(ina_mempool_getinfo(NULL, &mi));
-    INA_TEST_ASSERT_EQUAL(0, mi.children);
-    INA_TEST_ASSERT_EQUAL(8*1024*1024, mi.size);
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, mi.children);
+    INA_TEST_ASSERT_EQUAL_FLOATING(8*1024*1024, mi.size);
 
     /* destroy all pools and recreate internal 10MB pool */
     INA_TEST_ASSERT_SUCCESS(ina_mempool_destroy());
     INA_TEST_ASSERT_SUCCESS(ina_mempool_init(10*1024*1024));
     INA_TEST_ASSERT_SUCCESS(ina_mempool_getinfo(NULL, &mi));
-    INA_TEST_ASSERT_EQUAL(0, mi.children);
-    INA_TEST_ASSERT_EQUAL(10*1024*1024, mi.size);
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, mi.children);
+    INA_TEST_ASSERT_EQUAL_FLOATING(10*1024*1024, mi.size);
 
     /* allocate 2MB */    
     p = ina_mem_alloc(2*1024*1024);
     INA_TEST_ASSERT_NOT_NULL(p);
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
     INA_TEST_ASSERT_SUCCESS(ina_mempool_getinfo(NULL, &mi));
-    INA_TEST_ASSERT_EQUAL(0, mi.children);
-    INA_TEST_ASSERT_EQUAL((10*1024*1024), mi.size);
-    INA_TEST_ASSERT_EQUAL(__INA_MEM_ALIGN(2*1024*1024), mi.used);
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, mi.children);
+    INA_TEST_ASSERT_EQUAL_FLOATING((10*1024*1024), mi.size);
+    INA_TEST_ASSERT_EQUAL_FLOATING(__INA_MEM_ALIGN(2*1024*1024), mi.used);
 }

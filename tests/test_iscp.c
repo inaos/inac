@@ -100,7 +100,7 @@ static ina_rc_t __null_handler2(int cmd_id, int count, ina_iscp_param_t *params)
    while (params) {
        ++__p_count;
    }
-   INA_TEST_ASSERT_EQUAL(count, __p_count);
+   INA_TEST_ASSERT_EQUAL_FLOATING(count, __p_count);
    return INA_SUCCESS;
 }
 
@@ -113,76 +113,54 @@ static ina_rc_t __check_params_handler(int cmd_id, int count, ina_iscp_param_t *
    for (i = 0; i < count; ++i) {
        ++__p_count;
        if (__p_count == 1) {
-           INA_TEST_ASSERT_EQUAL(INA_ISCP_TYPE_INT64, params->type);
-           INA_TEST_ASSERT_EQUAL(20, params->value.i);
+           INA_TEST_ASSERT_EQUAL_INTEGER(INA_ISCP_TYPE_INT64, params->type);
+           INA_TEST_ASSERT_EQUAL_INTEGER(20, params->value.i);
        }
        if (__p_count == 2) {
-           INA_TEST_ASSERT_EQUAL(INA_ISCP_TYPE_DBL, params->type);
-           INA_TEST_ASSERT_EQUAL(5.2, params->value.d);
+           INA_TEST_ASSERT_EQUAL_INTEGER(INA_ISCP_TYPE_DBL, params->type);
+           INA_TEST_ASSERT_EQUAL_FLOATING(5.2, params->value.d);
        } 
        if (__p_count == 3) {
-           /*printf("%s", params->value.s);*/
-           INA_TEST_ASSERT_EQUAL(INA_ISCP_TYPE_STR, params->type);
-           INA_TEST_ASSERT_EQUAL(0, strcmp("test", params->value.s));
+           INA_TEST_ASSERT_EQUAL_INTEGER(INA_ISCP_TYPE_STR, params->type);
+           INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp("test", params->value.s));
        }
        ++params;
    }
    return INA_SUCCESS;
 }
 
-INA_TEST(iscp, send_tcp)
-{
-   /*int server_fd = -1;
-   int fd = -1;*/
-   ina_iscp_ctx_t *iscp = NULL;
+INA_TEST_DATA(iscp_tcp) {
+    ina_test_hid_t hid;
+    ina_iscp_ctx_t *iscp;
+};
 
-   INA_TEST_ASSERT_SUCCEED(ina_iscp_destroy(&iscp));
-   INA_TEST_ASSERT_NULL(iscp);
-   INA_TEST_ASSERT_SUCCESS(ina_iscp_create(&iscp, INA_ISCP_INET));
-   INA_TEST_ASSERT_NOT_NULL(iscp);
-   INA_TEST_ASSERT_SUCCEED(ina_iscp_register(iscp, 1, 3, __check_params_handler));
-   INA_TEST_ASSERT_SUCCEED(ina_iscp_register(iscp, 2, 0, __stop_handler));
-
-
-   /*INA_TEST_SPAWN_BEGIN();
-
-   INA_TEST_ASSERT_SUCCEED(ina_net_tcp_connect(&fd, "127.0.0.1", 999));
-   iscp.data = &fd;
-   INA_TEST_ASSERT_SUCCEED(ina_iscp_send(&iscp, 1, 
-                           INA_ISCP_TYPE_INT64, 20,
-                           INA_ISCP_TYPE_DBL, 5.2,
-                           INA_ISCP_TYPE_STR, "test"));
-
-
-   INA_TEST_SPAWN_CODE_BEGIN()
-
-   INA_TEST_ASSERT_SUCCEED(ina_net_tcp_server(&server_fd, 999, "127.0.0.1"));
-   INA_TEST_ASSERT_SUCCEED(ina_net_nonblock(server_fd));
- 
-   while (!__stop && server_fd) {
-       if (fd != -1) {
-           iscp.data = &fd;
-           ina_iscp_recv(&iscp, 1000, 1);
-           ina_net_close(fd);
-           fd = -1;
-       }
-
-       ina_time_sleep(100);
-
-       if (fd == -1) {
-           if (INA_SUCCEED(ina_net_tcp_accept(&fd, server_fd, NULL, NULL))) {
-               if (fd != -1 && !INA_SUCCEED(ina_net_nonblock(fd))) {
-                   ina_net_close(fd);
-                   fd = -1;
-               }
-           }
-       }
-   }
-   INA_TEST_SPAWN_CODE_END();
-   INA_TEST_SPAWN_END();*/
-
+INA_TEST_SETUP(iscp_tcp) {
+    INA_TEST_HELPER_INVOKE(&data->hid, iscp_tcp, tcp_server, NULL);
+    ina_iscp_create_tcp(&data->iscp, "127.0.0.1", 9999);
 }
-INA_TEST(iscp, send_recv_checkparams)
+
+INA_TEST_TEARDOWN(iscp_tcp) {
+    INA_TEST_HELPER_STOP(&data->hid);
+    ina_iscp_destroy(&data->iscp);
+}
+
+INA_TEST_FIXTURE(iscp_tcp, send_negative_double) {
+      INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 3, 3, NULL));
+      INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 1, INA_ISCP_TYPE_DBL, -3.2));
+}
+
+INA_TEST_FIXTURE(iscp_tcp, send_tcp) {
+    INA_TEST_ASSERT_NOT_NULL(data->iscp);
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 1, 3, NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 1, 
+                            INA_ISCP_TYPE_INT64, 20,
+                            INA_ISCP_TYPE_DBL, 5.2,
+                            INA_ISCP_TYPE_STR, "test"));
+                            
+}
+
+INA_TEST_SKIP(iscp, send_recv_checkparams)
 {
     ina_iscp_ctx_t *ctx = NULL;
  
@@ -192,8 +170,7 @@ INA_TEST(iscp, send_recv_checkparams)
     __send_msg = NULL;
     __handler_count = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_iscp_destroy(&ctx));
-    INA_TEST_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_INET));
+    INA_TEST_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_NONE));
     INA_TEST_ASSERT_SUCCEED(ina_iscp_set_callbacks(ctx, __null_open_cb, 
                                                    __null_clse_cb, 
                                                    __null_send_cb,
@@ -205,28 +182,27 @@ INA_TEST(iscp, send_recv_checkparams)
                             INA_ISCP_TYPE_INT64, 20,
                             INA_ISCP_TYPE_DBL, 5.2,
                             INA_ISCP_TYPE_STR, "test"));
-    INA_TEST_ASSERT_EQUAL(1, __send_count);
+    INA_TEST_ASSERT_EQUAL_FLOATING(1, __send_count);
     INA_TEST_ASSERT_NOT_NULL(__send_msg);    
     INA_TEST_ASSERT_SUCCEED(ina_iscp_recv(ctx, 1000, 1));
-    INA_TEST_ASSERT_EQUAL(1, __recv_count);
-    INA_TEST_ASSERT_EQUAL(1, __handler_count);
-    INA_TEST_ASSERT_EQUAL(3, __p_count);
+    INA_TEST_ASSERT_EQUAL_FLOATING(1, __recv_count);
+    INA_TEST_ASSERT_EQUAL_FLOATING(1, __handler_count);
+    INA_TEST_ASSERT_EQUAL_FLOATING(3, __p_count);
 }
 
-INA_TEST(iscp, send_local)
+INA_TEST_SKIP(iscp, send_local)
 {
-   /*ina_iscp_ctx_t *ctx = NULL;*/
+   ina_iscp_ctx_t *ctx = NULL;
 
    __send_count = 0;
 
-   /*INA_TRACE_MSG("test_iscp_send_local");
    INA_TEST_ASSERT_SUCCEED(ina_iscp_destroy(&ctx));
    INA_TEST_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_INET));
    INA_TEST_ASSERT_FAILURE(ina_iscp_send(ctx, 1, 
                             INA_ISCP_TYPE_INT64, 300,
                             INA_ISCP_TYPE_DBL, 3.2,
                             INA_ISCP_TYPE_STR, "test"));
-   INA_TEST_ASSERT_EQUAL(0, __send_count);
+   INA_TEST_ASSERT_EQUAL_FLOATING(0, __send_count);
    INA_TEST_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_INET));
    INA_TEST_ASSERT_SUCCEED(ina_iscp_set_callbacks(ctx, __null_open_cb, 
                                                    __null_clse_cb, 
@@ -245,10 +221,10 @@ INA_TEST(iscp, send_local)
    INA_TEST_ASSERT_FAILURE(ina_iscp_send(ctx, 1, 
                            INA_ISCP_TYPE_INT64, 20,
                            INA_ISCP_TYPE_STR, "test-2"));
-   INA_TEST_ASSERT_EQUAL(1, __send_count);*/
+   INA_TEST_ASSERT_EQUAL_FLOATING(1, __send_count);
 }
 
-INA_TEST(iscp, setup)
+INA_TEST_SKIP(iscp, setup)
 {
     ina_iscp_ctx_t *ctx = NULL;
 
@@ -269,8 +245,8 @@ INA_TEST(iscp, setup)
     INA_TEST_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 3, __null_handler));
     INA_TEST_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 3, __null_handler));
     INA_TEST_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 3, __null_handler2));
-    /*INA_TEST_ASSERT_FAILURE(ina_iscp_register(ctx, 1, 2, __null_handler));*/
-    /*INA_TEST_ASSERT_FAILURE(ina_iscp_register(ctx, 1, 4, __null_handler2));*/
+    INA_TEST_ASSERT_FAILURE(ina_iscp_register(ctx, 1, 2, __null_handler));
+    INA_TEST_ASSERT_FAILURE(ina_iscp_register(ctx, 1, 4, __null_handler2));
     INA_TEST_ASSERT_SUCCEED(ina_iscp_destroy(&ctx));
     INA_TEST_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_INET));
     INA_TEST_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 4, __null_handler2));
@@ -282,7 +258,7 @@ INA_TEST(iscp, setup)
     INA_TEST_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 4, __null_handler2));
 }
 
-INA_TEST(test, iscp_regsiter_ex)
+INA_TEST_SKIP(iscp, iscp_regsiter_ex)
 {
     ina_iscp_ctx_t *ctx = NULL;
     ina_iscp_cmd_t cmds[] = {

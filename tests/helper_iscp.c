@@ -36,6 +36,23 @@ static int __cleanup_handler(const int sig, const int error)
     return EXIT_SUCCESS;
 }
 
+static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, ina_iscp_param_t *params)
+{
+    if (cmd_id != 3) {
+        return INA_FAILURE;
+    }
+    if (count != 1) {
+        return INA_FAILURE;
+    }
+    if (params->type != INA_ISCP_TYPE_DBL) {
+        return INA_FAILURE;
+    }
+    if (params->value.d >= 0) {
+        return INA_FAILURE;
+    }    
+    return INA_SUCCESS;
+}
+
 static ina_rc_t __command_1_handler(int cmd_id, int count, ina_iscp_param_t *params)
 {
     return INA_SUCCESS;
@@ -47,25 +64,30 @@ static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_param_t *par
     return INA_SUCCESS;
 }
 
-INA_TEST_HELPER(iscp_tcp_server) {
+INA_TEST_HELPER(iscp_tcp, tcp_server) {
 
     INA_ISCP_CMDS(cmds,
            INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
-           INA_ISCP_SENDRECV_CMD(2, 1, __command_2_handler));
+           INA_ISCP_SENDRECV_CMD(2, 1, __command_2_handler),
+           INA_ISCP_SENDRECV_CMD(3, 1, __receive_negaitve_double_handler));
 
      ina_set_cleanup_handler(__cleanup_handler);
 
-     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, "127.0.0.1", 7777))) {
-         return INA_ERR_PUSH_LAST;
+     if (!INA_SUCCEED(ina_iscp_create_tcp(&__iscp, "127.0.0.1", 9999))) {
+         *retval = ina_err_peek();
+         return;
      }
 
     if (!INA_SUCCEED(ina_iscp_register_ex(__iscp, cmds))) {
-        return INA_ERR_PUSH_LAST;
+        *retval = ina_err_peek();
+        return;
     }
-    
+
+    __running = 1;
+
     while (__running) {
         ina_iscp_recv(__iscp, 1, 0);
         ina_time_sleep(10);
     }
-    return INA_SUCCESS;
+    *retval = INA_SUCCESS;
 }
