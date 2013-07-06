@@ -4,6 +4,7 @@ SRC += $(wildcard helper*.c)
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
+MONITOR_BIN = ullc_monitor
 
 # ****************************************************************************
 # Linker settings
@@ -19,9 +20,12 @@ ifeq (,$(findstring Windows,$(OS)))
 endif
 
 
-all: $(OBJ)  main.o
+all: $(OBJ)  main.o ullc_monitor
 	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS) 
 
+ullc_monitor: ullc_monitor.o
+	@$(CC) $(CFLAGS) -o $(MONITOR_BIN) ullc_monitor.o $(LDFLAGS) 
+	
 %.o: %.c
 	@echo compiling $<
 	@$(CC) $(CFLAGS)  -c $<

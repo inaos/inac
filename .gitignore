@@ -11,6 +11,7 @@ tests/suites.c
 tests/suites.h
 tests/test
 tests/test_*.h
+tests/ullc_monitor
 contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/luajit/src/luajit.exp
