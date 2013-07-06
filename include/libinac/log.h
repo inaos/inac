@@ -44,16 +44,16 @@ extern "C" {
 #endif
 
 #if INA_LOG_LEVEL>0
-#define INA_LOG_ERROR(cfg,fmt,...)   INA_LOG(cfg, INA_LOG_ERROR, __VA_ARGS__)
+#define INA_LOG_ERROR(cfg,fmt,...)   INA_LOG(cfg, INA_LOG_ERROR, fmt, __VA_ARGS__)
 #endif
 #if INA_LOG_LEVEL>1
-#define INA_LOG_WARNING(cfg,fmt,...) INA_LOG(cfg, INA_LOG_WARNING, __VA_ARGS__)
+#define INA_LOG_WARNING(cfg,fmt,...) INA_LOG(cfg, INA_LOG_WARNING, fmt, __VA_ARGS__)
 #endif
 #if INA_LOG_LEVEL>2
-#define INA_LOG_INFO(cfg,fmt,...)    INA_LOG(cfg, INA_LOG_INFO, __VA_ARGS__)
+#define INA_LOG_INFO(cfg,fmt,...)    INA_LOG(cfg, INA_LOG_INFO, fmt, __VA_ARGS__)
 #endif
 #if INA_LOG_LEVEL>3
-#define INA_LOG_DEBUG(cfg,fmt,...)   INA_LOG(cfg, INA_LOG_DEBUG, __VA_ARGS__)
+#define INA_LOG_DEBUG(cfg,fmt,...)   INA_LOG(cfg, INA_LOG_DEBUG, fmt, __VA_ARGS__)
 #endif
 
 /* Log level */
