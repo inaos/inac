@@ -49,7 +49,7 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const
     return __ina_log(cfg, level, msg);
 }
 
-INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target, 
+INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target, 
                                 ina_log_level_t level, const char  *logfile)
 {
     *cfg = (ina_log_cfg_t*)ina_mem_alloc(sizeof(ina_log_cfg_t));

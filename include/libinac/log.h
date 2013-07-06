@@ -45,22 +45,22 @@ extern "C" {
 
 #if INA_LOG_LEVEL>0
 #define INA_LOG_ERROR(cfg,fmt,...)   INA_LOG(cfg, INA_LOG_ERROR, fmt, __VA_ARGS__)
-#elif
+#else
 #define INA_LOG_ERROR(cfg,fmt,...)
 #endif
 #if INA_LOG_LEVEL>1
 #define INA_LOG_WARNING(cfg,fmt,...) INA_LOG(cfg, INA_LOG_WARNING, fmt, __VA_ARGS__)
-#elif
+#else
 #define INA_LOG_WARNING(cfg,fmt,...)
 #endif
 #if INA_LOG_LEVEL>2
 #define INA_LOG_INFO(cfg,fmt,...)    INA_LOG(cfg, INA_LOG_INFO, fmt, __VA_ARGS__)
-#elif
+#else
 #define INA_LOG_INFO(cfg,fmt,...)
 #endif
 #if INA_LOG_LEVEL>3
 #define INA_LOG_DEBUG(cfg,fmt,...)   INA_LOG(cfg, INA_LOG_DEBUG, fmt, __VA_ARGS__)
-#elif
+#else
 #define INA_LOG_DEBUG(cfg,fmt,...)
 #endif
 
@@ -96,7 +96,7 @@ typedef struct ina_log_cfg_s {
 /*
  * Open a log context for based on a log configuration
  */                          
-INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, ina_log_target_t target, 
+INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target, 
                                ina_log_level_t level, const char *logfile);
 
 /*
