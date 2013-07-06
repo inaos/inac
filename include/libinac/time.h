@@ -89,7 +89,7 @@ typedef struct ina_time_tsc_s {
 #define INA_TIME_STOPWATCH_STAMP2(ptr_sw, ud1, ud2)
 #endif
 
-/* Stopwatch timestamps */
+/* Stopwatch timestamp */
 typedef struct ina_stopwatch_ts_s {
     ina_time_tsc_t stamp;
     char user_data1[INA_TIME_MAX_USERDATA_LEN];
@@ -101,22 +101,22 @@ typedef struct ina_stopwatch_ts_s {
 
 /* Stopwatch  data */
 typedef struct ina_stopwatch_tv_s {
-    ina_time_tsc_t start;
-    ina_time_tsc_t stop;
-    size_t max_stamps;
-    volatile int64_t next_stamp;
-    double sec_duration;
-    double msec_duration;
-    double usec_duration;
-    ina_stopwatch_ts_t stamps;
+    ina_time_tsc_t start;          /* start time */
+    ina_time_tsc_t stop;           /* stop time */
+    size_t max_stamps;             /* max stamps, readonly */
+    volatile int64_t next_stamp;   /* next free stamp slot */
+    double sec_duration;           /* duration in sections */
+    double msec_duration;          /* duration in milliseconds */
+    double usec_duration;          /* duration in microseconds */
+    ina_stopwatch_ts_t stamps;     /* stamp records */
 } ina_stopwatch_tv_t;
 
 /* Stopwatch time values */
 typedef struct ina_stopwatch_s {
-    int id;
-    ina_mempool_t *shared_mem;
-    ina_stopwatch_tv_t *tv;
-    ina_stopwatch_ts_t *ts;
+    int32_t id;                    /* stop watch id */
+    ina_mempool_t *shared_mem;     /* allocated shared memory */
+    ina_stopwatch_tv_t *tv;        /* stopwatch data */
+    ina_stopwatch_ts_t *ts;        /* current time stamp */
 } ina_stopwatch_t;
 
 
