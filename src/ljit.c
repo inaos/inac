@@ -87,16 +87,14 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
 
     /* Global function or object method? */
     if (!(cfname = strchr(fname, '.'))) {
-        lua_getglobal(ctx->lstate, fname);  /* get function */
-        INA_TRACE("fname=%s", fname);
+         /* get function */
+        lua_getglobal(ctx->lstate, fname); 
     } else {    
         ina_str_t obj_name = ina_str_fromcstr(fname);
         char *obj_name_c = (char*)ina_str_cstr(obj_name);
         obj_name_c[cfname - fname] = '\0';
-        INA_TRACE3("obj_name_c=%s", obj_name_c);
         lua_getglobal(ctx->lstate, obj_name_c);
         cfname++;
-        INA_TRACE3("cfname=%s", cfname);
         lua_getfield(ctx->lstate, -1, cfname);
         ina_str_destroy(obj_name);
     }
