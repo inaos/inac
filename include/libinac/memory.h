@@ -36,19 +36,19 @@ extern "C" {
 /* Minimal allowed pool size */
 #define INA_MEM_MIN_POOL_SIZE (1024)
 /* Single Pool, fixed size */
-#define INA_MEM_BASIC       0
+#define INA_MEM_BASIC           (0)
 /* Dynamic chunk allocation */
-#define INA_MEM_DYNAMIC     1
+#define INA_MEM_DYNAMIC         (1)
 /* Autosized chunk */
-#define INA_MEM_AUTOSIZE    2
+#define INA_MEM_AUTOSIZE        (2)
 /* Fill chunks */
-#define INA_MEM_BESTFIT     4
+#define INA_MEM_BESTFIT         (4)
 /* Child pool */
-#define INA_MEM_CHILD       8
+#define INA_MEM_CHILD           (8)
 /* Use shared memory */
-#define INA_MEM_SHARED        32
+#define INA_MEM_SHARED          (32)
 /* Open or create shared memory */
-#define INA_MEM_SHARED_CREATE 64
+#define INA_MEM_SHARED_CREATE   (64)
 
 /* Memory pool handle */
 typedef struct ina_mempool_s  {
@@ -68,7 +68,7 @@ typedef struct ina_mempool_s  {
 typedef struct ina_mempool_info_s {
     size_t size;
     size_t used;
-    int    children; /* number of  pool */
+    size_t children; /* number of  pool */
 } ina_mempool_info_t;
 
 /* Function pointer with malloc()‘s signature */
@@ -110,28 +110,132 @@ typedef void (*ina_free_t)(void *);
  * a null pointer is returned.
  */
 INA_API(void *) ina_mem_alloc(size_t size);
+
 /*
  * TODO: documentation
  */
 INA_API(void *) ina_mem_realloc(void *ptr, size_t nb);
+
 /*
- * TODO: documentation
+ * Move a memoy block.
+ *
+ * Copies the values of nb bytes from the location pointed by source to the 
+ * memory block pointed by destination. Copying takes place as if an 
+ * intermediate buffer were used, allowing the destination and source to  
+ * overlap.
+ * The underlying type of the objects pointed by both the source and 
+ * destination pointers are irrelevant for this function; The result is a 
+ * binary copy of the data.
+ * The function does not check for any terminating null character in 
+ * source - it always copies exactly nb bytes.
+ *
+ * To avoid overflows, the size of the arrays pointed by both the destination 
+ * and source parameters, shall be at least nb bytes.
+ *
+ * Parameters
+ * dest     Pointer to the destination array where the content is to be copied, 
+ *          type-casted to a pointer of type void*
+ * 
+ * src      Pointer to the source of data to be copied, type-casted to a pointer 
+ *          of type const void*.
+ * nb       Number of bytes to copy. size_t is an unsigned integral type.
+ *
+ * Return Value
+ * dest is returned
  */
 INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb);
-/*
- * TODO: documentation
- */
+/* 
+ * Copy block of memory
+ *
+ * Copies the values of nb bytes from the location pointed by source directly 
+ * to the memory block pointed by destination.
+ * 
+ * The underlying type of the objects pointed by both the source and 
+ * destination pointers are irrelevant for this function; The result is a 
+ * binary copy of the data.
+ * 
+ * The function does not check for any terminating null character in 
+ * source - it always copies exactly num bytes.
+ *
+ * To avoid overflows, the size of the arrays pointed by both the destination 
+ * and source parameters, shall be at least nb bytes, and should not overlap 
+ * (for overlapping memory blocks, memmove is a safer approach).
+ *
+ * Parameters
+ * dest     Pointer to the destination array where the content is to be 
+ *          copied, type-casted to a pointer of type void*.
+ * source   Pointer to the source of data to be copied, type-casted to a 
+ *          pointer of type const void*.
+ * nb       Number of bytes to copy. size_t is an unsigned integral type.
+ *
+ * Return Value
+ * dest is returned.
+ */ 
 INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb);
+
 /*
- * TODO: documentation
+ * Compare two blocks of memory
+ *
+ * Compares the first num bytes of the block of memory pointed by lhs to 
+ * the first bn bytes pointed by rhs, returning zero if they all match or a 
+ * value different from zero representing which is greater if they do not.
+ * 
+ * Notice that, unlike strcmp, the function does not stop comparing after 
+ * finding a null character.
+ *
+ * Parameters
+ * lhs      Pointer to block of memory.
+ * rhs      Pointer to block of memory.
+ * nb       Number of bytes to compare.
+ *
+ * Return Value
+ * Returns an integral value indicating the relationship between the content 
+ * of the memory blocks:
+ * A zero value indicates that the contents of both memory blocks are equal.
+ * A value greater than zero indicates that the first byte that does not 
+ * match in both memory blocks has a greater value in lhs than in rhs as if 
+ * evaluated as unsigned char values; And a value less than zero indicates 
+ * the opposite.
  */
 INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb);
 /*
- * TODO: documentation
+ * Locate character in block of memory
+ *
+ * Searches within the first num bytes of the block of memory pointed by dest 
+ * for the first occurrence of value (interpreted as an unsigned char), and 
+ * returns a pointer to it.
+ * 
+ * Both value and each of the bytes checked on the the dest array are 
+ * interpreted as unsigned char for the comparison.
+ *
+ * Parameters
+ * dest     Pointer to the block of memory where the search is performed.
+ * value    Value to be located. The value is passed as an int, but the 
+ *          function performs a byte per byte search using the unsigned char
+ *          conversion of this value.
+ * nb       Number of bytes to be analyzed.
+ *
+ * Return Value
+ * A pointer to the first occurrence of value in the block of memory pointed 
+ * by dest.
+ * If the value is not found, the function returns a null pointer.
  */
 INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb);
 /*
- * TODO: documentation
+ * Fill block of memory
+ *
+ * Sets the first num bytes of the block of memory pointed by ptr to the 
+ * specified value (interpreted as an unsigned char).
+ * 
+ * Parameters
+ * dest     Pointer to the block of memory to fill.
+ * value    Value to be set. The value is passed as an int, but the function 
+ *          fills the block of memory using the unsigned char conversion of 
+ *          this value.
+ * nb       Number of bytes to be set to the value.
+ *
+ * Return Value
+ * dest is returned.
  */
 INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
 
@@ -214,24 +318,60 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
  * INA_FAILURE if an error occured
  */
 INA_API(ina_rc_t) ina_mempool_init(size_t size);
-/* Cleanup */
-INA_API(ina_rc_t) ina_mempool_destroy(void);
-/* Informations */
-INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info);
-/* Get a named memory pool */
-INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool);
+
 /*
- * Query information about a memory pool
+ * Destory all memory pools.
+ *
+ * Release and destroy all memory pools and internal structures. Once called, 
+ * ina_mempool_init() must be called to reuse memory pools.
+ *
+ * Return Value
+ * INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_mempool_destroy(void);
+
+/* 
+ * Get runtime imformations about a memory pool,.
+ *
+ * pool     Pointer to a memory pool, pass NULL to query system memory pool.
+ * info     Pointer to pool information structure.
+ *
+ * Return Value
+ * INA_SUCCESS if no error occured.
  */
 INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info);
+
 /* 
- * Create a memory pool. 
+ * Get a memory pool by label.
+ *
+ * Parameters
+ * label    Pool label.
+ * pool     Pointer to a memory pool pointer. Hold the memory pool.
+ *
+ * Return Value
+ * INA_SUCCESS if pool was found otherwise INA_FAILURE
+ */
+INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool);
+
+/* 
+ * Create a memory pool.
+ *
+ * Parameters
+ * pool     Pointer to a memory pool pointer
+ * size     Size of memory pool in bytes.
+ * cf       Creation flags
+ * label    Pool label. Optional for non shared memory pools.
+ *
+ * Return Value
+ * INA_SUCCESS if pool was craeted successfully.
  */
 INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, ina_str_t label);
+
 /* 
  * Release pool memory.
  */
 INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy);
+
 /*
  * Allocate reallocable memory from a pool 
  */
