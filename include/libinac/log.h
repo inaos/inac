@@ -58,10 +58,10 @@ extern "C" {
 
 /* Log level */
 typedef enum ina_log_level_e {
-    INA_LOG_DEBUG,
-    INA_LOG_INFO,
-    INA_LOG_WARNING,
-    INA_LOG_ERROR
+    INA_LOG_LEVEL_DEBUG,
+    INA_LOG_LEVEL_INFO,
+    INA_LOG_LEVEL_WARNING,
+    INA_LOG_LEVEL_ERROR
 } ina_log_level_t;
 
 /* Log target */
