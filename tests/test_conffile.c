@@ -57,7 +57,7 @@ static ina_rc_t __ina_named_section_handler(const char *section_name, const char
 }
 INA_TEST(conffile , using_macros_autodestroy)
 {
-    INA_CONFFILE(NULL,
+    INA_CONFFILE(NULL, NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
             INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
             INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO)),
@@ -73,7 +73,7 @@ INA_TEST(conffile , using_macros)
 {
     ina_conffile_t *cf = NULL;
 
-    INA_CONFFILE(cf,
+    INA_CONFFILE(cf, NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
             INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
             INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO)),

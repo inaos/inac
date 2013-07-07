@@ -305,17 +305,18 @@ __VA_ARGS__
  * ...  Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add 
  *      named or unamed section to the configuration file
  */
-#define INA_CONFFILE(cf, ...)                            \
-{                                                        \
-    ina_conffile_t *__cf = NULL;                         \
-    ina_conffile_section_t *__cs = NULL;                 \
-    if (cf != NULL) __cf = cf;                           \
-    if (!INA_SUCCEED(ina_conffile_init(&__cf)))       {  \
-        abort();                                         \
-    }                                                    \
-    __VA_ARGS__;                                         \
-    ina_conffile_process(__cf, NULL);                    \
-    if (cf == NULL) ina_conffile_destroy(&__cf);         \
+#define INA_CONFFILE(cf, fp, ...)                         \
+{                                                         \
+    ina_conffile_t *__cf = NULL;                          \
+    ina_conffile_section_t *__cs = NULL;                  \
+    if (cf != NULL) __cf = cf;                            \
+    if (!INA_SUCCEED(ina_conffile_init(&__cf)))       {   \
+        abort();                                          \
+    }                                                     \
+    __VA_ARGS__;                                          \
+    if (!INA_SUCCEED(ina_conffile_process(__cf, fp)))   { \
+        abort();                                          \
+    }                                                     \
 }
 
 #ifdef __cplusplus
