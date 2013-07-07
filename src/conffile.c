@@ -599,7 +599,7 @@ __ina_get_value(ina_conffile_t *cf, const char* section_name,
 
     /* Lookup value */
     k = INA_HASH_CSTR_TO_SDBM(key);
-    HASH_FIND_ULONG(entries, &k, e);
+    HASH_FIND_ULONG(entries->entries, &k, e);
     if (e == NULL) {
         return INA_FAILURE;
     }
