@@ -195,7 +195,6 @@ INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_t *cf,
 
     INA_ASSERT_NOTNULL(cf);
     INA_ASSERT_NOTNULL(section_name);
-    INA_ASSERT_NOTNULL(section_key);
     INA_ASSERT_NOTNULL(key);
     return __ina_get_value(cf, section_name, section_key, key, &entry);
 }
@@ -230,7 +229,6 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf,
 
     INA_ASSERT_NOTNULL(cf);
     INA_ASSERT_NOTNULL(section_name);
-    INA_ASSERT_NOTNULL(section_key);
     INA_ASSERT_NOTNULL(key);
     INA_ASSERT_NOTNULL(value);
 
@@ -274,7 +272,6 @@ INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf,
 
     INA_ASSERT_NOTNULL(cf);
     INA_ASSERT_NOTNULL(section_name);
-    INA_ASSERT_NOTNULL(section_key);
     INA_ASSERT_NOTNULL(key);
     INA_ASSERT_NOTNULL(value);
 
