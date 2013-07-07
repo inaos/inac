@@ -351,6 +351,7 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
 #elif INA_OS_WIN32
 #pragma section(".inatest", read)
+#define INA_TEST_SECTION
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
 #define INA_TEST_SECTION __attribute__ ((unused,section (".inatest")))
