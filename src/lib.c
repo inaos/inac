@@ -78,6 +78,11 @@ INA_API(const char*) ina_app_get_path(void)
 
 INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, ina_opt_t *opt) 
 {
+    
+#ifdef INA_OS_WIN32
+    _set_abort_behavior(0, _WRITE_ABORT_MSG);
+#endif
+    
     if (!INA_SUCCEED(ina_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
     }
