@@ -83,7 +83,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
     }
     
     if (argv != NULL) {
-        const char* basename = strrchr(argv[0],(int)INA_PATH_SEPARATOR);
+        const char* basename = strrchr(argv[0], INA_PATH_SEPARATOR);
         if (basename) {
             basename++;
         }
