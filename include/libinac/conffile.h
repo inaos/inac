@@ -317,6 +317,7 @@ __VA_ARGS__
     if (!INA_SUCCEED(ina_conffile_process(__cf, fp)))   { \
         abort();                                          \
     }                                                     \
+    if (cf == NULL) cf = __cf;                            \
 }
 
 #ifdef __cplusplus
