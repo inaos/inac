@@ -108,7 +108,7 @@ INA_API(ina_rc_t) ina_ljit_dump_stack(ina_ljit_ctx_t *ctx);
 /*
  *
  */
-INA_API(void*) ina_ljit_checkcdata(ina_ljit_ctx_t *ctx, int narg);
+INA_API(const void*) ina_ljit_checkcdata(ina_ljit_ctx_t *ctx, int narg);
 
 #ifdef __cplusplus
 }

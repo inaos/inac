@@ -19,10 +19,10 @@ include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/../include"
 #set build-type specific variables
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-DINA_OS_WIN32 -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED - DINA_LOG_LEVEL=3)
 else()
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DDEBUG -DINA_TRACE_ENABLED -D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-DINA_OS_WIN32 -DDEBUG -DINA_TRACE_ENABLED -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED -DINA_LOG_LEVEL=4)
 endif()
 
 set(INAC_LIB "libinac.lib")
@@ -34,6 +34,6 @@ endif(WIN32)
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
 set (LIBS ${LIB_DIR}/${INAC_LIB})
 
-AUX_SOURCE_DIRECTORY(. TEST_SRC)
+file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c")
 add_executable(test ${TEST_SRC})
 target_link_libraries(test ${PLATFORM_LIBS} ${LIBS})
