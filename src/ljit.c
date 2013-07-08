@@ -29,8 +29,8 @@
 #include "config.h"
 
 /* Import LuaJIT modules */
-INA_LJIT_IMPORT(inac, 
-    INA_LJIT_MODULE(lconffile));
+INA_LJIT_IMPORT(inac);
+INA_LJIT_MODULE(inac,lconffile);
 
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
 {        
