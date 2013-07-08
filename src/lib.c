@@ -91,8 +91,12 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
         const char* basename = strrchr(argv[0], INA_PATH_SEPARATOR);
         if (basename) {
             basename++;
+        } else if (strlen(argv[0])) {
+            basename = argv[0];
         }
-        __appname = ina_str_fromcstr(basename);
+        if (basename) {
+            __appname = ina_str_fromcstr(basename);
+        }
         /* FIXME: not sure for all platforms */
         __apppath = ina_str_fromcstr(argv[0]);
     }
