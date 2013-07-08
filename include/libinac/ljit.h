@@ -49,7 +49,7 @@ typedef struct ina_ljit_ctx_s {
 /*
  * Import a LuaJIT module.
  */
-#define INA_LJIT_EXPORT(packahe, symbol) INA_LJIT_MODULE(package, symbol)
+#define INA_LJIT_EXPORT(package, symbol) INA_LJIT_MODULE(package, symbol)
 #define INA_LJIT_MODULE(package, module)                                \
     extern const char *luaJIT_BC_##module;                              \
     INA_API(const void) *__ina_ljit_import_##module (void) {            \
