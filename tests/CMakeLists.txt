@@ -35,5 +35,6 @@ set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
 set (LIBS ${LIB_DIR}/${INAC_LIB})
 
 AUX_SOURCE_DIRECTORY(. TEST_SRC)
+list(REMOVE_ITEM TEST_SRC ullc_monitor.c)
 add_executable(test ${TEST_SRC})
 target_link_libraries(test ${PLATFORM_LIBS} ${LIBS})
