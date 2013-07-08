@@ -49,20 +49,19 @@ typedef struct ina_ljit_ctx_s {
 /*
  * Import a LuaJIT module.
  */
-#define INA_LJIT_MODULE(module)                                        \
-    extern const char *luaJIT_BC_##module;                             \
-    INA_API(const void) *__ina_ljit_import_##module (void) {           \
-        __ina_ljit_inac = (const char*)(size_t)luaJIT_BC_##module;     \
-        return  __ina_ljit_inac;                                       \
+#define INA_LJIT_MODULE(package, module)                                \
+    extern const char *luaJIT_BC_##module;                              \
+    INA_API(const void) *__ina_ljit_import_##module (void) {            \
+        __ina_ljit_##package = (const char*)(size_t)luaJIT_BC_##module; \
+        return  __ina_ljit_##package;                                   \
     }
 
 /* 
  * Import LuaJIT Bytecode. Works only for modules generated using 
  * standard naming convention.
  */
-#define INA_LJIT_IMPORT(package, ...)                       \
-    const void  *__ina_ljit_##package = NULL;               \
-    __VA_ARGS__
+#define INA_LJIT_IMPORT(package)                       \
+    const void  *__ina_ljit_##package = NULL;
 
 #define INA_LJIT_INIT(...)
 
