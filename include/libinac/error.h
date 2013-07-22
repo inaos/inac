@@ -196,6 +196,7 @@ extern "C" {
 #define INA_ULLC_ESEMINIT INA_ULLC_ERROR(INA_ESEMINIT, "Semaphore failed")
 #define INA_ULLC_ESEMOP INA_ULLC_ERROR(INA_ESEMOP, "Semaphore op failed")
 #define INA_ULLC_ECLIMIT INA_ULLC_ERROR(INA_ELIMIT, "Consumer limit exeeded")
+#define INA_ULLC_EPLIMIT INA_ULLC_ERROR(INA_ELIMIT, "Producer limit exeeded")
 #define INA_ULLC_EINVERSION INA_ULLC_ERROR(INA_EINVAL, "Invalid argument version")
 #define INA_ULLC_EINSLOTS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument slots")
 #define INA_ULLC_EINSIZE INA_ULLC_ERROR(INA_EINVAL, "Invalid argument size")
