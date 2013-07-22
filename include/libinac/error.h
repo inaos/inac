@@ -94,6 +94,8 @@ extern "C" {
 #define INA_ERR_FLAG_FATAL   0x300
 /* Used to start an interation  */
 #define INA_ERR_PEEK_FIRST    0
+/* User defined errors base */
+#define INA_ERR_USER          (128)
 /*
  * Push an error to the error state.
  *

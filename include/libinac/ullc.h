@@ -107,22 +107,20 @@ extern "C" {
  *
  * LIMITATIONS:
  *
- * - Number of consumers need to be defined when creating the consumer
- * - Numer of consumers are static
+ * - Number of consumers/producers need to be defined when creating the 
+ * - consumer/producers.
+ * - Number of consumers/producers are static
  *
  * TODO:
- * 
  * - Document with graphics
  * - Fix claim_item function.. to properly wait on slow-consumers
  * - Error handling
- * - Proper unit-testing
  * - Proper performance-tests
  * - Options, bis-mask: 
  *   - To decide whether to wait for slow-consumers or wrap around
  *   - Consumer wait strategies
  * - Tuning, cache-lines
  * - Batch writing and reading
- * - Multi producer handling
  */
 
 #define INA_ULLC_MAX_PRODUCERS (64)
