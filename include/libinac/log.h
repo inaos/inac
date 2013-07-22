@@ -34,7 +34,7 @@ extern "C" {
 
 /* Base log macros, user INA_LOG_DEBUG/INFO/WARNING/ERROR instead */
 #ifdef INA_LOG_ENABLED
-#define INA_LOG(cfg, level, fmt,  ...) ina_log(cfg, level, fmt, __VA_ARGS__)
+#define INA_LOG(cfg, level, fmt,  ...) ina_log(cfg, level, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG(cfg, level, ...)
 #endif
@@ -45,25 +45,25 @@ extern "C" {
 
 #if INA_LOG_LEVEL>0
 #define INA_LOG_ERROR(cfg,fmt,...)                          \
-    INA_LOG(cfg, INA_LOG_LEVEL_ERROR, fmt, __VA_ARGS__)       
+    INA_LOG(cfg, INA_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)       
 #else
 #define INA_LOG_ERROR(cfg,fmt,...)
 #endif
 #if INA_LOG_LEVEL>1
 #define INA_LOG_WARNING(cfg,fmt,...)                         \
-    INA_LOG(cfg, INA_LOG_LEVEL_WARNING, fmt, __VA_ARGS__)   
+    INA_LOG(cfg, INA_LOG_LEVEL_WARNING, fmt, ##__VA_ARGS__)   
 #else
 #define INA_LOG_WARNING(cfg,fmt,...)
 #endif
 #if INA_LOG_LEVEL>2
 #define INA_LOG_INFO(cfg,fmt,...)                            \
-    INA_LOG(cfg, INA_LOG_LEVEL_INFO, fmt, __VA_ARGS__)
+    INA_LOG(cfg, INA_LOG_LEVEL_INFO, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG_INFO(cfg,fmt,...)
 #endif
 #if INA_LOG_LEVEL>3
 #define INA_LOG_DEBUG(cfg,fmt,...)                          \
-    INA_LOG(cfg, INA_LOG_LEVEL_DEBUG, fmt, __VA_ARGS__)
+    INA_LOG(cfg, INA_LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG_DEBUG(cfg,fmt,...)
 #endif
