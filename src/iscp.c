@@ -436,7 +436,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                         break;
                     }
                     default:  {
-                        INA_TRACE_MSG("Invalid type!");
+                        INA_TRACE("Invalid type!");
                         irc.rc = INA_FAILURE;
                         ctx->retn_cb(ctx, &irc);
                         return INA_ISCP_ETYPE;
