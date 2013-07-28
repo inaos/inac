@@ -236,9 +236,17 @@ extern "C" {
 
 /* Configuration file errors */
 #define INA_CONFFILE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CONFFILE, INA_OSFN_NONE, s)
-#define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(EINVAL, "Duplicate section");
-#define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(EINVAL, "Duplicate key");
-#define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(EINVAL, "Already prepared");
+#define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate section");
+#define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate key");
+#define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(INA_EINVAL, "Already prepared");
+
+/* Time errors */
+#define INA_TIME_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_TIME, INA_OSFN_NONE, s)
+#define INA_TIME_EHWDRV INA_TIME_ERROR(INA_EVERSION, "The MBGDEVIO API version which is installed is not compatible");
+#define INA_TIME_ENODEV INA_TIME_ERROR(INA_ELIMIT, "No radio clock found");
+#define INA_TIME_ETMDEV INA_TIME_ERROR(INA_ELIMIT, "Too many radio clocks found");
+#define INA_TIME_EHWERR INA_TIME_ERROR(INA_EPARAM, "Device API call failed");
+#define INA_TIME_EHWMISSF INA_TIME_ERROR(INA_EEXISTS, "Missing HW feature");
 
 /* Core library errors */
 #define INA_LIB_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LIB, INA_OSFN_NONE, s)

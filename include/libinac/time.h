@@ -34,14 +34,8 @@
 extern "C" {
 #endif
 
-/* Time value */
-typedef struct ina_time_s {
-#ifdef WIN32
-    FILETIME systime;
-#else
-    struct timeval systime;
-#endif
-} ina_time_t;
+/* Time value - opaque */
+typedef struct ina_time_s ina_time_t;
 
 /* Time Stamp Counter */
 typedef struct ina_time_tsc_s {
@@ -119,7 +113,14 @@ typedef struct ina_stopwatch_s {
     ina_stopwatch_ts_t *ts;        /* current time stamp */
 } ina_stopwatch_t;
 
-
+/*
+ * System-Time backend information
+ */
+INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info);
+/*
+ * TSC backend information
+ */
+INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_str_t *info);
 /*
  * Sleep for X milli seconds
  */
@@ -190,7 +191,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch);
 /*
  * Start a stop watch
  */
-INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_t *start);
+INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_tsc_t *start);
 /*
  *
  */

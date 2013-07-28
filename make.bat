@@ -87,11 +87,17 @@ SET INAC_WIN32_PROJECT_DIR=.
 SET INAC_WIN32_C_SOURCE_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
 
+SET INAC_TIME_BACKEND=time-os
+
+if not "%3" == "" SET INAC_TIME_BACKEND=%3
+
 call %INAC_BUILD_SCRIPT% %1 %2
 
 REM reset the main environment variables because they might have been deleted by the previous build
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
+SET INAC_TIME_BACKEND=
 
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.

@@ -76,30 +76,6 @@ INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time)
-{
-    *time = (ina_time_t*)ina_mem_alloc(sizeof(ina_time_t));
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time)
-{
-    ina_mem_free(*time);
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
-{
-#ifdef INA_OS_WIN32
-    GetSystemTimeAsFileTime(&time->systime);
-#else
-    if (gettimeofday(&time->systime, NULL) == -1) {
-        return INA_FAILURE;
-    }
-#endif
-    return INA_SUCCESS;
-}
-
 INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
 {
 #ifdef INA_OS_WIN32
@@ -137,26 +113,6 @@ INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs,
     *nanos = time->tp.tv_nsec;
 #endif
     return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, 
-						long *micros)
-{
-#ifdef INA_OS_WIN32
-    unsigned __int64 tmpres = 0;
-    tmpres |= time->systime.dwHighDateTime;
-    tmpres <<= 32;
-    tmpres |= time->systime.dwLowDateTime;
-    tmpres /= 10;  /*convert into microseconds*/
-    /*converting file time to unix epoch*/
-    tmpres -= DELTA_EPOCH_IN_MICROSECS; 
-    *secs = (long)(tmpres / 1000000UL);
-    *micros = (long)(tmpres % 1000000UL);
-#else
-    *secs = time->systime.tv_sec;
-    *micros = time->systime.tv_usec;
-#endif
-	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, 
@@ -254,7 +210,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, 
-                                           ina_time_t *start)
+                                           ina_time_tsc_t *start)
 {
     INA_ASSERT_NOTNULL(stopwatch);
     /* Duration = 0, indicate stopwwatch is running */
@@ -266,7 +222,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch,
     
     /* Override start if passed */
     if (start != NULL) {
-        ina_mem_cpy(&stopwatch->tv->start, start, sizeof(ina_time_t));
+        ina_mem_cpy(&stopwatch->tv->start, start, sizeof(ina_time_tsc_t));
         return INA_SUCCESS;
     }
     /* Read clock */
