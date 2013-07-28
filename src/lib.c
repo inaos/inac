@@ -212,7 +212,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
         return INA_SUCCESS;
     }
     if (atexit(ina_exit) != 0) {
-        INA_TRACE_MSG("Failed to register exit function!");
+        INA_TRACE("Failed to register exit function!");
         return INA_FAILURE;
     }
 
@@ -429,11 +429,11 @@ __ina_signal_handler(int sig)
         case SIGSTOP:
         case SIGKILL:
 #endif
-            INA_TRACE_MSG("termination signal received!");
+            INA_TRACE("termination signal received!");
             exit(exitcode);
             break;
         default:
-            INA_TRACE_MSG("unknown singal received!");
+            INA_TRACE("unknown singal received!");
     }
     abort();
 }

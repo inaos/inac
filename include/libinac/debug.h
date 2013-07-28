@@ -44,36 +44,34 @@ extern "C" {
  *
  */
 #ifdef DEBUG
-#define INA_TRACE(fmt, ...)  \
-    fprintf(stderr,            \
+#define INA_TRACE(fmt, ...)     \
+    fprintf(stderr,             \
         "%s:%d:%s(): " fmt "\n",\
-        __FILE__,             \
-        __LINE__,             \
-        __FUNCTION__,         \
-        __VA_ARGS__           \
+        __FILE__,               \
+        __LINE__,               \
+        __FUNCTION__,           \
+        ##__VA_ARGS__           \
         )
 #if INA_TRACE_LEVEL>0
-#define INA_TRACE1(fmt, ...)  INA_TRACE(fmt, __VA_ARGS__)
+#define INA_TRACE1(fmt, ...)  INA_TRACE(fmt, ##__VA_ARGS__)
 #else
 #define INA_TRACE1(fmt, ...)
 #endif
 #if INA_TRACE_LEVEL>1
-#define INA_TRACE2(fmt, ...)  INA_TRACE(fmt, __VA_ARGS__)
+#define INA_TRACE2(fmt, ...)  INA_TRACE(fmt, ##__VA_ARGS__)
 #else 
 #define INA_TRACE2(fmt, ...)
 #endif
 #if INA_TRACE_LEVEL>2
-#define INA_TRACE3(fmt, ...)  INA_TRACE(fmt, __VA_ARGS__)
+#define INA_TRACE3(fmt, ...)  INA_TRACE(fmt, ##__VA_ARGS__)
 #else
 #define INA_TRACE3(fmt, ...)
 #endif
-#define INA_TRACE_MSG(msg) INA_TRACE("%s", msg)
 #else
 #define INA_TRACE(fmt, ...)
 #define INA_TRACE1(fmt, ...)
 #define INA_TRACE2(fmt, ...)
 #define INA_TRACE3(fmt, ...)
-#define INA_TRACE_MSG(msg)
 #endif 
 
 
