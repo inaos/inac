@@ -32,7 +32,7 @@
 
 #define _C99_BIT_TYPES_DEFINED 1
 
-#include <meinberg/mbgdevio.h>
+#include <mbgdevio.h>
 
 struct ina_time_s {
     MBG_DEV_HANDLE dh;

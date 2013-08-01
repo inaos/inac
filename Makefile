@@ -88,19 +88,19 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.o
 
-ifeq ("bstring",$(INA_STRING_LIB))
+ifeq (bstring,$(INA_STRING_LIB))
 	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/bstring/bstring.a
 	CFLAGS+=-DINA_BSTRING_ENABLED=1
 endif
-ifeq ("sds",$(INA_STRING_LIB))
+ifeq (sds,$(INA_STRING_LIB))
   	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/sds/sds.a
 	CFLAGS+=-DINA_SSTRING_ENABLED=1
 endif
-ifeq ("meinberg", $(INA_TIME_LIB))
+ifeq (meinberg, $(INA_TIME_LIB))
 	INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/meinberg/lib64/mbgdevio.a
+	CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/meinberg
 	CFLAGS+=-DINA_MBTIME_ENABLED=1
 endif	
-
 CFLAGS+=-DINA_STRING_DEFINED=1
 CFLAGS+=-DINA_TIME_DEFINED=1
 export CFLAGS
