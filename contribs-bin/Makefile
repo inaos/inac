@@ -25,34 +25,13 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 #
-DIRS = $(shell ls -p |grep /)
 
-SRC = $(wildcard *.c)
-SRC_LUA = $(wildcard *.lua)
+all: 
+	@echo building binary contribs...
 
-OBJS = $(SRC:%.c=%.o)
-OBJS += $(SRC_LUA:%.lua=%.o)
-
-all: $(OBJS) $(INAC_LIB)
-	@echo compiling all for $(INAC_LIB)...
-	@for i in $(DIRS); do $(MAKE) -C $$i; done
-
-%.o: %.c $(INAC_INCLUDES)
-	@echo compile $(CC) $<
-	@$(CC) $(CFLAGS) -c $<
-
-%.o: %.lua
-	@echo compile ljit $<
-	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
-
-$(INAC_LIB):
-	@ar crs $(INAC_LIB) $(OBJS)
-	@for i in $(DIRS); do ar crs $(INAC_LIB) $$i/*.o; done
-
+test: all
+	
 .PHONY: clean
 
 clean:
-	@echo cleaning src...
-	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
-	@-rm -f *.o *.a
-
+	@echo cleaning contribs...

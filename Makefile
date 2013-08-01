@@ -31,8 +31,10 @@
 # ****************************************************************************
 INAC_HOME_DIR=$(CURDIR)
 INAC_CONTRIBS_DIR=$(INAC_HOME_DIR)/contribs
+INAC_CONTRIBSBIN_DIR=$(INAC_HOME_DIR)/contribs-bin
 export INAC_HOME_DIR
 export INAC_CONTRIBS_DIR
+export INAC_CONTRIBSBIN_DIR
 
 # ****************************************************************************
 # LuaJIT variables
@@ -50,16 +52,28 @@ export LUA_PATH
 # ****************************************************************************
 CC     = /usr/bin/gcc 
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
-         -I$(INAC_CONTRIBS_DIR) 
+         -I$(INAC_CONTRIBS_DIR) -I$(INAC_CONTRIBSBIN_DIR)
 CFLAGS += -DINA_LIB=1
 
 # ****************************************************************************
-# String implementation
+# Default string implementation
 # ****************************************************************************
-CFLAGS += -DINA_CSTRING_ENALBED=1
+ifndef INA_STRING_LIB
+	CFLAGS += -DINA_CSTRING_ENALBED=1
+	INA_STRING_LIB = cstring
+endif
 #CFLAGS += -DINA_BSTRING_ENALBED=1
 #CFLAGS += -DINA_ISTRING_ENALBED=1
 #CFLAGS += -DINA_ISTRING_ENALBED=1
+
+# ****************************************************************************
+# Default time implementation
+# ****************************************************************************
+ifndef INA_TIME_LIB
+	CFLAGS += -DINA_OSTIME_ENALBED=1
+	INA_TIME_LIB = os
+endif
+#CFLAGS += -DINA_MBTIME_ENALBED=1
 
 export CFLAGS
 export LDFLAGS
@@ -67,7 +81,7 @@ export LDFLAGS
 # ****************************************************************************
 # Subdirectories
 # ****************************************************************************
-DIRS = contribs doc include src tests
+DIRS = contribs contribs-bin doc include src tests
 # ****************************************************************************
 # Libraries
 # ****************************************************************************
@@ -77,16 +91,26 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.o
 
-ifeq (1,$(INA_BSTRING_ENABLED))
+ifeq ("bstring",$(INA_INA_STRING_LIB))
 	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/bstring/bstring.a
+	INA_BSTRING_ENABLED = 1
 endif
-ifeq (1,$(INA_SSTRING_ENABLED))
+ifeq ("sds",$(INA_STRING_LIB))
   	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/sds/sds.a
+	INA_SSTRING_ENABLED = 1
 endif
+ifeq ("meinberg", $(INA_TIME_LIB))
+	INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/meinberg/lib64/mbgdevio.a
+	INA_MBTIME_ENABLED = 1
+endif	
 
+INA_STRING_DEFINED=1
+INA_TIME_DEFINED=1
 
 export INAC_LIB
 export INAC_LIBS
+export INA_STRING_DEFINED
+export INA_TIME_DEFINED
 
 default: release
 
@@ -95,8 +119,10 @@ all:
 	@echo Building....
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 	@echo === Done ===
-	@echo Architecture: $(OS)
-	@echo Build type: $(INAC_BUILD_TYPE)
+	@echo "Architecture	: $(OS)"
+	@echo "Build type	: $(INAC_BUILD_TYPE)"
+	@echo "String library	: $(INA_STRING_LIB)"
+	@echo "Time library	: $(INA_TIME_LIB)"
 
 release: CFLAGS += -O2 -DINA_LOG_LEVEL=1
 	export CFLAGS
