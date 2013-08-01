@@ -59,6 +59,7 @@ extern "C" {
 #define INA_MOD_LJIT     11
 #define INA_MOD_CONFFILE 12
 #define INA_MOD_LIB      13
+#define INA_MOD_USER     32
 
 /* OS function identifiers */
 #define INA_OSFN_NONE    0
