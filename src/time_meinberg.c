@@ -84,7 +84,7 @@ INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info)
     int rc;
     
     if (!INA_SUCCEED(__ina_time_init_dev(&dh))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
 
     rc = mbg_get_device_info(dh, &dev);
@@ -95,7 +95,7 @@ INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info)
     *info = ina_str_vsprintf("HW backend: %s", dev.cfg.fw_id);
 
     if (!INA_SUCCEED(__ina_time_close_dev(&dh))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
 
     return INA_SUCCESS;
@@ -108,7 +108,7 @@ INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time)
     *time = (ina_time_t*)ina_mem_alloc(sizeof(ina_time_t));
 
     if (!INA_SUCCEED(__ina_time_init_dev(&(*time)->dh))) {
-        return ina_err_peek();
+        return INA_ERR_PUSH_LAST;
     }
 
     if (mbg_dev_has_fast_hr_timestamp((*time)->dh, &has_fast_hr_support) != MBG_SUCCESS) {
