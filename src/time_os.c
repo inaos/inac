@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_TIME_OS_ENABLED
+#ifdef INA_OSTIME_ENABLED
 
 struct ina_time_s {
 #ifdef WIN32

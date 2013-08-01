@@ -28,11 +28,11 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_TIME_MEINBERG_ENABLED
+#ifdef INA_MBTIME_ENABLED
 
 #define _C99_BIT_TYPES_DEFINED 1
 
-#include <mbgdevio.h>
+#include <meinberg/mbgdevio.h>
 
 struct ina_time_s {
     MBG_DEV_HANDLE dh;

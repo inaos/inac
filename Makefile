@@ -59,7 +59,7 @@ CFLAGS += -DINA_LIB=1
 # Default string implementation
 # ****************************************************************************
 ifndef INA_STRING_LIB
-	CFLAGS += -DINA_CSTRING_ENALBED=1
+	CFLAGS += -DINA_CSTRING_ENABLED=1
 	INA_STRING_LIB = cstring
 endif
 #CFLAGS += -DINA_BSTRING_ENALBED=1
@@ -70,13 +70,10 @@ endif
 # Default time implementation
 # ****************************************************************************
 ifndef INA_TIME_LIB
-	CFLAGS += -DINA_OSTIME_ENALBED=1
+	CFLAGS += -DINA_OSTIME_ENABLED=1
 	INA_TIME_LIB = os
 endif
 #CFLAGS += -DINA_MBTIME_ENALBED=1
-
-export CFLAGS
-export LDFLAGS
 
 # ****************************************************************************
 # Subdirectories
@@ -91,22 +88,23 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.o
 
-ifeq ("bstring",$(INA_INA_STRING_LIB))
+ifeq ("bstring",$(INA_STRING_LIB))
 	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/bstring/bstring.a
-	INA_BSTRING_ENABLED = 1
+	CFLAGS+=-DINA_BSTRING_ENABLED=1
 endif
 ifeq ("sds",$(INA_STRING_LIB))
   	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/sds/sds.a
-	INA_SSTRING_ENABLED = 1
+	CFLAGS+=-DINA_SSTRING_ENABLED=1
 endif
 ifeq ("meinberg", $(INA_TIME_LIB))
 	INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/meinberg/lib64/mbgdevio.a
-	INA_MBTIME_ENABLED = 1
+	CFLAGS+=-DINA_MBTIME_ENABLED=1
 endif	
 
-INA_STRING_DEFINED=1
-INA_TIME_DEFINED=1
-
+CFLAGS+=-DINA_STRING_DEFINED=1
+CFLAGS+=-DINA_TIME_DEFINED=1
+export CFLAGS
+export LDFLAGS
 export INAC_LIB
 export INAC_LIBS
 export INA_STRING_DEFINED

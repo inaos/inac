@@ -40,7 +40,7 @@
 
 /* Define time code/library to use */
 #ifndef INA_TIME_DEFINED
-#define INA_TIME_OS_ENABLED 1
+#define INA_OSTIME_ENABLED 1
 #endif
 
 /* Define default sys mem pool size */

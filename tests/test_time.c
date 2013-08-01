@@ -114,6 +114,11 @@ INA_TEST(time,backend)
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_backend_info(&info));
 
     INA_TEST_ASSERT_NOT_NULL(info);
+    #ifndef INA_MBTIME_ENABLED
+    INA_TEST_ASSERT_EQUAL_STR("meinberg", ina_str_cstr(info));
+    #else
+    INA_TEST_ASSERT_EQUAL_STR("os", ina_str_cstr(info));
+    #endif    
 
     ina_str_destroy(info);
 }
