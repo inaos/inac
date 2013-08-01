@@ -56,20 +56,6 @@ CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
 CFLAGS += -DINA_LIB=1
 
 # ****************************************************************************
-# Default string implementation
-# ****************************************************************************
-ifndef INA_STRING_LIB
-	INA_STRING_LIB = cstring
-endif
-
-# ****************************************************************************
-# Default time implementation
-# ****************************************************************************
-ifndef INA_TIME_LIB
-	INA_TIME_LIB = os
-endif
-
-# ****************************************************************************
 # Subdirectories
 # ****************************************************************************
 DIRS = contribs contribs-bin doc include src tests
@@ -81,23 +67,35 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a $(INAC_CONTRIBS_DIR)/skiplist/skiplist.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.o
-ifeq (cstring,$(INA_STRING_LIB))
+# ****************************************************************************
+#  String implementation
+# ****************************************************************************
+ifndef INAC_STRING_LIB
+	INAC_STRING_LIB = cstring
+endif
+ifeq (cstring,$(INAC_STRING_LIB))
 	CFLAGS+=-DINA_CSTRING_ENABLED=1
 endif
-ifeq (bstring,$(INA_STRING_LIB))
+ifeq (bstring,$(INAC_STRING_LIB))
 	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/bstring/bstring.a
 	CFLAGS+=-DINA_BSTRING_ENABLED=1
 endif
-ifeq (sds,$(INA_STRING_LIB))
+ifeq (sds,$(INAC_STRING_LIB))
   	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/sds/sds.a
 	CFLAGS+=-DINA_SSTRING_ENABLED=1
 endif
-ifeq (meinberg, $(INA_TIME_LIB))
+# ****************************************************************************
+# Time implementation
+# ****************************************************************************
+ifndef INAC_TIME_BACKEND
+	INAC_TIME_BACKEND = os
+endif
+ifeq (meinberg, $(INAC_TIME_BACKEND))
 	INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/meinberg/lib64/mbgdevio.a
 	CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/meinberg
 	CFLAGS+=-DINA_MBTIME_ENABLED=1
 endif
-ifeq (os, $(INA_TIME_LIB))
+ifeq (os, $(INA_TIME_BACKEND))
 	CFLAGS+=-DINA_OSTIME_ENABLED=1
 endif
 CFLAGS+=-DINA_STRING_DEFINED=1
@@ -106,7 +104,7 @@ export CFLAGS
 export LDFLAGS
 export INAC_LIB
 export INAC_LIBS
-export INA_STRING_DEFINED
+export INA_STRING_DEFINEDß
 export INA_TIME_DEFINED
 
 default: release
@@ -116,10 +114,10 @@ all:
 	@echo Building....
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 	@echo === Done ===
-	@echo "Architecture	: $(OS)"
+	@echo "Architecture	: $(shell uname -p)"
 	@echo "Build type	: $(INAC_BUILD_TYPE)"
-	@echo "String library	: $(INA_STRING_LIB)"
-	@echo "Time library	: $(INA_TIME_LIB)"
+	@echo "String library	: $(INAC_STRING_LIB)"
+	@echo "Time backend	: $(INAC_TIME_BACKEND)"
 
 release: CFLAGS += -O2 -DINA_LOG_LEVEL=1
 	export CFLAGS

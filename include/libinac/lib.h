@@ -90,6 +90,10 @@
 extern "C" {
 #endif
 
+#if defined(INA_MBTIME_ENABLED) && defined(INA_OS_OSX)
+#error "Meinberg time backend not supported."
+#endif
+
 #define INA_YES (1)
 #define INA_NO  (0)
 

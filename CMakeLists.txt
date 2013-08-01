@@ -68,7 +68,7 @@ add_library(${RAPIDXML_LIB_NAME} ${RAPIDXML_SRC})
 # BEGIN backend configuration
 
 if ($ENV{INAC_TIME_BACKEND} STREQUAL "time-meinberg")
-	add_definitions(-DINA_TIME_MEINBERG_ENABLED -DINA_TIME_DEFINED)
+	add_definitions(-DINA_MBTIME_ENABLED -DINA_TIME_DEFINED)
 endif()
 MESSAGE(STATUS "Time-Backend: $ENV{INAC_TIME_BACKEND}")
 
