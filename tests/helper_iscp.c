@@ -49,7 +49,7 @@ static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, ina_isc
     }
     if (params->value.d >= 0) {
         return INA_FAILURE;
-    }    
+    }
     return INA_SUCCESS;
 }
 
