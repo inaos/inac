@@ -115,7 +115,7 @@ INA_TEST(time,backend)
 
     INA_TEST_ASSERT_NOT_NULL(info);
 #ifdef INA_MBTIME_ENABLED
-    INA_TEST_ASSERT_EQUAL_STR("meinberg", ina_str_cstr(info));
+    INA_TEST_ASSERT_TRUE(strncmp("HW backend:", ina_str_cstr(info), 12) == 0);
 #else
     #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_EQUAL_STR("OS backend: GetSystemTimeAsFileTime()",
