@@ -87,8 +87,8 @@ endif
 # ****************************************************************************
 # Time implementation
 # ****************************************************************************
-ifndef INAC_TIME_BACKEND
-	INAC_TIME_BACKEND = os
+ifeq (, $(INA_TIME_BACKEND))
+	INA_TIME_BACKEND=os
 endif
 ifeq (meinberg, $(INAC_TIME_BACKEND))
 	INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/meinberg/lib64/mbgdevio.a
