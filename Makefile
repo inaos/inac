@@ -87,15 +87,15 @@ endif
 # ****************************************************************************
 # Time implementation
 # ****************************************************************************
-ifeq (, $(INA_TIME_BACKEND))
-	INA_TIME_BACKEND=os
+ifeq (,$(INAC_TIME_BACKEND))
+	INAC_TIME_BACKEND=os
 endif
 ifeq (meinberg, $(INAC_TIME_BACKEND))
 	INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/meinberg/lib64/mbgdevio.a
 	CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/meinberg
 	CFLAGS+=-DINA_MBTIME_ENABLED=1
 endif
-ifeq (os, $(INA_TIME_BACKEND))
+ifeq (os, $(INAC_TIME_BACKEND))
 	CFLAGS+=-DINA_OSTIME_ENABLED=1
 endif
 CFLAGS+=-DINA_STRING_DEFINED=1
@@ -112,6 +112,7 @@ default: release
 all: 
 	@echo === INAOS Common C Library - $(INAC_BUILD_TYPE) -  ===
 	@echo Building....
+	-rm -f src/$(INAC_LIB)
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 	@echo === Done ===
 	@echo "Architecture	: $(shell uname -p)"
