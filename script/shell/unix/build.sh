@@ -111,12 +111,12 @@ if [ "eval_param" != "$3" ]; then
     # Check whenever we neer to tunn a code generator
     if [ ! -z "$INAC_BUILD_CODE_GEN_SCRIPT" ]; then
         $INAC_BUILD_LUAJIT "$INAC_BUILD_PROJECT_DIR/$INAC_BUILD_CODE_GEN_SCRIPT" $INAC_BUILD_PROJECT_DIR
-        export INAC_BUILD_CODE_GEN_SCRIPT=
         if [ "$?" -ne "0" ]; then
          echo "Failed to run generator script"
          exit 1
         fi
     fi
+    unset INAC_BUILD_CODE_GEN_SCRIPT
     
     # Run the build "tool" if any
     if [ -f "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool" ]; then
