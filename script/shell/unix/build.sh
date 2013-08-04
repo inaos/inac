@@ -102,10 +102,11 @@ fi
 
 if [ "eval_param" != "$3" ]; then
 
+    cd "$INAC_BUILD_PROJECT_DIR"
+
     echo "Running build $INAC_BUILD_NAME: $INAC_BUILD_TYPE - $INAC_BUILD_STAGE"
         
     OLD_DIR="$(pwd)"
-    cd "$INAC_BUILD_PROJECT_DIR"
 
     # Check whenever we neer to tunn a code generator
     if [ ! -z "$INAC_BUILD_CODE_GEN_SCRIPT" ]; then
@@ -119,8 +120,8 @@ if [ "eval_param" != "$3" ]; then
     # Run the build "tool" if any
     if [ -f "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool" ]; then
         . "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool"
-    elif [ "$INA_BUILD_TOOL" == "make.sh" ]; then
-        . make.sh
+    elif [ "$INAC_BUILD_TOOL" == "make.sh" ]; then
+        . make.sh $INAC_BUILD_STAGE
     else    
         make
     fi
