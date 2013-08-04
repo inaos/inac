@@ -83,8 +83,8 @@
 # -------------------------------------------------------------------------
 
 # set variables according to input
-export INAC_BUILD_LUAJIT="$INAC_HOME/contribs/luajit/src/luajit"
-export INAC_BUILD_LUAJIT_DIR="$INAC_HOME/contribs/luajit/src/jit"
+export INAC_BUILD_LUAJIT=$INAC_HOME/contribs/luajit/src/luajit
+export INAC_BUILD_LUAJIT_DIR=$INAC_HOME/contribs/luajit/src/jit
 
 if [ ! -n "$ORIGINAL_LUA_PATH" ]; then
       export ORIGINAL_LUA_PATH=$LUA_PATH
@@ -103,14 +103,22 @@ fi
 if [ "eval_param" != "$3" ]; then
 
     echo "Running build $INAC_BUILD_NAME: $INAC_BUILD_TYPE - $INAC_BUILD_STAGE"
-    
+        
     OLD_DIR="$(pwd)"
     cd "$INAC_BUILD_PROJECT_DIR"
 
-    BASENAME=$(dirname $INAC_BUILD_SCRIPT)
-
-    if [ -f "$BASENAME/$INAC_BUILD_TOOL.sh" ]; then
-        . "$BASENAME/$INAC_BUILD_TOOL.sh"
+    # Check whenever we neer to tunn a code generator
+    if [ ! -z "$INAC_BUILD_CODE_GEN_SCRIPT" ]; then
+        $INAC_BUILD_LUAJIT "$INAC_BUILD_PROJECT_DIR/$INAC_BUILD_CODE_GEN_SCRIPT" $INAC_BUILD_PROJECT_DIR
+        export INAC_BUILD_CODE_GEN_SCRIPT=
+        if [ "$?" -ne "0" ]; then
+         echo "Failed to run generator script"
+        fi
+    fi
+    
+    # Run the build "tool" if any
+    if [ -f "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool" ]; then
+        . "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool"
     elif [ "$INA_BUILD_TOOL" == "make.sh" ]; then
         . make.sh
     else    
