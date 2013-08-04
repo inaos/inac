@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 #
 # Copyright (c) 2013, INAOS GmbH
 # All rights reserved.
@@ -26,20 +26,13 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 #
-if [ $INA_BUILD_TYPE == "cmake-make" ]; then
-    DIRECTORY=build
 
-    if [ ! -d "$DIRECTORY" ]; then
-        mkdir build
-    fi
+DIRECTORY=build
 
-    cd build
-    cmake -G"Unix Makefiles" ..
-    make "$@"
-    cd ..
-elif [ $INA_BUILD_TYPE == "makesh" ]; then
-    make.sh "$@"
-else
-    make "$@"
+if [ ! -d "$DIRECTORY" ]; then
+    mkdir build
 fi
 
+cd build
+cmake -G"Unix Makefiles" ..
+make
