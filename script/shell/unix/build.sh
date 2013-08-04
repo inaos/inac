@@ -107,9 +107,10 @@ if [ "eval_param" != "$3" ]; then
     OLD_DIR="$(pwd)"
     cd "$INAC_BUILD_PROJECT_DIR"
 
+    BASENAME=$(dirname $INAC_BUILD_SCRIPT)
 
-    if [-f "$(dirname $0)/$INAC_BUILD_TOOL.sh" ]; then
-        . "$(dirname $0)/$INAC_BUILD_TOOL.sh"
+    if [ -f "$BASENAME/$INAC_BUILD_TOOL.sh" ]; then
+        . "$BASENAME/$INAC_BUILD_TOOL.sh"
     elif [ "$INA_BUILD_TOOL" == "make.sh" ]; then
         . make.sh
     else    
