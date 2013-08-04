@@ -114,6 +114,7 @@ if [ "eval_param" != "$3" ]; then
         export INAC_BUILD_CODE_GEN_SCRIPT=
         if [ "$?" -ne "0" ]; then
          echo "Failed to run generator script"
+         exit 1
         fi
     fi
     
@@ -123,7 +124,7 @@ if [ "eval_param" != "$3" ]; then
     elif [ "$INAC_BUILD_TOOL" == "make.sh" ]; then
         . make.sh $INAC_BUILD_STAGE
     else    
-        make
+        make $INAC_BUILD_STAGE
     fi
 
     cd "$OLD_DIR"
