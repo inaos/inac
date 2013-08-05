@@ -109,15 +109,17 @@ if [ "eval_param" != "$3" ]; then
     OLD_DIR="$(pwd)"
 
     # Check whenever we neer to tunn a code generator
-    if [ ! -z "$INAC_BUILD_CODE_GEN_SCRIPT" ]; then
-        $INAC_BUILD_LUAJIT "$INAC_BUILD_PROJECT_DIR/$INAC_BUILD_CODE_GEN_SCRIPT" $INAC_BUILD_PROJECT_DIR
-        if [ "$?" -ne "0" ]; then
-         echo "Failed to run generator script"
-         exit 1
-        fi
+    if [ "$INAC_BUILD_STAGE" != "clean" ]; then
+    	if [ ! -z "$INAC_BUILD_CODE_GEN_SCRIPT" ]; then
+        	$INAC_BUILD_LUAJIT "$INAC_BUILD_PROJECT_DIR/$INAC_BUILD_CODE_GEN_SCRIPT" $INAC_BUILD_PROJECT_DIR
+        	if [ "$?" -ne "0" ]; then
+         		echo "Failed to run generator script"
+         		exit 1
+        	fi
+    	fi
     fi
     unset INAC_BUILD_CODE_GEN_SCRIPT
-    
+
     # Run the build "tool" if any
     if [ -f "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool" ]; then
         . "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool"
@@ -127,5 +129,5 @@ if [ "eval_param" != "$3" ]; then
         make $INAC_BUILD_STAGE
     fi
 
-    cd "$OLD_DIR"
+    cd $OLD_DIR
 fi

@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (c) 2013, INAOS GmbH
 # All rights reserved.
-#
+#els
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -29,10 +29,15 @@
 
 DIRECTORY=build
 
-if [ ! -d "$DIRECTORY" ]; then
-    mkdir build
-fi
+if [ "$INAC_BUILD_STAGE" == "clean" ]; then
+	rm -rf "$DIRECTORY"
+else
+	if [ ! -d "$DIRECTORY" ]; then
+   		mkdir "$DIRECTORY"
+	fi
 
-cd build
-cmake -G"Unix Makefiles" ..
-make
+
+	cd "$DIRECTORY"
+	cmake -G"Unix Makefiles" ..
+	make
+fi
