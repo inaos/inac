@@ -1039,6 +1039,7 @@ typedef uint_least32_t uint_fast32_t;
 # define SIG_ATOMIC_MAX ((((sig_atomic_t) 1) << (sizeof (sig_atomic_t)*CHAR_BIT-1)) - 1)
 #endif
 
+#ifndef INA_OS_WIN32
 #define INA_MAX(a,b) \
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
@@ -1048,7 +1049,10 @@ typedef uint_least32_t uint_fast32_t;
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
-
+#else
+#define INA_MAX(a,b) max(a,b)
+#define INA_MIN(a,b) min(a,b)
+#endif
 
 #ifdef INA_OS_WIN32
 struct timezone {
