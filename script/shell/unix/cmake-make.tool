@@ -38,6 +38,6 @@ else
 
 
 	cd "$DIRECTORY"
-	cmake -G"Unix Makefiles" ..
+	cmake -DCMAKE_BUILD_TYPE=$INAC_BUILD_TYPE -G"Unix Makefiles" ..
 	make
 fi
