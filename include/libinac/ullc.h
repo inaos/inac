@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-#define INA_ULLC_MIN(x,y) max(x,y)
+#define INA_ULLC_MIN(x,y) INA_MAX(x,y)
 
 
 /*
