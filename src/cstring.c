@@ -154,11 +154,20 @@ INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t 
     return strncmp(lhs, rhs, n);
 }
 
+INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr)
+{
+    return strrchr(str, chr);
+}
+
+INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2)
+{
+    return strstr(str1, str2);
+}
+
 INA_API(size_t) ina_str_len(const ina_str_t str)
 {
     return strlen(str);
 }
-
 
 INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...)
 {
