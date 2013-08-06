@@ -126,9 +126,9 @@ INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf)
 }
 
 INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, 
-			const char *name, int required, int named, 
-			ina_conffile_section_cb_t cb, 
-			ina_conffile_section_t **section)
+            const char *name, int required, int named, 
+            ina_conffile_section_cb_t cb, 
+            ina_conffile_section_t **section)
 {
     unsigned long key;
     ina_conffile_section_t *sp;
@@ -145,7 +145,7 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
     }
 
     *section = (ina_conffile_section_t*)ina_mem_alloc(sizeof(
-			    			ina_conffile_section_t));
+                                            ina_conffile_section_t));
     sp = *section;
     if (sp == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -165,20 +165,22 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
                             ina_conffile_value_type_t value_type, 
                             int required)
 {
+    unsigned long k;
     ina_conffile_section_key_t *key;
     ina_conffile_entry_t *check = NULL;
 
     INA_ASSERT_NOTNULL(section);
     INA_ASSERT_NOTNULL(name);
+    
+    k = INA_HASH_CSTR_TO_SDBM(name);
 
-    HASH_FIND_ULONG(section, &key, check);
     if (check != NULL) {
         return INA_CONFFILE_EDUPKEY;
     }
 
     key = (ina_conffile_section_key_t*)ina_mem_alloc(sizeof(
-			    			ina_conffile_section_key_t));
-    key->id = INA_HASH_CSTR_TO_SDBM(name);
+                                            ina_conffile_section_key_t));
+    key->id = k;
     key->name = ina_str_fromcstr(name);
     key->required = required;
     key->value_type = value_type;
