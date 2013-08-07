@@ -592,11 +592,11 @@ __ina_get_value(ina_conffile_t *cf, const char* section_name,
     if (section->named) {
         k = INA_HASH_CSTR_TO_SDBM(section_key);
         HASH_FIND_ULONG(section->results, &k, entries);
-        if (entries == NULL) {
-            return INA_FAILURE;
-        }
     } else {
         entries = section->results;
+    }
+    if (entries == NULL || entries->entries == NULL) {
+        return INA_FAILURE;
     }
 
     /* Lookup value */
