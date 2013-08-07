@@ -88,6 +88,7 @@ extern "C" {
 #define INA_EEXCALL  17
 #define INA_ETIMEOUT 18
 #define INA_EOPT     20
+#define INA_ETYPE    21
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -240,6 +241,7 @@ extern "C" {
 #define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate section");
 #define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate key");
 #define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(INA_EINVAL, "Already prepared");
+#define INA_CONFFILE_ETYPE INA_CONFFILE_ERROR(INA_ETYPE, "Invalid type");
 
 /* Time errors */
 #define INA_TIME_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_TIME, INA_OSFN_NONE, s)
