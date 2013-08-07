@@ -228,22 +228,22 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf,
                                           const char *key,
                                           ina_str_t *value)
 {
-    ina_conffile_entry_t *entry = null;
+    ina_conffile_entry_t *entry = NULL;
 
-    ina_assert_notnull(cf);
-    ina_assert_notnull(section_name);
-    ina_assert_notnull(key);
-    ina_assert_notnull(value);
+    INA_ASSERT_NOTNULL(cf);
+    INA_ASSERT_NOTNULL(section_name);
+    INA_ASSERT_NOTNULL(key);
+    INA_ASSERT_NOTNULL(value);
 
     __ina_get_value(cf, section_name, section_key, key, &entry);
-    if (entry != null) {
+    if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
-            return ina_conffile_etype;
+            return INA_CONFFILE_ETYPE;
         }
-	if (entry->value.s != NULL) {
-	    *value = ina_str_dup(entry->value.s);
-	    return INA_SUCCESS;
-	}
+        if (entry->value.s != NULL) {
+            *value = ina_str_dup(entry->value.s);
+            return INA_SUCCESS;
+        }
     }
     return INA_FAILURE;
 }
@@ -315,7 +315,7 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
 
     HASH_FIND_ULONG(entries, &k, entry);
     if (entry != NULL) {
-        if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
+        if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
             return INA_CONFFILE_ETYPE;
         }
         *value = entry->value.n;
@@ -576,10 +576,10 @@ __ina_process_entries(ina_conffile_t *cf, ina_conffile_section_res_t *res)
             entry->key = ina_str_fromcstr(k);
             lua_getfield(lstate, -1 , __INA_ATTR_VALUE);
             if (strcmp(tn, __INA_VAL_STRING) == 0) {
-                entry->value_type = INA_CONFFILE_VALUE_TYPE_STRING;
+                entry->value_type = INA_CONFFILE_VALUE_TYPE_STRING;
                 entry->value.s = ina_str_fromcstr(lua_tostring(lstate, -1));
             } else {
-                entry->value_type = INA_CONFFILE_VALUE_TYPE_NUMBER;
+                entry->value_type = INA_CONFFILE_VALUE_TYPE_NUMBER;
                 entry->value.n = lua_tonumber(lstate, -1);
             }
             lua_pop(lstate, 1);
