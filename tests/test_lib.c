@@ -76,3 +76,16 @@ INA_TEST(lib, set_signal_handler)
     INA_TEST_ASSERT_SAME(__handler, ina_set_cleanup_handler(__handler));
     INA_TEST_ASSERT_SAME(__handler, ina_set_cleanup_handler(NULL));
 }
+
+INA_TEST(lib, min)
+{
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, INA_MAX(2,3));
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, INA_MAX(3,2));
+}
+
+INA_TEST(lib, max)
+{
+    INA_TEST_ASSERT_EQUAL_INTEGER(2, INA_MIN(2,3));
+    INA_TEST_ASSERT_EQUAL_INTEGER(2, INA_MIN(3,2));
+}
+

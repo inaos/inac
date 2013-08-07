@@ -36,13 +36,6 @@ static int __send_count = 0;
 static int __recv_count = 0;
 static int __handler_count = 0;
 static int __p_count = 0;
-static int __stop = 0;
-
-static ina_rc_t __stop_handler(int cmd_id, int count, ina_iscp_param_t *params)
-{
-   __stop = 1;
-   return INA_SUCCESS;
-}
 
 static ina_rc_t __null_open_cb(void *user_data, int send)
 {
@@ -68,12 +61,9 @@ static ina_rc_t __null_send_cb(void *user_data, ina_iscp_msg_t *msg)
 
 static ina_rc_t __null_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 {   
-   ina_iscp_msg_t *recv_msg;
-
    INA_TEST_ASSERT_NOT_NULL(msg);
    ++__recv_count;
    ina_mem_cpy(msg, __send_msg, __send_msg->length);
-   recv_msg = msg;
    /*printf("__send_buf->length=%d\n", recv_buf->length);*/
    return INA_SUCCESS;
 }
