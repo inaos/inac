@@ -28,11 +28,17 @@
 #include <libinac/lib.h>
 
 static int __call_count = 0;
- 
-static int __handler(const int sig, const int error)
+
+static void __cleanup_handler(int error, int *exitcode)
 {
     ++__call_count;
-    return EXIT_SUCCESS;
+    *exitcode = EXIT_SUCCESS;
+}
+ 
+static void __sig_handler(ina_signal_t sig, ina_signal_behavior_t *sb, int *exitcode)
+{
+    ++__call_count;
+    *exitcode = EXIT_SUCCESS;
 }
 
 INA_TEST(lib, opt)
@@ -68,13 +74,22 @@ INA_TEST(lib, apppath)
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_path());
 }
 
-INA_TEST(lib, set_signal_handler)
+INA_TEST(lib, set_cleanup_handler)
 {
     INA_TEST_ASSERT_NULL(ina_set_cleanup_handler(NULL));
-    INA_TEST_ASSERT_NULL(ina_set_cleanup_handler(__handler));
-    INA_TEST_ASSERT_SAME(__handler, ina_set_cleanup_handler(__handler));
-    INA_TEST_ASSERT_SAME(__handler, ina_set_cleanup_handler(__handler));
-    INA_TEST_ASSERT_SAME(__handler, ina_set_cleanup_handler(NULL));
+    INA_TEST_ASSERT_NULL(ina_set_cleanup_handler(__cleanup_handler));
+    INA_TEST_ASSERT_SAME(__cleanup_handler, ina_set_cleanup_handler(__cleanup_handler));
+    INA_TEST_ASSERT_SAME(__cleanup_handler, ina_set_cleanup_handler(__cleanup_handler));
+    INA_TEST_ASSERT_SAME(__cleanup_handler, ina_set_cleanup_handler(NULL));
+}
+
+INA_TEST(lib, set_signal_handler)
+{
+    INA_TEST_ASSERT_NULL(ina_register_signal_handler(INA_SIGNAL_INT, NULL));    
+    INA_TEST_ASSERT_NULL(ina_register_signal_handler(INA_SIGNAL_INT, __sig_handler));
+    INA_TEST_ASSERT_SAME(__sig_handler, ina_register_signal_handler(INA_SIGNAL_INT, __sig_handler));
+    INA_TEST_ASSERT_SAME(__sig_handler, ina_register_signal_handler(INA_SIGNAL_INT, __sig_handler));
+    INA_TEST_ASSERT_SAME(__sig_handler, ina_register_signal_handler(INA_SIGNAL_INT, NULL));
 }
 
 INA_TEST(lib, min)

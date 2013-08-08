@@ -148,8 +148,32 @@ typedef struct ina_opt_s {
     const char *desc;       /* short description, used in usage */
 } ina_opt_t;
 
-/* Cleanup handler. */
-typedef int (*ina_cleanup_handler_t) (const int, const int);
+typedef enum ina_signal_e {
+    INA_SIGNAL_FPE = 1,
+    INA_SIGNAL_ABRT,
+    INA_SIGNAL_ILL,
+    INA_SIGNAL_INT,
+    INA_SIGNAL_SEGV,
+    INA_SIGNAL_TERM,
+    #ifndef INA_OS_WIN32
+    INA_SIGNAL_HUP,
+    INA_SIGNAL_QUIT,
+    INA_SIGNAL_KILL,
+    INA_SIGNAL_STOP
+    #endif
+ } ina_signal_t;
+
+/* Signal handling behavior */
+typedef enum ina_signal_behavior_e {
+    INA_SIGNAL_BEHAVIOR_DFT,      /* Default behavior */
+    INA_SIGNAL_BEHAVIOR_IGNORE    /* Ignore default behavior */
+} ina_signal_behavior_t;
+
+/* Application cleanup handler . */
+typedef void (*ina_cleanup_handler_t) (int, int*);
+
+/* Signal handler */
+typedef void (*ina_signal_handler_t) (ina_signal_t, ina_signal_behavior_t*, int*);
 
 /*
  * Return the program name
@@ -224,7 +248,7 @@ INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value);
 INA_API(ina_rc_t) ina_init(size_t pool_size);
 
 /*
- * Set a custom cleanup routine to call in case of an programm error or
+ * Set a custom termination routine to call in case of an 
  * a terminiation signal. The purpose of such a routine is to give consumers
  * a last chance to cleanup before the program exits.
  *
@@ -239,6 +263,9 @@ INA_API(ina_rc_t) ina_init(size_t pool_size);
 INA_API(ina_cleanup_handler_t) ina_set_cleanup_handler(
                                         ina_cleanup_handler_t handler);
 
+
+INA_API(ina_signal_handler_t) ina_register_signal_handler(ina_signal_t, 
+                                                ina_signal_handler_t handler);
 
 /*
  * Relase and cleanup all internal data structures. This function must be
