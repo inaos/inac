@@ -515,7 +515,7 @@ void __ina_signal(int sig, void (*handler)(int))
     return signal(sig, handler);
 #else
     struct sigaction sa;
-    ina_mem_set(&sa, 0, sizeof(sa));
+    memset(&sa, 0, sizeof(sa));
     sa.sa_handler = handler;
     sigfillset(&sa.sa_mask);
     sigaction(sig, &sa, NULL);
