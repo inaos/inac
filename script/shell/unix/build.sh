@@ -41,7 +41,6 @@
 # * INAC_BUILD_PROJECT_DIR: Directory reference for detailed artefacts
 #   - Required
 # * INAC_BUILD_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
-# * INAC_BUILD_TEST_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
 # * INAC_BUILD_TEST_SUITE_EXEC: Executable that invokes the test-suite
 #                                 relative to PROJECT_DIR - Optional
 # * INAC_BUILD_BUILD_TOOL: Either 'cmake-make','make' or 0make.sh  - 
@@ -124,9 +123,9 @@ if [ "eval_param" != "$3" ]; then
     if [ -f "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool" ]; then
         . "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool"
     elif [ "$INAC_BUILD_TOOL" == "make.sh" ]; then
-        . make.sh $INAC_BUILD_STAGE
+        . make.sh
     else    
-        make $INAC_BUILD_STAGE
+        make $INAC_BUILD_MAKE_TARGET
     fi
 
     cd $OLD_DIR
