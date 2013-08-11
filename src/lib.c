@@ -511,7 +511,7 @@ __ina_signal_handler(int sig)
 
 void __ina_signal(int sig, void (*handler)(int))
 {
-#ifdef WIN32
+#ifdef INA_OS_WIN32
     return signal(sig, handler);
 #else
     struct sigaction sa;
