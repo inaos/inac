@@ -361,7 +361,15 @@ INA_API(ina_rc_t) ina_err_trace(void);
  * Return Value
  * INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_backtrace(void);
+INA_API(ina_rc_t) ina_err_backtrace(void *data);
+
+/*
+ * Create a coredump
+ *
+ * Return Value
+ * INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_err_coredump(void *data);
 
 /*
  * Format the error message for a given RC.

@@ -33,7 +33,7 @@ set(MEINBERG_LIBS "${BIN_DEPS_DIR}/meinberg/lib/mbgdevio.lib")
 set(COMMERCIAL_LIBS ${MEINBERG_LIBS})
 
 if(WIN32)
-	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib)
+	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib DbgHelp.lib)
 endif(WIN32)
 
 # This is required because the meinberg lib has been compiled with an old version of VS

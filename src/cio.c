@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-static int __ina_get_cursor_pos(ina_cio_pos_t *const pos);
+static ina_rc_t __ina_get_cursor_pos(ina_cio_pos_t *const pos);
 
 #ifdef INA_OS_WIN32
 #include <io.h>
@@ -229,10 +229,6 @@ INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 
 INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 {
-#ifdef INA_OS_WIN32
-    CONSOLE_SCREEN_BUFFER_INFO info;
-#endif
-
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(pos);
     __ina_get_cursor_pos(pos);
@@ -328,6 +324,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
 static ina_rc_t
 __ina_get_cursor_pos(ina_cio_pos_t *const pos)
 {
+    CONSOLE_SCREEN_BUFFER_INFO info;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
     pos->row = info.dwCursorPosition.Y;
     pos->col = info.dwCursorPosition.X;

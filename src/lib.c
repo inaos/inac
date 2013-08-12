@@ -67,6 +67,11 @@ static ina_str_t __appname = NULL;
 /* That's our app path */
 static ina_str_t __apppath = NULL;
 
+#ifdef INA_OS_WIN32
+/* internal exception handler for windows */
+static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *);
+#endif
+
 /* Signal handler map */
 static ina_signal_handler_t __signal_handler_map[] = {
     NULL,
@@ -232,18 +237,21 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     }
 
     /* Setup signals */
-    __ina_signal(SIGFPE, __ina_signal_handler);
     __ina_signal(SIGABRT, __ina_signal_handler);
     __ina_signal(SIGILL,  __ina_signal_handler);
     __ina_signal(SIGINT,  __ina_signal_handler);
-    __ina_signal(SIGSEGV, __ina_signal_handler);
     __ina_signal(SIGTERM, __ina_signal_handler);
 #ifndef INA_OS_WIN32
+    __ina_signal(SIGFPE, __ina_signal_handler);
+    __ina_signal(SIGSEGV, __ina_signal_handler);
     __ina_signal(SIGBUS,  __ina_signal_handler);
     __ina_signal(SIGHUP,  __ina_signal_handler);
     __ina_signal(SIGQUIT, __ina_signal_handler);
     __ina_signal(SIGKILL, __ina_signal_handler);
     __ina_signal(SIGSTOP, __ina_signal_handler);
+#else
+    /* Set unhandled exception handler for windows */
+    SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
 
    /* initailized console */
@@ -481,7 +489,9 @@ __ina_signal_handler(int sig)
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Program aborted.\n");
                 ina_err_trace();
-                ina_err_backtrace();    
+#ifndef INA_OS_WIN32
+                ina_err_backtrace(NULL);
+#endif
                 exit(EXIT_FAILURE);
             }
             break;        
@@ -491,7 +501,9 @@ __ina_signal_handler(int sig)
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Error: signal %d:\n", sig);
                 ina_err_trace();
-                ina_err_backtrace();    
+#ifndef INA_OS_WIN32
+                ina_err_backtrace(NULL);
+#endif
                 exit(EXIT_FAILURE);
                 break;
             }
@@ -512,7 +524,7 @@ __ina_signal_handler(int sig)
 void __ina_signal(int sig, void (*handler)(int))
 {
 #ifdef INA_OS_WIN32
-    return signal(sig, handler);
+    signal(sig, handler);
 #else
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
@@ -520,4 +532,25 @@ void __ina_signal(int sig, void (*handler)(int))
     sigfillset(&sa.sa_mask);
     sigaction(sig, &sa, NULL);
 #endif
+}
+
+static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *exception_ptr)
+{
+    ina_err_coredump(exception_ptr);
+    ina_err_backtrace(exception_ptr);
+    switch (exception_ptr->ExceptionRecord->ExceptionCode) {
+        case EXCEPTION_FLT_DENORMAL_OPERAND:
+        case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+        case EXCEPTION_FLT_INEXACT_RESULT:
+        case EXCEPTION_FLT_INVALID_OPERATION:
+        case EXCEPTION_FLT_OVERFLOW:
+        case EXCEPTION_FLT_STACK_CHECK:
+        case EXCEPTION_FLT_UNDERFLOW:
+             __ina_signal_handler(SIGFPE);
+             break;
+        default:
+            __ina_signal_handler(SIGSEGV);
+            break;
+    }
+    return EXCEPTION_EXECUTE_HANDLER;
 }
