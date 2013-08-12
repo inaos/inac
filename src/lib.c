@@ -80,12 +80,16 @@ INA_API(ina_rc_t) ina_appinit(const int argc, char** argv, size_t pool_size, ina
         return INA_ERR_PUSH_LAST;
     }
     
-    if (argv != NULL) {
-        const char* basename = strrchr(argv[0],(int)'/');
+     if (argv != NULL) {
+        const char* basename = strrchr(argv[0], INA_PATH_SEPARATOR);
         if (basename) {
             basename++;
+        } else if (strlen(argv[0])) {
+            basename = argv[0];
         }
-        __appname = ina_str_fromcstr(basename);
+        if (basename) {
+            __appname = ina_str_fromcstr(basename);
+        }
     }
 
     if (opt != NULL) {
@@ -210,7 +214,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     signal(SIGABRT, __ina_signal_handler);
     signal(SIGILL, __ina_signal_handler);
     signal(SIGINT, __ina_signal_handler);
-    signal(SIGSEGV, __ina_signal_handler);
+    //signal(SIGSEGV, __ina_signal_handler);
     signal(SIGTERM, __ina_signal_handler);
 #ifndef INA_OS_WIN32
     signal(SIGBUS, __ina_signal_handler);
@@ -428,6 +432,6 @@ __ina_signal_handler(int sig)
 static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *exception_ptr)
 {
     ina_err_coredump(exception_ptr);
-    ina_err_backtrace();
+    ina_err_backtrace(exception_ptr);
     return EXCEPTION_EXECUTE_HANDLER;
 }

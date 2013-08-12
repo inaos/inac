@@ -348,7 +348,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
 
 INA_API(ina_rc_t) ina_err_coredump(void *data);
 
-INA_API(ina_rc_t) ina_err_backtrace(void);
+INA_API(ina_rc_t) ina_err_backtrace(void *data);
 
 #ifdef __cplusplus
 }
