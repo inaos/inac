@@ -28,6 +28,10 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifdef INA_OS_WIN32
+#include <DbgHelp.h>
+#endif
+
 #define __INA_ERR_STATE_SIZE (32)
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
@@ -255,11 +259,80 @@ INA_API(ina_rc_t) ina_err_trace(void)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_coredump(void) {
+INA_API(ina_rc_t) ina_err_coredump(void *data) {
 #ifndef INA_OS_WIN32
     char cmd[160];
     sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
     system(cmd);
+#else
+    EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
+    BOOL dumped;
+    char name[MAX_PATH];
+    char final_name[MAX_PATH];
+    MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
+    SYSTEMTIME t;
+    HANDLE hFile;
+
+    if (GetModuleFileNameA(GetModuleHandleA(0), name, MAX_PATH) != ERROR_SUCCESS) {
+        return INA_FAILURE;
+    }
+    strncpy(final_name, name, strlen(name) - strlen(".exe"));
+    
+    GetSystemTime(&t);
+    sprintf(final_name + strlen(final_name),
+        "_%4d%02d%02d_%02d%02d%02d.dmp",
+        t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+
+    hFile = CreateFileA(final_name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    
+    if (hFile == INVALID_HANDLE_VALUE) {
+        return INA_FAILURE;
+    }
+
+    exceptionInfo.ThreadId = GetCurrentThreadId();
+    exceptionInfo.ExceptionPointers = pExceptionPointers;
+    exceptionInfo.ClientPointers = FALSE;
+
+    dumped = MiniDumpWriteDump(
+        GetCurrentProcess(),
+        GetCurrentProcessId(),
+        hFile,
+        (MINIDUMP_TYPE)(MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
+        pExceptionPointers ? &exceptionInfo : NULL,
+        NULL,
+        NULL
+    );
+
+    CloseHandle(hFile);
+#endif
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_err_backtrace(void)
+{
+#ifndef INA_OS_WIN32
+#else
+    unsigned int i;
+    void *stack[ 100 ];
+    unsigned short frames;
+    SYMBOL_INFO  *symbol;
+    HANDLE process;
+    
+    process = GetCurrentProcess();
+    SymInitialize(process, NULL, TRUE);
+    
+    frames = CaptureStackBackTrace(0, 100, stack, NULL);
+    symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+    symbol->MaxNameLen = 255;
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    
+    for (i = 0; i < frames; i++) {
+        SymFromAddr(process, (DWORD64)(stack[i]), 0, symbol);
+        printf("%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address);
+    }
+    
+    free(symbol);
+    SymCleanup(process);
 #endif
     return INA_SUCCESS;
 }

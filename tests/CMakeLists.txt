@@ -27,7 +27,7 @@ set(INAC_LIB "libinac.lib")
 set(INAC_TESTLIB "testinac.lib")
 
 if(WIN32)
-	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib)
+	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib DbgHelp.lib)
 endif(WIN32)
 
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")

@@ -64,6 +64,11 @@ static __ina_lopt_t *__lopt = NULL;
 /* that's our program name */
 static ina_str_t __appname = NULL;
 
+#ifdef INA_OS_WIN32
+/* internal exception handler for windows */
+static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *);
+#endif
+
 INA_API(const char*) ina_appname(void)
 {
     return ina_str_cstr(__appname);
@@ -213,6 +218,9 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     signal(SIGQUIT, __ina_signal_handler);
     signal(SIGKILL, __ina_signal_handler);
     signal(SIGSTOP, __ina_signal_handler);
+#else
+    /* Set unhandled exception handler for windows */
+    SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
 
     /* initalize global memory functions */
@@ -415,4 +423,11 @@ __ina_signal_handler(int sig)
             INA_TRACE_MSG("unknown singal received!");
     }
     abort();
+}
+
+static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *exception_ptr)
+{
+    ina_err_coredump(exception_ptr);
+    ina_err_backtrace();
+    return EXCEPTION_EXECUTE_HANDLER;
 }
