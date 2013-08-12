@@ -28,6 +28,8 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+static int __ina_get_cursor_pos(ina_cio_pos_t *const pos);
+
 #ifdef INA_OS_WIN32
 #include <io.h>
 
@@ -57,8 +59,13 @@ static void __ina_init_colors(void)
     __bg_colors[INA_CIO_COLOR_UNDEFINED] = 0;
 }
 #else
+#include <termios.h>
+#include <fcntl.h>
+
 #define _isatty isatty
 #define _fileno fileno
+#define __INA_RD_EOF   (-1)
+#define __INA_RD_EIO   (-2)
 #define __INA_MAX_CMD_BUFLEN  (32)
 #define __INA_LAST_ROW        (25)
 #define __INA_LAST_COL        (80)
@@ -228,16 +235,7 @@ INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(pos);
-
-#ifdef INA_OS_WIN32
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
-    pos->row = info.dwCursorPosition.Y;
-    pos->col = info.dwCursorPosition.X;
-#else
-    /* FIXME */
-    pos->row = 0;
-    pos->col = 0;
-#endif
+    __ina_get_cursor_pos(pos);
     return INA_SUCCESS;
 }
 
@@ -276,40 +274,218 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     ina_cio_attribs_t new_attribs;
     va_list args;
     int size;
-    int setattribs;
+    int setattribs = INA_NO;
+    int setpos = INA_NO;
 
     INA_ASSERT(__initialized);
 
-    if ((setattribs = _isatty(_fileno(stdout)))) {
+    if (_isatty(_fileno(stdout))) {
         ina_cio_get_pos(&pos);
 
-        if (row >= 0)  {
+        if (row >= 0 && row != pos.row)  {
             pos.row = (uint8_t)row;
+            setpos = INA_YES;
         }
-        if (col >= 0) {
+        if (col >= 0 && row != pos.row) {
             pos.col = (uint8_t)col;
+            setpos = INA_YES;
         }
-
+        if (setpos == INA_YES) {
+            ina_cio_move_to_pos(&pos);
+        }
+        
         ina_cio_get_attribs(&attribs);
     
         if (fg_color != INA_CIO_COLOR_UNDEFINED) {
-            new_attribs.fg_color = fg_color;
-        } else {
-            new_attribs.fg_color = attribs.fg_color;
+            if (attribs.fg_color != fg_color) {
+                new_attribs.fg_color = fg_color;
+                setattribs = INA_YES;
+            }
         }
+
         if (bg_color != INA_CIO_COLOR_UNDEFINED) {
-            new_attribs.bg_color = bg_color;
-        } else {
-            new_attribs.bg_color = attribs.bg_color;
+            if (attribs.bg_color != bg_color) {
+                new_attribs.bg_color = bg_color;
+                setattribs = INA_YES;
+            }
+        } 
+        
+        if (setattribs == INA_YES) {
+            ina_cio_set_attribs(&new_attribs);
         }
-        ina_cio_set_attribs(&new_attribs);
     }
     va_start(args, fmt);
     size = vprintf(fmt, args);
     va_end(args);
     
-    if (setattribs) {
+    if (setattribs == INA_YES) {
         ina_cio_set_attribs(&attribs);
     }
     return size;
 }
+
+#ifdef INA_OS_WIN32
+static ina_rc_t
+__ina_get_cursor_pos(ina_cio_pos_t *const pos)
+{
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
+    pos->row = info.dwCursorPosition.Y;
+    pos->col = info.dwCursorPosition.X;
+    return 0;
+}
+#else
+static inline int rd(const int fd)
+{
+    unsigned char   buffer[4];
+    ssize_t         n;
+
+    while (1) {
+
+        n = read(fd, buffer, 1);
+        if (n > (ssize_t)0) {
+            return buffer[0];
+        } else if (n == (ssize_t)0) {
+            return __INA_RD_EOF;
+        } else if (n != (ssize_t)-1) {
+            return __INA_RD_EIO;
+        } else if (errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) {
+            return __INA_RD_EIO;
+        }
+    }
+}
+
+static inline int wr(const int fd, const char *const data, const size_t bytes)
+{
+    const char       *head = data;
+    const char *const tail = data + bytes;
+    ssize_t           n;
+
+    while (head < tail) {
+        n = write(fd, head, (size_t)(tail - head));
+        if (n > (ssize_t)0) {
+            head += n;
+        } else if (n != (ssize_t)-1) {
+            return EIO;
+        } else if (errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) {
+            return errno;
+        }
+    }
+    return 0;
+}
+static int
+__ina_get_cursor_pos(ina_cio_pos_t *const pos)
+{
+    struct termios  saved, temporary;
+    int tty, retval, result, rows, cols, saved_errno;
+ 
+    tty = _fileno(stdout);
+
+    /* Bad tty? */
+    if (tty == -1) {
+        return ENOTTY;
+    }
+
+    saved_errno = errno;
+
+    /* Save current terminal settings. */
+    do {
+        result = tcgetattr(tty, &saved);
+    } while (result == -1 && errno == EINTR);
+    if (result == -1) {
+        retval = errno;
+        errno = saved_errno;
+        return retval;
+    }
+
+    /* Get current terminal settings for basis, too. */
+    do {
+        result = tcgetattr(tty, &temporary);
+    } while (result == -1 && errno == EINTR);
+    if (result == -1) {
+        retval = errno;
+        errno = saved_errno;
+        return retval;
+    }
+
+    /* Disable ICANON, ECHO, and CREAD. */
+    temporary.c_lflag &= ~ICANON;
+    temporary.c_lflag &= ~ECHO;
+    temporary.c_cflag &= ~CREAD;
+
+    /* That loop is only executed once. When broken out,
+     * the terminal settings will be restored, and the function
+     * will return retval to caller. It's better than goto.
+    */
+    do {
+
+        /* Set modified settings. */
+        do {
+            result = tcsetattr(tty, TCSANOW, &temporary);
+        } while (result == -1 && errno == EINTR);
+        if (result == -1) {
+            retval = errno;
+            break;
+        }
+
+        /* Request cursor coordinates from the terminal. */
+        retval = wr(tty, "\033[6n", 4);
+        if (retval) {
+            break;
+        }
+
+        /* Assume coordinate reponse parsing fails. */
+        retval = EIO;
+
+        /* Expect an ESC. */
+        result = rd(tty);
+        if (result != 27) {
+            break;
+        }
+
+        /* Expect [ after the ESC. */
+        result = rd(tty);
+        if (result != '[') {
+            break;
+        }
+
+        /* Parse rows. */
+        rows = 0;
+        result = rd(tty);
+        while (result >= '0' && result <= '9') {
+            rows = 10 * rows + result - '0';
+            result = rd(tty);
+        }
+
+        if (result != ';') {
+            break;
+        }
+
+        /* Parse cols. */
+        cols = 0;
+        result = rd(tty);
+        while (result >= '0' && result <= '9') {
+            cols = 10 * cols + result - '0';
+            result = rd(tty);
+        }
+
+        if (result != 'R') {
+            break;
+        }
+
+        /* Success! */
+        pos->row = rows;
+        pos->col = cols;
+        retval = 0;
+
+    } while (0);
+
+    /* Restore saved terminal settings. */
+    do {
+        result = tcsetattr(tty, TCSANOW, &saved);
+    } while (result == -1 && errno == EINTR);
+    if (result == -1 && !retval) {
+        retval = errno;
+    }
+    return retval;
+}
+#endif
