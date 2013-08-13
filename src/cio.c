@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-static ina_rc_t __ina_get_cursor_pos(ina_cio_pos_t *const pos);
+static int __ina_get_cursor_pos(ina_cio_pos_t *const pos);
 
 #ifdef INA_OS_WIN32
 #include <io.h>
@@ -109,8 +109,8 @@ INA_API(ina_rc_t) ina_cio_init(void)
     if (!__initialized) {
         __ina_init_colors();
         __attribs.fg_color = INA_CIO_COLOR_WHITE;
-	__attribs.bg_color = INA_CIO_COLOR_BLACK;
-	__initialized = INA_YES;
+        __attribs.bg_color = INA_CIO_COLOR_BLACK;
+	    __initialized = INA_YES;
     }
     return INA_SUCCESS;
 }
@@ -208,8 +208,12 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
         __bg_colors[__attribs.bg_color] | __fg_colors[__attribs.fg_color]
     );
 #else
-    printf("%s%s", __fg_colors[__attribs.fg_color],
-            __bg_colors[__attribs.bg_color]);
+    if (__attribs.fg_color != INA_CIO_COLOR_UNDEFINED) {
+        printf("%s", __fg_colors[__attribs.fg_color]);
+    }
+    if (__attribs.bg_color != INA_CIO_COLOR_UNDEFINED) {
+        printf("%s", __bg_colors[__attribs.bg_color]);
+    }
 #endif
     return INA_SUCCESS;
 }
@@ -286,9 +290,9 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
             pos.col = (uint8_t)col;
             setpos = INA_YES;
         }
-        if (setpos == INA_YES) {
+        /*if (setpos == INA_YES) {
             ina_cio_move_to_pos(&pos);
-        }
+        }*/
         
         ina_cio_get_attribs(&attribs);
     
