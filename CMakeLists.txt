@@ -2,17 +2,16 @@ cmake_minimum_required (VERSION 2.6)
 project (inac)
 
 set (DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
+set (BIN_DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs-bin")
 set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
-set (ANET_INCLUDE_DIR "${DEPS_DIR}/anet")
-set (BSTRING_INCLUDE_DIR "${DEPS_DIR}/bstring")
-set (SKIPLIST_INCLUDE_DIR "${DEPS_DIR}/skiplist")
-set (HTTP_INCULDE_DIR "${DEPS_DIR}/http-parser")
-set (RAPIDXML_INCLUDE_DIR "${DEPS_DIR}/rapidxml")
+# Includes where we do not own the source
+set (MEINBERG_INCLUDE_DIR "${BIN_DEPS_DIR}/meinberg")
 
+set (BIN_INCLUDES "${MEINBERG_INCLUDE_DIR}")
 
 include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}"
-					"${DEPS_DIR}")
+					"${DEPS_DIR}" "${BIN_INCLUDES}")
 
 set(BSTRING_LIB_NAME "bstring")
 set(ANET_LIB_NAME "anet")
@@ -66,9 +65,19 @@ add_library(${RAPIDXML_LIB_NAME} ${RAPIDXML_SRC})
 
 # END dependencies
 
+# BEGIN backend configuration
+
+if ($ENV{INAC_TIME_BACKEND} STREQUAL "time-meinberg")
+	add_definitions(-DINA_MBTIME_ENABLED -DINA_TIME_DEFINED)
+endif()
+MESSAGE(STATUS "Time-Backend: $ENV{INAC_TIME_BACKEND}")
+
+# END backend configuration
+
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
                  ${SRC_DIR}/cstring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
+				 ${SRC_DIR}/time_os.c ${SRC_DIR}/time_meinberg.c
 				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
 				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c 
 				 ${SRC_DIR}/cron.c)

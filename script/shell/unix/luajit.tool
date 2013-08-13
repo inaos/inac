@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/bash
 #
 # Copyright (c) 2013, INAOS GmbH
 # All rights reserved.
@@ -26,20 +26,26 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 #
-if [ $INA_BUILD_TYPE == "cmake-make" ]; then
-    DIRECTORY=build
 
-    if [ ! -d "$DIRECTORY" ]; then
-        mkdir build
-    fi
-
-    cd build
-    cmake -G"Unix Makefiles" ..
-    make "$@"
-    cd ..
-elif [ $INA_BUILD_TYPE == "makesh" ]; then
-    make.sh "$@"
+if [ "$INAC_BUILD_STAGE" == "clean" ]; then
+	rm -f $INAC_BUILD_PROJECT_DIR/$INAC_BUILD_SOURCE_DIR/*.lua.o
 else
-    make "$@"
-fi
+	# Set compiler options
+	OPTIONS=-b
+	if [ "$INAC_BUILD_TYPE" == "debug" ]; then 
+    	OPTIONS=-bg
+	fi
 
+	# Complile Lua source
+	for i in  `ls -A $INAC_BUILD_PROJECT_DIR/$INAC_BUILD_SOURCE_DIR/*.lua`; do
+    		echo "Compiling $i..."
+    		$INAC_BUILD_LUAJIT "$OPTIONS" "$i" $i.o
+	done
+
+	# Create Library if neeed
+	if [ ! -z "$INAC_BUILD_LIB_NAME" ]; then
+    		echo "Bulding library $INAC_BUILD_LIB_NAME.."    
+    		objs=($INAC_BUILD_PROJECT_DIR/$INAC_BUILD_SOURCE_DIR/*.lua.o)
+    		ar crs $INAC_BUILD_PROJECT_DIR/$INAC_BUILD_SOURCE_DIR/$INAC_BUILD_LIB_NAME ${objs[@]}
+	fi
+fi

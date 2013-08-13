@@ -48,11 +48,11 @@ if not "%2" == "" (
 ) else (
 	call %INAC_BUILD_SCRIPT% %1 dummy eval_params
 )
-if not defined INAC_W32_BUILD_TYPE goto exit
+if not defined INAC_BUILD_TYPE goto exit
 if not defined INAC_W32_BUILD_STAGE goto exit
 if "%INAC_W32_BUILD_STAGE%" == "dummy" goto exit
 if not "%INAC_W32_BUILD_STAGE%" == "clean" (
-	if "%INAC_W32_BUILD_TYPE%" == "dummy" goto exit
+	if "%INAC_BUILD_TYPE%" == "dummy" goto exit
 )
 
 REM Build 3rd party
@@ -66,12 +66,12 @@ if "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if exist lua51.lib del lua51.lib
 	if exist lua51d.lib del lua51d.lib
 ) else (
-	if "%INAC_W32_BUILD_TYPE%" == "debug" (
+	if "%INAC_BUILD_TYPE%" == "debug" (
 		if not exist lua51d.lib (
 			call msvcbuild_debug.bat static
 		)
 	)
-	if "%INAC_W32_BUILD_TYPE%" == "release" (
+	if "%INAC_BUILD_TYPE%" == "release" (
 		if not exist lua51.lib (
 			call msvcbuild.bat static
 		)
@@ -87,11 +87,17 @@ SET INAC_WIN32_PROJECT_DIR=.
 SET INAC_WIN32_C_SOURCE_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
 
+SET INAC_TIME_BACKEND=time-os
+
+if not "%3" == "" SET INAC_TIME_BACKEND=%3
+
 call %INAC_BUILD_SCRIPT% %1 %2
 
 REM reset the main environment variables because they might have been deleted by the previous build
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
+SET INAC_TIME_BACKEND=
 
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.
@@ -100,7 +106,7 @@ SET INAC_WIN32_LUA_LIB_NAME=libinac_lua.lib
 
 call %INAC_BUILD_SCRIPT% %1 %2
 if not "%INAC_W32_BUILD_STAGE%" == "clean" (
-	if "%INAC_W32_BUILD_TYPE%" == "debug" (
+	if "%INAC_BUILD_TYPE%" == "debug" (
 		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
@@ -147,7 +153,7 @@ goto exit
 REM Clean-up
 REM ---------------------------------
 
-SET INAC_W32_BUILD_TYPE=
+SET INAC_BUILD_TYPE=
 SET INAC_W32_BUILD_STAGE=
 
 SET INAC_HOME=

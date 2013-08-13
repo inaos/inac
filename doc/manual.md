@@ -354,7 +354,7 @@ identifiers are allowed. Don't define any others.
 
 Clearly identify the source (compilation unit) of error. For instance 
 `INA_MOD_STRING` identifies the string compilation unit. Developers can define
-their own identifiers.  
+their own identifiers. User defined modules should start with `INA_MOD_USER`.
 
 ### Push and peek instead of throw and catch
 

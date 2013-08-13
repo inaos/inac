@@ -7,6 +7,9 @@ SET OLD_DIR=%CD%
 
 cd ..\..\..\
 
+SET INAC_TIME_BACKEND=time-os
+if not "%1" == "" SET INAC_TIME_BACKEND=%1
+
 if not exist build mkdir build
 cd build
 call %CMD% ..

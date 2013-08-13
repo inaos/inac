@@ -45,7 +45,7 @@ all: $(OBJS) $(INAC_LIB)
 	@echo compile ljit $<
 	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
 
-libinac.a:
+$(INAC_LIB):
 	@ar crs $(INAC_LIB) $(OBJS)
 	@for i in $(DIRS); do ar crs $(INAC_LIB) $$i/*.o; done
 

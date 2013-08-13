@@ -106,26 +106,49 @@ INA_TEST(time, stopwatch)
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
     INA_TEST_ASSERT_NULL(w);
 }
+
+INA_TEST(time,backend) 
+{
+    ina_str_t info = NULL;
+
+    INA_TEST_ASSERT_SUCCEED(ina_time_sys_backend_info(&info));
+
+    INA_TEST_ASSERT_NOT_NULL(info);
+#ifdef INA_MBTIME_ENABLED
+    INA_TEST_ASSERT_TRUE(strncmp("HW backend:", ina_str_cstr(info), 12) == 0);
+#else
+    #ifdef INA_OS_WIN32
+    INA_TEST_ASSERT_EQUAL_STR("OS backend: GetSystemTimeAsFileTime()",
+                     ina_str_cstr(info));   
+    #else                    
+    INA_TEST_ASSERT_EQUAL_STR("OS backend: gettimeofday()",
+                    ina_str_cstr(info));
+    #endif
+#endif    
+
+    ina_str_destroy(info);
+}
  
 INA_TEST(time,read_clock) 
 {
     struct timeval tv;
-    ina_time_t t;
+    ina_time_t *t;
     time_t ms;
     time_t secs;
     time_t secs2;
     long us = 0;
     long us2 = 0;
 
+    INA_TEST_ASSERT_SUCCEED(ina_time_sys_new(&t));
 
     ms = 0;
     secs = 0;
     secs2 = 0;
 
     gettimeofday(&tv, NULL);
-    INA_TEST_ASSERT_SUCCEED(ina_time_read_sys_clock(&t));
-	INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(&t, &secs, &us));
-    INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(&t, &secs2, &us2));
+    INA_TEST_ASSERT_SUCCEED(ina_time_read_sys_clock(t));
+	INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(t, &secs, &us));
+    INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(t, &secs2, &us2));
     INA_TEST_ASSERT(secs > 0);
     INA_TEST_ASSERT_EQUAL_INTEGER(secs, secs2);
     INA_TEST_ASSERT_EQUAL_INTEGER(tv.tv_sec, secs);
@@ -134,6 +157,8 @@ INA_TEST(time,read_clock)
     INA_TRACE3("tv.tv_usec=%d", tv.tv_usec);
     INA_TRACE3("ms=%ld", ms);
     INA_TEST_ASSERT_EQUAL_INTEGER(tv.tv_usec/1000, ms);
+
+    INA_TEST_ASSERT_SUCCEED(ina_time_sys_free(&t));
 }
 
 INA_TEST_DATA(time_ipc) {

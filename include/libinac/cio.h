@@ -34,6 +34,9 @@
 extern "C" {
 #endif
 
+#define INA_CIO_CURRENT_COL (-1)
+#define INA_CIO_CURRENT_ROW (-1)
+
 /* Color codes */
 typedef enum ina_cio_colors_e  {
     INA_CIO_COLOR_BLACK, 

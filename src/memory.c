@@ -170,6 +170,18 @@ INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
     return __ina_memchr(dest, value, nb);
 }
 
+INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
+{
+#ifndef INA_OS_WIN32
+    *size = sysconf(_SC_PAGESIZE);
+#else
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    *size = (size_t)si.dwPageSize;
+#endif
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_mempool_init(size_t size)
 {
     if (__pools) {
@@ -234,19 +246,20 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     (*pool)->current = *pool;
     if (label != NULL) {
         (*pool)->label = ina_str_dup(label);
+    } else {
+        (*pool)->label = NULL;
     }
     if (cf&INA_MEM_SHARED) {
         INA_ASSERT_NOTNULL((*pool)->label);
 
         if (!INA_SUCCEED((__ina_shm_open(*pool)))) {
-            __ina_shm_close(*pool);
             ina_mem_free((*pool)->label);
             __ina_mp_free(*pool);
             *pool = NULL;
             return INA_MEM_ESHMALLOC;
         }
     } else {
- 	(*pool)->shm_handle = 0;
+        (*pool)->shm_handle = 0;
         (*pool)->m = __ina_mp_malloc(size);
     }
 
@@ -406,8 +419,8 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
             /* FIXME: Push an error , if fails */
             /* FXIME: shm can not handled in chunks ! */
             ina_mempool_create(&pool->current->child, nsize, 
-			    	pool->cf|INA_MEM_CHILD, 
-				pool->label);
+                    pool->cf|INA_MEM_CHILD, 
+                    pool->label);
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
         } else {

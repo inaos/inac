@@ -59,6 +59,7 @@ extern "C" {
 #define INA_MOD_LJIT     11
 #define INA_MOD_CONFFILE 12
 #define INA_MOD_LIB      13
+#define INA_MOD_USER     32
 
 /* OS function identifiers */
 #define INA_OSFN_NONE    0
@@ -87,6 +88,7 @@ extern "C" {
 #define INA_EEXCALL  17
 #define INA_ETIMEOUT 18
 #define INA_EOPT     20
+#define INA_ETYPE    21
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -236,9 +238,18 @@ extern "C" {
 
 /* Configuration file errors */
 #define INA_CONFFILE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CONFFILE, INA_OSFN_NONE, s)
-#define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(EINVAL, "Duplicate section");
-#define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(EINVAL, "Duplicate key");
-#define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(EINVAL, "Already prepared");
+#define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate section");
+#define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate key");
+#define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(INA_EINVAL, "Already prepared");
+#define INA_CONFFILE_ETYPE INA_CONFFILE_ERROR(INA_ETYPE, "Invalid type");
+
+/* Time errors */
+#define INA_TIME_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_TIME, INA_OSFN_NONE, s)
+#define INA_TIME_EHWDRV INA_TIME_ERROR(INA_EVERSION, "The MBGDEVIO API version which is installed is not compatible");
+#define INA_TIME_ENODEV INA_TIME_ERROR(INA_ELIMIT, "No radio clock found");
+#define INA_TIME_ETMDEV INA_TIME_ERROR(INA_ELIMIT, "Too many radio clocks found");
+#define INA_TIME_EHWERR INA_TIME_ERROR(INA_EPARAM, "Device API call failed");
+#define INA_TIME_EHWMISSF INA_TIME_ERROR(INA_EEXISTS, "Missing HW feature");
 
 /* Core library errors */
 #define INA_LIB_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LIB, INA_OSFN_NONE, s)
@@ -350,7 +361,15 @@ INA_API(ina_rc_t) ina_err_trace(void);
  * Return Value
  * INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_backtrace(void);
+INA_API(ina_rc_t) ina_err_backtrace(void *data);
+
+/*
+ * Create a coredump
+ *
+ * Return Value
+ * INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_err_coredump(void *data);
 
 /*
  * Format the error message for a given RC.

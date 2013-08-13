@@ -39,3 +39,5 @@ build/*
 buildall/*
 buildtest/*
 tests/build/*
+!contribs-bin/meinberg/lib/mbgdevio.lib
+!contribs-bin/meinberg/lib64/mbgdevio.lib

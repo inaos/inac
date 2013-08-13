@@ -288,6 +288,19 @@ INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn,
                                  ina_memcmp_t memcmp_fn,
                                  ina_memchr_t memchr_fn,
                                  ina_memset_t memset_fn);
+
+/*
+ * The function returns the number of bytes in a memory page, where "page" is 
+ * a fixed-length block, the unit for memory allocation and file mapping.
+ *
+ * Parameters:
+ * size     Size in bytes
+ *
+ * Return Value
+ * INA_SUCCESS if no error occurred.
+ */                                 
+INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
+
 /*
  * Set custom allocator function to use with memory pools.
  * If NULL is given standard memmory handler will be used.

@@ -43,7 +43,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
         return;
     }
 
-    ina_mem_set(&user_data, (int)"a", INA_TIME_MAX_USERDATA_LEN+8);
+    ina_mem_set(&user_data, 'a', INA_TIME_MAX_USERDATA_LEN+8);
     user_data[INA_TIME_MAX_USERDATA_LEN+9] = '\0';
 
     INA_TIME_STOPWATCH_START(w);

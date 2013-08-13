@@ -78,7 +78,7 @@ REM -------------------------------------------------------------------------
 REM set constants
 SET INAC_W32_BUILD_DIR=buildall
 SET INAC_W32_BUILDTEST_DIR=buildtest
-SET INAC_W32_BUILD_TYPE=debug
+SET INAC_BUILD_TYPE=debug
 
 SET INAC_W32_BUILD_STAGE=all
 SET INAC_W32_LIB_CMD=lib /nologo
@@ -102,8 +102,8 @@ if not "%1" == "" (
 	CALL :LoCase INAC_W32_BUILD_STAGE
 )
 if not "%2" == "" (
-	SET INAC_W32_BUILD_TYPE=%2
-	CALL :LoCase INAC_W32_BUILD_TYPE
+	SET INAC_BUILD_TYPE=%2
+	CALL :LoCase INAC_BUILD_TYPE
 )
 
 REM check build-stage
@@ -116,8 +116,8 @@ if not defined INAC_BUILD_STAGE_VALID goto fail_wrong_build_stage
 
 REM check build-type
 SET INAC_BUILD_TYPE_VALID=
-if "%INAC_W32_BUILD_TYPE%" == "debug" SET INAC_BUILD_TYPE_VALID=1
-if "%INAC_W32_BUILD_TYPE%" == "release" SET INAC_BUILD_TYPE_VALID=1
+if "%INAC_BUILD_TYPE%" == "debug" SET INAC_BUILD_TYPE_VALID=1
+if "%INAC_BUILD_TYPE%" == "release" SET INAC_BUILD_TYPE_VALID=1
 if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if not defined INAC_BUILD_TYPE_VALID goto fail_wrong_build_type
 )
@@ -189,17 +189,17 @@ if defined INAC_WIN32_C_SOURCE_DIR (
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR% mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_W32_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
+			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
 			call nmake
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_W32_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_SOURCE_DIR%
+			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_SOURCE_DIR%
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
 				goto first_found
 			)
 			:first_found
-			call msbuild %INAC_WIN32_SLN_FILE% /property:Configuration=%INAC_W32_BUILD_TYPE%
+			call msbuild %INAC_WIN32_SLN_FILE% /property:Configuration=%INAC_BUILD_TYPE%
 		)
 	)
 	cd %INAC_WIN32_OLD_DIR%
@@ -216,17 +216,17 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR% mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_W32_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
 			call nmake
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_W32_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
 				goto first_found
 			)
 			:first_found
-			call msbuild %INAC_WIN32_SLN_FILE% /property:Configuration=%INAC_W32_BUILD_TYPE%
+			call msbuild %INAC_WIN32_SLN_FILE% /property:Configuration=%INAC_BUILD_TYPE%
 		)
 	)
 	cd %INAC_WIN32_OLD_DIR%
@@ -252,7 +252,7 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua
 		for %%i in (%INAC_WIN32_LUA_SOURCE_DIR%\*.lua) do (
 			echo Compiling...%%~nxi
-			if "%INAC_W32_BUILD_TYPE%" == "debug" (
+			if "%INAC_BUILD_TYPE%" == "debug" (
 				%INAC_W32_LUAJIT% -bg %%i %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%%~nxi.obj
 			) else (
 				%INAC_W32_LUAJIT% -b %%i %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%%~nxi.obj
