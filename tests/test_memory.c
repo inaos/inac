@@ -41,7 +41,7 @@ INA_TEST(memory, pagesize)
 
     INA_TEST_ASSERT_SUCCEED(ina_mem_get_pagesize(&size));
 #ifndef INA_OS_WIN32
-    INA_TEST_ASSERT_EQUAL_INTEGER(sysconf(_SC_PAGESIZE), size);
+    INA_TEST_ASSERT_TRUE((size_t)sysconf(_SC_PAGESIZE) == size);
 #else
     GetSystemInfo(&si);
     INA_TEST_ASSERT_EQUAL_INTEGER((size_t)si.dwPageSize, size);
