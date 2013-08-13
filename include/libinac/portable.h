@@ -377,14 +377,14 @@ extern "C" {
 #  ifdef INA_COMPILER_MSVC
 #    define INA_INLINE __inline
 #  else
-#   define INA_INLINE inline
+#   define INA_INLINE static inline
 #  endif
 #else
 #  ifdef INA_COMPILER_MSVC
 #    define INA_INLINE __inline
 #  else
 #    ifdef INLINE_ENABLED
-#       define INA_INLINE inline
+#       define INA_INLINE static inline
 #    endif
 #  endif
 #endif
