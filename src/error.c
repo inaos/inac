@@ -28,6 +28,10 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifdef INA_OS_WIN32
+#include <DbgHelp.h>
+#endif
+
 #define __INA_ERR_STATE_SIZE (32)
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
@@ -256,7 +260,7 @@ INA_API(ina_rc_t) ina_err_trace(void)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_backtrace(void)
+INA_API(ina_rc_t) ina_err_backtrace(void *data)
 {
 #ifndef INA_OS_WIN32
     void *fnptr[30];
@@ -273,15 +277,99 @@ INA_API(ina_rc_t) ina_err_backtrace(void)
     }
     free(fn);
     fprintf(stderr, "%s\n", "**** BACKTRACE  END ******");
+#else
+    EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
+    HANDLE process;
+    SYMBOL_INFO *symbol;
+    unsigned int i;
+    DWORD stack[100];
+    unsigned short frames = 0;
+    STACKFRAME frame = {0};
+
+    process = GetCurrentProcess();
+    SymInitialize(process, NULL, TRUE);
+ 
+    /* setup initial stack frame */
+    frame.AddrPC.Offset = pExceptionPointers->ContextRecord->Eip;
+    frame.AddrPC.Mode = AddrModeFlat;
+    frame.AddrStack.Offset = pExceptionPointers->ContextRecord->Esp;
+    frame.AddrStack.Mode = AddrModeFlat;
+    frame.AddrFrame.Offset = pExceptionPointers->ContextRecord->Ebp;
+    frame.AddrFrame.Mode = AddrModeFlat;
+
+    symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+    symbol->MaxNameLen = 255;
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+ 
+    while (StackWalk(IMAGE_FILE_MACHINE_I386,
+                     process,
+                     GetCurrentThread(),
+                     &frame,
+                     pExceptionPointers->ContextRecord,
+                     0,
+                     SymFunctionTableAccess,
+                     SymGetModuleBase,
+                     0 ) )
+    {
+        stack[frames++] = frame.AddrPC.Offset;
+    }
+    
+    for (i = 0; i < frames; i++) {
+        SymFromAddr(process, stack[i], 0, symbol);
+        printf("%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address);
+    }
+    
+    free(symbol);
+    SymCleanup(process);
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_coredump(void) {
+INA_API(ina_rc_t) ina_err_coredump(void *data) {
 #ifndef INA_OS_WIN32
     char cmd[160];
     sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
     system(cmd);
+#else
+    EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
+    BOOL dumped;
+    char suffix[MAX_PATH];
+    char final_name[MAX_PATH];
+    MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
+    SYSTEMTIME t;
+    HANDLE hFile;
+
+    strcpy(final_name, ina_app_get_name());
+    
+    GetSystemTime(&t);
+    sprintf(suffix,
+        "_%4d%02d%02d_%02d%02d%02d.dmp",
+        t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+
+    strcat(final_name, suffix);
+
+    hFile = CreateFileA(final_name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    
+    if (hFile == INVALID_HANDLE_VALUE) {
+        printf("Error ina_err_coredump: Could not create file %s!\n", final_name);
+        return INA_FAILURE;
+    }
+
+    exceptionInfo.ThreadId = GetCurrentThreadId();
+    exceptionInfo.ExceptionPointers = pExceptionPointers;
+    exceptionInfo.ClientPointers = FALSE;
+
+    dumped = MiniDumpWriteDump(
+        GetCurrentProcess(),
+        GetCurrentProcessId(),
+        hFile,
+        (MINIDUMP_TYPE)(MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
+        pExceptionPointers ? &exceptionInfo : NULL,
+        NULL,
+        NULL
+    );
+
+    CloseHandle(hFile);
 #endif
     return INA_SUCCESS;
 }

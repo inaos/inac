@@ -38,6 +38,11 @@
 #define INA_CSTRING_ENABLED 1
 #endif
 
+/* Define time code/library to use */
+#ifndef INA_TIME_DEFINED
+#define INA_OSTIME_ENABLED 1
+#endif
+
 /* Define default sys mem pool size */
 #ifndef INA_SYSMEMPOOL_SIZE
 #define INA_SYSMEMPOOL_SIZE  8*1024*1024
@@ -47,6 +52,5 @@
 #ifndef INA_MEMPOOL_SIZE
 #define INA_MEMPOOL_SIZE  8*1024*1024
 #endif
-
 
 #endif

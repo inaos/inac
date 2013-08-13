@@ -83,9 +83,9 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     }
 
     info->ring_version = rb->version;
-    info->num_write_op = rb->next_ptr;
+    info->num_write_op = (size_t)rb->next_ptr;
     info->last_writer = 0;
-    info->num_read_op = rb->cursor;
+    info->num_read_op = (size_t)rb->cursor;
     info->last_reader = 0;
     info->num_producers = rb->num_producers;
     info->num_producers_alive = 0;
@@ -116,7 +116,6 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
                             ina_ullc_ctx_t **ctx)
 {
     ina_ullc_ctx_t *pctx;
-    ina_ullc_cursor_t *cons;
     
     if (version <= 0) {
         return INA_ULLC_EINVERSION;
@@ -154,9 +153,9 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
     pctx->ring = pctx->ring;
     pctx->data = ((unsigned char*)pctx->ring) + sizeof(ina_ullc_rb_t);
     pctx->c_offset = (ina_ullc_cursor_t*)&pctx->data[(pctx->ring->slots)*pctx->ring->size]+sizeof(ina_ullc_cursor_t);
-    cons = (ina_ullc_cursor_t*)&pctx->data[(pctx->ring->slots)*pctx->ring->size]+sizeof(ina_ullc_cursor_t) * num_consumers;
+    pctx->p_offset = &pctx->c_offset[num_consumers];
     while (pctx->id < num_producers) {
-        pctx->p_offset = &cons[pctx->id];
+        pctx->p_offset = &pctx->p_offset[pctx->id];
         if (__INA_ULLC_SWAP(&pctx->p_offset->alive, 0, 1) == 0) {
             break;
         }

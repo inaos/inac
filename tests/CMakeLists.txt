@@ -12,6 +12,7 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/INCREMENTAL:NO
 ${replacementFlags3}" )
 
 set (DEPS_DIR "${CMAKE_SOURCE_DIR}/../contribs")
+set (BIN_DEPS_DIR "${CMAKE_SOURCE_DIR}/../contribs-bin")
 
 include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/../include" 
                      "${DEPS_DIR}" "${CMAKE_SOURCE_DIR}/.." )
@@ -27,12 +28,21 @@ endif()
 
 set(INAC_LIB "libinac.lib")
 
+set(MEINBERG_LIBS "${BIN_DEPS_DIR}/meinberg/lib/mbgdevio.lib")
+
+set(COMMERCIAL_LIBS ${MEINBERG_LIBS})
+
 if(WIN32)
-	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib)
+	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib DbgHelp.lib)
 endif(WIN32)
 
+# This is required because the meinberg lib has been compiled with an old version of VS
+if (CMAKE_GENERATOR STREQUAL "Visual Studio 11")
+	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+endif()
+
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
-set (LIBS ${LIB_DIR}/${INAC_LIB})
+set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
 
 file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c")
 add_executable(test ${TEST_SRC})

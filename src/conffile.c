@@ -47,6 +47,7 @@
 struct ina_conffile_entry_s {
     unsigned long id;
     ina_str_t key;
+    ina_conffile_value_type_t value_type;
     union value_u {
         ina_str_t s;
         double n;
@@ -126,9 +127,9 @@ INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf)
 }
 
 INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, 
-			const char *name, int required, int named, 
-			ina_conffile_section_cb_t cb, 
-			ina_conffile_section_t **section)
+            const char *name, int required, int named, 
+            ina_conffile_section_cb_t cb, 
+            ina_conffile_section_t **section)
 {
     unsigned long key;
     ina_conffile_section_t *sp;
@@ -145,7 +146,7 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
     }
 
     *section = (ina_conffile_section_t*)ina_mem_alloc(sizeof(
-			    			ina_conffile_section_t));
+                                            ina_conffile_section_t));
     sp = *section;
     if (sp == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -165,20 +166,22 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
                             ina_conffile_value_type_t value_type, 
                             int required)
 {
+    unsigned long k;
     ina_conffile_section_key_t *key;
     ina_conffile_entry_t *check = NULL;
 
     INA_ASSERT_NOTNULL(section);
     INA_ASSERT_NOTNULL(name);
+    
+    k = INA_HASH_CSTR_TO_SDBM(name);
 
-    HASH_FIND_ULONG(section, &key, check);
     if (check != NULL) {
         return INA_CONFFILE_EDUPKEY;
     }
 
     key = (ina_conffile_section_key_t*)ina_mem_alloc(sizeof(
-			    			ina_conffile_section_key_t));
-    key->id = INA_HASH_CSTR_TO_SDBM(name);
+                                            ina_conffile_section_key_t));
+    key->id = k;
     key->name = ina_str_fromcstr(name);
     key->required = required;
     key->value_type = value_type;
@@ -234,8 +237,13 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf,
 
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
-        *value = ina_str_dup(entry->value.s);
-        return INA_SUCCESS;
+        if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
+            return INA_CONFFILE_ETYPE;
+        }
+        if (entry->value.s != NULL) {
+            *value = ina_str_dup(entry->value.s);
+            return INA_SUCCESS;
+        }
     }
     return INA_FAILURE;
 }
@@ -255,9 +263,14 @@ INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
     k = INA_HASH_CSTR_TO_SDBM(key);
 
     HASH_FIND_ULONG(entries, &k, entry);
-    if (entry != NULL && entry->value.s != NULL) {
-        *value = ina_str_dup(entry->value.s);
-        return INA_SUCCESS;
+    if (entry != NULL) {
+        if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
+            return INA_CONFFILE_ETYPE;
+        }
+        if (entry->value.s != NULL) {
+            *value = ina_str_dup(entry->value.s);
+            return INA_SUCCESS;
+        }
     }
     return INA_FAILURE;
 }
@@ -277,6 +290,9 @@ INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf,
 
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
+        if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
+            return INA_CONFFILE_ETYPE;
+        }
         *value = entry->value.n;
         return INA_SUCCESS;
     }
@@ -299,6 +315,9 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
 
     HASH_FIND_ULONG(entries, &k, entry);
     if (entry != NULL) {
+        if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
+            return INA_CONFFILE_ETYPE;
+        }
         *value = entry->value.n;
         return INA_SUCCESS;
     }
@@ -557,8 +576,10 @@ __ina_process_entries(ina_conffile_t *cf, ina_conffile_section_res_t *res)
             entry->key = ina_str_fromcstr(k);
             lua_getfield(lstate, -1 , __INA_ATTR_VALUE);
             if (strcmp(tn, __INA_VAL_STRING) == 0) {
+                entry->value_type = INA_CONFFILE_VALUE_TYPE_STRING;
                 entry->value.s = ina_str_fromcstr(lua_tostring(lstate, -1));
             } else {
+                entry->value_type = INA_CONFFILE_VALUE_TYPE_NUMBER;
                 entry->value.n = lua_tonumber(lstate, -1);
             }
             lua_pop(lstate, 1);
@@ -590,11 +611,11 @@ __ina_get_value(ina_conffile_t *cf, const char* section_name,
     if (section->named) {
         k = INA_HASH_CSTR_TO_SDBM(section_key);
         HASH_FIND_ULONG(section->results, &k, entries);
-        if (entries == NULL) {
-            return INA_FAILURE;
-        }
     } else {
         entries = section->results;
+    }
+    if (entries == NULL || entries->entries == NULL) {
+        return INA_FAILURE;
     }
 
     /* Lookup value */
