@@ -106,10 +106,10 @@ static int               __initialized = INA_NO;
 
 INA_API(ina_rc_t) ina_cio_init(void)
 {
-    if (!__initialized) {
+    if (__initialized) {
         __ina_init_colors();
-        __attribs.fg_color = INA_CIO_COLOR_WHITE;
-        __attribs.bg_color = INA_CIO_COLOR_BLACK;
+        __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
+        __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
 	    __initialized = INA_YES;
     }
     return INA_SUCCESS;
@@ -296,18 +296,14 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
         
         ina_cio_get_attribs(&attribs);
     
-        if (fg_color != INA_CIO_COLOR_UNDEFINED) {
-            if (attribs.fg_color != fg_color) {
-                new_attribs.fg_color = fg_color;
-                setattribs = INA_YES;
-            }
+        if (attribs.fg_color != fg_color) {
+            new_attribs.fg_color = fg_color;
+            setattribs = INA_YES;
         }
 
-        if (bg_color != INA_CIO_COLOR_UNDEFINED) {
-            if (attribs.bg_color != bg_color) {
-                new_attribs.bg_color = bg_color;
-                setattribs = INA_YES;
-            }
+        if (attribs.bg_color != bg_color) {
+            new_attribs.bg_color = bg_color;
+            setattribs = INA_YES;
         } 
         
         if (setattribs == INA_YES) {
