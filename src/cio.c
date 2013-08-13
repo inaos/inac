@@ -290,9 +290,9 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
             pos.col = (uint8_t)col;
             setpos = INA_YES;
         }
-        /*if (setpos == INA_YES) {
+        if (setpos == INA_YES) {
             ina_cio_move_to_pos(&pos);
-        }*/
+        }
         
         ina_cio_get_attribs(&attribs);
     
