@@ -70,7 +70,7 @@ void ina_ljit_dbl_to_decimal(double dbl, ina_decimal_t *dec)
    ina_dbl_to_decimal(dbl, dec);
 }
 
-double ina_ljit_dbl_from_decimal(ina_decimal_t *dec)
+double ina_ljit_dbl_from_decimal(const ina_decimal_t *dec)
 {
    return(ina_dbl_from_decimal(dec));
 }
