@@ -325,7 +325,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
 }
 
 #ifdef INA_OS_WIN32
-static ina_rc_t
+static int
 __ina_get_cursor_pos(ina_cio_pos_t *const pos)
 {
     CONSOLE_SCREEN_BUFFER_INFO info;
