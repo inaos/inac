@@ -44,7 +44,7 @@ typedef struct ina_decimal_s {
 /*
  * Copy a decimal.
  */
-static __inline void ina_cpy_decimal(ina_decimal_t *src, ina_decimal_t *dst)
+INA_INLINE void ina_cpy_decimal(const ina_decimal_t *src, ina_decimal_t *dst)
 {
     dst->exponent = src->exponent;
     dst->mantissa = src->mantissa;
@@ -52,7 +52,7 @@ static __inline void ina_cpy_decimal(ina_decimal_t *src, ina_decimal_t *dst)
 /*
  * Convert a double to a decimal type.
  */
-static __inline void ina_dbl_to_decimal(double dbl, ina_decimal_t *dec)
+INA_INLINE void ina_dbl_to_decimal(double dbl, ina_decimal_t *dec)
 {
     double tmp = frexp(dbl, &dec->exponent);
     dec->mantissa = (int64_t)(tmp * (double)pow((double)FLT_RADIX, DBL_MANT_DIG));
@@ -60,7 +60,7 @@ static __inline void ina_dbl_to_decimal(double dbl, ina_decimal_t *dec)
 /*
  * Convert decimal to a double type.
  */
-static __inline double ina_dbl_from_decimal(ina_decimal_t *dec)
+INA_INLINE double ina_dbl_from_decimal(const ina_decimal_t *dec)
 {
     double tmp = dec->mantissa / (double)pow((double)FLT_RADIX, DBL_MANT_DIG);
     return ldexp(tmp, dec->exponent);

@@ -152,7 +152,7 @@ INA_API(void) ina_ljit_dbl_to_decimal(double dbl, ina_decimal_t *dec);
 /*
  *
  */
-INA_API(double) ina_ljit_dbl_from_decimal(ina_decimal_t *dec);
+INA_API(double) ina_ljit_dbl_from_decimal(const ina_decimal_t *dec);
 
 #ifdef __cplusplus
 }

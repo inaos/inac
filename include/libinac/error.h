@@ -89,6 +89,7 @@ extern "C" {
 #define INA_ETIMEOUT 18
 #define INA_EOPT     20
 #define INA_ETYPE    21
+#define INA_EAGAIN   22
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
