@@ -82,6 +82,7 @@
 #include <libinac/cio.h>
 #include <libinac/cron.h>
 #include <libinac/uthash.h>
+#include <libinac/utlist.h>
 #include <libinac/debug.h>
 #include <libinac/test.h>
 
