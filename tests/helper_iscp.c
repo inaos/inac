@@ -30,10 +30,10 @@
 static ina_iscp_ctx_t *__iscp = NULL;
 static int __running = 0;
 
-static int __cleanup_handler(const int sig, const int error) 
+static void __cleanup_handler(int sig, int *error) 
 {
     ina_iscp_destroy(&__iscp);
-    return EXIT_SUCCESS;
+    *error = EXIT_SUCCESS;
 }
 
 static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, ina_iscp_param_t *params)
