@@ -75,6 +75,11 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
 {
     skipnode n, ntmp;
     ina_time_event_t *e;
+    
+    if (*timer == NULL) {
+        return INA_SUCCESS;
+    }
+
     SKIPLIST_FOREACH_SAFE((*timer)->events, n, ntmp) {
         e = (ina_time_event_t*)skipnode_item(n);
         ina_mem_free(e);
