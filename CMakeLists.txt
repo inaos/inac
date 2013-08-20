@@ -19,6 +19,7 @@ set(SKIPLIST_LIB_NAME "skiplist")
 set(HTTP_LIB_NAME "http_parser")
 set(SQLITE_LIB_NAME "sqlite")
 set(RAPIDXML_LIB_NAME "rapidxml")
+set(AXTLS_LIB_NAME "axtls")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -63,6 +64,16 @@ set (RAPIDXML_SRC_DIR ${DEPS_DIR}/rapidxml)
 set (RAPIDXML_SRC ${RAPIDXML_SRC_DIR}/rapidxml.c)
 add_library(${RAPIDXML_LIB_NAME} ${RAPIDXML_SRC})
 
+# AxTLS
+set (AXTLS_SRC_DIR ${DEPS_DIR}/axtls)
+set (AXTLS_SRC     ${AXTLS_SRC_DIR}/aes.c ${AXTLS_SRC_DIR}/bigint.c ${AXTLS_SRC_DIR}/crypto_misc.c
+				   ${AXTLS_SRC_DIR}/hmac.c ${AXTLS_SRC_DIR}/md2.c ${AXTLS_SRC_DIR}/md5.c
+				   ${AXTLS_SRC_DIR}/rc4.c ${AXTLS_SRC_DIR}/rsa.c ${AXTLS_SRC_DIR}/sha1.c 
+				   ${AXTLS_SRC_DIR}/os_port.c ${AXTLS_SRC_DIR}/asn1.c ${AXTLS_SRC_DIR}/gen_cert.c
+				   ${AXTLS_SRC_DIR}/loader.c ${AXTLS_SRC_DIR}/p12.c ${AXTLS_SRC_DIR}/tls1.c
+				   ${AXTLS_SRC_DIR}/tls1_clnt.c ${AXTLS_SRC_DIR}/tls1_svr.c ${AXTLS_SRC_DIR}/x509.c)
+add_library(${AXTLS_LIB_NAME} ${AXTLS_SRC})
+					  
 # END dependencies
 
 # BEGIN backend configuration
@@ -80,7 +91,7 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/time_os.c ${SRC_DIR}/time_meinberg.c
 				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
 				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c 
-				 ${SRC_DIR}/cron.c)
+				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 

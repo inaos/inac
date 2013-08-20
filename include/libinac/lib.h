@@ -77,6 +77,7 @@
 #include <libinac/ljit.h>
 #include <libinac/conffile.h>
 #include <libinac/http.h>
+#include <libinac/ssl.h>
 #include <libinac/xml.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
