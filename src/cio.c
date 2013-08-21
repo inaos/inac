@@ -250,15 +250,27 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
 {
 #ifdef INA_OS_WIN32
     COORD pos;
-
+#endif    
     INA_ASSERT(__initialized);
+
+    if (col < 0 && row < 0) {
+        return INA_SUCCESS;
+    }
+    if (col < 0 || row < 0) {
+        ina_cio_pos_t pos;
+        ina_cio_get_pos(&pos);
+        if (row < 0) {
+            return ina_cio_move_to_row_and_col(pos.row, col);
+        }
+        return ina_cio_move_to_row_and_col(row, pos.col);
+    }
+#ifdef INA_OS_WIN32
 
     pos.X = col;
     pos.Y = row;
 
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 #else
-    INA_ASSERT(__initialized);
     printf( "%s%d;%dH", __CSI, row + 1, col + 1);
 #endif
     return INA_SUCCESS;
@@ -280,8 +292,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     INA_ASSERT(__initialized);
 
     if (_isatty(_fileno(stdout))) {
-        ina_cio_get_pos(&pos);
-
+        
         if (row >= 0 && row != pos.row)  {
             pos.row = (uint8_t)row;
             setpos = INA_YES;
@@ -335,7 +346,7 @@ __ina_get_cursor_pos(ina_cio_pos_t *const pos)
     return 0;
 }
 #else
-static inline int rd(const int fd)
+INA_INLINE int rd(const int fd)
 {
     unsigned char   buffer[4];
     ssize_t         n;
@@ -355,7 +366,7 @@ static inline int rd(const int fd)
     }
 }
 
-static inline int wr(const int fd, const char *const data, const size_t bytes)
+INA_INLINE int wr(const int fd, const char *const data, const size_t bytes)
 {
     const char       *head = data;
     const char *const tail = data + bytes;
