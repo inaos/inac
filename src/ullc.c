@@ -177,13 +177,14 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
     __INA_ULLC_SWAP(&(*ctx)->p_offset->alive,1,0);
     INA_ASSERT_EQUAL(0, (*ctx)->p_offset->alive);
 
+    if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
+        return INA_ERR_PUSH_LAST;
+    }
 
     if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
-        return INA_ERR_PUSH_LAST;
-    }
+
     *ctx = NULL;
     return INA_SUCCESS;
 }
@@ -294,12 +295,14 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
     __INA_ULLC_SWAP(&(*ctx)->c_offset->alive,1,0);
     INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive);
 
-    if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
-        return INA_ERR_PUSH_LAST;
-    }
     if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
         return INA_ERR_PUSH_LAST;
     }
+
+    if (!INA_SUCCEED(ina_mempool_release((*ctx)->pool, 1))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
     *ctx = NULL;
     return INA_SUCCESS;
 }
