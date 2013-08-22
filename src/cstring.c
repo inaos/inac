@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,51 @@ INA_API(ina_str_t) ina_str_pnewlen(size_t len, ina_mempool_t *pool)
     }
     str[0] = '\0';
     return str; 
+}
+
+INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len) 
+{
+    ina_str_t str;
+
+    if (blk == NULL) {
+        INA_STR_EALLOC;
+        return NULL;
+    }
+
+    str = (ina_str_t)ina_mem_alloc(len+1);
+    if (str == NULL)  {
+        INA_STR_EALLOC;
+        return NULL;
+    }
+    if (len > 0) {
+        ina_mem_cpy(str, blk, len);
+    }
+    str[len] = '\0';
+    return str;
+}
+
+INA_API(ina_str_t) ina_str_pfromblk(const void* blk, size_t len, 
+                                    ina_mempool_t *pool)
+{
+    ina_str_t str;
+
+    INA_ASSERT_NOTNULL(pool);
+    
+    if (blk == NULL) {
+        INA_STR_EALLOC;
+        return NULL;
+    }
+
+    str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
+    if (str == NULL)  {
+        INA_STR_EALLOC;
+        return NULL;
+    }
+    if (len > 0) {
+        ina_mem_cpy(str, blk, len);
+    }
+    str[len] = '\0';
+    return str;
 }
 
 INA_API(ina_str_t) ina_str_fromcstr(const char* cstr)
