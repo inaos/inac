@@ -367,7 +367,7 @@ typedef struct ina_test_testcase_s {
         #tname,                                                             \
         INA_TEST_FNAME(sname, tname),                                       \
         _skip,                                                              \
-        __helper,                              de                             \
+        __helper,                                                           \
         __data,                                                             \
         (ina_test_setup_cb_t)__setup,                                       \
         (ina_test_teardown_cb_t)__teardown,                                 \
