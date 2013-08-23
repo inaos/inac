@@ -349,23 +349,25 @@ typedef struct ina_test_testcase_s {
 /* Section holding test cases */
 #ifdef INA_OS_OSX
 #define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
+#define INA_TEST_SECTION_PUSH
 #elif INA_OS_WIN32
 #pragma section(".inatest", read)
 #define INA_TEST_SECTION
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
 #define INA_TEST_SECTION __attribute__ ((unused,section (".inatest")))
+#define INA_TEST_SECTION_PUSH
 #endif
 
 /* Testcase data defines. For internal purpose only */
 #define INA_TEST_STRUCT(sname, tname, _skip, __helper, __data, __setup,     \
                             __teardown)                                     \
-    ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = {   \
+    INA_TEST_SECTION_PUSH ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = {   \
         #sname,                                                             \
         #tname,                                                             \
         INA_TEST_FNAME(sname, tname),                                       \
         _skip,                                                              \
-        __helper,                                                           \
+        __helper,                              de                             \
         __data,                                                             \
         (ina_test_setup_cb_t)__setup,                                       \
         (ina_test_teardown_cb_t)__teardown,                                 \
