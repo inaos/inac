@@ -76,18 +76,30 @@ INA_TEST_FIXTURE(string_mempool, ina_str_pfromblk)
 
 INA_TEST(string, ina_str_fromcstr)
 {
-    
+    ina_str_t str = NULL;
+    const char *cstring = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    str = ina_str_fromcstr(cstring);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR(cstring, ina_str_cstr(str));  
 }
 
-INA_TEST(string, ina_str_pfromcstr)
+INA_TEST_FIXTURE(string_mempool, ina_str_pfromcstr)
 {
-    
+    ina_str_t str = NULL;
+    const char *cstring = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    str = ina_str_pfromcstr(cstring, data->pool);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR(cstring, ina_str_cstr(str));    
 }
 
 
 INA_TEST(string, ina_str_destroy)
 {
-    
+    ina_str_t str = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(str));
+    str = ina_str_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(str));
 }
 
 INA_TEST(string, ina_str_dup)

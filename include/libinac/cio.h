@@ -56,12 +56,15 @@ typedef struct ina_cio_pos_s {
     int16_t col;
 } ina_cio_pos_t;
 
+#define INA_CIO_STTONG (1)
+#define INA_CIO_BLINK  (2)
+#define INA_CIO_RESET  (4)
+
 /* Cursor attributs */
 typedef struct ina_cio_attribs_s {
     ina_cio_color_t bg_color; /* background color */
     ina_cio_color_t fg_color; /* forground color */
-    uint8_t strong;
-    uint8_t blink;
+    uint8_t flags;
 } ina_cio_attribs_t;
 
 /*
@@ -73,6 +76,11 @@ INA_API(ina_rc_t) ina_cio_init(void);
  * Clear screen
  */
 INA_API(ina_rc_t) ina_cio_clear(void);
+
+/*
+ * Reset attributs
+ */
+INA_API(ina_rc_t) ina_cio_reset(void);
 
 /*
  * Get limits in rows and columns
