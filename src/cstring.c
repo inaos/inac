@@ -144,7 +144,9 @@ INA_API(ina_str_t) ina_str_pfromcstr(const char* cstr, ina_mempool_t *pool)
 
 INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
 {
-    ina_mem_free(str);
+    if (str != NULL) {
+    	ina_mem_free(str);
+    }
     return INA_SUCCESS;
 }
 
