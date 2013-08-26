@@ -25,60 +25,34 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_SSL_H_
-#define _LIBINAC_SSL_H_
-
 #include <libinac/lib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static ina_ssl_ctx_t *__ssl = NULL;
+static int __running = 0;
 
-/* opaque */
-typedef struct ina_ssl_ctx_s ina_ssl_ctx_t;
-
-/* opaque */
-typedef struct ina_ssl_conn_s ina_ssl_conn_t;
-
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx, int num_sessions);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_destroy(ina_ssl_ctx_t **ctx);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_client_new(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn, int fd);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_client_free(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_server_new(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn, int client_fd);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_server_free(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_read(ina_ssl_conn_t *conn, unsigned char **buf, int *bytes_read);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_write(ina_ssl_conn_t *conn, unsigned char *buf, size_t buf_len);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_ssl_handshake_status(ina_ssl_conn_t *conn);
-			
-#ifdef __cplusplus
+static void __cleanup_handler(int sig, int *error)
+{
+    ina_ssl_destroy(&__ssl);
+    *error = EXIT_SUCCESS;
 }
-#endif
 
-#endif
+INA_TEST_HELPER(ssl_clientserver, ssl_server) {
+    const char *addr;
+    int32_t port;
+    
+    INA_TEST_HELPER_CHECK_ARGC(2);
+    addr = INA_TEST_HELPER_CARG(0);
+    port = INA_TEST_HELPER_IARG(1);
+    
+    ina_set_cleanup_handler(__cleanup_handler);
+    
+    
+
+    __running = 1;
+
+   /* while (__running) {
+        
+        ina_time_sleep(10);
+    }*/
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+}

@@ -309,6 +309,9 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
 
     INA_ASSERT(__initialized);
 
+    pos.col = 0;
+    pos.row = 0;
+
     if (_isatty(_fileno(stdout))) {
         
         if (row >= 0 && row != pos.row)  {

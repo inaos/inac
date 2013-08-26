@@ -109,11 +109,13 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if "%INAC_BUILD_TYPE%" == "debug" (
 		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
-			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
+			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
+			%INAC_HOME%\contribs\luajit\src\lua51d.lib
 	) else (
 		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
-			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
+			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
+			%INAC_HOME%\contribs\luajit\src\lua51.lib
 	)
 )
 
