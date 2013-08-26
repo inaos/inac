@@ -199,7 +199,7 @@ if defined INAC_WIN32_C_SOURCE_DIR (
 				goto first_found
 			)
 			:first_found
-			call msbuild %INAC_WIN32_SLN_FILE% /property:Configuration=%INAC_BUILD_TYPE%
+			call msbuild %INAC_WIN32_SLN_FILE% /m /property:Configuration=%INAC_BUILD_TYPE%
 		)
 	)
 	cd %INAC_WIN32_OLD_DIR%
@@ -223,9 +223,9 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
-				goto first_found
+				goto first_found_test
 			)
-			:first_found
+			:first_found_test
 			call msbuild %INAC_WIN32_SLN_FILE% /property:Configuration=%INAC_BUILD_TYPE%
 		)
 	)

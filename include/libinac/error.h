@@ -59,6 +59,7 @@ extern "C" {
 #define INA_MOD_LJIT     11
 #define INA_MOD_CONFFILE 12
 #define INA_MOD_LIB      13
+#define INA_MOD_SSL      14
 #define INA_MOD_USER     32
 
 /* OS function identifiers */
@@ -90,6 +91,7 @@ extern "C" {
 #define INA_EOPT     20
 #define INA_ETYPE    21
 #define INA_EAGAIN   22
+#define INA_EINIT    23
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -255,6 +257,12 @@ extern "C" {
 /* Core library errors */
 #define INA_LIB_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LIB, INA_OSFN_NONE, s)
 #define INA_LIB_EOPT INA_LIB_ERROR(INA_EOPT, "Command line option parsing failed");
+
+/* SSL errors */
+#define INA_SSL_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_SSL, INA_OSFN_NONE, s)
+#define INA_SSL_EINIT INA_SSL_ERROR(INA_EINIT, "SSL library init failed");
+#define INA_SSL_EAGAIN INA_SSL_ERROR(INA_EAGAIN, "SSL handshake still in progress");
+
 
 
 /* Error information */

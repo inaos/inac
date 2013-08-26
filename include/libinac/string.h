@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,33 @@ extern "C" {
 /* allocation */
 INA_API(ina_str_t) ina_str_newlen(size_t len);
 INA_API(ina_str_t) ina_str_pnewlen(size_t len, ina_mempool_t *pool);
+
+/* 
+ * Create a ina_str_t which contains the content of the block blk of length 
+ * len.
+ *
+ * Parameters:
+ * blk     Memory block from wich extract the string.
+ * len     Length of block to extract.
+ * 
+ * Return
+ * New created string or NULL if an error occurred. 
+ */
+INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len);
+
+/* 
+ *  Create a ina_str_t wich contains the content of the block blk of length 
+ *  len. Memory will allocated from a memory pool.
+ * Parameters:
+ * blk     Memory block from wich extract the string.
+ * len     Length of block to extract.
+ * 
+ * Return
+ * New created string or NULL if an error occurred.
+ */
+INA_API(ina_str_t) ina_str_pfromblk(const void* blk, 
+                                    size_t len, 
+                                    ina_mempool_t* pool);
 
 INA_API(ina_str_t) ina_str_fromcstr(const char *cstr);
 INA_API(ina_str_t) ina_str_pfromcstr(const char *cstr,  ina_mempool_t *pool);
