@@ -42,38 +42,61 @@ typedef struct ina_fsm_transistion_s {
     ina_fsm_action_fn_t action;   /* Action */
     int32_t next_state;           /* Next state after action */
 } ina_fsm_transistion_t;
- 
+
+/* Defines single a FSM state */
 #define INA_FSM_STATE(state) state
+/* Defines FSM states */
 #define INA_FSM_STATES(id, ...)                                              \
     enum __##id##_fsm_states {                                               \
             __VA_ARGS__,                                                     \
             __##id##_MAX_STATES } __##id##_fsm_state
+
+/* Defines a single FSM event */
 #define INA_FSM_EVENT(event) event
+/* Defines FSM events */
 #define INA_FSM_EVENTS(id, ...)                                              \
     enum __##id##_fsm_events {                                               \
             __VA_ARGS__,                                                     \
             __##id##_MAX_EVENTS } __##id##_fsm_event
-                
+
+/* Defines a FSM transition map. For each event all states must be 
+ * defined in the map */
 #define INA_FSM_TRANSITIONS(id, ...)                                         \
     ina_fsm_transistion_t __##id##_fsm_transitions                           \
-                [__##id##_MAX_EVENTS][__##id##_MAX_STATES] = {               \
+          [__##id##_MAX_EVENTS][__##id##_MAX_STATES] = {                     \
           __VA_ARGS__                                                        \
     }
+/* Defines transitions for a single event for a FSM */ 
 #define INA_FSM_TRANSITION_EVENT(event, ...)                                 \
     { __VA_ARGS__ }
+/* Define a state transition in a FSM transition map */
 #define INA_FSM_TRANSITION(state, action, next_state)                        \
     { action, next_state }
-#define INA_FSM_GET_STATE(id)   (__##id##_fsm_state)
-#define INA_FSM_SET_STATE(id, state) __##id##_fsm_state = state
-#define INA_FSM_SET_EVENT(id, event) __##id##_fsm_event = event
+
+/* Get the current state of an FSM */
+#define INA_FSM_GET_STATE(id)                                                \
+    (__##id##_fsm_state)
+
+/* Set the current state of a FSM */
+#define INA_FSM_SET_STATE(id, state)                                         \
+    __##id##_fsm_state = state                          
+
+/* Set event for a FSM */
+#define INA_FSM_SET_EVENT(id, event)                                         \
+    __##id##_fsm_event = event
+
+/* Get last set event of a FSM */
+#define INA_FSM_GET_EVENT(id)                                                \
+    (__##id##_fsm_event)
+
+/* Get the next state for a FSM */
 #define INA_FSM_NEXT_STATE(id, context_ptr)                                  \
-     {                                                                       \
+{                                                                            \
      int32_t new_state = __##id##_fsm_transitions                            \
          [__##id##_fsm_event][__##id##_fsm_state].next_state;                \
     __##id##_fsm_transitions                                                 \
          [__##id##_fsm_event][__##id##_fsm_state].action(context_ptr);       \
     __##id##_fsm_state = new_state; } 
- 
 
 #ifdef __cplusplus
 }
