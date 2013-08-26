@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,28 @@
  */
 #include <libinac/lib.h>
 
+
+INA_TEST_DATA(string_mempool)
+{
+    ina_mempool_t *pool;
+};
+
+INA_TEST_SETUP(string_mempool)
+{
+    ina_err_reset();
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&data->pool, 10*1024,INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_NOT_NULL(data->pool);
+}
+
+INA_TEST_TEARDOWN(string_mempool)
+{
+    ina_mempool_release(data->pool, INA_YES);
+    data->pool = NULL;
+}
+
 INA_TEST(string, ina_str_newlen)
-{   
+{
+   
 }
 
 INA_TEST(string, ina_str_pnewlen)
@@ -36,14 +56,50 @@ INA_TEST(string, ina_str_pnewlen)
     
 }
 
+INA_TEST(string, ina_str_fromblk)
+{
+    ina_str_t str = NULL;
+    char blk[] = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    str = ina_str_fromblk(&blk[5], 4);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("DATA", ina_str_cstr(str));
+}
+
+INA_TEST_FIXTURE(string_mempool, ina_str_pfromblk)
+{
+    ina_str_t str = NULL;
+    char blk[] = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    str = ina_str_pfromblk(&blk[5], 4, data->pool);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("DATA", ina_str_cstr(str));
+}
+
 INA_TEST(string, ina_str_fromcstr)
 {
-    
+    ina_str_t str = NULL;
+    const char *cstring = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    str = ina_str_fromcstr(cstring);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR(cstring, ina_str_cstr(str));  
 }
+
+INA_TEST_FIXTURE(string_mempool, ina_str_pfromcstr)
+{
+    ina_str_t str = NULL;
+    const char *cstring = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    str = ina_str_pfromcstr(cstring, data->pool);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR(cstring, ina_str_cstr(str));    
+}
+
 
 INA_TEST(string, ina_str_destroy)
 {
-    
+    ina_str_t str = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(str));
+    str = ina_str_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(str));
 }
 
 INA_TEST(string, ina_str_dup)

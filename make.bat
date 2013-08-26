@@ -109,11 +109,13 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if "%INAC_BUILD_TYPE%" == "debug" (
 		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
-			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
+			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
+			%INAC_HOME%\contribs\luajit\src\lua51d.lib
 	) else (
 		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
-			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
+			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
+			%INAC_HOME%\contribs\luajit\src\lua51.lib
 	)
 )
 
@@ -123,7 +125,7 @@ SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.
-SET INAC_WIN32_C_BUILD_TOOL=cmake-nmake
+SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
 SET INAC_WIN32_C_TEST_SOURCE_DIR=tests
 SET INAC_WIN32_C_TEST_SUITE_EXEC=buildtest\test.exe
 

@@ -90,7 +90,7 @@ static ina_rc_t umon_start_monitor(void)
 int main(int argc,  char** argv) 
 { 
     INA_OPTS(opt,
-        INA_OPT_STRING("-r", "ring", NULL, "Define ring to monitor"));
+        INA_OPT_STRING("r", "ring", NULL, "Define ring to monitor"));
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
         return EXIT_FAILURE;
