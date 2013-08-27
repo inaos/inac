@@ -41,6 +41,63 @@ struct ina_ssl_ctx_s {
     ina_ssl_conn_t *conn;
 };
 
+static void __ina_ssl_error_lookup(int err, char *msg)
+{
+    switch (err) {
+        case SSL_ERROR_DEAD:
+            strcpy(msg, "SSL_ERROR_DEAD");
+            break;
+        case SSL_CLOSE_NOTIFY:
+            strcpy(msg, "SSL_ERROR_CLOSE_NOTIFY");
+            break;
+        case SSL_ERROR_CONN_LOST:
+            strcpy(msg, "SSL_ERROR_CONN_LOST");
+            break;
+        case SSL_ERROR_SOCK_SETUP_FAILURE:
+            strcpy(msg, "SSL_ERROR_SOCK_SETUP_FAILURE");
+            break;
+        case SSL_ERROR_INVALID_HANDSHAKE:
+            strcpy(msg, "SSL_ERROR_INVALID_HANDSHAKE");
+            break;
+        case SSL_ERROR_INVALID_PROT_MSG:
+            strcpy(msg, "SSL_ERROR_INVALID_PROT_MSG");
+            break;
+        case SSL_ERROR_INVALID_HMAC:
+            strcpy(msg, "SSL_ERROR_INVALID_HMAC");
+            break;
+        case SSL_ERROR_INVALID_VERSION:
+            strcpy(msg, "SSL_ERROR_INVALID_VERSION");
+            break;
+        case SSL_ERROR_INVALID_SESSION:
+            strcpy(msg, "SSL_ERROR_INVALID_SESSION");
+            break;
+        case SSL_ERROR_NO_CIPHER:
+            strcpy(msg, "SSL_ERROR_NO_CIPHER");
+            break;
+        case SSL_ERROR_BAD_CERTIFICATE:
+            strcpy(msg, "SSL_ERROR_BAD_CERTIFICATE");
+            break;
+        case SSL_ERROR_INVALID_KEY:
+            strcpy(msg, "SSL_ERROR_INVALID_KEY");
+            break;
+        case SSL_ERROR_FINISHED_INVALID:
+            strcpy(msg, "SSL_ERROR_FINISHED_INVALID");
+            break;
+        case SSL_ERROR_NO_CERT_DEFINED:
+            strcpy(msg, "SSL_ERROR_NO_CERT_DEFINED");
+            break;
+        case SSL_ERROR_NO_CLIENT_RENOG:
+            strcpy(msg, "SSL_ERROR_NO_CLIENT_RENOG");
+            break;
+        case SSL_ERROR_NOT_SUPPORTED:
+            strcpy(msg, "SSL_ERROR_NOT_SUPPORTED");
+            break;
+        default:
+            strcpy(msg, "SSL_UNKNOWN_ERROR");
+            break; 
+    }
+}
+
 INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx, int num_sessions)
 {
     *ctx = (ina_ssl_ctx_t*)ina_mem_alloc(sizeof(struct ina_ssl_ctx_s));
@@ -125,25 +182,52 @@ INA_API(ina_rc_t) ina_ssl_server_free(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ssl_read(ina_ssl_conn_t *conn, unsigned char **buf, int *bytes_read)
+INA_API(ina_rc_t) ina_ssl_read(ina_ssl_conn_t *conn, unsigned char **buf, size_t *bytes_read)
 {
     int ret;
 
     INA_ASSERT_NOTNULL(conn);
     ret = ssl_read(conn->conn, buf);
     if (ret == SSL_OK) {
-
+        return INA_SSL_EAGAIN;    
     }
+    if (ret < 0) {
+        char err[128];
+        __ina_ssl_error_lookup(ret, err);
+        return INA_SSL_ERROR(INA_EREAD, err);    
+    }
+    *bytes_read = ret;
 
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ssl_write(ina_ssl_conn_t *conn, unsigned char *buf, size_t buf_len)
+INA_API(ina_rc_t) ina_ssl_write(ina_ssl_conn_t *conn, unsigned char *buf, size_t buf_len, 
+                                size_t *bytes_written)
 {
+    int ret;
+    
+    INA_ASSERT_NOTNULL(conn);
+    ret = ssl_write(conn->conn, buf, buf_len);
+    if (ret < 0) {
+        char err[128];
+        __ina_ssl_error_lookup(ret, err);
+        return INA_SSL_ERROR(INA_EREAD, err);
+    }
+    *bytes_written = ret;
+
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_ssl_handshake_status(ina_ssl_conn_t *conn)
 {
+    int ret;
+    
+    INA_ASSERT_NOTNULL(conn);
+    ret = ssl_handshake_status(conn->conn);
+    if (ret != SSL_OK) {
+        return INA_SSL_EAGAIN;
+    }
+
     return INA_SUCCESS;
 }
+

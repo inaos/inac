@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2013, INAOS GmbH
+* Copyright (c) 2013, INAOS GmbH
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,61 @@
 */
 #include <libinac/lib.h>
 
+#define __INA_TCP_ADDR "127.0.0.1"
+#define __INA_TCP_PORT  8033
 
-
-INA_TEST_DATA(ssl_clientserver) {
+INA_TEST_DATA(ssl) {
     ina_test_hid_t hid;
+    int client_fd;
 };
 
-INA_TEST_SETUP(ssl_clientserver) {
-    INA_TEST_HELPER_INVOKE(&data->hid, iscp_tcp, tcp_server, "127.0.0.1", "9999", NULL);
-    
+INA_TEST_SETUP(ssl) {
+    INA_TEST_HELPER_INVOKE(&data->hid, ssl, non_blocking_echo_server,
+        __INA_TCP_ADDR,
+         INA_NUM2STR(__INA_TCP_PORT),
+         NULL);
 }
 
-INA_TEST_TEARDOWN(ssl_clientserver) {
+INA_TEST_TEARDOWN(ssl) {
+    if (data->client_fd > -1) {
+        ina_net_close(data->client_fd);
+    }
+    data->client_fd = -1;
     INA_TEST_HELPER_TERMINATE(&data->hid);
-    
-
-    ina_err_reset();
 }
 
-INA_TEST_FIXTURE(ssl_clientserver, send_tcp) {
-    
-    
+INA_TEST_FIXTURE(ssl, ssl_write_read) {
+    unsigned char buffer[1024];
+    unsigned char *readbuf = NULL;
+    size_t nb_read = 0;
+    size_t nb_write = 0;
+    ina_ssl_ctx_t *ssl_ctx = NULL;
+    ina_ssl_conn_t *ssl_conn = NULL;
+
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_init(&ssl_ctx, 1));
+
+    INA_TEST_ASSERT_SUCCEED(ina_net_tcp_connect(&data->client_fd,
+                            __INA_TCP_ADDR,
+                            __INA_TCP_PORT,
+                            5000));
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_client_new(ssl_ctx, &ssl_conn, data->client_fd));
+
+    INA_TEST_MSG("conected to %s:%d", __INA_TCP_ADDR, __INA_TCP_PORT);
+
+    ina_mem_set(buffer, 0, 1024);
+    strcpy((char*)buffer, "hello");
+    INA_TEST_MSG("write %s", buffer);
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_write(ssl_conn,
+                            buffer,
+                            strlen((const char*)buffer), &nb_write));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_read(ssl_conn,
+                            &readbuf,
+                            &nb_read));
+    INA_TEST_MSG("read %d bytes:%s", nb_read, (const char*)readbuf);
+    INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
+
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_client_free(ssl_ctx, &ssl_conn));
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_destroy(&ssl_ctx));
+}    
                             
-}
