@@ -34,10 +34,11 @@ typedef struct signal_light_s {
     int is_orange;
     int is_green;
     int c;
+    ina_fsm_status_t fsm_status;
 } signal_light_t;
 
 /* Define States */
-INA_FSM_STATES(my_fsm, 
+INA_FSM_STATES(signal_fsm, 
     INA_FSM_STATE(OFF),
     INA_FSM_STATE(ON),
     INA_FSM_STATE(RED),
@@ -45,7 +46,7 @@ INA_FSM_STATES(my_fsm,
     INA_FSM_STATE(GREEN));
 
 /* Define Events */
-INA_FSM_EVENTS(my_fsm, 
+INA_FSM_EVENTS(signal_fsm, 
     INA_FSM_EVENT(TURN_ON_OFF),
     INA_FSM_EVENT(SWITCH));
     
@@ -63,7 +64,7 @@ void turn_on(signal_light_t *sl)
     INA_TEST_ASSERT_TRUE(sl->is_green == INA_NO);    
     INA_TEST_ASSERT_TRUE(sl->c == 0);
     sl->is_on = INA_YES;
-    INA_FSM_SET_EVENT(my_fsm, SWITCH);
+    INA_FSM_SET_EVENT(signal_fsm, sl->fsm_status, SWITCH);
 }
 
 void turn_off(signal_light_t *sl)
@@ -115,12 +116,12 @@ void turn_green_on(signal_light_t *sl)
     sl->is_green = INA_YES;
     sl->c++;
     if (sl->c == 3) {
-        INA_FSM_SET_EVENT(my_fsm, TURN_ON_OFF);
+        INA_FSM_SET_EVENT(signal_fsm, sl->fsm_status, TURN_ON_OFF);
     }
 }
 
 /* Define Transistion Map */
-INA_FSM_TRANSITIONS(my_fsm,
+INA_FSM_TRANSITIONS(signal_fsm,
     INA_FSM_TRANSITION_EVENT(TURN_ON_OFF,
         INA_FSM_TRANSITION(OFF, turn_on, ON),
         INA_FSM_TRANSITION(ON, turn_off, OFF),
@@ -136,22 +137,23 @@ INA_FSM_TRANSITIONS(my_fsm,
 
 INA_TEST(fsm, signal_light)
 {
+    
     signal_light_t sl;
     ina_mem_set(&sl, 0, sizeof(signal_light_t));
 
     /* Set initial state */
-    INA_FSM_SET_STATE(my_fsm, OFF);
+    INA_FSM_SET_STATE(signal_fsm, sl.fsm_status, OFF);
     
     /* Set start Event */
-    INA_FSM_SET_EVENT(my_fsm, TURN_ON_OFF);
+    INA_FSM_SET_EVENT(signal_fsm, sl.fsm_status, TURN_ON_OFF);
     
-    /* Next State */
-    INA_FSM_NEXT_STATE(my_fsm, &sl);
+    INA_FSM_NEXT_STATE(signal_fsm, sl.fsm_status, &sl);        
     
-    /* Run util OFF */
-    while (INA_FSM_GET_STATE(my_fsm) != OFF) {
-        INA_FSM_NEXT_STATE(my_fsm, &sl);
-    }
+    /* Run until OFF */
+    while (INA_FSM_GET_STATE(signal_fsm, sl.fsm_status) != OFF){
+        INA_TRACE("event=%d, state=%d", INA_HIGH(sl.fsm_status), INA_LOW(sl.fsm_status));
+        INA_FSM_NEXT_STATE(signal_fsm, sl.fsm_status, &sl);
+    };
     INA_TEST_ASSERT_TRUE(sl.c == 3);
 }
 
