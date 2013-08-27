@@ -80,7 +80,14 @@ typedef struct ina_fsm_transistion_s {
     ina_fsm_transistion_t __##id##_fsm_transitions                           \
           [id##_MAX_EVENTS][id##_MAX_STATES] = {                             \
           __VA_ARGS__                                                        \
-    }
+    };                                                                       \
+    INA_INLINE id##_fsm_state_t id##_next_fsm_state(ina_fsm_status_t s, void* u) {     \
+        ina_fsm_transistion_t *__fsmt = &__##id##_fsm_transitions            \
+            [INA_FSM_GET_EVENT(id, s)][INA_FSM_GET_STATE(id, s)];            \
+        ina_fsm_state_t new_state = __fsmt->next_state;                      \
+       __fsmt->action(u);                                                    \
+       INA_FSM_SET_STATE(id, s, new_state);                                  \
+       return new_state; }
 
 /* Defines transitions for a single event for a FSM */ 
 #define INA_FSM_TRANSITION_EVENT(event, ...)                                 \
@@ -92,7 +99,7 @@ typedef struct ina_fsm_transistion_s {
 /* Get the current state of an FSM */
 #define INA_FSM_GET_STATE(id, status)                                        \
     id##_get_fsm_event(status)
-
+        
 /* Set the current state of a FSM */
 #define INA_FSM_SET_STATE(id, status, new_state)                             \
     id##_set_fsm_state(&status, new_state)                         
@@ -107,12 +114,8 @@ typedef struct ina_fsm_transistion_s {
 
 /* Get the next state for a FSM */
 #define INA_FSM_NEXT_STATE(id, status, userdata)                             \
-{                                                                            \
-     ina_fsm_transistion_t *__fsmt = &__##id##_fsm_transitions               \
-         [INA_FSM_GET_EVENT(id, status)][INA_FSM_GET_STATE(id, status)];     \
-     ina_fsm_state_t new_state = __fsmt->next_state;                         \
-    __fsmt->action(userdata);                                                \
-    INA_FSM_SET_STATE(id, status, new_state); }
+  id##_next_fsm_state(status, userdata)                                                               \
+  
 
 #ifdef __cplusplus
 }

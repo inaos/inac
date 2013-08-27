@@ -146,13 +146,10 @@ INA_TEST(fsm, signal_light)
     
     /* Set start Event */
     INA_FSM_SET_EVENT(signal_fsm, sl.fsm_status, TURN_ON_OFF);
-    
-    INA_FSM_NEXT_STATE(signal_fsm, sl.fsm_status, &sl);        
-    
+
     /* Run until OFF */
-    while (INA_FSM_GET_STATE(signal_fsm, sl.fsm_status) != OFF){
+    while (INA_FSM_NEXT_STATE(signal_fsm, sl.fsm_status, &sl) != OFF){
         INA_TRACE("event=%d, state=%d", INA_HIGH(sl.fsm_status), INA_LOW(sl.fsm_status));
-        INA_FSM_NEXT_STATE(signal_fsm, sl.fsm_status, &sl);
     };
     INA_TEST_ASSERT_TRUE(sl.c == 3);
 }
