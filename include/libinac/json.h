@@ -70,7 +70,7 @@ typedef struct ina_json_data_s {
 /*
  * 
  */
-INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, int parser_pool_size
+INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, int parser_pool_size,
                                 int generator_pool_size);
 /*
  * 
