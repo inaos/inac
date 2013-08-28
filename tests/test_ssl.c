@@ -36,7 +36,7 @@ INA_TEST_DATA(ssl) {
 };
 
 INA_TEST_SETUP(ssl) {
-    INA_TEST_HELPER_INVOKE(&data->hid, ssl, non_blocking_echo_server,
+    INA_TEST_HELPER_INVOKE(&data->hid, ssl, ssl_server,
         __INA_TCP_ADDR,
          INA_NUM2STR(__INA_TCP_PORT),
          NULL);

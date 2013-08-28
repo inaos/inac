@@ -35,7 +35,7 @@ static void __cleanup_handler(int sig, int *error)
     *error = EXIT_SUCCESS;
 }
 
-INA_TEST_HELPER(ssl_clientserver, ssl_server) {
+INA_TEST_HELPER(ssl, ssl_server) {
     const char *addr;
     int32_t port;
     ina_ssl_conn_t *ssl_conn;
