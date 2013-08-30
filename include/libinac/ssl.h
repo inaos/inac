@@ -43,7 +43,7 @@ typedef struct ina_ssl_conn_s ina_ssl_conn_t;
 /*
  * 
  */
-INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx, int num_sessions);
+INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx, int num_sessions, uint32_t options);
 /*
  * 
  */
@@ -73,6 +73,10 @@ INA_API(ina_rc_t) ina_ssl_read(ina_ssl_conn_t *conn, unsigned char **buf, size_t
  */
 INA_API(ina_rc_t) ina_ssl_write(ina_ssl_conn_t *conn, unsigned char *buf, size_t buf_len, 
                                 size_t *bytes_written);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_ssl_handshake(ina_ssl_conn_t *conn);
 /*
  * 
  */

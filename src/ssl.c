@@ -98,11 +98,11 @@ static void __ina_ssl_error_lookup(int err, char *msg)
     }
 }
 
-INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx, int num_sessions)
+INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx, int num_sessions, uint32_t options)
 {
     *ctx = (ina_ssl_ctx_t*)ina_mem_alloc(sizeof(struct ina_ssl_ctx_s));
     INA_ASSERT_NOTNULL(*ctx);
-    
+    (*ctx)->options = options;
     (*ctx)->ssl = ssl_ctx_new((*ctx)->options, num_sessions);
     (*ctx)->conn = NULL;
 
@@ -214,6 +214,18 @@ INA_API(ina_rc_t) ina_ssl_write(ina_ssl_conn_t *conn, unsigned char *buf, size_t
         return INA_SSL_ERROR(INA_EREAD, err);
     }
     *bytes_written = ret;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ssl_handshake(ina_ssl_conn_t *conn)
+{
+    int ret;
+    INA_ASSERT_NOTNULL(conn);
+    ret = ssl_renegotiate(conn->conn);
+    if (ret != SSL_OK) {
+        return INA_SSL_EAGAIN;
+    }
 
     return INA_SUCCESS;
 }
