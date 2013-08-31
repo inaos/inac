@@ -52,6 +52,31 @@ struct ina_cron_task_itr_s {
     ina_cron_task_t *cursor;
 } ina_cron_task_itr_s;
 
+struct ina_cron_func_s {
+    unsigned long key;
+    char mins[60]; /* 0-59 */
+    char hours[24];	/* 0-23 */
+    char days[32]; /* 1-31 */
+    char mons[12]; /* 0-11 */
+    char dow[7]; /* 0-6, beginning sunday */
+    ina_cron_func_cb cb;
+    void *user_data;
+    UT_hash_handle hh;
+} ina_cron_func_s;
+
+typedef enum __ina_cron_schedulable_item_e {
+    __INA_CRON_SCHEDULABLE_ITEM_TASK,
+    __INA_CRON_SCHEDULABLE_ITEM_FUNCTION
+} __ina_cron_schedulable_item_t;
+
+typedef struct __ina_cron_schedulable_s {
+    __ina_cron_schedulable_item_t item;
+    union {
+        ina_cron_task_t *task;
+        ina_cron_func_t *func;
+    };
+} __ina_cron_schedulable_t;
+
 const char *dow_array[] = {
     "sun",
     "mon",
@@ -133,7 +158,8 @@ static char *__parse_field(char *ary, int modvalue, int off, const char **names,
 				n2 = strtol(ptr, &ptr, 10) + off;
 			}
 			skip = 1;
-		} else if (names) {
+		}
+        else if (names) {
 			int i;
 			for (i = 0; names[i]; ++i) {
 				if (strncmp(ptr, names[i], strlen(names[i])) == 0) {
@@ -217,44 +243,80 @@ static char *__parse_field(char *ary, int modvalue, int off, const char **names,
 /*
  *
  */
-static void __fix_day_dow(ina_cron_task_t *task)
+static void __fix_day_dow(__ina_cron_schedulable_t *sched)
 {
     unsigned short i;
     short weekUsed = 0;
     short daysUsed = 0;
 
-    for (i = 0; i < arysize(task->dow); ++i) {
-        if (task->dow[i] == 0) {
-            weekUsed = 1;
-            break;
-		}
+    if (sched->item == __INA_CRON_SCHEDULABLE_ITEM_TASK) {
+        ina_cron_task_t *task = sched->task;
+        for (i = 0; i < arysize(task->dow); ++i) {
+            if (task->dow[i] == 0) {
+                weekUsed = 1;
+                break;
+		    }
+        }
+        for (i = 0; i < arysize(task->days); ++i) {
+            if (task->days[i] == 0) {
+                daysUsed = 1;
+                break;
+		    }
+        }
+        if (weekUsed && !daysUsed) {
+            memset(task->days, 0, sizeof(task->days));
+        }
+        if (daysUsed && !weekUsed) {
+            memset(task->dow, 0, sizeof(task->dow));
+        }
     }
-    for (i = 0; i < arysize(task->days); ++i) {
-        if (task->days[i] == 0) {
-            daysUsed = 1;
-            break;
-		}
+    else {
+        ina_cron_func_t *func = sched->func;
+        for (i = 0; i < arysize(func->dow); ++i) {
+            if (func->dow[i] == 0) {
+                weekUsed = 1;
+                break;
+		    }
+        }
+        for (i = 0; i < arysize(func->days); ++i) {
+            if (func->days[i] == 0) {
+                daysUsed = 1;
+                break;
+		    }
+        }
+        if (weekUsed && !daysUsed) {
+            memset(func->days, 0, sizeof(func->days));
+        }
+        if (daysUsed && !weekUsed) {
+            memset(func->dow, 0, sizeof(func->dow));
+        }
     }
-    if (weekUsed && !daysUsed) {
-        memset(task->days, 0, sizeof(task->days));
-    }
-    if (daysUsed && !weekUsed) {
-        memset(task->dow, 0, sizeof(task->dow));
-    }
+    
 }
 /*
  *
  */
-static ina_rc_t __parse_cron_pattern(char *pattern_buf, ina_cron_task_t *task)
+static ina_rc_t __parse_cron_pattern(char *pattern_buf, __ina_cron_schedulable_t *sched)
 {
 	/*
 	 * parse date ranges
 	 */
-	pattern_buf = __parse_field(task->mins, 60, 0, NULL, pattern_buf);
-	pattern_buf = __parse_field(task->hours,  24, 0, NULL, pattern_buf);
-	pattern_buf = __parse_field(task->days, 32, 0, NULL, pattern_buf);
-	pattern_buf = __parse_field(task->mons, 12, -1, mon_array, pattern_buf);
-	pattern_buf = __parse_field(task->dow, 7, 0, dow_array, pattern_buf);
+    if (sched->item == __INA_CRON_SCHEDULABLE_ITEM_TASK) {
+        ina_cron_task_t *task = sched->task;
+	    pattern_buf = __parse_field(task->mins, 60, 0, NULL, pattern_buf);
+	    pattern_buf = __parse_field(task->hours,  24, 0, NULL, pattern_buf);
+	    pattern_buf = __parse_field(task->days, 32, 0, NULL, pattern_buf);
+	    pattern_buf = __parse_field(task->mons, 12, -1, mon_array, pattern_buf);
+	    pattern_buf = __parse_field(task->dow, 7, 0, dow_array, pattern_buf);
+    }
+    else {
+        ina_cron_func_t *func = sched->func;
+        pattern_buf = __parse_field(func->mins, 60, 0, NULL, pattern_buf);
+	    pattern_buf = __parse_field(func->hours,  24, 0, NULL, pattern_buf);
+	    pattern_buf = __parse_field(func->days, 32, 0, NULL, pattern_buf);
+	    pattern_buf = __parse_field(func->mons, 12, -1, mon_array, pattern_buf);
+	    pattern_buf = __parse_field(func->dow, 7, 0, dow_array, pattern_buf);
+    }
 
 	/*
 	 * check failure
@@ -268,7 +330,7 @@ static ina_rc_t __parse_cron_pattern(char *pattern_buf, ina_cron_task_t *task)
 	 * fix days and dow - if one is not * and the other
 	 * is *, the other is set to 0, and vise-versa
 	 */
-	__fix_day_dow(task);
+	__fix_day_dow(sched);
 
 	return INA_SUCCESS;
 }
@@ -288,6 +350,7 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
     for (t = t1 - t1 % 60; t <= t2; t += 60) {
 		if (t > t1) {
 			ina_cron_task_t *task, *ttmp;
+            ina_cron_func_t *func, *ftmp;
 			struct tm *tp = localtime(&t);
 	    
 			/* iterate through tasks */
@@ -305,6 +368,16 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
 					}
 				}
 			}
+
+            /* iterate through function callbacks */
+            HASH_ITER(hh, ctx->func_head, func, ftmp) {
+                if (task->mins[tp->tm_min] && task->hours[tp->tm_hour] &&
+						(task->days[tp->tm_mday] || task->dow[tp->tm_wday]) &&
+						task->mons[tp->tm_mon]) {
+                            /* execute callback */
+                            func->cb(ctx, func->user_data);
+                }
+            }
 		}
 	}
     return(njobs);
@@ -426,6 +499,7 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx, ina_cron_load_cb load_cb, 
 	}
 	(*ctx)->data = NULL;
 	(*ctx)->task_head = NULL;
+    (*ctx)->func_head = NULL;
 	(*ctx)->t1 = time(NULL);
 	(*ctx)->t2 = 0;
 	(*ctx)->stime = 60;
@@ -435,11 +509,17 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx, ina_cron_load_cb load_cb, 
 INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
 {
 	ina_cron_task_t *t, *ttmp;
+    ina_cron_func_t *f, *ftmp;
 	
     HASH_ITER(hh, (*ctx)->task_head, t, ttmp) {
 		HASH_DELETE(hh, (*ctx)->task_head, t);
 		__free_task(&t);
 	}
+
+    HASH_ITER(hh, (*ctx)->func_head, f, ftmp) {
+        HASH_DELETE(hh, (*ctx)->func_head, f);
+        ina_mem_free(f);
+    }
 	
 	ina_mem_free(*ctx);
 
@@ -462,6 +542,7 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
 	
 	/* create a new task */
 	if (task == NULL) {
+        __ina_cron_schedulable_t sched;
         size_t slen = strlen(pattern);
 		char *buf = (char*)ina_mem_alloc(slen+2);
 		buf = strcpy(buf, pattern);
@@ -479,7 +560,9 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
         task->hproc = NULL;
 #endif
 		
-        if (!INA_SUCCEED(__parse_cron_pattern(buf, task))) {
+        sched.item = __INA_CRON_SCHEDULABLE_ITEM_TASK;
+        sched.task = task;
+        if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
             return ina_err_peek();
         }
@@ -584,5 +667,43 @@ INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task, int *running)
 INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pattern)
 {
     *pattern = task->pattern;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id, 
+                                             const char *pattern, ina_cron_func_cb cb)
+{
+    ina_cron_func_t *func = NULL;
+    ina_str_t skey = ina_str_fromcstr(id);
+    unsigned long key = INA_HASH_STR_TO_SDBM(skey);
+    
+    ina_str_destroy(skey);
+	
+	/* check if we already have this function - by using the ID */
+	HASH_FIND_ULONG(ctx->func_head, &key, func);
+
+    /* create a function callback */
+	if (func == NULL) {
+        __ina_cron_schedulable_t sched;
+        size_t slen = strlen(pattern);
+		char *buf = (char*)ina_mem_alloc(slen+2);
+		buf = strcpy(buf, pattern);
+        buf[slen] = '\n';
+		
+		func = (ina_cron_func_t*)ina_mem_alloc(sizeof(ina_cron_func_t));
+		func->key = key;
+		
+        sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
+        sched.func = func;
+        if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
+            ina_mem_free(buf);
+            return ina_err_peek();
+        }
+		
+		ina_mem_free(buf);
+
+        HASH_ADD_ULONG(ctx->func_head, key, func);
+	}
+	
     return INA_SUCCESS;
 }
