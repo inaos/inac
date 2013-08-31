@@ -20,6 +20,7 @@ set(HTTP_LIB_NAME "http_parser")
 set(SQLITE_LIB_NAME "sqlite")
 set(RAPIDXML_LIB_NAME "rapidxml")
 set(AXTLS_LIB_NAME "axtls")
+set(YAJL_LIB_NAME "yajl")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -74,7 +75,14 @@ set (AXTLS_SRC     ${AXTLS_SRC_DIR}/aes.c ${AXTLS_SRC_DIR}/bigint.c ${AXTLS_SRC_
 				   ${AXTLS_SRC_DIR}/loader.c ${AXTLS_SRC_DIR}/p12.c ${AXTLS_SRC_DIR}/tls1.c
 				   ${AXTLS_SRC_DIR}/tls1_clnt.c ${AXTLS_SRC_DIR}/tls1_svr.c ${AXTLS_SRC_DIR}/x509.c)
 add_library(${AXTLS_LIB_NAME} ${AXTLS_SRC})
-					  
+
+# YAJL
+set (YAJL_SRC_DIR ${DEPS_DIR}/yajl)
+set (YAJL_SRC     ${YAJL_SRC_DIR}/yajl.c ${YAJL_SRC_DIR}/yajl_alloc.c ${YAJL_SRC_DIR}/yajl_buf.c
+                  ${YAJL_SRC_DIR}/yajl_encode.c ${YAJL_SRC_DIR}/yajl_gen.c ${YAJL_SRC_DIR}/yajl_lex.c
+				  ${YAJL_SRC_DIR}/yajl_parser.c ${YAJL_SRC_DIR}/yajl_tree.c ${YAJL_SRC_DIR}/yajl_version.c)
+add_library(${YAJL_LIB_NAME} ${YAJL_SRC})
+				  
 # END dependencies
 
 # BEGIN backend configuration
@@ -92,7 +100,7 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/time_os.c ${SRC_DIR}/time_meinberg.c
 				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
 				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c 
-				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c)
+				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c ${SRC_DIR}/json.c ${SRC_DIR}/service.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
