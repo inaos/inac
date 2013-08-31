@@ -21,6 +21,7 @@ set(INAC_TESTLIB_NAME "testinac")
 #set build-type specific variables
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
 	#Preprocessor
+	SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 	add_definitions(-DINA_OS_WIN32 -DINA_LIB -D_CRT_SECURE_NO_WARNINGS)	
 else()
 	#Preprocessor
