@@ -58,7 +58,7 @@ INA_TEST_FIXTURE(ssl, ssl_write_read) {
     ina_ssl_ctx_t *ssl_ctx = NULL;
     ina_ssl_conn_t *ssl_conn = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_ssl_init(&ssl_ctx, 1));
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_init(&ssl_ctx, 1, 0));
 
     INA_TEST_ASSERT_SUCCEED(ina_net_tcp_connect(&data->client_fd,
                             __INA_TCP_ADDR,

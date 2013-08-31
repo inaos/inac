@@ -50,7 +50,7 @@ INA_TEST_HELPER(ssl, ssl_server) {
     
     ina_set_cleanup_handler(__cleanup_handler);
     
-    if (!INA_SUCCEED(ina_ssl_init(&__ssl, 1))) {
+    if (!INA_SUCCEED(ina_ssl_init(&__ssl, 1, 0))) {
         INA_TEST_HELPER_SET_RC(ina_err_peek());
         return;
     }
