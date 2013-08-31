@@ -39,10 +39,10 @@ typedef struct ina_json_parser_s ina_json_parser_t;
 typedef struct ina_json_generator_s ina_json_generator_t;
 
 typedef struct ina_json_ctx_s {
-	int parser_pool_size;
-        int generator_pool_size;
-	ina_json_parser_t *parsers;
-        ina_json_generator_t *generators;
+    int parser_pool_size;
+    int generator_pool_size;
+    ina_json_parser_t *parsers;
+    ina_json_generator_t *generators;
 } ina_json_ctx_t;
 
 typedef enum ina_json_parse_event_e {
