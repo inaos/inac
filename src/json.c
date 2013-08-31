@@ -30,8 +30,8 @@
 
 #include <libinac/utlist.h>
 
-#include <contribs/yajl/api/yajl_parse.h>  
-#include <contribs/yajl/api/yajl_gen.h>
+#include <contribs/yajl/yajl_parse.h>  
+#include <contribs/yajl/yajl_gen.h>
 
 /* 
  * If you plan to have very large buffers you might need to increase  
@@ -243,7 +243,7 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, int parser_pool_size,
 
     for (i = 0; i < generator_pool_size; i++) {
         ina_json_generator_t *g = (ina_json_generator_t*)ina_mem_alloc(sizeof(struct ina_json_generator_s));
-        g->handle = yajl_gen_alloc(&__ina_json_yajl_alloc_funcs);
+        g->handle = (yajl_handle)yajl_gen_alloc(&__ina_json_yajl_alloc_funcs);
         DL_APPEND((*ctx)->generators, g);
     }
    

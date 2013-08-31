@@ -1,7 +1,6 @@
 SRC = $(wildcard *.c)
 OBJS = $(SRC:%.c=%.o) $(DIRS:%=%.o)
 THIS_LIB = yajl.a
-CFLAGS += -Iapi
 
 all: $(OBJS)
 	@ar rcs $(THIS_LIB) $(OBJS)
