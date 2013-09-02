@@ -227,7 +227,6 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         size = INA_MEM_MIN_POOL_SIZE;
     }
     size = __INA_MEM_ALIGN(size);
-    
 
     *pool = (ina_mempool_t*)__ina_mp_malloc(sizeof(ina_mempool_t));
     if (*pool == NULL) {
@@ -274,20 +273,20 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     }
 
     if (!(cf&INA_MEM_CHILD)) {
-    	last = __pools;
-    	while (last != NULL && last->next != NULL) {
+        last = __pools;
+        while (last != NULL && last->next != NULL) {
             last = last->next;
-    	}
+        }
 
-    	next = (__ina_mplist_t*)__ina_mp_malloc(sizeof(__ina_mplist_t));
-    	if (next == NULL) {
+        next = (__ina_mplist_t*)__ina_mp_malloc(sizeof(__ina_mplist_t));
+        if (next == NULL) {
             ina_mem_free((*pool)->label);
             __ina_mp_free((*pool)->m);
             __ina_mp_free(*pool);
             *pool = NULL;
            return ina_err_peek();
         }
-    	if (last != NULL) {
+        if (last != NULL) {
             last->next = next;
             next->next = NULL;
             next->pool = *pool;
@@ -350,7 +349,7 @@ INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool
     __ina_mplist_t *next;
 
     INA_ASSERT_NOTNULL(label);
-    
+
      if (__pools == NULL) {
          return INA_FAILURE;
      }
@@ -512,7 +511,7 @@ INA_API(ina_rc_t) ina_mempool_destroy(void)
         if (next->active == 1) {
             /* FXIME: error handling */
             ina_mempool_release(next->pool, 1);
-	    next->active = 0;
+            next->active = 0;
         }
         next = next->next;
     }
@@ -543,12 +542,12 @@ static void *
 __ina_sys_realloc(void *src, size_t nb) 
 {
     INA_ASSERT_NOTNULL(__pool);
-    
+
     if (nb == 0 && src != NULL) {
         ina_mem_free(src);
         return NULL;
     }
-    
+
     if (src != NULL) {
         void *p = ina_mempool_dalloc(__pool, nb);
         ina_mem_cpy(p, src, nb);
