@@ -81,12 +81,12 @@ typedef struct ina_fsm_transistion_s {
           [id##_MAX_EVENTS][id##_MAX_STATES] = {                             \
           __VA_ARGS__                                                        \
     };                                                                       \
-    INA_INLINE id##_fsm_state_t id##_next_fsm_state(ina_fsm_status_t s, void* u) {     \
+    INA_INLINE id##_fsm_state_t id##_next_fsm_state(ina_fsm_status_t *s, void* u) {     \
         ina_fsm_transistion_t *__fsmt = &__##id##_fsm_transitions            \
-            [INA_FSM_GET_EVENT(id, s)][INA_FSM_GET_STATE(id, s)];            \
-        ina_fsm_state_t new_state = __fsmt->next_state;                      \
+            [id##_get_fsm_event(*s)][id##_get_fsm_state(*s)];              \
+        id##_fsm_state_t new_state = (id##_fsm_state_t)__fsmt->next_state;   \
        __fsmt->action(u);                                                    \
-       INA_FSM_SET_STATE(id, s, new_state);                                  \
+       id##_set_fsm_state(s, new_state);                                     \
        return new_state; }
 
 /* Defines transitions for a single event for a FSM */ 
@@ -114,7 +114,7 @@ typedef struct ina_fsm_transistion_s {
 
 /* Get the next state for a FSM */
 #define INA_FSM_NEXT_STATE(id, status, userdata)                             \
-  id##_next_fsm_state(status, userdata)                                                               \
+  id##_next_fsm_state(&status, userdata)                                                               \
   
 
 #ifdef __cplusplus
