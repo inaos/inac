@@ -543,10 +543,18 @@ static void *
 __ina_sys_realloc(void *src, size_t nb) 
 {
     INA_ASSERT_NOTNULL(__pool);
-    INA_ASSERT_NOTNULL(src);
-    INA_ASSERT(nb > 0);
-    /* FIXME */
-    return ina_mempool_ralloc(__pool, src, nb, nb);
+    
+    if (nb == 0 && src != NULL) {
+        ina_mem_free(src);
+        return NULL;
+    }
+    
+    if (src != NULL) {
+        void *p = ina_mempool_dalloc(__pool, nb);
+        ina_mem_cpy(p, src, nb);
+        return p;
+    }
+    return ina_mempool_dalloc(__pool, nb);
 }
 
 static void 
