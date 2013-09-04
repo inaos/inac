@@ -89,25 +89,22 @@ static ina_rc_t __ina_parser_stack_destroy(ina_json_parser_t *p)
     return INA_SUCCESS;
 }
 
-int __ina_check_and_incr_data_stack(ina_json_parser_t *p)
+INA_INLINE int __ina_check_and_incr_data_stack(ina_json_parser_t *p)
 {
     if (p->stack_pointer++ == __INA_JSON_PARSER_DATA_STACK_SIZE) {
         p->error_state = INA_ELIMIT;
         p->error_msg = ina_str_fromcstr("Data Stack overflow");
-        return yajl_status_error;
+        return INA_NO;
     }
     p->stack_size++;
-    return yajl_status_ok;
+    return INA_YES;
 }
 
 int __ina_yajl_cb_null(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_DATA_NULL;   
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_boolean(void *ctx, int32_t value)
@@ -116,10 +113,7 @@ int __ina_yajl_cb_boolean(void *ctx, int32_t value)
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_DATA_BOOL;
     p->stack[p->stack_pointer].size = sizeof(int32_t);
     p->stack[p->stack_pointer].value.b = value;
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_integer(void *ctx, long long value)
@@ -129,10 +123,7 @@ int __ina_yajl_cb_integer(void *ctx, long long value)
     /* FIXME: data loss */
     p->stack[p->stack_pointer].size = sizeof(long long);
     p->stack[p->stack_pointer].value.i = value;
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_double(void *ctx, double value)
@@ -141,10 +132,7 @@ int __ina_yajl_cb_double(void *ctx, double value)
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_DATA_DOUBLE;
     p->stack[p->stack_pointer].size = sizeof(double);
     p->stack[p->stack_pointer].value.d = value;
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_string(void *ctx, const unsigned char *value, size_t len)
@@ -153,60 +141,44 @@ int __ina_yajl_cb_string(void *ctx, const unsigned char *value, size_t len)
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_DATA_STRING;
     p->stack[p->stack_pointer].value.s = value;
     p->stack[p->stack_pointer].size = len; 
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_start_map(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_START_OBJECT;
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
-int __ina_yajl_cb_map_key(void *ctx, const unsigned char *key, size_t stringLen)
+int __ina_yajl_cb_map_key(void *ctx, const unsigned char *key, size_t len)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_OBJECT_KEY;
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    p->stack[p->stack_pointer].value.s = key;
+    p->stack[p->stack_pointer].size = len; 
+    return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_end_map(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_END_OBJECT;
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_start_array(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_START_ARRAY;
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_end_array(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_END_ARRAY;
-    if (__ina_check_and_incr_data_stack(p) != yajl_status_ok) {
-        return INA_NO;
-    }
-    return INA_YES;
+    return __ina_check_and_incr_data_stack(p);
 }
 
 void *__ina_yajl_alloc(void *ctx, size_t sz)
