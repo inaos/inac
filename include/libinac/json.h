@@ -34,17 +34,21 @@
 extern "C" {
 #endif
 
-/* Opaque structures */
-typedef struct ina_json_parser_s ina_json_parser_t;
+/* Opaque type representing a JSON parser */
+typedef struct ina_json_parser_s    ina_json_parser_t;
+/* Opaque type representing a JSON generator */
 typedef struct ina_json_generator_s ina_json_generator_t;
 
+/* JSON context */
 typedef struct ina_json_ctx_s {
-    int parser_pool_size;
-    int generator_pool_size;
-    ina_json_parser_t *parsers;
-    ina_json_generator_t *generators;
+    int32_t parser_pool_size;     /* Pool size for pre-allocated parser */
+    int32_t generator_pool_size;  /* Pool size for pre-allocated generators */
+    ina_json_parser_t *parsers;   /* Pre-allocated parsers */
+    ina_json_generator_t *generators; /* Pre-allocated generators */
+    ina_mempool_t *mempool;       /* Memory pool uses by parsers/generators */
 } ina_json_ctx_t;
 
+/* Parsing events */
 typedef enum ina_json_parse_event_e {
     INA_JSON_PARSE_EVENT_START_OBJECT = 0,
     INA_JSON_PARSE_EVENT_OBJECT_KEY,
@@ -60,18 +64,21 @@ typedef enum ina_json_parse_event_e {
 
 typedef struct ina_json_data_s {
     ina_json_parse_event_t event;
-    const unsigned char *str_val;
-    size_t str_len;
-    int bool_val;
-    int64_t int_val;
-    double double_val;
+    size_t size;
+    union {
+        const unsigned char *s;
+        int32_t b;
+        int64_t i;
+        double  d;
+    } value;
 } ina_json_data_t;
 
 /*
  * 
  */
-INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, int parser_pool_size,
-                                int generator_pool_size);
+INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, 
+                                int32_t parser_pool_size,
+                                int32_t generator_pool_size);
 /*
  * 
  */
@@ -79,27 +86,34 @@ INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_json_parser_borrow(ina_json_ctx_t *ctx, ina_json_parser_t **p);
+INA_API(ina_rc_t) ina_json_parser_borrow(ina_json_ctx_t *ctx, 
+                                         ina_json_parser_t **parser);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_json_parser_release(ina_json_ctx_t *ctx, ina_json_parser_t **p);
+INA_API(ina_rc_t) ina_json_parser_release(ina_json_ctx_t *ctx, 
+                                          ina_json_parser_t **parser);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *p, unsigned char *buffer, size_t buf_len);
+INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *parser, 
+                                          unsigned char *buffer, 
+                                          size_t buf_len);
 /*
  *
  */
-INA_API(ina_rc_t) ina_json_generator_borrow(ina_json_ctx_t *ctx, ina_json_generator_t **p);
+INA_API(ina_rc_t) ina_json_generator_borrow(ina_json_ctx_t *ctx, 
+                                            ina_json_generator_t **parser);
 /*
  *
  */
-INA_API(ina_rc_t) ina_json_generator_release(ina_json_ctx_t *ctx, ina_json_generator_t **p);
+INA_API(ina_rc_t) ina_json_generator_release(ina_json_ctx_t *ctx, 
+                                             ina_json_generator_t **parser);
 /*
  *
  */
-INA_API(ina_rc_t) ina_json_parser_try_data(ina_json_parser_t *p, ina_json_data_t **data);
+INA_API(ina_rc_t) ina_json_parser_try_data(ina_json_parser_t *parser, 
+                                           ina_json_data_t **data);
 /*
  *
  */ 
