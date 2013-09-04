@@ -30,7 +30,7 @@
 const static char * __object = "{"
 "\"anObject\": {"
     "\"numericProperty\": -122,"
-    "\"stringProperty\": An offensive is problematic\","
+    "\"stringProperty\": \"An offensive is problematic\","
     "\"nullProperty\": null,"
     "\"booleanProperty\": true,"
     "\"dateProperty\": \"2011-09-23\","
