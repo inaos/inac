@@ -76,9 +76,10 @@ static ina_rc_t __ina_push_yajl_error()
 
 static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p)
 {
-    p->stack_size = __INA_JSON_PARSER_DATA_STACK_SIZE;
+    p->stack_size = 0;
     p->stack_pointer = 0;
-    p->stack = (ina_json_data_t*)ina_mem_alloc(sizeof(ina_json_data_t)*p->stack_size);
+    p->stack = (ina_json_data_t*)ina_mem_alloc(
+                    sizeof(ina_json_data_t)*__INA_JSON_PARSER_DATA_STACK_SIZE);
     return INA_SUCCESS;
 }
 
@@ -91,6 +92,7 @@ static ina_rc_t __ina_parser_stack_destroy(ina_json_parser_t *p)
 int __ina_check_and_incr_data_stack(ina_json_parser_t *p)
 {
     if (p->stack_pointer++ == __INA_JSON_PARSER_DATA_STACK_SIZE) {
+        p->stack_size++;
         p->error_state = INA_ELIMIT;
         p->error_msg = ina_str_fromcstr("Data Stack overflow");
         return yajl_status_error;
@@ -362,6 +364,7 @@ INA_API(ina_rc_t) ina_json_parser_release(ina_json_ctx_t *ctx, ina_json_parser_t
     /* return parser */
     DL_APPEND(ctx->parsers, parser);
     parser->stack_pointer = 0;
+    parser->stack_size = 0;
 
     __ina_reset_mempool(ctx);
 
@@ -438,7 +441,7 @@ INA_API(ina_rc_t) ina_json_parser_try_data(ina_json_parser_t *p, ina_json_data_t
     INA_ASSERT_NOTNULL(p);
 
     if (p->stack_pointer > 0) {
-        ina_json_data_t *d = &p->stack[p->stack_pointer];
+        ina_json_data_t *d = &p->stack[(p->stack_size-p->stack_pointer)];
         if (!INA_SUCCEED(p->error_state)) {
             return INA_JSON_ERROR(p->error_state, ina_str_cstr(p->error_msg));
         }
