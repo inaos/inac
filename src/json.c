@@ -68,12 +68,6 @@ static void __ina_reset_mempool(ina_json_ctx_t *ctx)
     }
 }
 
-static ina_rc_t __ina_push_yajl_error()
-{
-    return INA_SUCCESS;
-}
-
-
 static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p)
 {
     p->stack_size = 0;
@@ -376,17 +370,22 @@ INA_API(ina_rc_t) ina_json_generator_release(ina_json_ctx_t *ctx, ina_json_gener
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *p, unsigned char *buffer, size_t buf_len)
+INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *p, 
+                                          const unsigned char *buffer, 
+                                          size_t buf_len,
+                                          int32_t complete)
 {
     yajl_status s;
 
-    if (p->stack_pointer != p->stack_size) {
+    if (p->stack_pointer > 0) {
         return INA_JSON_ERROR(INA_EOVRFL, 
-            "Stack not reset, consume all pending data items first");        
+            "Stack not reset, consume all pending data items first or reset parser");        
     }
 
     s  = yajl_parse(p->handle, buffer, buf_len);
- 
+    if (complete == INA_YES) {
+        s = yajl_complete_parse(p->handle);
+    }
     if (s == yajl_status_ok) {
         return INA_SUCCESS;
     }
@@ -396,12 +395,6 @@ INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *p, unsigned char *b
         unsigned char *errmsg = yajl_get_error(p->handle, 1, buffer, buf_len);
         INA_JSON_ERROR(INA_EINVAL, (const char*)errmsg);
         yajl_free_error(p->handle, errmsg);
-    } else {
-        if (yajl_complete_parse(p->handle) != yajl_status_ok) {
-            unsigned char *errmsg = yajl_get_error(p->handle, 1, buffer, buf_len);
-            INA_JSON_ERROR(INA_EINVAL, (const char*)errmsg);
-            yajl_free_error(p->handle, errmsg);            
-        }
     }
     return INA_SUCCESS;
 }
@@ -514,6 +507,24 @@ INA_API(ina_rc_t) ina_json_generator_add_string(ina_json_generator_t *g, const c
     if (yajl_gen_status_ok != yajl_gen_string(g->handle, (const unsigned char*)str, len)) {
         return INA_FAILURE;
     }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_json_generator_get_buffer(ina_json_generator_t *g, 
+                                                const unsigned char **buffer,
+                                                size_t *len)
+{
+    INA_ASSERT_NOTNULL(g);
+    if (yajl_gen_status_ok == yajl_gen_get_buf(g->handle, buffer, len)) {
+        return INA_SUCCESS;
+    }
+    return INA_JSON_ENOBUF;
+}
+
+INA_API(ina_rc_t) ina_json_generator_reset(ina_json_generator_t *g)
+{
+    INA_ASSERT_NOTNULL(g);
+    yajl_gen_clear(g->handle);
     return INA_SUCCESS;
 }
 

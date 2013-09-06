@@ -97,8 +97,9 @@ INA_API(ina_rc_t) ina_json_parser_release(ina_json_ctx_t *ctx,
  * 
  */
 INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *parser, 
-                                          unsigned char *buffer, 
-                                          size_t buf_len);
+                                          const unsigned char *buffer, 
+                                          size_t buf_len,
+                                          int32_t complete);
 /*
  *
  */
@@ -155,6 +156,18 @@ INA_API(ina_rc_t) ina_json_generator_add_double(ina_json_generator_t *g, double 
  *
  */
 INA_API(ina_rc_t) ina_json_generator_add_string(ina_json_generator_t *g, const char *str, size_t len);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_json_generator_get_buffer(ina_json_generator_t *g, 
+                                                const unsigned char **buffer,
+                                                size_t *len);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_json_generator_reset(ina_json_generator_t *g);
 
 #ifdef __cplusplus
 }
