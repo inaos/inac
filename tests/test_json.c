@@ -119,20 +119,225 @@ INA_TEST(json, parser_try_data)
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
     INA_TEST_ASSERT_NOT_NULL(data);
     INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_START_OBJECT);
+
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
     INA_TEST_ASSERT_NOT_NULL(data);
-    INA_TEST_ASSERT_TRUE(data->event = INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
     INA_TEST_ASSERT_EQUAL_INTEGER(8, data->size);
     INA_TEST_ASSERT_TRUE(strncmp((const char*)data->value.s, "anObject", data->size) == 0);
+    
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
     INA_TEST_ASSERT_NOT_NULL(data);
-    INA_TEST_ASSERT_TRUE(data->event = INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_START_OBJECT);
+    
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
     INA_TEST_ASSERT_EQUAL_INTEGER(15, data->size);
     INA_TEST_ASSERT_TRUE(strncmp("numericProperty", (const char*)data->value.s, data->size) == 0);
-    INA_TEST_ASSERT_TRUE(data->event = INA_JSON_PARSE_EVENT_DATA_INT);
-    INA_TEST_ASSERT_EQUAL_INTEGER(-122, data->value.i);
-}
 
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(-122, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("stringProperty"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("stringProperty", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_STRING);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("An offensive is problematic"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("An offensive is problematic", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("nullProperty"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("nullProperty", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_NULL);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, data->size);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("booleanProperty"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("booleanProperty", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_BOOL);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int32_t), data->size);
+    INA_TEST_ASSERT_EQUAL_FLOATING(INA_YES, data->value.b);
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("dateProperty"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("dateProperty", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_STRING);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("2011-09-23"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("2011-09-23", (const char*)data->value.s, data->size) == 0);
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("doubleProperty"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("doubleProperty", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_DOUBLE);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(double), data->size);
+    INA_TEST_ASSERT_EQUAL_FLOATING(2.3, data->value.d);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_END_OBJECT);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("arrayOfObjects"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("arrayOfObjects", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_START_ARRAY);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_START_OBJECT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, data->size);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("item"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("item", (const char*) data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_END_OBJECT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, data->size);
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_START_OBJECT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, data->size);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("item"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("item", (const char*) data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(2, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_END_OBJECT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, data->size);
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_START_OBJECT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, data->size);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("item"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("item", (const char*) data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_END_OBJECT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, data->size);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_END_ARRAY);
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("arrayOfIntegers"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("arrayOfIntegers", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_START_ARRAY);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(2, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(4, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);    
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(int64_t), data->size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(5, data->value.i);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_END_ARRAY);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_END_OBJECT);
+}
 
 INA_TEST(json, generator_borrow_release)
 {     
