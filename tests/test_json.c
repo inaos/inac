@@ -122,9 +122,15 @@ INA_TEST(json, parser_try_data)
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
     INA_TEST_ASSERT_NOT_NULL(data);
     INA_TEST_ASSERT_TRUE(data->event = INA_JSON_PARSE_EVENT_OBJECT_KEY);
-    INA_TEST_ASSERT_EQUAL_STR("anObject", (const char*)data->value.s);
+    INA_TEST_ASSERT_EQUAL_INTEGER(8, data->size);
+    INA_TEST_ASSERT_TRUE(strncmp((const char*)data->value.s, "anObject", data->size) == 0);
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
     INA_TEST_ASSERT_TRUE(data->event = INA_JSON_PARSE_EVENT_OBJECT_KEY);
-    INA_TEST_ASSERT_EQUAL_STR("numericProperty", (const char*)data->value.s);
+    INA_TEST_ASSERT_EQUAL_INTEGER(15, data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("numericProperty", (const char*)data->value.s, data->size) == 0);
+    INA_TEST_ASSERT_TRUE(data->event = INA_JSON_PARSE_EVENT_DATA_INT);
+    INA_TEST_ASSERT_EQUAL_INTEGER(-122, data->value.i);
 }
 
 

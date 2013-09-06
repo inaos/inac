@@ -335,9 +335,7 @@ INA_API(ina_rc_t) ina_json_parser_release(ina_json_ctx_t *ctx, ina_json_parser_t
 
     /* return parser */
     DL_APPEND(ctx->parsers, parser);
-    parser->stack_pointer = 0;
-    parser->stack_size = 0;
-
+    ina_json_parser_reset(parser);
     __ina_reset_mempool(ctx);
 
     *p = NULL;
@@ -382,22 +380,22 @@ INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *p, unsigned char *b
 {
     yajl_status s;
 
-    if (p->stack_pointer != 0) {
+    if (p->stack_pointer != p->stack_size) {
         return INA_JSON_ERROR(INA_EOVRFL, 
             "Stack not reset, consume all pending data items first");        
     }
 
     s  = yajl_parse(p->handle, buffer, buf_len);
  
-    if (s != yajl_status_ok) {
-        /* FIXME: handle error */
-        if (s == yajl_status_client_canceled) {
-        }
-        else {
-            unsigned char *errmsg = yajl_get_error(p->handle, 1, buffer, buf_len);
-            INA_JSON_ERROR(INA_EINVAL, (const char*)errmsg);
-            yajl_free_error(p->handle, errmsg);
-        }
+    if (s == yajl_status_ok) {
+        return INA_SUCCESS;
+    }
+       
+    /* FIXME: handle error */
+    if (s != yajl_status_client_canceled) {
+        unsigned char *errmsg = yajl_get_error(p->handle, 1, buffer, buf_len);
+        INA_JSON_ERROR(INA_EINVAL, (const char*)errmsg);
+        yajl_free_error(p->handle, errmsg);
     } else {
         if (yajl_complete_parse(p->handle) != yajl_status_ok) {
             unsigned char *errmsg = yajl_get_error(p->handle, 1, buffer, buf_len);
@@ -424,6 +422,17 @@ INA_API(ina_rc_t) ina_json_parser_try_data(ina_json_parser_t *p, ina_json_data_t
         *data = NULL;
     }
  
+    return INA_SUCCESS;
+}
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_json_parser_reset(ina_json_parser_t *parser)
+{
+    INA_ASSERT_NOTNULL(parser);
+    parser->stack_pointer = 0;
+    parser->stack_size = 0;
     return INA_SUCCESS;
 }
 

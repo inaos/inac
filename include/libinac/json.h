@@ -102,6 +102,11 @@ INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *parser,
 /*
  *
  */
+INA_API(ina_rc_t) ina_json_parser_reset(ina_json_parser_t *parser);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_json_generator_borrow(ina_json_ctx_t *ctx, 
                                             ina_json_generator_t **parser);
 /*
