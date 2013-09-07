@@ -423,6 +423,30 @@ INA_TEST(json, generator_get_buffer)
     INA_TEST_ASSERT_SUCCEED(ina_json_destroy(&ctx));
 }
 
+INA_TEST(json, generator_get_reset)
+{
+    ina_json_ctx_t       *ctx = NULL;
+    ina_json_generator_t *g = NULL;
+    const unsigned char  *buffer;
+    size_t buf_len = 0;
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_init(&ctx, 0, 1));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_borrow(ctx,  &g));
+    INA_TEST_ASSERT_NOT_NULL(g);
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_start_object(g));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_end_object(g));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_get_buffer(g, &buffer, &buf_len));
+    INA_TEST_ASSERT_NOT_NULL(buffer);
+    INA_TEST_ASSERT_TRUE(buf_len > 0);
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_reset(g));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_get_buffer(g, &buffer, &buf_len));
+    INA_TEST_ASSERT_NOT_NULL(buffer);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, buf_len);
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_release(ctx, &g));
+    INA_TEST_ASSERT_SUCCEED(ina_json_destroy(&ctx));
+    
+}
+
 INA_TEST(json, generator)
 {
     ina_json_ctx_t       *ctx = NULL;
@@ -487,5 +511,8 @@ INA_TEST(json, generator)
                                 buf_len, 
                                 INA_YES));
     INA_TEST_ASSERT_EQUAL_STR(ina_str_cstr(json_str), __object);
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_release(ctx, &p));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_release(ctx, &g));
+    INA_TEST_ASSERT_SUCCEED(ina_json_destroy(&ctx));
 }
 
