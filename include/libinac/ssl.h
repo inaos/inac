@@ -34,6 +34,12 @@
 extern "C" {
 #endif
 
+#define INA_SSL_ACCEPT_SELF_SIGNED (0x01)
+#define INA_SSL_BLOCKING           (0x02)
+#define INA_SSL_SERVER_DEFAULT     (0x00)
+#define INA_SSL_CLIENT_DEFAULT     INA_SSL_ACCEPT_SELF_SIGNED|INA_SSL_BLOCKING
+
+
 /* opaque */
 typedef struct ina_ssl_ctx_s ina_ssl_ctx_t;
 

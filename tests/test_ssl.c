@@ -36,7 +36,7 @@ INA_TEST_DATA(ssl) {
 };
 
 INA_TEST_SETUP(ssl) {
-    INA_TEST_HELPER_INVOKE(&data->hid, ssl, ssl_server,
+   INA_TEST_HELPER_INVOKE(&data->hid, ssl, ssl_server,
         __INA_TCP_ADDR,
          INA_NUM2STR(__INA_TCP_PORT),
          NULL);
@@ -58,12 +58,13 @@ INA_TEST_FIXTURE(ssl, ssl_write_read) {
     ina_ssl_ctx_t *ssl_ctx = NULL;
     ina_ssl_conn_t *ssl_conn = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_ssl_init(&ssl_ctx, 1));
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_init(&ssl_ctx, 1, INA_SSL_CLIENT_DEFAULT));
 
     INA_TEST_ASSERT_SUCCEED(ina_net_tcp_connect(&data->client_fd,
                             __INA_TCP_ADDR,
                             __INA_TCP_PORT,
                             5000));
+    ina_net_block(data->client_fd);
     INA_TEST_ASSERT_SUCCEED(ina_ssl_client_new(ssl_ctx, &ssl_conn, data->client_fd));
 
     INA_TEST_MSG("conected to %s:%d", __INA_TCP_ADDR, __INA_TCP_PORT);

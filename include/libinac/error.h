@@ -97,9 +97,10 @@ extern "C" {
 #define INA_ELOGIC   24
 #define INA_ECAPAC   25
 #define INA_EOVRFL   26
-#define INA_ENYI     27
-#define INA_ENOTFND  28
-#define INA_ESTATE   29
+#define INA_EEMPTY   27
+#define INA_ENYI     28
+#define INA_ENOTFND  29
+#define INA_ESTATE   30
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -276,6 +277,9 @@ extern "C" {
 #define INA_JSON_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_JSON, INA_OSFN_NONE, s)
 #define INA_JSON_EPOOLF INA_JSON_ERROR(INA_ELOGIC, "Pool is missing entry, make sure to always return");
 #define INA_JSON_EPOOLE INA_JSON_ERROR(INA_ECAPAC, "Pool is exhausted");
+#define INA_JSON_ENOBUF INA_JSON_ERROR(INA_EEMPTY, "Buffer empty");
+#define INA_JSON_ENODATA INA_JSON_ERROR(INA_EEMPTY, "No more data. Stack is empty")
+                                              
 
 /* Service library errors */
 #define INA_SERVICE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_SERVICE, INA_OSFN_NONE, s)

@@ -32,6 +32,7 @@
 
 struct ina_ssl_conn_s {
     int server;
+    int blocking;
     SSL *conn;
 };
 
@@ -100,10 +101,15 @@ static void __ina_ssl_error_lookup(int err, char *msg)
 
 INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx, int num_sessions, uint32_t options)
 {
+    uint32_t ax_options = 0;
+
     *ctx = (ina_ssl_ctx_t*)ina_mem_alloc(sizeof(struct ina_ssl_ctx_s));
     INA_ASSERT_NOTNULL(*ctx);
     (*ctx)->options = options;
-    (*ctx)->ssl = ssl_ctx_new((*ctx)->options, num_sessions);
+    if ((*ctx)->options&INA_SSL_ACCEPT_SELF_SIGNED) {
+        ax_options = SSL_SERVER_VERIFY_LATER;
+    }
+    (*ctx)->ssl = ssl_ctx_new(ax_options, num_sessions);
     (*ctx)->conn = NULL;
 
     if ((*ctx)->ssl == NULL) {
@@ -126,15 +132,25 @@ INA_API(ina_rc_t) ina_ssl_client_new(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn, 
     ctx->conn = (ina_ssl_conn_t*)ina_mem_alloc(sizeof(struct ina_ssl_conn_s));
     INA_ASSERT_NOTNULL(ctx->conn);
 
+    if (ctx->options&INA_SSL_BLOCKING) {
+        ctx->conn->blocking = INA_YES;        
+    }
+
     ctx->conn->conn = ssl_client_new(ctx->ssl, fd, NULL, 0);
     if (ctx->conn->conn == NULL) {
         return INA_SSL_EINIT;
     }
-    ctx->conn->server = 0;
-
+    ctx->conn->server = INA_NO;
     *conn = ctx->conn;
-    
-    return INA_SUCCESS;
+
+    if (ctx->options&INA_SSL_ACCEPT_SELF_SIGNED) {
+        if (ina_ssl_handshake_status(*conn) == INA_SUCCESS) {
+            if (ssl_verify_cert((*conn)->conn) == SSL_X509_ERROR(X509_VFY_ERROR_SELF_SIGNED)) {
+                return INA_SUCCESS;
+            }
+        } 
+    }
+    return ina_ssl_handshake_status(*conn);
 }
 
 INA_API(ina_rc_t) ina_ssl_client_free(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn)
@@ -161,7 +177,7 @@ INA_API(ina_rc_t) ina_ssl_server_new(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn, 
     if (ctx->conn->conn == NULL) {
         return INA_SSL_EINIT;
     }
-    ctx->conn->server = 1;
+    ctx->conn->server = INA_YES;
 
     *conn = ctx->conn;
 
@@ -171,7 +187,7 @@ INA_API(ina_rc_t) ina_ssl_server_new(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn, 
 INA_API(ina_rc_t) ina_ssl_server_free(ina_ssl_ctx_t *ctx, ina_ssl_conn_t **conn)
 {
     INA_ASSERT_NOTNULL(ctx->conn);
-    INA_ASSERT_FALSE((*conn)->server);
+    INA_ASSERT_TRUE((*conn)->server);
 
     ssl_free(ctx->conn->conn);
     ina_mem_free(ctx->conn);
@@ -187,9 +203,13 @@ INA_API(ina_rc_t) ina_ssl_read(ina_ssl_conn_t *conn, unsigned char **buf, size_t
     int ret;
 
     INA_ASSERT_NOTNULL(conn);
+read:
     ret = ssl_read(conn->conn, buf);
     if (ret == SSL_OK) {
-        return INA_SSL_EAGAIN;    
+        if (conn->blocking && ssl_handshake_status(conn->conn) == SSL_OK) {
+            goto read;
+        }
+        return INA_SSL_EAGAIN;
     }
     if (ret < 0) {
         char err[128];
@@ -239,7 +259,6 @@ INA_API(ina_rc_t) ina_ssl_handshake_status(ina_ssl_conn_t *conn)
     if (ret != SSL_OK) {
         return INA_SSL_EAGAIN;
     }
-
     return INA_SUCCESS;
 }
 
