@@ -54,20 +54,6 @@ struct ina_json_generator_s {
     struct ina_json_generator_s *prev;  
 };
 
-static void __ina_reset_mempool(ina_json_ctx_t *ctx)
-{
-    int count;
-    ina_json_parser_t *parser;
-    ina_json_generator_t *generator;
-
-    DL_COUNT(ctx->parsers, parser, count);
-    if (count == ctx->parser_pool_size) {
-        DL_COUNT(ctx->generators, generator, count) {
-            ina_mempool_release(ctx->mempool, INA_NO);
-        }
-    }
-}
-
 static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p)
 {
     p->stack_size = 0;
@@ -198,17 +184,17 @@ void *__ina_yajl_realloc(void *ctx, void *ptr, size_t sz)
 }
 
 static yajl_callbacks __yajl_callbacks = {  
-    __ina_yajl_cb_null,  
-    __ina_yajl_cb_boolean,  
-    __ina_yajl_cb_integer,  
-    __ina_yajl_cb_double,  
+    __ina_yajl_cb_null, 
+    __ina_yajl_cb_boolean, 
+    __ina_yajl_cb_integer, 
+    __ina_yajl_cb_double, 
     NULL,
-    __ina_yajl_cb_string,  
-    __ina_yajl_cb_start_map,  
-    __ina_yajl_cb_map_key,  
-    __ina_yajl_cb_end_map,  
-    __ina_yajl_cb_start_array,  
-    __ina_yajl_cb_end_array  
+    __ina_yajl_cb_string, 
+    __ina_yajl_cb_start_map,
+    __ina_yajl_cb_map_key,
+    __ina_yajl_cb_end_map,
+    __ina_yajl_cb_start_array,
+    __ina_yajl_cb_end_array
 };
 
 
@@ -278,6 +264,7 @@ INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx)
     DL_FOREACH_SAFE(c->parsers, p, ptmp) {
         __ina_parser_stack_destroy(p);
         DL_DELETE(c->parsers, p);
+        yajl_free(p->handle);
         ina_mem_free(p);
         cnt++;
     }
@@ -290,6 +277,7 @@ INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx)
 
     DL_FOREACH_SAFE(c->generators, g, gtmp) {
         DL_DELETE(c->generators, g);
+        yajl_gen_free(g->handle);
         ina_mem_free(g);
         cnt++;
     }
@@ -334,7 +322,6 @@ INA_API(ina_rc_t) ina_json_parser_release(ina_json_ctx_t *ctx, ina_json_parser_t
     /* return parser */
     DL_APPEND(ctx->parsers, parser);
     ina_json_parser_reset(parser);
-    __ina_reset_mempool(ctx);
 
     *p = NULL;
     return INA_SUCCESS;
@@ -366,8 +353,7 @@ INA_API(ina_rc_t) ina_json_generator_release(ina_json_ctx_t *ctx, ina_json_gener
 
     /* return parser */
     DL_APPEND(ctx->generators, generator);
-
-    __ina_reset_mempool(ctx);
+    ina_json_generator_reset(generator);
 
     *g = NULL;
 
@@ -383,7 +369,8 @@ INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *p,
 
     if (p->stack_pointer > 0) {
         return INA_JSON_ERROR(INA_EOVRFL, 
-            "Stack not reset, consume all pending data items first or reset parser");        
+            "Stack not reset, consume all pending data items" 
+                "first or reset parser");        
     }
 
     s  = yajl_parse(p->handle, buffer, buf_len);
