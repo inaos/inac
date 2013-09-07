@@ -202,7 +202,7 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
                                 uint32_t parser_pool_size, 
                                 uint32_t generator_pool_size)
 {
-    int32_t i;
+    size_t i;
     yajl_alloc_funcs alloc_func = {
         __ina_yajl_alloc,
         __ina_yajl_realloc,
