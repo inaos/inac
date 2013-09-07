@@ -39,87 +39,100 @@ struct ina_service_ctx_s {
 static SERVICE_STATUS __ina_service_service_status;
 static SERVICE_STATUS_HANDLE __ina_service_status_handle = 0;
 static HANDLE __ina_service_stop_service_event = 0;
+static ina_service_descriptor_t *__ina_service_descriptor = NULL;
 
+static DWORD __stdcall __ina_service_start_wrapper(LPVOID data)
+{
+    INA_ASSERT_NOTNULL(__ina_service_descriptor->run_func);
+    return __ina_service_descriptor->run_func(__ina_service_descriptor->user_data);
+}
 static void WINAPI ServiceControlHandler( DWORD controlCode )
 {
-	switch ( controlCode )
-	{
+	switch (controlCode) {
 		case SERVICE_CONTROL_INTERROGATE:
 			break;
-
 		case SERVICE_CONTROL_SHUTDOWN:
 		case SERVICE_CONTROL_STOP:
-			serviceStatus.dwCurrentState = SERVICE_STOP_PENDING;
-			SetServiceStatus( serviceStatusHandle, &serviceStatus );
-
-			SetEvent( stopServiceEvent );
+			__ina_service_service_status.dwCurrentState = SERVICE_STOP_PENDING;
+			SetServiceStatus(__ina_service_status_handle, &__ina_service_service_status);
+			SetEvent(__ina_service_stop_service_event);
 			return;
-
 		case SERVICE_CONTROL_PAUSE:
 			break;
-
 		case SERVICE_CONTROL_CONTINUE:
 			break;
-
 		default:
-			if ( controlCode >= 128 && controlCode <= 255 )
-				// user defined control code
+			if (controlCode >= 128 && controlCode <= 255)
+				/* user defined control code */
 				break;
 			else
-				// unrecognised control code
+				/* unrecognised control code */
 				break;
 	}
-
-	SetServiceStatus( serviceStatusHandle, &serviceStatus );
+	SetServiceStatus(__ina_service_status_handle, &__ina_service_service_status);
 }
-static void WINAPI ServiceMain( DWORD /*argc*/, TCHAR* /*argv*/[] )
+static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
 {
-    
+    INA_ASSERT_NOTNULL(__ina_service_descriptor);
 
-	// initialise service status
-	serviceStatus.dwServiceType = SERVICE_WIN32;
-	serviceStatus.dwCurrentState = SERVICE_STOPPED;
-	serviceStatus.dwControlsAccepted = 0;
-	serviceStatus.dwWin32ExitCode = NO_ERROR;
-	serviceStatus.dwServiceSpecificExitCode = NO_ERROR;
-	serviceStatus.dwCheckPoint = 0;
-	serviceStatus.dwWaitHint = 0;
+	/* initialise service status */
+	__ina_service_service_status.dwServiceType = SERVICE_WIN32;
+	__ina_service_service_status.dwCurrentState = SERVICE_STOPPED;
+	__ina_service_service_status.dwControlsAccepted = 0;
+	__ina_service_service_status.dwWin32ExitCode = NO_ERROR;
+	__ina_service_service_status.dwServiceSpecificExitCode = NO_ERROR;
+	__ina_service_service_status.dwCheckPoint = 0;
+	__ina_service_service_status.dwWaitHint = 0;
 
-	serviceStatusHandle = RegisterServiceCtrlHandler( serviceName, ServiceControlHandler );
+    __ina_service_status_handle = RegisterServiceCtrlHandler(ina_str_cstr(__ina_service_descriptor->name), ServiceControlHandler);
 
-	if ( serviceStatusHandle )
-	{
-		// service is starting
-		serviceStatus.dwCurrentState = SERVICE_START_PENDING;
-		SetServiceStatus( serviceStatusHandle, &serviceStatus );
+	if (__ina_service_status_handle) {
+        HANDLE thread_handle = INVALID_HANDLE_VALUE;
+        DWORD thread_exit_code = 0;
 
-		// do initialisation here
-		stopServiceEvent = CreateEvent( 0, FALSE, FALSE, 0 );
+		/* service is starting */
+		__ina_service_service_status.dwCurrentState = SERVICE_START_PENDING;
+		SetServiceStatus(__ina_service_status_handle, &__ina_service_service_status);
 
-		// running
-		serviceStatus.dwControlsAccepted |= (SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
-		serviceStatus.dwCurrentState = SERVICE_RUNNING;
-		SetServiceStatus( serviceStatusHandle, &serviceStatus );
+		/* do initialisation here */
+        thread_handle = CreateThread(NULL, 0, __ina_service_start_wrapper, NULL, 0, NULL);
+        INA_ASSERT_NOTEQUAL(INVALID_HANDLE_VALUE, thread_handle);
+        __ina_service_stop_service_event = CreateEvent(0, FALSE, FALSE, 0);
+        Sleep(1);
+        GetExitCodeThread(thread_handle, &thread_exit_code);
+        if (thread_exit_code != STILL_ACTIVE) {
+            __ina_service_service_status.dwCurrentState = SERVICE_STOPPED;
+            __ina_service_service_status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
+            __ina_service_service_status.dwServiceSpecificExitCode = thread_exit_code;
+            SetServiceStatus(__ina_service_status_handle, &__ina_service_service_status);
+            return;
+        }
 
-		do
-		{
-			Beep( 1000, 100 );
+		/* running */
+		__ina_service_service_status.dwControlsAccepted |= (SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
+		__ina_service_service_status.dwCurrentState = SERVICE_RUNNING;
+		SetServiceStatus(__ina_service_status_handle, &__ina_service_service_status);
 
-		}
-		while ( WaitForSingleObject( stopServiceEvent, 1000 ) == WAIT_TIMEOUT );
+        /* Wait for the stop-event to trigger */
+        WaitForSingleObject(__ina_service_stop_service_event, INFINITE);
 
-		// service was stopped
-		serviceStatus.dwCurrentState = SERVICE_STOP_PENDING;
-		SetServiceStatus( serviceStatusHandle, &serviceStatus );
+        /* we received a stop-event now execute the shutdown proc and join the thread */
+        INA_ASSERT_NOTNULL(__ina_service_descriptor->shutdown_func);
+        __ina_service_descriptor->shutdown_func(__ina_service_descriptor->user_data);
+        WaitForSingleObject(thread_handle, INFINITE);
 
-		// do cleanup here
-		CloseHandle( stopServiceEvent );
-		stopServiceEvent = 0;
+		/* service was stopped */
+		__ina_service_service_status.dwCurrentState = SERVICE_STOP_PENDING;
+		SetServiceStatus( __ina_service_status_handle, &__ina_service_service_status);
 
-		// service is now stopped
-		serviceStatus.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
-		serviceStatus.dwCurrentState = SERVICE_STOPPED;
-		SetServiceStatus( serviceStatusHandle, &serviceStatus );
+		/* do cleanup here */
+		CloseHandle(__ina_service_stop_service_event);
+		__ina_service_stop_service_event = 0;
+
+		/* service is now stopped */
+		__ina_service_service_status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
+		__ina_service_service_status.dwCurrentState = SERVICE_STOPPED;
+		SetServiceStatus(__ina_service_status_handle, &__ina_service_service_status);
 	}
 }
 static ina_rc_t __ina_service_win_install(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor)
@@ -240,13 +253,15 @@ static ina_rc_t __ina_service_win_run(ina_service_ctx_t *ctx, ina_service_descri
 	};
     BOOL success;
 
+    __ina_service_descriptor = descriptor;
+
     if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex(ctx, descriptor))) {
         return INA_ERR_PUSH_LAST;
     }
     
     success = StartServiceCtrlDispatcher(serviceTable);
     if (!success) {
-    	/* FIXME raise error */
+    	return INA_SERVICE_ESDIS;
     }
 
     return INA_SUCCESS;
@@ -254,6 +269,10 @@ static ina_rc_t __ina_service_win_run(ina_service_ctx_t *ctx, ina_service_descri
 static ina_rc_t __ina_service_win_console(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor)
 {
     if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex(ctx, descriptor))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if (!INA_SUCCEED(descriptor->run_func(descriptor->user_data))) {
         return INA_ERR_PUSH_LAST;
     }
 

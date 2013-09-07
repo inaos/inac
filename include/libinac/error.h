@@ -280,7 +280,6 @@ extern "C" {
 #define INA_JSON_ENOBUF INA_JSON_ERROR(INA_EEMPTY, "Buffer empty");
 #define INA_JSON_ENODATA INA_JSON_ERROR(INA_EEMPTY, "No more data. Stack is empty")
                                               
-
 /* Service library errors */
 #define INA_SERVICE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_SERVICE, INA_OSFN_NONE, s)
 #define INA_SERVICE_EMAXLEN INA_SERVICE_ERROR(INA_EPARAM, "Service-Descriptor Parameter longer then maximum");
@@ -292,6 +291,7 @@ extern "C" {
 #define INA_SERVICE_ERUNNING INA_SERVICE_ERROR(INA_ESTATE, "Service is running");
 #define INA_SERVICE_EEXCL INA_SERVICE_ERROR(INA_ELOGIC, "Process already runnning only 1 process allowed");
 #define INA_SERVICE_EMINIT INA_SERVICE_ERROR(INA_EINIT, "Can not initialize mutex");
+#define INA_SERVICE_ESDIS INA_SERVICE_ERROR(INA_EINIT, "Can not invoke service-dispatcher");
 
 /* Error information */
 typedef struct ina_error_s {

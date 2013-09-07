@@ -37,7 +37,8 @@ extern "C" {
 /* opaque service context */
 typedef struct ina_service_ctx_s ina_service_ctx_t;
 
-typedef ina_rc_t (*ina_service_main)(void *user_data);
+typedef ina_rc_t (*ina_service_run)(void *user_data);
+typedef ina_rc_t (*ina_service_shutdown)(void *user_data);
 
 typedef enum ina_service_startup_type_e {
     INA_SERVICE_STARTUP_TYPE_AUTO,
@@ -51,9 +52,11 @@ typedef struct ina_service_descriptor_s {
     ina_str_t long_description;
     ina_str_t username;
     ina_str_t password;
-    ina_service_main main_func;
+    ina_service_run run_func;
+    ina_service_shutdown shutdown_func;
     ina_service_startup_type_t startup;
     int exclusive_flag;
+    void *user_data;
 } ina_service_descriptor_t;
 
 /*
