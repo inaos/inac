@@ -34,7 +34,9 @@ const static char * __object = "{"
     "\"nullProperty\":null,"
     "\"booleanProperty\":true,"
     "\"dateProperty\":\"2011-09-23\","
-    "\"doubleProperty\":2.3"
+    "\"doubleProperty\":2.3,"
+    "\"doublePropertyWithoutFraction\":2.0"
+        
 "},"
 "\"arrayOfObjects\":["
     "{"
@@ -228,6 +230,18 @@ INA_TEST(json, parser_try_data)
     INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_DOUBLE);
     INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(double), data->size);
     INA_TEST_ASSERT_EQUAL_FLOATING(2.3, data->value.d);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_OBJECT_KEY);
+    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("doublePropertyWithoutFraction"), data->size);
+    INA_TEST_ASSERT_TRUE(strncmp("doublePropertyWithoutFraction", (const char*)data->value.s, data->size) == 0);
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_TRUE(data->event == INA_JSON_PARSE_EVENT_DATA_DOUBLE);
+    INA_TEST_ASSERT_EQUAL_INTEGER(sizeof(double), data->size);
+    INA_TEST_ASSERT_EQUAL_FLOATING(2, data->value.d);
 
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_try_data(p, &data));
     INA_TEST_ASSERT_NOT_NULL(data);
@@ -435,7 +449,9 @@ INA_TEST(json, generator)
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_string(g, "dateProperty", strlen("dateProperty")));
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_string(g, "2011-09-23", strlen("2011-09-23")));
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_string(g, "doubleProperty", strlen("doubleProperty")));
-    INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_double(g, 2.3000000000000));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_double(g, 2.3));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_string(g, "doublePropertyWithoutFraction", strlen("doublePropertyWithoutFraction")));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_double(g, 2));
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_end_object(g));
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_string(g, "arrayOfObjects", strlen("arrayOfObjects")));
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_start_array(g));
@@ -471,6 +487,5 @@ INA_TEST(json, generator)
                                 buf_len, 
                                 INA_YES));
     INA_TEST_ASSERT_EQUAL_STR(ina_str_cstr(json_str), __object);
-
 }
 
