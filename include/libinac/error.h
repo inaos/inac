@@ -273,6 +273,7 @@ extern "C" {
 #define INA_JSON_EPOOLF INA_JSON_ERROR(INA_ELOGIC, "Pool is missing entry, make sure to always return");
 #define INA_JSON_EPOOLE INA_JSON_ERROR(INA_ECAPAC, "Pool is exhausted");
 #define INA_JSON_ENOBUF INA_JSON_ERROR(INA_EEMPTY, "Buffer empty");
+#define INA_JSON_ENODATA INA_JSON_ERROR(INA_EEMPTY, "No more data. Stack is empty")
                                               
 
 /* Error information */
