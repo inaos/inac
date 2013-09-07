@@ -36,10 +36,10 @@ INA_TEST_DATA(ssl) {
 };
 
 INA_TEST_SETUP(ssl) {
-   /*INA_TEST_HELPER_INVOKE(&data->hid, ssl, ssl_server,
+   INA_TEST_HELPER_INVOKE(&data->hid, ssl, ssl_server,
         __INA_TCP_ADDR,
          INA_NUM2STR(__INA_TCP_PORT),
-         NULL);*/
+         NULL);
 }
 
 INA_TEST_TEARDOWN(ssl) {
@@ -58,7 +58,7 @@ INA_TEST_FIXTURE(ssl, ssl_write_read) {
     ina_ssl_ctx_t *ssl_ctx = NULL;
     ina_ssl_conn_t *ssl_conn = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_ssl_init(&ssl_ctx, 1, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_init(&ssl_ctx, 1, INA_SSL_CLIENT_DEFAULT));
 
     INA_TEST_ASSERT_SUCCEED(ina_net_tcp_connect(&data->client_fd,
                             __INA_TCP_ADDR,
@@ -76,9 +76,9 @@ INA_TEST_FIXTURE(ssl, ssl_write_read) {
                             buffer,
                             strlen((const char*)buffer), &nb_write));
 
-    while (ina_ssl_read(ssl_conn,
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_read(ssl_conn,
                             &readbuf,
-                            &nb_read) != INA_SUCCESS);
+                            &nb_read));
     INA_TEST_MSG("read %d bytes:%s", nb_read, (const char*)readbuf);
     INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
 
