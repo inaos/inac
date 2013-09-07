@@ -37,6 +37,13 @@ extern "C" {
 /* opaque service context */
 typedef struct ina_service_ctx_s ina_service_ctx_t;
 
+typedef ina_rc_t (*ina_service_main)(void *user_data);
+
+typedef enum ina_service_startup_type_e {
+    INA_SERVICE_STARTUP_TYPE_AUTO,
+    INA_SERVICE_STARTUP_TYPE_MANUAL,
+} ina_service_startup_type_t;
+
 typedef struct ina_service_descriptor_s {
     ina_str_t name;
     ina_str_t display_name;
@@ -44,26 +51,38 @@ typedef struct ina_service_descriptor_s {
     ina_str_t long_description;
     ina_str_t username;
     ina_str_t password;
+    ina_service_main main_func;
+    ina_service_startup_type_t startup;
+    int exclusive_flag;
 } ina_service_descriptor_t;
 
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx);
 /*
  * WIN: Installs the app as a service via the Service API
  * UNX: Installs the app as a deamon and enable service <app> commands.
  *      It stores the servicescript in a section in the binary and 
  *      copy it to /etc/init.d upon install
  */
-INA_API(ina_rc_t) ina_service_install(ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_uninstall(ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
 /*
- * check if only one instance if the app.exe is running via system semaphore.
- * by using this funtion we can ensure that the app.exe is not started as service 
- * and console application at the same time
  * 
  */
-INA_API(ina_rc_t) ina_service_check_exclusive(ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_service_run_console(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
 
 #ifdef __cplusplus
 }
