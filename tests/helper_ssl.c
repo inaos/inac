@@ -82,12 +82,19 @@ INA_TEST_HELPER(ssl, ssl_server) {
             }
         }
 
-        if (cfd != -1 && ina_ssl_handshake_status(ssl_conn) == INA_SUCCESS) {
-            if (INA_SUCCEED(ina_ssl_read(ssl_conn, &buffer, &nb_read))) {
+        if (cfd != -1) {
+            
+            ina_rc_t rc = ina_ssl_read(ssl_conn, &buffer, &nb_read);
+
+            if (INA_RC_REASON(rc) == INA_EAGAIN) {
+                if (ina_ssl_handshake_status(ssl_conn) != INA_SUCCESS) {
+                    continue;
+                }
+            } else if (rc == INA_SUCCESS) {
                 if (nb_read > 0) {
                     ina_ssl_write(ssl_conn, buffer, nb_read, &nb_read);
                 }
-           } else {
+            } else {
                ina_ssl_server_free(__ssl, &ssl_conn);
                ina_net_close(cfd);
                cfd = -1;
