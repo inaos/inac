@@ -142,6 +142,7 @@ int __ina_yajl_cb_start_map(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_START_OBJECT;
+    p->stack[p->stack_pointer].size = 0;     
     return __ina_check_and_incr_data_stack(p);
 }
 
@@ -158,6 +159,7 @@ int __ina_yajl_cb_end_map(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_END_OBJECT;
+    p->stack[p->stack_pointer].size = 0; 
     return __ina_check_and_incr_data_stack(p);
 }
 
@@ -165,13 +167,15 @@ int __ina_yajl_cb_start_array(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_START_ARRAY;
+    p->stack[p->stack_pointer].size = 0; 
     return __ina_check_and_incr_data_stack(p);
 }
 
 int __ina_yajl_cb_end_array(void *ctx)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
-    p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_END_ARRAY;
+    p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_END_ARRAY;    
+    p->stack[p->stack_pointer].size = 0; 
     return __ina_check_and_incr_data_stack(p);
 }
 
