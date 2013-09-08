@@ -55,6 +55,7 @@ typedef struct ina_service_descriptor_s {
     ina_service_run run_func;
     ina_service_shutdown shutdown_func;
     ina_service_startup_type_t startup;
+    ina_str_t startup_args;
     int exclusive_flag;
     void *user_data;
 } ina_service_descriptor_t;
