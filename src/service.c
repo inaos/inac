@@ -29,11 +29,15 @@
 #include "config.h"
 
 struct ina_service_ctx_s {
+    ina_service_descriptor_t *descriptor;
 #ifdef INA_OS_WIN32
     HANDLE hmutex;
+    HANDLE main_thread;
 #else
 #endif
 };
+
+static ina_service_ctx_t *__ina_service_context = NULL;
 
 #ifdef INA_OS_WIN32
 static SERVICE_STATUS __ina_service_service_status;
@@ -169,13 +173,21 @@ static ina_rc_t __ina_service_win_install(ina_service_ctx_t *ctx, ina_service_de
 	if (serviceControlManager) {
         char path[_MAX_PATH + 1];
 		if (GetModuleFileName(0, path, sizeof(path)/sizeof(path[0])) > 0 ) {
-            SC_HANDLE service = CreateService(serviceControlManager,
+            SC_HANDLE service;
+            if (descriptor->startup_args != NULL) {
+                strcat(path, " ");
+                strcat(path, ina_str_cstr(descriptor->startup_args));
+            }
+            service = CreateService(serviceControlManager,
                 ina_str_cstr(descriptor->name), ina_str_cstr(descriptor->display_name),
                 SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
                 start_type, SERVICE_ERROR_NORMAL, path,
                 0, 0, 0, username, password);
 
 			if (service) {
+                SERVICE_DESCRIPTION svc_desc;
+                svc_desc.lpDescription = (LPSTR)ina_str_cstr(descriptor->short_description);
+                ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &svc_desc);
                 CloseServiceHandle(service);
             }
             else {
@@ -282,6 +294,18 @@ static ina_rc_t __ina_service_win_console(ina_service_ctx_t *ctx, ina_service_de
 
 #endif
 
+static void __ina_service_signal_handler(ina_signal_t sig, ina_signal_behavior_t *sb, int *exitcode)
+{
+    if (sig == INA_SIGNAL_INT) {
+        /* Ignore default signal handling */
+        *sb = INA_SIGNAL_BEHAVIOR_IGNORE;
+        __ina_service_context->descriptor->shutdown_func(__ina_service_context->descriptor->user_data);
+#ifdef INA_OS_WIN32
+        WaitForSingleObject(__ina_service_context->main_thread, INFINITE);
+#endif
+    }
+}
+
 INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
@@ -289,7 +313,11 @@ INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx)
     *ctx = (ina_service_ctx_t*)ina_mem_alloc(sizeof(struct ina_service_ctx_s));
 #ifdef INA_OS_WIN32
     (*ctx)->hmutex = INVALID_HANDLE_VALUE;
+    (*ctx)->main_thread = GetCurrentThread();
 #endif
+
+    __ina_service_context = *ctx;
+
     return INA_SUCCESS;
 }
 
@@ -306,6 +334,7 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
 
 INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor)
 {
+    ctx->descriptor = descriptor;
 #ifdef INA_OS_WIN32
     return __ina_service_win_install(ctx, descriptor);
 #else
@@ -315,6 +344,7 @@ INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx, ina_service_descri
 
 INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor)
 {
+    ctx->descriptor = descriptor;
 #ifdef INA_OS_WIN32
     return __ina_service_win_uninstall(ctx, descriptor);
 #else
@@ -324,6 +354,7 @@ INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx, ina_service_desc
 
 INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor)
 {
+    ctx->descriptor = descriptor;
 #ifdef INA_OS_WIN32
     return __ina_service_win_run(ctx, descriptor);
 #else
@@ -333,6 +364,8 @@ INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, ina_service_de
 
 INA_API(ina_rc_t) ina_service_run_console(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor)
 {
+    ctx->descriptor = descriptor;
+    ina_register_signal_handler(INA_SIGNAL_INT, __ina_service_signal_handler);
 #ifdef INA_OS_WIN32
     return __ina_service_win_console(ctx, descriptor);
 #else
