@@ -173,7 +173,7 @@ INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
 INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
 {
 #ifndef INA_OS_WIN32
-    *size = sysconf(_SC_PAGESIZE);
+    *size = (size_t)sysconf(_SC_PAGESIZE);
 #else
     SYSTEM_INFO si;
     GetSystemInfo(&si);
