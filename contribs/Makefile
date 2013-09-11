@@ -35,6 +35,8 @@ all:
 	$(MAKE) -C skiplist
 	$(MAKE) library -C http-parser
 	$(MAKE) -C rapidxml
+	$(MAKE) -C axtls
+	$(MAKE) -C yajl
 
 test: all
 	
@@ -50,3 +52,6 @@ clean:
 	$(MAKE) clean -C sqlite
 	$(MAKE) clean -C http-parser
 	$(MAKE) clean -C rapidxml
+	$(MAKE) clean -C axtls
+	$(MAKE) clean -C yajl
+

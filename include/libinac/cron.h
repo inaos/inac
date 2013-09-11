@@ -37,16 +37,21 @@ extern "C" {
 /* forward decl */
 struct ina_cron_ctx_s;
 
+/* opaque structs */
 typedef struct ina_cron_task_s ina_cron_task_t;
+typedef struct ina_cron_func_s ina_cron_func_t;
 
 typedef ina_rc_t (*ina_cron_load_cb)(struct ina_cron_ctx_s *ctx);
 typedef ina_rc_t (*ina_cron_save_cb)(struct ina_cron_ctx_s *ctx, ina_cron_task_t *task);
+
+typedef ina_rc_t (*ina_cron_func_cb)(struct ina_cron_ctx_s *ctx, void *user_data);
 
 typedef struct ina_cron_ctx_s {
     ina_cron_load_cb load_cb;
 	ina_cron_save_cb save_cb;
 	void *data;
 	ina_cron_task_t *task_head;
+    ina_cron_func_t *func_head;
 	time_t t1;
 	time_t t2;
 	short stime;
@@ -92,9 +97,14 @@ INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task, int *running);
  */
 INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pattern);
 /*
- * 
+ *
  */
 INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggested_next_time);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id, 
+                                             const char *pattern, ina_cron_func_cb cb);
 
 #ifdef __cplusplus
 }

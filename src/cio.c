@@ -46,7 +46,7 @@ static void __ina_init_colors(void)
     __fg_colors[INA_CIO_COLOR_CYAN]      = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
     __fg_colors[INA_CIO_COLOR_YELLOW]    = FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
     __fg_colors[INA_CIO_COLOR_WHITE]     = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
-    __fg_colors[INA_CIO_COLOR_UNDEFINED] = 0;
+    __fg_colors[INA_CIO_COLOR_UNDEFINED] = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
 
     __bg_colors[INA_CIO_COLOR_BLACK]     = 0;
     __bg_colors[INA_CIO_COLOR_BLUE]      = BACKGROUND_BLUE;
@@ -87,7 +87,7 @@ static void __ina_init_colors(void)
     sprintf(__fg_colors[INA_CIO_COLOR_CYAN], "%s%s", __CSI, "36m");
     sprintf(__fg_colors[INA_CIO_COLOR_YELLOW], "%s%s", __CSI, "33m");
     sprintf(__fg_colors[INA_CIO_COLOR_WHITE], "%s%s", __CSI, "37m");
-    sprintf(__fg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "30m");
+    sprintf(__fg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "0m");
 
     sprintf(__bg_colors[INA_CIO_COLOR_BLACK], "%s%s", __CSI, "40m");
     sprintf(__bg_colors[INA_CIO_COLOR_BLUE], "%s%s", __CSI, "44m");
@@ -97,7 +97,7 @@ static void __ina_init_colors(void)
     sprintf(__bg_colors[INA_CIO_COLOR_CYAN], "%s%s", __CSI, "46m");
     sprintf(__bg_colors[INA_CIO_COLOR_YELLOW], "%s%s", __CSI, "43m");
     sprintf(__bg_colors[INA_CIO_COLOR_WHITE], "%s%s", __CSI, "47m");
-    sprintf(__bg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "40m");
+    sprintf(__bg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "0m");
 }
 #endif
 
@@ -156,6 +156,17 @@ INA_API(ina_rc_t) ina_cio_clear(void)
     return ina_cio_move_to_row_and_col(0, 0);
 }
 
+INA_API(ina_rc_t) ina_cio_reset(void)
+{
+    ina_cio_attribs_t attribs = { INA_CIO_COLOR_UNDEFINED, 
+                                  INA_CIO_COLOR_UNDEFINED, 
+                                  INA_CIO_RESET};
+
+    return ina_cio_set_attribs(&attribs);
+}
+
+    
+	
 INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 {
 #ifdef INA_OS_WIN32
@@ -201,6 +212,12 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
 
     __attribs.bg_color = attribs->bg_color;
     __attribs.fg_color = attribs->fg_color;
+    __attribs.flags = attribs->flags;
+    if (__attribs.flags&INA_CIO_RESET) {
+        __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
+        __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
+        __attribs.flags = 0;
+    }
 
 #ifdef INA_OS_WIN32
     SetConsoleTextAttribute(
@@ -208,10 +225,10 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
         __bg_colors[__attribs.bg_color] | __fg_colors[__attribs.fg_color]
     );
 #else
-    if (__attribs.fg_color != INA_CIO_COLOR_UNDEFINED) {
+    if (__attribs.fg_color != INA_CIO_COLOR_UNDEFINED || attribs->flags&INA_CIO_RESET) {
         printf("%s", __fg_colors[__attribs.fg_color]);
     }
-    if (__attribs.bg_color != INA_CIO_COLOR_UNDEFINED) {
+    if (__attribs.bg_color != INA_CIO_COLOR_UNDEFINED || attribs->flags&INA_CIO_RESET) {
         printf("%s", __bg_colors[__attribs.bg_color]);
     }
 #endif
@@ -228,6 +245,7 @@ INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 
     attribs->bg_color = __attribs.bg_color;
     attribs->fg_color = __attribs.fg_color;
+    attribs->flags = __attribs.flags;
     return INA_SUCCESS;
 }
 
@@ -250,15 +268,27 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
 {
 #ifdef INA_OS_WIN32
     COORD pos;
-
+#endif    
     INA_ASSERT(__initialized);
+
+    if (col < 0 && row < 0) {
+        return INA_SUCCESS;
+    }
+    if (col < 0 || row < 0) {
+        ina_cio_pos_t pos;
+        ina_cio_get_pos(&pos);
+        if (row < 0) {
+            return ina_cio_move_to_row_and_col(pos.row, col);
+        }
+        return ina_cio_move_to_row_and_col(row, pos.col);
+    }
+#ifdef INA_OS_WIN32
 
     pos.X = col;
     pos.Y = row;
 
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 #else
-    INA_ASSERT(__initialized);
     printf( "%s%d;%dH", __CSI, row + 1, col + 1);
 #endif
     return INA_SUCCESS;
@@ -279,9 +309,11 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
 
     INA_ASSERT(__initialized);
 
-    if (_isatty(_fileno(stdout))) {
-        ina_cio_get_pos(&pos);
+    pos.col = 0;
+    pos.row = 0;
 
+    if (_isatty(_fileno(stdout))) {
+        
         if (row >= 0 && row != pos.row)  {
             pos.row = (uint8_t)row;
             setpos = INA_YES;
@@ -319,7 +351,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     va_end(args);
     
     if (setattribs == INA_YES) {
-        ina_cio_set_attribs(&attribs);
+       ina_cio_reset();
     }
     return size;
 }
@@ -335,7 +367,7 @@ __ina_get_cursor_pos(ina_cio_pos_t *const pos)
     return 0;
 }
 #else
-static inline int rd(const int fd)
+INA_INLINE int rd(const int fd)
 {
     unsigned char   buffer[4];
     ssize_t         n;
@@ -355,7 +387,7 @@ static inline int rd(const int fd)
     }
 }
 
-static inline int wr(const int fd, const char *const data, const size_t bytes)
+INA_INLINE int wr(const int fd, const char *const data, const size_t bytes)
 {
     const char       *head = data;
     const char *const tail = data + bytes;

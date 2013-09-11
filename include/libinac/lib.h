@@ -79,10 +79,13 @@
 #include <libinac/http.h>
 #include <libinac/ssl.h>
 #include <libinac/xml.h>
+#include <libinac/json.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
 #include <libinac/cron.h>
 #include <libinac/fsm.h>
+#include <libinac/service.h>
+#include <libinac/process.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
