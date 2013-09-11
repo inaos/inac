@@ -38,7 +38,7 @@ static void __cleanup_handler(int sig, int *error)
 INA_TEST_HELPER(ssl, ssl_server) {
     const char *addr;
     int32_t port;
-    ina_ssl_conn_t *ssl_conn;
+    ina_ssl_cn_t *ssl_cn;
     int fd = -1;
     int cfd = -1;
     unsigned char *buffer;
@@ -74,7 +74,7 @@ INA_TEST_HELPER(ssl, ssl_server) {
                         ina_net_close(cfd);
                         cfd = -1;
                     }
-                    if (!INA_SUCCEED(ina_ssl_server_new(__ssl, &ssl_conn, cfd))) {
+                    if (!INA_SUCCEED(ina_ssl_server_new(__ssl, &ssl_cn, cfd))) {
                         INA_TEST_HELPER_SET_RC(ina_err_peek());
                         return;
                     }
@@ -84,18 +84,18 @@ INA_TEST_HELPER(ssl, ssl_server) {
 
         if (cfd != -1) {
             
-            ina_rc_t rc = ina_ssl_read(ssl_conn, &buffer, &nb_read);
+            ina_rc_t rc = ina_ssl_read(ssl_cn, &buffer, &nb_read);
 
             if (INA_RC_REASON(rc) == INA_EAGAIN) {
-                if (ina_ssl_handshake_status(ssl_conn) != INA_SUCCESS) {
+                if (ina_ssl_handshake_status(ssl_cn) != INA_SUCCESS) {
                     continue;
                 }
             } else if (rc == INA_SUCCESS) {
                 if (nb_read > 0) {
-                    ina_ssl_write(ssl_conn, buffer, nb_read, &nb_read);
+                    ina_ssl_write(ssl_cn, buffer, nb_read, &nb_read);
                 }
             } else {
-               ina_ssl_server_free(__ssl, &ssl_conn);
+               ina_ssl_server_free(__ssl, &ssl_cn);
                ina_net_close(cfd);
                cfd = -1;
             }
