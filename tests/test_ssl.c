@@ -56,7 +56,7 @@ INA_TEST_FIXTURE(ssl, ssl_write_read) {
     size_t nb_read = 0;
     size_t nb_write = 0;
     ina_ssl_ctx_t *ssl_ctx = NULL;
-    ina_ssl_conn_t *ssl_conn = NULL;
+    ina_ssl_cn_t *ssl_cn = NULL;
 
     INA_TEST_ASSERT_SUCCEED(ina_ssl_init(&ssl_ctx, 1, INA_SSL_CLIENT_DEFAULT));
 
@@ -65,24 +65,24 @@ INA_TEST_FIXTURE(ssl, ssl_write_read) {
                             __INA_TCP_PORT,
                             5000));
     ina_net_block(data->client_fd);
-    INA_TEST_ASSERT_SUCCEED(ina_ssl_client_new(ssl_ctx, &ssl_conn, data->client_fd));
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_client_new(ssl_ctx, &ssl_cn, data->client_fd));
 
     INA_TEST_MSG("conected to %s:%d", __INA_TCP_ADDR, __INA_TCP_PORT);
 
     ina_mem_set(buffer, 0, 1024);
     strcpy((char*)buffer, "hello");
     INA_TEST_MSG("write %s", buffer);
-    INA_TEST_ASSERT_SUCCEED(ina_ssl_write(ssl_conn,
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_write(ssl_cn,
                             buffer,
                             strlen((const char*)buffer), &nb_write));
 
-    INA_TEST_ASSERT_SUCCEED(ina_ssl_read(ssl_conn,
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_read(ssl_cn,
                             &readbuf,
                             &nb_read));
     INA_TEST_MSG("read %d bytes:%s", nb_read, (const char*)readbuf);
     INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
 
-    INA_TEST_ASSERT_SUCCEED(ina_ssl_client_free(ssl_ctx, &ssl_conn));
+    INA_TEST_ASSERT_SUCCEED(ina_ssl_client_free(ssl_ctx, &ssl_cn));
     INA_TEST_ASSERT_SUCCEED(ina_ssl_destroy(&ssl_ctx));
 }    
                             
