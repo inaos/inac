@@ -19,8 +19,9 @@ include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/../include"
 
 #set build-type specific variables
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
+	SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED - DINA_LOG_LEVEL=3)
+	add_definitions(-DINA_OS_WIN32 -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED -DINA_LOG_LEVEL=3)
 else()
 	#Preprocessor
 	add_definitions(-DINA_OS_WIN32 -DDEBUG -DINA_TRACE_ENABLED -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED -DINA_LOG_LEVEL=4)
