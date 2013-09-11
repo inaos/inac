@@ -98,7 +98,7 @@ typedef struct ina_fsm_transistion_s {
 
 /* Get the current state of an FSM */
 #define INA_FSM_GET_STATE(id, status)                                        \
-    id##_get_fsm_event(status)
+    id##_get_fsm_state(status)
         
 /* Set the current state of a FSM */
 #define INA_FSM_SET_STATE(id, status, new_state)                             \
@@ -114,7 +114,7 @@ typedef struct ina_fsm_transistion_s {
 
 /* Get the next state for a FSM */
 #define INA_FSM_NEXT_STATE(id, status, userdata)                             \
-  id##_next_fsm_state(&status, userdata)                                                               \
+  id##_next_fsm_state(&status, userdata)                                     \
   
 
 #ifdef __cplusplus

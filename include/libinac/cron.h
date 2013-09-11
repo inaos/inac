@@ -104,7 +104,8 @@ INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggest
  *
  */
 INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id, 
-                                             const char *pattern, ina_cron_func_cb cb);
+                                             const char *pattern, void *user_data, 
+                                             ina_cron_func_cb cb);
 
 #ifdef __cplusplus
 }

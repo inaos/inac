@@ -37,6 +37,15 @@ extern "C" {
 /* opaque process context */
 typedef struct ina_process_ctx_s ina_process_ctx_t;
 
+/* opaque process */
+typedef struct ina_process_s ina_process_t;
+
+typedef enum ina_process_managed_type_e {
+    INA_PROCESS_MANAGED_TYPE_SCHEDULED_START,
+    INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP,
+    INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME
+} ina_process_managed_type_t;
+
 typedef enum ina_process_lifecycle_type_e {
     INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
     INA_PROCESS_LIFECYCLE_TYPE_MANAGED,
@@ -47,7 +56,27 @@ typedef struct ina_process_descriptor_s {
     ina_str_t working_dir;
     ina_str_t startup_args;
     ina_process_lifecycle_type_t lifecycle;
+    ina_process_managed_type_t managed_type;
+    ina_str_t scheduled_start_pattern;
+    ina_str_t scheduled_stop_pattern;
+    time_t stop_wait_time_ms;
 } ina_process_descriptor_t;
+
+INA_FSM_STATES(process_fsm, 
+    INA_FSM_STATE(STARTABLE),
+    INA_FSM_STATE(RUNNING),
+    INA_FSM_STATE(STOPPED),
+    INA_FSM_STATE(KILLED),
+    INA_FSM_STATE(CRASHED)
+);
+
+INA_FSM_EVENTS(process_fsm, 
+    INA_FSM_EVENT(START),
+    INA_FSM_EVENT(STOP),
+    INA_FSM_EVENT(CRASH),
+    INA_FSM_EVENT(KILL),
+    INA_FSM_EVENT(RESET)
+);
 
 /*
  * 
@@ -61,6 +90,35 @@ INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx);
  * 
  */
 INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx, ina_process_descriptor_t *descriptor, ina_process_t **process);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_free(ina_process_ctx_t *ctx, ina_process_t **process);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_start(ina_process_ctx_t *ctx, ina_process_t *process);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_stop(ina_process_ctx_t *ctx, ina_process_t *process);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_query_state(ina_process_ctx_t *ctx, ina_process_t *process, ina_fsm_state_t *state);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_next_state(ina_process_ctx_t *ctx, ina_process_t *process);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_ctx_t *ctx, ina_process_t *process, int *exit_code);
+
 
 #ifdef __cplusplus
 }
