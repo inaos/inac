@@ -58,7 +58,7 @@ typedef struct ina_fsm_transistion_s {
             __VA_ARGS__,                                                     \
             id##_MAX_STATES } id##_fsm_state_t;                              \
     INA_INLINE id##_fsm_state_t id##_get_fsm_state(ina_fsm_status_t s) {     \
-        return INA_LOW(s); }                                                 \
+        return (id##_fsm_state_t)INA_LOW(s); }                               \
     INA_INLINE void id##_set_fsm_state(ina_fsm_status_t *s, id##_fsm_state_t ns) \
         { *s = INA_TOWORD(INA_HIGH(*s), (uint8_t)ns);}
 
@@ -70,7 +70,7 @@ typedef struct ina_fsm_transistion_s {
             __VA_ARGS__,                                                     \
             id##_MAX_EVENTS }  id##_fsm_event_t;                             \
     INA_INLINE id##_fsm_event_t id##_get_fsm_event(ina_fsm_status_t s) {     \
-            return INA_HIGH(s); }                                            \
+            return (id##_fsm_event_t)INA_HIGH(s); }                          \
     INA_INLINE void id##_set_fsm_event(ina_fsm_status_t *s, id##_fsm_event_t e) \
             { *s = INA_TOWORD((uint8_t)e, INA_LOW(*s));}
 
