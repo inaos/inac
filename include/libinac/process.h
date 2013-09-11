@@ -25,8 +25,8 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_SERVICE_H_
-#define _LIBINAC_SERVICE_H_
+#ifndef _LIBINAC_PROCESS_H_
+#define _LIBINAC_PROCESS_H_
 
 #include <libinac/lib.h>
 
@@ -34,59 +34,33 @@
 extern "C" {
 #endif
 
-/* opaque service context */
-typedef struct ina_service_ctx_s ina_service_ctx_t;
+/* opaque process context */
+typedef struct ina_process_ctx_s ina_process_ctx_t;
 
-typedef ina_rc_t (*ina_service_run)(void *user_data);
-typedef ina_rc_t (*ina_service_shutdown)(void *user_data);
+typedef enum ina_process_lifecycle_type_e {
+    INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
+    INA_PROCESS_LIFECYCLE_TYPE_MANAGED,
+} ina_process_lifecycle_type_t;
 
-typedef enum ina_service_startup_type_e {
-    INA_SERVICE_STARTUP_TYPE_AUTO,
-    INA_SERVICE_STARTUP_TYPE_MANUAL,
-} ina_service_startup_type_t;
-
-typedef struct ina_service_descriptor_s {
-    ina_str_t name;
-    ina_str_t display_name;
-    ina_str_t short_description;
-    ina_str_t long_description;
-    ina_str_t username;
-    ina_str_t password;
-    ina_service_run run_func;
-    ina_service_shutdown shutdown_func;
-    ina_service_startup_type_t startup;
+typedef struct ina_process_descriptor_s {
+    ina_str_t full_path;
+    ina_str_t working_dir;
     ina_str_t startup_args;
-    int exclusive_flag;
-    void *user_data;
-} ina_service_descriptor_t;
+    ina_process_lifecycle_type_t lifecycle;
+} ina_process_descriptor_t;
 
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx);
+INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx);
-/*
- * WIN: Installs the app as a service via the Service API
- * UNX: Installs the app as a deamon and enable service <app> commands.
- *      It stores the servicescript in a section in the binary and 
- *      copy it to /etc/init.d upon install
- */
-INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_service_run_console(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
 
 #ifdef __cplusplus
 }
