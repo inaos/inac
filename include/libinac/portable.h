@@ -1052,6 +1052,11 @@ typedef uint_least32_t uint_fast32_t;
 #define INA_MIN(a,b) min(a,b)
 #endif
 
+#define INA_LOW(x)       ((uint8_t)(x))
+#define INA_HIGH(x)      ((uint8_t)(((uint16_t)(x)) >> 8))
+#define INA_TOWORD(x,y)  (((x) << 8) | y)
+           
+           
 #ifdef INA_OS_WIN32
 struct timezone {
      int  tz_minuteswest; /* minutes W of Greenwich */

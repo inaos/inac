@@ -28,7 +28,6 @@
 #include <libinac/lib.h>
 
 static ina_ssl_ctx_t *__ssl = NULL;
-static int __running = 0;
 
 static void __cleanup_handler(int sig, int *error)
 {
@@ -36,9 +35,14 @@ static void __cleanup_handler(int sig, int *error)
     *error = EXIT_SUCCESS;
 }
 
-INA_TEST_HELPER(ssl_clientserver, ssl_server) {
+INA_TEST_HELPER(ssl, ssl_server) {
     const char *addr;
     int32_t port;
+    ina_ssl_cn_t *ssl_cn;
+    int fd = -1;
+    int cfd = -1;
+    unsigned char *buffer;
+    size_t nb_read;
     
     INA_TEST_HELPER_CHECK_ARGC(2);
     addr = INA_TEST_HELPER_CARG(0);
@@ -46,13 +50,58 @@ INA_TEST_HELPER(ssl_clientserver, ssl_server) {
     
     ina_set_cleanup_handler(__cleanup_handler);
     
-    
+    if (!INA_SUCCEED(ina_ssl_init(&__ssl, 1, 0))) {
+        INA_TEST_HELPER_SET_RC(ina_err_peek());
+        return;
+    }
 
-    __running = 1;
+    if (!INA_SUCCEED(ina_net_tcp_server(&fd, port, addr))) {
+        INA_TEST_HELPER_SET_RC(ina_err_peek());
+        return;
+    }
 
-   /* while (__running) {
-        
-        ina_time_sleep(10);
-    }*/
+    if (!INA_SUCCEED(ina_net_nonblock(fd))) {
+        ina_net_close(fd);
+        INA_TEST_HELPER_SET_RC(ina_err_peek());
+        return;
+    }
+
+    while (1) {
+        if (cfd == -1) {
+            if (INA_SUCCEED(ina_net_tcp_accept(&cfd, fd, NULL, NULL))) {
+                if (cfd != -1) {
+                    if (!INA_SUCCEED(ina_net_nonblock(cfd))) {
+                        ina_net_close(cfd);
+                        cfd = -1;
+                    }
+                    if (!INA_SUCCEED(ina_ssl_server_new(__ssl, &ssl_cn, cfd))) {
+                        INA_TEST_HELPER_SET_RC(ina_err_peek());
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (cfd != -1) {
+            
+            ina_rc_t rc = ina_ssl_read(ssl_cn, &buffer, &nb_read);
+
+            if (INA_RC_REASON(rc) == INA_EAGAIN) {
+                if (ina_ssl_handshake_status(ssl_cn) != INA_SUCCESS) {
+                    continue;
+                }
+            } else if (rc == INA_SUCCESS) {
+                if (nb_read > 0) {
+                    ina_ssl_write(ssl_cn, buffer, nb_read, &nb_read);
+                }
+            } else {
+               ina_ssl_server_free(__ssl, &ssl_cn);
+               ina_net_close(cfd);
+               cfd = -1;
+            }
+       }
+       ina_time_sleep(300);
+    }
+
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

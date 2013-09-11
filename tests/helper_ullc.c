@@ -31,7 +31,6 @@
 INA_TEST_HELPER(ullc, create_single_producer) {
     const char* name;
     int32_t num_consumers;
-    ina_ullc_ctx_t *ctx = NULL;
 
     INA_TEST_HELPER_CHECK_ARGC(1);
     name = INA_TEST_HELPER_CARG(0);
@@ -42,7 +41,6 @@ INA_TEST_HELPER(ullc, create_single_producer) {
 
 INA_TEST_HELPER(ullc, create_multi_producer) {
     const char* name;
-    ina_ullc_ctx_t *ctx = NULL;
 
     INA_TEST_HELPER_CHECK_ARGC(1);
     name = INA_TEST_HELPER_CARG(0);

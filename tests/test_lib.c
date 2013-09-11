@@ -104,3 +104,18 @@ INA_TEST(lib, max)
     INA_TEST_ASSERT_EQUAL_INTEGER(2, INA_MIN(3,2));
 }
 
+INA_TEST(lib, high_low_toword) 
+{
+    uint8_t low = 4;
+    uint8_t high = 1;
+    uint8_t low2 = 0;
+    uint8_t high2 = 0;
+    uint16_t word = 0;
+    
+    word = INA_TOWORD(high, low);
+    high2 = INA_HIGH(word);
+    INA_TEST_ASSERT_TRUE(high == high2);
+    low2 = INA_LOW(word);
+    INA_TEST_ASSERT_TRUE(low == low2);
+}
+

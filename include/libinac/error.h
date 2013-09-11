@@ -60,6 +60,8 @@ extern "C" {
 #define INA_MOD_CONFFILE 12
 #define INA_MOD_LIB      13
 #define INA_MOD_SSL      14
+#define INA_MOD_JSON     15
+#define INA_MOD_SERVICE  16
 #define INA_MOD_USER     32
 
 /* OS function identifiers */
@@ -92,6 +94,13 @@ extern "C" {
 #define INA_ETYPE    21
 #define INA_EAGAIN   22
 #define INA_EINIT    23
+#define INA_ELOGIC   24
+#define INA_ECAPAC   25
+#define INA_EOVRFL   26
+#define INA_EEMPTY   27
+#define INA_ENYI     28
+#define INA_ENOTFND  29
+#define INA_ESTATE   30
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -185,6 +194,7 @@ extern "C" {
 #define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
 #define INA_ERR_EMSGLEN INA_ERR_ERROR(INA_EMSGLEN, "Message size")
 #define INA_ERR_EMSGFMT INA_ERR_ERROR(INA_EMSGFMT, "Message format")
+#define INA_ERR_ENYI INA_ERR_ERROR(INA_ENYI, "Not implemented yet!")
 
 /* String-Module errors */
 #define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
@@ -263,7 +273,25 @@ extern "C" {
 #define INA_SSL_EINIT INA_SSL_ERROR(INA_EINIT, "SSL library init failed");
 #define INA_SSL_EAGAIN INA_SSL_ERROR(INA_EAGAIN, "SSL handshake still in progress");
 
-
+/* JSON errors */
+#define INA_JSON_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_JSON, INA_OSFN_NONE, s)
+#define INA_JSON_EPOOLF INA_JSON_ERROR(INA_ELOGIC, "Pool is missing entry, make sure to always return");
+#define INA_JSON_EPOOLE INA_JSON_ERROR(INA_ECAPAC, "Pool is exhausted");
+#define INA_JSON_ENOBUF INA_JSON_ERROR(INA_EEMPTY, "Buffer empty");
+#define INA_JSON_ENODATA INA_JSON_ERROR(INA_EEMPTY, "No more data. Stack is empty")
+                                              
+/* Service library errors */
+#define INA_SERVICE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_SERVICE, INA_OSFN_NONE, s)
+#define INA_SERVICE_EMAXLEN INA_SERVICE_ERROR(INA_EPARAM, "Service-Descriptor Parameter longer then maximum");
+#define INA_SERVICE_EUST INA_SERVICE_ERROR(INA_EPARAM, "Unknown Startup Type");
+#define INA_SERVICE_ECAPI INA_SERVICE_ERROR(INA_EPARAM, "Error during Service creation API call");
+#define INA_SERVICE_ESCM INA_SERVICE_ERROR(INA_EINIT, "Could not initialize Service-Control Manager");
+#define INA_SERVICE_ESVCNF INA_SERVICE_ERROR(INA_ENOTFND, "Service not found");
+#define INA_SERVICE_EQRYS INA_SERVICE_ERROR(INA_ENOTFND, "Can not query Service-Status");
+#define INA_SERVICE_ERUNNING INA_SERVICE_ERROR(INA_ESTATE, "Service is running");
+#define INA_SERVICE_EEXCL INA_SERVICE_ERROR(INA_ELOGIC, "Process already runnning only 1 process allowed");
+#define INA_SERVICE_EMINIT INA_SERVICE_ERROR(INA_EINIT, "Can not initialize mutex");
+#define INA_SERVICE_ESDIS INA_SERVICE_ERROR(INA_EINIT, "Can not invoke service-dispatcher");
 
 /* Error information */
 typedef struct ina_error_s {
