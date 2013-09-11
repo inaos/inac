@@ -135,6 +135,31 @@ INA_FSM_TRANSITIONS(signal_fsm,
         INA_FSM_TRANSITION(ORANGE, turn_green_on, GREEN),
         INA_FSM_TRANSITION(GREEN, turn_red_on, RED)));
 
+INA_TEST(fsm, get_set_state)
+{
+    signal_light_t sl;
+    ina_mem_set(&sl, 0, sizeof(signal_light_t));
+
+    /* Set initial state */
+    INA_FSM_SET_STATE(signal_fsm, sl.fsm_status, ON);
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_STATE(signal_fsm, sl.fsm_status) == ON);
+    INA_FSM_SET_STATE(signal_fsm, sl.fsm_status, OFF);
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_STATE(signal_fsm, sl.fsm_status) == OFF);    
+}
+
+INA_TEST(fsm, get_set_event)
+{
+    signal_light_t sl;
+    ina_mem_set(&sl, 0, sizeof(signal_light_t));
+
+    /* Set initial state */
+    INA_FSM_SET_EVENT(signal_fsm, sl.fsm_status, SWITCH);
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_EVENT(signal_fsm, sl.fsm_status) == SWITCH);
+
+    INA_FSM_SET_EVENT(signal_fsm, sl.fsm_status, TURN_ON_OFF);
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_EVENT(signal_fsm, sl.fsm_status) == TURN_ON_OFF);
+}
+
 INA_TEST(fsm, signal_light)
 {
     
@@ -143,14 +168,18 @@ INA_TEST(fsm, signal_light)
 
     /* Set initial state */
     INA_FSM_SET_STATE(signal_fsm, sl.fsm_status, OFF);
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_STATE(signal_fsm, sl.fsm_status) == OFF);
     
     /* Set start Event */
     INA_FSM_SET_EVENT(signal_fsm, sl.fsm_status, TURN_ON_OFF);
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_EVENT(signal_fsm, sl.fsm_status) == TURN_ON_OFF);
 
     /* Run until OFF */
     while (INA_FSM_NEXT_STATE(signal_fsm, sl.fsm_status, &sl) != OFF){
-        INA_TRACE("event=%d, state=%d", INA_HIGH(sl.fsm_status), INA_LOW(sl.fsm_status));
+        INA_TRACE2("event=%d, state=%d", INA_HIGH(sl.fsm_status), INA_LOW(sl.fsm_status));
     };
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_STATE(signal_fsm, sl.fsm_status) == OFF);
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_EVENT(signal_fsm, sl.fsm_status) == TURN_ON_OFF);
     INA_TEST_ASSERT_TRUE(sl.c == 3);
 }
 
