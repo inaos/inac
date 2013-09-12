@@ -371,9 +371,9 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
 
             /* iterate through function callbacks */
             HASH_ITER(hh, ctx->func_head, func, ftmp) {
-                if (task->mins[tp->tm_min] && task->hours[tp->tm_hour] &&
-						(task->days[tp->tm_mday] || task->dow[tp->tm_wday]) &&
-						task->mons[tp->tm_mon]) {
+                if (func->mins[tp->tm_min] && func->hours[tp->tm_hour] &&
+						(func->days[tp->tm_mday] || func->dow[tp->tm_wday]) &&
+						func->mons[tp->tm_mon]) {
                             /* execute callback */
                             func->cb(ctx, func->user_data);
                 }
@@ -671,7 +671,8 @@ INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pa
 }
 
 INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id, 
-                                             const char *pattern, ina_cron_func_cb cb)
+                                             const char *pattern, void *user_data, 
+                                             ina_cron_func_cb cb)
 {
     ina_cron_func_t *func = NULL;
     ina_str_t skey = ina_str_fromcstr(id);
@@ -692,6 +693,7 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
 		
 		func = (ina_cron_func_t*)ina_mem_alloc(sizeof(ina_cron_func_t));
 		func->key = key;
+        func->user_data = user_data;
 		
         sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
         sched.func = func;
