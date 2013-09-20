@@ -34,6 +34,9 @@
 extern "C" {
 #endif
 
+#define INA_PROCESS_FLAGS_CHILD_PROCESS  1
+#define INA_PROCESS_FLAGS_CONSOLE        2
+
 /* opaque process context */
 typedef struct ina_process_ctx_s ina_process_ctx_t;
 
@@ -60,22 +63,19 @@ typedef struct ina_process_descriptor_s {
     ina_str_t scheduled_start_pattern;
     ina_str_t scheduled_stop_pattern;
     time_t stop_wait_time_ms;
+    int start_flags;
 } ina_process_descriptor_t;
 
 INA_FSM_STATES(process_fsm, 
-    INA_FSM_STATE(STARTABLE),
-    INA_FSM_STATE(RUNNING),
-    INA_FSM_STATE(STOPPED),
-    INA_FSM_STATE(KILLED),
-    INA_FSM_STATE(CRASHED)
+    INA_FSM_STATE(INA_PROCESS_STARTABLE),
+    INA_FSM_STATE(INA_PROCESS_RUNNING),
+    INA_FSM_STATE(INA_PROCESS_STOPPED)
 );
 
 INA_FSM_EVENTS(process_fsm, 
-    INA_FSM_EVENT(START),
-    INA_FSM_EVENT(STOP),
-    INA_FSM_EVENT(CRASH),
-    INA_FSM_EVENT(KILL),
-    INA_FSM_EVENT(RESET)
+    INA_FSM_EVENT(INA_PROCESS_START),
+    INA_FSM_EVENT(INA_PROCESS_STOP),
+    INA_FSM_EVENT(INA_PROCESS_RESET)
 );
 
 /*
@@ -110,6 +110,10 @@ INA_API(ina_rc_t) ina_process_stop(ina_process_ctx_t *ctx, ina_process_t *proces
  * 
  */
 INA_API(ina_rc_t) ina_process_query_state(ina_process_ctx_t *ctx, ina_process_t *process, ina_fsm_state_t *state);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_should_be_running(ina_process_ctx_t *ctx, ina_process_t *process, int *should_be_running);
 /*
  * 
  */
