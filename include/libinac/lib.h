@@ -77,6 +77,7 @@
 #include <libinac/ljit.h>
 #include <libinac/conffile.h>
 #include <libinac/http.h>
+#include <libinac/dns.h>
 #include <libinac/ssl.h>
 #include <libinac/xml.h>
 #include <libinac/json.h>
@@ -86,6 +87,7 @@
 #include <libinac/fsm.h>
 #include <libinac/service.h>
 #include <libinac/process.h>
+#include <libinac/template.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>

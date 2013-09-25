@@ -62,6 +62,7 @@ extern "C" {
 #define INA_MOD_SSL      14
 #define INA_MOD_JSON     15
 #define INA_MOD_SERVICE  16
+#define INA_MOD_DNS      17
 #define INA_MOD_USER     32
 
 /* OS function identifiers */
@@ -292,6 +293,11 @@ extern "C" {
 #define INA_SERVICE_EEXCL INA_SERVICE_ERROR(INA_ELOGIC, "Process already runnning only 1 process allowed");
 #define INA_SERVICE_EMINIT INA_SERVICE_ERROR(INA_EINIT, "Can not initialize mutex");
 #define INA_SERVICE_ESDIS INA_SERVICE_ERROR(INA_EINIT, "Can not invoke service-dispatcher");
+
+/* DNS errors */
+#define INA_DNS_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DNS, INA_OSFN_NONE, s)
+#define INA_DNS_ELOOKUP INA_SERVICE_ERROR(INA_ENET, "DNS lookup failed");
+
 
 /* Error information */
 typedef struct ina_error_s {
