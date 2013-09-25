@@ -111,6 +111,14 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
  */
 INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, ina_str_t pattern, 
                                              time_t now, time_t *last_exec_time);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, const char *pattern, unsigned long *key);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx, unsigned long *key);
 
 #ifdef __cplusplus
 }

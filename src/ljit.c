@@ -31,6 +31,7 @@
 /* Import LuaJIT modules */
 INA_LJIT_PACKAGE(inac);
 INA_LJIT_IMPORT(inac,lconffile);
+INA_LJIT_IMPORT(inac, ltemplate);
 
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
 {        
@@ -86,10 +87,11 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
     INA_ASSERT_NOTNULL(ctx->lstate);
 
     /* Global function or object method? */
-    if (!(cfname = strchr(fname, '.'))) {
-         /* get function */
+    if (!(cfname = (char*)strchr(fname, '.'))) {
+        /* get function */
         lua_getglobal(ctx->lstate, fname); 
-    } else {    
+    }
+    else {    
         ina_str_t obj_name = ina_str_fromcstr(fname);
         char *obj_name_c = (char*)ina_str_cstr(obj_name);
         obj_name_c[cfname - fname] = '\0';
