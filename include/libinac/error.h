@@ -225,6 +225,7 @@ extern "C" {
 #define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
 #define INA_NET_ERROR2(r, s) INA_ERR_PUSH(r, INA_MOD_NET, INA_OSFN_NONE, s)
 #define INA_NET_ETIMEOUT INA_NET_ERROR2(INA_ETIMEOUT, "Net timeout")
+#define INA_NET_ENETINIT INA_NET_ERROR2(INA_EINIT, "Net initalization failed")
 
 /* ISCP errors */
 #define INA_ISCP_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ISCP, INA_OSFN_NONE, s)
