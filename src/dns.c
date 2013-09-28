@@ -46,7 +46,7 @@ INA_API(ina_rc_t) ina_dns_destroy(ina_dns_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, short *address_count, ina_str_t *addresses)
+INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, short *address_count, ina_str_t **addresses)
 {
     short i, cnt;
     struct hostent *remote_host;
@@ -62,12 +62,12 @@ INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, 
         cnt++;
     }
     
-    *addresses = (ina_str_t)ina_mem_alloc(sizeof(char)*(remote_host->h_length+1)*cnt);
+    *addresses = (ina_str_t*)ina_mem_alloc(sizeof(char)*15*cnt);
 
     for (i = 0; i < cnt; i++) {
         struct in_addr addr;
         addr.s_addr = *(u_long *)remote_host->h_addr_list[i];
-        addresses[i] = ina_str_fromcstr(inet_ntoa(addr));
+        *addresses[i] = ina_str_fromcstr(inet_ntoa(addr));
     }
 
     *address_count = cnt;
