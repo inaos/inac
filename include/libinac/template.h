@@ -54,31 +54,64 @@ INA_API(ina_rc_t) ina_template_destroy(ina_template_ctx_t **ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_template_compile(ina_template_ctx_t *ctx, const char *tpl, ina_template_env_t **env);
+INA_API(ina_rc_t) ina_template_compile(ina_template_ctx_t *ctx, const char *id, 
+                                       ina_str_t tpl, ina_template_env_t **env);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_template_render(ina_template_ctx_t *ctx, ina_template_env_t *env, ina_str_t *out);
+INA_API(ina_rc_t) ina_template_render(ina_template_env_t *env, ina_str_t *out);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_template_set_number(ina_template_ctx_t *ctx, ina_template_env_t *env, double num);
+INA_API(ina_rc_t) ina_template_set_number(ina_template_env_t *env, const char *key, double num);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_template_set_string(ina_template_ctx_t *ctx, ina_template_env_t *env, ina_str_t str);
+INA_API(ina_rc_t) ina_template_set_boolean(ina_template_env_t *env, const char *key, int boolean);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_template_new_table(ina_template_ctx_t *ctx, ina_template_env_t *env, ina_template_table_t **tbl);
+INA_API(ina_rc_t) ina_template_set_string(ina_template_env_t *env, const char *key, ina_str_t str);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_template_table_set_number(ina_template_ctx_t *ctx, ina_template_table_t *t, double num);
+INA_API(ina_rc_t) ina_template_new_hash(ina_template_env_t *env, const char *key, ina_template_table_t **tbl);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_template_table_set_string(ina_template_ctx_t *ctx, ina_template_table_t *t, ina_str_t str);
+INA_API(ina_rc_t) ina_template_new_array(ina_template_env_t *env, const char *key, ina_template_table_t **tbl);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_table_new_nested_hash(ina_template_table_t *tbl, const char *key, ina_template_table_t **nested);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_table_new_nested_array(ina_template_table_t *tbl, unsigned int idx, ina_template_table_t **nested);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_hash_set_number(ina_template_table_t *t, const char *key, double num);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_hash_set_boolean(ina_template_table_t *t, const char *key, int boolean);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_hash_set_string(ina_template_table_t *t, const char *key, ina_str_t str);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_array_set_number(ina_template_table_t *t, unsigned int idx, double num);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_array_set_boolean(ina_template_table_t *t, unsigned int idx, int boolean);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_array_set_string(ina_template_table_t *t, unsigned int idx, ina_str_t str);
 
 #ifdef __cplusplus
 }

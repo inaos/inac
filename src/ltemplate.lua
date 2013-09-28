@@ -1,5 +1,32 @@
+--
+-- Copyright (c) 2013, INAOS GmbH
+-- All rights reserved.
+--
+-- Redistribution and use in source and binary forms, with or without
+-- modification, are permitted provided that the following conditions are met:
+--     * Redistributions of source code must retain the above copyright
+--       notice, this list of conditions and the following disclaimer.
+--     * Redistributions in binary form must reproduce the above copyright
+--       notice, this list of conditions and the following disclaimer in the
+--       documentation and/or other materials provided with the distribution.
+--     * Neither the name of the INAOS GmbH nor the names of its contributors
+--       may be used to endorse or promote products derived from this software 
+--       without specific prior written permission.
+--
+-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+-- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+-- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+-- ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
+-- INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+-- (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+-- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+-- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+-- STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+-- ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+-- OF SUCH DAMAGE.
+--
 ------------------------------------------------------------------------------
--- Expand.lua - borrowed from Lua Wiki => http://lua-users.org/wiki/TextTemplate
+-- Based on Expand.lua - borrowed from http://lua-users.org/wiki/TextTemplate
 ------------------------------------------------------------------------------
 
 local template = {}
@@ -15,9 +42,9 @@ for w in string.gfind('do if for while repeat', '%a+') do
   statements[w] = true
 end
 
-local function expand(str, ...)
+local function expand(str, vars, env)
   assert(type(str)=='string', 'expecting string')
-  local searchlist = arg
+  local searchlist = {vars, env}
   local estring,evar
 
   function estring(str)
@@ -160,95 +187,64 @@ local function expand(str, ...)
   return estring(str)
 end
 
---[[
+-- create sandbox
+local env = {} -- add functions you know are safe here
 
-template = [[
-you can access variables: $v
-or environment variables: ${HOME}
+env.ipairs = ipairs
+env.next = next
+env.pairs = pairs
+env.tonumber = tonumber
+env.tostring = tostring
 
-you can call functions: ${table.concat(list, ', ')}
-this list has ${list.n} elements
-   ${string.rep('=', list.n)}
-   ${table.concat(list)}
-   ${string.rep('=', list.n)}
+env.string = {}
+env.string.byte = string.byte
+env.string.char = string.char
+env.string.format = string.format
+env.string.gmatch = string.gmatch
+env.string.gsub = string.gsub
+env.string.len = string.len
+env.string.lower = string.lower
+env.string.match = string.match
+env.string.rep = string.rep
+env.string.reverse = string.reverse
+env.string.sub = string.sub
+env.string.upper = string.upper
 
-or evaluate code inline
-${for i=1,list.n do
-    OUT = table.concat{ OUT, ' list[', i, '] = ', list[i], '\n'}
-  end}
-you can access global variables:
-This example is from ${mjd} at $(mjdweb)
+env.math = {}
+env.math.abs = math.abs
+env.math.acos = math.acos
+env.math.asin = math.asin
+env.math.atan = math.atan
+env.math.atan2 = math.atan2
+env.math.ceil = math.ceil
+env.math.cos = math.cos
+env.math.cosh = math.cosh
+env.math.deg = math.deg
+env.math.exp = math.exp
+env.math.floor = math.floor
+env.math.fmod = math.fmod
+env.math.frexp = math.frexp
+env.math.huge = math.huge
+env.math.ldexp = math.ldexp
+env.math.log = math.log
+env.math.log10 = math.log10
+env.math.max = math.max
+env.math.min = math.min
+env.math.modf = math.modf
+env.math.pi = math.pi
+env.math.pow = math.pow
+env.math.rad = math.rad
+env.math.sin = math.sin
+env.math.sinh = math.sqrt
+env.math.tan = math.tanh
 
-The Lord High Chamberlain has gotten ${L.n}
-things for me this year.
-${do diff = L.n - 5
-    more = 'more'
-    if diff == 0 then
-      diff = 'no'
-    elseif diff < 0 then
-      diff = -diff
-      more = 'fewer'
-    end
-  end}
-That is $(diff) $(more) than he gave me last year.
+env.table = {}
+env.table.concat = table.concat
+env.table.insert = table.insert
+env.table.remove = table.remove
 
-values can have other variables: $(ref)
-]]
-
-mjd = "Mark J. Dominus"
-mjdweb = 'http://perl.plover.com/'
-L = {n=0}
-for i = 1,4 do table.insert(L, string.char(64+i)) end
-local x = {
-  v = 'this is v',
-  list = L,
-  ref = "$(mjd) made Text::Template.pm"
-}
-setmetatable(x, {__index=_G})
--- fill in the template with values in table x
-io.write(expand(template, x, os.getenv))
-
-------------------------------------------------------------------------------
-
-fun_temp = [[
-==============================================================================
-$(foreach funcs
-
-  ${type} x = ${name}( ${table.concat(args, ', ')} ) {
-    $(code)
-$(when stuff
-    x = $x;
-    y = $y;
-)    reutrn $(exit);
-  }
-)
-==============================================================================
-]]
-
-fun_list = {
-  exit = 1;
-  stuff = false;
-
-  funcs = {
-    { type = 'int';
-      name = 'bill';
-      args = { 'a', 'b', 'c' };
-      code = 'something';
-      stuff = { x=99, y=34 };
-    };
-    { type = 'char *';
-      name = 'bert';
-      args = { 'one', 'two', 'three' };
-      code = 'something else';
-      exit = 2
-    };
-  };
-}
-
-io.write(expand(fun_temp, fun_list, _G))
-
---]]
-
-template.expand = expand
+template.process = function(tpl, vars)
+  return expand(tpl, vars, env)
+end
 
 return template
