@@ -31,7 +31,7 @@
 /* Import LuaJIT modules */
 INA_LJIT_PACKAGE(inac);
 INA_LJIT_IMPORT(inac,lconffile);
-INA_LJIT_IMPORT(inac, ltemplate);
+INA_LJIT_IMPORT(inac,ltemplate);
 
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
 {        
