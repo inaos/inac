@@ -189,15 +189,7 @@ int anetResolve(char *err, char *host, char *ipbuf)
 #ifdef WIN32
 static int anetCreateSocket(char *err, int domain, int type) {
     SOCKET s;
-	WSADATA wsa_data;
-    int res;
 	BOOL yes = TRUE;
-
-	res = WSAStartup(MAKEWORD(2,2), &wsa_data);
-	if (res != NO_ERROR) {
-		anetSetError(err, "creating socket: %s", strerror(WSAGetLastError()));
-        return ANET_ERR;
-	}
 	
 	if (type == ANET_SOCKET_TYPE_TCP) {
 		s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
@@ -210,13 +202,11 @@ static int anetCreateSocket(char *err, int domain, int type) {
 	}
 	if (s == INVALID_SOCKET) {
 		anetSetError(err, "creating socket: %s", strerror(WSAGetLastError()));
-		WSACleanup();
         return ANET_ERR;
 	}
 
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(BOOL)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt SO_REUSEADDR: %s", strerror(WSAGetLastError()));
-		WSACleanup();
         return ANET_ERR;
     }
     return s;
@@ -270,7 +260,6 @@ static int anetTcpGenericConnect(char *err, char *addr, int port, int flags)
             anetSetError(err, "can't resolve: %s", addr);
 #ifdef WIN32
 			closesocket(s);
-			WSACleanup();
 #else
             close(s);
 #endif
@@ -296,7 +285,6 @@ static int anetTcpGenericConnect(char *err, char *addr, int port, int flags)
 #ifdef WIN32
 		anetSetError(err, "connect: %s (%d)", strerror(WSAGetLastError()), WSAGetLastError());
 		closesocket(s);
-		WSACleanup();
 #else
 		anetSetError(err, "connect: %s", strerror(errno));
         close(s);
@@ -394,13 +382,11 @@ static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len) {
     if (bind(s,sa,len) == -1) {
         anetSetError(err, "bind: %s", strerror(WSAGetLastError()));
         closesocket(s);
-		WSACleanup();
         return ANET_ERR;
     }
     if (listen(s, 511) == -1) { /* the magic 511 constant is from nginx */
         anetSetError(err, "listen: %s", strerror(WSAGetLastError()));
         closesocket(s);
-		WSACleanup();
         return ANET_ERR;
     }
     return ANET_OK;
@@ -437,7 +423,6 @@ int anetTcpServer(char *err, int port, char *bindaddr)
     if (bindaddr && inet_aton(bindaddr, &sa.sin_addr) == 0) {
         anetSetError(err, "invalid bind address");
         closesocket(s);
-		WSACleanup();
         return ANET_ERR;
     }
     if (anetListen(err,s,(struct sockaddr*)&sa, sizeof(sa)) == ANET_ERR)
@@ -595,7 +580,6 @@ int anetUdpBind(char *err, char *addr, int port)
     if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         anetSetError(err, "bind: %s", strerror(WSAGetLastError()));
         closesocket(s);
-		WSACleanup();
         return ANET_ERR;
     }
 #else
@@ -623,7 +607,6 @@ int anetJoinGroup(char* err, int fd, char *localif, char *source)
 #if WIN32
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(WSAGetLastError()));
-		WSACleanup();
         return ANET_ERR;
     }
 #else
@@ -650,7 +633,6 @@ int anetLeaveGroup(char* err, int fd, char *localif, char *source)
 #if WIN32
 	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(WSAGetLastError()));
-		WSACleanup();
         return ANET_ERR;
     }
 #else
