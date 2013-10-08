@@ -28,6 +28,11 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifndef INA_OS_WIN32
+#include <netdb.h>
+#include <arpa/inet.h>
+#endif
+
 struct ina_dns_ctx_s {
     char dummy;
 };
