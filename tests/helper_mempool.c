@@ -30,9 +30,9 @@
 INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
     const char *label;
     size_t size;
-    ina_mempool_t *mp = NULL;
     int32_t *v;
     size_t c;
+    ina_mempool_t *mp = NULL;
 
     INA_TEST_HELPER_CHECK_ARGC(2);
     label = INA_TEST_HELPER_CARG(0);
