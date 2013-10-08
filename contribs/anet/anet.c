@@ -213,7 +213,8 @@ static int anetCreateSocket(char *err, int domain, int type) {
 }
 #else
 static int anetCreateSocket(char *err, int domain, int type) {
-    int s, on = 1;
+    int s = 0;
+    int on = 1;
 
 	if (type == ANET_SOCKET_TYPE_TCP) {
 		s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
