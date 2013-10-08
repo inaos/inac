@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -177,6 +177,11 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
     __INA_ULLC_SWAP(&(*ctx)->p_offset->alive,1,0);
     INA_ASSERT_EQUAL(0, (*ctx)->p_offset->alive);
 
+    /* Force re-initialization on last producers */
+    if (__INA_ULLC_DEC(&(*ctx)->ring->alive_producers) == 1) {
+        (*ctx)->ring->magic = 0;
+    }
+
     if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
         return INA_ERR_PUSH_LAST;
     }
@@ -294,6 +299,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
 
     __INA_ULLC_SWAP(&(*ctx)->c_offset->alive,1,0);
     INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive);
+    (*ctx)->c_offset->cursor = 0;
 
     if (!INA_SUCCEED(__ina_sem_close(*ctx))) {
         return INA_ERR_PUSH_LAST;
@@ -398,6 +404,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         (*rb)->num_consumers = num_consumers;
         (*rb)->cursor = -1;
         (*rb)->next_ptr = 0;
+        (*rb)->alive_producers = 0;
         if (!INA_SUCCEED(__ina_sem_makekey(*rb, name))) {
             return INA_ERR_PUSH_LAST;
         }

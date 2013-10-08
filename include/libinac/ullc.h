@@ -158,6 +158,7 @@ typedef struct ina_ullc_rb_s {
     volatile int64_t cursor;
     volatile int64_t next_ptr;
     volatile int64_t swait_count;
+    volatile int64_t alive_producers;
     ina_semkey_t semkey; /*FIXME: multiple producer */
 } ina_ullc_rb_t;
 

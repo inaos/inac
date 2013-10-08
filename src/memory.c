@@ -411,7 +411,7 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
                  /* TODO: Best Fit strategy */
             }
             if (pool->size < size && pool->cf&INA_MEM_AUTOSIZE) {
-                nsize = __INA_MEM_ALIGN(pool->size * 2);
+                nsize = __INA_MEM_ALIGN(pool->size);
             } else {
                 nsize = pool->size;
             }

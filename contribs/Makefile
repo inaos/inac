@@ -39,6 +39,10 @@ all:
 	$(MAKE) -C yajl
 
 test: all
+
+debug: XCFLAGS+= -DLUA_USE_APICHECK
+	export XCFLAGS
+debug: all
 	
 .PHONY: clean
 
