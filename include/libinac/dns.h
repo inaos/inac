@@ -1,4 +1,5 @@
-/* Copyright (c) 2013, INAOS GmbH
+/*
+ * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,36 +25,34 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#ifndef _LIBINAC_DNS_H_
+#define _LIBINAC_DNS_H_
+
 #include <libinac/lib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
-    const char *label;
-    size_t size;
-    int32_t *v;
-    size_t c;
-    ina_mempool_t *mp = NULL;
+/* opaque service context */
+typedef struct ina_dns_ctx_s ina_dns_ctx_t;
 
-    INA_TEST_HELPER_CHECK_ARGC(2);
-    label = INA_TEST_HELPER_CARG(0);
-    size = INA_TEST_HELPER_IARG(1);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_dns_init(ina_dns_ctx_t **ctx);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_dns_destroy(ina_dns_ctx_t **ctx);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, 
+                                        short *address_count, ina_str_t **addresses);
 
-    if (!INA_SUCCEED(ina_mempool_create(&mp, size, 
-        INA_MEM_SHARED|INA_MEM_SHARED_CREATE, ina_str_fromcstr(label)))) {
-            INA_TEST_HELPER_SET_RC(ina_err_peek());
-            return;
-    }
-
-    c = 0;
-    v = (int32_t*)ina_mempool_dalloc(mp, size);
-    while (c  < (size/sizeof(int32_t))) {
-        *v = c++;
-        v++;
-    }
-    
-    /* Run until kill signal */
-    while (1) {
-        ina_time_sleep(1000);
-    }
-    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+#ifdef __cplusplus
 }
+#endif
+
+#endif

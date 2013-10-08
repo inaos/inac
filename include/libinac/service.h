@@ -40,6 +40,11 @@ typedef struct ina_service_ctx_s ina_service_ctx_t;
 typedef ina_rc_t (*ina_service_run)(void *user_data);
 typedef ina_rc_t (*ina_service_shutdown)(void *user_data);
 
+typedef enum ina_service_mode_e {
+    INA_SERVICE_MODE_SERVICE,
+    INA_SERVICE_MODE_CONSOLE
+} ina_service_mode_t;
+
 typedef enum ina_service_startup_type_e {
     INA_SERVICE_STARTUP_TYPE_AUTO,
     INA_SERVICE_STARTUP_TYPE_MANUAL,
@@ -87,6 +92,10 @@ INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, ina_service_de
  * 
  */
 INA_API(ina_rc_t) ina_service_run_console(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_service_mode(ina_service_ctx_t *ctx, ina_service_mode_t *mode);
 
 #ifdef __cplusplus
 }

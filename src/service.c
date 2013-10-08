@@ -29,6 +29,7 @@
 #include "config.h"
 
 struct ina_service_ctx_s {
+    ina_service_mode_t mode;
     ina_service_descriptor_t *descriptor;
 #ifdef INA_OS_WIN32
     HANDLE hmutex;
@@ -371,4 +372,10 @@ INA_API(ina_rc_t) ina_service_run_console(ina_service_ctx_t *ctx, ina_service_de
 #else
     return INA_ERR_ENYI;
 #endif
+}
+
+INA_API(ina_rc_t) ina_service_mode(ina_service_ctx_t *ctx, ina_service_mode_t *mode)
+{
+    *mode = ctx->mode;
+    return INA_SUCCESS;
 }

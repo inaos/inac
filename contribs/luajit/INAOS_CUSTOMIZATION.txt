@@ -5,6 +5,7 @@ It contains the following changes:
 
 - To produce a debug lib adjust the msvcbuild.bat the following way:
 - set LJCOMPILE => change /MD to /MDd
+- append /DLUA_USE_APICHECK to the LJCOMPILE variable
 - change output library to: lua51d.lib
 - change library of luajit.exe to reflect the 'd'
 - THE IDEA IS THAT YOU'LL HAVE 2 LIBS IN THE END -> lua51.lib, lua51d.lib

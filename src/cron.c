@@ -52,8 +52,14 @@ struct ina_cron_task_itr_s {
     ina_cron_task_t *cursor;
 } ina_cron_task_itr_s;
 
+typedef enum __ina_cron_function_type_e {
+    __INA_CRON_FUNCTION_TYPE_PUSH,
+    __INA_CRON_FUNCTION_TYPE_PULL
+} __ina_cron_function_type_t;
+
 struct ina_cron_func_s {
     unsigned long key;
+    __ina_cron_function_type_t func_type;
     char mins[60]; /* 0-59 */
     char hours[24];	/* 0-23 */
     char days[32]; /* 1-31 */
@@ -61,6 +67,7 @@ struct ina_cron_func_s {
     char dow[7]; /* 0-6, beginning sunday */
     ina_cron_func_cb cb;
     void *user_data;
+    int callable;
     UT_hash_handle hh;
 } ina_cron_func_s;
 
@@ -374,8 +381,13 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
                 if (func->mins[tp->tm_min] && func->hours[tp->tm_hour] &&
 						(func->days[tp->tm_mday] || func->dow[tp->tm_wday]) &&
 						func->mons[tp->tm_mon]) {
-                            /* execute callback */
-                            func->cb(ctx, func->user_data);
+                    if (func->func_type == __INA_CRON_FUNCTION_TYPE_PUSH) {
+                        /* execute callback */
+                        func->cb(ctx, func->user_data);
+                    }
+                    else {
+                        func->callable = 1;
+                    }
                 }
             }
 		}
@@ -693,7 +705,10 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
 		
 		func = (ina_cron_func_t*)ina_mem_alloc(sizeof(ina_cron_func_t));
 		func->key = key;
+        func->func_type = __INA_CRON_FUNCTION_TYPE_PUSH;
+        func->callable = 0;
         func->user_data = user_data;
+        func->cb = cb;
 		
         sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
         sched.func = func;
@@ -707,5 +722,96 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
         HASH_ADD_ULONG(ctx->func_head, key, func);
 	}
 	
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, ina_str_t pattern, time_t now, time_t *last_exec_time)
+{
+    time_t t = now;
+    ina_cron_func_t dummy;
+    __ina_cron_schedulable_t sched;
+    size_t slen = strlen(pattern);
+	char *buf = (char*)ina_mem_alloc(slen+2);
+	buf = strcpy(buf, pattern);
+    buf[slen] = '\n';
+
+    ina_mem_set(&dummy, 0, sizeof(ina_cron_func_t));
+    sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
+    sched.func = &dummy;
+    if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
+        ina_mem_free(buf);
+        return ina_err_peek();
+    }
+	ina_mem_free(buf);
+
+    for (t = now - now % 60; t > 0; t -= 60) {
+        struct tm *tp = localtime(&t);
+        if (dummy.mins[tp->tm_min] && dummy.hours[tp->tm_hour] &&
+				(dummy.days[tp->tm_mday] || dummy.dow[tp->tm_wday]) &&
+				dummy.mons[tp->tm_mon]) {
+                    break;
+        }
+    }
+
+    *last_exec_time = t;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, const char *pattern, unsigned long *key_out)
+{
+    ina_cron_func_t *func = NULL;
+    ina_str_t skey = ina_str_fromcstr(id);
+    unsigned long key = INA_HASH_STR_TO_SDBM(skey);
+    
+    ina_str_destroy(skey);
+	
+	/* check if we already have this function - by using the ID */
+	HASH_FIND_ULONG(ctx->func_head, &key, func);
+
+    /* create a function callback */
+	if (func == NULL) {
+        __ina_cron_schedulable_t sched;
+        size_t slen = strlen(pattern);
+		char *buf = (char*)ina_mem_alloc(slen+2);
+		buf = strcpy(buf, pattern);
+        buf[slen] = '\n';
+		
+		func = (ina_cron_func_t*)ina_mem_alloc(sizeof(ina_cron_func_t));
+		func->key = key;
+        func->func_type = __INA_CRON_FUNCTION_TYPE_PULL;
+        func->callable = 0;
+        func->user_data = NULL;
+        func->cb = NULL;
+		
+        sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
+        sched.func = func;
+        if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
+            ina_mem_free(buf);
+            return ina_err_peek();
+        }
+		
+		ina_mem_free(buf);
+
+        HASH_ADD_ULONG(ctx->func_head, key, func);
+	}
+
+    *key_out = key;
+	
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx, unsigned long *key)
+{
+    ina_cron_func_t *func, *ftmp;
+
+    HASH_ITER(hh, ctx->func_head, func, ftmp) {
+        if (func->func_type == __INA_CRON_FUNCTION_TYPE_PULL && func->callable) {
+            func->callable = 0;
+            *key = func->key;
+            break;
+        }
+    }
+
     return INA_SUCCESS;
 }

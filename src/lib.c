@@ -228,6 +228,10 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
 
 INA_API(ina_rc_t) ina_init(size_t pool_size)
 {
+#ifdef INA_OS_WIN32
+    WSADATA wsaData;
+#endif
+
     if (__initialized++) {
         return INA_SUCCESS;
     }
@@ -271,10 +275,15 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
         return INA_ERR_PUSH_LAST;
     }
-	/* Make sure to use high-accuracy multimedia-timers for windows */
 #ifdef INA_OS_WIN32
+    /* Make sure to use high-accuracy multimedia-timers for windows */
 	timeBeginPeriod(1);
+    /* Initialize winsock */
+    if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
+        return INA_NET_ENETINIT;
+    }
 #endif
+
     return INA_SUCCESS;
 }
 
