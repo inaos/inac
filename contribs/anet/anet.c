@@ -213,7 +213,7 @@ static int anetCreateSocket(char *err, int domain, int type) {
 }
 #else
 static int anetCreateSocket(char *err, int domain, int type) {
-    int s = 0;
+    int s = -1;
     int on = 1;
 
 	if (type == ANET_SOCKET_TYPE_TCP) {
