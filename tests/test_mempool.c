@@ -199,7 +199,7 @@ INA_TEST_SETUP(mempool_ipc)
     INA_TEST_HELPER_INVOKE(&data->hid, mempool_ipc, 
         mempool_create_and_fill_int32_values,
         "/ina_test", 
-        INA_NUM2STR(1024*sizeof(int32_t)), 
+        INA_NUM2STR(4096), /*FIXME: 1024 * sizeof(int32_t)*/
         NULL);
     data->mp = NULL;
 }
@@ -222,10 +222,9 @@ INA_TEST_FIXTURE(mempool_ipc, mempool_create)
         INA_MEM_SHARED,
         "/ina_test"));
     
-    v = (int32_t*)ina_mempool_dalloc(data->mp, sizeof(int32_t));
+    v = (int32_t*)ina_mempool_dalloc(data->mp, 1024*sizeof(int32_t));
     while (c < 1024) {
-        INA_TEST_ASSERT_EQUAL_INTEGER(c, *v);
-        v++;
+        INA_TEST_ASSERT_EQUAL_INTEGER(c, v[c]);
         c++;
     }
 }
