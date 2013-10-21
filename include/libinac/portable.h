@@ -1066,6 +1066,11 @@ struct timezone {
 INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
+#ifndef INA_OS_WIN32
+#define INA_INT64_T_FMT "lld"
+#else
+#define INA_INT64_T_FMT "I64d"
+#endif
 
 
 #ifdef _WIN32

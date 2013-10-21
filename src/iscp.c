@@ -414,7 +414,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                     {
                         params[p].value.i = *(int64_t*)&msg.cmd_data[n];
                         n += sizeof(int64_t);
-                        INA_TRACE3("- Parameter %d type=int64_t value=%lld", p, params[p].value.i);
+                        INA_TRACE3("- Parameter %d type=int64_t value=%" INA_INT64_T_FMT, p, params[p].value.i);
                         break;
                     }
                     case INA_ISCP_TYPE_DBL:

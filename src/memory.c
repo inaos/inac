@@ -617,7 +617,7 @@ __ina_shm_open(ina_mempool_t *pool)
     __sync_fetch_and_add((int64_t*)pool->m, 1);
     /* Inc start pos */
     pool->pos += sizeof(int64_t);
-    INA_TRACE2("shared mem %s ref count =  %lld", pool->label, *(int64_t*)pool->m);
+    INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, *(int64_t*)pool->m);
     return INA_SUCCESS;
 }
 
@@ -651,7 +651,7 @@ __ina_shm_close(ina_mempool_t *pool)
         INA_TRACE2("unlinking shared mem %s", pool->label);
         shm_unlink(ina_str_cstr(pool->label));
     }
-    INA_TRACE2("shared mem %s ref count =  %lld", pool->label, cn);
+    INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
     ina_str_destroy(pool->label);
 
     return INA_SUCCESS;
