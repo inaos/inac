@@ -745,7 +745,7 @@ extern "C" {
 #endif
 
 #if !defined (stdint_int64_defined) 
-# if defined(__GNUC__)
+# if defined(__GNUC__) && ! defined (__APPLE_CC__)
 #  define stdint_int64_defined
    /*__extension__ typedef long long int64_t;
    __extension__ typedef unsigned long long uint64_t;*/
