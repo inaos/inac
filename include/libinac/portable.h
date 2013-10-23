@@ -744,20 +744,21 @@ extern "C" {
 #endif
 #endif
 
-#if !defined (stdint_int64_defined)
+#if !defined (stdint_int64_defined) 
 # if defined(__GNUC__)
 #  define stdint_int64_defined
-   __extension__ typedef long long int64_t;
-   __extension__ typedef unsigned long long uint64_t;
+   /*__extension__ typedef long long int64_t;
+   __extension__ typedef unsigned long long uint64_t;*/
 #  ifndef UINT64_C
 #    define UINT64_C(v) v ## ULL
 #  endif
 #  ifndef INT64_C
 #    define  INT64_C(v) v ## LL
 #  endif
-#  ifndef PRINTF_INT64_MODIFIER
-#   define PRINTF_INT64_MODIFIER "ll"
+#  ifdef PRINTF_INT64_MODIFIER
+#  undef PRINTF_INT64_MODIFIER
 #  endif
+#    define PRINTF_INT64_MODIFIER "l"
 # elif defined(__MWERKS__) || defined (__SUNPRO_C) || defined (__SUNPRO_CC) || defined (__APPLE_CC__) || defined (_LONG_LONG) || defined (_CRAYC) || defined (S_SPLINT_S)
 #  define stdint_int64_defined
    typedef long long int64_t;
@@ -843,8 +844,7 @@ extern "C" {
  *  least definitions are all trivial.  Its possible that a future
  *  version of this file could have different definitions.
  */
-
-#ifndef stdint_least_defined
+#if !defined(stdint_least_defined) && !defined(_GCC_WRAP_STDINT_H) 
   typedef   int8_t   int_least8_t;
   typedef  uint8_t  uint_least8_t;
   typedef  int16_t  int_least16_t;
