@@ -34,7 +34,9 @@ INA_LJIT_IMPORT(inac,lconffile);
 INA_LJIT_IMPORT(inac,ltemplate);
 
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
-{        
+{   
+    ina_str_t cur_path = NULL;
+    ina_str_t new_path = NULL;
     *ctx = (ina_ljit_ctx_t*)ina_mem_alloc(sizeof(ina_ljit_ctx_t));
     if (*ctx == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -46,6 +48,18 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
         return INA_LJIT_ENSTATE;
     }
     luaL_openlibs((*ctx)->lstate);
+#ifdef INA_OS_WIN32
+    lua_getglobal((*ctx)->lstate, "package");
+    lua_getfield((*ctx)->lstate, -1, "path");
+    cur_path = ina_str_fromcstr(lua_tostring((*ctx)->lstate, -1));
+    new_path = ina_str_newlen(ina_str_len(cur_path)+10);
+    ina_str_cat(new_path, ".\\?.lua;");
+    ina_str_cat(new_path, cur_path);
+    lua_pop((*ctx)->lstate, 1 );
+    lua_pushstring((*ctx)->lstate, ina_str_cstr(new_path));
+    lua_setfield((*ctx)->lstate, -2, "path");
+    lua_pop((*ctx)->lstate, 1);
+#endif
     return INA_SUCCESS;
 }
 
