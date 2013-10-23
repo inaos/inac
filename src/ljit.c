@@ -35,8 +35,10 @@ INA_LJIT_IMPORT(inac,ltemplate);
 
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
 {   
+#ifdef INA_OS_WIN32
     ina_str_t cur_path = NULL;
     ina_str_t new_path = NULL;
+#endif
     *ctx = (ina_ljit_ctx_t*)ina_mem_alloc(sizeof(ina_ljit_ctx_t));
     if (*ctx == NULL) {
         return INA_ERR_PUSH_LAST;
