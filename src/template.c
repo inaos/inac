@@ -273,6 +273,10 @@ INA_API(ina_rc_t) ina_template_destroy(ina_template_ctx_t **ctx)
 {
     ina_template_env_t *env, *tenv;
 
+    if (*ctx == NULL) {
+        return INA_SUCCESS;
+    }
+
     HASH_ITER(hh, (*ctx)->envs, env, tenv) {
         HASH_DELETE(hh, (*ctx)->envs, env);
         __ina_template_table_destroy(env->tables);

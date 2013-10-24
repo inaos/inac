@@ -599,14 +599,15 @@ extern "C" {
  *  integer sizes in bits are powers of 2, and follow the ANSI
  *  definitions.
  */
-/*
 #ifndef UINT8_MAX
 # define UINT8_MAX 0xff
 #endif
 #ifndef uint8_t
 # if (UCHAR_MAX == UINT8_MAX) || defined (S_SPLINT_S)
+#ifndef UINT8_C
     typedef unsigned char uint8_t;
 #   define UINT8_C(v) ((uint8_t) v)
+#endif
 # else
 #   error "Platform not supported"
 # endif
@@ -620,8 +621,10 @@ extern "C" {
 #endif
 #ifndef int8_t
 # if (SCHAR_MAX == INT8_MAX) || defined (S_SPLINT_S)
+#ifndef INT8_C
     typedef signed char int8_t;
 #   define INT8_C(v) ((int8_t) v)
+#endif
 # else
 #   error "Platform not supported"
 # endif
@@ -638,8 +641,10 @@ extern "C" {
 # endif
 # define UINT16_C(v) ((uint16_t) (v))
 #elif (USHRT_MAX == UINT16_MAX)
+#ifndef UINT16_C
   typedef unsigned short uint16_t;
 # define UINT16_C(v) ((uint16_t) (v))
+#endif
 # ifndef PRINTF_INT16_MODIFIER
 #  define PRINTF_INT16_MODIFIER "h"
 # endif
@@ -662,8 +667,10 @@ extern "C" {
 #  define PRINTF_INT16_MODIFIER ""
 # endif
 #elif (SHRT_MAX == INT16_MAX)
+#ifndef INT16_C
   typedef signed short int16_t;
 # define INT16_C(v) ((int16_t) (v))
+#endif
 # ifndef PRINTF_INT16_MODIFIER
 #  define PRINTF_INT16_MODIFIER "h"
 # endif
@@ -677,8 +684,10 @@ extern "C" {
 #endif
 #ifndef uint32_t
 #if (ULONG_MAX == UINT32_MAX) || defined (S_SPLINT_S)
+#ifndef UINT32_C
   typedef unsigned long uint32_t;
 # define UINT32_C(v) v ## UL
+#endif
 # ifndef PRINTF_INT32_MODIFIER
 #  define PRINTF_INT32_MODIFIER "l"
 # endif
@@ -687,10 +696,14 @@ extern "C" {
 # ifndef PRINTF_INT32_MODIFIER
 #  define PRINTF_INT32_MODIFIER ""
 # endif
+#ifndef UINT32_C
 # define UINT32_C(v) v ## U
+#endif
 #elif (USHRT_MAX == UINT32_MAX)
+#ifndef UINT32_C
   typedef unsigned short uint32_t;
 # define UINT32_C(v) ((unsigned short) (v))
+#endif
 # ifndef PRINTF_INT32_MODIFIER
 #  define PRINTF_INT32_MODIFIER ""
 # endif
@@ -707,14 +720,18 @@ extern "C" {
 #endif
 #ifndef int32_t
 #if (LONG_MAX == INT32_MAX) || defined (S_SPLINT_S)
-  typedef signed long int32_t;
+  /*typedef signed long int32_t;*/
+#ifndef INT32_C
 # define INT32_C(v) v ## L
+#endif
 # ifndef PRINTF_INT32_MODIFIER
 #  define PRINTF_INT32_MODIFIER "l"
 # endif
 #elif (INT_MAX == INT32_MAX)
+#ifndef INT32_C
   typedef signed int int32_t;
 # define INT32_C(v) v
+#endif
 # ifndef PRINTF_INT32_MODIFIER
 #  define PRINTF_INT32_MODIFIER ""
 # endif
@@ -728,42 +745,22 @@ extern "C" {
 #error "Platform not supported"
 #endif
 #endif
-*/
-/*
- *  The macro stdint_int64_defined is temporarily used to record
- *  whether or not 64 integer support is available.  It must be
- *  defined for any 64 integer extensions for new platforms that are
- *  added.
- */
- /*
-#undef stdint_int64_defined
-#if (defined(__STDC__) && defined(__STDC_VERSION__)) || defined (S_SPLINT_S)
-# if (__STDC__ && __STDC_VERSION__ >= 199901L) || defined (S_SPLINT_S)
-#  define stdint_int64_defined
-   typedef long long int64_t;
-   typedef unsigned long long uint64_t;
-#  define UINT64_C(v) v ## ULL
-#  define  INT64_C(v) v ## LL
-#  ifndef PRINTF_INT64_MODIFIER
-#   define PRINTF_INT64_MODIFIER "ll"
-#  endif
-# endif
-#endif*/
 
-/*#if !defined (stdint_int64_defined)
-# if defined(__GNUC__)
+#if !defined (stdint_int64_defined) 
+# if defined(__GNUC__) && ! defined (__APPLE_CC__)
 #  define stdint_int64_defined
-   __extension__ typedef long long int64_t;
-   __extension__ typedef unsigned long long uint64_t;
+   /*__extension__ typedef long long int64_t;
+   __extension__ typedef unsigned long long uint64_t;*/
 #  ifndef UINT64_C
 #    define UINT64_C(v) v ## ULL
 #  endif
 #  ifndef INT64_C
 #    define  INT64_C(v) v ## LL
 #  endif
-#  ifndef PRINTF_INT64_MODIFIER
-#   define PRINTF_INT64_MODIFIER "ll"
+#  ifdef PRINTF_INT64_MODIFIER
+#  undef PRINTF_INT64_MODIFIER
 #  endif
+#    define PRINTF_INT64_MODIFIER "l"
 # elif defined(__MWERKS__) || defined (__SUNPRO_C) || defined (__SUNPRO_CC) || defined (__APPLE_CC__) || defined (_LONG_LONG) || defined (_CRAYC) || defined (S_SPLINT_S)
 #  define stdint_int64_defined
    typedef long long int64_t;
@@ -809,7 +806,7 @@ extern "C" {
 #if !defined (UINT64_MAX) && defined (INT64_C)
 # define UINT64_MAX UINT64_C (18446744073709551615)
 #endif
-*/
+  
 /*
  *  Width of hexadecimal for number field.
  */
@@ -840,47 +837,8 @@ extern "C" {
 # define PRINTF_INT8_DEC_WIDTH "3"
 #endif
 
-/*
- *  Ok, lets not worry about 128 bit integers for now.  Moore's law says
- *  we don't need to worry about that until about 2040 at which point
- *  we'll have bigger things to worry about.
- */
-/*
-#ifdef stdint_int64_defined
-  typedef int64_t intmax_t;
-  typedef uint64_t uintmax_t;
-# define  INTMAX_MAX   INT64_MAX
-# define  INTMAX_MIN   INT64_MIN
-# define UINTMAX_MAX  UINT64_MAX
-# define UINTMAX_C(v) UINT64_C(v)
-# define  INTMAX_C(v)  INT64_C(v)
-# ifndef PRINTF_INTMAX_MODIFIER
-#   define PRINTF_INTMAX_MODIFIER PRINTF_INT64_MODIFIER
-# endif
-# ifndef PRINTF_INTMAX_HEX_WIDTH
-#  define PRINTF_INTMAX_HEX_WIDTH PRINTF_INT64_HEX_WIDTH
-# endif
-# ifndef PRINTF_INTMAX_DEC_WIDTH
-#  define PRINTF_INTMAX_DEC_WIDTH PRINTF_INT64_DEC_WIDTH
-# endif
-#else
-  typedef int32_t intmax_t;
-  typedef uint32_t uintmax_t;
-# define  INTMAX_MAX   INT32_MAX
-# define UINTMAX_MAX  UINT32_MAX
-# define UINTMAX_C(v) UINT32_C(v)
-# define  INTMAX_C(v)  INT32_C(v)
-# ifndef PRINTF_INTMAX_MODIFIER
-#   define PRINTF_INTMAX_MODIFIER PRINTF_INT32_MODIFIER
-# endif
-# ifndef PRINTF_INTMAX_HEX_WIDTH
-#  define PRINTF_INTMAX_HEX_WIDTH PRINTF_INT32_HEX_WIDTH
-# endif
-# ifndef PRINTF_INTMAX_DEC_WIDTH
-#  define PRINTF_INTMAX_DEC_WIDTH PRINTF_INT32_DEC_WIDTH
-# endif
-#endif
-*/
+
+
 
 /*
  *  Because this file currently only supports platforms which have
@@ -888,8 +846,7 @@ extern "C" {
  *  least definitions are all trivial.  Its possible that a future
  *  version of this file could have different definitions.
  */
-
-/*#ifndef stdint_least_defined
+#if !defined(stdint_least_defined) && !defined(_GCC_WRAP_STDINT_H) 
   typedef   int8_t   int_least8_t;
   typedef  uint8_t  uint_least8_t;
   typedef  int16_t  int_least16_t;
@@ -917,7 +874,7 @@ extern "C" {
 # endif
 #endif
 #undef stdint_least_defined
-*/
+
 /*
  *  The ANSI C committee pretending to know or specify anything about
  *  performance is the epitome of misguided arrogance.  The mandate of
@@ -928,8 +885,8 @@ extern "C" {
  *  warned to stay away from these types when using this or any other
  *  stdint.h.
  */
-
-/*typedef   int_least8_t   int_fast8_t;
+# ifdef _STDINT_H_INCLUDED
+typedef   int_least8_t   int_fast8_t;
 typedef  uint_least8_t  uint_fast8_t;
 typedef  int_least16_t  int_fast16_t;
 typedef uint_least16_t uint_fast16_t;
@@ -950,9 +907,9 @@ typedef uint_least32_t uint_fast32_t;
 # define UINT_FAST64_MAX UINT_LEAST64_MAX
 # define  INT_FAST64_MAX  INT_LEAST64_MAX
 # define  INT_FAST64_MIN  INT_LEAST64_MIN
-#endif*/
-
-#undef stdint_int64_defined
+#endif
+#endif
+  
 
 /*
  *  Whatever piecemeal, per compiler thing we can do about the wchar_t
@@ -1066,6 +1023,9 @@ struct timezone {
 INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
+/* int64_t uint64_t format specifiers */
+#define INA_INT64_T_FMT  PRINTF_INT64_MODIFIER "d"
+#define INA_UINT64_T_FMT PRINTF_INT64_MODIFIER "u"
 
 
 #ifdef _WIN32

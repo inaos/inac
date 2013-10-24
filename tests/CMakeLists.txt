@@ -48,3 +48,29 @@ set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
 file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c")
 add_executable(test ${TEST_SRC})
 target_link_libraries(test ${PLATFORM_LIBS} ${LIBS})
+
+if(WIN32) 
+   add_custom_command(TARGET test POST_BUILD          
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${PROJECT_SOURCE_DIR}/test.conf"         
+        $<TARGET_FILE_DIR:test>)             
+     
+   add_custom_command(TARGET test POST_BUILD          
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${PROJECT_SOURCE_DIR}/test.conf"         
+        $<TARGET_FILE_DIR:test>/test.exe.conf)                  
+
+   add_custom_command(TARGET test POST_BUILD          
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${PROJECT_SOURCE_DIR}/test_filepath.conf"         
+        $<TARGET_FILE_DIR:test>)                  
+
+   add_custom_command(TARGET test POST_BUILD          
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${PROJECT_SOURCE_DIR}/test_conffile_anonymous_section.conf"         
+        $<TARGET_FILE_DIR:test>)                  
+   add_custom_command(TARGET test POST_BUILD          
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${PROJECT_SOURCE_DIR}/test_ljit.lua"         
+        $<TARGET_FILE_DIR:test>)                  
+ endif()
