@@ -55,6 +55,7 @@ INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, 
 {
     short i, cnt;
     struct hostent *remote_host;
+    ina_str_t *addresses_ptr;
 
     remote_host = gethostbyname(ina_str_cstr(hostname));
     if (remote_host == NULL || remote_host->h_addrtype != AF_INET) {
@@ -68,11 +69,12 @@ INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, 
     }
     
     *addresses = (ina_str_t*)ina_mem_alloc(sizeof(char)*15*cnt);
+    addresses_ptr = *addresses;
 
     for (i = 0; i < cnt; i++) {
         struct in_addr addr;
         addr.s_addr = *(u_long *)remote_host->h_addr_list[i];
-        *addresses[i] = ina_str_fromcstr(inet_ntoa(addr));
+        addresses_ptr[i] = ina_str_fromcstr(inet_ntoa(addr));
     }
 
     *address_count = cnt;
