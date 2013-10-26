@@ -529,11 +529,11 @@ __ina_signal_handler(int sig)
                 exit(EXIT_FAILURE);
                 break;
             }
-        case SIGTTOU:
-        case SIGTTIN:
         case SIGTERM:
         case SIGINT:
 #ifndef INA_OS_WIN32
+        case SIGTTOU:
+        case SIGTTIN:
         case SIGHUP:
         case SIGQUIT:
         case SIGSTOP:

@@ -546,21 +546,31 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
                     || (ker.dwControlKeyState & SHIFT_PRESSED) 
                     || (ker.dwControlKeyState & CAPSLOCK_ON)
                     || ker.dwControlKeyState == 0) 
-                    && ( (cta >=32 && cta <= 126) || cta == '\r') ) {
+                    && ( (cta >=32 && cta <= 126) || cta == '\r' || cta == '\b') ) {
                 WORD rep = ker.wRepeatCount;
-                char *cur = buffer + (*buf_cur)++;
-                size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE+(1*rep)+1;
-                /* check if there is space for another char, otherwise extend */
-                if (*buf_cur >= check_size) {
-                    buf_len += __INA_CIO_READ_BUFFER_CHUNK_SIZE;
-                    *ptr_buffer = (char*)ina_mem_realloc(buffer, *buf_len);
-                }
-                memset(cur, cta, rep);
-                /* this is it we finally have a new line! */
-                if (cta == '\r') {
-                    *finished = 1;
+                char *cur;
+                if (cta == '\b') {
+                    WORD z;
+                    if ((*buf_cur) > 0) {
+                        for (z = 0; z < rep; z++) {
+                            buffer[(*buf_cur)--] = ' ';
+                            printf("%c%c%c", '\b', ' ', '\b');
+                        }
+                    }
                 }
                 else {
+                    size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE+(1*rep)+1;
+                    cur = buffer + (*buf_cur)++;
+                    /* check if there is space for another char, otherwise extend */
+                    if (*buf_cur >= check_size) {
+                        buf_len += __INA_CIO_READ_BUFFER_CHUNK_SIZE;
+                        *ptr_buffer = (char*)ina_mem_realloc(buffer, *buf_len);
+                    }
+                    memset(cur, cta, rep);
+                    /* this is it we finally have a new line! */
+                    if (cta == '\r') {
+                        *finished = 1;
+                    }
                     printf("%c", cta);
                 }
             }
@@ -582,7 +592,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 {
     ina_rc_t ret = INA_SUCCESS;
     HANDLE hStdin;
-    DWORD dw_wait_ret;
+    DWORD dw_wait_ret = 0;
 
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (hStdin == INVALID_HANDLE_VALUE) {
@@ -592,7 +602,6 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
     dw_wait_ret = WaitForSingleObject(hStdin, 1);
 
     if (dw_wait_ret == WAIT_ABANDONED || dw_wait_ret == WAIT_FAILED) {
-        CloseHandle(hStdin);
         return INA_EWAIT;
     }
 
@@ -629,9 +638,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         if (!finished) {
             ret = INA_EAGAIN;
         }
-    }
-
-    CloseHandle(hStdin);
+    }    
 
     return ret;
 }
