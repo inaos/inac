@@ -522,3 +522,129 @@ __ina_get_cursor_pos(ina_cio_pos_t *const pos)
     return retval;
 }
 #endif
+
+#ifdef INA_OS_WIN32
+#define __INA_CIO_READ_BUFFER_CHUNK_SIZE 128
+static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_buffer, 
+                                     size_t *buf_cur, size_t *buf_len, int *finished)
+{
+    INPUT_RECORD *irInBuf;
+    DWORD dw_event_count;
+    DWORD dw_read = 0;
+    DWORD i;
+    char *buffer = *ptr_buffer;
+                
+    GetNumberOfConsoleInputEvents(hStdin, &dw_event_count);
+    irInBuf = (INPUT_RECORD*)ina_mem_alloc(sizeof(INPUT_RECORD)*dw_event_count);
+    ReadConsoleInput(hStdin, irInBuf, dw_event_count, &dw_read);
+
+    for (i = 0; i < dw_read; i++) {
+        if (irInBuf[i].EventType == KEY_EVENT) {
+            KEY_EVENT_RECORD ker = irInBuf[i].Event.KeyEvent;
+            char cta = ker.uChar.AsciiChar;
+            if (ker.bKeyDown == 1 && ( (ker.dwControlKeyState & NUMLOCK_ON) 
+                    || (ker.dwControlKeyState & SHIFT_PRESSED) 
+                    || (ker.dwControlKeyState & CAPSLOCK_ON)
+                    || ker.dwControlKeyState == 0) 
+                    && ( (cta >=32 && cta <= 126) || cta == '\r') ) {
+                WORD rep = ker.wRepeatCount;
+                char *cur = buffer + (*buf_cur)++;
+                size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE+(1*rep)+1;
+                /* check if there is space for another char, otherwise extend */
+                if (*buf_cur >= check_size) {
+                    buf_len += __INA_CIO_READ_BUFFER_CHUNK_SIZE;
+                    *ptr_buffer = (char*)ina_mem_realloc(buffer, *buf_len);
+                }
+                memset(cur, cta, rep);
+                /* this is it we finally have a new line! */
+                if (cta == '\r') {
+                    *finished = 1;
+                }
+                else {
+                    printf("%c", cta);
+                }
+            }
+        }
+    }
+
+    if (*finished == 1) {
+        /* 
+         * terminate the string we know that we have space 
+         *  because we always account for it when checking the buffer 
+         */
+        buffer[*buf_cur] = '\0';
+        *line = ina_str_fromcstr(buffer);
+        ina_mem_free(buffer);
+    }
+}
+static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
+                                    size_t *nb_buf_len, size_t *nb_buf_cur)
+{
+    ina_rc_t ret = INA_SUCCESS;
+    HANDLE hStdin;
+    DWORD dw_wait_ret;
+
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    if (hStdin == INVALID_HANDLE_VALUE) {
+        return ENOTTY;
+    }
+
+    dw_wait_ret = WaitForSingleObject(hStdin, 1);
+
+    if (dw_wait_ret == WAIT_ABANDONED || dw_wait_ret == WAIT_FAILED) {
+        CloseHandle(hStdin);
+        return INA_EWAIT;
+    }
+
+    if (!blocking) {
+        char *buffer;
+        size_t buf_cur = 0;
+        size_t buf_len = __INA_CIO_READ_BUFFER_CHUNK_SIZE;
+        int finished = 0;
+        
+        buffer = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
+        
+        while (1) {
+            if (dw_wait_ret == WAIT_OBJECT_0) {
+                __ina_cio_w32_read_input(line, hStdin, &buffer, &buf_cur, &buf_len, &finished);
+                if (finished) {
+                    break;
+                }
+            }
+            dw_wait_ret = WaitForSingleObject(hStdin, 10);
+        }
+    }
+    else {
+        int finished = 0;
+
+        if (dw_wait_ret == WAIT_TIMEOUT) {
+            ret = INA_EAGAIN;
+        }
+        else {
+            if (nb_buf == NULL) {
+                *nb_buf = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
+            }
+            __ina_cio_w32_read_input(line, hStdin, nb_buf, nb_buf_cur, nb_buf_len, &finished);
+        }
+        if (!finished) {
+            ret = INA_EAGAIN;
+        }
+    }
+
+    CloseHandle(hStdin);
+
+    return ret;
+}
+#else
+
+#endif
+INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
+{
+    return __ina_cio_read_line(line, 0, NULL, NULL, NULL);
+}
+
+INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
+                                              size_t *buf_len, size_t *buf_cur)
+{
+    return __ina_cio_read_line(line, 1, buf, buf_len, buf_cur);
+}
