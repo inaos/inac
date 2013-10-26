@@ -118,12 +118,26 @@ INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos);
 INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col);
 
 /*
- * Print a string ti the standard output
+ * Print a string to the standard output
  */
 INA_API(int) ina_cio_printf(int16_t row, int16_t col, 
                                     ina_cio_color_t fg_color, 
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...);
+/*
+ * Read line terminated by '\n'
+ * This function blocks until a the enter key is pressed by the user
+ * The line must be freed by the caller
+ */
+INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line);
+
+/*
+ * Read line terminated by '\n'
+ * This function is non-blocking - it will use the buffer to store intermediate line
+ * The buffer is freed once the line is complete - however the line must be freed be the caller
+ */
+INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
+                                              size_t *buf_len, size_t *buf_cur);
 
 #ifdef __cplusplus
 }
