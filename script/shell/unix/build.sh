@@ -123,7 +123,7 @@ if [ "eval_param" != "$3" ]; then
     if [ -f "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool" ]; then
         . "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool"
     elif [ "$INAC_BUILD_TOOL" == "make.sh" ]; then
-        . make.sh
+        . ./make.sh
     else    
         make $INAC_BUILD_MAKE_TARGET
     fi
