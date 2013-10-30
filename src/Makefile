@@ -45,9 +45,10 @@ all: $(OBJS) $(INAC_LIB)
 	@echo compile ljit $<
 	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
 
-$(INAC_LIB):
-	@ar crs $(INAC_LIB) $(OBJS)
-	@for i in $(DIRS); do ar crs $(INAC_LIB) $$i/*.o; done
+$(INAC_LIB): $(OBJS)
+	@for i in $(INAC_LIBS); do ar x $$i; done
+	@ar crs $(INAC_LIB) *.o
+	@for i in $(DIRS); do ar cs $(INAC_LIB) $$i/*.o; done
 
 .PHONY: clean
 
