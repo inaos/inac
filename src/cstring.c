@@ -196,6 +196,15 @@ INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
     return strcmp(lhs, rhs);
 }
 
+INA_API(ina_rc_t) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs)
+{
+#ifdef INA_OS_WIN32
+    return _stricmp(lhs, rhs);
+#else
+    return strcasecmp(lhs, rhs);
+#endif
+}
+
 INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
 {
     return strncmp(lhs, rhs, n);

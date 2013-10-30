@@ -27,7 +27,7 @@
 */
 #include <libinac/lib.h>
 
-static ina_iscp_msg_t *__send_msg;
+static ina_iscp_msg_t __send_msg;
 static ina_iscp_rc_t *__send_rc;
 static int __open_count = 0;
 static int __clse_count = 0;
@@ -54,8 +54,7 @@ static ina_rc_t __null_send_cb(void *user_data, ina_iscp_msg_t *msg)
 {
    INA_TEST_ASSERT_NOT_NULL(msg);
    ++__send_count;
-   __send_msg = msg;
-  /* printf("__send_buf->length=%d\n", __send_buf->length);*/
+   ina_mem_cpy(&__send_msg, msg, msg->length);
    return INA_SUCCESS;
 }
 
@@ -63,8 +62,7 @@ static ina_rc_t __null_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 {   
    INA_TEST_ASSERT_NOT_NULL(msg);
    ++__recv_count;
-   ina_mem_cpy(msg, __send_msg, __send_msg->length);
-   /*printf("__send_buf->length=%d\n", recv_buf->length);*/
+   ina_mem_cpy(msg, &__send_msg, __send_msg.length);
    return INA_SUCCESS;
 }
 
@@ -158,7 +156,6 @@ INA_TEST(iscp, send_recv_checkparams)
     __send_count = 0;
     __recv_count = 0;
     __p_count = 0;
-    __send_msg = NULL;
     __handler_count = 0;
 
     INA_TEST_ASSERT_SUCCESS(ina_iscp_create(&ctx, INA_ISCP_NONE));
@@ -174,7 +171,7 @@ INA_TEST(iscp, send_recv_checkparams)
                             INA_ISCP_TYPE_DBL, 5.2,
                             INA_ISCP_TYPE_STR, "test"));
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __send_count);
-    INA_TEST_ASSERT_NOT_NULL(__send_msg);    
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, __send_msg.cmd_id);    
     INA_TEST_ASSERT_SUCCEED(ina_iscp_recv(ctx, 1000, 1));
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __recv_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __handler_count);
@@ -249,7 +246,7 @@ INA_TEST(iscp, setup)
     INA_TEST_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 4, __null_handler2));
 }
 
-INA_TEST_SKIP(iscp, iscp_regsiter_ex)
+INA_TEST(iscp, iscp_regsiter_ex)
 {
     ina_iscp_ctx_t *ctx = NULL;
     ina_iscp_cmd_t cmds[] = {

@@ -170,6 +170,17 @@ INA_API(size_t) ina_str_len(const ina_str_t str);
  */
 INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
 /*
+ * Same as ina_str_cmp but ignores case.
+ * Parameters
+ * lhs, rhs -  pointers to the null-terminated byte strings to compare
+ *
+ * Return value:
+ * Negative value if lhs is less than rhs.
+ * INA_RC_OK if lhs is equal to rhs.
+ * Positive value if lhs is greater than rhs.
+ */
+INA_API(ina_rc_t) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs);
+/*
  * Compares at most count characters of two null-terminated byte strings.
  * The comparison is done lexicographically.
  *
