@@ -73,6 +73,7 @@ static void __ina_init_colors(void)
 static const char * __CSI = "\033[";
 static const char * __cmd_clear = "2J";
 
+static struct termios orig_termios;
 static char __cmd[__INA_MAX_CMD_BUFLEN];
 static char __fg_colors[INA_CIO_COLOR_UNDEFINED + 1][__INA_MAX_CMD_BUFLEN];
 static char __bg_colors[INA_CIO_COLOR_UNDEFINED + 1][__INA_MAX_CMD_BUFLEN];
@@ -107,6 +108,17 @@ static int               __initialized = INA_NO;
 INA_API(ina_rc_t) ina_cio_init(void)
 {
     if (__initialized != INA_YES) {
+#ifndef INA_OS_WIN32
+        struct termios new_termios;
+
+        /* take two copies - one for now, one for later */
+        tcgetattr(0, &orig_termios);
+        memcpy(&new_termios, &orig_termios, sizeof(new_termios));
+
+        /* register cleanup handler, and set the new terminal mode */
+        cfmakeraw(&new_termios);
+        tcsetattr(0, TCSANOW, &new_termios);
+#endif
         __ina_init_colors();
         __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
         __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
@@ -161,7 +173,9 @@ INA_API(ina_rc_t) ina_cio_reset(void)
     ina_cio_attribs_t attribs = { INA_CIO_COLOR_UNDEFINED, 
                                   INA_CIO_COLOR_UNDEFINED, 
                                   INA_CIO_RESET};
-
+#ifndef INA_OS_WIN32
+    tcsetattr(0, TCSANOW, &orig_termios);
+#endif
     return ina_cio_set_attribs(&attribs);
 }
 
@@ -523,8 +537,8 @@ __ina_get_cursor_pos(ina_cio_pos_t *const pos)
 }
 #endif
 
-#ifdef INA_OS_WIN32
 #define __INA_CIO_READ_BUFFER_CHUNK_SIZE 128
+#ifdef INA_OS_WIN32
 static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_buffer, 
                                      size_t *buf_cur, size_t *buf_len, int *finished)
 {
@@ -605,7 +619,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         return INA_EWAIT;
     }
 
-    if (!blocking) {
+    if (blocking) {
         char *buffer;
         size_t buf_cur = 0;
         size_t buf_len = __INA_CIO_READ_BUFFER_CHUNK_SIZE;
@@ -644,19 +658,69 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 }
 #else
 static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
-                                    size_t *nb_buf_len, size_t *nb_buf_cur)
+                                    size_t *nb_buf_len, size_t *nb_buf_pos)
 {
-    return INA_SUCCESS;
+    ina_rc_t rc = INA_SUCCESS;
+    
+    while (1) {
+        struct timeval tv = { 0L, 0L };
+        int rt = 0;
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(0, &fds);
+        rt = select(1, &fds, NULL, NULL, &tv);
+
+        if (!rt && blocking == INA_NO) {
+            rc =  INA_EAGAIN;
+            break;
+        }
+
+        if (rt) {
+            int r;
+            unsigned char c;
+        
+            if ((r = read(0, &c, sizeof(c))) < 0) {
+                if (blocking == INA_NO) {
+                    rc =  INA_EAGAIN;
+                    break;
+                }
+            } 
+            if (*nb_buf == NULL) {
+                *nb_buf_len = __INA_CIO_READ_BUFFER_CHUNK_SIZE;
+                *nb_buf_pos = 0;
+                *nb_buf = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
+            }
+            *nb_buf[*nb_buf_pos++] = (char)c;
+
+            if (c == '\n') {
+                *line = ina_str_fromcstr(*nb_buf);
+                ina_mem_free(*nb_buf);
+                *nb_buf = NULL;
+                *nb_buf_pos = 0;
+                *nb_buf_len = 0;
+                break;
+            }
+
+            if (blocking == INA_NO) {
+                rc = INA_EAGAIN;
+                break;
+            }
+        }
+    }
+    return rc;
 } 
 #endif
 INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
 {
-    return __ina_cio_read_line(line, 0, NULL, NULL, NULL);
+    char *buf = NULL;
+    size_t buf_len = 0;
+    size_t buf_pos = 0;
+    return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos);
 }
 
 INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
-                                              size_t *buf_len, size_t *buf_cur)
+                                              size_t *buf_len, size_t *buf_pos)
 {
-    return __ina_cio_read_line(line, 1, buf, buf_len, buf_cur);
+    return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos);
 }
 
