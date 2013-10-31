@@ -29,6 +29,7 @@ DIRS = $(shell ls -p |grep /)
 
 SRC = $(wildcard *.c)
 SRC_LUA = $(wildcard *.lua)
+SRC_LUA += $(wildcard ../contribs/luajit/src/jit/*.lua)
 
 OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
