@@ -643,7 +643,11 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
     return ret;
 }
 #else
-
+static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
+                                    size_t *nb_buf_len, size_t *nb_buf_cur)
+{
+    return INA_SUCCESS;
+} 
 #endif
 INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
 {
@@ -655,3 +659,4 @@ INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf,
 {
     return __ina_cio_read_line(line, 1, buf, buf_len, buf_cur);
 }
+
