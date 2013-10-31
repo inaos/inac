@@ -112,12 +112,12 @@ INA_API(ina_rc_t) ina_cio_init(void)
         struct termios new_termios;
 
         /* take two copies - one for now, one for later */
-        tcgetattr(0, &orig_termios);
-        memcpy(&new_termios, &orig_termios, sizeof(new_termios));
+        /*tcgetattr(0, &orig_termios);
+        memcpy(&new_termios, &orig_termios, sizeof(new_termios));*/
 
         /* register cleanup handler, and set the new terminal mode */
-        cfmakeraw(&new_termios);
-        tcsetattr(0, TCSANOW, &new_termios);
+        /*cfmakeraw(&new_termios);*/
+        /*tcsetattr(0, TCSANOW, &new_termios);*/
 #endif
         __ina_init_colors();
         __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
@@ -174,7 +174,7 @@ INA_API(ina_rc_t) ina_cio_reset(void)
                                   INA_CIO_COLOR_UNDEFINED, 
                                   INA_CIO_RESET};
 #ifndef INA_OS_WIN32
-    tcsetattr(0, TCSANOW, &orig_termios);
+    /*tcsetattr(0, TCSANOW, &orig_termios);*/
 #endif
     return ina_cio_set_attribs(&attribs);
 }
@@ -661,6 +661,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                                     size_t *nb_buf_len, size_t *nb_buf_pos)
 {
     ina_rc_t rc = INA_SUCCESS;
+    char *buf = NULL;
     
     while (1) {
         struct timeval tv = { 0L, 0L };
@@ -690,7 +691,6 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 *nb_buf_pos = 0;
                 *nb_buf = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
             }
-            *nb_buf[*nb_buf_pos++] = (char)c;
 
             if (c == '\n') {
                 *line = ina_str_fromcstr(*nb_buf);
@@ -700,6 +700,10 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 *nb_buf_len = 0;
                 break;
             }
+	    
+	    buf = *nb_buf;
+            buf[*nb_buf_pos] = (char)c;
+	    *nb_buf_pos += 1;
 
             if (blocking == INA_NO) {
                 rc = INA_EAGAIN;
