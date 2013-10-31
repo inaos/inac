@@ -33,6 +33,15 @@ INA_LJIT_PACKAGE(inac);
 INA_LJIT_IMPORT(inac,lconffile);
 INA_LJIT_IMPORT(inac,ltemplate);
 
+INA_LJIT_PACKAGE(ljit);
+INA_LJIT_IMPORT(ljit, bc);
+INA_LJIT_IMPORT(ljit, bcsave);
+INA_LJIT_IMPORT(ljit, dis_x64);
+INA_LJIT_IMPORT(ljit, dis_x86);
+INA_LJIT_IMPORT(ljit, v);
+INA_LJIT_IMPORT(ljit, vmdef);
+INA_LJIT_IMPORT(ljit, dump);
+
 INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
 {   
 #ifdef INA_OS_WIN32

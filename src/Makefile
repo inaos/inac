@@ -49,6 +49,7 @@ all: $(OBJS) $(INAC_LIB)
 $(INAC_LIB): $(OBJS)
 	@for i in $(INAC_LIBS); do ar x $$i; done
 	@ar crs $(INAC_LIB) *.o
+	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luajit/src/jit/*.o
 	@for i in $(DIRS); do ar cs $(INAC_LIB) $$i/*.o; done
 
 .PHONY: clean
