@@ -1,3 +1,5 @@
+<<<<<<< Local Changes
+=======
 /*
  * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
@@ -73,7 +75,6 @@ static void __ina_init_colors(void)
 static const char * __CSI = "\033[";
 static const char * __cmd_clear = "2J";
 
-static struct termios orig_termios;
 static char __cmd[__INA_MAX_CMD_BUFLEN];
 static char __fg_colors[INA_CIO_COLOR_UNDEFINED + 1][__INA_MAX_CMD_BUFLEN];
 static char __bg_colors[INA_CIO_COLOR_UNDEFINED + 1][__INA_MAX_CMD_BUFLEN];
@@ -108,17 +109,7 @@ static int               __initialized = INA_NO;
 INA_API(ina_rc_t) ina_cio_init(void)
 {
     if (__initialized != INA_YES) {
-#ifndef INA_OS_WIN32
-        struct termios new_termios;
 
-        /* take two copies - one for now, one for later */
-        /*tcgetattr(0, &orig_termios);
-        memcpy(&new_termios, &orig_termios, sizeof(new_termios));*/
-
-        /* register cleanup handler, and set the new terminal mode */
-        /*cfmakeraw(&new_termios);*/
-        /*tcsetattr(0, TCSANOW, &new_termios);*/
-#endif
         __ina_init_colors();
         __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
         __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
@@ -173,9 +164,6 @@ INA_API(ina_rc_t) ina_cio_reset(void)
     ina_cio_attribs_t attribs = { INA_CIO_COLOR_UNDEFINED, 
                                   INA_CIO_COLOR_UNDEFINED, 
                                   INA_CIO_RESET};
-#ifndef INA_OS_WIN32
-    /*tcsetattr(0, TCSANOW, &orig_termios);*/
-#endif
     return ina_cio_set_attribs(&attribs);
 }
 
@@ -662,7 +650,15 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 {
     ina_rc_t rc = INA_SUCCESS;
     char *buf = NULL;
+
+    struct termios new_termios;
+    struct termios old_termios;
     
+    tcgetattr(0, &old_termios);
+    memcpy(&new_termios, &old_termios, sizeof(new_termios));
+    cfmakeraw(&new_termios);
+    tcsetattr(0, TCSANOW, &new_termios);
+
     while (1) {
         struct timeval tv = { 0L, 0L };
         int rt = 0;
@@ -689,9 +685,9 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             if (*nb_buf == NULL) {
                 *nb_buf_len = __INA_CIO_READ_BUFFER_CHUNK_SIZE;
                 *nb_buf_pos = 0;
-                *nb_buf = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
+                *nb_buf = (char*)ina_mem_alloc(sizeof(char)* *nb_buf_len);
             }
-
+            
             if (c == '\n') {
                 *line = ina_str_fromcstr(*nb_buf);
                 ina_mem_free(*nb_buf);
@@ -700,10 +696,12 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 *nb_buf_len = 0;
                 break;
             }
-	    
-	    buf = *nb_buf;
-            buf[*nb_buf_pos] = (char)c;
-	    *nb_buf_pos += 1;
+
+            if (c >=32 && c <= 126) {  
+	            buf = *nb_buf;
+                buf[*nb_buf_pos] = (char)c;
+	            *nb_buf_pos += 1;
+            }
 
             if (blocking == INA_NO) {
                 rc = INA_EAGAIN;
@@ -711,6 +709,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             }
         }
     }
+    tcsetattr(0, TCSANOW, &old_termios);
     return rc;
 } 
 #endif
@@ -727,4 +726,3 @@ INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf,
 {
     return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos);
 }
-
