@@ -1,5 +1,3 @@
-<<<<<<< Local Changes
-=======
 /*
  * Copyright (c) 2013, INAOS GmbH
  * All rights reserved.
@@ -681,26 +679,44 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                     rc =  INA_EAGAIN;
                     break;
                 }
-            } 
+                ina_time_sleep(50);
+                continue;
+            }
+
             if (*nb_buf == NULL) {
                 *nb_buf_len = __INA_CIO_READ_BUFFER_CHUNK_SIZE;
                 *nb_buf_pos = 0;
                 *nb_buf = (char*)ina_mem_alloc(sizeof(char)* *nb_buf_len);
+            } else if ((*nb_buf_pos)-1 == *nb_buf_pos) {
+                buf = (char*)ina_mem_realloc(*nb_buf, (*nb_buf_len) + 
+                                            __INA_CIO_READ_BUFFER_CHUNK_SIZE);
+                if (buf == NULL) {
+                    ina_mem_free(*nb_buf);
+                    *nb_buf = NULL;
+                    return INA_ERR_PUSH_LAST;
+                }
+                *nb_buf = buf;
             }
             
-            if (c == '\n') {
+            if (c == '\n' || c == '\r') {
                 *line = ina_str_fromcstr(*nb_buf);
                 ina_mem_free(*nb_buf);
                 *nb_buf = NULL;
                 *nb_buf_pos = 0;
                 *nb_buf_len = 0;
                 break;
-            }
-
-            if (c >=32 && c <= 126) {  
+            } else if (c == '\b') {
+                if ((*nb_buf_pos) > 0) {
+                    buf[(*nb_buf_pos)--] = ' ';
+                    fprintf(stdout, "%c%c%c", '\b', ' ', '\b');
+                    fflush(stdout);
+                }
+            } else if (c >=32 && c <= 126) {  
 	            buf = *nb_buf;
                 buf[*nb_buf_pos] = (char)c;
 	            *nb_buf_pos += 1;
+                fprintf(stdout, "%c", c);
+                fflush(stdout);
             }
 
             if (blocking == INA_NO) {
