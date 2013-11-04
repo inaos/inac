@@ -152,6 +152,24 @@ INA_TEST(string, ina_str_ncmp)
     
 }
 
+INA_TEST(string, ina_str_casecmp)
+{
+    ina_str_t s1 = ina_str_fromcstr("abc");
+    ina_str_t s2 = ina_str_fromcstr("ABC");
+    ina_str_t s3 = ina_str_fromcstr("abC");
+    ina_str_t s4 = ina_str_fromcstr("abCD");
+    int result = 0;
+    
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s1, s2));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s1));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s3));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s3, s3));
+    result = ina_str_casecmp(s4, s3);
+    INA_TEST_ASSERT_TRUE((result > 0));
+    result = ina_str_casecmp(s3, s4);
+    INA_TEST_ASSERT_TRUE((result < 0));
+}
+
 INA_TEST(string, ina_str_str)
 {
     
