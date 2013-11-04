@@ -458,7 +458,7 @@ INA_TEST(json, generator_get_reset)
     INA_TEST_ASSERT_TRUE(buf_len > 0);
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_reset(g));
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_get_buffer(g, &buffer, &buf_len));
-    INA_TEST_ASSERT_NOT_NULL(buffer);
+    INA_TEST_ASSERT_NULL(buffer);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, buf_len);
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_release(ctx, &g));
     INA_TEST_ASSERT_SUCCEED(ina_json_destroy(&ctx));
