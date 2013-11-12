@@ -84,6 +84,8 @@ static ina_signal_handler_t __signal_handler_map[] = {
     NULL,
     NULL,
     NULL,
+    NULL,
+    NULL
 };
 
 INA_API(const char*) ina_app_get_name(void)
@@ -253,6 +255,8 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     __ina_signal(SIGQUIT, __ina_signal_handler);
     __ina_signal(SIGKILL, __ina_signal_handler);
     __ina_signal(SIGSTOP, __ina_signal_handler);
+    __ina_signal(SIGTTIN, __ina_signal_handler);
+    __ina_signal(SIGTTOU, __ina_signal_handler);
 #else
     /* Set unhandled exception handler for windows */
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
@@ -485,6 +489,12 @@ __ina_signal_handler(int sig)
         case SIGKILL:
             isig = INA_SIGNAL_KILL;
             break; 
+        case SIGTTOU:
+            isig = INA_SIGNAL_TTOU;
+            break;
+        case SIGTTIN:
+            isig = INA_SIGNAL_TTIN;
+            break;
 #endif
         default:
             INA_TRACE("unknown singal received!");
@@ -522,6 +532,8 @@ __ina_signal_handler(int sig)
         case SIGTERM:
         case SIGINT:
 #ifndef INA_OS_WIN32
+        case SIGTTOU:
+        case SIGTTIN:
         case SIGHUP:
         case SIGQUIT:
         case SIGSTOP:

@@ -107,6 +107,7 @@ static int               __initialized = INA_NO;
 INA_API(ina_rc_t) ina_cio_init(void)
 {
     if (__initialized != INA_YES) {
+
         __ina_init_colors();
         __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
         __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
@@ -161,7 +162,6 @@ INA_API(ina_rc_t) ina_cio_reset(void)
     ina_cio_attribs_t attribs = { INA_CIO_COLOR_UNDEFINED, 
                                   INA_CIO_COLOR_UNDEFINED, 
                                   INA_CIO_RESET};
-
     return ina_cio_set_attribs(&attribs);
 }
 
@@ -522,3 +522,223 @@ __ina_get_cursor_pos(ina_cio_pos_t *const pos)
     return retval;
 }
 #endif
+
+#define __INA_CIO_READ_BUFFER_CHUNK_SIZE 128
+#ifdef INA_OS_WIN32
+static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_buffer, 
+                                     size_t *buf_cur, size_t *buf_len, int *finished)
+{
+    INPUT_RECORD *irInBuf;
+    DWORD dw_event_count;
+    DWORD dw_read = 0;
+    DWORD i;
+    char *buffer = *ptr_buffer;
+                
+    GetNumberOfConsoleInputEvents(hStdin, &dw_event_count);
+    irInBuf = (INPUT_RECORD*)ina_mem_alloc(sizeof(INPUT_RECORD)*dw_event_count);
+    ReadConsoleInput(hStdin, irInBuf, dw_event_count, &dw_read);
+
+    for (i = 0; i < dw_read; i++) {
+        if (irInBuf[i].EventType == KEY_EVENT) {
+            KEY_EVENT_RECORD ker = irInBuf[i].Event.KeyEvent;
+            char cta = ker.uChar.AsciiChar;
+            if (ker.bKeyDown == 1 && ( (ker.dwControlKeyState & NUMLOCK_ON) 
+                    || (ker.dwControlKeyState & SHIFT_PRESSED) 
+                    || (ker.dwControlKeyState & CAPSLOCK_ON)
+                    || ker.dwControlKeyState == 0) 
+                    && ( (cta >=32 && cta <= 126) || cta == '\r' || cta == '\b') ) {
+                WORD rep = ker.wRepeatCount;
+                char *cur;
+                if (cta == '\b') {
+                    WORD z;
+                    if ((*buf_cur) > 0) {
+                        for (z = 0; z < rep; z++) {
+                            buffer[(*buf_cur)--] = ' ';
+                            printf("%c%c%c", '\b', ' ', '\b');
+                        }
+                    }
+                }
+                else {
+                    size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE+(1*rep)+1;
+                    cur = buffer + (*buf_cur)++;
+                    /* check if there is space for another char, otherwise extend */
+                    if (*buf_cur >= check_size) {
+                        buf_len += __INA_CIO_READ_BUFFER_CHUNK_SIZE;
+                        *ptr_buffer = (char*)ina_mem_realloc(buffer, *buf_len);
+                    }
+                    memset(cur, cta, rep);
+                    /* this is it we finally have a new line! */
+                    if (cta == '\r') {
+                        *finished = 1;
+                    }
+                    printf("%c", cta);
+                }
+            }
+        }
+    }
+
+    if (*finished == 1) {
+        /* 
+         * terminate the string we know that we have space 
+         *  because we always account for it when checking the buffer 
+         */
+        buffer[*buf_cur] = '\0';
+        *line = ina_str_fromcstr(buffer);
+        ina_mem_free(buffer);
+    }
+}
+static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
+                                    size_t *nb_buf_len, size_t *nb_buf_cur)
+{
+    ina_rc_t ret = INA_SUCCESS;
+    HANDLE hStdin;
+    DWORD dw_wait_ret = 0;
+
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    if (hStdin == INVALID_HANDLE_VALUE) {
+        return ENOTTY;
+    }
+
+    dw_wait_ret = WaitForSingleObject(hStdin, 1);
+
+    if (dw_wait_ret == WAIT_ABANDONED || dw_wait_ret == WAIT_FAILED) {
+        return INA_EWAIT;
+    }
+
+    if (blocking) {
+        char *buffer;
+        size_t buf_cur = 0;
+        size_t buf_len = __INA_CIO_READ_BUFFER_CHUNK_SIZE;
+        int finished = 0;
+        
+        buffer = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
+        
+        while (1) {
+            if (dw_wait_ret == WAIT_OBJECT_0) {
+                __ina_cio_w32_read_input(line, hStdin, &buffer, &buf_cur, &buf_len, &finished);
+                if (finished) {
+                    break;
+                }
+            }
+            dw_wait_ret = WaitForSingleObject(hStdin, 10);
+        }
+    }
+    else {
+        int finished = 0;
+
+        if (dw_wait_ret == WAIT_TIMEOUT) {
+            ret = INA_EAGAIN;
+        }
+        else {
+            if (nb_buf == NULL) {
+                *nb_buf = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
+            }
+            __ina_cio_w32_read_input(line, hStdin, nb_buf, nb_buf_cur, nb_buf_len, &finished);
+        }
+        if (!finished) {
+            ret = INA_EAGAIN;
+        }
+    }    
+
+    return ret;
+}
+#else
+static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
+                                    size_t *nb_buf_len, size_t *nb_buf_pos)
+{
+    ina_rc_t rc = INA_SUCCESS;
+    char *buf = NULL;
+
+    struct termios new_termios;
+    struct termios old_termios;
+    
+    tcgetattr(0, &old_termios);
+    memcpy(&new_termios, &old_termios, sizeof(new_termios));
+    cfmakeraw(&new_termios);
+    tcsetattr(0, TCSANOW, &new_termios);
+
+    while (1) {
+        struct timeval tv = { 0L, 0L };
+        int rt = 0;
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(0, &fds);
+        rt = select(1, &fds, NULL, NULL, &tv);
+
+        if (!rt && blocking == INA_NO) {
+            rc =  INA_EAGAIN;
+            break;
+        }
+
+        if (rt) {
+            int r;
+            unsigned char c;
+        
+            if ((r = read(0, &c, sizeof(c))) < 0) {
+                if (blocking == INA_NO) {
+                    rc =  INA_EAGAIN;
+                    break;
+                }
+                ina_time_sleep(50);
+                continue;
+            }
+
+            if (*nb_buf == NULL) {
+                *nb_buf_len = __INA_CIO_READ_BUFFER_CHUNK_SIZE;
+                *nb_buf_pos = 0;
+                *nb_buf = (char*)ina_mem_alloc(sizeof(char)* *nb_buf_len);
+            } else if ((*nb_buf_pos)-1 == *nb_buf_pos) {
+                buf = (char*)ina_mem_realloc(*nb_buf, (*nb_buf_len) + 
+                                            __INA_CIO_READ_BUFFER_CHUNK_SIZE);
+                if (buf == NULL) {
+                    ina_mem_free(*nb_buf);
+                    *nb_buf = NULL;
+                    return INA_ERR_PUSH_LAST;
+                }
+                *nb_buf = buf;
+            }
+            
+            if (c == '\n' || c == '\r') {
+                *line = ina_str_fromcstr(*nb_buf);
+                ina_mem_free(*nb_buf);
+                *nb_buf = NULL;
+                *nb_buf_pos = 0;
+                *nb_buf_len = 0;
+                break;
+            } else if (c == '\b' || (int)c == 127) {
+                if ((*nb_buf_pos) > 0) {
+                    buf[(*nb_buf_pos)--] = 0;
+                    fprintf(stdout, "\b \b");
+                    fflush(stdout);
+                }
+            } else if (c >=32 && c <= 126) {  
+	            buf = *nb_buf;
+                buf[*nb_buf_pos] = (char)c;
+	            *nb_buf_pos += 1;
+                fprintf(stdout, "%c", c);
+                fflush(stdout);
+            }
+
+            if (blocking == INA_NO) {
+                rc = INA_EAGAIN;
+                break;
+            }
+        }
+    }
+    tcsetattr(0, TCSANOW, &old_termios);
+    return rc;
+} 
+#endif
+INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
+{
+    char *buf = NULL;
+    size_t buf_len = 0;
+    size_t buf_pos = 0;
+    return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos);
+}
+
+INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
+                                              size_t *buf_len, size_t *buf_pos)
+{
+    return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos);
+}

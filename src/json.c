@@ -535,7 +535,8 @@ INA_API(ina_rc_t) ina_json_generator_get_buffer(ina_json_gen_t *generator,
 INA_API(ina_rc_t) ina_json_generator_reset(ina_json_gen_t *generator)
 {
     INA_ASSERT_NOTNULL(generator);
-    yajl_gen_clear(generator->handle);
+    yajl_gen_free(generator->handle);
+    generator->handle = yajl_gen_alloc(&generator->json_alloc_funcs);
     return INA_SUCCESS;
 }
 

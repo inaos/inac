@@ -167,7 +167,9 @@ typedef enum ina_signal_e {
     INA_SIGNAL_HUP,
     INA_SIGNAL_QUIT,
     INA_SIGNAL_KILL,
-    INA_SIGNAL_STOP
+    INA_SIGNAL_STOP,
+    INA_SIGNAL_TTOU,
+    INA_SIGNAL_TTIN
     #endif
  } ina_signal_t;
 

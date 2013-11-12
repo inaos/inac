@@ -846,6 +846,7 @@ extern "C" {
  *  least definitions are all trivial.  Its possible that a future
  *  version of this file could have different definitions.
  */
+   /*
 #if !defined(stdint_least_defined) && !defined(_GCC_WRAP_STDINT_H) 
   typedef   int8_t   int_least8_t;
   typedef  uint8_t  uint_least8_t;
@@ -874,7 +875,7 @@ extern "C" {
 # endif
 #endif
 #undef stdint_least_defined
-
+*/
 /*
  *  The ANSI C committee pretending to know or specify anything about
  *  performance is the epitome of misguided arrogance.  The mandate of

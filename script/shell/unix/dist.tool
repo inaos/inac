@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2013, INAOS GmbH
 # All rights reserved.
@@ -6,7 +7,7 @@
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
 #       notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
+#    * Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
 #     * Neither the name of the INAOS GmbH nor the names of its contributors
@@ -25,38 +26,9 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 #
-DIRS = $(shell ls -p |grep /)
 
-SRC = $(wildcard *.c)
-SRC_LUA = $(wildcard *.lua)
-SRC_LUA += $(wildcard ../contribs/luajit/src/jit/*.lua)
-
-OBJS = $(SRC:%.c=%.o)
-OBJS += $(SRC_LUA:%.lua=%.o)
-
-all: $(OBJS) $(INAC_LIB)
-	@echo compiling all for $(INAC_LIB)...
-	@for i in $(DIRS); do $(MAKE) -C $$i; done
-
-%.o: %.c $(INAC_INCLUDES)
-	@echo compile $(CC) $<
-	@$(CC) $(CFLAGS) -c $<
-
-%.o: %.lua
-	@echo compile ljit $<
-	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
-
-$(INAC_LIB): $(OBJS)
-	@for i in $(INAC_LIBS); do ar x $$i; done
-	@ar crs $(INAC_LIB) *.o
-	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luajit/src/jit/*.o
-	@for i in $(DIRS); do ar cs $(INAC_LIB) $$i/*.o; done
-
-.PHONY: clean
-
-clean:
-	@echo cleaning src...
-	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
-	@-rm -f *.o *.a
-	@-rm -f $(OBJS)
-
+if [ "$INAC_BUILD_STAGE" == "clean" ]; then
+	rm -f $INAC_BUILD_PROJECT_DIR/*.tar.gz
+else
+        tar czfv "$INAC_BUILD_NAME-$INAC_BUILD_VERSION".tar.gz $INAC_BUILD_FILES
+fi
