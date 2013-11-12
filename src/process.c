@@ -195,6 +195,7 @@ ina_rc_t __ina_process_cron_stop_cb(ina_cron_ctx_t *ctx, void *user_data)
     ina_process_t *p = (ina_process_t*)user_data;
     if (INA_FSM_GET_STATE(process_fsm, p->state) == INA_PROCESS_RUNNING) {
         INA_FSM_FIRE_EVENT(process_fsm, p->state, INA_PROCESS_STOP, p);
+        INA_FSM_FIRE_EVENT(process_fsm, p->state, INA_PROCESS_RESET, p);
     }
     return INA_SUCCESS;
 }
