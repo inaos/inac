@@ -287,6 +287,9 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
         return INA_ULLC_ECLIMIT;
     }
     __INA_ULLC_SWAP(&ccxt->c_offset->cursor, 0, ccxt->ring->cursor);
+    if (ccxt->c_offset->cursor < 0) {
+        ccxt->c_offset->cursor = 0;
+    }
     return __ina_sem_open(ccxt);
 }
 
