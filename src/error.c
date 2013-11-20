@@ -162,7 +162,7 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
         ret = __state.errors[k].rc;
         for (;;) {
             top =  __ina_pop_error();
-            if (top == ret) {
+            if (top == ret || top == 0) {
                 break;
             }
         }
