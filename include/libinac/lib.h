@@ -134,6 +134,10 @@ extern "C" {
 #define INA_OPT_INT(short_opt, long_opt, dft, desc)       \
  { short_opt, long_opt, INA_OPT_TYPE_INT, INA_NUM2STR(dft), desc }
 
+/* Add float option */
+#define INA_OPT_FLOAT(short_opt, long_opt, dft, desc)       \
+ { short_opt, long_opt, INA_OPT_TYPE_FLOAT, INA_NUM2STR(dft), desc }
+
 /* Define options map */
 #define INA_OPTS(name, ...)         \
 ina_opt_t name[] = {                \
@@ -145,6 +149,7 @@ typedef enum ina_opt_type_e {
     INA_OPT_TYPE_STRING = 0,
     INA_OPT_TYPE_INT,
     INA_OPT_TYPE_FLAG,
+    INA_OPT_TYPE_FLOAT
 } ina_opt_type_t;
     
 /* Command line option builder */
@@ -244,6 +249,18 @@ INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value);
  * INA_SUCCESS if option is available
  */
 INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value);
+
+/*
+ * Get the float value of an option.
+ *
+ * Parameters:
+ *  opt     name of option
+ *  value
+ *
+ * Return Value
+ * INA_SUCCESS if option is available
+ */
+INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value);
 
 /*
  * Initialize all internal data structures. This must be the first function 
