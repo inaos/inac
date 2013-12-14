@@ -73,6 +73,7 @@
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
+#include <libinac/cron.h>
 
 
 #ifdef __cplusplus
