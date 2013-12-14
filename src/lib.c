@@ -214,7 +214,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     signal(SIGABRT, __ina_signal_handler);
     signal(SIGILL, __ina_signal_handler);
     signal(SIGINT, __ina_signal_handler);
-    //signal(SIGSEGV, __ina_signal_handler);
+    /*signal(SIGSEGV, __ina_signal_handler);*/
     signal(SIGTERM, __ina_signal_handler);
 #ifndef INA_OS_WIN32
     signal(SIGBUS, __ina_signal_handler);
@@ -428,10 +428,11 @@ __ina_signal_handler(int sig)
     }
     abort();
 }
-
+#ifdef INA_OS_WIN32
 static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *exception_ptr)
 {
     ina_err_coredump(exception_ptr);
     ina_err_backtrace(exception_ptr);
     return EXCEPTION_EXECUTE_HANDLER;
 }
+#endif

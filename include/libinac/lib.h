@@ -70,10 +70,12 @@
 #include <libinac/iscp.h>
 #include <libinac/ljit.h>
 #include <libinac/conffile.h>
+#include <libinac/fsm.h>
 #include <libinac/util.h>
 #include <libinac/uthash.h>
 #include <libinac/debug.h>
 #include <libinac/cron.h>
+
 
 
 #ifdef __cplusplus
@@ -82,6 +84,10 @@ extern "C" {
 
 #define INA_YES 1
 #define INA_NO  0
+
+#define INA_LOW(x)       ((uint8_t)(x))
+#define INA_HIGH(x)      ((uint8_t)(((uint16_t)(x)) >> 8))
+#define INA_TOWORD(x,y)  (((x) << 8) | y)
 
 #define INA_NUM2STR_X(x) #x
 #define INA_NUM2STR(x) INA_NUM2STR_X(x)
