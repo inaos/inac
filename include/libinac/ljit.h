@@ -66,8 +66,13 @@ INA_API(const void) *__ina_ljit_export_##symbol (void) {               \
 /*
  * Import a LuaJIT module.
  */
+#ifdef __cplusplus
+#define INA_LIJT_EXTERN extern "C"
+#else
+#define INA_LJIT_EXTERN extern
+#endif
 #define INA_LJIT_IMPORT(package, module)                                \
-    extern const char *luaJIT_BC_##module;                              \
+    INA_LJIT_EXTERN const char *luaJIT_BC_##module;              \
     INA_API(const void) *__ina_ljit_import_##module (void) {            \
         __ina_ljit_##package = (const char*)(size_t)luaJIT_BC_##module; \
         return  __ina_ljit_##package;                                   \
