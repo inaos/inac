@@ -47,21 +47,29 @@ INA_TEST(lib, opt)
     ina_str_t l_str_value = NULL;
     int s_int_value = 2;
     ina_str_t s_str_value = NULL;
+    float l_float_value = 0.0;
+    float s_float_value = 0;
     
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("run"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("r"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("repeat"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("x")); 
+    INA_TEST_ASSERT_SUCCEED(ina_opt_isset("f"));
+    INA_TEST_ASSERT_SUCCEED(ina_opt_isset("float"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_string("run", &l_str_value));
     INA_TEST_ASSERT_NOT_NULL(l_str_value);
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_string("run", &s_str_value));
     INA_TEST_ASSERT_NOT_NULL(s_str_value);
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, ina_str_cmp(l_str_value, s_str_value));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_cmp(l_str_value, s_str_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("repeat", &l_int_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("x", &s_int_value));
-    INA_TEST_ASSERT_EQUAL_FLOATING(s_int_value, l_int_value);
+    INA_TEST_ASSERT_EQUAL_INTEGER(s_int_value, l_int_value);
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("t", &s_int_value));
-    INA_TEST_ASSERT_EQUAL_FLOATING(121, s_int_value);
+    INA_TEST_ASSERT_EQUAL_INTEGER(121, s_int_value);
+    INA_TEST_ASSERT_SUCCEED(ina_opt_get_float("f", &s_float_value));
+    INA_TEST_ASSERT_SUCCEED(ina_opt_get_float("float", &l_float_value));
+    INA_TEST_ASSERT_EQUAL_FLOATING(l_float_value, s_float_value);
+    INA_TEST_ASSERT_EQUAL_FLOATING(l_float_value, (float)1.02);
 }
 INA_TEST(lib, appname)
 {
