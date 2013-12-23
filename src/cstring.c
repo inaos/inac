@@ -239,4 +239,38 @@ INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...)
     va_end(args);
     return str;
 }
+
+INA_API(int) ina_str_snprintf(ina_str_t *str, size_t len, const char* fmt, ...)
+{
+    va_list args;
+    int retval = 0;
+
+    INA_ASSERT_NOTNULL(fmt);
+    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_TRUE(len > 0);
+
+    va_start(args, fmt);
+    retval = ina_str_vsnprintf(str, len, fmt, args);
+    va_end(args);
+    return retval;
+}
+
+INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,  
+                               va_list args)
+{
+    int l;
+    INA_ASSERT_NOTNULL(fmt);
+    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_TRUE(len > 0);
+    
+    
+    if ((l = snprintf(*str, len, fmt, args)) >= len) {
+        ina_str_destroy(*str);
+        if ((*str = malloc((l + 1) * sizeof(char)))) {
+            snprintf(*str, l + 1, fmt, args);
+        }
+    }
+    return l;    
+}
+
 #endif

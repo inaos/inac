@@ -199,6 +199,16 @@ INA_TEST(string, ina_str_vsprintf)
     
 }
 
+INA_TEST_SKIP(string, ina_str_snprintf)
+{
+    
+}
+
+INA_TEST_SKIP(string, ina_str_vsnprintf)
+{
+    
+}
+
 INA_TEST(string, simple_allocation_with_pool) 
 {
     ina_str_t str1;

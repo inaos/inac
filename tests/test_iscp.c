@@ -88,7 +88,7 @@ static ina_rc_t __null_handler2(int cmd_id, int count, ina_iscp_param_t *params)
    while (params) {
        ++__p_count;
    }
-   INA_TEST_ASSERT_EQUAL_FLOATING(count, __p_count);
+   INA_TEST_ASSERT_EQUAL_INTEGER(count, __p_count);
    return INA_SUCCESS;
 }
 
@@ -110,7 +110,7 @@ static ina_rc_t __check_params_handler(int cmd_id, int count, ina_iscp_param_t *
        } 
        if (__p_count == 3) {
            INA_TEST_ASSERT_EQUAL_INTEGER(INA_ISCP_TYPE_STR, params->type);
-           INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp("test", params->value.s));
+           INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp("test", params->value.s));
        }
        ++params;
    }
@@ -170,12 +170,12 @@ INA_TEST(iscp, send_recv_checkparams)
                             INA_ISCP_TYPE_INT64, 20,
                             INA_ISCP_TYPE_DBL, 5.2,
                             INA_ISCP_TYPE_STR, "test"));
-    INA_TEST_ASSERT_EQUAL_FLOATING(1, __send_count);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, __send_count);
     INA_TEST_ASSERT_EQUAL_INTEGER(1, __send_msg.cmd_id);    
     INA_TEST_ASSERT_SUCCEED(ina_iscp_recv(ctx, 1000, 1));
-    INA_TEST_ASSERT_EQUAL_FLOATING(1, __recv_count);
-    INA_TEST_ASSERT_EQUAL_FLOATING(1, __handler_count);
-    INA_TEST_ASSERT_EQUAL_FLOATING(3, __p_count);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, __recv_count);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, __handler_count);
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, __p_count);
 }
 
 INA_TEST(iscp, send_local)
@@ -209,7 +209,7 @@ INA_TEST(iscp, send_local)
    INA_TEST_ASSERT_NOTSUCCEED(ina_iscp_send(ctx, 1, 
                            INA_ISCP_TYPE_INT64, 20,
                            INA_ISCP_TYPE_STR, "test-2"));
-   INA_TEST_ASSERT_EQUAL_FLOATING(1, __send_count);
+   INA_TEST_ASSERT_EQUAL_INTEGER(1, __send_count);
 }
 
 INA_TEST(iscp, setup)

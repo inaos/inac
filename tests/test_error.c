@@ -52,15 +52,15 @@ INA_TEST(error, repush)
     INA_ERR_PUSH_LAST;
     
     rc = ina_err_peek();
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_EALLOC, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EALLOC, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_EALLOC, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EALLOC, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_EALLOC, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EALLOC, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_EMSGFMT, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EMSGFMT, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_EMSGLEN, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EMSGLEN, INA_RC_REASON(rc));
 }
 
 INA_TEST(error, push_a_million_errors)
@@ -91,7 +91,7 @@ INA_TEST(error, message_formatting)
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
     INA_ERR_EMSGLEN;
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
     INA_TEST_MSG("msg2=%s", ina_str_cstr(msg2));
 }
 
@@ -128,15 +128,15 @@ INA_TEST(error, push_and_clear)
 
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
-    INA_TEST_ASSERT_EQUAL_FLOATING(rc1, ina_err_peek());
-    INA_TEST_ASSERT_EQUAL_FLOATING(rc1, ina_err_peek_last());
-    INA_TEST_ASSERT_EQUAL_FLOATING(ina_err_peek(), ina_err_peek_last());
+    INA_TEST_ASSERT_EQUAL_INTEGER(rc1, ina_err_peek());
+    INA_TEST_ASSERT_EQUAL_INTEGER(rc1, ina_err_peek_last());
+    INA_TEST_ASSERT_EQUAL_INTEGER(ina_err_peek(), ina_err_peek_last());
 
     rc2 = INA_ERR_PUSH(1,2,5, "test error");
-    INA_TEST_ASSERT_EQUAL_FLOATING(rc2, ina_err_peek());
-    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(rc1, ina_err_peek());
-    INA_TEST_ASSERT_EQUAL_FLOATING(rc1, ina_err_peek_last());
-    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(rc1, rc2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(rc2, ina_err_peek());
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(rc1, ina_err_peek());
+    INA_TEST_ASSERT_EQUAL_INTEGER(rc1, ina_err_peek_last());
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(rc1, rc2);
 
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
@@ -145,7 +145,7 @@ INA_TEST(error, push_and_clear)
 
 INA_TEST(error, error_pack_rc) 
 {
-	ina_rc_t rcc;
+    ina_rc_t rcc;
     ina_rc_t rc;
 
     rcc = 16846855;
@@ -158,22 +158,22 @@ INA_TEST(error, error_pack_rc)
     INA_TRACE3("func = %u", INA_RC_OSFN(rc));
     INA_TRACE3("reason = %u", INA_RC_REASON(rc));
     
-    INA_TEST_ASSERT_EQUAL_FLOATING(rcc, rc);
-    INA_TEST_ASSERT_EQUAL_FLOATING(1, INA_RC_MOD(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(2, INA_RC_OSFN(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(7, INA_RC_REASON(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(4, INA_RC_ID(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(rcc, rc);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, INA_RC_MOD(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(2, INA_RC_OSFN(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(7, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(4, INA_RC_ID(rc));
     INA_TEST_ASSERT_FALSE(INA_RC_FATAL(rc));
     
     rc = INA_RC_PACK(15,15,255,1023);
-    INA_TEST_ASSERT_EQUAL_FLOATING(15, INA_RC_MOD(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(15, INA_RC_OSFN(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(255, INA_RC_REASON(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(1023, INA_RC_ID(rc));   
+    INA_TEST_ASSERT_EQUAL_INTEGER(15, INA_RC_MOD(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(15, INA_RC_OSFN(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(255, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(1023, INA_RC_ID(rc));   
 
     rc = INA_RC_PACK(63,31,511,1023);
-    INA_TEST_ASSERT_EQUAL_FLOATING(63, INA_RC_MOD(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(31, INA_RC_OSFN(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(511, INA_RC_REASON(rc));
-    INA_TEST_ASSERT_EQUAL_FLOATING(1023, INA_RC_ID(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(63, INA_RC_MOD(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(31, INA_RC_OSFN(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(511, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(1023, INA_RC_ID(rc));
 } 
