@@ -228,6 +228,33 @@ INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr);
 
 INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...);
 
+/*
+ * Writes output to the string str, under control of the format string format, 
+ * that specifies how subsequent arguments are converted for output. It is 
+ * similar to sprintf, except that size specifies the maximum number of 
+ * characters to produce. The trailing nul character is counted towards this 
+ * limit, so you must allocate at least size characters for str. 
+ * If size is zero, nothing is written and str may be null. Otherwise, output 
+ * characters beyond the n-1st are discarded rather than being written to str, 
+ * and a nul character is written at the end of the characters actually written 
+ * to str. If copying takes place between objects that overlap, the behaviour
+ * is undefined.
+ * On success, returns the number of characters that would have been written 
+ * had size been sufficiently large, not counting the terminating nul 
+ * character. Thus, the nul-terminated output has been completely written if 
+ * and only if the return value is nonnegative and less than size. On error, 
+ * returns -1 (i.e. encoding error).
+ */
+INA_API(int) ina_str_snprintf(ina_str_t *str, size_t len, const char* fmt, ...);
+
+/*
+ * Equivalent to ina_str_snprintf(3) with the variable argument list specified 
+ * directly as for vsprintf.
+ */
+INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,  
+                               va_list args);
+
+
 #ifdef __cplusplus
 }
 #endif 
