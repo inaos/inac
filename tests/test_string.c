@@ -104,12 +104,26 @@ INA_TEST(string, ina_str_destroy)
 
 INA_TEST(string, ina_str_dup)
 {
-    
+    ina_str_t s1 = ina_str_fromcstr("a simple string");
+    INA_TEST_ASSERT_NOT_NULL(s1);
+    ina_str_t s2 = ina_str_dup(s1);
+    INA_TEST_ASSERT_NOT_NULL(s2);
+    INA_TEST_ASSERT_EQUAL_STR(ina_str_cstr(s1), ina_str_cstr(s2));
+    INA_TEST_ASSERT_NOT_SAME(s1, s2);
+    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(s1));
+    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(s2));
 }
 
-INA_TEST(string, ina_str_pdup)
+INA_TEST_FIXTURE(string_mempool, ina_str_pdup)
 {
-    
+    ina_str_t s1 = ina_str_fromcstr("a simple string");
+    INA_TEST_ASSERT_NOT_NULL(s1);
+    ina_str_t s2 = ina_str_pdup(s1, data->pool);
+    INA_TEST_ASSERT_NOT_NULL(s2);
+    INA_TEST_ASSERT_EQUAL_STR(ina_str_cstr(s1), ina_str_cstr(s2));
+    INA_TEST_ASSERT_NOT_SAME(s1, s2);
+    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(s1));
+    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(s2));
 }
 
 INA_TEST(string, ina_str_cstr)
