@@ -128,7 +128,13 @@ INA_TEST_FIXTURE(string_mempool, ina_str_pdup)
 
 INA_TEST(string, ina_str_cstr)
 {
-    
+    const char* c_str;
+    ina_str_t str = ina_str_fromcstr("an INAC string");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    c_str = ina_str_cstr(str);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_TRUE(strcmp("an INAC string", c_str) == 0);
+    ina_str_destroy(str);
 }
 
 INA_TEST(string, ina_str_cpy)
