@@ -236,14 +236,23 @@ INA_TEST(string, ina_str_rchr)
     
 }
 
-INA_TEST(string, ina_str_vsprintf)
+INA_TEST(string, ina_str_sprintf)
 {
-    
+    ina_str_t str = ina_str_sprintf("format:%s", "string");
+    INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(13, strlen(ina_str_cstr(str)));
+    ina_str_destroy(str);
 }
 
-INA_TEST_SKIP(string, ina_str_snprintf)
+INA_TEST(string, ina_str_snprintf)
 {
+    int len;
+    ina_str_t str = ina_str_newlen(128);
     
+    len = ina_str_snprintf(&str, 128, "format:%s", "string");
+    INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(13, len);
+    ina_str_destroy(str);
 }
 
 INA_TEST_SKIP(string, ina_str_vsnprintf)

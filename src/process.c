@@ -290,7 +290,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx, ina_process_descriptor
     if (descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_MANAGED) {
         if (descriptor->managed_type == INA_PROCESS_MANAGED_TYPE_SCHEDULED_START
             || descriptor->managed_type == INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
-                ina_str_t id = ina_str_vsprintf("START_%s", ina_str_cstr(descriptor->full_path));
+                ina_str_t id = ina_str_sprintf("START_%s", ina_str_cstr(descriptor->full_path));
                 INA_ASSERT_NOTNULL(descriptor->scheduled_start_pattern);
                 if (!INA_SUCCEED(ina_cron_register_function(ctx->cron_ctx, ina_str_cstr(id), 
                     descriptor->scheduled_start_pattern, *process, __ina_process_cron_start_cb))) {
@@ -298,7 +298,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx, ina_process_descriptor
                 }
         }
         if (descriptor->managed_type == INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
-            ina_str_t id = ina_str_vsprintf("STOP_%s", ina_str_cstr(descriptor->full_path));
+            ina_str_t id = ina_str_sprintf("STOP_%s", ina_str_cstr(descriptor->full_path));
             INA_ASSERT_NOTNULL(descriptor->scheduled_stop_pattern);
             if (!INA_SUCCEED(ina_cron_register_function(ctx->cron_ctx, ina_str_cstr(id), 
                 descriptor->scheduled_stop_pattern, *process, __ina_process_cron_stop_cb))) {

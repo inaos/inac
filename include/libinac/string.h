@@ -156,6 +156,7 @@ INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t str, size_t n);
  * The length of the null-terminated string s.
  */
 INA_API(size_t) ina_str_len(const ina_str_t str);
+INA_API(size_t) ins_str_size(const ina_str_t str);
 
 /*
  * Compares two null-terminated byte strings. The comparison is done
@@ -226,7 +227,7 @@ INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2);
  */
 INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr);
 
-INA_API(ina_str_t) ina_str_vsprintf(const char *fmt, ...);
+INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...);
 
 /*
  * Writes output to the string str, under control of the format string format, 
