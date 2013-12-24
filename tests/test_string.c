@@ -155,22 +155,47 @@ INA_TEST(string, ina_str_cpy)
 
 INA_TEST(string, ina_str_ncpy)
 {
-    
+    ina_str_t src =  NULL;
+    ina_str_t dest = NULL;
+
+    src = ina_str_fromcstr("a string to copy");
+    INA_TEST_ASSERT_NOT_NULL(src);
+    dest = ina_str_newlen(ina_str_len(src) + 1);
+    dest = ina_str_ncpy(dest, src, 8);
+    INA_TEST_ASSERT_NOT_NULL(dest);
+    INA_TEST_ASSERT_NOT_SAME(src, dest);
+    INA_TEST_ASSERT_TRUE(strcmp("a string", ina_str_cstr(dest)) == 0);
+
+    ina_str_destroy(src);
+    ina_str_destroy(dest);    
 }
 
 INA_TEST(string, ina_str_cat)
 {
-    
+    ina_str_t str = ina_str_newlen(128);
+    ina_str_cat(str, "part1");
+    ina_str_cat(str, "part2");
+    ina_str_cat(str, "part3");
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+    ina_str_destroy(str);
 }
 
 INA_TEST(string, ina_str_ncat)
 {
-    
+    ina_str_t str = ina_str_newlen(128);
+    ina_str_ncat(str, "part1x", 5);
+    ina_str_ncat(str, "part2x", 5);
+    ina_str_ncat(str, "part3x", 5);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+    ina_str_destroy(str);   
 }
 
 INA_TEST(string, ina_str_len)
 {
-    
+    ina_str_t str = ina_str_fromcstr("an INAC string");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_TRUE(strlen("an INAC string") == ina_str_len(str));
+    ina_str_destroy(str);
 }
 
 INA_TEST(string, ina_str_cmp)
