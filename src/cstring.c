@@ -30,10 +30,10 @@
 
 #ifdef INA_CSTRING_ENABLED
 
-INA_API(ina_str_t) ina_str_newlen(size_t len)
+INA_API(ina_str_t) ina_str_create(size_t size)
 {
     ina_str_t str;
-    str = (ina_str_t)ina_mem_alloc(len+1);
+    str = (ina_str_t)INA_MEM_MALLOC(size+1);
     if (str == NULL) {
         INA_STR_EALLOC;
     }
@@ -41,17 +41,21 @@ INA_API(ina_str_t) ina_str_newlen(size_t len)
     return str; 
 }
 
-INA_API(ina_str_t) ina_str_pnewlen(size_t len, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_create_using_pool(size_t size, ina_mempool_t *pool)
 {
     ina_str_t str;
     if (pool == NULL) {
-        INA_STR_EALLOC;
-        return NULL;
-    }
-    str = (ina_str_t)ina_mempool_dalloc(pool, len+1);
-    if (str == NULL) {
-        INA_STR_EALLOC;
-        return NULL;
+        str = (ina_str_t)ina_mem_alloc(size+1);
+        if (str == NULL) {
+            INA_STR_EALLOC;
+            return NULL;
+        }
+    } else {
+        str = (ina_str_t)ina_mempool_dalloc(pool, size+1);
+        if (str == NULL) {
+            INA_STR_EALLOC;
+            return NULL;
+        }
     }
     str[0] = '\0';
     return str; 
@@ -66,7 +70,7 @@ INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len)
         return NULL;
     }
 
-    str = (ina_str_t)ina_mem_alloc(len+1);
+    str = (ina_str_t)INA_MEM_MALLOC(len+1);
     if (str == NULL)  {
         INA_STR_EALLOC;
         return NULL;
@@ -78,8 +82,9 @@ INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len)
     return str;
 }
 
-INA_API(ina_str_t) ina_str_pfromblk(const void* blk, size_t len, 
-                                    ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_fromblk_using_pool(const void* blk, 
+                                              size_t len, 
+                                              ina_mempool_t *pool)
 {
     ina_str_t str;
 
@@ -111,7 +116,7 @@ INA_API(ina_str_t) ina_str_fromcstr(const char* cstr)
     
     if (cstr != NULL) {
         len = strlen(cstr);
-        str = (ina_str_t)ina_mem_alloc(len+1);
+        str = (ina_str_t)INA_MEM_MALLOC(len+1);
         if (str == NULL) {
             INA_STR_EALLOC;
             return NULL;
@@ -122,7 +127,8 @@ INA_API(ina_str_t) ina_str_fromcstr(const char* cstr)
     return str;
 }
 
-INA_API(ina_str_t) ina_str_pfromcstr(const char* cstr, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_fromcstr_using_pool(const char* cstr, 
+                                               ina_mempool_t *pool)
 {
     ina_str_t str;
     size_t len;
@@ -145,7 +151,7 @@ INA_API(ina_str_t) ina_str_pfromcstr(const char* cstr, ina_mempool_t *pool)
 INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
 {
     if (str != NULL) {
-    	ina_mem_free(str);
+    	INA_MEM_FREE(str);
     }
     return INA_SUCCESS;
 }
@@ -158,12 +164,13 @@ INA_API(ina_str_t) ina_str_dup(const ina_str_t str)
     return ina_str_fromcstr(str);
 }
 
-INA_API(ina_str_t) ina_str_pdup(const ina_str_t str, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_dup_using_pool(const ina_str_t str, 
+                                          ina_mempool_t *pool)
 {
     if (str == NULL) {
         return NULL;
     }
-    return ina_str_pfromcstr(str, pool);
+    return ina_str_fromcstr_using_pool(str, pool);
 }
 
 INA_API(const char*) ina_str_cstr(const ina_str_t str)
@@ -225,6 +232,12 @@ INA_API(size_t) ina_str_len(const ina_str_t str)
     return strlen(str);
 }
 
+INA_API(size_t) ina_str_size(const ina_str_t str)
+{
+    return strlen(str)+1;
+}
+
+
 INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
 {
     va_list args;
@@ -235,7 +248,11 @@ INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
     INA_ASSERT_NOTNULL(fmt);
 
     size = 128;
-    str = ina_str_newlen(size);
+    str = ina_str_create(size);
+    if (str == NULL) {
+        INA_STR_EALLOC;
+        return NULL;
+    }
 
     va_start(args, fmt);
     n = ina_str_vsnprintf(&str, size, fmt, args);
@@ -272,7 +289,7 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     
     if ((l = vsnprintf(*str, len, fmt, args)) >= len) {
         ina_str_destroy(*str);
-        if ((*str = malloc((l + 1) * sizeof(char)))) {
+        if ((*str = INA_MEM_MALLOC((l + 1) * sizeof(char)))) {
             l = snprintf(*str, l + 1, fmt, args);
         }
     }

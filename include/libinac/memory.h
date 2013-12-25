@@ -31,6 +31,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+/* Function pointer with malloc()‘s signature */
+typedef void *(*ina_malloc_t)(size_t);
+/* Function pointer with realloc()‘s signature */
+typedef void *(*ina_realloc_t)(void *, size_t);
+/* Function pointer with memmove()‘s signature */
+typedef void *(*ina_memmove_t)(void *, const void *, size_t);
+/* Function pointer with memcpy()‘s signature */
+typedef void *(*ina_memcpy_t)(void *, const void *, size_t);
+/* Function pointer with memcmp()‘s signature */
+typedef int (*ina_memcmp_t)(const void *, const void *, size_t);
+/* Function pointer with memchr()‘s signature */
+typedef void *(*ina_memchr_t) (const void *, int , size_t);
+/* Function pointer with memset()‘s signature */
+typedef void *(*ina_memset_t)(void *, int , size_t);
+/* Function pointer with free()‘s signature */
+typedef void (*ina_free_t)(void *);
+
 
 #define INA_MEM_DFT_POOL_SIZE (8*1024*1204)
 /* Minimal allowed pool size */
@@ -59,6 +77,8 @@ typedef struct ina_mempool_s  {
     size_t end;
     unsigned char *m;
     ina_str_t label;
+    ina_malloc_t memalloc;
+    ina_free_t  memfree;
     struct ina_mempool_s *current;
     struct ina_mempool_s *parent;
     struct ina_mempool_s *child;
@@ -71,23 +91,12 @@ typedef struct ina_mempool_info_s {
     size_t children; /* number of  pool */
 } ina_mempool_info_t;
 
-/* Function pointer with malloc()‘s signature */
-typedef void *(*ina_malloc_t)(size_t);
-/* Function pointer with realloc()‘s signature */
-typedef void *(*ina_realloc_t)(void *, size_t);
-/* Function pointer with memmove()‘s signature */
-typedef void *(*ina_memmove_t)(void *, const void *, size_t);
-/* Function pointer with memcpy()‘s signature */
-typedef void *(*ina_memcpy_t)(void *, const void *, size_t);
-/* Function pointer with memcmp()‘s signature */
-typedef int (*ina_memcmp_t)(const void *, const void *, size_t);
-/* Function pointer with memchr()‘s signature */
-typedef void *(*ina_memchr_t) (const void *, int , size_t);
-/* Function pointer with memset()‘s signature */
-typedef void *(*ina_memset_t)(void *, int , size_t);
-/* Function pointer with free()‘s signature */
-typedef void (*ina_free_t)(void *);
 
+typedef struct ina_mempool_event_s {
+    ina_mempool_t *pool;
+} ina_mempool_event_t;
+
+typedef ina_rc_t (*ina_mempool_event_handler)(ina_mempool_event_t*);
 /*
  * Allocate memory block. Allocates a block of size bytes of memory, returning
  * a pointer to the beginning of the block.
@@ -261,35 +270,6 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
 INA_API(void) ina_mem_free(void *ptr);
 
 /*
- * Set custom memory function.
- * If NULL is given standard memmory handler will be used.
- *
- * This function should be called once and as soon as possible after 
- * ina_libinit() or ina_appinit().
- *
- * Parameters:
- * malloc_fn     Pointer to the custom malloc() function
- * free_fn       Pointer to the custom free() function
- * realloc_fn    Pointer to the custom realloc() function
- * memmove_fn    Pointer to the custom memmove() function
- * memcpy_fn     Pointer to the custom memcpy() function
- * memcmp_fn     Pointer to the custom memcmp() function
- * memchr_fn     Pointer to the custom memchr() function
- * memset_fn     Pointer to the custom memset() function
- *
- * Return Value
- * INA_SUCCESS if no error occured.
- */
-INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
-                                 ina_free_t free_fn,
-                                 ina_realloc_t realloc_fn,
-                                 ina_memmove_t memmove_fn,
-                                 ina_memcpy_t memcpy_fn,
-                                 ina_memcmp_t memcmp_fn,
-                                 ina_memchr_t memchr_fn,
-                                 ina_memset_t memset_fn);
-
-/*
  * The function returns the number of bytes in a memory page, where "page" is 
  * a fixed-length block, the unit for memory allocation and file mapping.
  *
@@ -365,6 +345,18 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
  * INA_SUCCESS if pool was found otherwise INA_FAILURE
  */
 INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool);
+
+/* 
+ * Get a memory pool by pointer.
+ *
+ * Parameters
+ * ptr      Pointer to find.
+ * pool     Pointer to a memory pool pointer. Hold the memory pool.
+ *
+ * Return Value
+ * INA_SUCCESS if pool was found otherwise INA_FAILURE
+ */
+INA_API(ina_rc_t) ina_mempool_getbypointer(const char *ptr, ina_mempool_t **pool);
 
 /* 
  * Create a memory pool.

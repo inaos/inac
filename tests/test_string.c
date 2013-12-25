@@ -46,12 +46,12 @@ INA_TEST_TEARDOWN(string_mempool)
     data->pool = NULL;
 }
 
-INA_TEST(string, ina_str_newlen)
+INA_TEST(string, ina_str_create)
 {
    
 }
 
-INA_TEST(string, ina_str_pnewlen)
+INA_TEST(string, ina_str_create_using_pool)
 {
     
 }
@@ -65,11 +65,11 @@ INA_TEST(string, ina_str_fromblk)
     INA_TEST_ASSERT_EQUAL_STR("DATA", ina_str_cstr(str));
 }
 
-INA_TEST_FIXTURE(string_mempool, ina_str_pfromblk)
+INA_TEST_FIXTURE(string_mempool, ina_str_fromblk_using_pool)
 {
     ina_str_t str = NULL;
     char blk[] = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
-    str = ina_str_pfromblk(&blk[5], 4, data->pool);
+    str = ina_str_fromblk_using_pool(&blk[5], 4, data->pool);
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("DATA", ina_str_cstr(str));
 }
@@ -83,11 +83,11 @@ INA_TEST(string, ina_str_fromcstr)
     INA_TEST_ASSERT_EQUAL_STR(cstring, ina_str_cstr(str));  
 }
 
-INA_TEST_FIXTURE(string_mempool, ina_str_pfromcstr)
+INA_TEST_FIXTURE(string_mempool, ina_str_fromcstr_using_pool)
 {
     ina_str_t str = NULL;
     const char *cstring = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
-    str = ina_str_pfromcstr(cstring, data->pool);
+    str = ina_str_fromcstr_using_pool(cstring, data->pool);
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR(cstring, ina_str_cstr(str));    
 }
@@ -114,16 +114,14 @@ INA_TEST(string, ina_str_dup)
     INA_TEST_ASSERT_SUCCEED(ina_str_destroy(s2));
 }
 
-INA_TEST_FIXTURE(string_mempool, ina_str_pdup)
+INA_TEST_FIXTURE(string_mempool, ina_str_dup_using_pool)
 {
     ina_str_t s1 = ina_str_fromcstr("a simple string");
     INA_TEST_ASSERT_NOT_NULL(s1);
-    ina_str_t s2 = ina_str_pdup(s1, data->pool);
+    ina_str_t s2 = ina_str_dup_using_pool(s1, data->pool);
     INA_TEST_ASSERT_NOT_NULL(s2);
     INA_TEST_ASSERT_EQUAL_STR(ina_str_cstr(s1), ina_str_cstr(s2));
     INA_TEST_ASSERT_NOT_SAME(s1, s2);
-    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(s1));
-    INA_TEST_ASSERT_SUCCEED(ina_str_destroy(s2));
 }
 
 INA_TEST(string, ina_str_cstr)
@@ -144,7 +142,7 @@ INA_TEST(string, ina_str_cpy)
    
    src = ina_str_fromcstr("a string to copy");
    INA_TEST_ASSERT_NOT_NULL(src);
-   dest = ina_str_newlen(ina_str_len(src) + 1);
+   dest = ina_str_create(ina_str_len(src) + 1);
    dest = ina_str_cpy(dest, src);
    INA_TEST_ASSERT_NOT_NULL(dest);
    INA_TEST_ASSERT_NOT_SAME(src, dest);
@@ -160,7 +158,7 @@ INA_TEST(string, ina_str_ncpy)
 
     src = ina_str_fromcstr("a string to copy");
     INA_TEST_ASSERT_NOT_NULL(src);
-    dest = ina_str_newlen(ina_str_len(src) + 1);
+    dest = ina_str_create(ina_str_len(src) + 1);
     dest = ina_str_ncpy(dest, src, 8);
     INA_TEST_ASSERT_NOT_NULL(dest);
     INA_TEST_ASSERT_NOT_SAME(src, dest);
@@ -172,7 +170,7 @@ INA_TEST(string, ina_str_ncpy)
 
 INA_TEST(string, ina_str_cat)
 {
-    ina_str_t str = ina_str_newlen(128);
+    ina_str_t str = ina_str_create(128);
     ina_str_cat(str, "part1");
     ina_str_cat(str, "part2");
     ina_str_cat(str, "part3");
@@ -182,7 +180,7 @@ INA_TEST(string, ina_str_cat)
 
 INA_TEST(string, ina_str_ncat)
 {
-    ina_str_t str = ina_str_newlen(128);
+    ina_str_t str = ina_str_create(128);
     ina_str_ncat(str, "part1x", 5);
     ina_str_ncat(str, "part2x", 5);
     ina_str_ncat(str, "part3x", 5);
@@ -247,7 +245,7 @@ INA_TEST(string, ina_str_sprintf)
 INA_TEST(string, ina_str_snprintf)
 {
     int len;
-    ina_str_t str = ina_str_newlen(128);
+    ina_str_t str = ina_str_create(128);
     
     len = ina_str_snprintf(&str, 128, "format:%s", "string");
     INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str));
@@ -268,13 +266,11 @@ INA_TEST(string, simple_allocation_with_pool)
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
 
-    str1 = ina_str_pfromcstr("hallo", pool);
+    str1 = ina_str_fromcstr_using_pool("hallo", pool);
     INA_TEST_ASSERT_NOT_NULL(str1);
     INA_TEST_ASSERT_EQUAL_FLOATING(strlen("hallo"), ina_str_len(str1));
-    str2 = ina_str_pdup(str1, pool);
+    str2 = ina_str_dup_using_pool(str1, pool);
     INA_TEST_ASSERT_NOT_NULL(str2);
-    ina_str_destroy(str1);
-    ina_str_destroy(str2);
 }
 
 INA_TEST(string, simple_allocation_without_pool)

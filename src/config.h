@@ -53,4 +53,30 @@
 #define INA_MEMPOOL_SIZE  8*1024*1024
 #endif
 
+/* Define memory functions */
+#ifndef INA_MEM_MALLOC
+#define INA_MEM_MALLOC malloc
+#endif
+#ifndef INA_MEM_REALLOC
+#define INA_MEM_REALLOC realloc
+#endif
+#ifndef INA_MEM_MEMMOVE
+#define INA_MEM_MEMMOVE memmove
+#endif
+#ifndef INA_MEM_MEMCPY
+#define INA_MEM_MEMCPY memcpy
+#endif
+#ifndef INA_MEM_MEMCMP
+#define INA_MEM_MEMCMP memcmp
+#endif
+#ifndef INA_MEM_MEMCHR
+#define INA_MEM_MEMCHR memchr
+#endif
+#ifndef INA_MEM_MEMSET
+#define INA_MEM_MEMSET memset
+#endif
+#ifndef INA_MEM_FREE
+#define INA_MEM_FREE free
+#endif
+
 #endif

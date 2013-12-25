@@ -121,7 +121,7 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, in
         return INA_ERR_PUSH_LAST;
     }
 
-    data->addr = ina_str_pfromcstr(addr, (*ctx)->mempool);
+    data->addr = ina_str_fromcstr_using_pool(addr, (*ctx)->mempool);
     data->port = port;
     data->fd   = -1;
     data->lfd  = -1;

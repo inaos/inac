@@ -40,15 +40,6 @@ typedef struct __ina_mplist_s {
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
 #define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
  
-/* Internal memory function */
-static ina_malloc_t  __ina_malloc  = NULL;
-static ina_realloc_t __ina_realloc = NULL;
-static ina_free_t    __ina_free    = NULL;
-static ina_memmove_t __ina_memmove = NULL;
-static ina_memcpy_t  __ina_memcpy  = NULL;
-static ina_memcmp_t  __ina_memcmp  = NULL;
-static ina_memchr_t  __ina_memchr  = NULL;
-static ina_memset_t  __ina_memset  = NULL;
 
 /* Allocators for memory pools */
 static ina_malloc_t  __ina_mp_malloc   = NULL;
@@ -64,49 +55,15 @@ static void __ina_sys_free(void *);
 static ina_rc_t __ina_shm_open(ina_mempool_t *);
 static ina_rc_t __ina_shm_close(ina_mempool_t *);
 
-INA_API(ina_rc_t) ina_mem_set_fn(ina_malloc_t malloc_fn, 
-                                 ina_free_t free_fn,
-                                 ina_realloc_t realloc_fn,
-                                 ina_memmove_t memmove_fn,
-                                 ina_memcpy_t memcpy_fn,
-                                 ina_memcmp_t memcmp_fn,
-                                 ina_memchr_t memchr_fn,
-                                 ina_memset_t memset_fn)
-{
-    __ina_malloc = malloc_fn;
-    if (!__ina_malloc) {
-        __ina_malloc = __ina_sys_malloc;
-    }
-    __ina_free = free_fn;
-    if (!__ina_free) {
-        __ina_free = __ina_sys_free;
-    }
-    __ina_realloc = realloc_fn;
-    if (!__ina_realloc) {
-        __ina_realloc = __ina_sys_realloc;
-    }
-    __ina_memmove = memmove_fn;
-    if (!__ina_memmove) {
-        __ina_memmove = memmove;
-    }
-    __ina_memcpy = memcpy_fn;
-    if (!__ina_memcpy) {
-        __ina_memcpy = memcpy;
-    }
-    __ina_memcmp = memcmp_fn;
-    if (!__ina_memcmp) {
-        __ina_memcmp = memcmp;
-    }
-    __ina_memchr = memchr_fn;
-    if (!__ina_memchr) {
-        __ina_memchr = memchr;
-    }    
-    __ina_memset = memset_fn;
-    if (!__ina_memset) {
-        __ina_memset = memset;
-    }
-    return INA_SUCCESS;
-}
+/* Internal memory function */
+static ina_malloc_t  __ina_malloc  = __ina_sys_malloc;
+static ina_realloc_t __ina_realloc = __ina_sys_realloc;
+static ina_free_t    __ina_free    = __ina_sys_free;
+static ina_memmove_t __ina_memmove = INA_MEM_MEMMOVE;
+static ina_memcpy_t  __ina_memcpy  = INA_MEM_MEMCPY;
+static ina_memcmp_t  __ina_memcmp  = INA_MEM_MEMCMP;
+static ina_memchr_t  __ina_memchr  = INA_MEM_MEMCHR;
+static ina_memset_t  __ina_memset  = INA_MEM_MEMSET;
 
 INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn, 
                                  ina_free_t free_fn,
@@ -114,15 +71,15 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
 {
     __ina_mp_malloc = malloc_fn;
     if (!__ina_mp_malloc) {
-        __ina_mp_malloc = malloc;
+        __ina_mp_malloc = INA_MEM_MALLOC;
     }
     __ina_mp_free = free_fn;
     if (!__ina_mp_free) {
-        __ina_mp_free = free;
+        __ina_mp_free = INA_MEM_FREE;
     }
     __ina_mp_realloc = realloc_fn;
     if (!__ina_mp_realloc) {
-        __ina_mp_realloc = realloc;
+        __ina_mp_realloc = INA_MEM_REALLOC;
     }
     return INA_SUCCESS;
 }
@@ -398,6 +355,7 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
 
+    INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->current);
 
     ret = NULL;
@@ -438,6 +396,7 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
 
+    INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->current);
     ret = NULL;
 
@@ -457,6 +416,9 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
                                     size_t old_size, size_t new_size)
 {
     void *ret;
+
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_NOTNULL(pool->current);
 
     ret = NULL;
     new_size = __INA_MEM_ALIGN(new_size);
@@ -558,11 +520,10 @@ __ina_sys_realloc(void *src, size_t nb)
     return ina_mempool_dalloc(__pool, nb);
 }
 
-static void 
-__ina_sys_free(void * ptr)
+static void __ina_sys_free(void *ptr)
 {
-    INA_ASSERT_NOTNULL(__pool);
     INA_ASSERT_NOTNULL(ptr);
+    INA_ASSERT_NOTNULL(__pool);
 }
 
 #ifndef INA_OS_WIN32
