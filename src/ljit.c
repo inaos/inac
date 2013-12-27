@@ -63,7 +63,7 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     lua_getglobal((*ctx)->lstate, "package");
     lua_getfield((*ctx)->lstate, -1, "path");
     cur_path = ina_str_fromcstr(lua_tostring((*ctx)->lstate, -1));
-    new_path = ina_str_newlen(ina_str_len(cur_path)+10);
+    new_path = ina_str_create(ina_str_len(cur_path)+10);
     ina_str_cat(new_path, ".\\?.lua;");
     ina_str_cat(new_path, cur_path);
     lua_pop((*ctx)->lstate, 1 );
