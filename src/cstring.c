@@ -221,7 +221,7 @@ INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr)
 {
     if (chr == 0) {
         return NULL;
-    }
+    }   
     return strrchr(str, chr);
 }
 
@@ -238,6 +238,9 @@ INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2)
 
 INA_API(size_t) ina_str_len(const ina_str_t str)
 {
+    if (str == NULL) {
+        return 0;
+    }
     return strlen(str);
 }
 

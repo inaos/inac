@@ -193,6 +193,8 @@ INA_TEST(string, ina_str_len)
     ina_str_t str = ina_str_fromcstr("an INAC string");
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_TRUE(strlen("an INAC string") == ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(""));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(NULL));
     ina_str_destroy(str);
 }
 
