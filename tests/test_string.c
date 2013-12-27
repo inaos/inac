@@ -227,7 +227,7 @@ INA_TEST(string, ina_str_casecmp)
 INA_TEST(string, ina_str_str)
 {
     ina_str_t str =  ina_str_fromcstr("search a substring in a string.");
-    INA_TEST_ASSERT_EQUAL_STR("substring in a string.", ina_str_str(str, "substring"));
+    INA_TEST_ASSERT_EQUAL_STR("substring in a string.", ina_str_cstr(ina_str_str(str, "substring")));
     INA_TEST_ASSERT_NULL(ina_str_str(str, "x"));
     INA_TEST_ASSERT_NULL(ina_str_str(str, ""));
     INA_TEST_ASSERT_NULL(ina_str_str(str, NULL));
@@ -236,7 +236,11 @@ INA_TEST(string, ina_str_str)
 
 INA_TEST(string, ina_str_rchr)
 {
-
+    ina_str_t str = ina_str_fromcstr("search a x in a string with xxx in it.");
+    INA_TEST_ASSERT_EQUAL_STR("x in it.", ina_str_cstr(ina_str_rchr(str, 'x')));
+    INA_TEST_ASSERT_NULL(ina_str_rchr(str, 'y'));
+    INA_TEST_ASSERT_NULL(ina_str_rchr(str, '\0'));
+    ina_str_destroy(str);
 }
 
 INA_TEST(string, ina_str_sprintf)

@@ -219,6 +219,9 @@ INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t 
 
 INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr)
 {
+    if (chr == 0) {
+        return NULL;
+    }
     return strrchr(str, chr);
 }
 
