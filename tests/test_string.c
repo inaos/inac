@@ -191,11 +191,25 @@ INA_TEST(string, ina_str_ncat)
 INA_TEST(string, ina_str_len)
 {
     ina_str_t str = ina_str_fromcstr("an INAC string");
+    ina_str_t empty = ina_str_fromcstr("");
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_TRUE(strlen("an INAC string") == ina_str_len(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(""));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(empty));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(NULL));
     ina_str_destroy(str);
+    ina_str_destroy(empty);
+}
+
+INA_TEST(string, ina_str_size)
+{
+    ina_str_t str = ina_str_fromcstr("an INAC string");
+    ina_str_t empty = ina_str_fromcstr("");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_TRUE((strlen("an INAC string")+1) == ina_str_size(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_str_size(empty));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_size(NULL));
+    ina_str_destroy(str);
+    ina_str_destroy(empty);
 }
 
 INA_TEST(string, ina_str_cmp)

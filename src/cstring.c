@@ -246,6 +246,9 @@ INA_API(size_t) ina_str_len(const ina_str_t str)
 
 INA_API(size_t) ina_str_size(const ina_str_t str)
 {
+    if (str == NULL) {
+        return 0;
+    }
     return strlen(str)+1;
 }
 

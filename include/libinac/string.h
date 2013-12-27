@@ -158,7 +158,7 @@ INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t str, size_t n);
  * The length of the null-terminated string s.
  */
 INA_API(size_t) ina_str_len(const ina_str_t str);
-INA_API(size_t) ins_str_size(const ina_str_t str);
+INA_API(size_t) ina_str_size(const ina_str_t str);
 
 /*
  * Compares two null-terminated byte strings. The comparison is done
