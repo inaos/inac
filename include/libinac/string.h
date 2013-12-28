@@ -36,8 +36,8 @@ extern "C" {
 
 
 /* allocation */
-INA_API(ina_str_t) ina_str_create(size_t size);
-INA_API(ina_str_t) ina_str_create_using_pool(size_t size, ina_mempool_t *pool);
+INA_API(ina_str_t) ina_str_create(size_t len);
+INA_API(ina_str_t) ina_str_create_using_pool(size_t len, ina_mempool_t *pool);
 
 /* 
  * Create a ina_str_t which contains the content of the block blk of length 
@@ -129,6 +129,8 @@ INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n);
  * dest
  */
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src);
+INA_API(ina_str_t) ina_str_catcstr(ina_str_t dest, const char* src);
+
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
  * At most count characters are copied. The resulting byte string is
@@ -143,6 +145,8 @@ INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src);
  * dest
  */
 INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t str, size_t n);
+INA_API(ina_str_t) ina_str_ncatcstr(ina_str_t dest, const char *str, size_t n);
+
 
 /*
  * String examinations
@@ -212,6 +216,7 @@ INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t 
 * present in s1.
 */
 INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2);
+INA_API(ina_str_t) ina_str_strcstr(const ina_str_t str1, const char *str2);
 
 /*
  * Locate last occurrence of character in string. Returns a pointer to the

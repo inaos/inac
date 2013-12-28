@@ -72,10 +72,13 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 #  String implementation
 # ****************************************************************************
 ifndef INAC_STRING_LIB
-	INAC_STRING_LIB = cstring
+	INAC_STRING_LIB = istring
 endif
 ifeq (cstring,$(INAC_STRING_LIB))
 	CFLAGS+=-DINA_CSTRING_ENABLED=1
+endif
+ifeq (istring,$(INAC_STRING_LIB))
+	CFLAGS+=-DINA_ISTRING_ENABLED=1
 endif
 ifeq (bstring,$(INAC_STRING_LIB))
 	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/bstring/bstring.a
