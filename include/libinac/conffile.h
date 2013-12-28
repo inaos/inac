@@ -51,6 +51,7 @@ typedef struct ina_conffile_s {
     ina_ljit_ctx_t *lctx;              /* LuaJIT context */
     ina_conffile_section_t *sections;  /* Holds all sections  */
     int prepared;                      /* INA_YES if prepared */
+    ina_mempool_t *mempool;            /* Memory pool */
 } ina_conffile_t;
 
 /* 
@@ -155,7 +156,7 @@ INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_t *cf,
  */
 INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf, 
                     const char *section_name, const char *section_key, 
-                    const char* key, ina_str_t *value);
+                    const char* key, const ina_str_t *value);
 
 /*
  * Get a number value for section and key from a configuration file.
@@ -205,7 +206,7 @@ INA_API(ina_rc_t) ina_conffile_has_value_in_entries(
  */
 INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
 		    ina_conffile_entry_t *entries, const char* key, 
-		    ina_str_t *value);
+		    const ina_str_t *value);
 /*
  * Get a number value from a section. Use this function in a section processing
  * callback.
