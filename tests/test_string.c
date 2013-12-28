@@ -63,6 +63,7 @@ INA_TEST(string, ina_str_fromblk)
     str = ina_str_fromblk(&blk[5], 4);
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("DATA", ina_str_cstr(str));
+    ina_str_destroy(str);
 }
 
 INA_TEST_FIXTURE(string_mempool, ina_str_fromblk_using_pool)
@@ -81,6 +82,7 @@ INA_TEST(string, ina_str_fromcstr)
     str = ina_str_fromcstr(cstring);
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR(cstring, ina_str_cstr(str));
+    ina_str_destroy(str);
 }
 
 INA_TEST_FIXTURE(string_mempool, ina_str_fromcstr_using_pool)
@@ -130,7 +132,7 @@ INA_TEST(string, ina_str_cstr)
     ina_str_t str = ina_str_fromcstr("an INAC string");
     INA_TEST_ASSERT_NOT_NULL(str);
     c_str = ina_str_cstr(str);
-    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_NOT_NULL(c_str);
     INA_TEST_ASSERT_TRUE(strcmp("an INAC string", c_str) == 0);
     ina_str_destroy(str);
 }
@@ -142,7 +144,7 @@ INA_TEST(string, ina_str_cpy)
 
    src = ina_str_fromcstr("a string to copy");
    INA_TEST_ASSERT_NOT_NULL(src);
-   dest = ina_str_create(ina_str_len(src) + 1);
+   dest = ina_str_create(ina_str_len(src));
    dest = ina_str_cpy(dest, src);
    INA_TEST_ASSERT_NOT_NULL(dest);
    INA_TEST_ASSERT_NOT_SAME(src, dest);
@@ -171,14 +173,46 @@ INA_TEST(string, ina_str_ncpy)
 INA_TEST(string, ina_str_cat)
 {
     ina_str_t str = ina_str_create(128);
-    ina_str_cat(str, "part1");
-    ina_str_cat(str, "part2");
-    ina_str_cat(str, "part3");
+    ina_str_t part1 = ina_str_fromcstr("part1");
+    ina_str_t part2 = ina_str_fromcstr("part2");
+    ina_str_t part3 = ina_str_fromcstr("part3");
+    str = ina_str_cat(str, part1);
+    str = ina_str_cat(str, part2);
+    str = ina_str_cat(str, part3);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+    ina_str_destroy(str);
+    ina_str_destroy(part1);
+    ina_str_destroy(part2);
+    ina_str_destroy(part3);
+}
+
+INA_TEST(string, ina_str_catcstr)
+{
+    ina_str_t str = ina_str_create(128);
+    str = ina_str_catcstr(str, "part1");
+    str = ina_str_catcstr(str, "part2");
+    str = ina_str_catcstr(str, "part3");
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
     ina_str_destroy(str);
 }
 
 INA_TEST(string, ina_str_ncat)
+{
+    ina_str_t str = ina_str_create(128);
+    ina_str_t part1 = ina_str_fromcstr("part1x");
+    ina_str_t part2 = ina_str_fromcstr("part2x");
+    ina_str_t part3 = ina_str_fromcstr("part3x");    
+    ina_str_ncat(str, part1, 5);
+    ina_str_ncat(str, part2, 5);
+    ina_str_ncat(str, part3, 5);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+    ina_str_destroy(str);
+    ina_str_destroy(part1);
+    ina_str_destroy(part2);
+    ina_str_destroy(part3);
+}
+
+INA_TEST(string, ina_str_ncatcstr)
 {
     ina_str_t str = ina_str_create(128);
     ina_str_ncat(str, "part1x", 5);
@@ -243,10 +277,24 @@ INA_TEST(string, ina_str_casecmp)
 INA_TEST(string, ina_str_str)
 {
     ina_str_t str =  ina_str_fromcstr("search a substring in a string.");
+    ina_str_t x = ina_str_fromcstr("x");
+    ina_str_t empty = ina_str_fromcstr("");
     INA_TEST_ASSERT_EQUAL_STR("substring in a string.", ina_str_cstr(ina_str_str(str, "substring")));
-    INA_TEST_ASSERT_NULL(ina_str_str(str, "x"));
-    INA_TEST_ASSERT_NULL(ina_str_str(str, ""));
+    INA_TEST_ASSERT_NULL(ina_str_str(str, x));
+    INA_TEST_ASSERT_NULL(ina_str_str(str, empty));
     INA_TEST_ASSERT_NULL(ina_str_str(str, NULL));
+    ina_str_destroy(str);
+    ina_str_destroy(x);
+    ina_str_destroy(empty);
+}
+
+INA_TEST(string, ina_str_strcstr)
+{
+    ina_str_t str =  ina_str_fromcstr("search a substring in a string.");
+    INA_TEST_ASSERT_EQUAL_STR("substring in a string.", ina_str_cstr(ina_str_str(str, "substring")));
+    INA_TEST_ASSERT_NULL(ina_str_strcstr(str, "x"));
+    INA_TEST_ASSERT_NULL(ina_str_strcstr(str, ""));
+    INA_TEST_ASSERT_NULL(ina_str_strcstr(str, NULL));
     ina_str_destroy(str);
 }
 
