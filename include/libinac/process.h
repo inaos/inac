@@ -82,46 +82,61 @@ INA_FSM_EVENTS(process_fsm,
  * 
  */
 INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx);
+
 /*
  * 
  */
 INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx);
+
 /*
  * 
  */
 INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
+
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx, ina_process_descriptor_t *descriptor, ina_process_t **process);
+INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx, 
+                                  ina_process_descriptor_t *descriptor, 
+                                  ina_process_t **process);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_free(ina_process_ctx_t *ctx, ina_process_t **process);
+INA_API(ina_rc_t) ina_process_free(ina_process_ctx_t *ctx, 
+                                   ina_process_t **process);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_start(ina_process_ctx_t *ctx, ina_process_t *process);
+INA_API(ina_rc_t) ina_process_start(ina_process_ctx_t *ctx, 
+                                    ina_process_t *process);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_stop(ina_process_ctx_t *ctx, ina_process_t *process);
+INA_API(ina_rc_t) ina_process_stop(ina_process_ctx_t *ctx, 
+                                   ina_process_t *process);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_query_state(ina_process_ctx_t *ctx, ina_process_t *process, ina_fsm_state_t *state);
+INA_API(ina_rc_t) ina_process_query_state(ina_process_ctx_t *ctx, 
+                                          ina_process_t *process, 
+                                          ina_fsm_state_t *state);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_should_be_running(ina_process_ctx_t *ctx, ina_process_t *process, int *should_be_running);
+INA_API(ina_rc_t) ina_process_should_be_running(ina_process_ctx_t *ctx, 
+                                                ina_process_t *process, 
+                                                int *should_be_running);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_next_state(ina_process_ctx_t *ctx, ina_process_t *process);
+INA_API(ina_rc_t) ina_process_next_state(ina_process_ctx_t *ctx, 
+                                         ina_process_t *process);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_ctx_t *ctx, ina_process_t *process, int *exit_code);
+INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_ctx_t *ctx, 
+                                            ina_process_t *process, 
+                                            int *exit_code);
 
 
 #ifdef __cplusplus
