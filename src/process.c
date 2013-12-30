@@ -45,9 +45,16 @@ struct ina_process_s {
     int exit_code;
 #ifdef INA_OS_WIN32
     PROCESS_INFORMATION pi;
+#else
+     pid_t pid;
 #endif
     UT_hash_handle hh;
 };
+
+static void __ina_process_is_running(ina_process_t *, int*);
+static void __ina_process_start(ina_process_t*);
+static void __ina_process_stop(ina_process_t*);
+static void __ina_process_reset(ina_process_t*);
 
 static void __ina_process_fsm_event_start(ina_process_t*);
 static void __ina_process_fsm_event_stop(ina_process_t*);
@@ -90,118 +97,31 @@ INA_FSM_TRANSITIONS(process_fsm,
     )
 );
 
-#ifdef INA_OS_WIN32
-static ina_rc_t __ina_process_win_is_running(ina_process_t *process, 
-                                             int *still_running)
-{
-    DWORD ec;
-    BOOL ret;
-    /* FIME: Error handling */
-    ret = GetExitCodeProcess(process->pi.hProcess, &ec);
-    if (ec == STILL_ACTIVE) {
-        process->exit_code = -1;
-        *still_running = 1;
-    } else {
-        process->exit_code = ec;
-        *still_running = 0;
-    }
-    return INA_SUCCESS;
-}
-
-static void __ina_process_win_start(ina_process_t *process)
-{
-    STARTUPINFO si;
-    ina_str_t cmd_line;
-    size_t len;
-    BOOL ret;
-    DWORD creation_flags = 0;
-
-    ina_mem_set(&si, 0, sizeof(STARTUPINFO));
-    si.cb = sizeof(si);
-    ina_mem_set(&process->pi, 0, sizeof(PROCESS_INFORMATION));
-    len = ina_str_len(process->descriptor->full_path);
-    len += 1+ina_str_len(process->descriptor->startup_args);
-    cmd_line = ina_str_create(len, process->ctx->mempool);
-    cmd_line = ina_str_cpy(cmd_line, process->descriptor->full_path);
-    cmd_line = ina_str_catcstr(cmd_line, " ");
-    cmd_line = ina_str_cat(cmd_line, process->descriptor->startup_args);
-
-    if ((process->descriptor->start_flags & INA_PROCESS_FLAGS_CHILD_PROCESS) 
-        != INA_PROCESS_FLAGS_CHILD_PROCESS) {
-        if ((process->descriptor->start_flags & INA_PROCESS_FLAGS_CONSOLE) 
-            == INA_PROCESS_FLAGS_CONSOLE) {
-            creation_flags |= CREATE_NEW_CONSOLE;
-        } else {
-            creation_flags |= DETACHED_PROCESS;
-        }
-    }
-    creation_flags |= NORMAL_PRIORITY_CLASS;
-
-    ret = CreateProcess(NULL,
-        ina_str_cstr(cmd_line), NULL, NULL, FALSE,
-        creation_flags, NULL,
-        ina_str_cstr(process->descriptor->working_dir),
-        &si, &process->pi
-    );
-
-    ina_str_destroy(cmd_line);
-}
-static void __ina_process_win_stop(ina_process_t *process)
-{
-    BOOL ret;
-    HANDLE rh;
-    LPTHREAD_START_ROUTINE lsp = NULL;
-    DWORD rhexit = 0;
-    int still_running = 0;
-
-    lsp = (LPTHREAD_START_ROUTINE)GetProcAddress(
-        GetModuleHandle(TEXT("kernel32.dll")), "CtrlRoutine");
-    rh = CreateRemoteThread(process->pi.hProcess, NULL, 0, lsp, (void*)CTRL_C_EVENT, 0, NULL);
-    WaitForSingleObject(rh, INFINITE);
-    GetExitCodeThread(rh, &rhexit);
-    CloseHandle(rh);
-    if (WAIT_TIMEOUT == WaitForSingleObject(
-                            process->pi.hProcess, 
-                            (DWORD)process->descriptor->stop_wait_time_ms)) {
-        ret = TerminateProcess(process->pi.hProcess, EXIT_FAILURE);
-        WaitForSingleObject(process->pi.hProcess, INFINITE);
-    }
-    /* update exit-code */
-    __ina_process_win_is_running(process, &still_running);
-}
-static void __ina_process_win_reset(ina_process_t *process)
-{
-    CloseHandle(process->pi.hProcess);
-    CloseHandle(process->pi.hThread);
-}
-#endif
 
 static void __ina_process_fsm_event_start(ina_process_t *process)
 {
-#ifdef INA_OS_WIN32
-    __ina_process_win_start(process);
-#else
-#endif
+    INA_ASSERT_NOTNULL(process);
+    INA_ASSERT_NOTNULL(process->descriptor);
+    __ina_process_start(process);
 }
 
 static void __ina_process_fsm_event_stop(ina_process_t *process)
 {
-#ifdef INA_OS_WIN32
-    __ina_process_win_stop(process);
-#else
-#endif
+    INA_ASSERT_NOTNULL(process);
+    INA_ASSERT_NOTNULL(process->descriptor);
+    __ina_process_stop(process);
 }
 
 static void __ina_process_fsm_event_reset(ina_process_t *process)
 {
-#ifdef INA_OS_WIN32
-    __ina_process_win_reset(process);
-#else
-#endif
+    INA_ASSERT_NOTNULL(process);
+    INA_ASSERT_NOTNULL(process->descriptor);
+    __ina_process_reset(process);
 }
 
 static void __ina_process_fsm_event_error(ina_process_t *process)
 {
+    INA_ASSERT_NOTNULL(process);
     /* FIXME error handling */
 }
 
@@ -302,10 +222,7 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx)
         /* if process is supposed to be running, check if still running */
         if (INA_FSM_GET_STATE(process_fsm, p->state) == INA_PROCESS_RUNNING) {
             int running = 0;
-#ifdef INA_OS_WIN32
-            __ina_process_win_is_running(p, &running);
-#else
-#endif
+            __ina_process_is_running(p, &running);
             if (!running) {
                 INA_FSM_FIRE_EVENT(process_fsm, p->state, INA_PROCESS_STOP, p);
             }
@@ -463,3 +380,150 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_ctx_t *ctx,
     *should_be_running = 0;
     return INA_FAILURE;
 }
+
+
+#ifdef INA_OS_WIN32
+static void __ina_process_is_running(ina_process_t *process, 
+                                             int *still_running)
+{
+    DWORD ec;
+    BOOL ret;
+    /* FIME: Error handling */
+    ret = GetExitCodeProcess(process->pi.hProcess, &ec);
+    if (ec == STILL_ACTIVE) {
+        process->exit_code = -1;
+        *still_running = 1;
+    } else {
+        process->exit_code = ec;
+        *still_running = 0;
+    }
+}
+
+static void __ina_process_start(ina_process_t *process)
+{
+    STARTUPINFO si;
+    ina_str_t cmd_line;
+    size_t len;
+    BOOL ret;
+    DWORD creation_flags = 0;
+
+    ina_mem_set(&si, 0, sizeof(STARTUPINFO));
+    si.cb = sizeof(si);
+    ina_mem_set(&process->pi, 0, sizeof(PROCESS_INFORMATION));
+    len = ina_str_len(process->descriptor->full_path);
+    len += 1+ina_str_len(process->descriptor->startup_args);
+    cmd_line = ina_str_create(len, process->ctx->mempool);
+    cmd_line = ina_str_cpy(cmd_line, process->descriptor->full_path);
+    cmd_line = ina_str_catcstr(cmd_line, " ");
+    cmd_line = ina_str_cat(cmd_line, process->descriptor->startup_args);
+
+    if ((process->descriptor->start_flags & INA_PROCESS_FLAGS_CHILD_PROCESS) 
+        != INA_PROCESS_FLAGS_CHILD_PROCESS) {
+        if ((process->descriptor->start_flags & INA_PROCESS_FLAGS_CONSOLE) 
+            == INA_PROCESS_FLAGS_CONSOLE) {
+            creation_flags |= CREATE_NEW_CONSOLE;
+        } else {
+            creation_flags |= DETACHED_PROCESS;
+        }
+    }
+    creation_flags |= NORMAL_PRIORITY_CLASS;
+
+    ret = CreateProcess(NULL,
+        ina_str_cstr(cmd_line), NULL, NULL, FALSE,
+        creation_flags, NULL,
+        ina_str_cstr(process->descriptor->working_dir),
+        &si, &process->pi
+    );
+
+    ina_str_destroy(cmd_line);
+}
+static void __ina_process_stop(ina_process_t *process)
+{
+    BOOL ret;
+    HANDLE rh;
+    LPTHREAD_START_ROUTINE lsp = NULL;
+    DWORD rhexit = 0;
+    int still_running = 0;
+
+    lsp = (LPTHREAD_START_ROUTINE)GetProcAddress(
+        GetModuleHandle(TEXT("kernel32.dll")), "CtrlRoutine");
+    rh = CreateRemoteThread(process->pi.hProcess, NULL, 0, lsp, (void*)CTRL_C_EVENT, 0, NULL);
+    WaitForSingleObject(rh, INFINITE);
+    GetExitCodeThread(rh, &rhexit);
+    CloseHandle(rh);
+    if (WAIT_TIMEOUT == WaitForSingleObject(
+                            process->pi.hProcess, 
+                            (DWORD)process->descriptor->stop_wait_time_ms)) {
+        ret = TerminateProcess(process->pi.hProcess, EXIT_FAILURE);
+        WaitForSingleObject(process->pi.hProcess, INFINITE);
+    }
+    /* update exit-code */
+    __ina_process_win_is_running(process, &still_running);
+}
+static void __ina_process_reset(ina_process_t *process)
+{
+    CloseHandle(process->pi.hProcess);
+    CloseHandle(process->pi.hThread);
+}
+
+#else
+static void __ina_process_is_running(ina_process_t *process, 
+                                             int *still_running)
+{
+    int exit_code;
+
+    /* FIME: Error handling */
+    if (waitpid(process->pid, &exit_code, WNOHANG) == 0) {
+        process->exit_code = -1;
+        *still_running = INA_YES;
+    } else {
+        process->exit_code = exit_code;
+        *still_running = INA_NO;
+    }
+}
+
+static void __ina_process_start(ina_process_t *process)
+{
+    pid_t pid = fork();
+   
+    if (pid < 0) {
+        /* FIXME: FSM state change */
+        perror("fork");
+        return;
+    }
+     
+    if (pid == 0) {
+        char* args[16];
+        size_t n = 0;
+        
+        if (process->descriptor->working_dir != NULL) {
+            chdir(process->descriptor->working_dir);
+        }
+        
+        args[n++] = ina_str_cstr(process->descriptor->full_path);
+        /* FIXME: add arguments */
+        execvp(args[0], args);
+        perror("execvp()");
+        _exit(127);
+    }
+    
+    /* Store pid */
+    process->pid = pid;
+}
+
+static void __ina_process_stop(ina_process_t *process)
+{
+    int still_running = INA_NO;
+
+    if (process->pid > 0) { 
+        kill(process->pid, SIGINT);
+    }
+    __ina_process_is_running(process, &still_running);
+}
+
+static void __ina_process_reset(ina_process_t *process)
+{
+    process->pid = 0;
+}
+
+#endif
