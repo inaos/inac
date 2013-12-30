@@ -56,23 +56,24 @@ INA_TEST(process, new_free)
     INA_TEST_ASSERT_SUCCEED(ina_process_init(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     
-    /*
-    pd,full_path = ina_str_create(e);
-        ina_str_t working_dir;
-        ina_str_t startup_args;
-        ina_process_lifecycle_type_t lifecycle;
-        ina_process_managed_type_t managed_type;
-        ina_str_t scheduled_start_pattern;
-        ina_str_t scheduled_stop_pattern;
-        time_t stop_wait_time_ms;
-        int start_flags;*/
-    
-    INA_TEST_ASSERT_SUCCEED(ina_process_destroy(&ctx));
-    INA_TEST_ASSERT_NULL(ctx);
+    ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
+    pd.full_path = ina_str_create("");
+    pd.working_dir = ina_str_create("");
+    pd.startup_args = ina_str_create("");
+    pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET;
+    pd.managed_type = 0;
+    pd.scheduled_start_pattern = ina_str_create("");
+    pd.scheduled_stop_pattern = ina_str_create("");
+    pd.stop_wait_time_ms = ina_str_create("");
+    pd.start_flags = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, &pd, &process));
+    INA_TEST_ASSERT_NOT_NULL(process);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(ctx, &process));
-
+    INA_TEST_ASSERT_NULL(process);
+    
+    INA_TEST_ASSERT_SUCCEED(ina_process_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);    
 }
 
 INA_TEST(process, start)
@@ -80,6 +81,9 @@ INA_TEST(process, start)
     ina_process_ctx_t *ctx;
     ina_process_t *process;
     
+    INA_TEST_ASSERT_SUCCEED(ina_process_init(&ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+
     ina_process_start(ctx, process);
 }
 
