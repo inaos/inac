@@ -232,6 +232,14 @@ INA_TEST(string, ina_str_len)
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(NULL));
     ina_str_destroy(str);
     ina_str_destroy(empty);
+    
+    str = ina_str_fromcstr("an ");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, ina_str_len(str));
+    str = ina_str_catcstr(str, "1234567890");
+    INA_TEST_ASSERT_EQUAL_INTEGER(13, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_STR("an 1234567890", ina_str_cstr(str));
+    ina_str_destroy(str);
 }
 
 INA_TEST(string, ina_str_size)
@@ -244,6 +252,14 @@ INA_TEST(string, ina_str_size)
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_size(NULL));
     ina_str_destroy(str);
     ina_str_destroy(empty);
+
+    str = ina_str_fromcstr("an ");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_INTEGER(4, ina_str_size(str));
+    str = ina_str_catcstr(str, "1234567890");
+    INA_TEST_ASSERT_EQUAL_INTEGER(14, ina_str_size(str));
+    INA_TEST_ASSERT_EQUAL_STR("an 1234567890", ina_str_cstr(str));
+    ina_str_destroy(str);
 }
 
 INA_TEST(string, ina_str_cmp)

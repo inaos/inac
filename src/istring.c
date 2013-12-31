@@ -409,13 +409,15 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
  
     va_copy(args_copy, args);
     if ((l = vsnprintf(*str, len, fmt, args)) >= len) {
-        ina_str_destroy(*str);
-        if ((*str = ina_str_create(l))) {
-            va_end(args_copy);
+        ina_str_t extra_str;
+        if ((extra_str = ina_str_create(l))) {
+            l = vsnprintf(extra_str, l+1, fmt, args_copy);
+            ina_str_destroy(*str);
+            *str = extra_str;
+        } else {
             INA_ERR_PUSH_LAST;
-            return -1;
+            l = 1;
         }
-        l = vsnprintf(*str, l+1, fmt, args_copy);
     }
     va_end(args_copy);
     return l;    
@@ -425,11 +427,12 @@ static ina_str_hdr_t*
 __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
 {
     INA_ASSERT_NOTNULL(hdr);
+    INA_ASSERT_TRUE(len > 0);
     if ((hdr->size-hdr->len-1) > len) {
         return hdr;
     }
-    hdr = INA_MEM_REALLOC(hdr, hdr->size+len);
-    hdr->size += len;
+    hdr->size = (hdr->size-hdr->len)+len;
+    hdr = INA_MEM_REALLOC(hdr, hdr->size);
     hdr->pooled = INA_NO;
     return hdr;
 }
