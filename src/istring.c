@@ -400,17 +400,24 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
                                va_list args)
 {
     int l;
+    va_list args_copy;
+
     INA_ASSERT_NOTNULL(fmt);
     INA_ASSERT_NOTNULL(str);
     INA_ASSERT_TRUE(len > 0);
     INA_ASSERT_FALSE((__INA_HDR_OFFSET(str))->size < len);
-    
+ 
+    va_copy(args_copy, args);
     if ((l = vsnprintf(*str, len, fmt, args)) >= len) {
         ina_str_destroy(*str);
-        if ((*str = ina_str_create(l))) {
-            l = snprintf(*str, l + 1, fmt, args);
+        if ((*str = ina_str_create(l)) {
+            va_end(args_copy);
+            INA_ERR_PUSH_LAST;
+            return -1;
         }
+        l = vsnprintf(*str, l+1, fmt, args_copy);
     }
+    va_end(args_copy);
     return l;    
 }
 

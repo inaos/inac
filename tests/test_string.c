@@ -331,12 +331,22 @@ INA_TEST(string, ina_str_sprintf)
 INA_TEST(string, ina_str_snprintf)
 {
     int len;
-    ina_str_t str = ina_str_create(128);
+    ina_str_t str1 = ina_str_create(128);
+    ina_str_t str2 = str1;
 
-    len = ina_str_snprintf(&str, 128, "format:%s", "string");
-    INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str));
+    len = ina_str_snprintf(&str1, 128, "format:%s", "string");
+    INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str1));
     INA_TEST_ASSERT_EQUAL_INTEGER(13, len);
-    ina_str_destroy(str);
+    INA_TEST_ASSERT_SAME(str1, str2);
+    ina_str_destroy(str1);
+
+    str1 = ina_str_create(5);
+    str2 = str1; 
+    len = ina_str_snprintf(&str1, 5, "format:%s", "string");
+    INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str1));
+    INA_TEST_ASSERT_EQUAL_INTEGER(13, len);
+    INA_TEST_ASSERT_NOT_SAME(str1, str2);
+    ina_str_destroy(str1);
 }
 
 INA_TEST_SKIP(string, ina_str_vsnprintf)
