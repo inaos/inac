@@ -410,7 +410,7 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     va_copy(args_copy, args);
     if ((l = vsnprintf(*str, len, fmt, args)) >= len) {
         ina_str_destroy(*str);
-        if ((*str = ina_str_create(l)) {
+        if ((*str = ina_str_create(l))) {
             va_end(args_copy);
             INA_ERR_PUSH_LAST;
             return -1;
