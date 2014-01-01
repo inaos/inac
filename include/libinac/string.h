@@ -236,6 +236,8 @@ INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr);
 
 INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...);
 
+INA_API(ina_str_t) ina_str_toupper(ina_str_t str);
+INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
 /*
  * Writes output to the string str, under control of the format string format, 
  * that specifies how subsequent arguments are converted for output. It is 
