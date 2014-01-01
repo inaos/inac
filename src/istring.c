@@ -354,6 +354,31 @@ INA_API(size_t) ina_str_size(const ina_str_t str)
     return (__INA_HDR_OFFSET(str))->size;
 }
 
+INA_API(ina_str_t) ina_str_toupper(ina_str_t str)
+{
+    if (str) {
+        ina_str_t s = str;
+        do {
+            if (96 == (224 & *s)) {
+                *s ^= 32;
+            }
+        }  while (*s++);
+    }
+    return str;
+}
+
+INA_API(ina_str_t) ina_str_tolower(ina_str_t str)
+{
+    if (str) {
+        ina_str_t s = str;
+        do {
+            if (64 == (224 & *s)) {
+                *s ^= 32;
+            }
+        }  while (*s++);       
+    }
+    return str;
+}
 
 INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
 {

@@ -336,6 +336,22 @@ INA_TEST(string, ina_str_rchr)
     ina_str_destroy(str);
 }
 
+INA_TEST(string, ina_str_toupper)
+{
+    ina_str_t str = ina_str_fromcstr("ABabcde123zZ+-=)(/&%+)");
+    INA_TEST_ASSERT_NULL(ina_str_toupper(NULL));
+    INA_TEST_ASSERT_EQUAL_STR("ABABCDE123ZZ+-=)(/&%+)", ina_str_toupper(str));
+    ina_str_destroy(str);
+}
+
+INA_TEST(string, ina_str_tolower)
+{
+    ina_str_t str = ina_str_fromcstr("abABCDE123zZ+-=)(/&%+)");
+    INA_TEST_ASSERT_NULL(ina_str_tolower(NULL));
+    INA_TEST_ASSERT_EQUAL_STR("ababcde123zz+-=)(/&%+)", ina_str_tolower(str));
+    ina_str_destroy(str);
+}
+
 INA_TEST(string, ina_str_sprintf)
 {
     ina_str_t str = ina_str_sprintf("format:%s", "string");

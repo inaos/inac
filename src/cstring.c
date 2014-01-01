@@ -252,6 +252,29 @@ INA_API(size_t) ina_str_size(const ina_str_t str)
     return strlen(str)+1;
 }
 
+INA_API(ina_str_t) ina_str_toupper(ina_str_t str)
+{
+    if (str) {
+        size_t len = strlen(str);
+        size_t j;
+        for (j = 0; j < len; j++) {
+            str[j] = toupper(str[j]);
+        }
+    }
+    return str;
+}
+
+INA_API(ina_str_t) ina_str_tolower(ina_str_t str)
+{
+    if (str) {
+        size_t len = strlen(str);
+        size_t j;
+        for (j = 0; j < len; j++) {
+            str[j] = tolower(str[j]);
+        }
+    }
+    return str;
+}
 
 INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
 {
