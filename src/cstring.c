@@ -193,6 +193,11 @@ INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src)
     return strcat(dest, src);
 }
 
+INA_API(ina_str_t) ina_str_catcstr(ina_str_t dest, const char *src)
+{
+    return strcat(dest, src);
+}
+
 INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t src, size_t n)
 {
     return strncat(dest, src, n);
@@ -226,6 +231,17 @@ INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr)
 }
 
 INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2)
+{
+    if (str2 == NULL) {
+        return NULL;
+    }
+    if (strlen(str2) == 0) {
+        return NULL;
+    }
+    return strstr(str1, str2);
+}
+
+INA_API(ina_str_t) ina_str_strcstr(const ina_str_t str1, const char *str2)
 {
     if (str2 == NULL) {
         return NULL;
@@ -321,16 +337,25 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
                                va_list args)
 {
     int l;
+    va_list args_copy;
+
     INA_ASSERT_NOTNULL(fmt);
     INA_ASSERT_NOTNULL(str);
     INA_ASSERT_TRUE(len > 0);
-    
+
+    va_copy(args_copy, args);
     if ((l = vsnprintf(*str, len, fmt, args)) >= len) {
-        ina_str_destroy(*str);
-        if ((*str = INA_MEM_MALLOC((l + 1) * sizeof(char)))) {
-            l = snprintf(*str, l + 1, fmt, args);
+        ina_str_t extra_str;
+        if ((extra_str = ina_str_create(l))) {
+            l = vsnprintf(extra_str, l+1, fmt, args_copy);
+            ina_str_destroy(*str);
+            *str = extra_str;
+        } else {
+            INA_ERR_PUSH_LAST;
+            l = 1;
         }
     }
+    va_end(args_copy);
     return l;    
 }
 
