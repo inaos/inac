@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2012-2014, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -388,6 +388,101 @@ INA_API(ina_str_t) ina_str_tolower(ina_str_t str)
             }
         }  while (*s++);       
     }
+    return str;
+}
+
+INA_API(ina_str_t) ina_str_clear(ina_str_t str)
+{
+    if (str != NULL) {
+        (__INA_HDR_OFFSET(str))->len = 0;
+        (__INA_HDR_OFFSET(str))->data[0] = '\0';
+    }
+    return str;
+}
+
+INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars)
+{
+    INA_ASSERT_NOTNULL(str);
+    if (chars != NULL) {
+        ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
+        char *start, *end, *sp, *ep;
+        size_t len;
+
+        sp = start = str;
+        ep = end = str+(hdr->len)-1;
+        while(sp <= end && strchr(chars, *sp)) {
+            sp++;
+        }
+        while(ep > start && strchr(chars, *ep)) {
+            ep--;
+        }
+        if (sp > ep) {
+            len = 0; 
+        } else {
+            len = ((ep-sp)+1);
+        }
+        if (hdr->data != sp) {
+            INA_MEM_MEMMOVE(hdr->data, sp, len);
+        }
+        hdr->data[len] = '\0';
+        hdr->len = len;
+    }
+    return str;   
+}
+
+INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
+{
+    ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
+    size_t newlen, len = hdr->len;
+
+    INA_ASSERT_NOTNULL(str);
+
+    if (len == 0) {
+        return str;
+    }
+    if (start < 0) {
+        start = len+start;
+        if (start < 0) {
+            start = 0;
+        }
+    }
+    if (end < 0) {
+        end = len+end;
+        if (end < 0) {
+            end = 0;
+        }
+    }
+    if (start > end) {
+        newlen = 0;
+    } else {
+        newlen = (end-start)+1;
+    }
+    if (newlen != 0) {
+        if (start >= (signed)len) {
+            newlen = 0;
+        } else if (end >= (signed)len) {
+            end = len-1;
+            if (start > end) {
+                newlen = 0;
+            } else { 
+                newlen = (end-start)+1;
+            }
+        }
+    } else {
+        start = 0;
+    }
+    if (start && newlen) {
+        INA_MEM_MEMMOVE(hdr->data, hdr->data+start, newlen);
+    }
+    hdr->data[newlen] = 0;
+    hdr->len = newlen;
+    return str;
+}
+
+INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str)
+{
+    INA_ASSERT_NOTNULL(str);
+    (__INA_HDR_OFFSET(str))->len = strlen(str);
     return str;
 }
 

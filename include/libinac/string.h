@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2012-2014, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -236,6 +236,10 @@ INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr);
 
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str);
 INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
+INA_API(ina_str_t) ina_str_clear(ina_str_t str);
+INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars);
+INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end);
+INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str);
 
 INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2012-2014, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -350,6 +350,51 @@ INA_TEST(string, ina_str_tolower)
     INA_TEST_ASSERT_NULL(ina_str_tolower(NULL));
     INA_TEST_ASSERT_EQUAL_STR("ababcde123zz+-=)(/&%+)", ina_str_tolower(str));
     ina_str_free(str);
+}
+
+INA_TEST(string, ina_str_clear)
+{
+    ina_str_t str = ina_str_new_fromcstr("Abc def   ");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
+    ina_str_clear(str);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
+    INA_TEST_ASSERT_NOT_NULL(str);
+}
+
+INA_TEST(string, ina_str_trim)
+{
+    ina_str_t str = ina_str_new_fromcstr(" test ");
+    INA_TEST_ASSERT_EQUAL_STR(" test ", ina_str_trim(str, NULL));
+    INA_TEST_ASSERT_EQUAL_STR("test", ina_str_trim(str, " "));
+    INA_TEST_ASSERT_EQUAL_STR("es", ina_str_trim(str, "t"));
+    INA_TEST_ASSERT_EQUAL_STR("s", ina_str_trim(str, "e"));
+    ina_str_free(str);
+}
+
+INA_TEST(string, ina_str_aadjust_len)
+{
+    ina_str_t str = ina_str_new(128);
+    str = ina_str_catcstr(str, "12345");
+    INA_TEST_ASSERT_EQUAL_INTEGER(5, ina_str_len(str));
+    strcat(str, "67890");
+    INA_TEST_ASSERT_EQUAL_STR("1234567890", ina_str_cstr(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(5, ina_str_len(str));
+    ina_str_adjust_len(str);
+    INA_TEST_ASSERT_EQUAL_STR("1234567890", ina_str_cstr(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(10, ina_str_len(str));
+    ina_str_free(str);
+}
+
+INA_TEST(string, ina_str_substr)
+{
+    ina_str_t str = ina_str_new_fromcstr("exctrat a substring from a string");
+    ina_str_t substr = ina_str_substr(str, 10, 18);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("substring", substr);
+    ina_str_free(str);
+    ina_str_free(substr);
 }
 
 INA_TEST(string, ina_str_sprintf)
