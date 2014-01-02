@@ -38,17 +38,17 @@ INA_TEST(cron, add_tasks_non_persistent_and_utils)
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL));
 
-    cmd = ina_str_fromcstr("dir.exe .");
-    wd = ina_str_fromcstr("c:\\windows");
+    cmd = ina_str_new_fromcstr("dir.exe .");
+    wd = ina_str_new_fromcstr("c:\\windows");
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "dir", "0 * * * *", 0, cmd, wd));
-    ina_str_destroy(cmd);
-    ina_str_destroy(wd);
+    ina_str_free(cmd);
+    ina_str_free(wd);
 
-    cmd = ina_str_fromcstr("pwd.exe .");
-    wd = ina_str_fromcstr("c:\\windows");
+    cmd = ina_str_new_fromcstr("pwd.exe .");
+    wd = ina_str_new_fromcstr("c:\\windows");
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "pwd", "0 23 * * *", 0, cmd, wd));
-    ina_str_destroy(cmd);
-    ina_str_destroy(wd);
+    ina_str_free(cmd);
+    ina_str_free(wd);
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_by_id(ctx, "pwd", &task));
     INA_TEST_ASSERT_NOT_NULL(task);
@@ -79,11 +79,11 @@ INA_TEST(cron, add_task_and_exec)
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL));
 
-    cmd = ina_str_fromcstr("pwd.exe");
-    wd = ina_str_fromcstr("c:\\windows");
+    cmd = ina_str_new_fromcstr("pwd.exe");
+    wd = ina_str_new_fromcstr("c:\\windows");
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "pwd", "* * * * *", 0, cmd, wd));
-    ina_str_destroy(cmd);
-    ina_str_destroy(wd);
+    ina_str_free(cmd);
+    ina_str_free(wd);
 
     now = time(NULL);
     INA_TEST_ASSERT_SUCCEED(ina_cron_process(ctx, now, &suggested_sleep_time));

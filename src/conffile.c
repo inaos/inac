@@ -162,7 +162,7 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
 
     sp->id = key;
     sp->cf = cf;
-    sp->name = ina_str_fromcstr_using_pool(name, cf->mempool);
+    sp->name = ina_str_new_fromcstr_using_pool(name, cf->mempool);
     sp->named = named;
     sp->section_cb = cb;
     sp->required = required;
@@ -192,7 +192,7 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
                                         section->cf->mempool,
                                         sizeof(ina_conffile_section_key_t));
     key->id = k;
-    key->name = ina_str_fromcstr_using_pool(name, section->cf->mempool);
+    key->name = ina_str_new_fromcstr_using_pool(name, section->cf->mempool);
     key->required = required;
     key->value_type = value_type;
     HASH_ADD_ULONG(section->keys, id, key);
@@ -356,13 +356,13 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
 
     /* set the config-file path */
     if (filepath != NULL) {
-    	cf->filepath = ina_str_fromcstr_using_pool(filepath, cf->mempool);
+    	cf->filepath = ina_str_new_fromcstr_using_pool(filepath, cf->mempool);
     }
     if (cf->filepath == NULL) {
-        cf->filepath = ina_str_create(128);
+        cf->filepath = ina_str_new(128);
         if (ina_str_snprintf(&cf->filepath, 128, "%s.conf", ina_app_get_name()) > 128) {
             ina_str_t filepath = ina_str_dup_using_pool(cf->filepath, cf->mempool);
-            ina_str_destroy(cf->filepath);
+            ina_str_free(cf->filepath);
             cf->filepath = filepath;
         }
     }
@@ -531,7 +531,7 @@ __ina_process_section_table(ina_conffile_t *cf)
                                         cf->mempool,
                                         sizeof(ina_conffile_section_res_t));
                 res->id = rki;
-                res->key = ina_str_fromcstr_using_pool(rk, cf->mempool);
+                res->key = ina_str_new_fromcstr_using_pool(rk, cf->mempool);
                 res->entries = NULL;
 
                 HASH_ADD_ULONG(s->results, id, res);
@@ -552,7 +552,7 @@ __ina_process_section_table(ina_conffile_t *cf)
                                         cf->mempool,
 				                        sizeof(ina_conffile_section_res_t));
                     res->id = rki;
-                    res->key = ina_str_fromcstr_using_pool(rk, cf->mempool);
+                    res->key = ina_str_new_fromcstr_using_pool(rk, cf->mempool);
                     res->entries = NULL;
 
                     HASH_ADD_ULONG(s->results, id, res);
@@ -591,11 +591,11 @@ __ina_process_entries(ina_conffile_t *cf, ina_conffile_section_res_t *res)
                                             cf->mempool,
                                             sizeof(ina_conffile_entry_t));
             entry->id = INA_HASH_CSTR_TO_SDBM(k);
-            entry->key = ina_str_fromcstr_using_pool(k, cf->mempool);
+            entry->key = ina_str_new_fromcstr_using_pool(k, cf->mempool);
             lua_getfield(lstate, -1 , __INA_ATTR_VALUE);
             if (strcmp(tn, __INA_VAL_STRING) == 0) {
                 entry->value_type = INA_CONFFILE_VALUE_TYPE_STRING;
-                entry->value.s = ina_str_fromcstr_using_pool(
+                entry->value.s = ina_str_new_fromcstr_using_pool(
                                                 lua_tostring(lstate, -1),
                                                 cf->mempool);
             } else {

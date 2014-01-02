@@ -75,7 +75,7 @@ INA_INLINE int __ina_check_and_incr_data_stack(ina_json_parser_t *p)
 {
     if (p->stack_pointer++ == __INA_JSON_PARSER_DATA_STACK_SIZE) {
         p->error_state = INA_ELIMIT;
-        p->error_msg = ina_str_fromcstr("Data Stack overflow");
+        p->error_msg = ina_str_new_fromcstr("Data Stack overflow");
         return INA_NO;
     }
     p->stack_size++;

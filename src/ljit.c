@@ -62,8 +62,8 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
 #ifdef INA_OS_WIN32
     lua_getglobal((*ctx)->lstate, "package");
     lua_getfield((*ctx)->lstate, -1, "path");
-    cur_path = ina_str_fromcstr(lua_tostring((*ctx)->lstate, -1));
-    new_path = ina_str_create(ina_str_len(cur_path)+10);
+    cur_path = ina_str_new_fromcstr(lua_tostring((*ctx)->lstate, -1));
+    new_path = ina_str_new(ina_str_len(cur_path)+10);
     ina_str_cat(new_path, ".\\?.lua;");
     ina_str_cat(new_path, cur_path);
     lua_pop((*ctx)->lstate, 1 );
@@ -117,13 +117,13 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
         lua_getglobal(ctx->lstate, fname); 
     }
     else {    
-        ina_str_t obj_name = ina_str_fromcstr(fname);
+        ina_str_t obj_name = ina_str_new_fromcstr(fname);
         char *obj_name_c = (char*)ina_str_cstr(obj_name);
         obj_name_c[cfname - fname] = '\0';
         lua_getglobal(ctx->lstate, obj_name_c);
         cfname++;
         lua_getfield(ctx->lstate, -1, cfname);
-        ina_str_destroy(obj_name);
+        ina_str_free(obj_name);
     }
 
     va_start(vl, sig);

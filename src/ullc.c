@@ -73,7 +73,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     INA_ASSERT_NOTNULL(rb);
     INA_ASSERT_NOTNULL(info);
 
-    if (!INA_SUCCEED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, ina_str_fromcstr(name)))) {
+    if (!INA_SUCCEED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, ina_str_new_fromcstr(name)))) {
         return INA_ERR_PUSH_LAST;
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
@@ -137,7 +137,7 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
     pctx = *ctx;
 
     if (!INA_SUCCEED(__ina_ullc_ring_create(&pctx->ring, pctx, version, size, 
-    slots, num_producers, num_consumers, ina_str_fromcstr(name), INA_MEM_SHARED_CREATE))) {
+    slots, num_producers, num_consumers, ina_str_new_fromcstr(name), INA_MEM_SHARED_CREATE))) {
         return INA_ERR_PUSH_LAST;
     }
 
@@ -261,7 +261,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
     ccxt = *ctx;
 
     if (!INA_SUCCEED(__ina_ullc_ring_create(&ccxt->ring, ccxt, version, size, 
-            slots, num_producers, num_consumers, ina_str_fromcstr(name), 0))) {
+            slots, num_producers, num_consumers, ina_str_new_fromcstr(name), 0))) {
         return INA_ERR_PUSH_LAST;
     }
 

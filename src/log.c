@@ -55,7 +55,7 @@ INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target,
     *cfg = (ina_log_cfg_t*)ina_mem_alloc(sizeof(ina_log_cfg_t));
     (*cfg)->fp1 = NULL;
     (*cfg)->fp2 = NULL;
-    (*cfg)->logfile = ina_str_fromcstr(logfile);
+    (*cfg)->logfile = ina_str_new_fromcstr(logfile);
     (*cfg)->target = target;
     (*cfg)->level = level;
     (*cfg)->syslog_facility = 0;
@@ -71,10 +71,10 @@ INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg)
         fclose((*cfg)->fp2);
     }
     if ((*cfg)->logfile != NULL) {
-        ina_str_destroy((*cfg)->logfile);
+        ina_str_free((*cfg)->logfile);
     }
     if ((*cfg)->syslog_ident != NULL) {
-        ina_str_destroy((*cfg)->syslog_ident);
+        ina_str_free((*cfg)->syslog_ident);
     }
     *cfg = NULL;
     return INA_SUCCESS;

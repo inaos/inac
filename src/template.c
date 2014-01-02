@@ -182,7 +182,7 @@ static ina_rc_t __ina_template_new_table(__ina_template_data_t *data, ina_templa
     *tbl = (ina_template_table_t*)ina_mem_alloc(sizeof(ina_template_table_t));
     (*tbl)->key = INA_HASH_CSTR_TO_SDBM(data->str_key);
     (*tbl)->type = data->key_type;
-    (*tbl)->str_id = ina_str_fromcstr(data->str_key);
+    (*tbl)->str_id = ina_str_new_fromcstr(data->str_key);
     (*tbl)->ctx = env->ctx;
     (*tbl)->env = env;
     (*tbl)->parent = NULL;
@@ -220,7 +220,7 @@ static ina_rc_t __ina_template_new_nested_table(__ina_template_data_t *data, __i
     (*nested)->parent_type = tbl->type;
     (*nested)->type = type;
     if (type == __INA_TEMPLATE_TABLE_TYPE_HASH) {
-        (*nested)->str_id = ina_str_fromcstr(data->str_key);
+        (*nested)->str_id = ina_str_new_fromcstr(data->str_key);
     }
     else {
         (*nested)->int_id = data->int_key;
@@ -243,7 +243,7 @@ static ina_rc_t __ina_template_table_destroy(ina_template_table_t *head)
             __ina_template_table_destroy(tbl->tables);
         }
         if (tbl->type == __INA_TEMPLATE_TABLE_TYPE_HASH) {
-            ina_str_destroy(tbl->str_id);
+            ina_str_free(tbl->str_id);
         }
         ina_mem_free(tbl);
     }
@@ -280,7 +280,7 @@ INA_API(ina_rc_t) ina_template_destroy(ina_template_ctx_t **ctx)
     HASH_ITER(hh, (*ctx)->envs, env, tenv) {
         HASH_DELETE(hh, (*ctx)->envs, env);
         __ina_template_table_destroy(env->tables);
-        ina_str_destroy(env->id);
+        ina_str_free(env->id);
         ina_mem_free(env);
     }
 
@@ -296,7 +296,7 @@ INA_API(ina_rc_t) ina_template_compile(ina_template_ctx_t *ctx, const char *id,
 {
     *env = (ina_template_env_t*)ina_mem_alloc(sizeof(ina_template_env_t));
     (*env)->key = INA_HASH_CSTR_TO_SDBM(id);
-    (*env)->id = ina_str_fromcstr(id);
+    (*env)->id = ina_str_new_fromcstr(id);
     (*env)->tables = NULL;
     (*env)->tpl = tpl;
     (*env)->ctx = ctx;
@@ -320,7 +320,7 @@ INA_API(ina_rc_t) ina_template_render(ina_template_env_t *env, ina_str_t *out)
     if (lua_pcall(l, 2, 1, 0) != 0) {
         return INA_LJIT_ELUA(env->ctx->lctx);
     }
-    *out = ina_str_fromcstr(luaL_checkstring(l, -1));
+    *out = ina_str_new_fromcstr(luaL_checkstring(l, -1));
     lua_pop(l, 2);
 
     return INA_SUCCESS;

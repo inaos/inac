@@ -551,7 +551,7 @@ INA_TEST(json, generator)
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_end_object(g));
 
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_get_buffer(g, &buffer, &buf_len));
-    json_str = ina_str_fromblk((const char*)buffer, buf_len);
+    json_str = ina_str_new_fromblk((const char*)buffer, buf_len);
 
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_borrow(ctx, &p));
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_execute(p, 

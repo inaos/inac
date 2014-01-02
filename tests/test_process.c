@@ -57,14 +57,14 @@ INA_TEST(process, new_free)
     INA_TEST_ASSERT_NOT_NULL(ctx);
     
     ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
-    pd.full_path = ina_str_create("");
-    pd.working_dir = ina_str_create("");
-    pd.startup_args = ina_str_create("");
+    pd.full_path = ina_str_new_fromcstr("");
+    pd.working_dir = ina_str_new_fromcstr("");
+    pd.startup_args = ina_str_new_fromcstr("");
     pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET;
     pd.managed_type = 0;
-    pd.scheduled_start_pattern = ina_str_create("");
-    pd.scheduled_stop_pattern = ina_str_create("");
-    pd.stop_wait_time_ms = ina_str_create("");
+    pd.scheduled_start_pattern = ina_str_new_fromcstr("");
+    pd.scheduled_stop_pattern = ina_str_new_fromcstr("");
+    pd.stop_wait_time_ms = ina_str_new_fromcstr("");
     pd.start_flags = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, &pd, &process));

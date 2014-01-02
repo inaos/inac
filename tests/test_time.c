@@ -126,7 +126,7 @@ INA_TEST(time,backend)
     #endif
 #endif    
 
-    ina_str_destroy(info);
+    ina_str_free(info);
 }
  
 INA_TEST(time,read_clock) 

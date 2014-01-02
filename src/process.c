@@ -263,10 +263,10 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                     descriptor->scheduled_start_pattern, 
                                     *process, 
                                     __ina_process_cron_start_cb))) {
-                    ina_str_destroy(id);
+                    ina_str_free(id);
                     return INA_ERR_PUSH_LAST;
                 }
-                ina_str_destroy(id);
+                ina_str_free(id);
         }
         if (descriptor->managed_type == 
             INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
@@ -281,10 +281,10 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                 descriptor->scheduled_stop_pattern, 
                                 *process, 
                                 __ina_process_cron_stop_cb))) {
-                ina_str_destroy(id);
+                ina_str_free(id);
                 return INA_ERR_PUSH_LAST;
             }
-            ina_str_destroy(id);
+            ina_str_free(id);
         }
     }
 
@@ -412,7 +412,7 @@ static void __ina_process_start(ina_process_t *process)
     ina_mem_set(&process->pi, 0, sizeof(PROCESS_INFORMATION));
     len = ina_str_len(process->descriptor->full_path);
     len += 1+ina_str_len(process->descriptor->startup_args);
-    cmd_line = ina_str_create(len, process->ctx->mempool);
+    cmd_line = ina_str_new(len, process->ctx->mempool);
     cmd_line = ina_str_cpy(cmd_line, process->descriptor->full_path);
     cmd_line = ina_str_catcstr(cmd_line, " ");
     cmd_line = ina_str_cat(cmd_line, process->descriptor->startup_args);
@@ -435,7 +435,7 @@ static void __ina_process_start(ina_process_t *process)
         &si, &process->pi
     );
 
-    ina_str_destroy(cmd_line);
+    ina_str_free(cmd_line);
 }
 static void __ina_process_stop(ina_process_t *process)
 {

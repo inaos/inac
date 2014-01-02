@@ -49,9 +49,9 @@ struct ina_time_s {
 INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info)
 {
 #ifdef INA_OS_WIN32
-    *info = ina_str_fromcstr("OS backend: GetSystemTimeAsFileTime()");
+    *info = ina_str_new_fromcstr("OS backend: GetSystemTimeAsFileTime()");
 #else
-    *info = ina_str_fromcstr("OS backend: gettimeofday()");
+    *info = ina_str_new_fromcstr("OS backend: gettimeofday()");
 #endif
     return INA_SUCCESS;
 }

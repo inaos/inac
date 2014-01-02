@@ -481,13 +481,13 @@ static void __free_task(ina_cron_task_t **task)
     ina_cron_task_t *t = *task;
 
     if (t->cmd != NULL) {
-        ina_str_destroy(t->cmd);
+        ina_str_free(t->cmd);
     }
     if (t->working_dir != NULL) {
-        ina_str_destroy(t->cmd);
+        ina_str_free(t->cmd);
     }
     if (t->pattern != NULL) {
-        ina_str_destroy(t->pattern);
+        ina_str_free(t->pattern);
     }
     ina_mem_free(*task);
 }
@@ -544,10 +544,10 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
 	int persistent, ina_str_t cmd, ina_str_t working_dir)
 {
 	ina_cron_task_t *task = NULL;
-    ina_str_t skey = ina_str_fromcstr(id);
+    ina_str_t skey = ina_str_new_fromcstr(id);
     unsigned long key = INA_HASH_STR_TO_SDBM(skey);
     
-    ina_str_destroy(skey);
+    ina_str_free(skey);
 	
 	/* check if we already have this task - by using the ID */
 	HASH_FIND_ULONG(ctx->task_head, &key, task);
@@ -564,7 +564,7 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
 		task->key = key;
         task->cmd = ina_str_dup(cmd);
 		task->working_dir = ina_str_dup(working_dir);
-        task->pattern = ina_str_fromcstr(pattern);
+        task->pattern = ina_str_new_fromcstr(pattern);
 		task->running = 0;
 		task->pid = -1;
         task->ready = 0;
@@ -656,7 +656,7 @@ INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx, const char *id, ina_c
     ina_str_t skey;
     unsigned long key;
     
-    skey = ina_str_fromcstr(id);
+    skey = ina_str_new_fromcstr(id);
     key = INA_HASH_STR_TO_SDBM(skey);
     HASH_FIND_ULONG(ctx->task_head, &key, t);
 
@@ -687,10 +687,10 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
                                              ina_cron_func_cb cb)
 {
     ina_cron_func_t *func = NULL;
-    ina_str_t skey = ina_str_fromcstr(id);
+    ina_str_t skey = ina_str_new_fromcstr(id);
     unsigned long key = INA_HASH_STR_TO_SDBM(skey);
     
-    ina_str_destroy(skey);
+    ina_str_free(skey);
 	
 	/* check if we already have this function - by using the ID */
 	HASH_FIND_ULONG(ctx->func_head, &key, func);
@@ -761,10 +761,10 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, ina_str_t patt
 INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, const char *pattern, unsigned long *key_out)
 {
     ina_cron_func_t *func = NULL;
-    ina_str_t skey = ina_str_fromcstr(id);
+    ina_str_t skey = ina_str_new_fromcstr(id);
     unsigned long key = INA_HASH_STR_TO_SDBM(skey);
     
-    ina_str_destroy(skey);
+    ina_str_free(skey);
 	
 	/* check if we already have this function - by using the ID */
 	HASH_FIND_ULONG(ctx->func_head, &key, func);

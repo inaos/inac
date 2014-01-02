@@ -121,7 +121,7 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, in
         return INA_ERR_PUSH_LAST;
     }
 
-    data->addr = ina_str_fromcstr_using_pool(addr, (*ctx)->mempool);
+    data->addr = ina_str_new_fromcstr_using_pool(addr, (*ctx)->mempool);
     data->port = port;
     data->fd   = -1;
     data->lfd  = -1;
@@ -429,7 +429,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                         int32_t i;
                         i = *(int32_t*)&msg.cmd_data[n];
                         n += sizeof(int32_t);
-                        params[p].value.s = ina_str_fromcstr((const char*)&msg.cmd_data[n]);
+                        params[p].value.s = ina_str_new_fromcstr((const char*)&msg.cmd_data[n]);
                         INA_TRACE3("- Parameter %d type=string value=%s", p, params[p].value.s);
                         INA_TRACE3("   - string length=%d", i);
                         n += i+1;

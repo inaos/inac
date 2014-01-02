@@ -30,7 +30,7 @@
 
 #ifdef INA_CSTRING_ENABLED
 
-INA_API(ina_str_t) ina_str_create(size_t size)
+INA_API(ina_str_t) ina_str_new(size_t size)
 {
     ina_str_t str;
     str = (ina_str_t)INA_MEM_MALLOC(size+1);
@@ -41,7 +41,7 @@ INA_API(ina_str_t) ina_str_create(size_t size)
     return str; 
 }
 
-INA_API(ina_str_t) ina_str_create_using_pool(size_t size, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_new_using_pool(size_t size, ina_mempool_t *pool)
 {
     ina_str_t str;
     if (pool == NULL) {
@@ -61,7 +61,7 @@ INA_API(ina_str_t) ina_str_create_using_pool(size_t size, ina_mempool_t *pool)
     return str; 
 }
 
-INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len) 
+INA_API(ina_str_t) ina_str_new_fromblk(const void* blk, size_t len) 
 {
     ina_str_t str;
 
@@ -82,9 +82,9 @@ INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len)
     return str;
 }
 
-INA_API(ina_str_t) ina_str_fromblk_using_pool(const void* blk, 
-                                              size_t len, 
-                                              ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk, 
+                                                  size_t len, 
+                                                  ina_mempool_t *pool)
 {
     ina_str_t str;
 
@@ -107,7 +107,7 @@ INA_API(ina_str_t) ina_str_fromblk_using_pool(const void* blk,
     return str;
 }
 
-INA_API(ina_str_t) ina_str_fromcstr(const char* cstr)
+INA_API(ina_str_t) ina_str_new_fromcstr(const char* cstr)
 {
     ina_str_t str;
     size_t len;
@@ -127,8 +127,8 @@ INA_API(ina_str_t) ina_str_fromcstr(const char* cstr)
     return str;
 }
 
-INA_API(ina_str_t) ina_str_fromcstr_using_pool(const char* cstr, 
-                                               ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_new_fromcstr_using_pool(const char* cstr, 
+                                                   ina_mempool_t *pool)
 {
     ina_str_t str;
     size_t len;
@@ -148,7 +148,7 @@ INA_API(ina_str_t) ina_str_fromcstr_using_pool(const char* cstr,
     return str;
 }
 
-INA_API(ina_rc_t) ina_str_destroy(ina_str_t str)
+INA_API(ina_rc_t) ina_str_free(ina_str_t str)
 {
     if (str != NULL) {
     	INA_MEM_FREE(str);
@@ -161,7 +161,7 @@ INA_API(ina_str_t) ina_str_dup(const ina_str_t str)
     if (str == NULL) {
         return NULL;
     }
-    return ina_str_fromcstr(str);
+    return ina_str_new_fromcstr(str);
 }
 
 INA_API(ina_str_t) ina_str_dup_using_pool(const ina_str_t str, 
@@ -170,7 +170,7 @@ INA_API(ina_str_t) ina_str_dup_using_pool(const ina_str_t str,
     if (str == NULL) {
         return NULL;
     }
-    return ina_str_fromcstr_using_pool(str, pool);
+    return ina_str_new_fromcstr_using_pool(str, pool);
 }
 
 INA_API(const char*) ina_str_cstr(const ina_str_t str)
@@ -302,7 +302,7 @@ INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
     INA_ASSERT_NOTNULL(fmt);
 
     size = 128;
-    str = ina_str_create(size);
+    str = ina_str_new(size);
     if (str == NULL) {
         INA_STR_EALLOC;
         return NULL;
@@ -312,7 +312,7 @@ INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
     n = ina_str_vsnprintf(&str, size, fmt, args);
     va_end(args);
     if (n <= 0) {
-        ina_str_destroy(str);
+        ina_str_free(str);
         return NULL;
     }
     return str;
@@ -346,9 +346,9 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     va_copy(args_copy, args);
     if ((l = vsnprintf(*str, len, fmt, args)) >= len) {
         ina_str_t extra_str;
-        if ((extra_str = ina_str_create(l))) {
+        if ((extra_str = ina_str_new(l))) {
             l = vsnprintf(extra_str, l+1, fmt, args_copy);
-            ina_str_destroy(*str);
+            ina_str_free(*str);
             *str = extra_str;
         } else {
             INA_ERR_PUSH_LAST;

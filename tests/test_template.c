@@ -58,8 +58,8 @@ INA_TEST(template, simple)
 
     INA_TEST_ASSERT_SUCCEED(ina_template_init(&ctx));
 
-    test1 = ina_str_fromcstr("dasfsda");
-    tpl = ina_str_fromcstr(_INA_TEMPLATE_TEST_TPL);
+    test1 = ina_str_new_fromcstr("dasfsda");
+    tpl = ina_str_new_fromcstr(_INA_TEMPLATE_TEST_TPL);
 
     INA_TEST_ASSERT_SUCCEED(ina_template_init(&ctx));
 
@@ -106,7 +106,7 @@ INA_TEST(template, simple)
     INA_TEST_ASSERT_SUCCEED(ina_template_render(env, &out));
 
     INA_TEST_ASSERT_EQUAL_STR(_INA_TEMPLATE_TEST_EXPECTED, ina_str_cstr(out));
-    ina_str_destroy(out);
+    ina_str_free(out);
 
     INA_TEST_ASSERT_SUCCEED(ina_template_destroy(&ctx));
 

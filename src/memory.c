@@ -613,7 +613,7 @@ __ina_shm_close(ina_mempool_t *pool)
         shm_unlink(ina_str_cstr(pool->label));
     }
     INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
-    ina_str_destroy(pool->label);
+    ina_str_free(pool->label);
 
     return INA_SUCCESS;
 }

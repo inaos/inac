@@ -74,7 +74,7 @@ INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, 
     for (i = 0; i < cnt; i++) {
         struct in_addr addr;
         addr.s_addr = *(u_long *)remote_host->h_addr_list[i];
-        addresses_ptr[i] = ina_str_fromcstr(inet_ntoa(addr));
+        addresses_ptr[i] = ina_str_new_fromcstr(inet_ntoa(addr));
     }
 
     *address_count = cnt;

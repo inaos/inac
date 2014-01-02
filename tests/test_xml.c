@@ -112,7 +112,7 @@ INA_TEST_SETUP(xml) {
     data->parser = NULL;
     data->root = NULL;
     data->itr = NULL;
-    data->source = ina_str_fromcstr(test_xml);
+    data->source = ina_str_new_fromcstr(test_xml);
     ina_xml_init(&data->ctx, 16);
     ina_xml_parser_borrow(data->ctx, &data->parser);
 }
@@ -120,7 +120,7 @@ INA_TEST_SETUP(xml) {
 INA_TEST_TEARDOWN(xml) {
     ina_xml_parser_release(data->ctx, &data->parser);
     ina_xml_destroy(&data->ctx);	
-    ina_str_destroy(data->source);
+    ina_str_free(data->source);
     data->source = NULL;
     data->itr = NULL;
     data->root = NULL;

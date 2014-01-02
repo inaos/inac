@@ -117,10 +117,10 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             basename = argv[0];
         }
         if (basename) {
-            __appname = ina_str_fromcstr(basename);
+            __appname = ina_str_new_fromcstr(basename);
         }
         /* FIXME: not sure for all platforms */
-        __apppath = ina_str_fromcstr(argv[0]);
+        __apppath = ina_str_new_fromcstr(argv[0]);
     }
 
     if (opt != NULL) {
@@ -133,9 +133,9 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             if (so == NULL) {
                 return INA_ERR_PUSH_LAST;
             }
-            so->opt = ina_str_fromcstr(opt->short_opt);
-            so->value = ina_str_fromcstr(opt->dft);
-            so->desc = ina_str_fromcstr(opt->desc);
+            so->opt = ina_str_new_fromcstr(opt->short_opt);
+            so->value = ina_str_new_fromcstr(opt->dft);
+            so->desc = ina_str_new_fromcstr(opt->desc);
             so->type = opt->type;
             HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
 
@@ -143,7 +143,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             if (lo == NULL) {
                 return INA_ERR_PUSH_LAST;
             }
-            lo->opt = ina_str_fromcstr(opt->long_opt);
+            lo->opt = ina_str_new_fromcstr(opt->long_opt);
             lo->short_opt = so;
             HASH_ADD_KEYPTR(hh, __lopt, ina_str_cstr(lo->opt), ina_str_len(lo->opt), lo);
             opt++;
@@ -203,15 +203,15 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
                         /* value separated by space? */
                         if (vs == 0) {
                             if (argc > n+1) {
-                                so->value = ina_str_fromcstr(argv[n+1]);
+                                so->value = ina_str_new_fromcstr(argv[n+1]);
                                 n++;
                             }
                         } else {
                             strcpy(buf, &argv[n][vs]);
-                            so->value = ina_str_fromcstr(buf);
+                            so->value = ina_str_new_fromcstr(buf);
                         }
                     } else {
-                        so->value = ina_str_fromcstr("on");
+                        so->value = ina_str_new_fromcstr("on");
                     }
                 }
             }
@@ -306,7 +306,7 @@ INA_API(void) ina_exit(void)
     }
 
     if (__appname != NULL) {
-        ina_str_destroy(__appname);
+        ina_str_free(__appname);
     }
 
     /* FIXME: Crashes during tests because sys mem pool 

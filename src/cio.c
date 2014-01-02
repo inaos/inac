@@ -583,7 +583,7 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
          *  because we always account for it when checking the buffer 
          */
         buffer[*buf_cur] = '\0';
-        *line = ina_str_fromcstr(buffer);
+        *line = ina_str_new_fromcstr(buffer);
         ina_mem_free(buffer);
     }
 }
@@ -699,7 +699,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             }
             
             if (c == '\n' || c == '\r') {
-                *line = ina_str_fromcstr(*nb_buf);
+                *line = ina_str_new_fromcstr(*nb_buf);
                 ina_mem_free(*nb_buf);
                 *nb_buf = NULL;
                 *nb_buf_pos = 0;

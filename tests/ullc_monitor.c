@@ -40,9 +40,9 @@ static ina_rc_t umon_draw_monitor(ina_ullc_rb_info_t *rbi)
     
     ina_cio_printf(x, y++, fg, bg, "Version        : %d", rbi->ring_version);
     ina_cio_printf(x, y++, fg, bg, "Write ops      : %ld", rbi->num_write_op);
-    ina_cio_printf(x, y++, fg, bg, "Last writer    : %lld", rbi->last_writer);
+    ina_cio_printf(x, y++, fg, bg, "Last writer    : %" INA_INT64_T_FMT, rbi->last_writer);
     ina_cio_printf(x, y++, fg, bg, "Read ops       : %ld", rbi->num_read_op);
-    ina_cio_printf(x, y++, fg, bg, "Last reader    : %lld", rbi->last_reader);
+    ina_cio_printf(x, y++, fg, bg, "Last reader    : %" INA_INT64_T_FMT, rbi->last_reader);
     ina_cio_printf(x, y++, fg, bg, "Num p          : %d", rbi->num_producers);
     ina_cio_printf(x, y++, fg, bg, "Num p alive    : %ld", rbi->num_consumers_alive);
     ina_cio_printf(x, y++, fg, bg, "Num c          : %d", rbi->num_producers);

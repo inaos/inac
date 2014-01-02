@@ -36,8 +36,8 @@ extern "C" {
 
 
 /* allocation */
-INA_API(ina_str_t) ina_str_create(size_t len);
-INA_API(ina_str_t) ina_str_create_using_pool(size_t len, ina_mempool_t *pool);
+INA_API(ina_str_t) ina_str_new(size_t len);
+INA_API(ina_str_t) ina_str_new_using_pool(size_t len, ina_mempool_t *pool);
 
 /* 
  * Create a ina_str_t which contains the content of the block blk of length 
@@ -50,7 +50,7 @@ INA_API(ina_str_t) ina_str_create_using_pool(size_t len, ina_mempool_t *pool);
  * Return
  * New created string or NULL if an error occurred. 
  */
-INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len);
+INA_API(ina_str_t) ina_str_new_fromblk(const void* blk, size_t len);
 
 /* 
  *  Create a ina_str_t wich contains the content of the block blk of length 
@@ -62,16 +62,16 @@ INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len);
  * Return
  * New created string or NULL if an error occurred.
  */
-INA_API(ina_str_t) ina_str_fromblk_using_pool(const void* blk, 
-                                              size_t len, 
-                                              ina_mempool_t* pool);
+INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk, 
+                                                  size_t len, 
+                                                  ina_mempool_t* pool);
 
-INA_API(ina_str_t) ina_str_fromcstr(const char *cstr);
-INA_API(ina_str_t) ina_str_fromcstr_using_pool(const char *cstr,  
+INA_API(ina_str_t) ina_str_new_fromcstr(const char *cstr);
+INA_API(ina_str_t) ina_str_new_fromcstr_using_pool(const char *cstr,  
                                                ina_mempool_t *pool);
 
 /* destroy */
-INA_API(ina_rc_t) ina_str_destroy(ina_str_t str);
+INA_API(ina_rc_t) ina_str_free(ina_str_t str);
 
  /* copy */
 INA_API(ina_str_t) ina_str_dup(const ina_str_t str);
@@ -234,10 +234,11 @@ INA_API(ina_str_t) ina_str_strcstr(const ina_str_t str1, const char *str2);
  */
 INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr);
 
-INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...);
-
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str);
 INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
+
+INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...);
+
 /*
  * Writes output to the string str, under control of the format string format, 
  * that specifies how subsequent arguments are converted for output. It is 
