@@ -262,6 +262,18 @@ INA_TEST(string, ina_str_size)
     ina_str_free(str);
 }
 
+INA_TEST(string, ina_str_available)
+{
+    ina_str_t str = ina_str_new_fromcstr("1234567890");
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_available(str));
+    ina_str_free(str);
+    str = ina_str_new(100);
+    INA_TEST_ASSERT_EQUAL_INTEGER(100, ina_str_available(str));
+    ina_str_catcstr(str, "1234567890");
+    INA_TEST_ASSERT_EQUAL_INTEGER(90, ina_str_available(str));
+    ina_str_free(str);
+}
+
 INA_TEST(string, ina_str_cmp)
 {
     ina_str_t s1 = ina_str_new_fromcstr("abc");
@@ -306,21 +318,23 @@ INA_TEST(string, ina_str_casecmp)
 INA_TEST(string, ina_str_str)
 {
     ina_str_t str =  ina_str_new_fromcstr("search a substring in a string.");
+    ina_str_t substr = ina_str_new_fromcstr("substring");
     ina_str_t x = ina_str_new_fromcstr("x");
     ina_str_t empty = ina_str_new_fromcstr("");
-    INA_TEST_ASSERT_EQUAL_STR("substring in a string.", ina_str_cstr(ina_str_str(str, "substring")));
+    INA_TEST_ASSERT_EQUAL_STR("substring in a string.",ina_str_str(str,  substr));
     INA_TEST_ASSERT_NULL(ina_str_str(str, x));
     INA_TEST_ASSERT_NULL(ina_str_str(str, empty));
     INA_TEST_ASSERT_NULL(ina_str_str(str, NULL));
     ina_str_free(str);
     ina_str_free(x);
     ina_str_free(empty);
+    ina_str_free(substr);
 }
 
 INA_TEST(string, ina_str_strcstr)
 {
     ina_str_t str =  ina_str_new_fromcstr("search a substring in a string.");
-    INA_TEST_ASSERT_EQUAL_STR("substring in a string.", ina_str_cstr(ina_str_str(str, "substring")));
+    INA_TEST_ASSERT_EQUAL_STR("substring in a string.", ina_str_strcstr(str, "substring"));
     INA_TEST_ASSERT_NULL(ina_str_strcstr(str, "x"));
     INA_TEST_ASSERT_NULL(ina_str_strcstr(str, ""));
     INA_TEST_ASSERT_NULL(ina_str_strcstr(str, NULL));
@@ -330,7 +344,7 @@ INA_TEST(string, ina_str_strcstr)
 INA_TEST(string, ina_str_rchr)
 {
     ina_str_t str = ina_str_new_fromcstr("search a x in a string with xxx in it.");
-    INA_TEST_ASSERT_EQUAL_STR("x in it.", ina_str_cstr(ina_str_rchr(str, 'x')));
+    INA_TEST_ASSERT_EQUAL_STR("x in it.", ina_str_rchr(str, 'x'));
     INA_TEST_ASSERT_NULL(ina_str_rchr(str, 'y'));
     INA_TEST_ASSERT_NULL(ina_str_rchr(str, '\0'));
     ina_str_free(str);

@@ -302,51 +302,34 @@ INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
     return strncmp(lhs, rhs, n);
 }
 
-INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr)
+INA_API(const char*) ina_str_rchr(const ina_str_t str, const char chr)
 {
-    const char* s;
     if (chr == 0) {
         return NULL;
     }
-    s = strrchr(str, chr);
-    if (s) {
-        return ina_str_new_fromcstr(s);
-    }
-    return NULL; 
+    return strrchr(str, chr);
 }
 
-INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2)
+INA_API(const char*) ina_str_str(const ina_str_t str1, const ina_str_t str2)
 {
-    const char* str;
-    
-    if (str2 == NULL) {
+    if (str2 == NULL || str1 == NULL) {
         return NULL;
     }
     if (ina_str_len(str2) == 0) {
         return NULL;
     }
-    str = strstr(str1, str2);
-    if (str) {
-        return ina_str_new_fromcstr(str);
-    }
-    return NULL;
+    return strstr(str1, str2);
 }
 
-INA_API(ina_str_t) ina_str_strcstr(const ina_str_t str1, const char *str2)
+INA_API(const char*) ina_str_strcstr(const ina_str_t str1, const char *str2)
 {
-    const char* str;
-
-    if (str2 == NULL) {
+    if (str2 == NULL || str1 == NULL) {
         return NULL;
     }
     if (strlen(str2) == 0) {
         return NULL;
     }
-    str = strstr(str1, str2);
-    if (str) {
-        return ina_str_new_fromcstr(str);
-    }
-    return NULL;
+    return strstr(str1, str2);
 }
 
 INA_API(size_t) ina_str_len(const ina_str_t str)
@@ -363,6 +346,14 @@ INA_API(size_t) ina_str_size(const ina_str_t str)
         return 0;
     }
     return (__INA_HDR_OFFSET(str))->size;
+}
+
+INA_API(size_t) ina_str_available(const ina_str_t str)
+{
+    if (str == NULL) {
+        return 0;
+    }
+    return (__INA_HDR_OFFSET(str))->size -(__INA_HDR_OFFSET(str))->len-1;
 }
 
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str)

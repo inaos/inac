@@ -163,6 +163,7 @@ INA_API(ina_str_t) ina_str_ncatcstr(ina_str_t dest, const char *str, size_t n);
  */
 INA_API(size_t) ina_str_len(const ina_str_t str);
 INA_API(size_t) ina_str_size(const ina_str_t str);
+INA_API(size_t) ina_str_available(const ina_str_t str);
 
 /*
  * Compares two null-terminated byte strings. The comparison is done
@@ -215,8 +216,8 @@ INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n);
 * of characters specified in s2, or a null pointer if the sequence is not 
 * present in s1.
 */
-INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2);
-INA_API(ina_str_t) ina_str_strcstr(const ina_str_t str1, const char *str2);
+INA_API(const char*) ina_str_str(const ina_str_t str1, const ina_str_t str2);
+INA_API(const char*) ina_str_strcstr(const ina_str_t str1, const char *str2);
 
 /*
  * Locate last occurrence of character in string. Returns a pointer to the
@@ -232,7 +233,7 @@ INA_API(ina_str_t) ina_str_strcstr(const ina_str_t str1, const char *str2);
  * A pointer to the last occurrence of character in str.
  * If the value is not found, the function returns a null pointer.
  */
-INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr);
+INA_API(const char*) ina_str_rchr(const ina_str_t str, const char chr);
 
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str);
 INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
