@@ -95,7 +95,7 @@ INA_API(ina_str_t) ina_str_fromblk(const void* blk, size_t len)
     }
     hdr = __INA_HDR_OFFSET(str);
     if (len > 0) {
-        ina_mem_cpy(str, blk, len);
+        INA_MEM_MEMCPY(str, blk, len);
     }
     hdr->len = len;
     str[len]='\0';
@@ -121,7 +121,7 @@ INA_API(ina_str_t) ina_str_fromblk_using_pool(const void* blk,
         return NULL;
     }
     if (len > 0) {
-        ina_mem_cpy(str, blk, len);
+        INA_MEM_MEMCPY(str, blk, len);
     }
     (__INA_HDR_OFFSET(str))->len = len;
     return str;
@@ -142,7 +142,7 @@ INA_API(ina_str_t) ina_str_fromcstr(const char* cstr)
         INA_ERR_PUSH_LAST;
         return NULL;
     }
-    ina_mem_cpy(str, cstr, len);
+    INA_MEM_MEMCPY(str, cstr, len);
     (__INA_HDR_OFFSET(str))->len = len;
     str[len]='\0';
     return str;
@@ -166,7 +166,7 @@ INA_API(ina_str_t) ina_str_fromcstr_using_pool(const char* cstr,
         INA_ERR_PUSH_LAST;
         return NULL;
     }
-    ina_mem_cpy(str, cstr, len);
+    INA_MEM_MEMCPY(str, cstr, len);
     (__INA_HDR_OFFSET(str))->len = len;
     return str;
 }
@@ -223,7 +223,7 @@ INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n)
     d = __INA_HDR_OFFSET(dest);
     s = __INA_HDR_OFFSET(src);
     d = __ina_ensure_size(d, s->len);
-    memcpy(d->data, src, n);
+    INA_MEM_MEMCPY(d->data, src, n);
     return d->data;
 }
 
@@ -249,7 +249,7 @@ INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t src, size_t n)
 
     d = __INA_HDR_OFFSET(dest);
     d = __ina_ensure_size(d, d->len+n);
-    memcpy(&d->data[d->len], src, n);
+    INA_MEM_MEMCPY(&d->data[d->len], src, n);
     d->len += n;
     d->data[d->len] = '\0';
     return d->data;
@@ -269,24 +269,35 @@ INA_API(ina_str_t) ina_str_ncatcstr(ina_str_t dest, const char *src, size_t n)
     d = __INA_HDR_OFFSET(dest);
 
     d = __ina_ensure_size(d, d->len+n);
-    memcpy(&d->data[d->len], src, n);
+    INA_MEM_MEMCPY(&d->data[d->len], src, n);
     d->len += n;
     d->data[d->len] = '\0';
     return d->data;
 }
 
 
-INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
+INA_API(int) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
 {
-    return strcmp(lhs, rhs);
+    size_t l1, l2, minlen;
+    int cmp;
+
+    l1 = ina_str_len(lhs);
+    l2 = ina_str_len(rhs);
+    minlen = INA_MIN(l1,l2);
+
+    cmp = INA_MEM_MEMCMP(lhs, rhs, minlen);
+    if (cmp == 0) {
+        return l1-l2;
+    }
+    return cmp;
 }
 
-INA_API(ina_rc_t) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs)
+INA_API(int) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs)
 {
     return strcasecmp(lhs, rhs);
 }
 
-INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
+INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
 {
     return strncmp(lhs, rhs, n);
 }

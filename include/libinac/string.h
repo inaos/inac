@@ -175,7 +175,7 @@ INA_API(size_t) ina_str_size(const ina_str_t str);
  * INA_RC_OK if lhs is equal to rhs.
  * Positive value if lhs is greater than rhs.
  */
-INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
+INA_API(int) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
 /*
  * Same as ina_str_cmp but ignores case.
  * Parameters
@@ -186,7 +186,7 @@ INA_API(ina_rc_t) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
  * INA_RC_OK if lhs is equal to rhs.
  * Positive value if lhs is greater than rhs.
  */
-INA_API(ina_rc_t) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs);
+INA_API(int) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs);
 /*
  * Compares at most count characters of two null-terminated byte strings.
  * The comparison is done lexicographically.
@@ -200,7 +200,7 @@ INA_API(ina_rc_t) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs);
  * INA_RC_OK  if lhs is equal to rhs.
  * Positive value if lhs is greater than rhs.
  */
-INA_API(ina_rc_t) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n);
+INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n);
 
 /*
 * Locate substring. Returns a pointer to the first occurrence of s2 in s1,
