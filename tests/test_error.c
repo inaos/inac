@@ -83,7 +83,7 @@ INA_TEST(error, message_formatting)
     ina_str_t msg2;
 
     msg1 = ina_str_new_fromcstr("Message size error");
-    msg2 = ina_str_create(100);
+    msg2 = ina_str_new(100);
 
     INA_TEST_ASSERT_NOT_NULL(msg1);
     INA_TEST_ASSERT_NOT_NULL(msg2);
