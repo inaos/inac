@@ -235,11 +235,15 @@ INA_API(const char*) ina_str_strcstr(const ina_str_t str1, const char *str2);
  */
 INA_API(const char*) ina_str_rchr(const ina_str_t str, const char chr);
 
+INA_API(const char*) ina_str_tok(const char *str, const char *sep);
+
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str);
 INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
 INA_API(ina_str_t) ina_str_clear(ina_str_t str);
 INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars);
 INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end);
+INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *count);
+INA_API(ina_rc_t)  ina_str_split_free_tokens(ina_str_t *tokens, size_t count);
 INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str);
 
 INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...);

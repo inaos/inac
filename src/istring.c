@@ -462,6 +462,134 @@ INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
     return str;
 }
 
+INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *count)
+{
+    int elements = 0, slots = 5, start = 0, j, seplen, len;
+    ina_str_t *tokens;
+    seplen = strlen(sep);
+    len = strlen(str);
+    
+    if (len == 0 && seplen == 0) {
+        return NULL;
+    }
+
+    tokens = INA_MEM_MALLOC(sizeof(ina_str_t)*slots);
+    if (tokens == NULL) {
+        return NULL;
+    }
+
+    if (len == 0) {
+        *count = 0;
+        return tokens;
+    }
+
+    for (j = 0; j < (len-(seplen)-1); j++) {
+        /* make sure there is room for the next element and the final one */
+        if (slots < elements+2) {
+            ina_str_t *newtokens;
+
+            slots *= 2;
+            newtokens = INA_MEM_REALLOC(tokens, sizeof(ina_str_t)*slots);
+            if (newtokens == NULL) goto cleanup;
+            tokens = newtokens;
+        }
+        /* search the separator */
+        if ((seplen == 1 && *(str+j) == sep[0]) || (memcmp(str+j,sep,seplen) == 0)) {
+            tokens[elements] = ina_str_new_fromblk(str+start,j-start);
+            if (tokens[elements] == NULL) goto cleanup;
+            elements++;
+            start = j+seplen;
+            j = j+seplen-1; /* skip the separator */
+        }
+    }
+    /* Add the final element. We are sure there is room in the tokens array. */
+    tokens[elements] = ina_str_new_fromblk(str+start,len-start);
+    if (tokens[elements] == NULL) goto cleanup;
+    elements++;
+    *count = elements;
+    return tokens;
+
+cleanup:
+    {
+        int i;
+        for (i = 0; i < elements; i++) ina_str_free(tokens[i]);
+        INA_MEM_FREE(tokens);
+        *count = 0;
+        return NULL;
+    }
+}
+
+INA_API(ina_rc_t)  ina_str_split_free_tokens(ina_str_t *tokens, size_t count)
+{
+    if (tokens) {
+        while(count--) {
+            ina_str_free(tokens[count]);
+        }
+    }
+    INA_MEM_FREE(tokens);
+    return INA_SUCCESS;
+}
+
+INA_API(const char*) ina_str_tok(const char *str, const char *sep)
+{
+    static const char *sp;
+    int i = 0;
+    int len = strlen(sep);
+    
+
+    /* check in the delimiters */
+    if (len == 0) {
+        return NULL;
+    }
+
+    /* if the original string has nothing left */
+    if (!str && !sp) {
+        return NULL;
+    }
+
+    /* initialize the sp during the first call */
+    if (str && !sp) {
+        sp = str;
+    }
+
+    /* find the start of the substring, skip delimiters */
+    const char* start = sp;
+    while (1) {
+        for (i = 0; i < len; i ++) {
+            if (*start == sep[i]) {
+                    start ++;
+                    break;
+                }
+            }
+            
+            if (i == len) {
+                 sp = start;		
+                 break;
+             }
+         }
+
+         /* return NULL if nothing left */
+         if(!*sp) {
+             sp = NULL;
+             return sp;
+         }
+
+         /* find the end of the substring, and replace the delimiter with null*/  
+         while (*sp) {
+             for (i = 0; i < len; i ++) {
+                 if (*sp == sep[i]) {
+                     *(char*)sp = '\0';
+                     break;
+                 }
+             }
+             sp ++;
+             if (i < len) {
+                 break;
+             }
+         }
+         return start;
+}
+
 INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str)
 {
     INA_ASSERT_NOTNULL(str);
