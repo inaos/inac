@@ -239,7 +239,34 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 {
     *process = (ina_process_t*)ina_mempool_dalloc(ctx->mempool, 
                                                   sizeof(ina_process_t));
-    (*process)->descriptor = descriptor;
+    (*process)->descriptor = (ina_process_descriptor_t*)ina_mempool_dalloc(
+                                        ctx->mempool, 
+                                        sizeof(ina_process_descriptor_t));
+    (*process)->descriptor->full_path = ina_str_dup_using_pool(
+                                                    descriptor->full_path, 
+                                                    ctx->mempool);
+    (*process)->descriptor->working_dir = ina_str_dup_using_pool(
+                                                    descriptor->working_dir, 
+                                                    ctx->mempool);
+    (*process)->descriptor->startup_args = ina_str_dup_using_pool(
+                                                    descriptor->working_dir, 
+                                                    ctx->mempool);
+    (*process)->descriptor->scheduled_start_pattern = ina_str_dup_using_pool(
+                                    descriptor->scheduled_start_pattern,
+                                    ctx->mempool);
+
+    (*process)->descriptor->scheduled_stop_pattern = ina_str_dup_using_pool(
+                                        descriptor->scheduled_stop_pattern,
+                                        ctx->mempool);
+        
+    INA_MEM_MEMCPY(&(*process)->descriptor->stop_wait_time_ms, 
+                    &descriptor->stop_wait_time_ms,
+                    sizeof(time_t));
+        
+    (*process)->descriptor->start_flags = descriptor->start_flags;
+    (*process)->descriptor->lifecycle = descriptor->lifecycle;
+    (*process)->descriptor->managed_type = descriptor->managed_type;
+
     (*process)->exit_code = 0;
     (*process)->key = INA_HASH_STR_TO_SDBM(descriptor->full_path);
     (*process)->init = 1;
