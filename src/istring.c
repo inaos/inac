@@ -60,18 +60,10 @@ INA_API(ina_str_t) ina_str_new_using_pool(size_t len, ina_mempool_t *pool)
 {
     ina_str_hdr_t *hdr;
 
-    if (pool == NULL) {
-        hdr = (ina_str_hdr_t*)ina_mem_alloc(len+1+sizeof(ina_str_hdr_t));
-        if (hdr == NULL) {
-            INA_STR_EALLOC;
-            return NULL;
-        }
-    } else {
-        hdr = (ina_str_hdr_t*)ina_mempool_dalloc(pool,len+1+sizeof(ina_str_hdr_t));
-        if (hdr == NULL) {
-            INA_STR_EALLOC;
-            return NULL;
-        }
+    hdr = (ina_str_hdr_t*)ina_mempool_dalloc(pool,len+1+sizeof(ina_str_hdr_t));
+    if (hdr == NULL) {
+        INA_STR_EALLOC;
+        return NULL;
     }
     hdr->size = len+1;
     hdr->pooled = INA_YES;
