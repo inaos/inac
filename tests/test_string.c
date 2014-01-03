@@ -48,12 +48,24 @@ INA_TEST_TEARDOWN(string_mempool)
 
 INA_TEST(string, ina_str_new)
 {
-
+    ina_str_t str = ina_str_new(0);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
+    ina_str_free(str);
+    str = ina_str_new(100);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
+    ina_str_free(str);
 }
 
-INA_TEST(string, ina_str_new_using_pool)
+INA_TEST_FIXTURE(string_mempool, ina_str_new_using_pool)
 {
-
+    ina_str_t str = ina_str_new_using_pool(0, data->pool);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
+    str = ina_str_new_using_pool(100, data->pool);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
 }
 
 INA_TEST(string, ina_str_new_fromblk)
