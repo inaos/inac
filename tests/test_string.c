@@ -405,6 +405,11 @@ INA_TEST(string, ina_str_tok)
     int c = (int)'a';
     const char *ret;
     char *next_token = NULL;
+    
+    INA_TEST_ASSERT_NULL(ina_str_tok(str, NULL, &next_token));
+    INA_TEST_ASSERT_NULL(ina_str_tok(str, "", &next_token));
+    INA_TEST_ASSERT_NULL(ina_str_tok(NULL, " ", &next_token));
+    
     ret = ina_str_tok(str, " ", &next_token);
     
     while (ret) {
