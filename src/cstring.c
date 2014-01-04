@@ -222,7 +222,7 @@ INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
     return strncmp(lhs, rhs, n);
 }
 
-INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr)
+INA_API(const char*) ina_str_rchr(const ina_str_t str, const char chr)
 {
     if (chr == 0) {
         return NULL;
@@ -230,7 +230,7 @@ INA_API(ina_str_t) ina_str_rchr(const ina_str_t str, const char chr)
     return strrchr(str, chr);
 }
 
-INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2)
+INA_API(const char*) ina_str_str(const ina_str_t str1, const ina_str_t str2)
 {
     if (str2 == NULL) {
         return NULL;
@@ -241,7 +241,7 @@ INA_API(ina_str_t) ina_str_str(const ina_str_t str1, const ina_str_t str2)
     return strstr(str1, str2);
 }
 
-INA_API(ina_str_t) ina_str_strcstr(const ina_str_t str1, const char *str2)
+INA_API(const char*) ina_str_strcstr(const ina_str_t str1, const char *str2)
 {
     if (str2 == NULL) {
         return NULL;
