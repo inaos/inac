@@ -431,7 +431,7 @@ INA_TEST(string, ina_str_tok)
     ina_str_free(str);
 }
 
-INA_TEST(string, ina_str_aadjust_len)
+INA_TEST(string, ina_str_adjust_len)
 {
     ina_str_t str = ina_str_new(128);
     str = ina_str_catcstr(str, "12345");
