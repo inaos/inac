@@ -33,12 +33,14 @@
 #define __INA_HDR_OFFSET(s) (ina_str_hdr_t*)(s-(sizeof(ina_str_hdr_t)))
 #define __INA_STR_OFFSET(h) (char*)(h+(sizeof(ina_str_hdr_t)))
 
+INA_VS_BEGIN_PACK
 typedef struct ina_str_hdr_s {
     size_t  size;
     size_t  len;
     uint8_t pooled;
     char data[];
-} __attribute__ ((__packed__)) ina_str_hdr_t;
+} INA_PACKED ina_str_hdr_t;
+INA_VS_END_PACK
 
 static ina_str_hdr_t* __ina_ensure_size(ina_str_hdr_t*, size_t);
 
