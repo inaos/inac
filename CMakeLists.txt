@@ -95,7 +95,7 @@ MESSAGE(STATUS "Time-Backend: $ENV{INAC_TIME_BACKEND}")
 # END backend configuration
 
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
-                 ${SRC_DIR}/cstring.c ${SRC_DIR}/util.c
+                 ${SRC_DIR}/cstring.c ${SRC_DIR}/istring.c ${SRC_DIR}/util.c
                  ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
 				 ${SRC_DIR}/time_os.c ${SRC_DIR}/time_meinberg.c
 				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
