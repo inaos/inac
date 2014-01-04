@@ -399,6 +399,38 @@ INA_TEST(string, ina_str_trim)
     ina_str_free(str);
 }
 
+INA_TEST(string, ina_str_tok)
+{
+    ina_str_t str = ina_str_new_fromcstr("a b c d   ");
+    int c = (int)'a';
+    const char *ret;
+    char *next_token = NULL;
+    ret = ina_str_tok(str, " ", &next_token);
+    
+    while (ret) {
+        INA_TEST_ASSERT_EQUAL_INTEGER(c, (int)*ret);
+        ret = ina_str_tok(NULL, " ", &next_token);
+        c++;
+    }
+    INA_TEST_ASSERT_EQUAL_INTEGER(5, c-96);
+    ina_str_free(str);
+    
+    str = ina_str_new_fromcstr("a b-cxd   ");
+    ret = ina_str_tok(str, " ", &next_token);
+    INA_TEST_ASSERT_EQUAL_STR("a", ret);
+    ret = ina_str_tok(NULL, "-", &next_token);
+    INA_TEST_ASSERT_EQUAL_STR("b", ret);
+    ret = ina_str_tok(NULL, "x", &next_token);
+    INA_TEST_ASSERT_EQUAL_STR("c", ret);
+    ret = ina_str_tok(NULL, " ", &next_token);
+    INA_TEST_ASSERT_EQUAL_STR("d", ret);
+    INA_TEST_ASSERT_EQUAL_STR("a", ina_str_cstr(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(10, ina_str_len(str));
+    ina_str_adjust_len(str);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_str_len(str));
+    ina_str_free(str);
+}
+
 INA_TEST(string, ina_str_aadjust_len)
 {
     ina_str_t str = ina_str_new(128);

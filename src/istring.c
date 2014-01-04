@@ -530,64 +530,51 @@ INA_API(ina_rc_t)  ina_str_split_free_tokens(ina_str_t *tokens, size_t count)
     return INA_SUCCESS;
 }
 
-INA_API(const char*) ina_str_tok(const char *str, const char *sep)
+INA_API(const char*) ina_str_tok(char *str, const char *sep, char **next)
 {
-    static const char *sp;
-    int i = 0;
-    int len = strlen(sep);
-    
-
-    /* check in the delimiters */
-    if (len == 0) {
-        return NULL;
-    }
-
-    /* if the original string has nothing left */
-    if (!str && !sp) {
-        return NULL;
-    }
-
-    /* initialize the sp during the first call */
-    if (str && !sp) {
-        sp = str;
-    }
-
-    /* find the start of the substring, skip delimiters */
-    const char* start = sp;
-    while (1) {
-        for (i = 0; i < len; i ++) {
-            if (*start == sep[i]) {
-                    start ++;
-                    break;
-                }
+    char *ret = NULL;
+    if (sep && strlen(sep)) {
+        if (str) {
+            *next = str;
+        }
+        if (*next != NULL) {
+            unsigned long tokmap[1 << (CHAR_BIT - 5)] = {0};
+            /* ^ a map of token dividers, containing 256 bits. */
+            char * p;
+            unsigned char tmp;
+            while ((tmp = ((unsigned char) *sep++))) {
+                tokmap[ (tmp & ~31) >> 5 ] |= 1u << (tmp & 31);
             }
-            
-            if (i == len) {
-                 sp = start;		
-                 break;
-             }
-         }
-
-         /* return NULL if nothing left */
-         if(!*sp) {
-             sp = NULL;
-             return sp;
-         }
-
-         /* find the end of the substring, and replace the delimiter with null*/  
-         while (*sp) {
-             for (i = 0; i < len; i ++) {
-                 if (*sp == sep[i]) {
-                     *(char*)sp = '\0';
-                     break;
-                 }
-             }
-             sp ++;
-             if (i < len) {
-                 break;
-             }
-         }
-         return start;
+            p = *next;
+            /* We find the first character that is not a token
+             * divider. */
+            while (tokmap[(*p & ~31) >> 5 ] & (1u << (*p & 31))) {
+                ++p;
+            }
+            /* It may be that there are no more tokens. */
+            if (!*p) {
+                *next = NULL;
+            } else {
+                /* But in this path, there are. */
+                
+                ret = p;
+                /* Now we loop until we get a nontoken
+                 * character. We want NULL to be a non-token
+                 * character, so we first modify our map to
+                 * take that in account.
+                 */
+                tokmap[0] |= 1;
+                do {
+                    ++p;
+                } while (!(tokmap[(*p & ~31) >> 5] &
+                        (1u << (*p & 31))));
+                /* Now p points at a non-token character. */
+                *p = 0;
+                *next = p + 1;
+            }
+        }
+    }
+    return ret;
 }
 
 INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str)

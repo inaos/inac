@@ -235,7 +235,7 @@ INA_API(const char*) ina_str_strcstr(const ina_str_t str1, const char *str2);
  */
 INA_API(const char*) ina_str_rchr(const ina_str_t str, const char chr);
 
-INA_API(const char*) ina_str_tok(const char *str, const char *sep);
+INA_API(const char*) ina_str_tok(char* str, const char *sep, char **next);
 
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str);
 INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
