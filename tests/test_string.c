@@ -399,6 +399,52 @@ INA_TEST(string, ina_str_trim)
     ina_str_free(str);
 }
 
+INA_TEST(string, ina_str_split)
+{
+    ina_str_t *tokens;
+    size_t count;
+    ina_str_t str = ina_str_new_fromcstr("xx--yy--zz--c-c");
+    
+    INA_TEST_ASSERT_NULL((tokens = ina_str_split(NULL, NULL, &count)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
+    INA_TEST_ASSERT_NULL((tokens = ina_str_split("", NULL, &count)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
+    INA_TEST_ASSERT_NULL((tokens = ina_str_split("", "", &count)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);    
+    INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
+    INA_TEST_ASSERT_NULL((tokens = ina_str_split("1-1-1", NULL, &count)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
+    INA_TEST_ASSERT_NULL((tokens = ina_str_split(NULL, "", &count)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
+    INA_TEST_ASSERT_NULL((tokens = ina_str_split("1-1-1", "", &count)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
+    
+    
+    tokens = ina_str_split(str, "--", &count);
+    INA_TEST_ASSERT_NOT_NULL(tokens);
+    INA_TEST_ASSERT_EQUAL_INTEGER(4, count);
+    INA_TEST_ASSERT_EQUAL_STR("xx",  tokens[0]);
+    INA_TEST_ASSERT_EQUAL_STR("yy",  tokens[1]);
+    INA_TEST_ASSERT_EQUAL_STR("zz",  tokens[2]);
+    INA_TEST_ASSERT_EQUAL_STR("c-c", tokens[3]);
+    
+    INA_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
+    ina_str_free(str);
+    
+    tokens = ina_str_split("a b c d e", " ", &count);
+    char *test[] = {"a", "b", "c", "d", "e"};
+    INA_TEST_ASSERT_NOT_NULL(tokens);
+    INA_TEST_ASSERT_EQUAL_INTEGER(5, count);
+    while (count--) {
+        INA_TEST_ASSERT_EQUAL_STR(test[count], ina_str_cstr(tokens[count]));
+    }
+}
+
 INA_TEST(string, ina_str_tok)
 {
     ina_str_t str = ina_str_new_fromcstr("a b c d   ");
