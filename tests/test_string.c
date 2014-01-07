@@ -436,7 +436,7 @@ INA_TEST(string, ina_str_split)
     INA_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
     ina_str_free(str);
     
-    tokens = ina_str_split("a b c d e", " ", &count);
+    tokens = ina_str_split("a b c d e ", " ", &count);
     char *test[] = {"a", "b", "c", "d", "e"};
     INA_TEST_ASSERT_NOT_NULL(tokens);
     INA_TEST_ASSERT_EQUAL_INTEGER(5, count);
