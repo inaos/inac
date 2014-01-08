@@ -34,7 +34,12 @@ static ina_rc_t __ina_log(const ina_log_cfg_t*, ina_log_level_t, const char *);
 INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const char* fmt, ...)
 {
     va_list ap;
-    char msg[2048];
+    static ina_str_t msg = NULL;
+    
+    if (!msg) {
+        msg = ina_str_new(1024);
+    }
+ 
     INA_ASSERT_NOTNULL(cfg);
     INA_ASSERT_NOTNULL(fmt);
 
@@ -43,7 +48,7 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const
     }
 
     va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg), fmt, ap);
+    ina_str_vsnprintf(&msg, ina_str_size(msg), fmt, ap);
     va_end(ap);
 
     return __ina_log(cfg, level, msg);
