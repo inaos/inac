@@ -459,7 +459,7 @@ INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
 
 INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *count)
 {
-    int elements = 0, slots = 5, start = 0, j, seplen, len;
+    int elements = 0, slots = 5, j, start = 0, seplen, len;
     ina_str_t *tokens;
     
     if (str == NULL) {
@@ -491,7 +491,7 @@ INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *coun
         return NULL;
     }
 
-    for (j = 0; j < (len-(seplen)-1); j++) {
+    for (j = 0; j < (len-1); j++) {
         /* make sure there is room for the next element and the final one
          * and the terminator */
         if (slots < elements+3) {
@@ -503,18 +503,23 @@ INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *coun
             tokens = newtokens;
         }
         /* search the separator */
+        /* FIXME: Optimize */
         if ((seplen == 1 && *(str+j) == sep[0]) || 
             (INA_MEM_MEMCMP(str+j,sep,seplen) == 0)) {
             tokens[elements] = ina_str_new_fromblk(str+start,j-start);
-            if (tokens[elements] == NULL) goto cleanup;
+            if (tokens[elements] == NULL) {
+                goto cleanup;
+            }
             elements++;
             start = j+seplen;
             j = j+seplen-1; /* skip the separator */
         }
     }
     /* Add the final element. We are sure there is room in the tokens array. */
-    tokens[elements] = ina_str_new_fromblk(str+start,len-start);
-    if (tokens[elements] == NULL) goto cleanup;
+    tokens[elements] = ina_str_new_fromblk(str+start, len-start);
+    if (tokens[elements] == NULL) {
+        goto cleanup;
+    }
     elements++;
     if (count != NULL) {
         *count = elements;
