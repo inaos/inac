@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2013-2014, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
 #include "config.h"
 
 static ina_rc_t __ina_init(ina_log_cfg_t*);
-static ina_rc_t __ina_log(const ina_log_cfg_t*, ina_log_level_t, const char *);
+static ina_rc_t __ina_log(const ina_log_cfg_t*, ina_log_level_t, ina_str_t);
 
 INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const char* fmt, ...)
 {
@@ -103,11 +103,12 @@ __ina_init(ina_log_cfg_t *cfg)
 }
 
 static ina_rc_t 
-__ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const char *msg) {
-    const char *c = ".-*#";
+__ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, ina_str_t msg) {
+    static const char *c = ".-*#";
+    static char buf[64];
+
     time_t now = time(NULL);
 
-    char buf[64];
     strftime(buf,sizeof(buf),"%d %b %H:%M:%S",localtime(&now));
 
 #ifdef WIN32
