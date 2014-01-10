@@ -512,7 +512,7 @@ INA_TEST(string, ina_str_sprintf)
 {
     ina_str_t str = ina_str_sprintf("format:%s", "string");
     INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(13, strlen(ina_str_cstr(str)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(13, ina_str_len(str));
     ina_str_free(str);
 }
 
@@ -533,6 +533,7 @@ INA_TEST(string, ina_str_snprintf)
     len = ina_str_snprintf(&str1, 5, "format:%s", "string");
     INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str1));
     INA_TEST_ASSERT_EQUAL_INTEGER(13, len);
+    INA_TEST_ASSERT_EQUAL_INTEGER(13, ina_str_len(str1));
     INA_TEST_ASSERT_NOT_SAME(str1, str2);
     ina_str_free(str1);
 }

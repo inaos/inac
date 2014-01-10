@@ -670,6 +670,9 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
             l = -1;
         }
     }
+    if (l >= 0) {
+        (__INA_HDR_OFFSET(*str))->len = (size_t)l;
+    }
     va_end(args_copy);
     return l;    
 }
