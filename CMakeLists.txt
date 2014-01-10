@@ -85,6 +85,8 @@ add_library(${YAJL_LIB_NAME} ${YAJL_SRC})
 				  
 # END dependencies
 
+add_definitions(-DINA_ISTRING_ENABLED -DINA_STRING_DEFINED)
+
 # BEGIN backend configuration
 
 if ($ENV{INAC_TIME_BACKEND} STREQUAL "time-meinberg")
