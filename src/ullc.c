@@ -510,8 +510,7 @@ __ina_sem_makekey(ina_ullc_rb_t *rb, const ina_str_t name)
     INA_ASSERT_NOTNULL(rb);
     INA_ASSERT_NOTNULL(name);
 
-    semkey = ina_str_newlen(strlen(__INA_SEMKEY) + ina_str_len(name));
-    semkey = ina_str_cat(semkey, name);
+    semkey = ina_str_dup(name);
     semkey = ina_str_cat(semkey, "_sem");
     strcpy(rb->semkey, ina_str_cstr(semkey));
     return INA_SUCCESS;

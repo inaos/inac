@@ -439,7 +439,7 @@ static void __ina_process_start(ina_process_t *process)
     ina_mem_set(&process->pi, 0, sizeof(PROCESS_INFORMATION));
     len = ina_str_len(process->descriptor->full_path);
     len += 1+ina_str_len(process->descriptor->startup_args);
-    cmd_line = ina_str_new(len, process->ctx->mempool);
+    cmd_line = ina_str_new_using_pool(len, process->ctx->mempool);
     cmd_line = ina_str_cpy(cmd_line, process->descriptor->full_path);
     cmd_line = ina_str_catcstr(cmd_line, " ");
     cmd_line = ina_str_cat(cmd_line, process->descriptor->startup_args);
@@ -456,7 +456,7 @@ static void __ina_process_start(ina_process_t *process)
     creation_flags |= NORMAL_PRIORITY_CLASS;
 
     ret = CreateProcess(NULL,
-        ina_str_cstr(cmd_line), NULL, NULL, FALSE,
+        (LPSTR)ina_str_cstr(cmd_line), NULL, NULL, FALSE,
         creation_flags, NULL,
         ina_str_cstr(process->descriptor->working_dir),
         &si, &process->pi
@@ -485,7 +485,7 @@ static void __ina_process_stop(ina_process_t *process)
         WaitForSingleObject(process->pi.hProcess, INFINITE);
     }
     /* update exit-code */
-    __ina_process_win_is_running(process, &still_running);
+    __ina_process_is_running(process, &still_running);
 }
 static void __ina_process_reset(ina_process_t *process)
 {
