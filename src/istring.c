@@ -667,7 +667,7 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
             *str = extra_str;
         } else {
             INA_ERR_PUSH_LAST;
-            l = 1;
+            l = -1;
         }
     }
     va_end(args_copy);
