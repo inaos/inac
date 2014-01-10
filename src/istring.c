@@ -678,7 +678,6 @@ static ina_str_hdr_t*
 __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
 {
     INA_ASSERT_NOTNULL(hdr);
-    INA_ASSERT_TRUE(len > 0);
     if ((hdr->size-hdr->len-1) > len) {
         return hdr;
     }
