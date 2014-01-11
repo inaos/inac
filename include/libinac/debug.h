@@ -78,7 +78,7 @@ extern "C" {
 #ifdef DEBUG
 #define INA_NOT_IMPL assert(0)
 #define INA_ASSERT(cond) assert(cond)
-#define INA_ASSERT_FALSE(v) INA_ASSERT(!v)
+#define INA_ASSERT_FALSE(v) INA_ASSERT(!(v))
 #define INA_ASSERT_TRUE(v) INA_ASSERT(v)
 #define INA_ASSERT_NULL(v) INA_ASSERT(v == NULL)
 #define INA_ASSERT_NOTNULL(v) INA_ASSERT(v != NULL)
