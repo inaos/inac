@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2013-2014, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -253,7 +253,7 @@ INA_API(ina_str_t) ina_str_ncatcstr(ina_str_t dest, const char *src, size_t n)
     ina_str_hdr_t *d;
 
     INA_ASSERT_NOTNULL(dest);
-    INA_ASSERT_FALSE(strlen(src) < n);
+    INA_ASSERT_FALSE(strlen(src) <= n);
 
     if (src == NULL) {
         return dest;

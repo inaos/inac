@@ -196,6 +196,32 @@ INA_TEST(string, ina_str_cat)
     ina_str_free(part1);
     ina_str_free(part2);
     ina_str_free(part3);
+    
+    str = ina_str_new(0);
+    part1 = ina_str_new_fromcstr("part1");
+    part2 = ina_str_new_fromcstr("part2");
+    part3 = ina_str_new_fromcstr("part3");
+    str = ina_str_cat(str, part1);
+    str = ina_str_cat(str, part2);
+    str = ina_str_cat(str, part3);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+    ina_str_free(str);
+    ina_str_free(part1);
+    ina_str_free(part2);
+    ina_str_free(part3);
+    
+    str = ina_str_new(0);
+    str = ina_str_cat(str, ina_str_cat(str, ina_str_cat(str, ina_str_new_fromcstr("test"))));
+    INA_TEST_ASSERT_EQUAL_STR("testtesttesttest", ina_str_cstr(str));
+    ina_str_free(str);
+    
+    str = ina_str_cat(ina_str_new(0), ina_str_new(0));
+    INA_TEST_ASSERT_EQUAL_STR(str, ina_str_cstr(""));
+    ina_str_free(str);  
+    
+    str = ina_str_cat(ina_str_new(0), NULL);
+    INA_TEST_ASSERT_EQUAL_STR(str, ina_str_cstr(""));
+    ina_str_free(str);
 }
 
 INA_TEST(string, ina_str_catcstr)
