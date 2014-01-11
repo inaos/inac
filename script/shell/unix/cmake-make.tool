@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2013, INAOS GmbH
+# Copyright (c) 2013-2014, INAOS GmbH
 # All rights reserved.
 #els
 # Redistribution and use in source and binary forms, with or without
