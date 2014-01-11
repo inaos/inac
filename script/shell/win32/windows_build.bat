@@ -1,7 +1,7 @@
 @echo off
 
 REM
-REM Copyright (c) 2013, INAOS GmbH
+REM Copyright (c) 2013-2014, INAOS GmbH
 REM All rights reserved.
 REM
 REM Redistribution and use in source and binary forms, with or without
