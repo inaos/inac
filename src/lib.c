@@ -391,7 +391,7 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
         /* FIXME: specific error */
         return INA_FAILURE;
     }
-    *value = atof(so->value);
+    *value = (float)atof(so->value);
     return INA_SUCCESS;
 }
 

@@ -286,7 +286,11 @@ INA_API(int) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
 
 INA_API(int) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs)
 {
+#ifdef INA_OS_WIN32
+    return _stricmp(lhs, rhs);
+#else
     return strcasecmp(lhs, rhs);
+#endif
 }
 
 INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
@@ -459,7 +463,7 @@ INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
 
 INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *count)
 {
-    int elements = 0, slots = 5, j, start = 0, seplen, len;
+    size_t elements = 0, slots = 5, j, start = 0, seplen, len;
     ina_str_t *tokens;
     
     if (str == NULL) {
@@ -659,7 +663,7 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     INA_ASSERT_FALSE((__INA_HDR_OFFSET(str))->size < len);
  
     va_copy(args_copy, args);
-    if ((l = vsnprintf(*str, len, fmt, args)) >= len) {
+    if ((l = vsnprintf(*str, len, fmt, args)) >= (int)len) {
         ina_str_t extra_str;
         if ((extra_str = ina_str_new(l))) {
             l = vsnprintf(extra_str, l+1, fmt, args_copy);
