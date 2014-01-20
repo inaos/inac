@@ -63,7 +63,7 @@ typedef struct ina_process_descriptor_s {
     ina_str_t scheduled_start_pattern;
     ina_str_t scheduled_stop_pattern;
     time_t stop_wait_time_ms;
-    int start_flags;
+    uint32_t start_flags;
 } ina_process_descriptor_t;
 
 INA_FSM_STATES(process_fsm, 
@@ -93,6 +93,26 @@ INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx);
  */
 INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_process_descriptor_new(
+                              ina_process_ctx_t *ctx,
+                              ina_process_descriptor_t **descriptor,
+                              const char *full_path,
+                              const char *working_dir,
+                              ina_process_lifecycle_type_t lifecycle,
+                              ina_process_managed_type_t managed_type,
+                              const char *scheduled_start_pattern, 
+                              const char *scheduled_stop_pattern,
+                              time_t stop_wait_time_ms,
+                              uint32_t start_flags,
+                              ...);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_process_descriptor_free(ina_process_ctx_t *ctx,
+                                      ina_process_descriptor_t **descriptor);
 /*
  * 
  */
@@ -126,11 +146,6 @@ INA_API(ina_rc_t) ina_process_query_state(ina_process_ctx_t *ctx,
 INA_API(ina_rc_t) ina_process_should_be_running(ina_process_ctx_t *ctx, 
                                                 ina_process_t *process, 
                                                 int *should_be_running);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_process_next_state(ina_process_ctx_t *ctx, 
-                                         ina_process_t *process);
 /*
  * 
  */

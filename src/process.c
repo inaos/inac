@@ -233,15 +233,95 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_process_descriptor_new(
+                              ina_process_ctx_t *ctx,
+                              ina_process_descriptor_t **descriptor,
+                              const char *full_path,
+                              const char *working_dir,
+                              ina_process_lifecycle_type_t lifecycle,
+                              ina_process_managed_type_t managed_type,
+                              const char *scheduled_start_pattern, 
+                              const char *scheduled_stop_pattern,
+                              time_t stop_wait_time_ms,
+                              uint32_t start_flags,
+                              ...)
+{
+    va_list ap;
+    const char *arg;
+
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(full_path);
+    INA_ASSERT_TRUE(strlen(full_path));
+
+    *descriptor = (ina_process_descriptor_t*) ina_mem_alloc( 
+                                        sizeof(ina_process_descriptor_t));
+    if (*descriptor == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+    (*descriptor)->full_path = ina_str_new_fromcstr(full_path);
+
+    if (working_dir) {
+        (*descriptor)->working_dir = ina_str_new_fromcstr(working_dir);
+    }
+    (*descriptor)->lifecycle = lifecycle;
+    (*descriptor)->managed_type = managed_type;
+    if (scheduled_start_pattern) {
+        (*descriptor)->scheduled_start_pattern = ina_str_new_fromcstr(
+                                                    scheduled_start_pattern);
+    }
+    if (scheduled_stop_pattern) {
+        (*descriptor)->scheduled_stop_pattern = ina_str_new_fromcstr(
+                                                    scheduled_stop_pattern);
+    }
+    (*descriptor)->stop_wait_time_ms = stop_wait_time_ms;
+    (*descriptor)->start_flags = start_flags;
+
+    va_start(ap, start_flags);
+    while ((arg = va_arg(ap, const char *))) {
+        if ((*descriptor)->startup_args == NULL) {
+            (*descriptor)->startup_args = ina_str_new(128);
+        }
+        (*descriptor)->startup_args = ina_str_catcstr(
+                                            (*descriptor)->startup_args,
+                                            arg);
+        (*descriptor)->startup_args = ina_str_catcstr(
+                                            (*descriptor)->startup_args,
+                                            " ");
+    }
+    va_end(ap);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_process_descriptor_free(ina_process_ctx_t *ctx,
+                                    ina_process_descriptor_t **descriptor)
+{
+    INA_ASSERT_NOTNULL(ctx);
+
+    if (*descriptor != NULL) {
+        ina_str_free((*descriptor)->full_path);
+        ina_str_free((*descriptor)->working_dir);
+        ina_str_free((*descriptor)->scheduled_stop_pattern);
+        ina_str_free((*descriptor)->scheduled_start_pattern);
+        ina_str_free((*descriptor)->startup_args);
+        ina_mem_free(*descriptor);
+        *descriptor = NULL;
+    }
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx, 
                                   ina_process_descriptor_t *descriptor, 
                                   ina_process_t **process)
 {
-    *process = (ina_process_t*)ina_mempool_dalloc(ctx->mempool, 
-                                                  sizeof(ina_process_t));
+    *process = ina_mempool_dalloc(ctx->mempool, sizeof(ina_process_t));
     (*process)->descriptor = (ina_process_descriptor_t*)ina_mempool_dalloc(
                                         ctx->mempool, 
                                         sizeof(ina_process_descriptor_t));
+    if ((*process)->descriptor == NULL) {
+        *process = NULL;
+        return INA_ERR_PUSH_LAST;
+    }
+
     (*process)->descriptor->full_path = ina_str_dup_using_pool(
                                                     descriptor->full_path, 
                                                     ctx->mempool);
@@ -258,11 +338,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     (*process)->descriptor->scheduled_stop_pattern = ina_str_dup_using_pool(
                                         descriptor->scheduled_stop_pattern,
                                         ctx->mempool);
-        
-    INA_MEM_MEMCPY(&(*process)->descriptor->stop_wait_time_ms, 
-                    &descriptor->stop_wait_time_ms,
-                    sizeof(time_t));
-        
+    (*process)->descriptor->stop_wait_time_ms = descriptor->stop_wait_time_ms;        
     (*process)->descriptor->start_flags = descriptor->start_flags;
     (*process)->descriptor->lifecycle = descriptor->lifecycle;
     (*process)->descriptor->managed_type = descriptor->managed_type;
@@ -270,7 +346,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     (*process)->exit_code = 0;
     (*process)->key = INA_HASH_STR_TO_SDBM(descriptor->full_path);
     (*process)->init = 1;
-    ina_mem_set(&(*process)->state, 0, sizeof(ina_fsm_status_t));
+    (*process)->state = 0;
 
     INA_FSM_SET_STATE(process_fsm, (*process)->state, INA_PROCESS_STARTABLE);
     INA_FSM_SET_EVENT(process_fsm, (*process)->state, INA_PROCESS_START);
@@ -291,6 +367,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                     *process, 
                                     __ina_process_cron_start_cb))) {
                     ina_str_free(id);
+                    *process = NULL;
                     return INA_ERR_PUSH_LAST;
                 }
                 ina_str_free(id);
@@ -309,6 +386,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                 *process, 
                                 __ina_process_cron_stop_cb))) {
                 ina_str_free(id);
+                *process = NULL;
                 return INA_ERR_PUSH_LAST;
             }
             ina_str_free(id);
@@ -322,7 +400,9 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 INA_API(ina_rc_t) ina_process_free(ina_process_ctx_t *ctx, 
                                    ina_process_t **process)
 {
-    ina_mem_free(*process);
+    INA_ASSERT_NOTNULL(ctx);
+
+    /* FIXME: reset memory pool here */
     *process = NULL;
     return INA_SUCCESS;
 }
@@ -512,7 +592,7 @@ static void __ina_process_is_running(ina_process_t *process,
 static void __ina_process_start(ina_process_t *process)
 {
     pid_t pid = fork();
-   
+
     if (pid < 0) {
         /* FIXME: FSM state change */
         perror("fork");
@@ -520,15 +600,25 @@ static void __ina_process_start(ina_process_t *process)
     }
      
     if (pid == 0) {
-        char* args[16];
+        ina_str_t *tokens;
+        char* args[16]; /* FIXME */
         size_t n = 0;
+        size_t c = 0;
         
         if (process->descriptor->working_dir != NULL) {
-            chdir(process->descriptor->working_dir);
+            if (chdir(process->descriptor->working_dir) != 0) {
+                /* FIXME: FSM state change */
+                return;
+            }
         }
         
-        args[n++] = ina_str_cstr(process->descriptor->full_path);
-        /* FIXME: add arguments */
+        args[n++] = (char*)ina_str_cstr(process->descriptor->full_path);
+        tokens = ina_str_split(process->descriptor->startup_args, " ", &c);
+        while (c--) {
+            args[n] = (char*)tokens[n-1];
+            n++;
+        }
+        args[n++] = NULL;
         execvp(args[0], args);
         perror("execvp()");
         _exit(127);
