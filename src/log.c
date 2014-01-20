@@ -48,7 +48,7 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const
     }
 
     va_start(ap, fmt);
-    ina_str_vsnprintf(&msg, 1024, fmt, ap);
+    ina_str_vsnprintf(&msg, ina_str_size(msg)-1, fmt, ap);
     va_end(ap);
 
     return __ina_log(cfg, level, msg);

@@ -660,7 +660,7 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     INA_ASSERT_NOTNULL(fmt);
     INA_ASSERT_NOTNULL(str);
     INA_ASSERT_TRUE(len > 0);
-    INA_ASSERT_FALSE((__INA_HDR_OFFSET(str))->size < len);
+    INA_ASSERT_FALSE((__INA_HDR_OFFSET(*str))->size < len);
  
     va_copy(args_copy, args);
     if ((l = vsnprintf(*str, len, fmt, args)) >= (int)len) {
