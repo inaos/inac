@@ -90,6 +90,16 @@ INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line)
         return INA_SUCCESS;
     }
 
+    /* Create new one for error outside the stack */
+    if (INA_RC_ID(rc) == 0) {
+        return ina_err_push(INA_RC_MOD(rc),
+                    INA_RC_OSFN(rc),
+                    INA_RC_REASON(rc),
+                    file,
+                    line,
+                    "(Error message missing!");
+    }
+
     k = __ina_get_index(rc);
 
     return ina_err_push(INA_RC_MOD(rc),

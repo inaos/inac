@@ -50,8 +50,14 @@ INA_TEST(error, repush)
     INA_STR_EALLOC;
     INA_ERR_PUSH_LAST;
     INA_ERR_PUSH_LAST;
-    
+    ina_err_repush(INA_EAGAIN, __FILE__, __LINE__);
+    INA_ERR_PUSH_LAST;
+
     rc = ina_err_peek();
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EAGAIN, INA_RC_REASON(rc));
+    rc = ina_err_peek_next(rc);
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EAGAIN, INA_RC_REASON(rc));    
+    rc = ina_err_peek_next(rc);
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_EALLOC, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_EALLOC, INA_RC_REASON(rc));
