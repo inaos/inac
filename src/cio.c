@@ -150,8 +150,8 @@ INA_API(ina_rc_t) ina_cio_clear(void)
     }
 #else
     INA_ASSERT(__initialized);
-    ina_str_cpy(__cmd, (char*)__CSI);
-    ina_str_cat(__cmd, (char*)__cmd_clear);
+    strcpy(__cmd, (char*)__CSI);
+    strcat(__cmd, (char*)__cmd_clear);
     printf( "%s", __cmd);
 #endif
     return ina_cio_move_to_row_and_col(0, 0);
