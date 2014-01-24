@@ -110,6 +110,12 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level,
                           const char* fmt, ...);
 
 /*
+ * Log a message to current targets and level.
+ */
+INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level, 
+                            const char* fmt, va_list ap);
+
+/*
  * Close a log context
  */
 INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg);
