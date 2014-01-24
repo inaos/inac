@@ -124,31 +124,18 @@ __ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, ina_str_t msg) {
 
     strftime(buf,sizeof(buf),"%d %b %H:%M:%S",localtime(&now));
 
-#ifdef WIN32
     if (cfg->fp1 != NULL) {
         fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-    }
-    if (cfg->fp2 != NULL) {
-        fprintf(cfg->fp2,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-    }
-#else
-    if (cfg->target == INA_LOG_SYSLOG) {
-        syslog(cfg->syslog_facility, "%s", msg);
-    }
-    else {
-        if (cfg->fp1 != NULL) {
-            fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-        }
-        if (cfg->fp2 != NULL) {
-            fprintf(cfg->fp2,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-        }
-    }
-#endif
-    if (cfg->fp1 != NULL) {
         fflush(cfg->fp1);
     }
     if (cfg->fp2 != NULL) {
+        fprintf(cfg->fp2,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
         fflush(cfg->fp2);
     }
+#ifndef INA_OS_WIN32
+    if (cfg->target == INA_LOG_SYSLOG) {
+        syslog(cfg->syslog_facility, "%s", msg);
+    }
+#endif
     return INA_SUCCESS;
 }
