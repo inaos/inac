@@ -428,10 +428,25 @@ INA_API(ina_rc_t) ina_err_coredump(void *data);
  */
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
 /*
- *
+ * Return the raw error message for the last pushed error.
+ * 
+ * Return
+ * Error message or NULL if no errors are on the stack. Char pointer is valid
+ * as long an eror is on the error stack.
  */
 INA_API(const char*) ina_err_get_last_errmsg(void);
+/*
+ * Return the raw error message for an pushed error rc.
+ * 
+ * Parameters
+ * rc   Valid RC
+ *
+ * Return
+ * Error message or NULL if rc is invalid. Char pointer is valid as long an 
+ * eror is on the error stack.
+ */
 INA_API(const char*) ina_err_get_errmsg(ina_rc_t rc);
+
 #ifdef __cplusplus
 }
 #endif

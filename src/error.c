@@ -246,12 +246,9 @@ INA_API(const char*) ina_err_get_last_errmsg(void)
 }
 
 INA_API(const char*) ina_err_get_errmsg(ina_rc_t rc)
-{   
-    if (rc == INA_SUCCESS) {
-        return "";
-    }
-    if (INA_RC_ID(rc) == 0) {
-        return "";
+{  
+    if (rc == INA_SUCCESS || INA_RC_ID(rc) == 0) {
+        return NULL;
     }
     return __state.errors[__ina_get_index(rc)].msg;
 }
