@@ -240,6 +240,22 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
     return INA_FAILURE;
 }
 
+INA_API(const char*) ina_err_get_last_errmsg(void)
+{
+    return ina_err_get_errmsg(ina_err_peek());
+}
+
+INA_API(const char*) ina_err_get_errmsg(ina_rc_t rc)
+{   
+    if (rc == INA_SUCCESS) {
+        return "";
+    }
+    if (INA_RC_ID(rc) == 0) {
+        return "";
+    }
+    return __state.errors[__ina_get_index(rc)].msg;
+}
+
 INA_API(ina_rc_t) ina_err_trace(void)
 {
     ina_rc_t rc = INA_SUCCESS;

@@ -110,6 +110,17 @@ INA_TEST(error, macros)
      INA_STR_EALLOC;
 }
 
+INA_TEST(error, get_errmsg)
+{
+    ina_rc_t rc;
+
+    rc = INA_ERR_PUSH_BASIC(10, "This is error 1");
+    INA_ERR_PUSH_BASIC(10, "This is error 2");
+    INA_ERR_PUSH_BASIC(10, "This is error 3");   
+    INA_TEST_ASSERT_EQUAL_STR("This is error 1", ina_err_get_errmsg(rc));
+    INA_TEST_ASSERT_EQUAL_STR("This is error 3", ina_err_get_last_errmsg());
+}
+
 INA_TEST(error, push_and_peek)
 {
     size_t i;

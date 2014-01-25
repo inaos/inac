@@ -427,7 +427,11 @@ INA_API(ina_rc_t) ina_err_coredump(void *data);
  * INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
  */
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
-
+/*
+ *
+ */
+INA_API(const char*) ina_err_get_last_errmsg(void);
+INA_API(const char*) ina_err_get_errmsg(ina_rc_t rc);
 #ifdef __cplusplus
 }
 #endif
