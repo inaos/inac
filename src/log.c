@@ -76,8 +76,36 @@ INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target,
     (*cfg)->logfile = ina_str_new_fromcstr(logfile);
     (*cfg)->target = target;
     (*cfg)->level = level;
+#ifdef INA_OS_WIN32
     (*cfg)->syslog_facility = 0;
     (*cfg)->syslog_ident = NULL;
+#else
+    switch (level) {
+        case INA_LOG_LEVEL_INFO:
+            (*cfg)->syslog_facility = LOG_UPTO(LOG_NOTICE);
+            break;
+        case INA_LOG_LEVEL_WARNING:
+            (*cfg)->syslog_facility = LOG_UPTO(LOG_WARNING);
+            break;
+        case INA_LOG_LEVEL_ERROR:
+            (*cfg)->syslog_facility = LOG_UPTO(LOG_ERR);
+            break;
+        default:
+            (*cfg)->syslog_facility = LOG_UPTO(LOG_DEBUG);
+            break;
+    }
+    if (logfile == NULL) {
+        (*cfg)->syslog_ident = ina_str_new_fromcstr(ina_app_get_name());
+    } else {
+        const char* basename = strrchr(logfile, INA_PATH_SEPARATOR);
+
+        if (basename) {
+            (*cfg)->syslog_ident = ina_str_new_fromcstr(++basename);
+        } else {
+            (*cfg)->syslog_ident = ina_str_new_fromcstr(logfile);
+        }
+    }
+#endif
     return __ina_init(*cfg);
 }
 
@@ -107,7 +135,7 @@ __ina_init(ina_log_cfg_t *cfg)
     if ((cfg->target & INA_LOG_FILE) == INA_LOG_FILE) {
         cfg->fp2 = (cfg->logfile == NULL) ? stdout : fopen(ina_str_cstr(cfg->logfile),"a");
     }
-#ifdef WIN32
+#ifdef INA_OS_WIN32
     cfg->pid = (int)GetCurrentProcessId();
 #else
     cfg->pid = (int)getpid();
@@ -133,9 +161,25 @@ __ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, ina_str_t msg) {
         fflush(cfg->fp2);
     }
 #ifndef INA_OS_WIN32
-    if (cfg->target == INA_LOG_SYSLOG) {
-        syslog(cfg->syslog_facility, "%s", msg);
+    if (cfg->target&INA_LOG_SYSLOG) {
+        setlogmask(cfg->syslog_facility);
+        openlog(cfg->syslog_ident, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+        switch (level) {
+            case INA_LOG_LEVEL_DEBUG:
+                syslog(LOG_DEBUG, "%s", msg);
+                break;
+            case INA_LOG_LEVEL_INFO:
+                syslog(LOG_INFO, "%s", msg);
+                break;
+            case INA_LOG_LEVEL_WARNING:
+                syslog(LOG_WARNING, "%s", msg);
+                break;
+            case INA_LOG_LEVEL_ERROR:
+                syslog(LOG_ERR, "%s", msg);
+                break;
+        }
+        closelog();
     }
-#endif
+ #endif
     return INA_SUCCESS;
 }

@@ -41,3 +41,19 @@ INA_TEST(log, open_close_console)
     INA_TEST_ASSERT_SUCCEED(ina_log_close(&cfg));
     INA_TEST_ASSERT_NULL(cfg);
 }
+
+INA_TEST(log, syslog)
+{
+  	ina_log_cfg_t *cfg = NULL;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_SYSLOG, INA_LOG_LEVEL_DEBUG, "test"));
+    INA_TEST_ASSERT_NOT_NULL(cfg);
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_LOG_SYSLOG, cfg->target);
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_LOG_LEVEL_DEBUG, cfg->level);
+    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test DEBUG log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_INFO, "Test INFO log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_WARNING, "Test WARNING log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_ERROR, "Test ERROR log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log_close(&cfg));
+    INA_TEST_ASSERT_NULL(cfg);	
+}
