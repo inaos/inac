@@ -558,7 +558,7 @@ __ina_signal_handler(int sig)
 #endif
             break;
         default:
-            INA_TRACE("unknown singal received!");
+            INA_TRACE("Unknown signal received!");
     }
 }
 
