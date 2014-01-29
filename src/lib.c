@@ -547,6 +547,10 @@ __ina_signal_handler(int sig)
         case SIGTTIN:
         case SIGHUP:
         case SIGQUIT:
+            if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
+                exit(exitcode);
+            }
+            break;
         case SIGSTOP:
         case SIGKILL:
 #endif
