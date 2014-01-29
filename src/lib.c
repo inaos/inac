@@ -448,7 +448,9 @@ __ina_opt_usage(void)
     printf("%s", "\n\n");
     HASH_ITER(hh, __lopt, lo, tmp_lo) {
         so = lo->short_opt;
-        printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), ina_str_cstr(lo->opt), ina_str_cstr(so->desc));
+        printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), 
+               ina_str_cstr(lo->opt), 
+               ina_str_cstr(so->desc));
     }
 }
 
