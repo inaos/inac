@@ -535,7 +535,7 @@ __ina_signal_handler(int sig)
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Error: signal %d:\n", sig);
                 ina_err_trace();
-                ina_err_reset():
+                ina_err_reset();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
 #endif
