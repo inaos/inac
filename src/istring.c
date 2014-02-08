@@ -217,6 +217,7 @@ INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n)
     d = __ina_ensure_size(d, n);
     INA_MEM_MEMCPY(d->data, src, n);
     d->data[n] = 0;
+    d->len = n;
     return d->data;
 }
 

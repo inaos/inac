@@ -47,6 +47,8 @@ REM * INAC_WIN32_C_BUILD_TOOL: Either 'cmake-nmake' or 'cmake-vs' - Optional
 REM * INAC_WIN32_LUA_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
 REM * INAC_WIN32_LUA_LIB_NAME: Name of the library where the lua byte-code is stored - Optional
 REM * INAC_WIN32_CODE_GEN_SCRIPT: Lua script that will be invoked before compilation, relative from PROJECT_DIR - Optional
+REM * INAC_WIN32_DIST_PACKAGE_NAME: Full name of the zip package to be created (e.g. my-app-1.0.zip)
+REM * INAC_WIN32_DIST_FILES: Batch array of (fully qualified) files that will be packaged for distribution.
 REM
 REM Environment variable rules
 REM --------------------------
@@ -66,7 +68,7 @@ REM
 REM 'all' = Compiles and links all code include tests, also invokes code-generation if required
 REM 'test' = Execute the tests
 REM 'clean' = Delete all the build artefacts
-REM 'dist' = Create distribuition package (source tarball). Execute 'clean', 'all' and 'test' targets
+REM 'dist' = Create distribuition package.
 REM
 REM General facts:
 REM --------------
@@ -92,6 +94,7 @@ if not defined INAC_HOME goto fail_inac_home
 REM set variables according to input
 SET INAC_W32_LUAJIT=%INAC_HOME%\contribs\luajit\src\luajit.exe
 SET INAC_W32_LUAJIT_DIR=%INAC_HOME%\contribs\luajit\src\jit
+SET INAC_W32_ZIP_TOOL=%INAC_HOME%\script\shell\win32\ina_zip.vbs
 
 if not defined ORIGINAL-LUA_PATH set ORIGINAL-LUA_PATH=%LUA_PATH%
 SET LUA_PATH=%INAC_HOME%\contribs\luajit\src\?.lua;%ORIGINAL-LUA_PATH%
@@ -166,6 +169,19 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 REM rule 4
 if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 	if not defined INAC_WIN32_C_TEST_SUITE_EXEC goto fail_rule_4
+)
+
+REM phase 'dist'
+if "%INAC_W32_BUILD_STAGE%" == "dist" (
+	if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR% goto fail_dist_bd
+	if not defined INAC_WIN32_DIST_PACKAGE_NAME goto fail_dist_package_name
+	echo Creating distribution package ...
+	mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist
+	for /F "tokens=2* delims=.=" %%A in ('SET INAC_WIN32_DIST_FILES.') do copy %%B %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist
+	cscript %INAC_W32_ZIP_TOOL% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\%INAC_WIN32_DIST_PACKAGE_NAME%
+	rmdir /s /q %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist
+	echo Created package %INAC_WIN32_DIST_PACKAGE_NAME%
+	goto exit
 )
 
 REM invoke code-generator if necessary
@@ -337,6 +353,18 @@ goto exit
 echo Error: Could not find makeheaders.exe
 goto exit
 
+:fail_dist_bd
+echo Error: dist failed, because there is no build-directory - maybe you should build 'all' first
+goto exit
+
+:fail_dist_filelist
+echo Error: dist failed, because file-list not present
+goto exit
+
+:fail_dist_package_name
+echo Error: dist failed, because package-name not present
+goto exit
+
 :usage
 echo Usage: "windows_build.bat <build-stage> <build-type>"
 goto exit
@@ -353,6 +381,7 @@ SET INAC_W32_LIB_CMD=
 
 SET INAC_W32_LUAJIT=
 SET INAC_W32_LUAJIT_DIR=
+SET INAC_W32_ZIP_TOOL=
 
 if defined ORIGINAL-LUA_PATH (
 	SET LUA_PATH=%ORIGINAL-LUA_PATH%
@@ -378,6 +407,8 @@ if defined INAC_WIN32_C_BUILD_TOOL SET INAC_WIN32_C_BUILD_TOOL=
 if defined INAC_WIN32_LUA_SOURCE_DIR SET INAC_WIN32_LUA_SOURCE_DIR=
 if defined INAC_WIN32_LUA_LIB_NAME SET INAC_WIN32_LUA_LIB_NAME=
 if defined INAC_WIN32_CODE_GEN_SCRIPT SET INAC_WIN32_CODE_GEN_SCRIPT=
+if defined INAC_WIN32_DIST_FILES SET INAC_WIN32_DIST_FILES=
+if defined INAC_WIN32_DIST_PACKAGE_NAME SET INAC_WIN32_DIST_PACKAGE_NAME=
 
 goto:eof
 
