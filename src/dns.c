@@ -67,6 +67,9 @@ INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, 
     while (remote_host->h_addr_list[cnt] != 0) {
         cnt++;
     }
+    if (cnt == 0) {
+        return INA_DNS_ELOOKUP;
+    }
     
     *addresses = (ina_str_t*)ina_mem_alloc(sizeof(char)*15*cnt);
     addresses_ptr = *addresses;

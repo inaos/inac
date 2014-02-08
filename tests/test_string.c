@@ -165,6 +165,26 @@ INA_TEST(string, ina_str_cpy)
    ina_str_free(dest);
 }
 
+INA_TEST(string, issue_355)
+{
+   ina_str_t src =  NULL;
+   ina_str_t dest = NULL;
+
+   src = ina_str_new_fromcstr("a string to copy");
+   INA_TEST_ASSERT_NOT_NULL(src);
+
+   dest = ina_str_new(1024);
+   INA_TEST_ASSERT_NOT_NULL(dest);
+   dest = ina_str_cpy(dest, src);
+   INA_TEST_ASSERT_EQUAL_STR("a string to copy", ina_str_cstr(dest));
+   INA_TEST_ASSERT_NOT_NULL(dest);
+   dest = ina_str_catcstr(dest, "test");
+   INA_TEST_ASSERT_NOT_NULL(dest);
+   INA_TEST_ASSERT_EQUAL_STR("a string to copytest", ina_str_cstr(dest));
+   ina_str_free(src);
+   ina_str_free(dest);
+}
+
 INA_TEST(string, ina_str_ncpy)
 {
     ina_str_t src =  NULL;

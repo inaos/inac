@@ -508,7 +508,7 @@ __ina_signal_handler(int sig)
             break;
 #endif
         default:
-            INA_TRACE("unknown singal received!");
+            INA_TRACE("Unknown signal received!");
             abort();
     }
     sh = __signal_handler_map[isig];
@@ -522,6 +522,7 @@ __ina_signal_handler(int sig)
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Program aborted.\n");
                 ina_err_trace();
+                ina_err_reset();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
 #endif
@@ -534,6 +535,7 @@ __ina_signal_handler(int sig)
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Error: signal %d:\n", sig);
                 ina_err_trace();
+                ina_err_reset();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
 #endif
@@ -556,7 +558,7 @@ __ina_signal_handler(int sig)
 #endif
             break;
         default:
-            INA_TRACE("unknown singal received!");
+            INA_TRACE("Unknown signal received!");
     }
 }
 
