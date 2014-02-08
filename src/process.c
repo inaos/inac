@@ -329,7 +329,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                                     descriptor->working_dir, 
                                                     ctx->mempool);
     (*process)->descriptor->startup_args = ina_str_dup_using_pool(
-                                                    descriptor->working_dir, 
+                                                    descriptor->startup_args, 
                                                     ctx->mempool);
     (*process)->descriptor->scheduled_start_pattern = ina_str_dup_using_pool(
                                     descriptor->scheduled_start_pattern,
@@ -347,6 +347,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     (*process)->key = INA_HASH_STR_TO_SDBM(descriptor->full_path);
     (*process)->init = 1;
     (*process)->state = 0;
+    (*process)->ctx = ctx;
 
     INA_FSM_SET_STATE(process_fsm, (*process)->state, INA_PROCESS_STARTABLE);
     INA_FSM_SET_EVENT(process_fsm, (*process)->state, INA_PROCESS_START);
@@ -517,10 +518,8 @@ static void __ina_process_start(ina_process_t *process)
     ina_mem_set(&si, 0, sizeof(STARTUPINFO));
     si.cb = sizeof(si);
     ina_mem_set(&process->pi, 0, sizeof(PROCESS_INFORMATION));
-    len = ina_str_len(process->descriptor->full_path);
-    len += 1+ina_str_len(process->descriptor->startup_args);
-    cmd_line = ina_str_new_using_pool(len, process->ctx->mempool);
-    cmd_line = ina_str_cpy(cmd_line, process->descriptor->full_path);
+    cmd_line = ina_str_new(1024);
+    cmd_line = ina_str_cat(cmd_line, process->descriptor->full_path);
     cmd_line = ina_str_catcstr(cmd_line, " ");
     cmd_line = ina_str_cat(cmd_line, process->descriptor->startup_args);
 
