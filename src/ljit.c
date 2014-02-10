@@ -32,6 +32,8 @@
 INA_LJIT_PACKAGE(inac);
 INA_LJIT_IMPORT(inac,lconffile);
 INA_LJIT_IMPORT(inac,ltemplate);
+INA_LJIT_IMPORT(inac,lsocket);
+INA_LJIT_IMPORT(inac,ldebug);
 
 INA_LJIT_PACKAGE(ljit);
 INA_LJIT_IMPORT(ljit, bc);

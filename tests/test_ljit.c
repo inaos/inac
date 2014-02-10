@@ -57,6 +57,11 @@ INA_TEST(ljit, call)
     INA_TEST_ASSERT_NULL(ctx);
 }
 
+INA_TEST(ljit, lsocket)
+{
+    printf("Future Lua socket wrapper test\n");
+}
+
 INA_TEST(ljit, luaL_dostring)
 {
     ina_ljit_ctx_t *ctx = NULL;
