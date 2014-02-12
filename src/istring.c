@@ -30,6 +30,22 @@
 
 #ifdef INA_ISTRING_ENABLED
 
+#ifdef INA_OS_WIN32
+INA_INLINE int __ina_vsnprintf(char *str, size_t size, const char *format, va_list args)
+{
+    int c;
+    va_list args_copy;
+
+    va_copy(args_copy, args);
+    if ((c = _vscprintf(format, args)) >= (int)size) {
+        return c;
+    }
+    return vsnprintf(str, size, format, args_copy);
+}
+#else
+#define __ina_vsnprintf vsnprintf
+#endif
+
 #define __INA_HDR_OFFSET(s) (ina_str_hdr_t*)(s-(sizeof(ina_str_hdr_t)))
 #define __INA_STR_OFFSET(h) (char*)(h+(sizeof(ina_str_hdr_t)))
 
@@ -664,10 +680,10 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     INA_ASSERT_FALSE((__INA_HDR_OFFSET(*str))->size < len);
  
     va_copy(args_copy, args);
-    if ((l = vsnprintf(*str, len, fmt, args)) >= (int)len) {
+    if ((l = __ina_vsnprintf(*str, len, fmt, args)) >= (int)len) {
         ina_str_t extra_str;
         if ((extra_str = ina_str_new(l))) {
-            l = vsnprintf(extra_str, l+1, fmt, args_copy);
+            l = __ina_vsnprintf(extra_str, l+1, fmt, args_copy);
             ina_str_free(*str);
             *str = extra_str;
         } else {
