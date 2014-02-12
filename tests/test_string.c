@@ -185,6 +185,18 @@ INA_TEST(string, issue_355)
    ina_str_free(dest);
 }
 
+INA_TEST(string, issue_356)
+{
+   ina_str_t dest =  NULL;
+#define fmt "POST %s%s HTTP/1.1 Host: %s Connection: keep-alive Content-Length: %d Content-Type: application/json Accept: */*"
+
+   dest = ina_str_sprintf(fmt, "1234567890", "1234567890", "host", 123);
+   INA_TEST_ASSERT_NOT_NULL(dest);
+   INA_TEST_ASSERT_EQUAL_STR("POST 12345678901234567890 HTTP/1.1 Host: host Connection: keep-alive Content-Length: 123 Content-Type: application/json Accept: */*",
+                             ina_str_cstr(dest));
+   ina_str_free(dest);
+}
+
 INA_TEST(string, ina_str_ncpy)
 {
     ina_str_t src =  NULL;
