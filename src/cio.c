@@ -559,17 +559,19 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
                     }
                 }
                 else {
-                    size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE+(1*rep)+1;
-                    cur = buffer + (*buf_cur)++;
-                    /* check if there is space for another char, otherwise extend */
-                    if (*buf_cur >= check_size) {
-                        buf_len += __INA_CIO_READ_BUFFER_CHUNK_SIZE;
-                        *ptr_buffer = (char*)ina_mem_realloc(buffer, *buf_len);
-                    }
-                    memset(cur, cta, rep);
-                    /* this is it we finally have a new line! */
+					/* this is it we finally have a new line! */
                     if (cta == '\r') {
                         *finished = 1;
+                    }
+					else {
+						size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE+(1*rep)+1;
+						cur = buffer + (*buf_cur)++;
+						/* check if there is space for another char, otherwise extend */
+						if (*buf_cur >= check_size) {
+							buf_len += __INA_CIO_READ_BUFFER_CHUNK_SIZE;
+							*ptr_buffer = (char*)ina_mem_realloc(buffer, *buf_len);
+						}
+						memset(cur, cta, rep);
                     }
                     printf("%c", cta);
                 }
