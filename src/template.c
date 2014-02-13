@@ -281,6 +281,7 @@ INA_API(ina_rc_t) ina_template_destroy(ina_template_ctx_t **ctx)
         HASH_DELETE(hh, (*ctx)->envs, env);
         __ina_template_table_destroy(env->tables);
         ina_str_free(env->id);
+        ina_str_free(env->tpl);
         ina_mem_free(env);
     }
 
@@ -298,7 +299,7 @@ INA_API(ina_rc_t) ina_template_compile(ina_template_ctx_t *ctx, const char *id,
     (*env)->key = INA_HASH_CSTR_TO_SDBM(id);
     (*env)->id = ina_str_new_fromcstr(id);
     (*env)->tables = NULL;
-    (*env)->tpl = tpl;
+    (*env)->tpl = ina_str_dup(tpl);
     (*env)->ctx = ctx;
     
     lua_newtable(ctx->lctx->lstate);
