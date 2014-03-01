@@ -61,14 +61,13 @@ static void __ina_init_colors(void)
 #else
 #include <termios.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 
 #define _isatty isatty
 #define _fileno fileno
 #define __INA_RD_EOF   (-1)
 #define __INA_RD_EIO   (-2)
 #define __INA_MAX_CMD_BUFLEN  (32)
-#define __INA_LAST_ROW        (25)
-#define __INA_LAST_COL        (80)
 /* ANSI color codes */
 static const char * __CSI = "\033[";
 static const char * __cmd_clear = "2J";
@@ -182,8 +181,10 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
     pos->row = info.srWindow.Bottom + 1;
     pos->col = info.srWindow.Right + 1;
 #else
-    pos->row = __INA_LAST_ROW;
-    pos->col = __INA_LAST_COL;
+    struct winsize w;
+    ioctl(0, TIOCGWINSZ, &w);
+    pos->row = w.ws_row;
+    pos->col = w.ws_col;
 #endif
     return INA_SUCCESS;
 }
