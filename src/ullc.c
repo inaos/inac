@@ -444,7 +444,7 @@ __ina_sem_makekey(ina_ullc_rb_t *rb, const ina_str_t name)
     INA_ASSERT_NOTNULL(rb);
     INA_ASSERT_NOTNULL(name);
 
-    rb->semkey = __INA_SEMKEY;
+    rb->semkey = INA_HASH_STR_TO_CRC32(name);
     return INA_SUCCESS;
 }
 
