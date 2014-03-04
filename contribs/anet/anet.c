@@ -567,15 +567,13 @@ int anetUdpBind(char *err, char *addr, int port)
 	int s;
     struct sockaddr_in sa;
 
-    if ((s = anetCreateSocket(err,AF_INET,ANET_SOCKET_TYPE_UDP)) == ANET_ERR)
+    if ((s = anetCreateSocket(err,AF_INET,ANET_SOCKET_TYPE_UDP)) == ANET_ERR) 
         return ANET_ERR;
 
+    memset(&sa, 0, sizeof(sa));
 	sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
-
-	if (inet_aton(addr, &sa.sin_addr) == 0) {
-		return ANET_ERR;
-	}
+    sa.sin_addr.s_addr = inet_addr(addr);
     
 #ifdef WIN32
     if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
@@ -584,7 +582,7 @@ int anetUdpBind(char *err, char *addr, int port)
         return ANET_ERR;
     }
 #else
-	if (bind(s, (struct sockaddr*)&sa,sizeof(sa)) == -1) {
+	if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         anetSetError(err, "bind: %s", strerror(errno));
         close(s);
         return ANET_ERR;
@@ -598,13 +596,9 @@ int anetJoinGroup(char* err, int fd, char *localif, char *source)
 {
 	struct ip_mreq imr;
 
-	if (inet_aton(localif, &imr.imr_interface) == 0) {
-		return ANET_ERR;
-	}
-	if (inet_aton(source, &imr.imr_multiaddr) == 0) {
-		return ANET_ERR;
-	}
-
+    imr.imr_multiaddr.s_addr=inet_addr(source);
+    imr.imr_interface.s_addr=inet_addr(localif);
+	
 #if WIN32
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(WSAGetLastError()));
@@ -624,12 +618,8 @@ int anetLeaveGroup(char* err, int fd, char *localif, char *source)
 {
 	struct ip_mreq imr;
 
-	if (inet_aton(localif, &imr.imr_interface) == 0) {
-		return ANET_ERR;
-	}
-	if (inet_aton(source, &imr.imr_multiaddr) == 0) {
-		return ANET_ERR;
-	}
+    imr.imr_multiaddr.s_addr=inet_addr(source);
+    imr.imr_interface.s_addr=inet_addr(localif);
 
 #if WIN32
 	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
