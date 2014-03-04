@@ -27,9 +27,11 @@
  */
 #include <libinac/lib.h>
 
-
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 /*
- * Poor Poeple Echo Server
+ * Poor People Echo Server
  */
 INA_TEST_HELPER(net, non_blocking_echo_server) {
 
@@ -82,3 +84,41 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
        ina_time_sleep(300);
    }
 }
+
+
+/*
+ * Poor People UDP sender
+ */
+INA_TEST_HELPER(net, udp_sender) {
+
+    const char *addr;
+    int port;
+
+    char buf[512];
+    struct sockaddr_in si_other;
+    int s, i, slen=sizeof(si_other);
+ 
+    INA_TEST_HELPER_CHECK_ARGC(2);
+    addr = INA_TEST_HELPER_CARG(0);
+    port = INA_TEST_HELPER_IARG(1);
+ 
+    ina_mem_set(buf, 0, 512);
+   
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+        memset((char *) &si_other, 0, sizeof(si_other));
+        si_other.sin_family = AF_INET;
+        si_other.sin_port = htons(port);
+        if (inet_aton(addr, &si_other.sin_addr) == 0) {
+            INA_TEST_HELPER_SET_RC(INA_FAILURE);
+        }
+        i = 0;
+        while (1) {
+            sprintf(buf, "This is packet %d\n", ++i);
+            if (sendto(s, buf, 512, 0, (struct sockaddr*)&si_other, slen) == -1) {
+                 INA_TEST_HELPER_SET_RC(INA_FAILURE);
+            }
+        }
+    }
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+ }
+
