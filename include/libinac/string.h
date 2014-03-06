@@ -129,7 +129,9 @@ INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n);
  * dest
  */
 INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src);
+INA_API(ina_str_t) ina_str_cat_using_pool(ina_str_t dest, const ina_str_t src, ina_mempool_t *pool);
 INA_API(ina_str_t) ina_str_catcstr(ina_str_t dest, const char* src);
+INA_API(ina_str_t) ina_str_catcstr_using_pool(ina_str_t dest, const char* src, ina_mempool_t *pool);
 
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -145,7 +147,9 @@ INA_API(ina_str_t) ina_str_catcstr(ina_str_t dest, const char* src);
  * dest
  */
 INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t str, size_t n);
+INA_API(ina_str_t) ina_str_ncat_using_pool(ina_str_t dest, const ina_str_t str, size_t n, ina_mempool_t *pool);
 INA_API(ina_str_t) ina_str_ncatcstr(ina_str_t dest, const char *str, size_t n);
+INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest, const char *str, size_t n, ina_mempool_t *pool);
 
 
 /*
