@@ -28,6 +28,13 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifndef INA_OS_WIN32
+#include <unistd.h>
+
+#define INA_SERVICE_PID_FILE_FMT  "/var/run/%s.pid"
+#define INA_SERVICE_LOCK_FILE_FMT "/var/lock/subsys/%s"
+#endif
+
 struct ina_service_ctx_s {
     ina_service_mode_t mode;
     ina_service_descriptor_t *descriptor;
@@ -292,12 +299,165 @@ static ina_rc_t __ina_service_win_console(ina_service_ctx_t *ctx, ina_service_de
     return INA_SUCCESS;
 }
 #else
+/*
+ * NOTES:
+ *
+ * 1. Is expected that the UNIX service creates two files upon startup
+ *    - /var/run/${NAME}.pid (with the PID as only content)
+ *    - /var/lock/subsys/${NAME}
+ * 2. However the two files are removed by the service wrapper script
+ *
+ * 3. Install procedure:
+ *    - read the init-script template from the section
+ *    - process it via ina_template and write it to /etc/init.d/
+ *    - also add it to chkconfig - if automated startup has been selected
+ *
+ * 4. Uninstall procedure:
+ *    - remove from chkconfig - if automated startup has been selected
+ *    - delete the service from /etc/init.d/
+ *
+ */
+static ina_rc_t __ina_service_unix_install()
+{
+    ina_str_t tpl;
+    ina_template_ctx_t *tpl_ctx;
+    ina_template_env_t *env;
+    ina_str_t out;
+
+    if (!INA_SUCCEED(ina_template_init(&tpl_ctx))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    /* read template from section */
+
+
+    if (!INA_SUCCEED(ina_template_compile(tpl_ctx, "init-script", tpl, &env))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    ina_template_set_at_as_expression_starter(tpl_ctx);
+
+    ina_template_set_string(env, "service_name", service_name);
+    ina_template_set_string(env, "service_username", service_username);
+    ina_template_set_string(env, "service_startup", service_startup);
+    ina_template_set_string(env, "service_short_description", service_long_desc);
+    ina_template_set_string(env, "service_long_description", service_long_desc);
+    ina_template_set_string(env, "service_display_name", service_display_name);
+
+    if (!INA_SUCCEED(ina_template_render(env, &out))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    
+    ina_str_free(tpl);
+    ina_template_destroy(&tpl_ctx);
+
+    /* write file to /etc/init.d/ */
+    
+    
+    /*
+     * every distro seem to have a different way to manage autostart for services :(
+     *
+     * something for the portable header?
+     * -> http://stackoverflow.com/questions/7824625/in-the-code-c-file-how-i-can-find-the-linux-distribution-name-version
+     *
+     * Redhat: https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-services-chkconfig.html
+     * Debian/Ubuntu: http://www.debuntu.org/how-to-managing-services-with-update-rc-d/
+     * Suse: chkconfig I guess
+     */
+
+
+    ina_str_free(out);
+
+    return INA_SUCCESS;
+}
+static ina_rc_t __ina_service_unix_uninstall()
+{
+    
+    return INA_SUCCESS;
+}
+static ina_rc_t __ina_service_unix_run(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor)
+{
+    pid_t pid;
+    int fp,lfp,pfp;
+    ina_str_t pid_str;
+    ina_str_t pid_file_path;
+    ina_str_t lock_file_path;
+
+    if (getppid() == 1) {
+        return INA_SERVICE_EAID; /* already a daemon */
+    }
+	pid = fork();
+	
+    if (pid < 0) {
+        return INA_SERVICE_EFERR; /* fork error */
+    }
+	if (pid > 0) {
+        exit(0); /* parent exits */
+    }
+
+    setsid(); /* obtain a new process group */
+
+    for (fp = getdtablesize(); fp >= 0; --fp) {
+        close(fp); /* close all descriptors */
+    }
+
+    fp = open("/dev/null", O_RDWR); /* open stdin */
+	dup(fp); /* stdout */
+	dup(fp); /* stderr */
+
+    umask(027); /* protect files written by us */
+
+    chdir(ina_str_cstr(descriptor->working_directory)); /* set working-directory */
+
+    pid_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, ina_str_cstr(descriptor->name));
+    lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, ina_str_cstr(descriptor->name));
+
+    lfp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
+	if (lfp < 0) {
+        return INA_SERVICE_ELCO; /* can not open */
+    }
+	if (lockf(lfp, F_TLOCK, 0) < 0) {
+        return INA_SERVICE_ELOCK; /* can not lock */
+    }
+	
+    pid_str = ina_str_sprintf("%d\n", getpid());
+
+    pfp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
+    write(pfp, ina_str_cstr(pid_str), ina_str_len(pid_str)); /* record pid to pid-file */
+    close(pfp);
+
+    ina_str_free(pid_file_path);
+    ina_str_free(lock_file_path);
+    ina_str_free(pid_str);
+
+    return INA_SUCCESS;
+}
+static ina_rc_t __ina_service_unix_console(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor)
+{
+    int lfp;
+    ina_str_t lock_file_path;
+
+    lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, ina_str_cstr(descriptor->name));
+
+    lfp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
+	if (lfp < 0) {
+        return INA_SERVICE_ELCO; /* can not open */
+    }
+	if (lockf(lfp, F_TLOCK, 0) < 0) {
+        return INA_SERVICE_ELOCK; /* can not lock */
+    }
+
+    if (!INA_SUCCEED(descriptor->run_func(descriptor->user_data))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    return INA_SUCCESS;
+}
 
 #endif
 
 static void __ina_service_signal_handler(ina_signal_t sig, ina_signal_behavior_t *sb, int *exitcode)
 {
-    if (sig == INA_SIGNAL_INT) {
+    if (sig == INA_SIGNAL_INT || sig == INA_SIGNAL_TERM) {
         /* Ignore default signal handling */
         *sb = INA_SIGNAL_BEHAVIOR_IGNORE;
         __ina_service_context->descriptor->shutdown_func(__ina_service_context->descriptor->user_data);

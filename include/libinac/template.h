@@ -112,6 +112,10 @@ INA_API(ina_rc_t) ina_template_array_set_boolean(ina_template_table_t *t, unsign
  * 
  */
 INA_API(ina_rc_t) ina_template_array_set_string(ina_template_table_t *t, unsigned int idx, ina_str_t str);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_template_set_at_as_expression_starter(ina_template_ctx_t *t);
 
 #ifdef __cplusplus
 }

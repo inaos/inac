@@ -294,6 +294,11 @@ extern "C" {
 #define INA_SERVICE_EEXCL INA_SERVICE_ERROR(INA_ELOGIC, "Process already runnning only 1 process allowed");
 #define INA_SERVICE_EMINIT INA_SERVICE_ERROR(INA_EINIT, "Can not initialize mutex");
 #define INA_SERVICE_ESDIS INA_SERVICE_ERROR(INA_EINIT, "Can not invoke service-dispatcher");
+#define INA_SERVICE_EAID INA_SERVICE_ERROR(INA_EEXISTS, "Process already is a daemon");
+#define INA_SERVICE_EFERR INA_SERVICE_ERROR(INA_EINIT, "Fork error");
+#define INA_SERVICE_ELCO INA_SERVICE_ERROR(INA_EINVAL, "Can not create/open lock-file");
+#define INA_SERVICE_ELOCK INA_SERVICE_ERROR(INA_ELIMIT, "Can not lock, service is already running");
+
 
 /* DNS errors */
 #define INA_DNS_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DNS, INA_OSFN_NONE, s)

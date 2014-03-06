@@ -78,6 +78,7 @@ struct ina_template_env_s {
 struct ina_template_ctx_s {
     ina_ljit_ctx_t *lctx;
     ina_template_env_t *envs;
+    int alternate_expr_starter;
 };
 
 static ina_rc_t __ina_template_prepare_stack(ina_template_table_t *tbl, int *depth)
@@ -254,6 +255,7 @@ static ina_rc_t __ina_template_table_destroy(ina_template_table_t *head)
 INA_API(ina_rc_t) ina_template_init(ina_template_ctx_t **ctx)
 {
     *ctx = (ina_template_ctx_t*)ina_mem_alloc(sizeof(ina_template_ctx_t));
+    (*ctx)->alternate_expr_starter = 0;
     if (!INA_SUCCEED(ina_ljit_init(&(*ctx)->lctx))) {
         ina_mem_free(*ctx);
         *ctx = NULL;
@@ -313,6 +315,14 @@ INA_API(ina_rc_t) ina_template_compile(ina_template_ctx_t *ctx, const char *id,
 INA_API(ina_rc_t) ina_template_render(ina_template_env_t *env, ina_str_t *out)
 {
     lua_State *l = env->ctx->lctx->lstate;
+
+    if (env->ctx->alternate_expr_starter) {
+        lua_getglobal(l, "template");
+        lua_getfield(l, -1, "set_at_as_expression_starter");
+        if (lua_pcall(l, 0, 0, 0) != 0) {
+            return INA_LJIT_ELUA(env->ctx->lctx);
+        }
+    }
 
     lua_getglobal(l, "template");
     lua_getfield(l, -1, "process");
@@ -458,4 +468,10 @@ INA_API(ina_rc_t) ina_template_array_set_string(ina_template_table_t *t, unsigne
     arg.int_key = idx;
 
     return __ina_template_tbl_set(&arg, t);
+}
+
+INA_API(ina_rc_t) ina_template_set_at_as_expression_starter(ina_template_ctx_t *ctx)
+{
+    ctx->alternate_expr_starter = 1;
+    return INA_SUCCESS;
 }

@@ -30,6 +30,7 @@
 ------------------------------------------------------------------------------
 
 local template = {}
+template._alternative_starter = false
 
 local strfind = string.find
 local strsub  = string.sub
@@ -49,7 +50,11 @@ local function expand(str, vars, env)
 
   function estring(str)
     local b,e,i
-    b,i = strfind(str, '%$.')
+	if not template._alternative_starter then
+		b,i = strfind(str, '%$.')
+	else
+		b,i = strfind(str, '@.')
+	end
     if not b then return str end
 
     local R, pos = {}, 1
@@ -62,23 +67,46 @@ local function expand(str, vars, env)
         pos = i
       else
         b,e = strfind(str, '^%b()', i)
-        if b then
-          push(R, strsub(str, pos, b-2))
-          push(R, evar(strsub(str, b+1, e-1)))
-          i = e+1
-          pos = i
-        elseif strfind(str, '^%a', i) then
-          push(R, strsub(str, pos, i-2))
-          push(R, evar(strsub(str, i, i)))
-          i = i+1
-          pos = i
-        elseif strfind(str, '^%$', i) then
-          push(R, strsub(str, pos, i))
-          i = i+1
-          pos = i
-        end
+		if not template._alternative_starter then
+		  if b then
+            push(R, strsub(str, pos, b-2))
+            push(R, evar(strsub(str, b+1, e-1)))
+            i = e+1
+            pos = i
+          elseif strfind(str, '^%a', i) then
+            push(R, strsub(str, pos, i-2))
+            push(R, evar(strsub(str, i, i)))
+            i = i+1
+            pos = i
+          elseif strfind(str, '^%$', i) then
+            push(R, strsub(str, pos, i))
+            i = i+1
+            pos = i
+          end
+		else
+		  if b then
+            push(R, strsub(str, pos, b-2))
+            push(R, evar(strsub(str, b+1, e-1)))
+            i = e+1
+            pos = i
+          elseif strfind(str, '^%a', i) then
+            push(R, strsub(str, pos, i-2))
+            push(R, evar(strsub(str, i, i)))
+            i = i+1
+            pos = i
+          elseif strfind(str, '^%@', i) then
+            push(R, strsub(str, pos, i))
+            i = i+1
+            pos = i
+          end
+		end
+        
       end
-      b,i = strfind(str, '%$.', i)
+	  if not template._alternative_starter then
+		b,i = strfind(str, '%$.', i)
+	  else
+	    b,i = strfind(str, '%@.', i)
+	  end
     until not b
 
     push(R, strsub(str, pos))
@@ -96,7 +124,9 @@ local function expand(str, vars, env)
       else error'search item must be a function, table or userdata' end
       if value ~= nil then return value end
     end
-    error('unknown variable: '.. index)
+	local old = {}
+	old[index] = index
+    return old
   end
 
   local function elist(var, v, str, sep)
@@ -134,9 +164,15 @@ local function expand(str, vars, env)
   end
 
   function evar(var)
-    if strfind(var, '^[_%a][_%w]*$') then -- ${vn}
-      return estring(tostring(search(var)))
-    end
+	if not template._alternative_starter then
+      if strfind(var, '^[_%a][_%w]*$') then -- ${vn}
+        return estring(tostring(search(var)))
+      end
+	else
+	  if strfind(var, '^[_%a][_%w]*@') then -- ${vn}
+        return estring(tostring(search(var)))
+      end
+	end
     local b,e,cmd = strfind(var, '^(%a+)%s.')
     if cmd == 'foreach' then -- ${foreach vn xxx} or ${foreach vn/sep/xxx}
       local vn,s
@@ -242,6 +278,10 @@ env.table = {}
 env.table.concat = table.concat
 env.table.insert = table.insert
 env.table.remove = table.remove
+
+template.set_at_as_expression_starter = function()
+  template._alternative_starter = true
+end
 
 template.process = function(tpl, vars)
   return expand(tpl, vars, env)
