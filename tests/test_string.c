@@ -119,8 +119,9 @@ INA_TEST(string, ina_str_free)
 INA_TEST(string, ina_str_dup)
 {
     ina_str_t s1 = ina_str_new_fromcstr("a simple string");
+    ina_str_t s2;
     INA_TEST_ASSERT_NOT_NULL(s1);
-    ina_str_t s2 = ina_str_dup(s1);
+    s2 = ina_str_dup(s1);
     INA_TEST_ASSERT_NOT_NULL(s2);
     INA_TEST_ASSERT_EQUAL_STR(ina_str_cstr(s1), ina_str_cstr(s2));
     INA_TEST_ASSERT_NOT_SAME(s1, s2);
@@ -131,8 +132,9 @@ INA_TEST(string, ina_str_dup)
 INA_TEST_FIXTURE(string_mempool, ina_str_dup_using_pool)
 {
     ina_str_t s1 = ina_str_new_fromcstr("a simple string");
+    ina_str_t s2;
     INA_TEST_ASSERT_NOT_NULL(s1);
-    ina_str_t s2 = ina_str_dup_using_pool(s1, data->pool);
+    s2 = ina_str_dup_using_pool(s1, data->pool);
     INA_TEST_ASSERT_NOT_NULL(s2);
     INA_TEST_ASSERT_EQUAL_STR(ina_str_cstr(s1), ina_str_cstr(s2));
     INA_TEST_ASSERT_NOT_SAME(s1, s2);
@@ -462,7 +464,8 @@ INA_TEST(string, ina_str_split)
     ina_str_t *tokens;
     size_t count;
     ina_str_t str = ina_str_new_fromcstr("xx--yy--zz--c-c");
-    
+    char *test[] = {"a", "b", "c", "d", "e"};
+
     INA_TEST_ASSERT_NULL((tokens = ina_str_split(NULL, NULL, &count)));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
@@ -496,7 +499,6 @@ INA_TEST(string, ina_str_split)
     
     count = 0;
     tokens = ina_str_split("a b c d e", " ", &count);
-    char *test[] = {"a", "b", "c", "d", "e"};
     INA_TEST_ASSERT_NOT_NULL(tokens);
     /*INA_TEST_ASSERT_EQUAL_INTEGER(5, count);*/
     while (count--) {

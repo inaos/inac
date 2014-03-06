@@ -42,6 +42,7 @@ INA_TEST(log, open_close_console)
     INA_TEST_ASSERT_NULL(cfg);
 }
 
+#ifndef INA_OS_WIN32
 INA_TEST(log, syslog)
 {
   	ina_log_cfg_t *cfg = NULL;
@@ -57,3 +58,4 @@ INA_TEST(log, syslog)
     INA_TEST_ASSERT_SUCCEED(ina_log_close(&cfg));
     INA_TEST_ASSERT_NULL(cfg);	
 }
+#endif
