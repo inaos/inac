@@ -573,15 +573,18 @@ int anetUdpBind(char *err, char *addr, int port)
     memset(&sa, 0, sizeof(sa));
 	sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
-    sa.sin_addr.s_addr = inet_addr(addr);
     
 #ifdef WIN32
+    if (inet_aton(addr, &sa.sin_addr) == 0) {
+        return ANET_ERR;
+    }
     if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         anetSetError(err, "bind: %s", strerror(WSAGetLastError()));
         closesocket(s);
         return ANET_ERR;
     }
 #else
+    sa.sin_addr.s_addr = inet_addr(addr);
 	if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         anetSetError(err, "bind: %s", strerror(errno));
         close(s);
@@ -596,15 +599,21 @@ int anetJoinGroup(char* err, int fd, char *localif, char *source)
 {
 	struct ip_mreq imr;
 
-    imr.imr_multiaddr.s_addr=inet_addr(source);
-    imr.imr_interface.s_addr=inet_addr(localif);
 	
 #if WIN32
+    if (inet_aton(localif, &imr.imr_interface) == 0) {
+         return ANET_ERR;
+    }
+    if (inet_aton(source, &imr.imr_multiaddr) == 0) {
+        return ANET_ERR;
+    }
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(WSAGetLastError()));
         return ANET_ERR;
     }
 #else
+    imr.imr_multiaddr.s_addr=inet_addr(source);
+    imr.imr_interface.s_addr=inet_addr(localif);
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
         anetSetError(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(errno));
         return ANET_ERR;
@@ -618,15 +627,20 @@ int anetLeaveGroup(char* err, int fd, char *localif, char *source)
 {
 	struct ip_mreq imr;
 
-    imr.imr_multiaddr.s_addr=inet_addr(source);
-    imr.imr_interface.s_addr=inet_addr(localif);
-
 #if WIN32
+   if (inet_aton(localif, &imr.imr_interface) == 0) {
+         return ANET_ERR;
+    }
+    if (inet_aton(source, &imr.imr_multiaddr) == 0) {
+        return ANET_ERR;
+    }
 	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(WSAGetLastError()));
         return ANET_ERR;
     }
 #else
+    imr.imr_multiaddr.s_addr=inet_addr(source);
+    imr.imr_interface.s_addr=inet_addr(localif);
 	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
         anetSetError(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(errno));
         return ANET_ERR;
