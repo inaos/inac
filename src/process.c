@@ -511,7 +511,6 @@ static void __ina_process_start(ina_process_t *process)
 {
     STARTUPINFO si;
     ina_str_t cmd_line;
-    size_t len;
     BOOL ret;
     DWORD creation_flags = 0;
 
