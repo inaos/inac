@@ -572,12 +572,15 @@ int anetUdpBind(char *err, char *addr, int port)
 
     memset(&sa, 0, sizeof(sa));
 	sa.sin_family = AF_INET;
-    sa.sin_port = htons(port);
+    sa.sin_port = htons((short)port);
     
-#ifdef WIN32
-    if (inet_aton(addr, &sa.sin_addr) == 0) {
-        return ANET_ERR;
+    if (addr && strcmp(addr, "0.0.0.0") != 0) {
+        sa.sin_addr.s_addr = inet_addr(addr);
+    } else {
+        sa.sin_addr.s_addr = htonl(INADDR_ANY);
     }
+
+#ifdef WIN32
     if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         anetSetError(err, "bind: %s", strerror(WSAGetLastError()));
         closesocket(s);
@@ -600,20 +603,24 @@ int anetJoinGroup(char* err, int fd, char *localif, char *source)
 	struct ip_mreq imr;
 
 	
+    if (localif && strcmp(localif, "0.0.0.0") != 0) {
+        imr.imr_interface.s_addr = inet_addr(localif);
+    } else {
+        imr.imr_interface.s_addr = htonl(INADDR_ANY);
+    }
+
+    if (source && strcmp(source, "0.0.0.0") != 0) {
+        imr.imr_multiaddr.s_addr = inet_addr(source);
+    } else {
+        imr.imr_multiaddr.s_addr = htonl(INADDR_ANY);
+    }
+
 #if WIN32
-    if (inet_aton(localif, &imr.imr_interface) == 0) {
-         return ANET_ERR;
-    }
-    if (inet_aton(source, &imr.imr_multiaddr) == 0) {
-        return ANET_ERR;
-    }
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(WSAGetLastError()));
         return ANET_ERR;
     }
 #else
-    imr.imr_multiaddr.s_addr=inet_addr(source);
-    imr.imr_interface.s_addr=inet_addr(localif);
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
         anetSetError(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(errno));
         return ANET_ERR;
@@ -627,21 +634,25 @@ int anetLeaveGroup(char* err, int fd, char *localif, char *source)
 {
 	struct ip_mreq imr;
 
+    if (localif && strcmp(localif, "0.0.0.0") != 0) {
+        imr.imr_interface.s_addr = inet_addr(localif);
+    } else {
+        imr.imr_interface.s_addr = htonl(INADDR_ANY);
+    }
+
+    if (source && strcmp(source, "0.0.0.0") != 0) {
+        imr.imr_multiaddr.s_addr = inet_addr(source);
+    } else {
+        imr.imr_multiaddr.s_addr = htonl(INADDR_ANY);
+    }
+
 #if WIN32
-   if (inet_aton(localif, &imr.imr_interface) == 0) {
-         return ANET_ERR;
-    }
-    if (inet_aton(source, &imr.imr_multiaddr) == 0) {
-        return ANET_ERR;
-    }
 	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(WSAGetLastError()));
         return ANET_ERR;
     }
 #else
-    imr.imr_multiaddr.s_addr=inet_addr(source);
-    imr.imr_interface.s_addr=inet_addr(localif);
-	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
+ 	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
         anetSetError(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(errno));
         return ANET_ERR;
     }
