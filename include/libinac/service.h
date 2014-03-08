@@ -66,8 +66,52 @@ typedef struct ina_service_descriptor_s {
     void *user_data;
 } ina_service_descriptor_t;
 
+/* Section holding service descriptor */
+#ifndef INA_OS_WIN32
+#ifdef INA_OS_OSX
+#define INA_SERVICE_SECTION __attribute__ ((unused,section ("__DATA, .inaservice")))
+#define INA_SERVICE_SECTION_PUSH
+#else
+#define INA_SERVICE_SECTION __attribute__ ((unused,section (".inaservice")))
+#define INA_SERVICE_SECTION_PUSH
+#endif
+#else
+#pragma section(".inaservice", read)
+#define INA_SERVICE_SECTION
+#define INA_SERVICE_SECTION_PUSH __declspec(allocate(".inaservice"))
+#endif
+
+#define INA_SERVICE_NAME_MAXLEN              (64)
+#define INA_SERVICE_USERNAME_MAXLEN          (64)
+#define INA_SERVICE_PASSWORD_MAXLEN          (64)
+#define INA_SERVICE_STARTUP                  (255)
+#define INA_SERVICE_SHORT_DESCRIPTION_MAXLEN (128)
+#define INA_SERVICE_LONG_DESCRIPTION_MAXLEN  (1024)
+
+
+/* Service section for Unix deamons */
+typedef struct ina_service_section_s {
+    char name[INA_SERVICE_NAME_MAXLEN];
+    char username[INA_SERVICE_USERNAME_MAXLEN];
+    char password[INA_SERVICE_PASSWORD_MAXLEN];
+    char startup[INA_SERVICE_STARTUP];
+    char short_description[INA_SERVICE_SHORT_DESCRIPTION_MAXLEN];
+    char long_description[INA_SERVICE_LONG_DESCRIPTION_MAXLEN];
+} ina_service_section_t;
+
+/* Setup service section  */
+#define INA_SERVICE_SETUP(name, username, password, startup,                 \
+                          short_description, long_description)               \
+    INA_SERVICE_SECTION_PUSH ina_service_section_t __ina_service_section INA_SERVICE_SECTION = { \
+        name,                                                               \
+        username,                                                           \
+        password,                                                           \
+        startup,                                                            \
+        short_description,                                                  \
+        long_description                                                    \
+    }
 /*
- * 
+ *
  */
 INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx);
 /*
