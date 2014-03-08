@@ -299,6 +299,8 @@ static ina_rc_t __ina_service_win_console(ina_service_ctx_t *ctx, ina_service_de
     return INA_SUCCESS;
 }
 #else
+extern char _binary_data_txt_start;
+extern char _binary_data_txt_end;
 /*
  * NOTES:
  *
@@ -323,15 +325,17 @@ static ina_rc_t __ina_service_unix_install()
     ina_template_ctx_t *tpl_ctx;
     ina_template_env_t *env;
     ina_str_t out;
+    ina_str_t service_name;
+    ina_str_t service_username;
+    ina_str_t service_startup;
+    ina_str_t service_long_desc;
+    ina_str_t service_display_name;
 
     if (!INA_SUCCEED(ina_template_init(&tpl_ctx))) {
         return INA_ERR_PUSH_LAST;
     }
 
-    /* read template from section */
-
-
-    if (!INA_SUCCEED(ina_template_compile(tpl_ctx, "init-script", tpl, &env))) {
+    if (!INA_SUCCEED(ina_template_compile(tpl_ctx, _binary_data_txt_start, tpl, &env))) {
         return INA_ERR_PUSH_LAST;
     }
     ina_template_set_at_as_expression_starter(tpl_ctx);
