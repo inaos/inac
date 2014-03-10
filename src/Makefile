@@ -30,9 +30,11 @@ DIRS = $(shell ls -p |grep /)
 SRC = $(wildcard *.c)
 SRC_LUA = $(wildcard *.lua)
 SRC_LUA += $(wildcard ../contribs/luajit/src/jit/*.lua)
+SRC_TPL += $(wildcard ../etc/template/*.tpl)
 
 OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
+OBJS += $(SRC_TPL:%.tpl=%.o)
 
 all: $(OBJS) $(INAC_LIB)
 	@echo compiling all for $(INAC_LIB)...
@@ -46,10 +48,15 @@ all: $(OBJS) $(INAC_LIB)
 	@echo compile ljit $<
 	@$(INAC_LUAJIT_CMD) $<  $(basename $<).o
 
+%.o: %.tpl
+	@echo compile template $<
+	@objcopy --input binary --output elf64-x86-64 --binary-architecture i386 $<  $(basename $<).o
+
 $(INAC_LIB): $(OBJS)
 	@for i in $(INAC_LIBS); do ar x $$i; done
 	@ar crs $(INAC_LIB) *.o
 	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luajit/src/jit/*.o
+	@ar crs $(INAC_LIB)  ../etc/template/*.o
 	@for i in $(DIRS); do ar cs $(INAC_LIB) $$i/*.o; done
 
 .PHONY: clean

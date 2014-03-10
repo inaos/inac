@@ -299,8 +299,8 @@ static ina_rc_t __ina_service_win_console(ina_service_ctx_t *ctx, ina_service_de
     return INA_SUCCESS;
 }
 #else
-extern char _binary_data_txt_start;
-extern char _binary_data_txt_end;
+extern char _binary____etc_template_init_script_tpl_start;
+extern char _binary____etc_template_init_script_tpl_end;
 extern ina_service_section_t __ina_service_section;
 /*
  * NOTES:
@@ -334,17 +334,17 @@ static ina_rc_t __ina_service_unix_install()
     ina_str_t service_long_desc = ina_str_new_fromcstr(__ina_service_section.long_description);
     
     INA_TRACE("Install service %s", ina_str_cstr(service_name));
-    INA_TRACE2("Service display name: %s" ina_str_cstr(service_display_name));
+    INA_TRACE2("Service display name: %s", ina_str_cstr(service_display_name));
     INA_TRACE2("Service username: %s", ina_str_cstr(service_username));
     INA_TRACE2("Service startup: %s", ina_str_cstr(service_startup));
     INA_TRACE2("Service long description: %s", ina_str_cstr(service_long_desc));
-    INA_TRACE2("Service short description: %s", ina_str_cstr(service_short_description));
+    INA_TRACE2("Service short description: %s", ina_str_cstr(service_short_desc));
 
     if (!INA_SUCCEED(ina_template_init(&tpl_ctx))) {
         return INA_ERR_PUSH_LAST;
     }
 
-    if (!INA_SUCCEED(ina_template_compile(tpl_ctx, &_binary_data_txt_start, tpl, &env))) {
+    if (!INA_SUCCEED(ina_template_compile(tpl_ctx, &_binary____etc_template_init_script_tpl_start, tpl, &env))) {
         return INA_ERR_PUSH_LAST;
     }
     ina_template_set_at_as_expression_starter(tpl_ctx);
@@ -518,7 +518,7 @@ INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx, ina_service_descri
 #ifdef INA_OS_WIN32
     return __ina_service_win_install(ctx, descriptor);
 #else
-    return INA_ERR_ENYI;
+    return __ina_service_unix_install(ctx, descriptor);
 #endif
 }
 
@@ -528,7 +528,7 @@ INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx, ina_service_desc
 #ifdef INA_OS_WIN32
     return __ina_service_win_uninstall(ctx, descriptor);
 #else
-    return INA_ERR_ENYI;
+    return __ina_service_unix_uninstall(ctx, descriptor);
 #endif
 }
 
@@ -538,7 +538,7 @@ INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, ina_service_de
 #ifdef INA_OS_WIN32
     return __ina_service_win_run(ctx, descriptor);
 #else
-    return INA_ERR_ENYI;
+    return __ina_service_unix_run(ctx, descriptor);
 #endif
 }
 
