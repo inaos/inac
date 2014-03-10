@@ -82,8 +82,8 @@ typedef struct ina_service_descriptor_s {
 #endif
 
 #define INA_SERVICE_NAME_MAXLEN              (64)
+#define INA_SERVICE_DISPLAY_NAME_MAXLEN      (64)
 #define INA_SERVICE_USERNAME_MAXLEN          (64)
-#define INA_SERVICE_PASSWORD_MAXLEN          (64)
 #define INA_SERVICE_STARTUP                  (255)
 #define INA_SERVICE_SHORT_DESCRIPTION_MAXLEN (128)
 #define INA_SERVICE_LONG_DESCRIPTION_MAXLEN  (1024)
@@ -92,20 +92,20 @@ typedef struct ina_service_descriptor_s {
 /* Service section for Unix deamons */
 typedef struct ina_service_section_s {
     char name[INA_SERVICE_NAME_MAXLEN];
+    char display_name[INA_SERVICE_DISPLAY_NAME_MAXLEN];
     char username[INA_SERVICE_USERNAME_MAXLEN];
-    char password[INA_SERVICE_PASSWORD_MAXLEN];
     char startup[INA_SERVICE_STARTUP];
     char short_description[INA_SERVICE_SHORT_DESCRIPTION_MAXLEN];
     char long_description[INA_SERVICE_LONG_DESCRIPTION_MAXLEN];
 } ina_service_section_t;
 
 /* Setup service section  */
-#define INA_SERVICE_SETUP(name, username, password, startup,                 \
+#define INA_SERVICE_SETUP(name, display_name, username, startup,             \
                           short_description, long_description)               \
     INA_SERVICE_SECTION_PUSH ina_service_section_t __ina_service_section INA_SERVICE_SECTION = { \
         name,                                                               \
+        display_name,                                                       \
         username,                                                           \
-        password,                                                           \
         startup,                                                            \
         short_description,                                                  \
         long_description                                                    \
