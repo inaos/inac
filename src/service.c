@@ -30,7 +30,7 @@
 
 #ifndef INA_OS_WIN32
 #include <unistd.h>
-
+#include <sys/stat.h>
 #define INA_SERVICE_PID_FILE_FMT  "/var/run/%s.pid"
 #define INA_SERVICE_LOCK_FILE_FMT "/var/lock/subsys/%s"
 #endif
@@ -301,6 +301,7 @@ static ina_rc_t __ina_service_win_console(ina_service_ctx_t *ctx, ina_service_de
 #else
 extern char _binary_data_txt_start;
 extern char _binary_data_txt_end;
+extern ina_service_section_t __ina_service_section;
 /*
  * NOTES:
  *
@@ -325,33 +326,47 @@ static ina_rc_t __ina_service_unix_install()
     ina_template_ctx_t *tpl_ctx;
     ina_template_env_t *env;
     ina_str_t out;
-    ina_str_t service_name = NULL;
-    ina_str_t service_username = NULL;
-    ina_str_t service_startup = NULL;
-    ina_str_t service_long_desc = NULL;
-    ina_str_t service_display_name = NULL;
+    ina_str_t service_name = ina_str_new_fromcstr(__ina_service_section.name);
+    ina_str_t service_display_name = ina_str_new_fromcstr(__ina_service_section.display_name);
+    ina_str_t service_username = ina_str_new_fromcstr(__ina_service_section.username);
+    ina_str_t service_startup = ina_str_new_fromcstr(__ina_service_section.startup);
+    ina_str_t service_short_desc = ina_str_new_fromcstr(__ina_service_section.short_description);
+    ina_str_t service_long_desc = ina_str_new_fromcstr(__ina_service_section.long_description);
+    
+    INA_TRACE("Install service %s", ina_str_cstr(service_name));
+    INA_TRACE2("Service display name: %s" ina_str_cstr(service_display_name));
+    INA_TRACE2("Service username: %s", ina_str_cstr(service_username));
+    INA_TRACE2("Service startup: %s", ina_str_cstr(service_startup));
+    INA_TRACE2("Service long description: %s", ina_str_cstr(service_long_desc));
+    INA_TRACE2("Service short description: %s", ina_str_cstr(service_short_description));
 
     if (!INA_SUCCEED(ina_template_init(&tpl_ctx))) {
         return INA_ERR_PUSH_LAST;
     }
 
-    if (!INA_SUCCEED(ina_template_compile(tpl_ctx, _binary_data_txt_start, tpl, &env))) {
+    if (!INA_SUCCEED(ina_template_compile(tpl_ctx, &_binary_data_txt_start, tpl, &env))) {
         return INA_ERR_PUSH_LAST;
     }
     ina_template_set_at_as_expression_starter(tpl_ctx);
 
     ina_template_set_string(env, "service_name", service_name);
+    ina_template_set_string(env, "service_display_name", service_display_name);
     ina_template_set_string(env, "service_username", service_username);
     ina_template_set_string(env, "service_startup", service_startup);
     ina_template_set_string(env, "service_short_description", service_long_desc);
     ina_template_set_string(env, "service_long_description", service_long_desc);
-    ina_template_set_string(env, "service_display_name", service_display_name);
-
+ 
     if (!INA_SUCCEED(ina_template_render(env, &out))) {
         return INA_ERR_PUSH_LAST;
     }
     
     ina_str_free(tpl);
+    ina_str_free(service_name);
+    ina_str_free(service_display_name);
+    ina_str_free(service_username);
+    ina_str_free(service_startup);
+    ina_str_free(service_long_desc);
+    ina_str_free(service_short_desc);
     ina_template_destroy(&tpl_ctx);
 
     /* write file to /etc/init.d/ */
