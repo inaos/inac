@@ -85,7 +85,7 @@ INA_API(ina_str_t) ina_str_new_using_pool(size_t len, ina_mempool_t *pool)
         return NULL;
     }
     hdr->size = len+1;
-    hdr->pooled = INA_YES;
+    hdr->pooled = INA_YES;      
     return (ina_str_t)hdr->data; 
 }
 
@@ -761,13 +761,19 @@ __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
 static ina_str_hdr_t* 
 __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
 {
+    size_t old_size = hdr->size;
+
     INA_ASSERT_NOTNULL(hdr);
     INA_ASSERT_TRUE(hdr->pooled == INA_YES);
+
     if ((hdr->size-hdr->len-1) > len) {
         return hdr;
     }
+    
     hdr->size = (hdr->size-hdr->len)+len;
-    hdr = (ina_str_hdr_t*)ina_mempool_dalloc(pool, sizeof(ina_str_hdr_t) + hdr->size);
+    hdr = (ina_str_hdr_t*)ina_mempool_ralloc(pool, hdr, 
+                            sizeof(ina_str_hdr_t) + old_size,
+                            sizeof(ina_str_hdr_t) + hdr->size);
     return hdr;
 }
 
