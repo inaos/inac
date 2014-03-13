@@ -34,6 +34,61 @@
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
 #define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
 
+INA_TEST(mempool, realloc)
+{
+    ina_mempool_t *pool;
+    ina_mempool_info_t info;
+
+    char *buf;
+    char *buf2;
+    char *old_buf;
+
+    ina_err_reset();
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, 0, NULL));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+    
+    buf = ina_mempool_dalloc(pool, 128);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_INTEGER(128, info.used);
+    
+    /* Reallocate up to 512 bytes. Pointer should be still te same */
+    old_buf = buf;
+    buf = ina_mempool_ralloc(pool, buf, 128, 512);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SAME(old_buf, buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_INTEGER(512, info.used);
+
+   /* Reallocate down to 256 bytes. Pointer should be still te same 
+    * Pool shold be shirked */
+    buf = ina_mempool_ralloc(pool, buf, 512, 256);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SAME(old_buf, buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_INTEGER(256, info.used); 
+
+    /* Allocate new buffer form pool, to break reallocate 
+     * optimization */
+    buf2 = ina_mempool_dalloc(pool, 128);
+    INA_TEST_ASSERT_NOT_NULL(buf2);
+    INA_TEST_ASSERT_NOT_SAME(buf, buf2);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_INTEGER(128+256, info.used);
+
+ /* Reallocate up to 512 bytes. Pointer should be still te same 
+    * Pool shold be shirked */
+    buf = ina_mempool_ralloc(pool, buf, 256, 512);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_NOT_SAME(old_buf, buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_INTEGER(128+256+512, info.used); 
+
+    ina_mempool_release(pool, INA_YES);
+
+}
+
 INA_TEST(mempool, fill_zero)
 {
     ina_mempool_t *pool;
