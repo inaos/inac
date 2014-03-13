@@ -446,13 +446,17 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, 
                                     size_t old_size, size_t new_size)
 {
-    void *ret;
+     void *ret;
+
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_NOTNULL(pool->current);
 
     ret = NULL;
     new_size = __INA_MEM_ALIGN(new_size);
 
      /* unsatisfiable or bogus request */
     if ((pool->end < old_size) || (pool->end < new_size)) {
+        INA_MEM_ERALLOC;
         return NULL;
     }
     /* was the previous allocation - optimize! */
@@ -463,12 +467,12 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
             pool->pos += new_size - old_size;
             if (new_size < old_size) {
                 ina_mem_set(&pool->m[pool->pos], 0, old_size - new_size);
-                return old;
             }
-            /* does not fit */
-            INA_MEM_ERALLOC;
-            return NULL;
+            return old;
         }
+        /* does not fit */
+        INA_MEM_ERALLOC;
+        return NULL;
     }
     /* cannot shrink, we need to move */
     if (new_size <= old_size) {
