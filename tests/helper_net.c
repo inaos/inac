@@ -27,9 +27,12 @@
  */
 #include <libinac/lib.h>
 
+#ifndef INA_OS_WIN32
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#endif
+
 /*
  * Poor People Echo Server
  */
@@ -108,7 +111,7 @@ INA_TEST_HELPER(net, udp_sender) {
         memset((char *) &si_other, 0, sizeof(si_other));
         si_other.sin_family = AF_INET;
         si_other.sin_port = htons(port);
-        if (inet_aton(addr, &si_other.sin_addr) == 0) {
+        if (inet_addr(addr) == 0) {
             INA_TEST_HELPER_SET_RC(INA_FAILURE);
         }
         i = 0;

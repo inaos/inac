@@ -57,6 +57,7 @@ static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_run_service(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx);
 
+extern ina_service_descriptor_t __ina_service_section;
 
 #ifdef INA_OS_WIN32
 
@@ -64,7 +65,7 @@ static DWORD __stdcall __ina_service_start_wrapper(LPVOID data)
 {
     INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor);    
     INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor->run_func);
-    return __ina_service_ctx.descriptor->run_func(_ina_service_ctx.descriptor->user_data);
+    return __ina_service_ctx.descriptor->run_func(__ina_service_ctx.descriptor->user_data);
 }
 static void WINAPI ServiceControlHandler( DWORD controlCode )
 {
@@ -74,7 +75,7 @@ static void WINAPI ServiceControlHandler( DWORD controlCode )
         case SERVICE_CONTROL_SHUTDOWN:
         case SERVICE_CONTROL_STOP:
             __ina_service_ctx.status.dwCurrentState = SERVICE_STOP_PENDING;
-            SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx._status);
+            SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
             SetEvent(__ina_service_ctx.stop_service_event);
             return;
         case SERVICE_CONTROL_PAUSE:
@@ -112,7 +113,7 @@ static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
 
         /* service is starting */
         __ina_service_ctx.status.dwCurrentState = SERVICE_START_PENDING;
-        SetServiceStatus(__ina_service_status_handle, &__ina_service_service_status);
+        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
 
         /* do initialisation here */
         thread_handle = CreateThread(NULL, 0, __ina_service_start_wrapper, NULL, 0, NULL);
@@ -156,6 +157,7 @@ static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
     }
 }
 static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
+{   
     DWORD start_type;
     SC_HANDLE serviceControlManager = OpenSCManager(0, 0, SC_MANAGER_CREATE_SERVICE);
     LPCSTR username = NULL;
@@ -257,7 +259,7 @@ static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t *ctx)
     }
     return INA_SUCCESS;
 }
-static ina_rc_t __ina_service_win_setandcheck_mutex(const ina_service_ctx_t *ctx)
+static ina_rc_t __ina_service_win_setandcheck_mutex(ina_service_ctx_t *ctx)
 {
     ina_str_t mutex_name = ina_str_new_fromcstr("/ina_service_mutex_");
     ina_str_cat(mutex_name, ctx->descriptor->name);
@@ -282,7 +284,7 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
     };
     BOOL success;
 
-    if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex(ctx))) {
+    if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex((ina_service_ctx_t*)ctx))) {
         return INA_ERR_PUSH_LAST;
     }
     
@@ -296,7 +298,7 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
 
 static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
 {
-    if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex(ctx))) {
+    if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex((ina_service_ctx_t*)ctx))) {
         return INA_ERR_PUSH_LAST;
     }
     if (!INA_SUCCEED(ctx->descriptor->run_func(ctx->descriptor->user_data))) {
@@ -307,7 +309,6 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
 #else
 extern char _binary____etc_template_init_script_tpl_start;
 extern char _binary____etc_template_init_script_tpl_end;
-extern ina_service_descriptor_t __ina_service_section;
 /*
  * NOTES:
  *
@@ -477,7 +478,7 @@ static void __ina_service_signal_handler(ina_signal_t sig,
         __ina_service_ctx.descriptor->shutdown_func(
             __ina_service_ctx.descriptor->user_data);
 #ifdef INA_OS_WIN32
-        WaitForSingleObject(__ina_service_ctx->main_thread, INFINITE);
+        WaitForSingleObject(__ina_service_ctx.main_thread, INFINITE);
 #endif
     }
 }
