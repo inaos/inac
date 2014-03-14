@@ -27,8 +27,28 @@
  */
 #include <libinac/lib.h>
 
-INA_SERVICE_SETUP("test", "root", "",
-                  "./test -h service simple_deamon 127.0.0.1 9998",
-                  "Simple test deamon",
-                  "Simple test deamon sending 'hello' by UDP");
+static ina_rc_t __ina_service_run(void *user_data)
+{
+    *((int*)(user_data)) = 1;
+    return INA_SUCCESS;
+}
+static ina_rc_t __ina_service_shutdown(void *user_data)
+{
+    *((int*)(user_data)) = 2;
+    return INA_SUCCESS;
+}
+
+INA_SERVICE_DESCRIPTOR("test",
+    "Test Daemon",
+    "Simple test deamon", 
+    "Simple test deamon sending hello by UDP", 
+    "root", 
+    "password", 
+    "-h service simple_deamon 127.0.0.1 9998", 
+    "/opt/test",
+    __ina_service_run,
+    __ina_service_shutdown,
+    INA_SERVICE_STARTUP_TYPE_AUTO, 
+    INA_YES);
+
 

@@ -27,6 +27,7 @@
  */
 #include <libinac/lib.h>
 
+
 INA_TEST(service, init_destroy)
 {
     ina_service_ctx_t *ctx = NULL;
@@ -36,14 +37,49 @@ INA_TEST(service, init_destroy)
     INA_TEST_ASSERT_NULL(ctx);
 }
 
+
+INA_TEST(service, get_descriptor)
+{
+    ina_service_ctx_t *ctx = NULL;
+    ina_service_descriptor_t *ds = NULL;
+    int user_data = 0;
+
+    INA_TEST_ASSERT_SUCCEED(ina_service_init(&ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_SUCCEED(ina_service_get_descriptor(ctx, &ds));
+    INA_TEST_ASSERT_NOT_NULL(ds);
+
+    INA_TEST_ASSERT_EQUAL_STR("test", ds->name);
+    INA_TEST_ASSERT_EQUAL_STR("Test Daemon", ds->display_name);
+    INA_TEST_ASSERT_EQUAL_STR("Simple test deamon", ds->short_description);
+    INA_TEST_ASSERT_EQUAL_STR("Simple test deamon sending hello by UDP", ds->long_description);
+    INA_TEST_ASSERT_EQUAL_STR("root", ds->username); 
+    INA_TEST_ASSERT_EQUAL_STR("password", ds->password);
+    INA_TEST_ASSERT_EQUAL_STR("-h service simple_deamon 127.0.0.1 9998",ds->startup_args); 
+    INA_TEST_ASSERT_EQUAL_STR("/opt/test", ds->working_directory);
+    INA_TEST_ASSERT_NOT_NULL(ds->run_func);
+    INA_TEST_ASSERT_NOT_NULL(ds->shutdown_func);
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_SERVICE_STARTUP_TYPE_AUTO, ds->startup);
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_YES, ds->exclusive_flag);
+
+    INA_TEST_ASSERT_SUCCEED(ds->run_func(&user_data));
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, user_data);
+
+    INA_TEST_ASSERT_SUCCEED(ds->shutdown_func(&user_data));
+    INA_TEST_ASSERT_EQUAL_INTEGER(2, user_data);
+
+    INA_TEST_ASSERT_SUCCEED(ina_service_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
+}
+
+
 INA_TEST(service, install_uninstall)
 {
     ina_service_ctx_t *ctx;
-    ina_service_descriptor_t sd;
-
+ 
     INA_TEST_ASSERT_SUCCEED(ina_service_init(&ctx));
-    INA_TEST_ASSERT_SUCCEED(ina_service_install(ctx, &sd));
-    INA_TEST_ASSERT_SUCCEED(ina_service_uninstall(ctx, &sd));
+    INA_TEST_ASSERT_SUCCEED(ina_service_install(ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_service_uninstall(ctx));
     INA_TEST_ASSERT_SUCCEED(ina_service_destroy(&ctx));
 
 }

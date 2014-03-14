@@ -100,21 +100,22 @@ typedef struct ina_service_descriptor_s {
                                startup_args,                                 \
                                working_directory,                            \
                                run_func, shutdown_func,                      \
+                               startup,                                      \
                                exclusive_flag)                               \
-    INA_SERVICE_SECTION_PUSH ina_service_section_t __ina_service_section INA_SERVICE_SECTION = { \
+INA_SERVICE_SECTION_PUSH ina_service_descriptor_t __ina_service_section INA_SERVICE_SECTION = { \
         name,                                                                \
         display_name,                                                        \
         short_description,                                                   \
-        long_description                                                     \
+        long_description,                                                    \
         username,                                                            \
         password,                                                            \
         startup_args,                                                        \
         working_directory,                                                   \
         run_func,                                                            \
         shutdown_func,                                                       \
+        startup,                                                             \
         exclusive_flag,                                                      \
-        0                                                                    \
-    }
+        0}
 
 /*
  *

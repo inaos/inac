@@ -328,23 +328,18 @@ extern ina_service_descriptor_t __ina_service_section;
  */
 static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
 {
-    ina_str_t tpl = NULL;
     ina_template_ctx_t *tpl_ctx;
     ina_template_env_t *env;
     ina_str_t out;
     
-    INA_TRACE("Install service %s", ctx->descriptor->name);
-    INA_TRACE("Service display name: %s", ctx->descriptor->display_name);
-    INA_TRACE("Service username: %s", ctx->descriptor->username);
-    INA_TRACE("Service startup: %s", ctx->descriptor->startup_args);
-    INA_TRACE("Service long description: %s", ctx->descriptor->long_description);
-    INA_TRACE("Service short description: %s", ctx->descriptor->short_description);
-
     if (!INA_SUCCEED(ina_template_init(&tpl_ctx))) {
         return INA_ERR_PUSH_LAST;
     }
 
-    if (!INA_SUCCEED(ina_template_compile(tpl_ctx, &_binary____etc_template_init_script_tpl_start, tpl, &env))) {
+    if (!INA_SUCCEED(ina_template_compile(tpl_ctx,
+                     "init-script", 
+                     &_binary____etc_template_init_script_tpl_start, 
+                     &env))) {
         return INA_ERR_PUSH_LAST;
     }
     ina_template_set_at_as_expression_starter(tpl_ctx);
@@ -360,7 +355,6 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
         return INA_ERR_PUSH_LAST;
     }
     
-    ina_str_free(tpl);
     ina_template_destroy(&tpl_ctx);
 
     /* write file to /etc/init.d/ */
@@ -528,6 +522,7 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
 
     ds = ina_mem_alloc(sizeof(ina_service_descriptor_t));
     ina_mem_cpy(ds, &__ina_service_section, sizeof(ina_service_descriptor_t));
+    ((ina_service_ctx_t*)ctx)->descriptor = ds;
     return INA_SUCCESS;
 }
 
