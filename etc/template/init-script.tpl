@@ -164,7 +164,7 @@ case "$1" in
                 RETVAL="0"
             fi
         else
-            pid="$(/usr/bin/pgrep -d , ${INA_SERVICE_STARTUP})"
+            pid=`$(/usr/bin/pgrep -d , "${INA_SERVICE_STARTUP}")`
             if [ -z "$pid" ]; then
                 echo "${NAME} is stopped"
                 RETVAL="3"

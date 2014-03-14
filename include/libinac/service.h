@@ -1,3 +1,5 @@
+
+
 /*
  * Copyright (c) 2013-2014, INAOS GmbH
  * All rights reserved.
@@ -50,22 +52,6 @@ typedef enum ina_service_startup_type_e {
     INA_SERVICE_STARTUP_TYPE_MANUAL,
 } ina_service_startup_type_t;
 
-typedef struct ina_service_descriptor_s {
-    ina_str_t name;
-    ina_str_t display_name;
-    ina_str_t short_description;
-    ina_str_t long_description;
-    ina_str_t username;
-    ina_str_t password;
-    ina_service_run run_func;
-    ina_service_shutdown shutdown_func;
-    ina_service_startup_type_t startup;
-    ina_str_t working_directory;
-    ina_str_t startup_args;
-    int exclusive_flag;
-    void *user_data;
-} ina_service_descriptor_t;
-
 /* Section holding service descriptor */
 #ifndef INA_OS_WIN32
 #ifdef INA_OS_OSX
@@ -84,32 +70,52 @@ typedef struct ina_service_descriptor_s {
 #define INA_SERVICE_NAME_MAXLEN              (64)
 #define INA_SERVICE_DISPLAY_NAME_MAXLEN      (64)
 #define INA_SERVICE_USERNAME_MAXLEN          (64)
-#define INA_SERVICE_STARTUP                  (255)
+#define INA_SERVICE_PASSORD_MAXLEN           (64)
+#define INA_SERVICE_STARTUP_ARGS_MAXLEN      (255)
 #define INA_SERVICE_SHORT_DESCRIPTION_MAXLEN (128)
 #define INA_SERVICE_LONG_DESCRIPTION_MAXLEN  (1024)
+#define INA_SERVICE_WORKINGDIR_MAXLEN        (1024)
 
-
-/* Service section for Unix deamons */
-typedef struct ina_service_section_s {
+/* Service descriptor */
+typedef struct ina_service_descriptor_s {
     char name[INA_SERVICE_NAME_MAXLEN];
     char display_name[INA_SERVICE_DISPLAY_NAME_MAXLEN];
-    char username[INA_SERVICE_USERNAME_MAXLEN];
-    char startup[INA_SERVICE_STARTUP];
     char short_description[INA_SERVICE_SHORT_DESCRIPTION_MAXLEN];
     char long_description[INA_SERVICE_LONG_DESCRIPTION_MAXLEN];
-} ina_service_section_t;
+    char username[INA_SERVICE_USERNAME_MAXLEN];
+    char password[INA_SERVICE_PASSORD_MAXLEN];
+    char startup_args[INA_SERVICE_STARTUP_ARGS_MAXLEN];
+    char working_directory[INA_SERVICE_WORKINGDIR_MAXLEN];
+    ina_service_run run_func;
+    ina_service_shutdown shutdown_func;
+    ina_service_startup_type_t startup;
+    int32_t exclusive_flag;
+    void *user_data;
+} ina_service_descriptor_t;
 
-/* Setup service section  */
-#define INA_SERVICE_SETUP(name, display_name, username, startup,             \
-                          short_description, long_description)               \
+/* Setup service section  */
+#define INA_SERVICE_DESCRIPTOR(name, display_name,                           \
+                               short_description, long_description,          \
+                               username, password,                           \
+                               startup_args,                                 \
+                               working_directory,                            \
+                               run_func, shutdown_func,                      \
+                               exclusive_flag)                               \
     INA_SERVICE_SECTION_PUSH ina_service_section_t __ina_service_section INA_SERVICE_SECTION = { \
-        name,                                                               \
-        display_name,                                                       \
-        username,                                                           \
-        startup,                                                            \
-        short_description,                                                  \
-        long_description                                                    \
+        name,                                                                \
+        display_name,                                                        \
+        short_description,                                                   \
+        long_description                                                     \
+        username,                                                            \
+        password,                                                            \
+        startup_args,                                                        \
+        working_directory,                                                   \
+        run_func,                                                            \
+        shutdown_func,                                                       \
+        exclusive_flag,                                                      \
+        0                                                                    \
     }
+
 /*
  *
  */
@@ -118,32 +124,41 @@ INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx);
  * 
  */
 INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx, 
+                                    ina_service_descriptor_t **descriptor);
 /*
  * WIN: Installs the app as a service via the Service API
  * UNX: Installs the app as a deamon and enable service <app> commands.
  *      It stores the servicescript in a section in the binary and 
  *      copy it to /etc/init.d upon install
  */
-INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx);
+
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_run_console(ina_service_ctx_t *ctx, ina_service_descriptor_t *descriptor);
+INA_API(ina_rc_t) ina_service_run_console(const ina_service_ctx_t *ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_mode(ina_service_ctx_t *ctx, ina_service_mode_t *mode);
+INA_API(ina_rc_t) ina_service_get_mode(const ina_service_ctx_t *ctx, 
+                                       ina_service_mode_t *mode);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+
