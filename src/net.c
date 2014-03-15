@@ -43,6 +43,25 @@
 
 #include <libinac/lib.h>
 
+INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
+{
+#ifdef INA_OS_WIN32
+    if (gethostname(host, len) != 0) {
+        int ec = WSAGetLastError();
+        char err[ANET_ERR_LEN];
+        sprintf(err, "gethostname failed with error-code: %d", ec);
+        return INA_NET_ERROR(err);
+    }
+#else
+    if (gethostname(host, len) != 0) {
+        char err[ANET_ERR_LEN];
+        sprintf(err, "gethostname failed with error-code: %d", errno);
+        return INA_NET_ERROR(err);
+    }
+#endif
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr) 
 {
     char err[ANET_ERR_LEN];

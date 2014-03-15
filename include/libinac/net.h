@@ -49,7 +49,10 @@ extern "C" {
  * INA_SUCCES if no error occured.
  */
 INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf);
-
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len);
 /*
  *
  */
