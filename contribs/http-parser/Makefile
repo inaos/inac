@@ -40,11 +40,11 @@ test-run-timed: test_fast
 test-valgrind: test_g
 	valgrind ./test_g
 
-libhttp_parser.o: http_parser.c http_parser.h Makefile
-	$(CC) $(CPPFLAGS_FAST) $(CFLAGS_LIB) -c http_parser.c -o libhttp_parser.o
+libhttp_parser.a: http_parser.o http_parser.h Makefile
+	$(AR) crs libhttp_parser.a http_parser.o
 
-library: libhttp_parser.o
-	$(CC) -shared -o libhttp_parser.so libhttp_parser.o
+library: libhttp_parser.a
+	$(CC) -shared -o libhttp_parser.so libhttp_parser.a
 
 tags: http_parser.c http_parser.h test.c
 	ctags $^

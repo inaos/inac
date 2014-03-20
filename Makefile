@@ -66,7 +66,7 @@ INAC_LIB=libinac.a
 INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a $(INAC_CONTRIBS_DIR)/skiplist/skiplist.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
-	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.o $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
+	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.a $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
         $(INAC_CONTRIBS_DIR)/yajl/yajl.a
 # ****************************************************************************
 #  String implementation
