@@ -157,6 +157,8 @@ INA_TEST(error, push_and_clear)
     INA_TEST_ASSERT_EQUAL_INTEGER(rc1, ina_err_peek_last());
     INA_TEST_ASSERT_NOT_EQUAL_INTEGER(rc1, rc2);
 
+    INA_TEST_ASSERT_SUCCESS(ina_err_clear(rc1));
+  
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek_last());

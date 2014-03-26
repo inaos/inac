@@ -162,24 +162,22 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
     ina_rc_t ret;
 
     INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
-    ret = INA_SUCCESS;
-
     k = __ina_get_index(rc);
     
-    if (k < __state.c) {
-        INA_ASSERT_EQUAL(rc, __state.errors[k].rc);
-        __state.errors[k].rc = rc|INA_ERR_FLAG_HANDLED;
-        ret = __state.errors[k].rc;
-        for (;;) {
-            top =  __ina_pop_error();
-            if (top == ret || top == 0) {
-                break;
-            }
-        }
-    } else {
-        ret = INA_FAILURE;
+    if (k >= __state.c) {
+        return INA_FAILURE;
     }
-    return ret;
+
+    /*INA_ASSERT_EQUAL(rc, __state.errors[k].rc);*/
+    __state.errors[k].rc = rc|INA_ERR_FLAG_HANDLED;
+    ret = __state.errors[k].rc;
+    for (;;) {
+        top =  __ina_pop_error();
+        if (top == ret || top == 0) {
+            break;
+        }
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_err_reset(void)
