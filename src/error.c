@@ -271,8 +271,15 @@ INA_API(ina_rc_t) ina_err_trace(void)
         if (INA_SUCCEED(ina_err_fmtmsg(__state.errors[n].rc, str, 2048))) {
             fprintf(stderr, "%s\n", str);
         } else {
-            fprintf(stderr, "%s\n", "**** FATAL ERROR  ******");
-            return INA_FAILURE;
+            fprintf(stderr, "Can't format error message %s:%d - %s (r:%u,f:%u,m:%u,h:%u,i:%d)\n",
+                                            __state.errors[n].file,
+                                            __state.errors[n].line,
+                                            __state.errors[n].msg,
+                                            INA_RC_REASON(__state.errors[n].rc),
+                                            INA_RC_OSFN(__state.errors[n].rc),
+                                            INA_RC_MOD(__state.errors[n].rc),
+                                            INA_RC_HANDLED(__state.errors[n].rc),
+                                            INA_RC_ID(__state.errors[n].rc));
         }
     }
 
