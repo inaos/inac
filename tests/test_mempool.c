@@ -34,7 +34,47 @@
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
 #define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
 
-INA_TEST(mempool, realloc)
+INA_TEST(mempool, realloc_dynamic)
+{
+    ina_mempool_t *pool;
+    ina_mempool_info_t info;
+
+    char *buf;
+    char *old_buf;
+
+    ina_err_reset();
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+
+    buf = ina_mempool_dalloc(pool, 1024);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_INTEGER(1024, info.used);
+
+    /* Reallocate up to 2048 bytes. Pointer should be still the same */
+    /* we have not sub pools */
+    old_buf = buf;
+    buf = ina_mempool_ralloc(pool, buf, 1024, 2048);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SAME(old_buf, buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_INTEGER(2048, info.used);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, info.children);
+
+    /* Reallocate up to 9216 bytes. Pointer should NOT be the same */
+    /* A subpool shold be there */
+    buf = ina_mempool_ralloc(pool, buf, 2048, 9216);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_NOT_SAME(old_buf, buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_INTEGER(9216+2048, info.used);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, info.children);
+
+    ina_mempool_release(pool, INA_YES);
+}
+
+INA_TEST(mempool, realloc_fixed)
 {
     ina_mempool_t *pool;
     ina_mempool_info_t info;
@@ -77,7 +117,7 @@ INA_TEST(mempool, realloc)
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_INTEGER(128+256, info.used);
 
- /* Reallocate up to 512 bytes. Pointer should be still te same 
+    /* Reallocate up to 512 bytes. Pointer should be still te same 
     * Pool shold be shirked */
     buf = ina_mempool_ralloc(pool, buf, 256, 512);
     INA_TEST_ASSERT_NOT_NULL(buf);

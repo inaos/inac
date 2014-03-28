@@ -423,8 +423,8 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
     ret = NULL;
     new_size = __INA_MEM_ALIGN(new_size);
 
-     /* unsatisfiable or bogus request */
-    if ((pool->end < old_size) || (pool->end < new_size)) {
+     /* bogus request */
+    if (pool->end < old_size) {
         INA_MEM_ERALLOC;
         return NULL;
     }
@@ -440,7 +440,31 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
             return old;
         }
         /* does not fit */
-        INA_MEM_ERALLOC;
+        if (pool->cf&INA_MEM_DYNAMIC) {
+            size_t nsize = 0;
+            if (pool->cf&INA_MEM_BESTFIT) {
+                 /* TODO: Best Fit strategy */
+            }
+
+            if (pool->cf&INA_MEM_AUTOSIZE || new_size > pool->size) {
+                nsize = __INA_MEM_ALIGN(new_size);
+            } else {
+                nsize = pool->size;
+            }
+
+            /* FIXME: Push an error , if fails */
+            /* FXIME: shm can not handled in chunks ! */
+            ina_mempool_create(&pool->current->child, nsize, 
+                    pool->cf|INA_MEM_CHILD, 
+                    pool->label);
+            pool->current->child->parent = pool->current;
+            pool->current = pool->current->child;
+            ret = &pool->m[pool->pos];
+            ina_mem_cpy(ret, old, old_size);
+            pool->pos += new_size;
+            return ret;
+        }
+        INA_MEM_EALLOC;
         return NULL;
     }
     /* cannot shrink, we need to move */
@@ -456,8 +480,31 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
         pool->pos += new_size;
         return ret;
     }
-    /* does not fit */
-    INA_MEM_ERALLOC;
+    if (pool->cf&INA_MEM_DYNAMIC) {
+        size_t nsize = 0;
+        if (pool->cf&INA_MEM_BESTFIT) {
+            /* TODO: Best Fit strategy */
+        }
+
+        if (pool->cf&INA_MEM_AUTOSIZE || new_size > pool->size) {
+            nsize = __INA_MEM_ALIGN(new_size);
+        } else {
+            nsize = pool->size;
+        }
+
+        /* FIXME: Push an error , if fails */
+        /* FXIME: shm can not handled in chunks ! */
+        ina_mempool_create(&pool->current->child, nsize, 
+                    pool->cf|INA_MEM_CHILD, 
+                    pool->label);
+        pool->current->child->parent = pool->current;
+        pool->current = pool->current->child;
+        ret = &pool->m[pool->pos];
+        ina_mem_cpy(ret, old, old_size);
+        pool->pos += new_size;
+        return ret;
+    }
+    INA_MEM_EALLOC;
     return NULL;
 }
 
