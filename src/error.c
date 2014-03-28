@@ -161,20 +161,29 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
     ina_rc_t top;
     ina_rc_t ret;
 
-    INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
+    if (INA_RC_ID(rc) == 0) {
+        return INA_SUCCESS;
+    }
+    if (INA_RC_ID(rc) > __state.ic) {
+        return INA_FAILURE;
+    }
+
     k = __ina_get_index(rc);
     
     if (k >= __state.c) {
         return INA_FAILURE;
     }
-
-    /*INA_ASSERT_EQUAL(rc, __state.errors[k].rc);*/
-    __state.errors[k].rc = rc|INA_ERR_FLAG_HANDLED;
+   
+    INA_ASSERT_EQUAL(rc, __state.errors[k].rc);
     ret = __state.errors[k].rc;
+   
     for (;;) {
         top =  __ina_pop_error();
-        if (top == ret || top == 0) {
+        if (top == 0) {
             break;
+        }
+        if (top == ret) {
+            __ina_pop_error();
         }
     }
     return INA_SUCCESS;
@@ -428,14 +437,21 @@ static ina_rc_t
 __ina_pop_error(void) 
 {
     size_t i;
+    ina_rc_t rc;
 
     INA_ASSERT(__state.c >= 0);
 
     if (__state.c > 0) {
         for (i = 1; i < __state.c+1; ++i) {
-            __state.errors[i-1] = __state.errors[i];
+            rc = INA_RC_PACK(INA_RC_OSFN(__state.errors[i].rc),
+                             INA_RC_MOD(__state.errors[i].rc),
+                             INA_RC_REASON(__state.errors[i].rc),
+                              INA_RC_ID(__state.errors[i].rc-1));
+            ina_mem_cpy(&__state.errors[i-1], &__state.errors[i], sizeof(ina_error_t));
+            __state.errors[i-1].rc = rc; 
         }
         --__state.c;
+        --__state.ic;
         INA_ASSERT(__state.c >= 0);
         if (__state.c > 0) {
             return __state.errors[0].rc;

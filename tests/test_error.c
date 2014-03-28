@@ -144,6 +144,7 @@ INA_TEST(error, push_and_clear)
 {
 	ina_rc_t rc1;
     ina_rc_t rc2;
+    int i;
 
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
@@ -157,10 +158,18 @@ INA_TEST(error, push_and_clear)
     INA_TEST_ASSERT_EQUAL_INTEGER(rc1, ina_err_peek_last());
     INA_TEST_ASSERT_NOT_EQUAL_INTEGER(rc1, rc2);
 
-    INA_TEST_ASSERT_SUCCESS(ina_err_clear(rc1));
-  
-    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
+    INA_TEST_ASSERT_SUCCESS(ina_err_clear(rc2));
+    INA_TEST_ASSERT_FAILURE(ina_err_clear(rc2));
+    INA_TEST_ASSERT_FAILURE(ina_err_clear(rc1));
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+ 
+    ina_err_reset();
+    for (i = 0; i < 34; ++i) {
+        INA_ERR_PUSH_BASIC(300+i, "This is an error");
+    }
+    INA_TEST_ASSERT_SUCCESS(ina_err_clear(ina_err_peek()));
+    ina_err_trace();
+  
     INA_TEST_ASSERT_SUCCESS(ina_err_peek_last());
  }
 
