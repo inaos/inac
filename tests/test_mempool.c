@@ -34,6 +34,59 @@
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
 #define __INA_MEM_ALIGN(n) ((n+(__INA_ALIGN_SIZE-1)) & (~(__INA_ALIGN_SIZE-1)))
 
+INA_TEST(mempool, nalloc)
+{
+    ina_mempool_t *pool;
+    char *buf1;
+    char *buf2;
+    char *buf3;
+    char *buf4;
+    int i;
+    
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, 0, NULL));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+    
+    /* Allocate a reallocable buffer */
+    buf1 = ina_mempool_dalloc(pool, 1024);
+    INA_TEST_ASSERT_NOT_NULL(buf1);
+    ina_mem_set(buf1, 20, 1024);
+
+    /* Allocate a NON reallocable buffer */
+    buf2 = ina_mempool_nalloc(pool, 1024);
+    INA_TEST_ASSERT_NOT_NULL(buf1);
+    ina_mem_set(buf2, 30, 1024);
+
+    /* Release pool */
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_NO));
+
+    /* allocate new reallocable buffer friom the fresh pool */
+    buf3 = ina_mempool_dalloc(pool, 5);
+
+    /* New pointer same as the old one */
+    INA_TEST_ASSERT_SAME(buf3, buf1);
+
+    /* Verify buffer invalidation */
+    ina_mem_set(buf3, 40, 5);
+    INA_TEST_ASSERT_EQUAL_INTEGER(40, buf1[0]);
+    INA_TEST_ASSERT_EQUAL_INTEGER(40, buf1[1]);
+    INA_TEST_ASSERT_EQUAL_INTEGER(40, buf1[2]);
+    INA_TEST_ASSERT_EQUAL_INTEGER(40, buf1[3]);
+    INA_TEST_ASSERT_EQUAL_INTEGER(40, buf1[4]);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, buf1[5]);
+
+    /* allocate new NOT reallocable buffer from the fresh pool */
+    buf4 = ina_mempool_nalloc(pool, 5);
+    /* New pointer same as the old one */
+    INA_TEST_ASSERT_NOT_SAME(buf4, buf2);
+    /* Verify buffer */
+    ina_mem_set(buf4, 50, 5);
+    for (i = 0; i < 1024; i++) {
+        INA_TEST_ASSERT_EQUAL_INTEGER(30, buf2[i]);
+    }
+    INA_TEST_ASSERT_EQUAL_INTEGER(50, buf4[0]);
+}
+
+
 INA_TEST(mempool, realloc_dynamic)
 {
     ina_mempool_t *pool;
