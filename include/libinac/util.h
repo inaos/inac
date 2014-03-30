@@ -39,7 +39,6 @@ extern "C" {
 #define INA_HASH_STR_TO_CRC32(s) ina_util_hash_crc32(0, ina_str_cstr(s), ina_str_len(s))
 #define INA_HASH_STR_TO_SDBM(s)  ina_util_hash_sdbm(0, ina_str_cstr(s), ina_str_len(s))
 
-
 /*
  * Calulate 32bit CRC hash
  *
@@ -68,6 +67,26 @@ INA_API(uint32_t) ina_util_hash_crc32(uint32_t hash, const void *data,
 INA_API(uint32_t) ina_util_hash_sdbm(uint32_t hash, const void *data, 
                                      size_t size);
 
+/*
+ * Base64: encode 3 8-bit binary bytes as 4 '6-bit' characters
+ *
+ * Parameters
+ *  in    3 chars
+ *  out   4 chars
+ *  len   if in < 3
+ *
+ */
+INA_API(ina_rc_t) ina_util_base64_encode_chunk(unsigned char *in, unsigned char *out, int len);
+
+/*
+ * Base64: decode 4 '6-bit' characters into 3 8-bit binary bytes
+ *
+ * Parameters
+ *  in    3 chars
+ *  out   4 chars
+ *
+ */
+INA_API(ina_rc_t) ina_util_base64_decode_chunk(unsigned char *in, unsigned char *out);
      
 #ifdef __cplusplus
 }

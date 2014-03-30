@@ -74,6 +74,9 @@ static uint32_t crc32_tab[] = {
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
+static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char cd64[]="|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
+
 INA_API(uint32_t) ina_util_hash_crc32(uint32_t hash, const void *data, size_t size)
 {
     const uint8_t *p;
@@ -97,3 +100,21 @@ INA_API(uint32_t) ina_util_hash_sdbm(uint32_t hash, const void *data, size_t siz
     return hash;
 }
 
+INA_API(ina_rc_t) ina_util_base64_encode_chunk(unsigned char *in, unsigned char *out, int len)
+{
+    out[0] = (unsigned char) cb64[ (int)(in[0] >> 2) ];
+    out[1] = (unsigned char) cb64[ (int)(((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4)) ];
+    out[2] = (unsigned char) (len > 1 ? cb64[ (int)(((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6)) ] : '=');
+    out[3] = (unsigned char) (len > 2 ? cb64[ (int)(in[2] & 0x3f) ] : '=');
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_util_base64_decode_chunk(unsigned char *in, unsigned char *out)
+{
+    out[0] = (unsigned char) (in[0] << 2 | in[1] >> 4);
+    out[1] = (unsigned char) (in[1] << 4 | in[2] >> 2);
+    out[2] = (unsigned char) (((in[2] << 6) & 0xc0) | in[3]);
+
+    return INA_SUCCESS;
+}
