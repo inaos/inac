@@ -68,25 +68,22 @@ INA_API(uint32_t) ina_util_hash_sdbm(uint32_t hash, const void *data,
                                      size_t size);
 
 /*
- * Base64: encode 3 8-bit binary bytes as 4 '6-bit' characters
- *
- * Parameters
- *  in    3 chars
- *  out   4 chars
- *  len   if in < 3
+ * Base64 encoding - calculate output length
  *
  */
-INA_API(ina_rc_t) ina_util_base64_encode_chunk(unsigned char *in, unsigned char *out, int len);
+INA_API(ina_rc_t) ina_util_base64_encode_length(size_t in_length, unsigned int line_length, size_t *out_length);
 
 /*
- * Base64: decode 4 '6-bit' characters into 3 8-bit binary bytes
- *
- * Parameters
- *  in    3 chars
- *  out   4 chars
+ * Base64 encoding - encode a chunk
  *
  */
-INA_API(ina_rc_t) ina_util_base64_decode_chunk(unsigned char *in, unsigned char *out);
+INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t dataLength, char* result, size_t resultSize);
+
+/*
+ * Base64 decoding - decode a chunk
+ *
+ */
+INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t inLen, unsigned char *out, size_t *outLen);
      
 #ifdef __cplusplus
 }
