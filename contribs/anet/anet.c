@@ -2,19 +2,19 @@
  *
  * Copyright (c) 2006-2010, Salvatore Sanfilippo <antirez at gmail dot com>
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
- *   * Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the name of Redis nor the names of its contributors may be used
- *     to endorse or promote products derived from this software without
- *     specific prior written permission.
- *
+ * 
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *  * Neither the name of Redis nor the names of its contributors may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -82,8 +82,8 @@ int anetNonBlock(char *err, int fd)
     int flags;
 
     /* Set the socket nonblocking.
-     * Note that fcntl(2) for F_GETFL and F_SETFL can't be
-     * interrupted by a signal. */
+ *      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
+ *           * interrupted by a signal. */
     if ((flags = fcntl(fd, F_GETFL)) == -1) {
         anetSetError(err, "fcntl(F_GETFL): %s", strerror(errno));
         return ANET_ERR;
@@ -190,7 +190,7 @@ int anetResolve(char *err, char *host, char *ipbuf)
 static int anetCreateSocket(char *err, int domain, int type) {
     SOCKET s;
 	BOOL yes = TRUE;
-	
+
 	if (type == ANET_SOCKET_TYPE_TCP) {
 		s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
 	}
@@ -225,14 +225,14 @@ static int anetCreateSocket(char *err, int domain, int type) {
 	else {
 		anetSetError(err, "unknown socket-type: %d!", type);
 	}
-	
+
     if (s == -1) {
         anetSetError(err, "creating socket: %s", strerror(errno));
         return ANET_ERR;
     }
 
     /* Make sure connection-intensive things like the redis benckmark
-     * will be able to close/open sockets a zillion of times */
+ *      * will be able to close/open sockets a zillion of times */
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
         anetSetError(err, "setsockopt SO_REUSEADDR: %s", strerror(errno));
         return ANET_ERR;
@@ -360,7 +360,7 @@ int anetRead(int fd, char *buf, int count)
 }
 
 /* Like write(2) but make sure 'count' is read before to return
- * (unless error is encountered) */
+ *  * (unless error is encountered) */
 int anetWrite(int fd, char *buf, int count)
 {
     int nwritten, totlen = 0;
@@ -572,14 +572,9 @@ int anetUdpBind(char *err, char *addr, int port)
 
     memset(&sa, 0, sizeof(sa));
 	sa.sin_family = AF_INET;
-    sa.sin_port = htons((short)port);
+    sa.sin_port = htons(port);
+    sa.sin_addr.s_addr = htonl(INADDR_ANY); 
     
-    if (addr && strcmp(addr, "0.0.0.0") != 0) {
-        sa.sin_addr.s_addr = inet_addr(addr);
-    } else {
-        sa.sin_addr.s_addr = htonl(INADDR_ANY);
-    }
-
 #ifdef WIN32
     if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         anetSetError(err, "bind: %s", strerror(WSAGetLastError()));
@@ -587,7 +582,6 @@ int anetUdpBind(char *err, char *addr, int port)
         return ANET_ERR;
     }
 #else
-    sa.sin_addr.s_addr = inet_addr(addr);
 	if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         anetSetError(err, "bind: %s", strerror(errno));
         close(s);
@@ -602,19 +596,9 @@ int anetJoinGroup(char* err, int fd, char *localif, char *source)
 {
 	struct ip_mreq imr;
 
+    imr.imr_multiaddr.s_addr=inet_addr(source);
+    imr.imr_interface.s_addr=inet_addr(localif);
 	
-    if (localif && strcmp(localif, "0.0.0.0") != 0) {
-        imr.imr_interface.s_addr = inet_addr(localif);
-    } else {
-        imr.imr_interface.s_addr = htonl(INADDR_ANY);
-    }
-
-    if (source && strcmp(source, "0.0.0.0") != 0) {
-        imr.imr_multiaddr.s_addr = inet_addr(source);
-    } else {
-        imr.imr_multiaddr.s_addr = htonl(INADDR_ANY);
-    }
-
 #if WIN32
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         anetSetError(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(WSAGetLastError()));
@@ -634,17 +618,8 @@ int anetLeaveGroup(char* err, int fd, char *localif, char *source)
 {
 	struct ip_mreq imr;
 
-    if (localif && strcmp(localif, "0.0.0.0") != 0) {
-        imr.imr_interface.s_addr = inet_addr(localif);
-    } else {
-        imr.imr_interface.s_addr = htonl(INADDR_ANY);
-    }
-
-    if (source && strcmp(source, "0.0.0.0") != 0) {
-        imr.imr_multiaddr.s_addr = inet_addr(source);
-    } else {
-        imr.imr_multiaddr.s_addr = htonl(INADDR_ANY);
-    }
+    imr.imr_multiaddr.s_addr=inet_addr(source);
+    imr.imr_interface.s_addr=inet_addr(localif);
 
 #if WIN32
 	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
@@ -652,7 +627,7 @@ int anetLeaveGroup(char* err, int fd, char *localif, char *source)
         return ANET_ERR;
     }
 #else
- 	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
+	if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
         anetSetError(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(errno));
         return ANET_ERR;
     }
@@ -660,3 +635,4 @@ int anetLeaveGroup(char* err, int fd, char *localif, char *source)
 
 	return(ANET_OK);
 }
+
