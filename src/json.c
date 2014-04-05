@@ -180,9 +180,14 @@ void __ina_yajl_free(void *ctx, void *ptr)
 
 void *__ina_yajl_realloc(void *ctx, void *ptr, size_t sz)
 {
+    void *p;
     ina_mempool_t *pool = (ina_mempool_t*)ctx;
     INA_ASSERT_NOTNULL(ctx);
-    return ina_mempool_dalloc(pool, sz);
+    p = ina_mempool_dalloc(pool, sz);
+    if (ptr != NULL) {
+        ina_mem_cpy(p, ptr, sz);
+    }
+    return p;
 }
 
 static yajl_callbacks __yajl_callbacks = {  
