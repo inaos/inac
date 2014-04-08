@@ -5,6 +5,7 @@ OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
 MONITOR_BIN = ullc_monitor
+MEM_SPEED_BIN = mem_speed
 
 # ****************************************************************************
 # Linker settings
@@ -20,12 +21,15 @@ ifeq (,$(findstring Windows,$(OS)))
 endif
 
 
-all: $(OBJ)  main.o ullc_monitor
+all: $(OBJ)  main.o ullc_monitor mem_speed
 	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS) 
 
 ullc_monitor: ullc_monitor.o
 	@$(CC) $(CFLAGS) -o $(MONITOR_BIN) ullc_monitor.o $(LDFLAGS) 
 	
+mem_speed: mem_speed.o
+	@$(CC) $(CFLAGS) -o $(MEM_SPEED_BIN) mem_speed.o $(LDFLAGS) 
+
 %.o: %.c
 	@echo compiling $<
 	@$(CC) $(CFLAGS)  -c $<
