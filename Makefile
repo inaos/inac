@@ -108,7 +108,7 @@ export CFLAGS
 export LDFLAGS
 export INAC_LIB
 export INAC_LIBS
-export INA_STRING_DEFINEDß
+export INA_STRING_DEFINED
 export INA_TIME_DEFINED
 
 default: release
@@ -124,7 +124,7 @@ all:
 	@echo "String library	: $(INAC_STRING_LIB)"
 	@echo "Time backend	: $(INAC_TIME_BACKEND)"
 
-release: CFLAGS += -O2 -DINA_LOG_LEVEL=1
+release: CFLAGS += -O2 -DINA_LOG_ENABLED=1 
 	export CFLAGS
 release: INAC_BUILD_TYPE = release
 	export INAC_BUILD_TYPE

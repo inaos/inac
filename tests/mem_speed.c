@@ -27,15 +27,20 @@
  */
 #include <libinac/lib.h>
 
+
 typedef struct data_s {
     double d1;
     double d2;
 } data_t;
 
-static void test_malloc_aligned(ina_stopwatch_t *sw)
+static ina_log_cfg_t *log_cfg = NULL;
+
+
+static void mstest_malloc_aligned(ina_stopwatch_t *sw)
 {
     size_t i;
     data_t *pdata;
+    double r;
  
     pdata = malloc(sizeof(data_t)*100000);
     INA_TIME_STOPWATCH_START(sw);
@@ -44,14 +49,24 @@ static void test_malloc_aligned(ina_stopwatch_t *sw)
         pdata[i].d2 = 2.0;
     }
     INA_TIME_STOPWATCH_STOP(sw);
-    INA_TRACE("Linar R/W = %f msec", sw->tv->msec_duration);
+    INA_LOG_INFO(log_cfg, "Linar R/W unaligned = %f msec", sw->tv->msec_duration);
+ 
+    INA_TIME_STOPWATCH_START(sw);
+    for (i = 0; i < 100000; ++i) {
+        r += pdata[i].d1;
+        r += pdata[i].d2;
+    }
+    INA_TIME_STOPWATCH_STOP(sw);
+    INA_LOG_INFO(log_cfg, "Linar R  unaligned  = %f msec", sw->tv->msec_duration);
+ 
     free(pdata);
 }
 
-static void test_malloc_inac_aligned(ina_stopwatch_t *sw)
+static void mstest_malloc_inac_aligned(ina_stopwatch_t *sw)
 {
     size_t i;
     data_t *pdata;
+    double r;
  
     pdata = ina_mem_alloc_aligned(16, sizeof(data_t)*100000);
     INA_TIME_STOPWATCH_START(sw);
@@ -60,9 +75,45 @@ static void test_malloc_inac_aligned(ina_stopwatch_t *sw)
         pdata[i].d2 = 2.0;
     }
     INA_TIME_STOPWATCH_STOP(sw);
-    INA_TRACE("Linar R/W aligned = %f msec", sw->tv->msec_duration);
+    INA_LOG_INFO(log_cfg, "Linar R/W aligned   = %f msec", sw->tv->msec_duration);
+  
+    INA_TIME_STOPWATCH_START(sw);
+    for (i = 0; i < 100000; ++i) {
+        r += pdata[i].d1;
+        r += pdata[i].d2;
+    }
+    INA_TIME_STOPWATCH_STOP(sw);
+    INA_LOG_INFO(log_cfg, "Linar R  aligned    = %f msec", sw->tv->msec_duration);
+ 
     ina_mem_free_aligned(pdata);
 }
+
+static void mstest_malloc_inac_aligned_type(ina_stopwatch_t *sw)
+{
+    size_t i;
+    data_t *pdata;
+    double r;
+ 
+    pdata = ina_mem_alloc_aligned(sizeof(data_t), sizeof(data_t)*100000);
+    INA_TIME_STOPWATCH_START(sw);
+    for (i = 0; i < 100000; ++i) {
+        pdata[i].d1 = 1.0;
+        pdata[i].d2 = 2.0;
+    }
+    INA_TIME_STOPWATCH_STOP(sw);
+    INA_LOG_INFO(log_cfg, "Linar R/W t aligned = %f msec", sw->tv->msec_duration);
+ 
+    INA_TIME_STOPWATCH_START(sw);
+    for (i = 0; i < 100000; ++i) {
+        r += pdata[i].d1;
+        r += pdata[i].d2;
+    }
+    INA_TIME_STOPWATCH_STOP(sw);
+    INA_LOG_INFO(log_cfg, "Linar R  t aligned  = %f msec", sw->tv->msec_duration);
+ 
+    ina_mem_free_aligned(pdata);
+}
+
 
 int main(int argc,  char** argv) 
 { 
@@ -71,11 +122,19 @@ int main(int argc,  char** argv)
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, NULL))) {
         return EXIT_FAILURE;
     }
+    if (!INA_SUCCEED(ina_log_open(&log_cfg, INA_LOG_STDOUT, INA_LOG_LEVEL_INFO, NULL))) {
+        return EXIT_FAILURE;
+    }
 
     INA_TIME_STOPWATCH_CREATE(&sw, 1, 1024);
 
-    test_malloc_aligned(sw);
-    test_malloc_inac_aligned(sw);
-    
+    mstest_malloc_aligned(sw);
+    mstest_malloc_inac_aligned(sw);
+    mstest_malloc_inac_aligned_type(sw);
+
+    INA_TIME_STOPWATCH_DESTROY(&sw);
+
+    ina_log_close(&log_cfg);
+    printf("%s\n", "OK" );
     return EXIT_SUCCESS;
 }

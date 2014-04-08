@@ -38,7 +38,7 @@ mem_speed: mem_speed.o
 
 clean:
 	@echo cleaning tests...
-	@-rm -f *.o test
+	@-rm -f *.o test ullc_monitor mem_speed
 
 test: all
 	./test
