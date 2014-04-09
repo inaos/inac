@@ -80,17 +80,6 @@ typedef struct ina_mempool_event_info_s {
 } ina_mempool_event_info_t;
 
 typedef ina_rc_t (*ina_mempool_event_handler_t)(const ina_mempool_event_info_t*, size_t*);
-/*
- * The function returns the number of bytes in a memory page, where "page" is 
- * a fixed-length block, the unit for memory allocation and file mapping.
- *
- * Parameters:
- * size     Size in bytes
- *
- * Return Value
- * INA_SUCCESS if no error occurred.
- */                                 
-INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
 
 /*
  * Set custom allocator function to use with memory pools.
