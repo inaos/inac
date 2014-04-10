@@ -83,7 +83,7 @@ INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
 #elif defined(INA_OS_OSX)
      time->tp = mach_absolute_time();
 #else 
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
+    if (clock_gettime(STOPWATCH_CLOCK_TYPE, &time->tp) == -1) {
         return INA_FAILURE;
     }
 #endif
@@ -253,7 +253,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
     if (stopwatch->ts == NULL) {
         stopwatch->ts = (&(stopwatch->tv->stamps))+(*stamp_index);
     }
-
+ 
     /* Calculate duration if not yet done */
     if (stopwatch->ts->sec_duration == 0) {
 #ifdef INA_OS_WIN32
@@ -269,29 +269,42 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
         stopwatch->ts->sec_duration = __ina_lit_to_secs(&elapsed);
 #elif defined(INA_OS_OSX)
         if (*stamp_index == 0) {
-            stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
-			    stopwatch->tv->start.tp);
+            /*stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
+			    stopwatch->tv->start.tp);*/
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp - 
 				    stopwatch->tv->start.tp) / 10000000.0);
         } else {
-            ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index-1);
-            stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
-			    ts->stamp.tp);
+            ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index)-1;
+            /*stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
+			    ts->stamp.tp);*/
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp - 
 				    ts->stamp.tp) / 10000000.0);         
         } 
 #else
         if (*stamp_index == 0) {
-            stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - 
-			    stopwatch->tv->start.tp.tv_sec);
-            stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_nsec -
-				    stopwatch->tv->start.tp.tv_nsec)/10000000);
+            struct timespec result;
+ 
+            if (stopwatch->ts->stamp.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec){ // peform carry like in normal subtraction
+                result.tv_nsec = 1000000000 + stopwatch->ts->stamp.tp.tv_nsec - stopwatch->tv->start.tp.tv_nsec;        
+                result.tv_sec = stopwatch->ts->stamp.tp.tv_sec - 1 - stopwatch->tv->start.tp.tv_sec;
+            } else{
+                result.tv_nsec = stopwatch->ts->stamp.tp.tv_nsec - stopwatch->tv->start.tp.tv_nsec;        
+                result.tv_sec = stopwatch->ts->stamp.tp.tv_sec - stopwatch->tv->start.tp.tv_sec;
+            }
+            stopwatch->ts->sec_duration = (result.tv_sec + result.tv_nsec/1000000000.0);
         } else {
-            ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index-1);
-            stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec 
-			    - ts->stamp.tp.tv_sec);
-            stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_nsec - 
-				    ts->stamp.tp.tv_nsec) / 10000000.0);         
+            struct timespec result;
+
+            ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index)-1;
+   
+           if (stopwatch->ts->stamp.tp.tv_nsec < ts->stamp.tp.tv_nsec){ // peform carry like in normal subtraction
+                result.tv_nsec = 1000000000 + stopwatch->ts->stamp.tp.tv_nsec - ts->stamp.tp.tv_nsec;        
+                result.tv_sec = stopwatch->ts->stamp.tp.tv_sec - 1 - ts->stamp.tp.tv_sec;
+            } else{
+                result.tv_nsec = stopwatch->ts->stamp.tp.tv_nsec - ts->stamp.tp.tv_nsec;        
+                result.tv_sec = stopwatch->ts->stamp.tp.tv_sec - ts->stamp.tp.tv_sec;
+            }
+            stopwatch->ts->sec_duration = (result.tv_sec + result.tv_nsec/1000000000.0);
         } 
 #endif
         stopwatch->ts->msec_duration = stopwatch->ts->sec_duration*1000;
@@ -319,7 +332,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch,
     }
 
     ts = (&(stopwatch->tv->stamps))+si;
-
+ 
     ina_time_read_tsc_clock(&ts->stamp);
 
     if (user_data1 != NULL) {
