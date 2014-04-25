@@ -110,20 +110,23 @@ if [ "eval_param" != "$3" ]; then
     # Check whenever we need to run a code generator
     if [ "$INAC_BUILD_STAGE" != "clean" ]; then
     	if [ ! -z "$INAC_BUILD_CODE_GEN_SCRIPT" ]; then
-        	$INAC_BUILD_LUAJIT "$INAC_BUILD_PROJECT_DIR/$INAC_BUILD_CODE_GEN_SCRIPT" $INAC_BUILD_PROJECT_DIR
+        	$INAC_BUILD_LUAJIT "$INAC_BUILD_PROJECT_DIR/$INAC_BUILD_CODE_GEN_SCRIPT" $INAC_BUILD_PROJECT_DIR $INAC_BUILD_CODE_GEN_SCRIPT_ARGS
         	if [ "$?" -ne "0" ]; then
-         		echo "Failed to run generator script"
+         		echo "Failed to run generator script $INAC_BUILD_CODE_GEN_SCRIPT"
          		exit 1
         	fi
     	fi
     fi
     unset INAC_BUILD_CODE_GEN_SCRIPT
+    unset INAC_BUILD_CODE_GEN_SCRIPT_ARGS
 
     # Run the build "tool" if any
     if [ -f "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool" ]; then
         . "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool"
     elif [ "$INAC_BUILD_TOOL" == "make.sh" ]; then
         . ./make.sh 
+    elif [ "$INAC_BUILD_TOOL" == "none" ]; then
+        echo "Skip build, non build tool"
     else    
         make $INAC_BUILD_MAKE_TARGET
     fi
