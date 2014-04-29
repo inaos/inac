@@ -232,10 +232,14 @@ INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
-INA_API(int64_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx)
+INA_API(ina_rc_t) ina_ullc_producer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos)
 {
     INA_ASSERT_NOTNULL(ctx);
-    return ctx->ring->cursor;
+    INA_ASSERT_NOTNULL(pos);
+    INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
+
+    *pos = ctx->ring->cursor;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
@@ -315,6 +319,30 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
 
     *ctx = NULL;
     return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_ullc_consumer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(pos);
+    INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
+
+    *pos = ctx->c_offset->cursor;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
+    if (pos == -1) {
+        pos = ctx->ring->cursor;
+    }    
+    if (__INA_ULLC_SWAP(&ctx->c_offset->cursor, ctx->ring->cursor, pos) == pos) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_swait(ina_ullc_ctx_t *ctx)

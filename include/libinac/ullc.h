@@ -246,12 +246,10 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
  *  Destroy a producer
  */
 INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);
-
 /*
  *
  */
-INA_API(int64_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx);
-
+INA_API(ina_rc_t) ina_ullc_producer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos);
 /*
  * Claim item for a producer
  */
@@ -280,9 +278,19 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
  */
 INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx);
 /*
+ *
+ */
+INA_API(ina_rc_t) ina_ullc_consumer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos);
+/*
  * Read from consumer, no wait
  */
 INA_API(void *)  ina_ullc_consumer_get(ina_ullc_ctx_t *ctx);
+
 /*
  * timer wait
  */
