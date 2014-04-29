@@ -112,7 +112,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
 
 INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, 
                             size_t slots, int  num_producers, int num_consumers,
-                            const ina_str_t name, ina_ullc_wait_strategy ws,
+                            const char* name, ina_ullc_wait_strategy ws,
                             ina_ullc_ctx_t **ctx)
 {
     ina_ullc_ctx_t *pctx;
@@ -253,7 +253,7 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_
 
 INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size, 
                         size_t slots, int num_producers, int num_consumers, 
-                        const ina_str_t name, ina_ullc_ctx_t **ctx)
+                        const char *name, ina_ullc_ctx_t **ctx)
 {
     ina_ullc_cursor_t *cons;
     ina_ullc_ctx_t* ccxt;
