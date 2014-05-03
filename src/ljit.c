@@ -144,6 +144,8 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
             case 's':
                 lua_pushstring(ctx->lstate, va_arg(vl, char *));
                 break;
+            case 'c':
+                lua_pushlightuserdata(ctx->lstate, va_arg(vl, void *));
             case '<':
                 goto endwhile;
                 break;
@@ -187,6 +189,12 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
                   return INA_LJIT_ERESULT;
               }
               break;
+            case 'c': /* void pointer */
+              if (lua_type(ctx->lstate, nres) == 10) { 
+                  *va_arg(vl, const void **) = INA_LJIT_TOPOINTER(ctx, nres, const void*);
+              } else {
+                  return INA_LJIT_ERESULT;
+              }            
             default:
               return INA_LJIT_EPARAM;
         }

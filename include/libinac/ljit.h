@@ -117,6 +117,7 @@ INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx);
  *              s = string
  *              d = double
  *              i = int
+ *              c = cdata (const void pointer)
  *              Return values are defined by the same way. After after the
  *              < char.
  *              Example of signature taking 2 strings, 1 double, 1 int and 
