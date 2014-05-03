@@ -54,6 +54,14 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer);
  */
 INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer);
 /*
+ * Enable RDTSC, make sure you understand the caveats 
+ * -> check time.h
+ * -> Only use on modern processors with Invariant TSC
+ * -> Processes must be pinned to CPU
+ * Per default RDTSC is disabled
+ */
+INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno);
+/*
  * Create a new time event for a timer
  */
 INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec);

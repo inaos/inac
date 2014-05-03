@@ -46,6 +46,7 @@ typedef struct ina_time_tsc_s {
 #else
     struct timespec tp;
 #endif
+    uint64_t rtp;
 } ina_time_tsc_t;
 
 #define INA_TIME_MAX_USERDATA_LEN (30)
@@ -141,6 +142,26 @@ INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time);
  * Free System time from the default mempool
  */
 INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
+/*
+ * RDTSC is required if you do not want the process to 
+ * go back and forth to the kernel all the time, this is 
+ * even much more efficient then using VDSO (which are good) 
+ * but RDTSC is the most efficient way to measure time
+ *
+ * Two conditions must apply if one wants to use RDTSC:
+ * - Invariant TSC is supported first (can be checked through 
+ *   the CPU flag `constant_tsc`
+ * - Time-stamping thread is bound to a single CPU, which 
+ *   means one must first pin the process to a particular CPU
+ *
+ * Enabling RDTSC is on process scope
+ *
+ */
+INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc();
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc();
 /*
  * Read the Time Stamp Counter
  */
