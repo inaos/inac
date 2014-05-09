@@ -142,6 +142,7 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
                                             num_consumers, 
                                             name, 
                                             INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL))) {
+        ina_err_clear(ina_err_peek());
         if (!INA_SUCCEED(__ina_ullc_ring_create(&pctx->ring, pctx, version, size, 
                                             slots, 
                                             num_producers, 
@@ -436,13 +437,16 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         return INA_ERR_PUSH_LAST;
     }
 
-    if ((*rb)->magic != __INA_MAGIC_HDR || (flags&INA_MEM_SHARED_CREATE && flags&INA_MEM_SHARED_EXCL)) {
+    if ((*rb)->magic != __INA_MAGIC_HDR || (flags&(INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL))) {
+        (*rb)->magic = __INA_MAGIC_HDR;
         (*rb)->slots = slots;
         (*rb)->num_producers = num_producers;
         (*rb)->num_consumers = num_consumers;
         (*rb)->cursor = -1;
         (*rb)->next_ptr = 0;
         (*rb)->alive_producers = 0;
+        (*rb)->version = version;
+        (*rb)->size = size;
         if (!INA_SUCCEED(__ina_sem_makekey(*rb, name))) {
             return INA_ERR_PUSH_LAST;
         }
