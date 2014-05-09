@@ -170,7 +170,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     return INA_FAILURE;
 }
 
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, ina_str_t label)
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, const char *label)
 {
     __ina_mplist_t *last;
     __ina_mplist_t *next;
@@ -201,7 +201,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     (*pool)->child = NULL;
     (*pool)->current = *pool;
     if (label != NULL) {
-        (*pool)->label = ina_str_dup(label);
+        (*pool)->label = ina_str_new_fromcstr(label);
     } else {
         (*pool)->label = NULL;
     }
