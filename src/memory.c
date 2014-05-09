@@ -592,7 +592,10 @@ __ina_shm_open(ina_mempool_t *pool)
 
     flags = O_RDWR;
     if (pool->cf&INA_MEM_SHARED_CREATE) {
-        flags =  O_CREAT|O_EXCL|O_RDWR;
+        flags |=  O_CREAT;
+        if (pool->cf&INA_MEM_SHARED_EXCL) {
+            flags |= O_EXCL;
+        }
         shm_unlink(ina_str_cstr(pool->label));
     }
 

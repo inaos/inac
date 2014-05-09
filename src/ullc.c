@@ -137,8 +137,19 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
     pctx = *ctx;
 
     if (!INA_SUCCEED(__ina_ullc_ring_create(&pctx->ring, pctx, version, size, 
-    slots, num_producers, num_consumers, ina_str_new_fromcstr(name), INA_MEM_SHARED_CREATE))) {
-        return INA_ERR_PUSH_LAST;
+                                            slots, 
+                                            num_producers, 
+                                            num_consumers, 
+                                            ina_str_new_fromcstr(name), 
+                                            INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL))) {
+        if (!INA_SUCCEED(__ina_ullc_ring_create(&pctx->ring, pctx, version, size, 
+                                            slots, 
+                                            num_producers, 
+                                            num_consumers, 
+                                            ina_str_new_fromcstr(name), 
+                                            INA_MEM_SHARED_CREATE) {
+            return INA_ERR_PUSH_LAST;
+        }
     }
 
     INA_ASSERT_NOTNULL(pctx->ring);
@@ -304,7 +315,6 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
     }
 
     INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, (*ctx)->type);
-
     __INA_ULLC_SWAP(&(*ctx)->c_offset->alive,1,0);
     INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive);
     (*ctx)->c_offset->cursor = 0;
@@ -426,11 +436,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         return INA_ERR_PUSH_LAST;
     }
 
-    if ((*rb)->magic != __INA_MAGIC_HDR || flags&INA_MEM_SHARED_CREATE) {
-        ina_mem_set(*rb, 0, mem_size);
-        (*rb)->magic = __INA_MAGIC_HDR;
-        (*rb)->version = version;
-        (*rb)->size = size;
+    if ((*rb)->magic != __INA_MAGIC_HDR || (flags&INA_MEM_SHARED_CREATE && flags|INA_MEM_SHARED_EXCL)) {
         (*rb)->slots = slots;
         (*rb)->num_producers = num_producers;
         (*rb)->num_consumers = num_consumers;

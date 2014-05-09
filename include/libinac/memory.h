@@ -67,6 +67,8 @@ typedef void (*ina_free_t)(void *);
 #define INA_MEM_SHARED          (32)
 /* Open or create shared memory */
 #define INA_MEM_SHARED_CREATE   (64)
+/* Open shared memory exclusive */
+#define INA_MEM_SHARED_EXCL    (256)
 
 /* Memory pool handle */
 typedef struct ina_mempool_s  {
