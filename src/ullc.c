@@ -436,7 +436,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         return INA_ERR_PUSH_LAST;
     }
 
-    if ((*rb)->magic != __INA_MAGIC_HDR || (flags&INA_MEM_SHARED_CREATE && flags|INA_MEM_SHARED_EXCL)) {
+    if ((*rb)->magic != __INA_MAGIC_HDR || (flags&INA_MEM_SHARED_CREATE && flags&INA_MEM_SHARED_EXCL)) {
         (*rb)->slots = slots;
         (*rb)->num_producers = num_producers;
         (*rb)->num_consumers = num_consumers;
