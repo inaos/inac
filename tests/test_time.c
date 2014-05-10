@@ -161,6 +161,7 @@ INA_TEST(time,read_clock)
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_free(&t));
 }
 
+#ifndef INA_OS_WIN32
 INA_TEST(time_tsc,read_tsc)
 {
     struct timespec test;
@@ -199,6 +200,7 @@ INA_TEST(time_tsc,read_tsc)
 
     ina_time_tsc_disable_rdtsc();
 }
+#endif
 
 INA_TEST_DATA(time_ipc) {
     ina_stopwatch_t *w;
