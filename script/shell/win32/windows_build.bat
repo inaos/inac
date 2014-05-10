@@ -47,12 +47,13 @@ REM * INAC_WIN32_C_BUILD_TOOL: Either 'cmake-nmake' or 'cmake-vs' - Optional
 REM * INAC_WIN32_LUA_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
 REM * INAC_WIN32_LUA_LIB_NAME: Name of the library where the lua byte-code is stored - Optional
 REM * INAC_WIN32_CODE_GEN_SCRIPT: Lua script that will be invoked before compilation, relative from PROJECT_DIR - Optional
+REM * INAC_WIN32_CODE_GEN_ARGS: Arguments for the code-generator - Optional
 REM * INAC_WIN32_DIST_PACKAGE_NAME: Full name of the zip package to be created (e.g. my-app-1.0.zip)
 REM * INAC_WIN32_DIST_FILES: Batch array of (fully qualified) files that will be packaged for distribution.
 REM
 REM Environment variable rules
 REM --------------------------
-REM * You must define either INAC_WIN32_C_SOURCE_DIR or INAC_WIN32_LUA_SOURCE_DIR
+REM * You must define either INAC_WIN32_C_SOURCE_DIR or INAC_WIN32_LUA_SOURCE_DIR - or INAC_WIN32_CODE_GEN_ONLY
 REM * If you define INAC_WIN32_C_SOURCE_DIR or INAC_WIN32_C_TEST_SOURCE_DIR you have to define
 REM   -> INAC_WIN32_C_BUILD_TOOL
 REM * If you define INAC_WIN32_LUA_SOURCE_DIR then you have to define
@@ -151,6 +152,7 @@ SET INAC_BUILD_C_OR_LUA_VALID=
 if defined INAC_WIN32_C_SOURCE_DIR SET INAC_BUILD_C_OR_LUA_VALID=1
 if defined INAC_WIN32_LUA_SOURCE_DIR SET INAC_BUILD_C_OR_LUA_VALID=1
 if defined INAC_WIN32_C_TEST_SOURCE_DIR SET INAC_BUILD_C_OR_LUA_VALID=1
+if defined INAC_WIN32_CODE_GEN_ONLY SET INAC_BUILD_C_OR_LUA_VALID=1
 if not defined INAC_BUILD_C_OR_LUA_VALID goto fail_rule_1
 
 REM rule 2
@@ -190,7 +192,11 @@ if defined INAC_WIN32_CODE_GEN_SCRIPT (
 	if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 		if not exist %INAC_W32_CODE_GEN_FULL_PATH% goto fail_code_gen
 		echo Invoke Code-Generator
-		%INAC_W32_LUAJIT% %INAC_W32_CODE_GEN_FULL_PATH%
+		if defined INAC_WIN32_CODE_GEN_ARGS (
+			%INAC_W32_LUAJIT% %INAC_W32_CODE_GEN_FULL_PATH% %INAC_WIN32_CODE_GEN_ARGS%
+		) else (
+			%INAC_W32_LUAJIT% %INAC_W32_CODE_GEN_FULL_PATH%
+		)
 	)
 )
 
@@ -409,6 +415,8 @@ if defined INAC_WIN32_LUA_LIB_NAME SET INAC_WIN32_LUA_LIB_NAME=
 if defined INAC_WIN32_CODE_GEN_SCRIPT SET INAC_WIN32_CODE_GEN_SCRIPT=
 if defined INAC_WIN32_DIST_FILES SET INAC_WIN32_DIST_FILES=
 if defined INAC_WIN32_DIST_PACKAGE_NAME SET INAC_WIN32_DIST_PACKAGE_NAME=
+if defined INAC_WIN32_CODE_GEN_ONLY SET INAC_WIN32_CODE_GEN_ONLY=
+if defined INAC_WIN32_CODE_GEN_ARGS SET INAC_WIN32_CODE_GEN_ARGS=
 
 goto:eof
 
