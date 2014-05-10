@@ -170,7 +170,7 @@ INA_API(ina_rc_t) ina_mempool_init(size_t size)
     return INA_FAILURE;
 }
 
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, ina_str_t label)
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, const char *label)
 {
     __ina_mplist_t *last;
     __ina_mplist_t *next;
@@ -201,7 +201,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     (*pool)->child = NULL;
     (*pool)->current = *pool;
     if (label != NULL) {
-        (*pool)->label = ina_str_dup(label);
+        (*pool)->label = ina_str_new_fromcstr(label);
     } else {
         (*pool)->label = NULL;
     }
@@ -592,8 +592,10 @@ __ina_shm_open(ina_mempool_t *pool)
 
     flags = O_RDWR;
     if (pool->cf&INA_MEM_SHARED_CREATE) {
-        flags =  O_CREAT|O_EXCL|O_RDWR;
-        shm_unlink(ina_str_cstr(pool->label));
+        flags |=  O_CREAT;
+        if (pool->cf&INA_MEM_SHARED_EXCL) {
+            flags |= O_EXCL;
+        }
     }
 
     pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, 0x0770);
@@ -601,7 +603,7 @@ __ina_shm_open(ina_mempool_t *pool)
         return INA_MEM_ESHMALLOC;
     }
 
-    if (pool->cf&INA_MEM_SHARED_CREATE) {
+    if (pool->cf&(INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL)) {
         if (ftruncate(pool->shm_handle, pool->size) == -1) {
             close(pool->shm_handle);
             pool->shm_handle = 0;

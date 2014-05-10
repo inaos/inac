@@ -67,6 +67,8 @@ typedef void (*ina_free_t)(void *);
 #define INA_MEM_SHARED          (32)
 /* Open or create shared memory */
 #define INA_MEM_SHARED_CREATE   (64)
+/* Open shared memory exclusive */
+#define INA_MEM_SHARED_EXCL    (256)
 
 /* Memory pool handle */
 typedef struct ina_mempool_s  {
@@ -370,7 +372,7 @@ INA_API(ina_rc_t) ina_mempool_getbypointer(const char *ptr, ina_mempool_t **pool
  * Return Value
  * INA_SUCCESS if pool was craeted successfully.
  */
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, ina_str_t label);
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, const char *label);
 
 /* 
  * Release pool memory.
