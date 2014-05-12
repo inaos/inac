@@ -113,6 +113,10 @@ static double __ina_lit_to_secs(LARGE_INTEGER * L)
     QueryPerformanceFrequency( &frequency ) ; 
     return ((double)L->QuadPart /(double)frequency.QuadPart);
 }
+static void __ina_time_rdtsc_calibrate_ticks()
+{
+    /* FIXME calibrate time for windows */
+}
 #else
 struct timespec *__ina_time_rdtsc_timespec_diff(struct timespec *ts1, struct timespec *ts2)
 {
@@ -526,7 +530,7 @@ __ina_time_tsc_rdtsc_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos)
     uint64_t ns;
     uint64_t diff_ns;
 
-    diff_ns = (time->rtp - __ina_time_rdtsc_ref) / __ina_time_rdtsc_ticks_per_nano;
+    diff_ns = (uint64_t)((time->rtp - __ina_time_rdtsc_ref) / __ina_time_rdtsc_ticks_per_nano);
     ns = __ina_time_rdtsc_refhpet + diff_ns;
 
     *secs = ns / 1000000000;
