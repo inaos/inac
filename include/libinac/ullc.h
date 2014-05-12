@@ -236,6 +236,11 @@ typedef struct ina_ullc_flags_s {
 INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *info);
 
 /*
+ * Reset ULLC ring
+ */
+INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name);
+
+/*
  *  Create a producer
  */
 INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, 
@@ -246,6 +251,7 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
  *  Destroy a producer
  */
 INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);
+
 /*
  *
  */

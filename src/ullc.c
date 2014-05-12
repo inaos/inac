@@ -73,7 +73,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     INA_ASSERT_NOTNULL(rb);
     INA_ASSERT_NOTNULL(info);
 
-    if (!INA_SUCCEED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, ina_str_new_fromcstr(name)))) {
+    if (!INA_SUCCEED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, name))) {
         return INA_ERR_PUSH_LAST;
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
@@ -177,6 +177,27 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
         return INA_ULLC_EPLIMIT;
     }
     return __ina_sem_create(pctx);
+}
+
+INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
+{
+    ina_mempool_t *m = NULL;
+    ina_ullc_rb_t *rb = NULL;
+
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_TRUE(strlen(name));
+
+    if (!INA_SUCCEED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, name))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
+    if (rb == NULL) {
+        ina_mempool_release(m, INA_YES);
+        return INA_ERR_PUSH_LAST;
+    }
+    rb->magic = 0;
+    ina_mempool_release(m, INA_YES);
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)

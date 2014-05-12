@@ -87,21 +87,44 @@ static ina_rc_t umon_start_monitor(void)
     return INA_SUCCESS;
 }
 
+static ina_rc_t umon_reset(void) 
+{
+    ina_str_t ring = NULL;
+
+    if (!INA_SUCCEED(ina_opt_get_string("name", &ring))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if (!INA_SUCCEED(ina_ullc_reset_ring(ina_str_cstr(ring)))) {
+        printf("Failed to reset ring %s\n", ina_str_cstr(ring)); 
+        return INA_ERR_PUSH_LAST;
+    }
+    printf("Ring %s reset\n", ina_str_cstr(ring));
+    return INA_SUCCESS;
+}
+
 int main(int argc,  char** argv) 
 { 
     INA_OPTS(opt,
-        INA_OPT_STRING("r", "ring", NULL, "Define ring to monitor"));
+        INA_OPT_STRING("n", "name", NULL, "ULLC ring name"),
+        INA_OPT_FLAG("r", "reset", "Reset ring"));
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
         return EXIT_FAILURE;
     }
     
-    if (!INA_SUCCEED(ina_opt_isset("ring"))) {
+    if (!INA_SUCCEED(ina_opt_isset("name"))) {
         return EXIT_FAILURE;
     }
     
-    if (!INA_SUCCEED(umon_start_monitor())) {
-        return EXIT_FAILURE;
+    if (INA_SUCCEED(ina_opt_isset("r"))) {
+        if (!INA_SUCCEED(umon_reset())) {
+            return EXIT_FAILURE;
+        }
+    } else {
+        if (!INA_SUCCEED(umon_start_monitor())) {
+            return EXIT_FAILURE;
+        }
     }
     return EXIT_SUCCESS;
 }
