@@ -134,7 +134,9 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
                 return INA_ERR_PUSH_LAST;
             }
             so->opt = ina_str_new_fromcstr(opt->short_opt);
-            so->value = ina_str_new_fromcstr(opt->dft);
+            if (opt->dft != NULL) {
+                so->value = ina_str_new_fromcstr(opt->dft);
+            }
             so->desc = ina_str_new_fromcstr(opt->desc);
             so->type = opt->type;
             HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
