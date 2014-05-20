@@ -448,7 +448,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
      ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
 
      if (create == 1) {
-         cf = cf|INA_MEM_SHARED_CREATE;
+         cf = cf|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL;
      }
 
      size = sizeof(ina_stopwatch_t)+(max_stamps*sizeof(ina_stopwatch_ts_t));
