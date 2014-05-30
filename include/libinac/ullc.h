@@ -248,6 +248,11 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
                     const char *name, ina_ullc_wait_strategy ws, 
                     ina_ullc_ctx_t **ctx);
 /*
+ *  Reset a producer
+ */
+INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx);
+
+/*
  *  Destroy a producer
  */
 INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);

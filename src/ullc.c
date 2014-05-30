@@ -199,6 +199,11 @@ INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
+{
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
 {
     if (*ctx == NULL) {
