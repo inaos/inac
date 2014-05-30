@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2014, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,19 @@
 
 static ina_ullc_ctx_t *ullc_ctx = NULL;
 
+
+static void ina_test_helper_cleanup_producer(int error, int *exitcode) {
+    if (ullc_ctx) {
+        ina_ullc_producer_destroy(&ullc_ctx);
+    }
+}
+
+static void ina_test_helper_cleanup_consumer(int error, int *exitcode) {
+    if (ullc_ctx) {
+        ina_ullc_consumer_destroy(&ullc_ctx);
+    }
+}
+
 /* Create a single */
 INA_TEST_HELPER(ullc, create_producer) {
     const char* name;
@@ -37,15 +50,17 @@ INA_TEST_HELPER(ullc, create_producer) {
     size_t producers;
     size_t slots;
     int16_t version;
+ 
+    ina_set_cleanup_handler(ina_test_helper_cleanup_producer);
 
     INA_TEST_HELPER_CHECK_ARGC(5);
-    name = INA_TEST_HELPER_CARG(0);
+    version = (int16_t)INA_TEST_HELPER_IARG(0);
     slots = (size_t)INA_TEST_HELPER_IARG(1);
-    version = (int16_t)INA_TEST_HELPER_IARG(2);
+    producers = (size_t)INA_TEST_HELPER_IARG(2);
     consumers = (size_t)INA_TEST_HELPER_IARG(3);
-    producers = (size_t)INA_TEST_HELPER_IARG(4);
+    name = INA_TEST_HELPER_CARG(4);
 
-    if (INA_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
+    if (!INA_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
         version, 
         slots, 
         producers, 
@@ -53,9 +68,53 @@ INA_TEST_HELPER(ullc, create_producer) {
         name, 
         INA_ULLC_WS_SIGNAL_WAIT, 
         &ullc_ctx))) {
-        INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+        INA_TEST_HELPER_SET_RC(INA_ERR_PUSH_LAST);
     }
-    INA_TEST_HELPER_SET_RC(INA_ERR_PUSH_LAST);
-}
+ }
 
-    
+/* Create a single */
+INA_TEST_HELPER(ullc, create_consumer) {
+    const char* name;
+    size_t consumers;
+    size_t producers;
+    size_t slots;
+    int16_t version;
+    ina_ullc_ctx_t *ullc_ctx = NULL;
+    ina_test_ullc_t *v = NULL;
+
+    ina_set_cleanup_handler(ina_test_helper_cleanup_consumer);
+
+    INA_TEST_HELPER_CHECK_ARGC(5);
+    version = (int16_t)INA_TEST_HELPER_IARG(0);
+    slots = (size_t)INA_TEST_HELPER_IARG(1);
+    producers = (size_t)INA_TEST_HELPER_IARG(2);
+    consumers = (size_t)INA_TEST_HELPER_IARG(3);
+    name = INA_TEST_HELPER_CARG(4);
+
+
+    if (!INA_SUCCEED(INA_ULLC_CONSUMER_CREATE(ina_test_ullc_t, 
+            version, 
+            slots, 
+            producers, 
+            consumers, 
+            name, 
+            &ullc_ctx))) {
+            INA_TEST_HELPER_EXIT(INA_ERR_PUSH_LAST);
+    }
+
+   INA_TRACE("created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
+        version, slots, producers, consumers, name);
+ 
+    while (1) {
+        v = INA_ULLC_GET(ina_test_ullc_t, ullc_ctx);
+        if (v) {
+            INA_TRACE("consumer %d, v=%d", ullc_ctx->id, v->i3);
+            if (v->i3 == -1) {
+                break;
+            }
+        }
+        ina_time_sleep(1);
+    }
+    INA_TRACE("ullc consumer %d exit", ullc_ctx->id);
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+}
