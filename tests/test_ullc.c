@@ -164,7 +164,9 @@ INA_TEST(ullc, consumer_get_set_pos)
     INA_TEST_ASSERT_EQUAL_FLOATING(102.0, v->d1);
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer1, &pos));
     INA_TEST_ASSERT_EQUAL_INTEGER(103, pos);   
-
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(consumer1, 1024));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer1, &pos));
+    INA_TEST_ASSERT_EQUAL_INTEGER(124, pos);
  
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(consumer2, -1));
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer2, &pos));
