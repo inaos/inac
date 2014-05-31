@@ -102,19 +102,19 @@ INA_TEST_HELPER(ullc, create_consumer) {
             INA_TEST_HELPER_EXIT(INA_ERR_PUSH_LAST);
     }
 
-   INA_TRACE("created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
+   INA_TRACE3("created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
         version, slots, producers, consumers, name);
  
     while (1) {
         v = INA_ULLC_GET(ina_test_ullc_t, ullc_ctx);
         if (v) {
-            INA_TRACE("consumer %d, v=%d", ullc_ctx->id, v->i3);
+            INA_TRACE3("consumer %d, v=%d", ullc_ctx->id, v->i3);
             if (v->i3 == -1) {
                 break;
             }
         }
         ina_time_sleep(1);
     }
-    INA_TRACE("ullc consumer %d exit", ullc_ctx->id);
+    INA_TRACE3("ullc consumer %d exit", ullc_ctx->id);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
