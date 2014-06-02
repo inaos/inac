@@ -213,7 +213,8 @@ INA_TEST_SETUP(time_ipc) {
 	NULL);
 }
 
-INA_TEST_TEARDOWN(time_ipc) {
+INA_TEST_TEARDOWN(time_ipc) 
+{
     INA_TEST_HELPER_TERMINATE(&data->hid);
 }
 
@@ -248,4 +249,9 @@ INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
         ++c;
     }
     INA_TEST_ASSERT_EQUAL_INTEGER(c, 4);
+
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(data->w));
+    ina_time_sleep(500); /* Wait child is exit */
+    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&data->w));
 }

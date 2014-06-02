@@ -56,11 +56,9 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     ina_time_sleep(10);
     INA_TIME_STOPWATCH_STAMP2(w, user_data, user_data);
     
-    /* wait kill signal */
-    while (1) {
-        ina_time_sleep(1000);
+    while (INA_SUCCEED(ina_time_stopwatch_started(w))) {
+        ina_time_sleep(100);
     }
-
     INA_TIME_STOPWATCH_DESTROY(&w);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
