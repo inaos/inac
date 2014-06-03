@@ -38,6 +38,7 @@ INA_TEST(time,time_stamp)
     INA_TEST_ASSERT_EQUAL_FLOATING(1024, w->tv->max_stamps);
     INA_TEST_ASSERT_NOT_NULL(w->tv);
     INA_TEST_ASSERT_NULL(w->ts);
+    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(w));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
     while (c--) {
         INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, "1", "2"));

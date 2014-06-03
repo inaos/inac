@@ -473,8 +473,9 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
      }
 
      if (create) {
-         ina_mem_set(&(*stopwatch)->tv, size, 0);
-         (*stopwatch)->tv->max_stamps = max_stamps;
+        ina_mem_set(&(*stopwatch)->tv, size, 0);
+        (*stopwatch)->tv->max_stamps = max_stamps;
+        (*stopwatch)->tv->sec_duration = -1.0;
      }
      (*stopwatch)->id = id;
      return INA_SUCCESS; 
