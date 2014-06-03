@@ -31,6 +31,7 @@ INA_TEST(time,time_stamp)
 {
     ina_stopwatch_t *w = NULL;
     int64_t c = 10;
+    double msec_duration = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
     INA_TEST_ASSERT_NOT_NULL(w);
@@ -42,11 +43,13 @@ INA_TEST(time,time_stamp)
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
     while (c--) {
         INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, "1", "2"));
+        ina_time_sleep(100);
     }
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     c = 0;
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &c))) {
         INA_TEST_ASSERT_NOT_NULL(w->ts);
+        INA_TEST_ASSERT_TRUE(msec_duration < w->ts->msec_duration);
         ++c;
     }
     INA_TEST_ASSERT_EQUAL_INTEGER(10, c);
