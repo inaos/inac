@@ -754,8 +754,10 @@ __ina_shm_open(ina_mempool_t *pool)
 
     flags = O_RDWR;
     if (pool->cf&INA_MEM_SHARED_CREATE) {
-        flags =  O_CREAT|O_EXCL|O_RDWR;
-        shm_unlink(ina_str_cstr(pool->label));
+        flags |=  O_CREAT;
+        if (pool->cf&INA_MEM_SHARED_EXCL) {
+            flags |= O_EXCL;
+        }
     }
 
     pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, 0x0770);
@@ -763,7 +765,7 @@ __ina_shm_open(ina_mempool_t *pool)
         return INA_MEM_ESHMALLOC;
     }
 
-    if (pool->cf&INA_MEM_SHARED_CREATE) {
+    if (pool->cf&INA_MEM_SHARED_EXCL) {
         if (ftruncate(pool->shm_handle, pool->size) == -1) {
             close(pool->shm_handle);
             pool->shm_handle = 0;
@@ -779,7 +781,7 @@ __ina_shm_open(ina_mempool_t *pool)
     if (pool->m == MAP_FAILED) {
         close(pool->shm_handle);
         pool->shm_handle = 0;
-        if (pool->cf&INA_MEM_SHARED_CREATE) {
+        if (pool->cf&INA_MEM_SHARED_EXCL) {
             shm_unlink(ina_str_cstr(pool->label));
         }
         return INA_MEM_ESHMALLOC;
@@ -818,7 +820,7 @@ __ina_shm_close(ina_mempool_t *pool)
     close(pool->shm_handle);
 
     /* Dec ref count, unlink on last relase */
-    if (cn == 0) {
+    if (cn == 0 || pool->cf&INA_MEM_SHARED_EXCL) {
         INA_TRACE2("unlinking shared mem %s", pool->label);
         shm_unlink(ina_str_cstr(pool->label));
     }

@@ -39,6 +39,7 @@ INA_TEST(time,time_stamp)
     INA_TEST_ASSERT_EQUAL_FLOATING(1024, w->tv->max_stamps);
     INA_TEST_ASSERT_NOT_NULL(w->tv);
     INA_TEST_ASSERT_NULL(w->ts);
+    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(w));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
     while (c--) {
         INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, "1", "2"));
@@ -164,6 +165,47 @@ INA_TEST(time,read_clock)
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_free(&t));
 }
 
+#ifndef INA_OS_WIN32
+INA_TEST(time_tsc,read_tsc)
+{
+    struct timespec test;
+    ina_time_tsc_t t;
+    time_t sec;
+    long nanos;
+    double u1, u2 = 0;
+    double d = 0;
+    int i;
+    const char *msg = "Test may fail, because RDTSC can be different from HPET, "
+                      "but should not be more then couple of micro-seconds";
+
+    INA_TEST_MSG("%s", msg);
+
+    ina_time_tsc_enable_rdtsc();
+    
+    clock_gettime(CLOCK_MONOTONIC_RAW, &test); 
+    ina_time_read_tsc_clock(&t);
+    ina_time_tsc_seconds_nanos(&t, &sec, &nanos);
+    u1 = test.tv_nsec / 1000;
+    u2 = nanos / 1000;
+ 
+    INA_TEST_ASSERT_EQUAL_INTEGER(test.tv_sec, sec);
+    d = u1 - u2;
+    INA_TEST_ASSERT_TRUE(abs(d) <= 1);
+    
+    for (i = 0; i < 1000; i++) {
+        clock_gettime(CLOCK_MONOTONIC_RAW, &test);
+        ina_time_read_tsc_clock(&t);
+        ina_time_tsc_seconds_nanos(&t, &sec, &nanos);
+        u1 = test.tv_nsec / 1000;
+        u2 = nanos / 1000;
+        d = u1 - u2;
+        INA_TEST_ASSERT_TRUE(abs(d) <= 1);
+    }
+
+    ina_time_tsc_disable_rdtsc();
+}
+#endif
+
 INA_TEST_DATA(time_ipc) {
     ina_stopwatch_t *w;
     ina_test_hid_t hid;
@@ -175,7 +217,8 @@ INA_TEST_SETUP(time_ipc) {
 	NULL);
 }
 
-INA_TEST_TEARDOWN(time_ipc) {
+INA_TEST_TEARDOWN(time_ipc) 
+{
     INA_TEST_HELPER_TERMINATE(&data->hid);
 }
 
@@ -210,4 +253,9 @@ INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
         ++c;
     }
     INA_TEST_ASSERT_EQUAL_INTEGER(c, 4);
+
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(data->w));
+    ina_time_sleep(500); /* Wait child is exit */
+    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&data->w));
 }

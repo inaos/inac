@@ -52,6 +52,8 @@ extern "C" {
 #define INA_MEM_SHARED_CREATE   (64)
 /* Shared memory owner */
 #define INA_MEM_SHARED_OWNER    (128)
+/* Open shared memory exclusive */
+#define INA_MEM_SHARED_EXCL    (256)
 
 /* Opaque emory pool handle */
 typedef struct ina_mempool_s ina_mempool_t;

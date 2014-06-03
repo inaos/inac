@@ -52,6 +52,58 @@
 #  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC
 #endif
 
+#ifdef INA_OS_WIN32
+  #ifdef INA_CPU_X86
+    INA_INLINE uint64_t __ina_time_rdtsc()
+    {
+        uint64_t c;
+        __asm {
+            cpuid    /* serialize processor */
+            rdtsc    /* read time stamp counter */
+            mov dword ptr [c + 0], eax
+            mov dword ptr [c + 4], edx
+        }
+        return c;
+    }
+  #elif defined(INA_CPU_X86_64)
+    #pragma intrinsic(__rdtsc)
+    INA_INLINE uint64_t __ina_time_rdtsc()
+    {
+        return __rdtsc();
+    }
+  #endif
+#else
+  #ifdef INA_CPU_X86
+    INA_INLINE unsigned long long __ina_time_rdtsc(void)
+    {
+        unsigned long long int x;
+        __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+        return x;
+    }
+  #elif defined(INA_CPU_X86_64)
+    INA_INLINE unsigned long long __ina_time_rdtsc(void)
+    {
+        unsigned hi, lo;
+        __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+        return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
+    }
+  #endif
+#endif
+
+typedef ina_rc_t (*__ina_time_tsc_read_fp)(ina_time_tsc_t *time);
+typedef ina_rc_t (*__ina_time_tsc_seconds_nanos_fp)(ina_time_tsc_t* time, time_t *secs, long *nanos);
+
+static ina_rc_t __ina_time_tsc_os_read(ina_time_tsc_t *time);
+static ina_rc_t __ina_time_tsc_os_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos);
+static ina_rc_t __ina_time_tsc_rdtsc_read(ina_time_tsc_t *time);
+static ina_rc_t __ina_time_tsc_rdtsc_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos);
+
+static __ina_time_tsc_read_fp __ina_time_tsc_read = __ina_time_tsc_os_read;
+static __ina_time_tsc_seconds_nanos_fp __ina_time_tsc_secnan = __ina_time_tsc_os_secnan;
+static double __ina_time_rdtsc_ticks_per_nano = 0;
+static uint64_t __ina_time_rdtsc_refhpet = 0;
+static uint64_t __ina_time_rdtsc_ref = 0;
+
 static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
  
 #ifdef INA_OS_WIN32
@@ -61,8 +113,57 @@ static double __ina_lit_to_secs(LARGE_INTEGER * L)
     QueryPerformanceFrequency( &frequency ) ; 
     return ((double)L->QuadPart /(double)frequency.QuadPart);
 }
+static void __ina_time_rdtsc_calibrate_ticks()
+{
+    /* FIXME calibrate time for windows */
+}
+#else
+struct timespec *__ina_time_rdtsc_timespec_diff(struct timespec *ts1, struct timespec *ts2)
+{
+    static struct timespec ts;
+    ts.tv_sec = ts1->tv_sec - ts2->tv_sec;
+    ts.tv_nsec = ts1->tv_nsec - ts2->tv_nsec;
+    if (ts.tv_nsec < 0) {
+        ts.tv_sec--;
+        ts.tv_nsec += 1000000000;
+    }
+    return &ts;
+}
+static void __ina_time_rdtsc_calibrate_ticks()
+{
+    struct timespec begints, endts, refhpet;
+    uint64_t begin = 0, end = 0;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &begints);
+    begin = __ina_time_rdtsc();
+    uint64_t i;
+    for (i = 0; i < 1000000; i++); /* must be CPU intensive */
+    end = __ina_time_rdtsc();
+    clock_gettime(CLOCK_MONOTONIC_RAW, &endts);
+    struct timespec *tmpts = __ina_time_rdtsc_timespec_diff(&endts, &begints);
+    uint64_t nsecElapsed = tmpts->tv_sec * 1000000000LL + tmpts->tv_nsec;
+    __ina_time_rdtsc_ticks_per_nano = (double)(end - begin)/(double)nsecElapsed;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &refhpet);
+    __ina_time_rdtsc_ref = __ina_time_rdtsc();
+    __ina_time_rdtsc_refhpet = refhpet.tv_sec * 1000000000LL + refhpet.tv_nsec;
+}
 #endif
 
+INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc()
+{
+    if (__ina_time_rdtsc_ticks_per_nano == 0) {
+        __ina_time_rdtsc_calibrate_ticks();   
+    }
+    __ina_time_tsc_read = __ina_time_tsc_rdtsc_read;
+    __ina_time_tsc_secnan = __ina_time_tsc_rdtsc_secnan;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc()
+{
+    __ina_time_tsc_read = __ina_time_tsc_os_read;
+    __ina_time_tsc_secnan = __ina_time_tsc_os_secnan;
+    return INA_SUCCESS;
+}
 
 INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
 {
@@ -78,41 +179,12 @@ INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time)
 
 INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
 {
-#ifdef INA_OS_WIN32
-    QueryPerformanceCounter(&time->tp);
-#elif defined(INA_OS_OSX)
-     time->tp = mach_absolute_time();
-#else 
-    if (clock_gettime(STOPWATCH_CLOCK_TYPE, &time->tp) == -1) {
-        return INA_FAILURE;
-    }
-#endif
-    return INA_SUCCESS;
+    return __ina_time_tsc_read(time);
 }
 
 INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
-#ifdef INA_OS_WIN32
-    double dsecs = __ina_lit_to_secs(&time->tp);
-    double ipart = 0;
-    double fpart = 0;
-    fpart = modf(dsecs, &ipart);
-    *secs = (time_t)ipart;
-    *nanos = (long)(fpart*1000*1000*1000);
-#elif defined(INA_OS_OSX)
-    int64_t ns;    
-    mach_timebase_info_data_t info;
-    mach_timebase_info(&info);
-    ns = (int64_t)(time->tp);
-    ns *= info.numer;
-    ns /= info.denom;
-    *nanos = (long)ns;
-    *secs /= 1000000000;
-#else
-    *secs = time->tp.tv_sec;
-    *nanos = time->tp.tv_nsec;
-#endif
-    return INA_SUCCESS;
+    return __ina_time_tsc_secnan(time, secs, nanos);
 }
 
 INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, 
@@ -389,7 +461,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
      ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
 
      if (create == 1) {
-         cf = cf|INA_MEM_SHARED_CREATE;
+         cf = cf|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL;
      }
 
      size = sizeof(ina_stopwatch_t)+(max_stamps*sizeof(ina_stopwatch_ts_t));
@@ -414,9 +486,70 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
      }
 
      if (create) {
-         ina_mem_set(&(*stopwatch)->tv, size, 0);
-         (*stopwatch)->tv->max_stamps = max_stamps;
+        ina_mem_set(&(*stopwatch)->tv, size, 0);
+        (*stopwatch)->tv->max_stamps = max_stamps;
+        (*stopwatch)->tv->sec_duration = -1.0;
      }
      (*stopwatch)->id = id;
      return INA_SUCCESS; 
 }
+static ina_rc_t
+__ina_time_tsc_os_read(ina_time_tsc_t *time)
+{
+#ifdef INA_OS_WIN32
+    QueryPerformanceCounter(&time->tp);
+#elif defined(INA_OS_OSX)
+     time->tp = mach_absolute_time();
+#else
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
+        return INA_FAILURE;
+    }
+#endif
+    return INA_SUCCESS;
+}
+static ina_rc_t 
+__ina_time_tsc_os_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos)
+{
+#ifdef INA_OS_WIN32
+    double dsecs = __ina_lit_to_secs(&time->tp);
+    double ipart = 0;
+    double fpart = 0;
+    fpart = modf(dsecs, &ipart);
+    *secs = (time_t)ipart;
+    *nanos = (long)(fpart*1000*1000*1000);
+#elif defined(INA_OS_OSX)
+    int64_t ns;
+    mach_timebase_info_data_t info;
+    mach_timebase_info(&info);
+    ns = (int64_t)(time->tp);
+    ns *= info.numer;
+    ns /= info.denom;
+    *nanos = (long)ns;
+    *secs /= 1000000000;
+#else
+    *secs = time->tp.tv_sec;
+    *nanos = time->tp.tv_nsec;
+#endif
+    return INA_SUCCESS;
+}
+static ina_rc_t 
+__ina_time_tsc_rdtsc_read(ina_time_tsc_t *time)
+{
+    time->rtp = __ina_time_rdtsc();
+    return INA_SUCCESS;
+}
+static ina_rc_t 
+__ina_time_tsc_rdtsc_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos)
+{
+    uint64_t ns;
+    uint64_t diff_ns;
+
+    diff_ns = (uint64_t)((time->rtp - __ina_time_rdtsc_ref) / __ina_time_rdtsc_ticks_per_nano);
+    ns = __ina_time_rdtsc_refhpet + diff_ns;
+
+    *secs = ns / 1000000000;
+    *nanos = ns % 1000000000;
+
+    return INA_SUCCESS;
+}
+

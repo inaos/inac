@@ -32,6 +32,7 @@
 struct ina_timer_s {
     skiplist events;
     uint64_t next_event_id;
+    int use_rdtsc;
 } ina_timer_s;
 
 /* Skip list compare callback */
@@ -67,6 +68,7 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
     t = *timer;
     t->next_event_id = 0;
     t->events = skiplist_create(__ina_cmp, sentinal);
+    t->use_rdtsc = INA_NO;
 
     return INA_SUCCESS;
 }
@@ -111,6 +113,17 @@ INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t mse
 
     skiplist_insert(timer->events, e);
     return e;
+}
+
+INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno)
+{
+    if (yesno == INA_YES && timer->use_rdtsc == INA_NO) {
+        ina_time_tsc_enable_rdtsc();
+    }
+    else if (yesno == INA_NO && timer->use_rdtsc == INA_YES) {
+        ina_time_tsc_disable_rdtsc();
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e)
@@ -230,7 +243,7 @@ __ina_get_time(time_t *sec, time_t *msec)
 
 	ina_time_tsc_seconds_nanos(&t, sec, &nanos);
     
-	*msec = nanos*1000*1000;
+	*msec = nanos/1000/1000;
 
     return INA_SUCCESS;
 }

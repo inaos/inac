@@ -122,7 +122,7 @@ INA_API(ina_rc_t) ina_util_base64_encode_length(size_t in_length, unsigned int l
         newline_size = ((code_padded_size) / line_length) * 2;
     }
 
-    *out_length = code_padded_size + newline_size;
+    *out_length = code_padded_size + newline_size + 1;
 
     return INA_SUCCESS;
 }

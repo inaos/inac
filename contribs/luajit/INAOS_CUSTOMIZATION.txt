@@ -1,4 +1,4 @@
-Since we'd only link staticly and like to have a debug library for windows as well we have 
+1) Since we'd only link staticly and like to have a debug library for windows as well we have 
 created a second msvcbuild.bat - called msvcbuild_debug.bat
 
 It contains the following changes:
@@ -11,3 +11,15 @@ It contains the following changes:
 - THE IDEA IS THAT YOU'LL HAVE 2 LIBS IN THE END -> lua51.lib, lua51d.lib
 
 Make sure to maintain this file when upgrading luajit!
+
+2) In the release build script msvcbuild.bat the default settings are to include the 
+runtime library.. however this messes up for current windows build. Therefore we 
+change it back to link against the runtime as library
+
+<before>
+
+@set LJCOMPILE=cl /nologo /c /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE
+
+<after> -> we add /MD
+
+@set LJCOMPILE=cl /nologo /c /MD /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE

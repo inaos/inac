@@ -236,12 +236,22 @@ typedef struct ina_ullc_flags_s {
 INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *info);
 
 /*
+ * Reset ULLC ring
+ */
+INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name);
+
+/*
  *  Create a producer
  */
 INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, 
                     size_t slots, int producers, int num_consumers,
-                    const ina_str_t name, ina_ullc_wait_strategy ws, 
+                    const char *name, ina_ullc_wait_strategy ws, 
                     ina_ullc_ctx_t **ctx);
+/*
+ *  Reset a producer
+ */
+INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx);
+
 /*
  *  Destroy a producer
  */
@@ -250,8 +260,16 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);
 /*
  *
  */
-INA_API(int64_t) ina_ullc_producer_pos(ina_ullc_ctx_t *ctx);
+INA_API(ina_rc_t) ina_ullc_producer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_ullc_consumer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos);
 /*
  * Claim item for a producer
  */
@@ -273,7 +291,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
                                     size_t slots, 
                                     int producers,
                                     int num_consumers, 
-                                    const ina_str_t name, 
+                                    const char *name, 
                                     ina_ullc_ctx_t **ctx);
 /*
  * Destroy consumer

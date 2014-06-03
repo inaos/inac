@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2014, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,65 +25,15 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_TIMER_H_
-#define _LIBINAC_TIMER_H_
-
 #include <libinac/lib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef _LIBINAC_TEST_ULLC_H_
+#define _LIBINAC_TEST_ULLC_H_
 
-/* Timer */
-typedef struct ina_timer_s ina_timer_t;
-
-/* Time event */
-typedef struct ina_time_event_s {
-    uint64_t id;
-    time_t msec;
-    time_t when_sec;
-    time_t when_msec;
-} ina_time_event_t;
-
-/*
- * Create an new timer 
- */
-INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer);
-/*
- * Destroty a timer
- */
-INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer);
-/*
- * Enable RDTSC, make sure you understand the caveats 
- * -> check time.h
- * -> Only use on modern processors with Invariant TSC
- * -> Processes must be pinned to CPU
- * Per default RDTSC is disabled
- */
-INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno);
-/*
- * Create a new time event for a timer
- */
-INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec);
-/*
- * Delete a time event from a timer
- */
-INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e);
-/*
- * Get the next elapsed time event
- */
-INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer);
-/*
- *  Calculate time in msec until the next time event will elapse.
- */
-INA_API(ina_rc_t) ina_timer_time_to_next_event(ina_timer_t *timer, time_t *how_long_msec);
-/*
- * Sleep a timer for msec. 
- */
-INA_API(ina_rc_t) ina_timer_sleep(ina_timer_t *timer, time_t msec);
-
-#ifdef __cplusplus
-}
-#endif
+typedef struct ina_test_ullc_s {
+	double  d1;
+	double  d2;
+	int32_t i3;
+} ina_test_ullc_t;
 
 #endif

@@ -69,7 +69,6 @@ typedef void (*ina_free_t)(void *);
  * INA_SUCCESS if no error occurred.
  */                                 
 INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
-
 /*
  * Allocate memory block. Allocates a block of size bytes of memory, returning
  * a pointer to the beginning of the block.
@@ -242,19 +241,6 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
  */
 INA_API(void) ina_mem_free(void *ptr);
 INA_API(void) ina_mem_free_aligned(void *ptr);
-
-/*
- * The function returns the number of bytes in a memory page, where "page" is 
- * a fixed-length block, the unit for memory allocation and file mapping.
- *
- * Parameters:
- * size     Size in bytes
- *
- * Return Value
- * INA_SUCCESS if no error occurred.
- */                                 
-INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
-
 
 #ifdef __cplusplus
 }

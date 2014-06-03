@@ -56,9 +56,41 @@ INA_TEST(timer, event)
     e1 = ina_timer_create_event(t, 900);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NOT_NULL(e1);
+    ina_time_sleep(100);
+    e2 = ina_timer_next_event(t);
+    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_NULL(e2);
     ina_time_sleep(1000);
     e2 = ina_timer_next_event(t);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
 }
+
+INA_TEST(timer, event_rdtsc)
+{
+    ina_timer_t *t;
+    ina_time_event_t *e1;
+    ina_time_event_t *e2;
+
+    t = NULL;
+    e1 = NULL;
+    e2 = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
+    INA_TEST_ASSERT_NOT_NULL(t);
+    INA_TEST_ASSERT_SUCCEED(ina_timer_use_rdtsc(t, INA_YES));
+    ina_time_sleep(100);
+    e1 = ina_timer_create_event(t, 900);
+    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_NOT_NULL(e1);
+    ina_time_sleep(100);
+    e2 = ina_timer_next_event(t);
+    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_NULL(e2);
+    ina_time_sleep(850);
+    e2 = ina_timer_next_event(t);
+    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_NOT_NULL(e2);
+    INA_TEST_ASSERT_SAME(e2, e1);
+}
+
