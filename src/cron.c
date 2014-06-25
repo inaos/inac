@@ -725,6 +725,25 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_cron_unregister_function(ina_cron_ctx_t *ctx, const char *id)
+{
+    ina_cron_func_t *func = NULL;
+    ina_str_t skey = ina_str_fromcstr(id);
+    unsigned long key = INA_HASH_STR_TO_SDBM(skey);
+    
+    ina_str_destroy(skey);
+	
+	/* check if we already have this function - by using the ID */
+	HASH_FIND_ULONG(ctx->func_head, &key, func);
+	
+	if (func == NULL) {
+	    HASH_DELETE(hh, ctx->func_head, func);
+		ina_mem_free(func);
+	}
+	
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, ina_str_t pattern, time_t now, time_t *last_exec_time)
 {
     time_t t = now;
