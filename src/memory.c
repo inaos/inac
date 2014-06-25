@@ -235,6 +235,9 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
     if (label != NULL) {
         (*pool)->label = ina_str_fromcstr(label);
     }
+    else {
+        (*pool)->label = NULL;
+    }
     if (cf&INA_MEM_SHARED) {
         INA_ASSERT_NOTNULL((*pool)->label);
 
