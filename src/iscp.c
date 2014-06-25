@@ -353,6 +353,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
     INA_ASSERT_TRUE(nc > 0);
     INA_ASSERT_TRUE(wait_msec >= 0);
     
+    rc = INA_SUCCESS;
+
     /* Open ISCP channel */
     if (!INA_SUCCEED(ctx->open_cb(ctx->user_data, 0))) {
         return INA_ERR_PUSH_LAST;
@@ -464,7 +466,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             ina_time_sleep(wait_msec);
         }
     }
-    return INA_ERR_PUSH_LAST;
+    return rc;
 }
 
 static ina_rc_t 

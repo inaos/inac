@@ -44,8 +44,6 @@ void test_error_repush()
 {
     ina_rc_t rc;
 
-    INA_TRACE_MSG("test_error_repush");
-    
     INA_ASSERT_SUCCESS(ina_err_reset());
     INA_ASSERT_SUCCESS(ina_err_peek());
     
@@ -54,8 +52,14 @@ void test_error_repush()
     INA_STR_EALLOC;
     INA_ERR_PUSH_LAST;
     INA_ERR_PUSH_LAST;
-    
+    ina_err_repush(INA_EINVAL, __FILE__, __LINE__);
+    INA_ERR_PUSH_LAST;
+
     rc = ina_err_peek();
+    INA_ASSERT_EQUAL(INA_EINVAL, INA_RC_REASON(rc));
+    rc = ina_err_peek_next(rc);
+    INA_ASSERT_EQUAL(INA_EINVAL, INA_RC_REASON(rc));    
+    rc = ina_err_peek_next(rc);
     INA_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));
     rc = ina_err_peek_next(rc);
     INA_ASSERT_EQUAL(INA_EALLOC, INA_RC_REASON(rc));
@@ -66,6 +70,7 @@ void test_error_repush()
     rc = ina_err_peek_next(rc);
     INA_ASSERT_EQUAL(INA_EMSGLEN, INA_RC_REASON(rc));
 }
+
 void test_error_push_a_million_errors()
 {
     size_t i;

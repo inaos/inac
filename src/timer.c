@@ -225,7 +225,7 @@ __ina_get_time(time_t *sec, time_t *msec)
 
 	ina_time_tsc_seconds_nanos(&t, sec, &nanos);
     
-	*msec = nanos*1000*1000;
+	*msec = nanos/1000/1000;
 
     return INA_SUCCESS;
 }
