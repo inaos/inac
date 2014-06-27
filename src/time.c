@@ -73,19 +73,19 @@
     }
   #endif
 #else
-  #ifdef INA_CPU_X86
-    INA_INLINE unsigned long long __ina_time_rdtsc(void)
-    {
-        unsigned long long int x;
-        __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-        return x;
-    }
-  #elif defined(INA_CPU_X86_64)
+  #if defined(INA_CPU_X86_64)
     INA_INLINE unsigned long long __ina_time_rdtsc(void)
     {
         unsigned hi, lo;
         __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
         return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
+    }
+  #elif INA_CPU_X86
+    INA_INLINE unsigned long long __ina_time_rdtsc(void)
+    {
+        unsigned long long int x;
+        __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+        return x;
     }
   #endif
 #endif
