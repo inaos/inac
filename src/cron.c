@@ -728,10 +728,10 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
 INA_API(ina_rc_t) ina_cron_unregister_function(ina_cron_ctx_t *ctx, const char *id)
 {
 	ina_cron_func_t *func = NULL;
-	ina_str_t skey = ina_str_fromcstr(id);
+	ina_str_t skey = ina_str_new_fromcstr(id);
     unsigned long key = INA_HASH_STR_TO_SDBM(skey);
 
-    ina_str_destroy(skey);
+    ina_str_free(skey);
 	
 	/* check if we already have this function - by using the ID */
 	HASH_FIND_ULONG(ctx->func_head, &key, func);
