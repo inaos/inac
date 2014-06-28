@@ -134,10 +134,10 @@ INA_TEST(time, stopwatch_startime)
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &i))) {
-	INA_TRACE("Stamp %ld, %.10f", i, w->ts->sec_duration);
+	INA_TEST_MSG("Stamp %ld, %.10f", i, w->ts->sec_duration);
         ++i;
     }
-    INA_TRACE("secs %.10f", w->tv->sec_duration);
+    INA_TEST_MSG("Duration in secs %.10f", w->tv->sec_duration);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
     INA_TEST_ASSERT_NULL(w);
 }
@@ -163,18 +163,18 @@ INA_TEST(time, stopwatch_startime_rdtsc)
     INA_TEST_ASSERT_NULL(w->ts);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
     ina_time_sleep(100);
-    /*INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));*/
+    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, NULL, NULL));
     ina_time_sleep(100);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, NULL, NULL));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
-    /*INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));*/
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &i))) {
-	INA_TRACE("Stamp %ld, %.10f", i, w->ts->sec_duration);
+	INA_TEST_MSG("Stamp %ld, %.10f", i, w->ts->sec_duration);
         ++i;
     }
-    INA_TRACE("secs %.10f", w->tv->sec_duration);
+    INA_TEST_MSG("Duration in secs %.10f", w->tv->sec_duration);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
     INA_TEST_ASSERT_NULL(w);
     ina_time_tsc_disable_rdtsc();
