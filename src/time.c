@@ -295,23 +295,11 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch,
     /* Override start if passed */
     if (start != NULL) {
         ina_mem_cpy(&stopwatch->tv->start, start, sizeof(ina_time_tsc_t));
-        /* Ensure sec and nsec member filled in RDTSC mode */
-        ina_time_tsc_seconds_nanos(&stopwatch->tv->start, 
-                &stopwatch->tv->start.tp.tv_sec,
-                &stopwatch->tv->start.tp.tv_nsec);
-
         return INA_SUCCESS;
     }
 
     /* Read clock */
-    ina_time_read_tsc_clock(&stopwatch->tv->start);
-    
-    /* Ensure sec and nsec member filled in RDTSC mode */
-    ina_time_tsc_seconds_nanos(&stopwatch->tv->start, 
-                &stopwatch->tv->start.tp.tv_sec,
-                &stopwatch->tv->start.tp.tv_nsec);
-
-    return INA_SUCCESS;
+    return ina_time_read_tsc_clock(&stopwatch->tv->start);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, 
@@ -368,22 +356,12 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 #else
         if (*stamp_index == 0) {
 
-            /* Ensure sec and nsec member filled in RDTSC mode */
-            ina_time_tsc_seconds_nanos(&stopwatch->ts->stamp, 
-                &stopwatch->ts->stamp.tp.tv_sec,
-                &stopwatch->ts->stamp.tp.tv_nsec);
-
             stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - 
 			    stopwatch->tv->start.tp.tv_sec);
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_nsec -
 				    stopwatch->tv->start.tp.tv_nsec)/1000000000.0);
         } else {
             ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index-1);
-
-            /* Ensure sec and nsec member filled in RDTSC mode */
-            ina_time_tsc_seconds_nanos(&stopwatch->ts->stamp, 
-                &stopwatch->ts->stamp.tp.tv_sec,
-                &stopwatch->ts->stamp.tp.tv_nsec);
 
             stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec 
 			    - ts->stamp.tp.tv_sec);
@@ -447,11 +425,6 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 #else
     INA_ASSERT_NOTNULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
-
-    /* Ensure sec and nsec member filled in RDTSC mode */
-    ina_time_tsc_seconds_nanos(&stopwatch->tv->stop, 
-                &stopwatch->tv->stop.tp.tv_sec,
-                &stopwatch->tv->stop.tp.tv_nsec);
 
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - 
 		    stopwatch->tv->start.tp.tv_sec);
@@ -554,6 +527,11 @@ static ina_rc_t
 __ina_time_tsc_rdtsc_read(ina_time_tsc_t *time)
 {
     time->rtp = __ina_time_rdtsc();
+    ina_time_tsc_seconds_nanos(time, 
+                &time->tp.tv_sec,
+                &time->tp.tv_nsec);
+
+
     return INA_SUCCESS;
 }
 static ina_rc_t 
