@@ -256,6 +256,11 @@ INA_TEST(time_tsc,read_tsc)
  
     INA_TEST_ASSERT_EQUAL_INTEGER(test.tv_sec, sec);
     d = u1 - u2;
+    if (abs(d) > 1) {
+        INA_TEST_ASSERT_SUCCEED(ina_time_tsc_disable_rdtsc());
+        INA_TEST_MSG("Difference was %f ms (> +- 1ms)", d); 
+    }
+
     INA_TEST_ASSERT_TRUE(abs(d) <= 1);
     
     for (i = 0; i < 1000; i++) {
@@ -383,8 +388,9 @@ INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(data->w, &c))) {
         INA_TEST_ASSERT_NOT_NULL(data->w->ts);
         msec_duration2 = atof(data->w->ts->user_data2);
-        INA_TEST_MSG("stamp %lld: %.10f %.10f (%s)", c, data->w->ts->msec_duration, 
-            msec_duration2-msec_duration, data->w->ts->user_data1);
+        INA_TEST_MSG("stamp %lld: %.10f ms - %.10f ms = %.10f us (%s)", c, data->w->ts->msec_duration, 
+            msec_duration2-msec_duration, (data->w->ts->msec_duration-(msec_duration2-msec_duration))*1000,
+             data->w->ts->user_data1);
         msec_duration = msec_duration2;
         ++c;
     }
