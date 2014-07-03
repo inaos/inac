@@ -28,11 +28,15 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#define __INA_TIME_RDTSC_BACKEND_NAME "tsc backend: rdtsc()"
+
 #if defined(INA_OS_OSX)
 # include <mach/mach_time.h>
+#define __INA_TIME_TSC_BACKEND_NAME "tsc backend: mach_absolute_time()"
 #endif
 
 #ifdef INA_OS_WIN32
+#define __INA_TIME_TSC_BACKEND_NAME "tsc backend: QueryPerformanceCounter()"
 #define __INA_TIME_INC(vv_ptr) InterlockedExchangeAdd64(vv_ptr, 1)
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
   #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
@@ -44,6 +48,7 @@
 #endif
 
 #if defined(INA_OS_LINUX)
+#define __INA_TIME_TSC_BACKEND_NAME "tsc backend: clock_gettime()"
 # if defined(CLOCK_MONOTONIC_RAW)
 #  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC_RAW
 # endif
@@ -97,7 +102,6 @@ static ina_rc_t __ina_time_tsc_os_read(ina_time_tsc_t *time);
 static ina_rc_t __ina_time_tsc_os_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos);
 static ina_rc_t __ina_time_tsc_rdtsc_read(ina_time_tsc_t *time);
 static ina_rc_t __ina_time_tsc_rdtsc_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos);
-
 static __ina_time_tsc_read_fp __ina_time_tsc_read = __ina_time_tsc_os_read;
 static __ina_time_tsc_seconds_nanos_fp __ina_time_tsc_secnan = __ina_time_tsc_os_secnan;
 static double __ina_time_rdtsc_ticks_per_nano = 0;
@@ -113,7 +117,7 @@ static double __ina_lit_to_secs(LARGE_INTEGER * L)
     QueryPerformanceFrequency( &frequency ) ; 
     return ((double)L->QuadPart /(double)frequency.QuadPart);
 }
-static void __ina_time_rdtsc_calibrate_ticks()
+static void __ina_time_rdtsc_calibrate_ticks(void)
 {
     /* FIXME calibrate time for windows */
 }
@@ -148,7 +152,7 @@ static void __ina_time_rdtsc_calibrate_ticks()
 }
 #endif
 
-INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc()
+INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc(void)
 {
     if (__ina_time_rdtsc_ticks_per_nano == 0) {
         __ina_time_rdtsc_calibrate_ticks();   
@@ -158,10 +162,31 @@ INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc()
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc()
+INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc(void)
 {
+    /* Reset tsc function pointers */
     __ina_time_tsc_read = __ina_time_tsc_os_read;
     __ina_time_tsc_secnan = __ina_time_tsc_os_secnan;
+    /* Force recalibration for the next rdtsc activation */
+    __ina_time_rdtsc_ticks_per_nano = 0;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info)
+{
+    INA_ASSERT_NOTNULL(info);
+    ina_mem_set(info, 0, sizeof(ina_time_tsc_info_t));
+    if (__ina_time_tsc_read == __ina_time_tsc_rdtsc_read) {
+        info->rdtsc_enabled = INA_YES;
+        info->rdtsc_ref = __ina_time_rdtsc_ref;
+        info->rdtsc_refhpet = __ina_time_rdtsc_refhpet;
+        info->rdtsc_ticks_per_nano =__ina_time_rdtsc_ticks_per_nano;
+        strncpy(info->backend_name, __INA_TIME_RDTSC_BACKEND_NAME, 
+            INA_TIME_BACKEND_NAME_MAXLEN);
+        return INA_SUCCESS;
+    }
+    strncpy(info->backend_name, __INA_TIME_TSC_BACKEND_NAME, 
+        INA_TIME_BACKEND_NAME_MAXLEN);
     return INA_SUCCESS;
 }
 
@@ -356,17 +381,36 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 #else
         if (*stamp_index == 0) {
 
+            ina_time_tsc_seconds_nanos(&stopwatch->tv->start,
+                &stopwatch->tv->start.tp.tv_sec,
+                &stopwatch->tv->start.tp.tv_nsec);
+
+            stopwatch->ts->stamp.ref = stopwatch->tv->start.ref;
+            stopwatch->ts->stamp.refhpet = stopwatch->tv->start.refhpet;
+
+            ina_time_tsc_seconds_nanos(&stopwatch->ts->stamp, 
+                &stopwatch->ts->stamp.tp.tv_sec,
+                &stopwatch->ts->stamp.tp.tv_nsec);
+             
             stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec - 
 			    stopwatch->tv->start.tp.tv_sec);
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_nsec -
 				    stopwatch->tv->start.tp.tv_nsec)/1000000000.0);
+   
         } else {
             ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index-1);
+
+            stopwatch->ts->stamp.ref = stopwatch->tv->start.ref;
+            stopwatch->ts->stamp.refhpet = stopwatch->tv->start.refhpet;
+   
+            ina_time_tsc_seconds_nanos(&stopwatch->ts->stamp, 
+                &stopwatch->ts->stamp.tp.tv_sec,
+                &stopwatch->ts->stamp.tp.tv_nsec);
 
             stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp.tv_sec 
 			    - ts->stamp.tp.tv_sec);
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_nsec - 
-				    ts->stamp.tp.tv_nsec) / 1000000000.0);         
+				    ts->stamp.tp.tv_nsec) / 1000000000.0);
         } 
 #endif
         stopwatch->ts->msec_duration = stopwatch->ts->sec_duration*1000;
@@ -425,6 +469,17 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 #else
     INA_ASSERT_NOTNULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
+    
+    stopwatch->tv->stop.ref = stopwatch->tv->start.ref;
+    stopwatch->tv->stop.refhpet = stopwatch->tv->start.refhpet;
+   
+    ina_time_tsc_seconds_nanos(&stopwatch->tv->start, 
+        &stopwatch->tv->start.tp.tv_sec, 
+        &stopwatch->tv->start.tp.tv_nsec);
+
+    ina_time_tsc_seconds_nanos(&stopwatch->tv->stop, 
+        &stopwatch->tv->stop.tp.tv_sec, 
+        &stopwatch->tv->stop.tp.tv_nsec);
 
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - 
 		    stopwatch->tv->start.tp.tv_sec);
@@ -527,10 +582,9 @@ static ina_rc_t
 __ina_time_tsc_rdtsc_read(ina_time_tsc_t *time)
 {
     time->rtp = __ina_time_rdtsc();
-    ina_time_tsc_seconds_nanos(time, 
-                &time->tp.tv_sec,
-                &time->tp.tv_nsec);
-
+    time->ref = __ina_time_rdtsc_ref; 
+    time->refhpet = __ina_time_rdtsc_refhpet;
+    time->ticks = __ina_time_rdtsc_ticks_per_nano;
 
     return INA_SUCCESS;
 }
@@ -540,8 +594,8 @@ __ina_time_tsc_rdtsc_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos)
     uint64_t ns;
     uint64_t diff_ns;
 
-    diff_ns = (uint64_t)((time->rtp - __ina_time_rdtsc_ref) / __ina_time_rdtsc_ticks_per_nano);
-    ns = __ina_time_rdtsc_refhpet + diff_ns;
+    diff_ns = (uint64_t)((time->rtp - time->ref) / time->ticks);
+    ns = time->refhpet + diff_ns;
 
     *secs = ns / 1000000000;
     *nanos = ns % 1000000000;

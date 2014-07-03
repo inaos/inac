@@ -77,11 +77,12 @@ static ina_rc_t __ina_time_close_dev(MBG_DEV_HANDLE *dh)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info)
+INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info)
 {
     PCPS_DEV dev;
     MBG_DEV_HANDLE dh;
     int rc;
+    ina_str_t backend_name = NULL;
     
     if (!INA_SUCCEED(__ina_time_init_dev(&dh))) {
         return INA_ERR_PUSH_LAST;
@@ -92,11 +93,13 @@ INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info)
         return INA_TIME_EHWERR;
     }
 
-    *info = ina_str_vsprintf("HW backend: %s", dev.cfg.fw_id);
-
     if (!INA_SUCCEED(__ina_time_close_dev(&dh))) {
         return INA_ERR_PUSH_LAST;
     }
+
+    backend_name = ina_str_vsprintf("HW backend: %s", dev.cfg.fw_id);
+    strncpy(info->backend_name, backend_name, INA_TIME_BACKEND_NAME_MAXLEN);
+    ina_str_free(backend_name);
 
     return INA_SUCCESS;
 }

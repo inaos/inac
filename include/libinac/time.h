@@ -47,6 +47,9 @@ typedef struct ina_time_tsc_s {
     struct timespec tp;
 #endif
     uint64_t rtp;
+    uint64_t ref;
+    uint64_t refhpet;
+    double ticks;
 } ina_time_tsc_t;
 
 #define INA_TIME_MAX_USERDATA_LEN (30)
@@ -114,14 +117,30 @@ typedef struct ina_stopwatch_s {
     ina_stopwatch_ts_t *ts;        /* current time stamp */
 } ina_stopwatch_t;
 
+#define INA_TIME_BACKEND_NAME_MAXLEN (64)
+
+/* TSC time backend information */
+typedef struct ina_time_tsc_info_s {
+    char backend_name[INA_TIME_BACKEND_NAME_MAXLEN];
+    int32_t  rdtsc_enabled;
+    uint64_t rdtsc_ref;
+    uint64_t rdtsc_refhpet;
+    double rdtsc_ticks_per_nano;
+} ina_time_tsc_info_t;
+
+/* Time backend information */
+typedef struct ina_time_sys_info_s {
+    char backend_name[INA_TIME_BACKEND_NAME_MAXLEN];
+} ina_time_sys_info_t;
+
 /*
- * System-Time backend information
+ * System Time backend information
  */
-INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info);
+INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info);
 /*
- * TSC backend information
+ * TSC Time backend information
  */
-INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_str_t *info);
+INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info);
 /*
  * Sleep for X milli seconds
  */
@@ -157,11 +176,11 @@ INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
  * Enabling RDTSC is on process scope
  *
  */
-INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc();
+INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc(void);
 /*
  *
  */
-INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc();
+INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc(void);
 /*
  * Read the Time Stamp Counter
  */

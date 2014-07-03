@@ -46,12 +46,13 @@ struct ina_time_s {
 #endif
 #endif
 
-INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info)
+INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info)
 {
+    INA_ASSERT_NOTNULL(info);
 #ifdef INA_OS_WIN32
-    *info = ina_str_new_fromcstr("OS backend: GetSystemTimeAsFileTime()");
+    strncpy(info->backend_name, "OS backend: GetSystemTimeAsFileTime()", INA_TIME_BACKEND_NAME_MAXLEN);
 #else
-    *info = ina_str_new_fromcstr("OS backend: gettimeofday()");
+    strncpy(info->backend_name, "OS backend: gettimeofday()", INA_TIME_BACKEND_NAME_MAXLEN);
 #endif
     return INA_SUCCESS;
 }

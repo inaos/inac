@@ -183,24 +183,20 @@ INA_TEST(time, stopwatch_startime_rdtsc)
 
 INA_TEST(time,backend) 
 {
-    ina_str_t info = NULL;
+    ina_time_sys_info_t info;
 
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_backend_info(&info));
-
-    INA_TEST_ASSERT_NOT_NULL(info);
 #ifdef INA_MBTIME_ENABLED
-    INA_TEST_ASSERT_TRUE(strncmp("HW backend:", ina_str_cstr(info), 12) == 0);
+    INA_TEST_ASSERT_TRUE(strncmp("HW backend:", ina_str_cstr(info.backend_name), 12) == 0);
 #else
     #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_EQUAL_STR("OS backend: GetSystemTimeAsFileTime()",
-                     ina_str_cstr(info));   
+                     ina_str_cstr(info.backend_name));   
     #else                    
     INA_TEST_ASSERT_EQUAL_STR("OS backend: gettimeofday()",
-                    ina_str_cstr(info));
+                    ina_str_cstr(info.backend_name));
     #endif
-#endif    
-
-    ina_str_free(info);
+#endif
 }
  
 INA_TEST(time,read_clock) 
@@ -250,11 +246,11 @@ INA_TEST(time_tsc,read_tsc)
 
     INA_TEST_MSG("%s", msg);
 
-    ina_time_tsc_enable_rdtsc();
-    
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());
     clock_gettime(CLOCK_MONOTONIC_RAW, &test); 
-    ina_time_read_tsc_clock(&t);
-    ina_time_tsc_seconds_nanos(&t, &sec, &nanos);
+
+    INA_TEST_ASSERT_SUCCEED(ina_time_read_tsc_clock(&t));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&t, &sec, &nanos));
     u1 = test.tv_nsec / 1000;
     u2 = nanos / 1000;
  
@@ -269,10 +265,15 @@ INA_TEST(time_tsc,read_tsc)
         u1 = test.tv_nsec / 1000;
         u2 = nanos / 1000;
         d = u1 - u2;
-        INA_TEST_ASSERT_TRUE(abs(d) <= 1);
+        if (abs(d) > 1) {
+            break;
+        }
     }
-
-    ina_time_tsc_disable_rdtsc();
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_disable_rdtsc());
+    if (abs(d) > 1) {
+        INA_TEST_MSG("Difference was %f ms (> +- 1ms) at %d cycle", d, i);
+    }
+    INA_TEST_ASSERT_TRUE(abs(d) <= 1);
 }
 #endif
 
@@ -291,6 +292,9 @@ INA_TEST_SETUP(time_ipc) {
 INA_TEST_TEARDOWN(time_ipc) 
 {
     INA_TEST_HELPER_TERMINATE(&data->hid);
+    if (data->w) {
+        ina_time_stopwatch_destroy(&data->w);
+    }
 }
 
 INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
@@ -304,7 +308,7 @@ INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
 
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(data->w, &c))) {
         INA_TEST_ASSERT_NOT_NULL(data->w->ts);
-
+        INA_TEST_MSG("stamp %lld: %.10f", c, data->w->ts->msec_duration);
         if (c == 0) {
             INA_TEST_ASSERT_EQUAL_STR("", data->w->ts->user_data1);
             INA_TEST_ASSERT_EQUAL_STR("", data->w->ts->user_data2);
@@ -328,5 +332,65 @@ INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(data->w));
     ina_time_sleep(500); /* Wait child is exit */
     INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
-    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&data->w));
 }
+
+
+INA_TEST_DATA(time_ipc_rdtsc) {
+    ina_stopwatch_t *w;
+    ina_test_hid_t hid;
+};
+
+INA_TEST_SETUP(time_ipc_rdtsc) {
+    ina_time_tsc_enable_rdtsc();
+    ina_time_sleep(3000);
+    INA_TEST_HELPER_INVOKE(&data->hid, time_ipc_rdtsc, stopwatch_create_rdtsc, 
+        INA_NUM2STR(889),
+    NULL);
+}
+
+INA_TEST_TEARDOWN(time_ipc_rdtsc) 
+{
+    INA_TEST_HELPER_TERMINATE(&data->hid);
+    ina_time_tsc_disable_rdtsc();
+    if (data->w) {
+        ina_time_stopwatch_destroy(&data->w);   
+    }
+}
+
+INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
+    int64_t c = 0;
+    ina_time_tsc_t time;
+    char user_data2[INA_TIME_MAX_USERDATA_LEN];
+    double msec_duration = 0;
+    double msec_duration2 = 0;
+
+    /* We need to wait that the helper has done his work */
+    ina_time_sleep(1000);
+
+    INA_TEST_ASSERT_SUCCEED(INA_TIME_STOPWATCH_OPEN(&data->w, 889));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(data->w));   
+
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
+    msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
+    sprintf(user_data2, "%.10f", msec_duration);
+    INA_TEST_ASSERT_SUCCEED(INA_TIME_STOPWATCH_STAMP2(data->w, "test", user_data2));
+    ina_time_sleep(3);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
+    msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
+    sprintf(user_data2, "%.10f", msec_duration);
+    INA_TEST_ASSERT_SUCCEED(INA_TIME_STOPWATCH_STAMP2(data->w, "test", user_data2));
+
+    while (INA_SUCCEED(ina_time_stopwatch_read_stamp(data->w, &c))) {
+        INA_TEST_ASSERT_NOT_NULL(data->w->ts);
+        msec_duration2 = atof(data->w->ts->user_data2);
+        INA_TEST_MSG("stamp %lld: %.10f %.10f (%s)", c, data->w->ts->msec_duration, 
+            msec_duration2-msec_duration, data->w->ts->user_data1);
+        msec_duration = msec_duration2;
+        ++c;
+    }
+    INA_TEST_ASSERT_EQUAL_INTEGER(c, 6);
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(data->w));
+    ina_time_sleep(500); /* Wait child is exit */
+    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
+}
+
