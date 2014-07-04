@@ -298,11 +298,21 @@ INA_API(ina_rc_t) ina_process_descriptor_free(ina_process_ctx_t *ctx,
     INA_ASSERT_NOTNULL(ctx);
 
     if (*descriptor != NULL) {
-        ina_str_free((*descriptor)->full_path);
-        ina_str_free((*descriptor)->working_dir);
-        ina_str_free((*descriptor)->scheduled_stop_pattern);
-        ina_str_free((*descriptor)->scheduled_start_pattern);
-        ina_str_free((*descriptor)->startup_args);
+        if ((*descriptor)->full_path != NULL) {
+            ina_str_free((*descriptor)->full_path);
+        }
+        if ((*descriptor)->working_dir != NULL) {
+            ina_str_free((*descriptor)->working_dir);
+        }
+        if ((*descriptor)->scheduled_stop_pattern) {
+            ina_str_free((*descriptor)->scheduled_stop_pattern);
+        }
+        if ((*descriptor)->scheduled_start_pattern) {
+            ina_str_free((*descriptor)->scheduled_start_pattern);
+        }
+        if ((*descriptor)->startup_args) {
+            ina_str_free((*descriptor)->startup_args);
+        }
         ina_mem_free(*descriptor);
         *descriptor = NULL;
     }
@@ -631,7 +641,7 @@ static void __ina_process_stop(ina_process_t *process)
     int still_running = INA_NO;
 
     if (process->pid > 0) { 
-        kill(process->pid, SIGINT);
+        kill(process->pid, SIGTERM);
     }
     __ina_process_is_running(process, &still_running);
 }
