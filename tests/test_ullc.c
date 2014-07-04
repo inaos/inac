@@ -33,7 +33,10 @@ INA_TEST(ullc, multiproducer)
     ina_ullc_ctx_t *ullc1;
     ina_ullc_ctx_t *ullc2;
     ina_ullc_ctx_t *ullc3;
+    ina_test_ullc_t *v = NULL;
     int c =  0;
+    ina_test_hid_t hid1;
+    ina_test_hid_t hid2;
 
     INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
         1, 
@@ -62,9 +65,6 @@ INA_TEST(ullc, multiproducer)
         "/ina_ullc_test", 
         INA_ULLC_WS_SIGNAL_WAIT, 
         &ullc3));
-
-    ina_test_hid_t hid1;
-    ina_test_hid_t hid2;
  
     INA_TEST_HELPER_INVOKE(&hid1, ullc, create_consumer,  
          INA_NUM2STR(1), INA_NUM2STR(128), INA_NUM2STR(3),
@@ -74,7 +74,6 @@ INA_TEST(ullc, multiproducer)
          INA_NUM2STR(1), INA_NUM2STR(128), INA_NUM2STR(3),
          INA_NUM2STR(2), "/ina_ullc_test", NULL);
 
-    ina_test_ullc_t *v = NULL;
     for (c = 0; c < 1000; c++) {
         v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc1);
         v->d1 += c;
@@ -84,12 +83,12 @@ INA_TEST(ullc, multiproducer)
         v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc2);
         v->d1 += c;
         v->d2 -= c;
-        v->i3 = abs(v->d1*v->d2);
+        v->i3 = (int32_t)abs(v->d1*v->d2);
         INA_ULLC_COMMIT(ullc2);
         v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc3);
         v->d1 += c;
         v->d2 -= c;
-        v->i3 = abs(v->d1*v->d2);
+        v->i3 = (int32_t)abs(v->d1*v->d2);
         INA_ULLC_COMMIT(ullc3);
         ina_time_sleep(1);
     }
@@ -108,6 +107,7 @@ INA_TEST(ullc, consumer_get_set_pos)
     ina_ullc_ctx_t *consumer1;
     ina_ullc_ctx_t *consumer2;
     ina_ullc_ctx_t *producer;
+    ina_test_ullc_t *v = NULL;
     size_t c;
     int64_t pos;
  
@@ -136,7 +136,6 @@ INA_TEST(ullc, consumer_get_set_pos)
         "/ina_ullc_test2", 
         &consumer2));
 
-    ina_test_ullc_t *v = NULL;
     for (c = 0; c < 125; c++) {
         v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
         v->d1 += c;
