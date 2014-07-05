@@ -27,14 +27,50 @@
  */
 #include <libinac/lib.h>
 
-static ina_rc_t __ina_service_run(void *user_data)
+static ina_rc_t __ina_service_fn(const ina_service_ctx_t *ctx, ina_service_status_t status)
 {
-    *((int*)(user_data)) = 1;
-    return INA_SUCCESS;
-}
-static ina_rc_t __ina_service_shutdown(void *user_data)
-{
-    *((int*)(user_data)) = 2;
+    int *user_data;
+    ina_service_descriptor_t *ds;
+    
+    if (INA_SUCCEED(ina_service_get_descriptor(ctx, &ds))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    switch (status) {
+        case INA_SERVICE_STATUS_STARTUP:
+            {
+                user_data = (int*)ina_mem_alloc(sizeof(int));
+                *user_data = 1;
+                ds->user_data = user_data;
+                break;
+            }
+            case INA_SERVICE_STATUS_RUNNING:
+            {   
+                user_data = (int*)ds->user_data;
+                *user_data = 2;
+                break;
+            }
+            case INA_SERVICE_STATUS_SHUTDOWN:
+            {
+                user_data = (int*)ds->user_data;
+                *user_data = 3;
+                break;
+            }
+            case INA_SERVICE_STATUS_STOPPED:
+            {
+                ina_mem_free(ds->user_data);
+                ds->user_data = NULL;
+                break;
+            }
+            case INA_SERVICE_STATUS_ERROR:
+            {
+                break;
+            }
+            default:
+            {
+                break;
+            }
+    }
     return INA_SUCCESS;
 }
 
@@ -46,8 +82,7 @@ INA_SERVICE_DESCRIPTOR("test",
     "password", 
     "-h service simple_deamon 127.0.0.1 9998", 
     "/opt/test",
-    __ina_service_run,
-    __ina_service_shutdown,
+    __ina_service_fn,
     INA_SERVICE_STARTUP_TYPE_AUTO, 
     INA_YES);
 

@@ -64,8 +64,11 @@ extern ina_service_descriptor_t __ina_service_section;
 static DWORD __stdcall __ina_service_start_wrapper(LPVOID data)
 {
     INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor);    
-    INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor->run_func);
-    return __ina_service_ctx.descriptor->run_func(__ina_service_ctx.descriptor->user_data);
+    INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor->service_fn);
+    if (!INA_SUCCEED(__ina_service_ctx.service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_STARTUP))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    return __ina_service_ctx.descriptor->service_fn(__ina_service_ctx, INA_SERVICE_STATUS_RUNNING);
 }
 static void WINAPI ServiceControlHandler( DWORD controlCode )
 {
@@ -138,8 +141,7 @@ static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
         WaitForSingleObject(__ina_service_ctx.stop_service_event, INFINITE);
 
         /* we received a stop-event now execute the shutdown proc and join the thread */
-        INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor->shutdown_func);
-        __ina_service_ctx.descriptor->shutdown_func(__ina_service_ctx.descriptor->user_data);
+        __ina_service_ctx.descriptor->service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_SHUTDOWN);
         WaitForSingleObject(thread_handle, INFINITE);
 
         /* service was stopped */
@@ -154,6 +156,7 @@ static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
         __ina_service_ctx.status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
         __ina_service_ctx.status.dwCurrentState = SERVICE_STOPPED;
         SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+       __ina_service_ctx.descriptor->service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_STOPPED);
     }
 }
 static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
@@ -301,7 +304,10 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex((ina_service_ctx_t*)ctx))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ctx->descriptor->run_func(ctx->descriptor->user_data))) {
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_STARTUP))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUNNING))) {
         return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
@@ -441,6 +447,12 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
     ina_str_free(lock_file_path);
     ina_str_free(pid_str);
 
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_STARTUP))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUNNING))) {
+        return INA_ERR_PUSH_LAST;
+    }
     return INA_SUCCESS;
 }
 
@@ -459,8 +471,10 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     if (lockf(lfp, F_TLOCK, 0) < 0) {
         return INA_SERVICE_ELOCK; /* can not lock */
     }
-
-    if (!INA_SUCCEED(ctx->descriptor->run_func(ctx->descriptor->user_data))) {
+   if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_STARTUP))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUNNING))) {
         return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
@@ -475,8 +489,8 @@ static void __ina_service_signal_handler(ina_signal_t sig,
     if (sig == INA_SIGNAL_INT || sig == INA_SIGNAL_TERM) {
         /* Ignore default signal handling */
         *sb = INA_SIGNAL_BEHAVIOR_IGNORE;
-        __ina_service_ctx.descriptor->shutdown_func(
-            __ina_service_ctx.descriptor->user_data);
+        __ina_service_ctx.descriptor->service_fn(
+            &__ina_service_ctx, INA_SERVICE_STATUS_SHUTDOWN);
 #ifdef INA_OS_WIN32
         WaitForSingleObject(__ina_service_ctx.main_thread, INFINITE);
 #endif

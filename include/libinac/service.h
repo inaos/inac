@@ -39,8 +39,16 @@ extern "C" {
 /* opaque service context */
 typedef struct ina_service_ctx_s ina_service_ctx_t;
 
-typedef ina_rc_t (*ina_service_run)(void *user_data);
-typedef ina_rc_t (*ina_service_shutdown)(void *user_data);
+/* service status */
+typedef enum ina_service_status_e {
+  INA_SERVICE_STATUS_STOPPED = 0,  /* After shotdown terninated (unused) */
+  INA_SERVICE_STATUS_STARTUP,      /* Before running */
+  INA_SERVICE_STATUS_RUNNING,      /* Service running */
+  INA_SERVICE_STATUS_SHUTDOWN,     /* Service should shutdown */
+  INA_SERVICE_STATUS_ERROR         /* Service error, stopping (unused) */
+} ina_service_status_t;
+
+typedef ina_rc_t (*ina_service_fn_t)(const ina_service_ctx_t *ctx, ina_service_status_t status);
 
 typedef enum ina_service_mode_e {
     INA_SERVICE_MODE_SERVICE,
@@ -86,8 +94,7 @@ typedef struct ina_service_descriptor_s {
     char password[INA_SERVICE_PASSORD_MAXLEN];
     char startup_args[INA_SERVICE_STARTUP_ARGS_MAXLEN];
     char working_directory[INA_SERVICE_WORKINGDIR_MAXLEN];
-    ina_service_run run_func;
-    ina_service_shutdown shutdown_func;
+    ina_service_fn_t service_fn;
     ina_service_startup_type_t startup;
     int32_t exclusive_flag;
     void *user_data;
@@ -99,7 +106,7 @@ typedef struct ina_service_descriptor_s {
                                username, password,                           \
                                startup_args,                                 \
                                working_directory,                            \
-                               run_func, shutdown_func,                      \
+                               service_fn,                                   \
                                startup,                                      \
                                exclusive_flag)                               \
 INA_SERVICE_SECTION_PUSH ina_service_descriptor_t __ina_service_section INA_SERVICE_SECTION = { \
@@ -111,8 +118,7 @@ INA_SERVICE_SECTION_PUSH ina_service_descriptor_t __ina_service_section INA_SERV
         password,                                                            \
         startup_args,                                                        \
         working_directory,                                                   \
-        run_func,                                                            \
-        shutdown_func,                                                       \
+        service_fn,                                                          \
         startup,                                                             \
         exclusive_flag,                                                      \
         0}
