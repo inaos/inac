@@ -64,6 +64,7 @@ typedef struct ina_process_descriptor_s {
     ina_str_t scheduled_stop_pattern;
     time_t stop_wait_time_ms;
     uint32_t start_flags;
+    uint32_t c_ref;
 } ina_process_descriptor_t;
 
 INA_FSM_STATES(process_fsm, 
