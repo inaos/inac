@@ -358,7 +358,7 @@ INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool
  * Return Value
  * INA_SUCCESS if pool was found otherwise INA_FAILURE
  */
-INA_API(ina_rc_t) ina_mempool_getbypointer(const char *ptr, ina_mempool_t **pool);
+INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr, ina_mempool_t **pool);
 
 /* 
  * Create a memory pool.
