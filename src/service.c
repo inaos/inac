@@ -488,8 +488,6 @@ static void __ina_service_signal_handler(ina_signal_t sig,
                                          int *exitcode)
 {
     if (sig == INA_SIGNAL_INT || sig == INA_SIGNAL_TERM) {
-        /* Ignore default signal handling */
-        *sb = INA_SIGNAL_BEHAVIOR_IGNORE;
         __ina_service_ctx.descriptor->service_fn(
             &__ina_service_ctx, INA_SERVICE_STATUS_SHUTDOWN);
 #ifdef INA_OS_WIN32
@@ -604,6 +602,8 @@ INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console)
 {
+    ina_register_signal_handler(INA_SIGNAL_TERM, __ina_service_signal_handler);
+    
     if (!console) {
         return __ina_service_run_service(ctx);
     }
