@@ -61,8 +61,8 @@ fi
 # Define username and password
 INA_SERVICE_USER=@{service_username}
 
-# Define service-start command-lineh
-INA_SERVICE_STARTUP=" @{service_startup} "
+# Define service-start command-line
+INA_SERVICE_STARTUP="@{service_startup}"
 
 RETVAL="0"
 
