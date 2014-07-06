@@ -49,6 +49,7 @@ INA_TEST(lib, opt)
     ina_str_t s_str_value = NULL;
     float l_float_value = 0.0;
     float s_float_value = 0;
+    ina_str_t key = NULL;
     
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("run"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("r"));
@@ -70,6 +71,13 @@ INA_TEST(lib, opt)
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_float("float", &l_float_value));
     INA_TEST_ASSERT_EQUAL_FLOATING(l_float_value, s_float_value);
     INA_TEST_ASSERT_EQUAL_FLOATING(l_float_value, (float)1.02);
+    INA_TEST_ASSERT_SUCCEED(ina_opt_get_key_value(0, &key, &l_str_value));
+    INA_TEST_ASSERT_EQUAL_STR("testint", ina_str_cstr(key));
+    INA_TEST_ASSERT_EQUAL_STR("121", ina_str_cstr(l_str_value));
+    INA_TEST_ASSERT_NOTSUCCEED(ina_opt_get_key_value(10, &key, &l_str_value));
+    INA_TEST_ASSERT_NULL(key);
+    INA_TEST_ASSERT_NULL(l_str_value);
+
 }
 INA_TEST(lib, appname)
 {

@@ -375,6 +375,28 @@ INA_API(ina_rc_t) ina_opt_isset(const char *opt)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key, 
+                                         ina_str_t *value)
+{
+    __ina_lopt_t *lo = NULL;
+
+    INA_ASSERT_TRUE(index >= 0);
+
+    *key = NULL;
+    *value = NULL;
+
+    for (lo = __lopt; lo != NULL && index >= 0; lo=lo->hh.next) {
+        --index;
+    }
+
+    if (lo == NULL) {
+        return INA_FAILURE;
+    }
+    *key = lo->opt;
+    *value = lo->short_opt->value;
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
 {
     __ina_sopt_t *so = __ina_opt_get(opt);
