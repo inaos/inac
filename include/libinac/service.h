@@ -75,6 +75,12 @@ typedef enum ina_service_startup_type_e {
 #define INA_SERVICE_SECTION_PUSH __declspec(allocate(".inaservice"))
 #endif
 
+#define INA_SERVICE_OPT_NAME                 "service"
+#define INA_SERVICE_CMD_INSTALL              "install"
+#define INA_SERVICE_CMD_UNINSTALL            "uninstall"
+#define INA_SERVICE_CMD_CONSOLE              "console"
+#define INA_SERVICE_CMD_DEAMON               "deamon"
+
 #define INA_SERVICE_NAME_MAXLEN              (64)
 #define INA_SERVICE_DISPLAY_NAME_MAXLEN      (64)
 #define INA_SERVICE_USERNAME_MAXLEN          (64)
@@ -132,6 +138,7 @@ INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx);
  */
 INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx);
 
+INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx);
 /*
  *
  */

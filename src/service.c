@@ -526,6 +526,56 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
+{
+    ina_str_t cmd;
+    INA_ASSERT_NOTNULL(ctx);
+
+    /* Check if run in console mode */
+    if (!INA_SUCCEED(ina_opt_get_string(INA_SERVICE_OPT_NAME, &cmd)) &&
+        strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_DEAMON) != 0) {
+        return ina_service_run_service(ctx, INA_YES);
+    }
+
+    if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_INSTALL) == 0) {
+        ina_service_descriptor_t *ds = NULL;
+        ina_service_get_descriptor(ctx, &ds);
+        INA_ASSERT_NOTNULL(ds);
+  
+        if (strlen(ds->startup_args) == 0) {
+            int index = 0;
+            ina_str_t key;
+            ina_str_t value;
+            ina_str_t startup_args = ina_str_new_fromcstr("");
+            while (INA_SUCCEED(ina_opt_get_key_value(index, &key, &value))) {
+                if (strcasecmp(ina_str_cstr(key), INA_SERVICE_OPT_NAME) != 0) {
+                    startup_args = ina_str_cat(startup_args, key);
+                    startup_args = ina_str_catcstr(startup_args, " ");
+                    startup_args = ina_str_cat(startup_args, value);
+                    startup_args = ina_str_catcstr(startup_args, " ");
+                }
+            }
+            startup_args = ina_str_catcstr(startup_args, INA_SERVICE_OPT_NAME);
+            startup_args = ina_str_catcstr(startup_args, " ");
+            startup_args = ina_str_catcstr(startup_args, INA_SERVICE_CMD_DEAMON);
+            strncpy(ds->startup_args, 
+                ina_str_cstr(startup_args), 
+                INA_SERVICE_STARTUP_ARGS_MAXLEN);
+        }
+        return ina_service_install(ctx);
+    }
+
+    if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_UNINSTALL) == 0) {
+        return ina_service_uninstall(ctx);
+    }
+
+    if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_DEAMON) == 0) {
+        return ina_service_run_service(ctx, INA_NO);
+    }
+    return INA_SUCCESS;
+}
+
+
 INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx, 
                                     ina_service_descriptor_t **descriptor)
 {
