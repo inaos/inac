@@ -66,6 +66,7 @@ static DWORD __stdcall __ina_service_start_wrapper(LPVOID data)
     INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor);    
     INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor->service_fn);
     if (!INA_SUCCEED(__ina_service_ctx.service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_STARTUP))) {
+        __ina_service_ctx.service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_ERROR);
         return INA_ERR_PUSH_LAST;
     }
     return __ina_service_ctx.descriptor->service_fn(__ina_service_ctx, INA_SERVICE_STATUS_RUNNING);
@@ -551,13 +552,11 @@ INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
     return __ina_service_uninstall(ctx);
 }
 
-INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx)
+INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console)
 {
-    return __ina_service_run_service(ctx);
-}
-
-INA_API(ina_rc_t) ina_service_run_console(const ina_service_ctx_t *ctx)
-{
+    if (!console) {
+        return __ina_service_run_service(ctx);
+    }
     ina_register_signal_handler(INA_SIGNAL_INT, __ina_service_signal_handler);
     return __ina_service_run_console(ctx);
 }

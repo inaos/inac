@@ -152,11 +152,7 @@ INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx);
-/*
- * 
- */
-INA_API(ina_rc_t) ina_service_run_console(const ina_service_ctx_t *ctx);
+INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console);
 /*
  * 
  */
