@@ -560,10 +560,10 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
             ina_str_t startup_args = ina_str_new_fromcstr("");
             while (INA_SUCCEED(ina_opt_get_key_value(index, &key, &value))) {
                 if (strcasecmp(ina_str_cstr(key), INA_SERVICE_OPT_NAME) != 0) {
+                    startup_args = ina_str_catcstr(startup_args, " --");
                     startup_args = ina_str_cat(startup_args, key);
                     startup_args = ina_str_catcstr(startup_args, " ");
                     startup_args = ina_str_cat(startup_args, value);
-                    startup_args = ina_str_catcstr(startup_args, " ");
                 }
                 index++;
             }
