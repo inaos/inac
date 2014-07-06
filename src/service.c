@@ -567,6 +567,7 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
                 }
                 index++;
             }
+            startup_args = ina_str_catcstr(startup_args, " --");
             startup_args = ina_str_catcstr(startup_args, INA_SERVICE_OPT_NAME);
             startup_args = ina_str_catcstr(startup_args, " ");
             startup_args = ina_str_catcstr(startup_args, INA_SERVICE_CMD_DEAMON);
