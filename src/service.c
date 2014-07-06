@@ -532,8 +532,8 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
     INA_ASSERT_NOTNULL(ctx);
 
     /* Check if run in console mode */
-    if (!INA_SUCCEED(ina_opt_get_string(INA_SERVICE_OPT_NAME, &cmd)) &&
-        strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_DEAMON) != 0) {
+    if (INA_SUCCEED(ina_opt_get_string(INA_SERVICE_OPT_NAME, &cmd)) &&
+        strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_CONSOLE) == 0) {
         return ina_service_run_service(ctx, INA_YES);
     }
 
