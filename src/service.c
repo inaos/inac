@@ -339,6 +339,8 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     ina_template_ctx_t *tpl_ctx;
     ina_template_env_t *env;
     ina_str_t out;
+    ina_str_t script_filepath;
+    FILE *fp;
     
     if (!INA_SUCCEED(ina_template_init(&tpl_ctx))) {
         return INA_ERR_PUSH_LAST;
@@ -358,18 +360,15 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     ina_template_set_string(env, "service_startup", ctx->descriptor->startup_args);
     ina_template_set_string(env, "service_short_description", ctx->descriptor->long_description);
     ina_template_set_string(env, "service_long_description", ctx->descriptor->short_description);
- 
+
     if (!INA_SUCCEED(ina_template_render(env, &out))) {
         return INA_ERR_PUSH_LAST;
     }
     
     ina_template_destroy(&tpl_ctx);
 
-    /* write file to /etc/init.d/ */
-    
-    
     /*
-     * every distro seem to have a different way to manage autostart for services 
+     * every distro seem to have a different way to manage autopstart for services 
      *
      * something for the portable header?
      * -> http://stackoverflow.com/questions/7824625/in-the-code-c-file-how-i-can-find-the-linux-distribution-name-version
@@ -378,17 +377,31 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
      * Debian/Ubuntu: http://www.debuntu.org/how-to-managing-services-with-update-rc-d/
      * Suse: chkconfig I guess
      */
-
-
+    script_filepath = ina_str_new_fromcstr("/etc/init.d/");
+    script_filepath = ina_str_catcstr(script_filepath, ctx->descriptor->name);
+    fp = fopen(ina_str_cstr(script_filepath), "w");
+    if (fp) {
+        if (fwrite(ina_str_cstr(out), ina_str_len(out), 1, fp) <= 0) {
+            /* FIXME: Error handling */
+        }
+        fclose(fp);
+        chmod(ina_str_cstr(script_filepath), 0744);
+    }
     ina_str_free(out);
+    ina_str_free(script_filepath);
 
     return INA_SUCCESS;
 }
+
 static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t *ctx)
 {
-    
+    ina_str_t script_filepath;
+    script_filepath = ina_str_new_fromcstr("/etc/init.d/");
+    script_filepath = ina_str_catcstr(script_filepath, ctx->descriptor->name);
+    unlink(script_filepath);
     return INA_SUCCESS;
 }
+
 static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
 {
     pid_t pid;
