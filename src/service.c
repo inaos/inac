@@ -592,11 +592,21 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
 
 INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
 {
+    INA_ASSERT_NOTNULL(ctx);
+
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_INSTALL))) {
+        return INA_ERR_PUSH_LAST;
+    } 
     return __ina_service_install(ctx);
 }
 
 INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
 {
+    INA_ASSERT_NOTNULL(ctx);
+
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_UNINSTALL))) {
+        return INA_ERR_PUSH_LAST;
+    }     
     return __ina_service_uninstall(ctx);
 }
 

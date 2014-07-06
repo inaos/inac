@@ -41,11 +41,13 @@ typedef struct ina_service_ctx_s ina_service_ctx_t;
 
 /* service status */
 typedef enum ina_service_status_e {
-  INA_SERVICE_STATUS_STOPPED = 0,  /* After shotdown terninated (unused) */
+  INA_SERVICE_STATUS_STOPPED = 0,  /* After shotdown terninated */
   INA_SERVICE_STATUS_STARTUP,      /* Before running */
   INA_SERVICE_STATUS_RUNNING,      /* Service running */
   INA_SERVICE_STATUS_SHUTDOWN,     /* Service should shutdown */
-  INA_SERVICE_STATUS_ERROR         /* Service error, stopping (unused) */
+  INA_SERVICE_STATUS_ERROR,        /* Service error, stopped  */
+  INA_SERVICE_STATUS_INSTALL,      /* Service install request */
+  INA_SERVICE_STATUS_UNINSTALL     /* Serive uninstall request */
 } ina_service_status_t;
 
 typedef ina_rc_t (*ina_service_fn_t)(const ina_service_ctx_t *ctx, ina_service_status_t status);
