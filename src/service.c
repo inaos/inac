@@ -385,7 +385,7 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
             /* FIXME: Error handling */
         }
         fclose(fp);
-        chmod(ina_str_cstr(script_filepath), 0744);
+        chmod(ina_str_cstr(script_filepath), 0755);
     }
     ina_str_free(out);
     ina_str_free(script_filepath);
