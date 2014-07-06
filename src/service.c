@@ -565,6 +565,7 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
                     startup_args = ina_str_cat(startup_args, value);
                     startup_args = ina_str_catcstr(startup_args, " ");
                 }
+                index++;
             }
             startup_args = ina_str_catcstr(startup_args, INA_SERVICE_OPT_NAME);
             startup_args = ina_str_catcstr(startup_args, " ");
