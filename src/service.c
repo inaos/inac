@@ -461,10 +461,10 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
     ina_str_free(lock_file_path);
     ina_str_free(pid_str);
 
-    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_STARTUP))) {
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUNNING))) {
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUN))) {
         return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
@@ -485,10 +485,10 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     if (lockf(lfp, F_TLOCK, 0) < 0) {
         return INA_SERVICE_ELOCK; /* can not lock */
     }
-   if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_STARTUP))) {
+   if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUNNING))) {
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUN))) {
         return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;

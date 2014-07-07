@@ -37,14 +37,14 @@ static ina_rc_t __ina_service_fn(const ina_service_ctx_t *ctx, ina_service_statu
     }
 
     switch (status) {
-        case INA_SERVICE_STATUS_STARTUP:
+        case INA_SERVICE_STATUS_START:
             {
                 user_data = (int*)ina_mem_alloc(sizeof(int));
                 *user_data = 1;
                 ds->user_data = user_data;
                 break;
             }
-            case INA_SERVICE_STATUS_RUNNING:
+            case INA_SERVICE_STATUS_RUN:
             {   
                 user_data = (int*)ds->user_data;
                 *user_data = 2;
@@ -56,7 +56,7 @@ static ina_rc_t __ina_service_fn(const ina_service_ctx_t *ctx, ina_service_statu
                 *user_data = 3;
                 break;
             }
-            case INA_SERVICE_STATUS_STOPPED:
+            case INA_SERVICE_STATUS_STOP:
             {
                 ina_mem_free(ds->user_data);
                 ds->user_data = NULL;
