@@ -53,6 +53,8 @@ static void __ina_signal(int, void(*)(int));
 static __ina_sopt_t *__ina_opt_get(const char*); 
 /* display usage */
 static void __ina_opt_usage(void);
+/* get absolute path */
+static ina_rc_t __ina_get_binpath(ina_str_t path);
 
 /* initialization flag, > 0 lib/app initialized */
 static int32_t __initialized = 0;
@@ -120,7 +122,10 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             __appname = ina_str_new_fromcstr(basename);
         }
         /* FIXME: not sure for all platforms */
-        __apppath = ina_str_new_fromcstr(argv[0]);
+        __apppath = ina_str_new(256);
+        if (!INA_SUCCEED(__ina_get_binpath(__apppath))) {
+            __apppath = ina_str_new_fromcstr(argv[0]);
+        }
     }
 
     if (opt != NULL) {
@@ -477,6 +482,43 @@ __ina_opt_usage(void)
                ina_str_cstr(so->desc));
     }
 }
+
+static ina_rc_t 
+__ina_get_binpath(ina_str_t path)
+{
+#ifndef INA_OS_WIN32
+    char linkname[64]; /* /proc/<pid>/exe */
+    pid_t pid;
+    int ret;
+    char *buf;
+
+    buf = (char*)ina_str_cstr(path);
+
+    /* Get our PID and build the name of the link in /proc */
+    pid = getpid();
+    if (snprintf(linkname, sizeof(linkname), "/proc/%i/exe", pid) < 0) {
+        abort();
+    }
+
+    /* Now read the symbolic link */
+    ret = readlink(linkname, buf, ina_str_size(path));
+
+    /* In case of an error, leave the handling up to the caller */
+    if (ret == -1)
+        return INA_FAILURE;
+
+    /* Report insufficient buffer size */
+    if (ret >= ina_str_size(path)) {
+        errno = ERANGE;
+        return INA_FAILURE;
+    }
+
+    /* Ensure proper NUL termination */
+    buf[ret] = 0;
+#endif
+    return INA_SUCCESS;   
+}
+
 
 static void
 __ina_signal_handler(int sig)

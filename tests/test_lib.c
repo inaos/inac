@@ -88,6 +88,7 @@ INA_TEST(lib, appname)
 INA_TEST(lib, apppath)
 {
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_path());
+    INA_TEST_MSG("ina_app_get_path(): %s", ina_app_get_path());
 }
 
 INA_TEST(lib, set_cleanup_handler)
