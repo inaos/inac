@@ -548,7 +548,7 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
         return ina_service_run_service(ctx, INA_YES);
     }
 
-    if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_INSTALL) == 0) {
+    else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_INSTALL) == 0) {
         ina_service_descriptor_t *ds = NULL;
         ina_service_get_descriptor(ctx, &ds);
         INA_ASSERT_NOTNULL(ds);
@@ -582,13 +582,21 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
         return ina_service_install(ctx);
     }
 
-    if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_UNINSTALL) == 0) {
+    else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_UNINSTALL) == 0) {
         return ina_service_uninstall(ctx);
     }
 
-    if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_DEAMON) == 0) {
+    else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_DEAMON) == 0) {
         return ina_service_run_service(ctx, INA_NO);
     }
+
+    else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_REPORT) == 0) {
+        ina_service_descriptor_t *ds;
+        ina_service_get_descriptor(ctx, &ds);
+        INA_ASSERT_NOTNULL(ds);
+        return ds->service_fn(ctx, INA_SERVICE_STATUS_REPORT);
+    }
+
     return INA_SUCCESS;
 }
 
