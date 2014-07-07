@@ -38,6 +38,7 @@
 #endif
 
 struct ina_service_ctx_s {
+    int initialized;
     ina_service_mode_t mode;
     ina_service_descriptor_t *descriptor;
 #ifdef INA_OS_WIN32
@@ -50,7 +51,7 @@ struct ina_service_ctx_s {
 #endif
 };
 
-static ina_service_ctx_t __ina_service_ctx;
+static ina_service_ctx_t *__ctx = NULL;
 
 static ina_rc_t __ina_service_install(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t*);
@@ -63,13 +64,13 @@ extern ina_service_descriptor_t __ina_service_section;
 
 static DWORD __stdcall __ina_service_start_wrapper(LPVOID data)
 {
-    INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor);    
-    INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor->service_fn);
-    if (!INA_SUCCEED(__ina_service_ctx.service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_STARTUP))) {
-        __ina_service_ctx.service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_ERROR);
+    INA_ASSERT_NOTNULL(__ctx->descriptor);    
+    INA_ASSERT_NOTNULL(__ctx->descriptor->service_fn);
+    if (!INA_SUCCEED(__ctx->service_fn(&__ctx, INA_SERVICE_STATUS_STARTUP))) {
+        __ctx->service_fn(&__ctx, INA_SERVICE_STATUS_ERROR);
         return INA_ERR_PUSH_LAST;
     }
-    return __ina_service_ctx.descriptor->service_fn(__ina_service_ctx, INA_SERVICE_STATUS_RUNNING);
+    return __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_RUNNING);
 }
 static void WINAPI ServiceControlHandler( DWORD controlCode )
 {
@@ -78,9 +79,9 @@ static void WINAPI ServiceControlHandler( DWORD controlCode )
             break;
         case SERVICE_CONTROL_SHUTDOWN:
         case SERVICE_CONTROL_STOP:
-            __ina_service_ctx.status.dwCurrentState = SERVICE_STOP_PENDING;
-            SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
-            SetEvent(__ina_service_ctx.stop_service_event);
+            __ctx->status.dwCurrentState = SERVICE_STOP_PENDING;
+            SetServiceStatus(__ctx->status_handle, &__ctx->status);
+            SetEvent(__ctx->stop_service_event);
             return;
         case SERVICE_CONTROL_PAUSE:
             break;
@@ -94,70 +95,70 @@ static void WINAPI ServiceControlHandler( DWORD controlCode )
                 /* unrecognised control code */
                 break;
     }
-    SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+    SetServiceStatus(__ctx->status_handle, &__ctx->status);
 }
 static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
 {
     /* initialise service status */
-    __ina_service_ctx.status.dwServiceType = SERVICE_WIN32;
-    __ina_service_ctx.status.dwCurrentState = SERVICE_STOPPED;
-    __ina_service_ctx.status.dwControlsAccepted = 0;
-    __ina_service_ctx.status.dwWin32ExitCode = NO_ERROR;
-    __ina_service_ctx.status.dwServiceSpecificExitCode = NO_ERROR;
-    __ina_service_ctx.status.dwCheckPoint = 0;
-    __ina_service_ctx.status.dwWaitHint = 0;
+    __ctx->status.dwServiceType = SERVICE_WIN32;
+    __ctx->status.dwCurrentState = SERVICE_STOPPED;
+    __ctx->status.dwControlsAccepted = 0;
+    __ctx->status.dwWin32ExitCode = NO_ERROR;
+    __ctx->status.dwServiceSpecificExitCode = NO_ERROR;
+    __ctx->status.dwCheckPoint = 0;
+    __ctx->status.dwWaitHint = 0;
 
-    __ina_service_ctx.status_handle = RegisterServiceCtrlHandler(
-                    ina_str_cstr(__ina_service_ctx.descriptor->name), 
+    __ctx->status_handle = RegisterServiceCtrlHandler(
+                    ina_str_cstr(__ctx->descriptor->name), 
                     ServiceControlHandler);
 
-    if (__ina_service_ctx.status_handle) {
+    if (__ctx->status_handle) {
         HANDLE thread_handle = INVALID_HANDLE_VALUE;
         DWORD thread_exit_code = 0;
 
         /* service is starting */
-        __ina_service_ctx.status.dwCurrentState = SERVICE_START_PENDING;
-        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+        __ctx->status.dwCurrentState = SERVICE_START_PENDING;
+        SetServiceStatus(__ctx->status_handle, &__ctx->status);
 
         /* do initialisation here */
         thread_handle = CreateThread(NULL, 0, __ina_service_start_wrapper, NULL, 0, NULL);
         INA_ASSERT_NOTEQUAL(INVALID_HANDLE_VALUE, thread_handle);
-        __ina_service_ctx.stop_service_event = CreateEvent(0, FALSE, FALSE, 0);
+        __ctx->stop_service_event = CreateEvent(0, FALSE, FALSE, 0);
         Sleep(1);
         GetExitCodeThread(thread_handle, &thread_exit_code);
         if (thread_exit_code != STILL_ACTIVE) {
-            __ina_service_ctx.status.dwCurrentState = SERVICE_STOPPED;
-            __ina_service_ctx.status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
-            __ina_service_ctx.status.dwServiceSpecificExitCode = thread_exit_code;
-            SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+            __ctx->status.dwCurrentState = SERVICE_STOPPED;
+            __ctx->status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
+            __ctx->status.dwServiceSpecificExitCode = thread_exit_code;
+            SetServiceStatus(__ctx->status_handle, &__ctx->status);
             return;
         }
 
         /* running */
-        __ina_service_ctx.status.dwControlsAccepted |= (SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
-        __ina_service_ctx.status.dwCurrentState = SERVICE_RUNNING;
-        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+        __ctx->status.dwControlsAccepted |= (SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
+        __ctx->status.dwCurrentState = SERVICE_RUNNING;
+        SetServiceStatus(__ctx->status_handle, &__ctx->status);
 
         /* Wait for the stop-event to trigger */
-        WaitForSingleObject(__ina_service_ctx.stop_service_event, INFINITE);
+        WaitForSingleObject(__ctx->stop_service_event, INFINITE);
 
         /* we received a stop-event now execute the shutdown proc and join the thread */
-        __ina_service_ctx.descriptor->service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_SHUTDOWN);
+        __ctx->descriptor->service_fn(&__ctx, INA_SERVICE_STATUS_SHUTDOWN);
         WaitForSingleObject(thread_handle, INFINITE);
 
         /* service was stopped */
-        __ina_service_ctx.status.dwCurrentState = SERVICE_STOP_PENDING;
-        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+        __ctx->status.dwCurrentState = SERVICE_STOP_PENDING;
+        SetServiceStatus(__ctx->status_handle, &__ctx->status);
 
         /* do cleanup here */
-        CloseHandle(__ina_service_ctx.stop_service_event);
-        __ina_service_ctx.stop_service_event = 0;
+        CloseHandle(__ctx->stop_service_event);
+        __ctx->stop_service_event = 0;
 
         /* service is now stopped */
-        __ina_service_ctx.status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
-        __ina_service_ctx.status.dwCurrentState = SERVICE_STOPPED;
-        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
-       __ina_service_ctx.descriptor->service_fn(&__ina_service_ctx, INA_SERVICE_STATUS_STOPPED);
+        __ctx->status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
+        __ctx->status.dwCurrentState = SERVICE_STOPPED;
+        SetServiceStatus(__ctx->status_handle, &__ctx->status);
+       __ctx->descriptor->service_fn(&__ctx, INA_SERVICE_STATUS_STOPPED);
     }
 }
 static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
@@ -501,10 +502,10 @@ static void __ina_service_signal_handler(ina_signal_t sig,
                                          int *exitcode)
 {
     if (sig == INA_SIGNAL_INT || sig == INA_SIGNAL_TERM) {
-        __ina_service_ctx.descriptor->service_fn(
-            &__ina_service_ctx, INA_SERVICE_STATUS_SHUTDOWN);
+        __ctx->descriptor->service_fn(
+            __ctx, INA_SERVICE_STATUS_SHUTDOWN);
 #ifdef INA_OS_WIN32
-        WaitForSingleObject(__ina_service_ctx.main_thread, INFINITE);
+        WaitForSingleObject(__ctx->main_thread, INFINITE);
 #endif
     }
 }
@@ -513,17 +514,41 @@ INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
-    *ctx = &__ina_service_ctx;
+    if (__ctx != NULL) {
+        *ctx = __ctx;
+        return INA_SUCCESS;
+    }
+
+    __ctx = (ina_service_ctx_t*)ina_mem_alloc(sizeof(ina_service_ctx_t));
+    if (__ctx == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
 
 #ifdef INA_OS_WIN32
-    (*ctx)->hmutex = INVALID_HANDLE_VALUE;
-    (*ctx)->main_thread = GetCurrentThread();
+    __ctx->hmutex = INVALID_HANDLE_VALUE;
+    __ctx->main_thread = GetCurrentThread();
 #endif
-    return ina_service_get_descriptor(*ctx, &(*ctx)->descriptor);
+    if (!INA_SUCCEED(ina_service_get_descriptor(__ctx, &__ctx->descriptor))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (__ctx->descriptor->service_fn) {
+        if (!INA_SUCCEED(__ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_INIT))) {
+            return INA_ERR_PUSH_LAST;
+        }
+    }
+    *ctx = __ctx;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
 {
+    if (*ctx == NULL || __ctx == NULL) {
+        return INA_SUCCESS;
+    }
+    if (__ctx != __ctx) {
+        return INA_FAILURE;
+    }
+
 #ifdef INA_OS_WIN32
     if ((*ctx)->hmutex != INVALID_HANDLE_VALUE) {
         ReleaseMutex((*ctx)->hmutex);
@@ -533,6 +558,8 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
         ina_mem_free((*ctx)->descriptor);
         (*ctx)->descriptor = NULL;
     }
+    ina_mem_free(ctx);
+    __ctx = NULL;
     *ctx = NULL;
     return INA_SUCCESS;
 }

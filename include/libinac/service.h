@@ -49,6 +49,7 @@ typedef enum ina_service_status_e {
   INA_SERVICE_STATUS_UNINSTALL,    /* Service uninstall request */
   INA_SERVICE_STATUS_REPORT,       /* Service report request */ 
   INA_SERVICE_STATUS_ERROR,        /* Service error, stopped  */
+  INA_SERVICE_STATUS_INIT          /* Before before initialization */
 } ina_service_status_t;
 
 typedef ina_rc_t (*ina_service_fn_t)(const ina_service_ctx_t *ctx, ina_service_status_t status);
