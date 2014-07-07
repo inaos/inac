@@ -623,7 +623,6 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
         INA_ASSERT_NOTNULL(ds);
         return ds->service_fn(ctx, INA_SERVICE_STATUS_REPORT);
     }
-
     return INA_SUCCESS;
 }
 
@@ -639,6 +638,9 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
     }
 
     ds = ina_mem_alloc(sizeof(ina_service_descriptor_t));
+    if (ds  == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
     ina_mem_cpy(ds, &__ina_service_section, sizeof(ina_service_descriptor_t));
     ((ina_service_ctx_t*)ctx)->descriptor = ds;
     return INA_SUCCESS;
@@ -648,20 +650,23 @@ INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
-    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_INSTALL))) {
-        return INA_ERR_PUSH_LAST;
-    } 
-    return __ina_service_install(ctx);
+    if (INA_SUCCEED(__ina_service_install(ctx))) {
+        ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_INSTALL);
+        return INA_SUCCESS;
+    }
+    ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_ERROR);
+    return INA_ERR_PUSH_LAST; 
 }
 
 INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
-
-    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_UNINSTALL))) {
-        return INA_ERR_PUSH_LAST;
-    }     
-    return __ina_service_uninstall(ctx);
+    if (INA_SUCCEED(__ina_service_uninstall(ctx))) {
+        ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_UNINSTALL);
+        return INA_SUCCESS;
+    }
+    ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_ERROR);
+    return INA_ERR_PUSH_LAST; 
 }
 
 INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console)
