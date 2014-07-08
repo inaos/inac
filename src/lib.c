@@ -390,7 +390,7 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
     *key = NULL;
     *value = NULL;
 
-    for (lo = __lopt; lo != NULL && index >= 0; lo=lo->hh.next) {
+    for (lo = __lopt; lo != NULL && index > 0; lo=lo->hh.next) {
         --index;
     }
 
