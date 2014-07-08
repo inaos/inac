@@ -132,7 +132,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
         __ina_sopt_t *so = NULL;
         __ina_sopt_t *tmp_so =  NULL;
 
-        while (opt->short_opt) {
+        while (opt->long_opt) {
             __ina_lopt_t *lo;
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             if (so == NULL) {
@@ -144,7 +144,10 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             }
             so->desc = ina_str_new_fromcstr(opt->desc);
             so->type = opt->type;
-            HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
+            
+            if (strlen(so->opt)) {
+                HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
+            }
 
             lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
             if (lo == NULL) {
@@ -464,7 +467,11 @@ __ina_opt_usage(void)
     
     HASH_ITER(hh, __lopt, lo, tmp_lo) {
         so = lo->short_opt;
-        printf(" -%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
+        if (strlen(so->opt) > 0) {
+            printf(" -%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
+        } else {
+            printf(" --%s", ina_str_cstr(lo->opt));
+        }
         if (so->type != INA_OPT_TYPE_FLAG) {
             printf("%s", "= [");
             if (so->type == INA_OPT_TYPE_STRING) {
@@ -477,9 +484,15 @@ __ina_opt_usage(void)
     printf("%s", "\n\n");
     HASH_ITER(hh, __lopt, lo, tmp_lo) {
         so = lo->short_opt;
-        printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), 
-               ina_str_cstr(lo->opt), 
-               ina_str_cstr(so->desc));
+        if (strlen(so->opt) > 0) {
+            printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), 
+                ina_str_cstr(lo->opt), 
+                ina_str_cstr(so->desc));
+        } else {
+            printf("        --%s , %s\n",  
+                ina_str_cstr(lo->opt), 
+                ina_str_cstr(so->desc));           
+        }
     }
 }
 
