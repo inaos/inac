@@ -89,7 +89,7 @@ function start() {
     
     return $RETVAL
 }
-
+:
 # stop-service
 function stop() {
     RETVAL="0"
@@ -116,7 +116,7 @@ function stop() {
 			done
 			if [ "$count" -gt "$SHUTDOWN_WAIT" ]; then
 				if [ "$SHUTDOWN_VERBOSE" = "true" ]; then
-					echo "killing processes which didn't stop after $SHUTDOWN_WAIT seconds"
+					echo "killing processes which didnt stop after $SHUTDOWN_WAIT seconds"
 				fi
 				kill -9 $mypid
 			fi
