@@ -82,9 +82,9 @@ function start() {
     
     RETVAL="$?"
     if [ "$RETVAL" -eq 0 ]; then 
-        log_success_msg
+        log_success_msg "[OK]"
     else
-        log_failure_msg
+        log_failure_msg “[FAILED]"
     fi
     
     return $RETVAL
@@ -93,6 +93,9 @@ function start() {
 # stop-service
 function stop() {
     RETVAL="0"
+    if [ -z "$SHUTDOWN_WAIT" ]; then
+      SHUTDOWN_WAIT="60"
+    fi
     echo -n "Stopping @{service_name}: "
     if [ -f "/var/run/${NAME}.pid" ]; then
         
@@ -120,10 +123,10 @@ function stop() {
 			log_success_msg            
             rm -f /var/run/${NAME}.pid
         else
-            log_failure_msg
+            log_failure_msg "[FAILED]"
         fi
     else
-        log_success_msg
+        log_success_msg "[OK]"
     fi
     
     return $RETVAL
