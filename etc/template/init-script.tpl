@@ -73,7 +73,7 @@ function start() {
     if [ -f "/var/run/${NAME}.pid" ] ; then
 		read mypid < /var/run/${NAME}.pid
 		if [ -d "/proc/${mypid}" ]; then
-			log_success_msg
+			log_success_msg "[OK]"
 			return 0
 		fi
     fi
@@ -84,7 +84,7 @@ function start() {
     if [ "$RETVAL" -eq 0 ]; then 
         log_success_msg "[OK]"
     else
-        log_failure_msg “[FAILED]"
+        log_failure_msg "[FAILED]"
     fi
     
     return $RETVAL
