@@ -120,7 +120,7 @@ function stop() {
 				fi
 				kill -9 $mypid
 			fi
-			log_success_msg            
+			log_success_msg "[OK]" 
             rm -f /var/run/${NAME}.pid
         else
             log_failure_msg "[FAILED]"
