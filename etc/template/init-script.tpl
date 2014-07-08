@@ -70,7 +70,7 @@ RETVAL="0"
 function start() {
 
     echo -n "Starting @{service_name}: "
-    if [ -f "/var/lock/subsys/${NAME}" ] ; then
+    if [ -f "/var/lock/${NAME}" ] ; then
 		read mypid < /var/run/${NAME}.pid
 		if [ -d "/proc/${mypid}" ]; then
 			log_success_msg
@@ -94,7 +94,7 @@ function start() {
 function stop() {
     RETVAL="0"
     echo -n "Stopping @{service_name}: "
-    if [ -f "/var/lock/subsys/${NAME}" ]; then
+    if [ -f "/var/lock/${NAME}" ]; then
         
 		# read pid and send SIGINT
 		read mypid < /var/run/${NAME}.pid
@@ -118,7 +118,7 @@ function stop() {
 				kill -9 $mypid
 			fi
 			log_success_msg            
-            rm -f /var/lock/subsys/${NAME} /var/run/${NAME}.pid
+            rm -f /var/lock/${NAME} /var/run/${NAME}.pid
         else
             log_failure_msg
         fi
