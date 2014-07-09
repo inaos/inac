@@ -38,38 +38,32 @@ static ina_rc_t __ina_service_fn(const ina_service_ctx_t *ctx, ina_service_statu
 
     switch (status) {
         case INA_SERVICE_STATUS_START:
-            {
-                user_data = (int*)ina_mem_alloc(sizeof(int));
-                *user_data = 1;
-                ds->user_data = user_data;
-                break;
-            }
-            case INA_SERVICE_STATUS_RUN:
-            {   
-                user_data = (int*)ds->user_data;
-                *user_data = 2;
-                break;
-            }
-            case INA_SERVICE_STATUS_SHUTDOWN:
-            {
-                user_data = (int*)ds->user_data;
-                *user_data = 3;
-                break;
-            }
-            case INA_SERVICE_STATUS_STOP:
-            {
-                ina_mem_free(ds->user_data);
-                ds->user_data = NULL;
-                break;
-            }
-            case INA_SERVICE_STATUS_ERROR:
-            {
-                break;
-            }
-            default:
-            {
-                break;
-            }
+            user_data = (int*)ina_mem_alloc(sizeof(int));
+            *user_data = 1;
+            ds->user_data = user_data;
+            break;
+        case INA_SERVICE_STATUS_RUN:
+            user_data = (int*)ds->user_data;
+            *user_data = 2;
+            break;
+        case INA_SERVICE_STATUS_SHUTDOWN:
+            user_data = (int*)ds->user_data;
+            *user_data = 3;
+            break;
+        case INA_SERVICE_STATUS_STOP:
+            ina_mem_free(ds->user_data);
+            ds->user_data = NULL;
+            break;
+        case INA_SERVICE_STATUS_INSTALL:
+            break;
+        case INA_SERVICE_STATUS_UNINSTALL:
+            break;
+        case INA_SERVICE_STATUS_REPORT:
+            break;
+        case INA_SERVICE_STATUS_ERROR:
+            break;
+        default:
+            break;
     }
     return INA_SUCCESS;
 }
@@ -77,11 +71,11 @@ static ina_rc_t __ina_service_fn(const ina_service_ctx_t *ctx, ina_service_statu
 INA_SERVICE_DESCRIPTOR("test",
     "Test Daemon",
     "Simple test deamon", 
-    "Simple test deamon sending hello by UDP", 
     "root", 
     "password", 
     "-h service simple_deamon 127.0.0.1 9998", 
     "/opt/test",
+    "1234 99 10",
     __ina_service_fn,
     INA_SERVICE_STARTUP_TYPE_AUTO, 
     INA_YES);

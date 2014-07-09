@@ -91,20 +91,20 @@ typedef enum ina_service_startup_type_e {
 #define INA_SERVICE_USERNAME_MAXLEN          (64)
 #define INA_SERVICE_PASSORD_MAXLEN           (64)
 #define INA_SERVICE_STARTUP_ARGS_MAXLEN      (512)
-#define INA_SERVICE_SHORT_DESCRIPTION_MAXLEN (128)
-#define INA_SERVICE_LONG_DESCRIPTION_MAXLEN  (1024)
+#define INA_SERVICE_DESCRIPTION_MAXLEN       (128)
 #define INA_SERVICE_WORKINGDIR_MAXLEN        (1024)
+#define INA_SERVICE_CHKCONFIG_MAXLEN         (24)
 
 /* Service descriptor */
 typedef struct ina_service_descriptor_s {
     char name[INA_SERVICE_NAME_MAXLEN];
     char display_name[INA_SERVICE_DISPLAY_NAME_MAXLEN];
-    char short_description[INA_SERVICE_SHORT_DESCRIPTION_MAXLEN];
-    char long_description[INA_SERVICE_LONG_DESCRIPTION_MAXLEN];
+    char description[INA_SERVICE_DESCRIPTION_MAXLEN];
     char username[INA_SERVICE_USERNAME_MAXLEN];
     char password[INA_SERVICE_PASSORD_MAXLEN];
     char startup_args[INA_SERVICE_STARTUP_ARGS_MAXLEN];
     char working_directory[INA_SERVICE_WORKINGDIR_MAXLEN];
+    char chkconfig[INA_SERVICE_CHKCONFIG_MAXLEN];
     ina_service_fn_t service_fn;
     ina_service_startup_type_t startup;
     int32_t exclusive_flag;
@@ -113,22 +113,23 @@ typedef struct ina_service_descriptor_s {
 
 /* Setup service section  */
 #define INA_SERVICE_DESCRIPTOR(name, display_name,                           \
-                               short_description, long_description,          \
+                               description,                                  \
                                username, password,                           \
                                startup_args,                                 \
                                working_directory,                            \
+                               chkconfig,                                    \
                                service_fn,                                   \
                                startup,                                      \
                                exclusive_flag)                               \
 INA_SERVICE_SECTION_PUSH ina_service_descriptor_t __ina_service_section INA_SERVICE_SECTION = { \
         name,                                                                \
         display_name,                                                        \
-        short_description,                                                   \
-        long_description,                                                    \
+        description,                                                         \
         username,                                                            \
         password,                                                            \
         startup_args,                                                        \
         working_directory,                                                   \
+        chkconfig,                                                           \
         service_fn,                                                          \
         startup,                                                             \
         exclusive_flag,                                                      \
@@ -138,12 +139,17 @@ INA_SERVICE_SECTION_PUSH ina_service_descriptor_t __ina_service_section INA_SERV
  *
  */
 INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx);
+
 /*
  * 
  */
 INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx);
 
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx);
+
 /*
  *
  */
@@ -156,6 +162,7 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
  *      copy it to /etc/init.d upon install
  */
 INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx);
+
 /*
  * 
  */
@@ -165,11 +172,17 @@ INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx);
  * 
  */
 INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console);
+
 /*
  * 
  */
 INA_API(ina_rc_t) ina_service_get_mode(const ina_service_ctx_t *ctx, 
                                        ina_service_mode_t *mode);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_is_deamon(const ina_service_ctx_t *ctx);
 
 #ifdef __cplusplus
 }

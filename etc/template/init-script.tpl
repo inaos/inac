@@ -2,18 +2,9 @@
 #
 # @{service_name}      This shell script takes care of starting and stopping @{service_display_name}
 #
-# chkconfig: - 80 20
+# chkconfig: @{service_chkconfig}
+# description: @{service_description}
 #
-### BEGIN INIT INFO
-# Provides: @{service_name}
-# Required-Start: $network $local_fs
-# Required-Stop: $network $local_fs
-# Default-Start:
-# Default-Stop:
-# Description: @{service_long_description}
-# Short-Description: @{service_short_description}
-### END INIT INFO
-
 # Copyright (c) 2014, INAOS GmbH
 # All rights reserved.
 # 
@@ -120,13 +111,13 @@ function stop() {
 				fi
 				kill -9 $mypid
 			fi
-			log_success_msg "[OK]" 
+			log_success_msg
             rm -f /var/run/${NAME}.pid
         else
-            log_failure_msg "[FAILED]"
+            log_failure_msg
         fi
     else
-        log_success_msg "[OK]"
+        log_success_msg
     fi
     
     return $RETVAL

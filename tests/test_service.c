@@ -50,12 +50,12 @@ INA_TEST(service, get_descriptor)
 
     INA_TEST_ASSERT_EQUAL_STR("test", ds->name);
     INA_TEST_ASSERT_EQUAL_STR("Test Daemon", ds->display_name);
-    INA_TEST_ASSERT_EQUAL_STR("Simple test deamon", ds->short_description);
-    INA_TEST_ASSERT_EQUAL_STR("Simple test deamon sending hello by UDP", ds->long_description);
+    INA_TEST_ASSERT_EQUAL_STR("Simple test deamon", ds->description);
     INA_TEST_ASSERT_EQUAL_STR("root", ds->username); 
     INA_TEST_ASSERT_EQUAL_STR("password", ds->password);
     INA_TEST_ASSERT_EQUAL_STR("-h service simple_deamon 127.0.0.1 9998",ds->startup_args); 
     INA_TEST_ASSERT_EQUAL_STR("/opt/test", ds->working_directory);
+    INA_TEST_ASSERT_EQUAL_STR("1234 99 10", ds->chkconfig);
     INA_TEST_ASSERT_NOT_NULL(ds->service_fn);
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_SERVICE_STARTUP_TYPE_AUTO, ds->startup);
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_YES, ds->exclusive_flag);

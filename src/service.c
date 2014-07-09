@@ -35,10 +35,12 @@
 #include <sys/stat.h>
 #define INA_SERVICE_PID_FILE_FMT  "/var/run/%s.pid"
 #define INA_SERVICE_LOCK_FILE_FMT "/var/lock/%s"
+#define __INA_CHKCONFIG_DFT " -  20 80"
+#define __INA_CHKCONFIG_CMD "chkconfig --%s %s"
 #endif
 
 struct ina_service_ctx_s {
-    int initialized;
+    int is_deamon;
     ina_service_mode_t mode;
     ina_service_descriptor_t *descriptor;
 #ifdef INA_OS_WIN32
@@ -359,9 +361,9 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     ina_template_set_string(env, "service_display_name",  ctx->descriptor->display_name);
     ina_template_set_string(env, "service_username", ctx->descriptor->username);
     ina_template_set_string(env, "service_startup", ctx->descriptor->startup_args);
-    ina_template_set_string(env, "service_short_description", ctx->descriptor->long_description);
-    ina_template_set_string(env, "service_long_description", ctx->descriptor->short_description);
-
+    ina_template_set_string(env, "service_description", ctx->descriptor->description);
+    ina_template_set_string(env, "service_chkconfig", ctx->descriptor->chkconfig);
+ 
     if (!INA_SUCCEED(ina_template_render(env, &out))) {
         return INA_ERR_PUSH_LAST;
     }
@@ -406,10 +408,9 @@ static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t *ctx)
 static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
 {
     pid_t pid;
-    int fp,lfp,pfp;
+    int fp,pfp;
     ina_str_t pid_str;
     ina_str_t pid_file_path;
-    ina_str_t lock_file_path;
 
     if (getppid() == 1) {
         return INA_SERVICE_EAID; /* already a daemon */
@@ -420,46 +421,52 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
         return INA_SERVICE_EFERR; /* fork error */
     }
     if (pid > 0) {
-        exit(0); /* parent exits */
+        exit(EXIT_SUCCESS); /* parent exits */
     }
 
-    setsid(); /* obtain a new process group */
+    if (setsid() < 0) { /* obtain a new process group */
+        exit(EXIT_FAILURE);
+    }
+  
+    signal(SIGCHLD, SIG_IGN);
+    signal(SIGHUP, SIG_IGN);
+
+    pid = fork();
+
+    if (pid < 0) {
+        return INA_SERVICE_EFERR; /* fork error */
+    }
+    if (pid > 0) {
+        exit(EXIT_SUCCESS); /* parent exits */
+    }
+
+    umask(0); /* protect files written by us */
 
     for (fp = getdtablesize(); fp >= 0; --fp) {
         close(fp); /* close all descriptors */
     }
-
+    
     fp = open("/dev/null", O_RDWR); /* open stdin */
     dup(fp); /* stdout */
     dup(fp); /* stderr */
 
-    umask(027); /* protect files written by us */
-
     /* set working-directory */
-    chdir(ina_str_cstr(ctx->descriptor->working_directory)); 
+    if (chdir(ina_str_cstr(ctx->descriptor->working_directory)) < 0) {
+        exit(EXIT_FAILURE);
+    } 
 
     pid_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
                             ina_str_cstr(ctx->descriptor->name));
-    lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
-                            ina_str_cstr(ctx->descriptor->name));
-
-    
-    lfp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
-    if (lfp < 0) {
+    pfp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
+    if (pfp < 0) {
         return INA_SERVICE_ELCO; /* can not open */
     }
-    if (lockf(lfp, F_TLOCK, 0) < 0) {
-        return INA_SERVICE_ELOCK; /* can not lock */
-    }
-    
-    pid_str = ina_str_sprintf("%d\n", getpid());
-
-    pfp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
-    write(pfp, ina_str_cstr(pid_str), ina_str_len(pid_str)); /* record pid to pid-file */
+    pid_str = ina_str_sprintf("%d\n", getpid()); 
+    ftruncate(pfp, 0); 
+    write(pfp, ina_str_cstr(pid_str), ina_str_len(pid_str)+1); /* record pid to pid-file */
     close(pfp);
 
     ina_str_free(pid_file_path);
-    ina_str_free(lock_file_path);
     ina_str_free(pid_str);
 
     if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START))) {
@@ -576,36 +583,6 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx)
     }
 
     else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_INSTALL) == 0) {
-        ina_service_descriptor_t *ds = NULL;
-        ina_service_get_descriptor(ctx, &ds);
-        INA_ASSERT_NOTNULL(ds);
-  
-        if (strlen(ds->startup_args) == 0) {
-            int index = 0;
-            ina_str_t key;
-            ina_str_t value;
-            ina_str_t startup_args = ina_str_new_fromcstr("");
-
-            startup_args = ina_str_catcstr(startup_args, ina_app_get_path());
-            startup_args = ina_str_catcstr(startup_args, " ");
-            
-            while (INA_SUCCEED(ina_opt_get_key_value(index, &key, &value))) {
-                if (strcasecmp(ina_str_cstr(key), INA_SERVICE_OPT_NAME) != 0) {
-                    startup_args = ina_str_catcstr(startup_args, " --");
-                    startup_args = ina_str_cat(startup_args, key);
-                    startup_args = ina_str_catcstr(startup_args, " ");
-                    startup_args = ina_str_cat(startup_args, value);
-                }
-                index++;
-            }
-            startup_args = ina_str_catcstr(startup_args, " --");
-            startup_args = ina_str_catcstr(startup_args, INA_SERVICE_OPT_NAME);
-            startup_args = ina_str_catcstr(startup_args, " ");
-            startup_args = ina_str_catcstr(startup_args, INA_SERVICE_CMD_DEAMON);
-            strncpy(ds->startup_args, 
-                ina_str_cstr(startup_args), 
-                INA_SERVICE_STARTUP_ARGS_MAXLEN);
-        }
         return ina_service_install(ctx);
     }
 
@@ -632,13 +609,15 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
 {
     ina_service_descriptor_t *ds;
 
+    INA_ASSERT_NOTNULL(ctx);
+
     if (ctx->descriptor) {
         *descriptor = ctx->descriptor;
         return INA_SUCCESS;
     }
 
     ds = ina_mem_alloc(sizeof(ina_service_descriptor_t));
-    if (ds  == NULL) {
+    if (ds == NULL) {
         return INA_ERR_PUSH_LAST;
     }
     ina_mem_cpy(ds, &__ina_service_section, sizeof(ina_service_descriptor_t));
@@ -648,7 +627,43 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
 
 INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
 {
+    ina_service_descriptor_t *ds = NULL;
+    
     INA_ASSERT_NOTNULL(ctx);
+
+    ina_service_get_descriptor(ctx, &ds);
+    INA_ASSERT_NOTNULL(ds);
+  
+    if (strlen(ds->chkconfig) == 0) {
+        strcpy(ds->chkconfig, __INA_CHKCONFIG_DFT);
+    }
+
+    if (strlen(ds->startup_args) == 0) {
+        int index = 0;
+        ina_str_t key;
+        ina_str_t value;
+        ina_str_t startup_args = ina_str_new_fromcstr("");
+
+        startup_args = ina_str_catcstr(startup_args, ina_app_get_path());
+        startup_args = ina_str_catcstr(startup_args, " ");
+            
+        while (INA_SUCCEED(ina_opt_get_key_value(index, &key, &value))) {
+            if (strcasecmp(ina_str_cstr(key), INA_SERVICE_OPT_NAME) != 0) {
+                startup_args = ina_str_catcstr(startup_args, "--");
+                startup_args = ina_str_cat(startup_args, key);
+                startup_args = ina_str_catcstr(startup_args, "=");
+                startup_args = ina_str_cat(startup_args, value);
+            }
+            index++;
+        }
+        startup_args = ina_str_catcstr(startup_args, " --");
+        startup_args = ina_str_catcstr(startup_args, INA_SERVICE_OPT_NAME);
+        startup_args = ina_str_catcstr(startup_args, " ");
+        startup_args = ina_str_catcstr(startup_args, INA_SERVICE_CMD_DEAMON);
+        strncpy(ds->startup_args, 
+            ina_str_cstr(startup_args), 
+            INA_SERVICE_STARTUP_ARGS_MAXLEN);
+    }
 
     if (INA_SUCCEED(__ina_service_install(ctx))) {
         ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_INSTALL);
@@ -661,6 +676,7 @@ INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
 INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
+
     if (INA_SUCCEED(__ina_service_uninstall(ctx))) {
         ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_UNINSTALL);
         return INA_SUCCESS;
@@ -671,12 +687,15 @@ INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console)
 {
+    INA_ASSERT_NOTNULL(ctx);
+
     ina_register_signal_handler(INA_SIGNAL_TERM, __ina_service_signal_handler);
     ina_register_signal_handler(INA_SIGNAL_INT, __ina_service_signal_handler);
     
     if (!console) {
         return __ina_service_run_service(ctx);
     }
+    ((ina_service_ctx_t*)ctx)->is_deamon = INA_YES;
     return __ina_service_run_console(ctx);
 }
 
@@ -685,4 +704,13 @@ INA_API(ina_rc_t) ina_service_get_mode(const ina_service_ctx_t *ctx,
 {
     *mode = ctx->mode;
     return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_is_deamon(const ina_service_ctx_t *ctx) 
+{
+    INA_ASSERT_NOTNULL(ctx);
+    if (ctx->is_deamon) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
 }
