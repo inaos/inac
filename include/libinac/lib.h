@@ -87,6 +87,7 @@
 #include <libinac/fsm.h>
 #include <libinac/service.h>
 #include <libinac/process.h>
+#include <libinac/ipc.h>
 #include <libinac/template.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
