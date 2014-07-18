@@ -26,17 +26,16 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
-#include <libinac/ipc.h>
 #include "config.h"
 
 /* IPC flag */
-struct ina_ipc_flag_s {
+struct ina_ipc_flags_s {
     ina_mempool_t *m;
-    ina_ipc_flag_data_t *data;   
+    ina_ipc_flags_data_t *data;   
 };
 
 /* IPC flag data*/
-struct ina_ipc_flag_data_s {
+struct ina_ipc_flags_data_s {
     char name[INA_IPC_FLAG_NAME_MAXLEN];
     int64_t  l;
     uint64_t v;
@@ -47,88 +46,88 @@ struct ina_ipc_flag_data_s {
 #define __INA_ENTER_LOCK(d)
 #define __INA_EXIT_LOCK(d)
 
-INA_API(ina_rc_t) ina_ipc_flag_new(const char* name, uint64_t initial, ina_ipc_flag_t **flag)
+INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, uint64_t initial, ina_ipc_flags_t **flags)
 {
-    *flag = ina_mem_alloc(sizeof(ina_ipc_flag_t));
-    if (*flag == NULL) {
+    *flags = ina_mem_alloc(sizeof(ina_ipc_flags_t));
+    if (*flags == NULL) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ina_mempool_create(&(*flag)->m, sizeof(ina_ipc_flag_data_t), 
+    if (!INA_SUCCEED(ina_mempool_create(&(*flags)->m, sizeof(ina_ipc_flags_data_t), 
                      INA_MEM_SHARED|INA_MEM_SHARED_CREATE, 
                      name))) {
-        ina_ipc_flag_free(flag);
+        ina_ipc_flags_free(flags);
         return INA_ERR_PUSH_LAST;
     }
-    (*flag)->data = ina_mempool_dalloc((*flag)->m, sizeof(ina_ipc_flag_data_t));
-    if ((*flag)->data == NULL) {
-        ina_ipc_flag_free(flag);
+    (*flags)->data = ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
+    if ((*flags)->data == NULL) {
+        ina_ipc_flags_free(flags);
     }
-    strncpy((*flag)->data->name, name, INA_IPC_FLAG_NAME_MAXLEN);
+    strncpy((*flags)->data->name, name, INA_IPC_FLAG_NAME_MAXLEN);
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ipc_flag_free(ina_ipc_flag_t **flag)
+INA_API(ina_rc_t) ina_ipc_flags_free(ina_ipc_flags_t **flags)
 {
-    if (*flag == NULL) {
+    if (*flags == NULL) {
         return INA_SUCCESS;
     }
-    if ((*flag)->m != NULL) {
-        ina_mempool_release((*flag)->m, INA_YES);
+    if ((*flags)->m != NULL) {
+        ina_mempool_release((*flags)->m, INA_YES);
     }
-    ina_mem_free(*flag);
-    *flag = NULL;
+    ina_mem_free(*flags);
+    *flags = NULL;
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ipc_flag_get_name(const ina_ipc_flag_t *flag, const char **name)
+INA_API(ina_rc_t) ina_ipc_flags_get_name(const ina_ipc_flags_t *flags, const char **name)
 {
-    INA_ASSERT_NOTNULL(flag);
-    INA_ASSERT_NOTNULL(flag->data);
+    INA_ASSERT_NOTNULL(flags);
+    INA_ASSERT_NOTNULL(flags->data);
     INA_ASSERT_NOTNULL(name);
-    *name = flag->data->name;
+    *name = flags->data->name;
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ipc_flag_get(const ina_ipc_flag_t *flag, uint64_t *value)
+INA_API(ina_rc_t) ina_ipc_flags_get(const ina_ipc_flags_t *flags, uint64_t *value)
 {
-    INA_ASSERT_NOTNULL(flag);
-    INA_ASSERT_NOTNULL(flag->data);
+    INA_ASSERT_NOTNULL(flags);
+    INA_ASSERT_NOTNULL(flags->data);
     INA_ASSERT_NOTNULL(value);
-    *value = flag->data->v;
+    *value = flags->data->v;
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ipc_flag_set(ina_ipc_flag_t *flag, uint64_t value)
+INA_API(ina_rc_t) ina_ipc_flags_set(ina_ipc_flags_t *flags, uint64_t value)
 {
-    INA_ASSERT_NOTNULL(flag);
-    INA_ASSERT_NOTNULL(flag->data);
-    __INA_ENTER_LOCK(flag->data);
-    flag->data->v |= value;
-    __INA_EXIT_LOCK(flag->data);
+    INA_ASSERT_NOTNULL(flags);
+    INA_ASSERT_NOTNULL(flags->data);
+    __INA_ENTER_LOCK(flags->data);
+    flags->data->v |= value;
+    __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ipc_flag_is_set(const ina_ipc_flag_t* flag, uint64_t value)
+INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t* flags, uint64_t value)
 {
-    INA_ASSERT_NOTNULL(flag);
-    INA_ASSERT_NOTNULL(flag->data);
-    if (flag->data->v&(value)) {
+    INA_ASSERT_NOTNULL(flags);
+    INA_ASSERT_NOTNULL(flags->data);
+    if (flags->data->v&(value)) {
         return INA_SUCCESS;
     }
     return INA_FAILURE;
 }
 
-INA_API(ina_rc_t) ina_ipc_flag_unset(ina_ipc_flag_t *flag, uint64_t value)
+INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
 {
-    INA_ASSERT_NOTNULL(flag);
-    INA_ASSERT_NOTNULL(flag->data);
-    __INA_ENTER_LOCK(flag->data);
-    flag->data->v =~ (value);
-    __INA_EXIT_LOCK(flag->data);
+    INA_ASSERT_NOTNULL(flags);
+    INA_ASSERT_NOTNULL(flags->data);
+    __INA_ENTER_LOCK(flags->data);
+    flags->data->v =~ (value);
+    __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ipc_flag_wait(const ina_ipc_flag_t* flag, uint64_t wait_for, time_t msec_timeout)
+INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait_for, time_t msec_timeout)
 {
     ina_timer_t *timer;
     ina_time_event_t *event;
@@ -144,7 +143,7 @@ INA_API(ina_rc_t) ina_ipc_flag_wait(const ina_ipc_flag_t* flag, uint64_t wait_fo
         return INA_ERR_PUSH_LAST;
     }
 
-    while (!INA_SUCCEED(ina_ipc_flag_is_set(flag, wait_for))) {
+    while (!INA_SUCCEED(ina_ipc_flags_is_set(flags, wait_for))) {
         if (ina_timer_next_event(timer) != NULL) {
             timeout = INA_YES;
             break;

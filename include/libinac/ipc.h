@@ -38,43 +38,43 @@ extern "C" {
 /*
  * Opaque types for IPC flag
  */
-typedef struct ina_ipc_flag_data_s ina_ipc_flag_data_t;
-typedef struct ina_ipc_flag_s ina_ipc_flag_t;
+typedef struct ina_ipc_flags_data_s ina_ipc_flags_data_t;
+typedef struct ina_ipc_flags_s ina_ipc_flags_t;
 
 /*
  * Create or open an new IPC flag
  */
-INA_API(ina_rc_t) ina_ipc_flag_new(const char* name, uint64_t initial, ina_ipc_flag_t **flag);
+INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, uint64_t initial, ina_ipc_flags_t **flag);
 /* 
  * Free IPC flag
  */
-INA_API(ina_rc_t) ina_ipc_flag_free(ina_ipc_flag_t **flag);
+INA_API(ina_rc_t) ina_ipc_flags_free(ina_ipc_flags_t **flags);
 
 /*
  * Get flag name
  */
-INA_API(ina_rc_t) ina_ipc_flag_get_name(const ina_ipc_flag_t *flag, const char **name);
+INA_API(ina_rc_t) ina_ipc_flags_get_name(const ina_ipc_flags_t *flags, const char **name);
 
 /* 
  * Get flag
  */
-INA_API(ina_rc_t) ina_ipc_flag_get(const ina_ipc_flag_t *flag, uint64_t *value);
+INA_API(ina_rc_t) ina_ipc_flags_get(const ina_ipc_flags_t *flags, uint64_t *value);
 /* 
  * Set flag mask
  */
-INA_API(ina_rc_t) ina_ipc_flag_set(ina_ipc_flag_t *flag, uint64_t value);
+INA_API(ina_rc_t) ina_ipc_flags_set(ina_ipc_flags_t *flags, uint64_t value);
 /* 
  * Query flag mask
  */
-INA_API(ina_rc_t) ina_ipc_flag_is_set(const ina_ipc_flag_t *flag, uint64_t value);
+INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t *flags, uint64_t value);
 /* 
  * Unset flag mask
  */
-INA_API(ina_rc_t) ina_ipc_flag_unset(ina_ipc_flag_t *flag, uint64_t value);
+INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value);
 /* 
  * Wait until flags are set
  */
-INA_API(ina_rc_t) ina_ipc_flag_wait(const ina_ipc_flag_t* flag, uint64_t wait_for, time_t msec_timeout);
+INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait_for, time_t msec_timeout);
 
 
 #ifdef __cplusplus
