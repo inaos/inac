@@ -36,7 +36,7 @@ struct ina_ipc_flags_s {
 
 /* IPC flag data*/
 struct ina_ipc_flags_data_s {
-    char name[INA_IPC_FLAG_NAME_MAXLEN];
+    char name[INA_IPC_FLAGS_NAME_MAXLEN+15];
     int64_t  l;
     uint64_t v;
     uint64_t ka;
@@ -46,8 +46,10 @@ struct ina_ipc_flags_data_s {
 #define __INA_ENTER_LOCK(d)
 #define __INA_EXIT_LOCK(d)
 
-INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, uint64_t initial, ina_ipc_flags_t **flags)
+INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_flags_t **flags)
 {
+    INA_ASSERT_NOTNULL(flags);
+
     *flags = ina_mem_alloc(sizeof(ina_ipc_flags_t));
     if (*flags == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -62,12 +64,15 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, uint64_t initial, ina_ipc_
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
     }
-    strncpy((*flags)->data->name, name, INA_IPC_FLAG_NAME_MAXLEN);
+    strcpy((*flags)->data->name, "/ina_ipc_flags_");
+    strncat((*flags)->data->name, name, INA_IPC_FLAGS_NAME_MAXLEN);
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_ipc_flags_free(ina_ipc_flags_t **flags)
 {
+    INA_ASSERT_NOTNULL(flags);
+
     if (*flags == NULL) {
         return INA_SUCCESS;
     }
@@ -132,6 +137,8 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
     ina_timer_t *timer;
     ina_time_event_t *event;
     int timeout = INA_NO;
+
+    INA_ASSERT_NOTNULL(flags);
 
     if (!INA_SUCCEED(ina_timer_init(&timer))) {
         return INA_ERR_PUSH_LAST;
