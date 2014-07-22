@@ -52,7 +52,7 @@ typedef enum ina_service_status_e {
   INA_SERVICE_STATUS_INIT          /* Before before initialization */
 } ina_service_status_t;
 
-typedef ina_rc_t (*ina_service_fn_t)(const ina_service_ctx_t *ctx, ina_service_status_t status);
+typedef ina_rc_t (*ina_service_fn_t)(const ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data);
 
 typedef enum ina_service_mode_e {
     INA_SERVICE_MODE_SERVICE,
@@ -108,7 +108,6 @@ typedef struct ina_service_descriptor_s {
     ina_service_fn_t service_fn;
     ina_service_startup_type_t startup;
     int32_t exclusive_flag;
-    void *user_data;
 } ina_service_descriptor_t;
 
 /* Setup service section  */
@@ -132,8 +131,7 @@ INA_SERVICE_SECTION_PUSH ina_service_descriptor_t __ina_service_section INA_SERV
         chkconfig,                                                           \
         service_fn,                                                          \
         startup,                                                             \
-        exclusive_flag,                                                      \
-        0}
+        exclusive_flag}
 
 /*
  *
@@ -148,7 +146,18 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx);
 /*
  *
  */
-INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx);
+INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx, const void *user_data);
+
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_get_data(const ina_service_ctx_t *ctx, const void **user_data);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_set_data(const ina_service_ctx_t *ctx, const void *user_data);
 
 /*
  *
@@ -171,7 +180,7 @@ INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console);
+INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console, const void *user_data);
 
 /*
  * 

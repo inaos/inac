@@ -40,6 +40,7 @@ INA_TEST(service, init_destroy)
 
 INA_TEST(service, get_descriptor)
 {
+    int *user_data = NULL;
     ina_service_ctx_t *ctx = NULL;
     ina_service_descriptor_t *ds = NULL;
   
@@ -60,17 +61,17 @@ INA_TEST(service, get_descriptor)
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_SERVICE_STARTUP_TYPE_AUTO, ds->startup);
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_YES, ds->exclusive_flag);
 
-    INA_TEST_ASSERT_SUCCEED(ds->service_fn(ctx, INA_SERVICE_STATUS_START));
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, *((int*)ds->user_data));
+    INA_TEST_ASSERT_SUCCEED(ds->service_fn(ctx, INA_SERVICE_STATUS_START, user_data));
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, *((int*)user_data));
 
-    INA_TEST_ASSERT_SUCCEED(ds->service_fn(ctx, INA_SERVICE_STATUS_RUN));
-    INA_TEST_ASSERT_EQUAL_INTEGER(2, *((int*)ds->user_data));
+    INA_TEST_ASSERT_SUCCEED(ds->service_fn(ctx, INA_SERVICE_STATUS_RUN, user_data));
+    INA_TEST_ASSERT_EQUAL_INTEGER(2, *((int*)user_data));
 
-    INA_TEST_ASSERT_SUCCEED(ds->service_fn(ctx, INA_SERVICE_STATUS_SHUTDOWN));
-    INA_TEST_ASSERT_EQUAL_INTEGER(3, *((int*)ds->user_data));
+    INA_TEST_ASSERT_SUCCEED(ds->service_fn(ctx, INA_SERVICE_STATUS_SHUTDOWN, user_data));
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, *((int*)user_data));
 
-    INA_TEST_ASSERT_SUCCEED(ds->service_fn(ctx, INA_SERVICE_STATUS_STOP));
-    INA_TEST_ASSERT_NULL(ds->user_data);
+    INA_TEST_ASSERT_SUCCEED(ds->service_fn(ctx, INA_SERVICE_STATUS_STOP, user_data));
+    INA_TEST_ASSERT_NULL(user_data);
 
     INA_TEST_ASSERT_SUCCEED(ina_service_destroy(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
