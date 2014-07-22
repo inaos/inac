@@ -27,10 +27,10 @@
  */
 #include <libinac/lib.h>
 
-#define F1 1ULL
-#define F2 2ULL
-#define F3 4ULL
-#define F4 16ULL
+#define F1 0x01
+#define F2 0x02
+#define F3 0x04
+#define F4 0x08
 
 INA_TEST(ipc_flags, new_free)
 {
@@ -100,6 +100,10 @@ INA_TEST(ipc_flags, is_set)
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_NOTSUCCEED(ina_ipc_flags_is_set(f, F4));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F1));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F2));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F3));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F4|F1));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F4));  
     ina_ipc_flags_free(&f);
  }
@@ -111,6 +115,8 @@ INA_TEST(ipc_flags, unset)
   
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_unset", F1|F2|F3|F4, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3|F4));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_unset(f, F4));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
     INA_TEST_ASSERT_TRUE(v == (F1|F2|F3));

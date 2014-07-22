@@ -147,7 +147,7 @@ INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t* flags, uint64_t va
 {
     INA_ASSERT_NOTNULL(flags);
     INA_ASSERT_NOTNULL(flags->data);
-    if (flags->data->v&(value)) {
+    if ((value&flags->data->v) == (value)) {
         return INA_SUCCESS;
     }
     return INA_FAILURE;
@@ -158,7 +158,7 @@ INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
     INA_ASSERT_NOTNULL(flags);
     INA_ASSERT_NOTNULL(flags->data);
     __INA_ENTER_LOCK(flags->data);
-    flags->data->v =~ (value);
+    flags->data->v &= ~(value);
     __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
 }
@@ -180,7 +180,7 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
         ina_timer_destroy(&timer);
         return INA_ERR_PUSH_LAST;
     }
-
+  
     while (!INA_SUCCEED(ina_ipc_flags_is_set(flags, wait_for))) {
         if (ina_timer_next_event(timer) != NULL) {
             timeout = INA_YES;
