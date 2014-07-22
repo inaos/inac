@@ -36,7 +36,7 @@ struct ina_ipc_flags_s {
 
 /* IPC flag data*/
 struct ina_ipc_flags_data_s {
-    char name[INA_IPC_FLAGS_NAME_MAXLEN+15];
+    char name[INA_IPC_FLAGS_NAME_MAXLEN];
     int64_t  l;
     uint64_t v;
     uint64_t ka;
@@ -48,15 +48,20 @@ struct ina_ipc_flags_data_s {
 
 INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_flags_t **flags)
 {
+    char mname[INA_IPC_FLAGS_NAME_MAXLEN+15];
+
     INA_ASSERT_NOTNULL(flags);
 
     *flags = ina_mem_alloc(sizeof(ina_ipc_flags_t));
     if (*flags == NULL) {
         return INA_ERR_PUSH_LAST;
     }
+    strcpy(mname, "/ina_ipc_flags_");
+    strncat(mname, name, INA_IPC_FLAGS_NAME_MAXLEN);
+
     if (!INA_SUCCEED(ina_mempool_create(&(*flags)->m, sizeof(ina_ipc_flags_data_t), 
-                     INA_MEM_SHARED|INA_MEM_SHARED_CREATE, 
-                     name))) {
+                     INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, 
+                     mname))) {
         ina_ipc_flags_free(flags);
         return INA_ERR_PUSH_LAST;
     }
@@ -64,8 +69,34 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
     }
-    strcpy((*flags)->data->name, "/ina_ipc_flags_");
-    strncat((*flags)->data->name, name, INA_IPC_FLAGS_NAME_MAXLEN);
+    strncpy((*flags)->data->name, name, INA_IPC_FLAGS_NAME_MAXLEN);
+    if (initial != INA_IPC_FLAGS_IGNORE) {
+        return ina_ipc_flags_set(*flags, (uint64_t)initial);
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
+{
+    char mname[INA_IPC_FLAGS_NAME_MAXLEN+15];
+    INA_ASSERT_NOTNULL(flags);
+
+    *flags = ina_mem_alloc(sizeof(ina_ipc_flags_t));
+    if (*flags == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+    strcpy(mname, "/ina_ipc_flags_");
+    strncat(mname, name, INA_IPC_FLAGS_NAME_MAXLEN);
+    if (!INA_SUCCEED(ina_mempool_create(&(*flags)->m, sizeof(ina_ipc_flags_data_t), 
+                     INA_MEM_SHARED, 
+                     mname))) {
+        ina_ipc_flags_free(flags);
+        return INA_ERR_PUSH_LAST;
+    }
+    (*flags)->data = ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
+    if ((*flags)->data == NULL) {
+        ina_ipc_flags_free(flags);
+    }
     return INA_SUCCESS;
 }
 

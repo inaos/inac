@@ -43,9 +43,14 @@ typedef struct ina_ipc_flags_data_s ina_ipc_flags_data_t;
 typedef struct ina_ipc_flags_s ina_ipc_flags_t;
 
 /*
- * Create or open an new IPC flag
+ * Create an new IPC flag
  */
 INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_flags_t **flag);
+
+/*
+ * Open an new IPC flag
+ */
+INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flag);
 
 /* 
  * Free IPC flag
