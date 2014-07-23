@@ -593,7 +593,9 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx, const void 
     ina_str_t cmd;
     INA_ASSERT_NOTNULL(ctx);
 
-    ina_service_set_data(ctx, user_data);
+    if (user_data != NULL) {
+        ina_service_set_data(ctx, user_data);
+    }
 
     /* Check if run in console mode */
     if (INA_SUCCEED(ina_opt_get_string(INA_SERVICE_OPT_NAME, &cmd)) &&
