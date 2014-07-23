@@ -362,6 +362,7 @@ INA_TEST_TEARDOWN(time_ipc_rdtsc)
     }
 }
 
+#ifndef INA_OS_WIN32
 INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     int64_t c = 0;
     ina_time_tsc_t time;
@@ -399,4 +400,4 @@ INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     ina_time_sleep(500); /* Wait child is exit */
     INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
 }
-
+#endif
