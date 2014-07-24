@@ -37,6 +37,8 @@
 #define INA_SERVICE_LOCK_FILE_FMT "/var/lock/%s"
 #define __INA_CHKCONFIG_DFT " -  20 80"
 #define __INA_CHKCONFIG_CMD "chkconfig --%s %s"
+#else
+#define __INA_CHKCONFIG_DFT ""
 #endif
 
 struct ina_service_ctx_s {
@@ -69,11 +71,11 @@ static DWORD __stdcall __ina_service_start_wrapper(LPVOID data)
 {
     INA_ASSERT_NOTNULL(__ctx->descriptor);    
     INA_ASSERT_NOTNULL(__ctx->descriptor->service_fn);
-    if (!INA_SUCCEED(__ctx->service_fn(&__ctx, INA_SERVICE_STATUS_START, ctx->user_data))) {
-        __ctx->service_fn(&__ctx, INA_SERVICE_STATUS_ERROR, ctx->user_data);
+    if (!INA_SUCCEED(__ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_START, __ctx->user_data))) {
+        __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_ERROR, __ctx->user_data);
         return INA_ERR_PUSH_LAST;
     }
-    return __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_RUNNING, ctx->user_data);
+    return __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_RUN, __ctx->user_data);
 }
 static void WINAPI ServiceControlHandler( DWORD controlCode )
 {
@@ -146,7 +148,7 @@ static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
         WaitForSingleObject(__ctx->stop_service_event, INFINITE);
 
         /* we received a stop-event now execute the shutdown proc and join the thread */
-        __ctx->descriptor->service_fn(&__ctx, INA_SERVICE_STATUS_SHUTDOWN, ctx->user_data);
+        __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_SHUTDOWN, __ctx->user_data);
         WaitForSingleObject(thread_handle, INFINITE);
 
         /* service was stopped */
@@ -161,7 +163,7 @@ static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
         __ctx->status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
         __ctx->status.dwCurrentState = SERVICE_STOPPED;
         SetServiceStatus(__ctx->status_handle, &__ctx->status);
-       __ctx->descriptor->service_fn(&__ctx, INA_SERVICE_STATUS_STOPPED, (void*)ctx->user_data);
+       __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_STOP, (void*)__ctx->user_data);
     }
 }
 static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
@@ -212,7 +214,7 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
 
             if (service) {
                 SERVICE_DESCRIPTION svc_desc;
-                svc_desc.lpDescription = (LPSTR)ina_str_cstr(ctx->descriptor->short_description);
+                svc_desc.lpDescription = (LPSTR)ina_str_cstr(ctx->descriptor->description);
                 ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &svc_desc);
                 CloseServiceHandle(service);
             }
@@ -309,10 +311,10 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex((ina_service_ctx_t*)ctx))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_STARTUP, (void*)ctx->user_data))) {
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START, (void*)ctx->user_data))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUNNING, (void*)ctx->user_data))) {
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUN, (void*)ctx->user_data))) {
         return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
@@ -599,23 +601,23 @@ INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx, const void 
 
     /* Check if run in console mode */
     if (INA_SUCCEED(ina_opt_get_string(INA_SERVICE_OPT_NAME, &cmd)) &&
-        strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_CONSOLE) == 0) {
+        INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_CONSOLE) == 0) {
         return ina_service_run_service(ctx, INA_YES, user_data);
     }
 
-    else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_INSTALL) == 0) {
+    else if (INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_INSTALL) == 0) {
         return ina_service_install(ctx);
     }
 
-    else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_UNINSTALL) == 0) {
+    else if (INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_UNINSTALL) == 0) {
         return ina_service_uninstall(ctx);
     }
 
-    else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_DEAMON) == 0) {
+    else if (INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_DEAMON) == 0) {
         return ina_service_run_service(ctx, INA_NO, user_data);
     }
 
-    else if (strcasecmp(ina_str_cstr(cmd), INA_SERVICE_CMD_REPORT) == 0) {
+    else if (INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_REPORT) == 0) {
         ina_service_descriptor_t *ds;
         ina_service_get_descriptor(ctx, &ds);
         INA_ASSERT_NOTNULL(ds);
@@ -668,7 +670,7 @@ INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
         startup_args = ina_str_catcstr(startup_args, ina_app_get_path());
             
         while (INA_SUCCEED(ina_opt_get_key_value(index, &key, &value))) {
-            if (strcasecmp(ina_str_cstr(key), INA_SERVICE_OPT_NAME) != 0) {
+            if (INA_CSTR_CASECMP(ina_str_cstr(key), INA_SERVICE_OPT_NAME) != 0) {
                 startup_args = ina_str_catcstr(startup_args, " --");
                 startup_args = ina_str_cat(startup_args, key);
                 startup_args = ina_str_catcstr(startup_args, "=");

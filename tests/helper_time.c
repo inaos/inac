@@ -63,6 +63,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
 
+#ifndef INA_OS_WIN32
 /* 
  * Create a rdtsc stop watch with an given ID, makes 3 time stamps each 10 ms
  * beetween.
@@ -120,3 +121,4 @@ INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
     ina_time_tsc_disable_rdtsc();
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
+#endif
