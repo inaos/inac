@@ -109,6 +109,8 @@ static ina_rc_t __check_params_handler(int cmd_id, int count, const ina_iscp_par
    int i;
 
    ++__handler_count;
+   INA_ASSERT_EQUAL(3, r_count);
+
 
    for (i = 0; i < count; ++i) {
        ++__p_count;
@@ -127,6 +129,12 @@ static ina_rc_t __check_params_handler(int cmd_id, int count, const ina_iscp_par
        }
        ++params;
    }
+
+   ina_iscp_set_return_values(&retvals, r_count, 
+      INA_ISCP_TYPE_DBL, 55.5,
+      INA_ISCP_TYPE_STR, "blabla",
+      INA_ISCP_TYPE_INT64, (int64_t)12);
+
    return INA_SUCCESS;
 }
 
@@ -192,6 +200,9 @@ void test_iscp_send_recv_checkparams()
     __p_count = 0;
     __send_msg = NULL;
     __handler_count = 0;
+    double d = 0.0;
+    int64_t i = 0;
+    ina_str_t str = NULL;
 
     INA_TRACE_MSG("test_iscp_send_recv_local");
     INA_ASSERT_SUCCEED(ina_iscp_destroy(&ctx));
@@ -201,7 +212,7 @@ void test_iscp_send_recv_checkparams()
                                                    __null_send_cb,
                                                    __null_recv_cb, 
                                                    __null_retn_cb));
-    INA_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 3, 0, __check_params_handler));
+    INA_ASSERT_SUCCEED(ina_iscp_register(ctx, 1, 3, 3, __check_params_handler));
 
     INA_ASSERT_SUCCEED(ina_iscp_send(ctx, 1, 
                             INA_ISCP_TYPE_INT64, 20,
@@ -209,6 +220,13 @@ void test_iscp_send_recv_checkparams()
                             INA_ISCP_TYPE_STR, "test"));
     INA_ASSERT_EQUAL(1, __send_count);
     INA_ASSERT_NOTNULL(__send_msg);    
+    INA_ASSERT_SUCCEED(ina_iscp_get_last_return_values(ctx, 
+                                  INA_ISCP_TYPE_DBL, &d,
+                                  INA_ISCP_TYPE_STR, &str,
+                                  INA_ISCP_TYPE_INT64, &i));
+    INA_ASSERT_EQUAL(55.5, d);
+    INA_ASSERT_EQUAL(12, i);
+    INA_ASSERT_EQUAL(0, strcmp("blabla", ina_str_cstr(str)));
     INA_ASSERT_SUCCEED(ina_iscp_recv(ctx, 1000, 1));
     INA_ASSERT_EQUAL(1, __recv_count);
     INA_ASSERT_EQUAL(1, __handler_count);

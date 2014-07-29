@@ -339,6 +339,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     
     if (INA_SUCCEED(ctx->open_cb(ctx->user_data, 1))) {
         ina_rc_t rc = ctx->send_cb(ctx->user_data, &msg);
+        ina_mem_cpy(&ctx->last_response, &msg, sizeof(ina_iscp_msg_t));
         ctx->clse_cb(ctx->user_data, 1);
         if (rc != INA_SUCCESS) {
             return INA_ISCP_ERROR(INA_RC_REASON(rc), "ISCP command failed");
