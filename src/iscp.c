@@ -320,6 +320,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     msg.cmd_id = cmd->cmd_id;
     msg.cmd_uid = 1; /* FIMXE: UID Generator */
     msg.p_count = cmd->p_count;
+    msg.r_count = cmd->r_count;
 
     /* Calculate CRC and append it to the message */
     INA_TRACE3("crc pos %ld", msg.length-sizeof(uint32_t));
@@ -335,6 +336,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     INA_TRACE3("- msg.length->%d", msg.length);
     INA_TRACE3("- msg.cmd_uid->%d", msg.cmd_uid);
     INA_TRACE3("- msg.p_count->%d", msg.p_count);
+    INA_TRACE3("- msg.r_count->%d", msg.r_count);
     
     if (INA_SUCCEED(ctx->open_cb(ctx->user_data, 1))) {
         ina_rc_t rc = ctx->send_cb(ctx->user_data, &msg);
@@ -371,7 +373,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             int p;
             ina_iscp_cmd_t *cmd;
             ina_iscp_param_t *params;
-            ina_iscp_param_t **retvals;
+            ina_iscp_param_t *retvals;
+            ina_iscp_param_t *param;
             int ci;
             /* uint32_t crc = 0; */
  
@@ -459,22 +462,25 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             
             /* Store RC from command handler */
             INA_TRACE3("Call command handler for cmd_id %d", msg.cmd_id);
-            retvals = NULL;
-            cmd->handler(msg.cmd_id, msg.p_count, params, msg.r_count, retvals);
+            msg.rc = cmd->handler(msg.cmd_id, msg.p_count, params, msg.r_count, &retvals);
 
             /* We return RC back to the callee */
             p = 0;
+            n = 0;
             if (msg.r_count > 0) {
+                param = retvals;
                 while (p < msg.r_count) {
-                    INA_TRACE3("msg offset=%ld", n + INA_ISCP_HDR_SIZE);
-                    INA_TRACE3("msg.type=%d ", retvals[p]->type);
-                    msg.cmd_data[n] = retvals[p]->type;
+                    INA_TRACE3("response msg offset=%ld", n + INA_ISCP_HDR_SIZE);
+                    INA_TRACE3("response msg.type=%d ", param->type);
+                    msg.cmd_data[n] = param->type;
+                    INA_TRACE3("response msg.type offet=%ld", n);
                     n += sizeof(uint8_t);
-                    switch (retvals[p]->type) {
+                    switch (param->type) {
                         case INA_ISCP_TYPE_INT64: 
                         {
                             int64_t i;
-                            i = retvals[p]->value.i;
+                            i = param->value.i;
+                            INA_TRACE3("response msg.value.i offset=%ld, value=%ld ",n, i);
                             msg.cmd_data[n] = i & 0xff;
                             msg.cmd_data[++n] = (i>>8) & 0xff;
                             msg.cmd_data[++n] = (i>>16) & 0xff;
@@ -489,7 +495,8 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                         case INA_ISCP_TYPE_DBL: 
                         {
                             double d;
-                            d = retvals[p]->value.d;
+                            d = param->value.d;
+                            INA_TRACE3("response msg.value.d offset=%ld, value=%f ",n, d);
                             ina_mem_cpy(&msg.cmd_data[n], &d, sizeof(double));
                             n += sizeof(double);
                             break;
@@ -498,7 +505,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                         {
                             const char* str;
                             int32_t i;
-                            str = ina_str_cstr(retvals[p]->value.s);
+                            str = ina_str_cstr(param->value.s);
                             i = strlen(str);
                             msg.cmd_data[n] = i & 0xff;
                             msg.cmd_data[++n] = (i>>8) & 0xff;
@@ -513,9 +520,11 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                         default:
                             return INA_ISCP_ETYPE;
                     }
+                    ++p;
+                    param++;
                 }
-                ++p;
             }
+            msg.length = n + INA_ISCP_HDR_SIZE + sizeof(uint32_t);
             return ctx->retn_cb(ctx->user_data, &msg);
         }
 
@@ -531,38 +540,47 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
     return rc;
 }
 
-INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t ***values, int count, ...)
+INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t **values, int count, ...)
 {
     int c;
     va_list params;
-    INA_ASSERT_NOTNULL(values);
+    ina_iscp_param_t *param;
     INA_ASSERT(count >= 0);
+
+    INA_TRACE3("ISCP setting %d return values...", count);
+
     if (count == 0) {
         return INA_SUCCESS;
     }
 
-    *values = (ina_iscp_param_t**)ina_mem_alloc(sizeof(ina_iscp_param_t)*count);
+    *values = (ina_iscp_param_t*)ina_mem_alloc(sizeof(ina_iscp_param_t)*count);
     if (*values == NULL) {
         return INA_ERR_PUSH_LAST;
     }
     c = 0;
-
+    param = *values;
     va_start(params, count);
     while (c++ < count) {
-        (*values)[c-1]->type = (uint8_t)va_arg(params, int);
-        switch ((*values)[c-1]->type) {
+        INA_TRACE3("c=%d", c);
+        param->type = (uint8_t)va_arg(params, int);
+        switch (param->type) {
             case INA_ISCP_TYPE_INT64:
-                (*values)[c-1]->value.i = va_arg(params, int64_t);
+                param->value.i = va_arg(params, int64_t);
+                INA_TRACE3("%d: int64_t %ld", c, param->value.i);
                 break;
             case INA_ISCP_TYPE_DBL:
-                (*values)[c-1]->value.d = va_arg(params, double);
+                param->value.d = va_arg(params, double);
+                INA_TRACE3("%d: double %f", c, param->value.d);
                 break;
             case INA_ISCP_TYPE_STR:
-                (*values)[c-1]->value.s = ina_str_new_fromcstr(va_arg(params, char*));
+                param->value.s = ina_str_new_fromcstr(va_arg(params, char*));
+                INA_TRACE3("%d: string %s",c, ina_str_cstr(param->value.s));
                 break;
             default:
+                INA_TRACE3("%d: invalid type! %d", c, param->type);
                 return INA_ISCP_ETYPE;
         }
+        param++;
     }
     va_end(params);
     return INA_SUCCESS;
@@ -598,13 +616,13 @@ INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...
         switch (type) {
             case INA_ISCP_TYPE_INT64:
                 *va_arg(params, int64_t *) = *(int64_t*)&ctx->last_response.cmd_data[n];
+                INA_TRACE3("- Return value %d type=int64_t value=%ld", p, *(int64_t*)&ctx->last_response.cmd_data[n]);
                 n += sizeof(int64_t);
-                INA_TRACE3("- Return value %d type=int64_t value=%lld", p, *(int64_t*)&ctx->last_response.cmd_data[n]);
                 break;
             case INA_ISCP_TYPE_DBL:
                 *va_arg(params, double *)= *(double*)&ctx->last_response.cmd_data[n];
-                n += sizeof(double);
                 INA_TRACE3("- Return value %d type=double value=%f", p, *(double*)&ctx->last_response.cmd_data[n]);
+                n += sizeof(double);
                 break;
             case INA_ISCP_TYPE_STR: {
                 int32_t i;
@@ -714,7 +732,8 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
                         return INA_ISCP_ESEND;
                     }
                 }
-                INA_TRACE3("ISCP response on fd %d is %d", data->fd, msg.rc);
+                INA_TRACE3("ISCP response on fd %d is %d", data->fd, msg->rc);
+                return INA_SUCCESS;
             }
         }
     }
