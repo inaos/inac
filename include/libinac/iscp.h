@@ -40,22 +40,22 @@ extern "C" {
 
 #define INA_ISCP_NET_TIMEOUT  (10)    /* Default Net connect timeout in seconds */
 #define INA_ISCP_BUFFER_SIZE  (2048)  /* Max size of command data */
-#define INA_ISCP_HDR_SIZE     (sizeof(uint16_t)*3+sizeof(uint32_t))
+#define INA_ISCP_HDR_SIZE (sizeof(uint16_t)*4+sizeof(uint32_t)+sizeof(ina_rc_t))
 
 #define INA_ISCP_TYPE_INT64  (1)  /* uint64_t 8 bytes*/
 #define INA_ISCP_TYPE_DBL    (2)  /* double 8 bytes */
 #define INA_ISCP_TYPE_STR    (3)  /* uint32_t (length) + char[length] */
 
-#define INA_ISCP_SEND_CMD(cmd_id, p_count)   \
- { cmd_id, p_count, NULL, {NULL} }
+#define INA_ISCP_SEND_CMD(cmd_id, p_count, r_count)   \
+ { cmd_id, p_count, r_count, NULL, {NULL} }
 
-#define INA_ISCP_SENDRECV_CMD(cmd_id, p_count, handler)   \
- { cmd_id, p_count, handler, {NULL} }
+#define INA_ISCP_SENDRECV_CMD(cmd_id, p_count, r_count, handler)   \
+ { cmd_id, p_count, r_count, handler, {NULL} }
  
 #define INA_ISCP_CMDS(name, ...)     \
 ina_iscp_cmd_t name[] = {            \
     __VA_ARGS__,                     \
-    INA_ISCP_SEND_CMD(0, 0),         \
+    INA_ISCP_SEND_CMD(0, 0, 0),      \
     };
     
 /* Backend */
@@ -76,12 +76,13 @@ typedef struct ina_iscp_param_s {
 } ina_iscp_param_t;
 
 /* Command handler */
-typedef ina_rc_t (*ina_iscp_handler_t)(int, int, ina_iscp_param_t*);
+typedef ina_rc_t (*ina_iscp_handler_t)(int, int, const ina_iscp_param_t*, int, ina_iscp_param_t**);
 
 /* Internal registry entry */
 typedef struct ina_ispc_cmd_s {
     int cmd_id;
     uint16_t p_count;
+    uint16_t r_count;
     ina_iscp_handler_t handler;
     UT_hash_handle hh;
 } ina_iscp_cmd_t;
@@ -91,7 +92,9 @@ typedef struct ina_iscp_msg_s {
     uint16_t length;    /* store the command buffer size */
     uint32_t cmd_uid;   /* UID for sent commands */
     uint16_t cmd_id;    /* identify the command */
-    uint16_t p_count;    /* parameter count */
+    uint16_t p_count;   /* parameter count */
+    uint16_t r_count;   /* retuen value count */
+    ina_rc_t rc;        /* return code */
     /* Parameters 
      * [1 byte, parameter type][parameter]
      * 
@@ -104,12 +107,6 @@ typedef struct ina_iscp_msg_s {
     unsigned char cmd_data[INA_ISCP_BUFFER_SIZE]; 
 } ina_iscp_msg_t;
 
-/* ISCP RC */
-typedef struct ina_iscp_rc_s {
-    uint32_t cmd_uid; /* UID for sent command */
-    ina_rc_t rc;      /* RC */
-} ina_iscp_rc_t;
-
 /* Open channel callback */
 typedef ina_rc_t (*ina_iscp_open_cb)(void *user_data, int send);
 /* Close channel callback */
@@ -119,7 +116,7 @@ typedef ina_rc_t (*ina_iscp_send_cb)(void *user_data, ina_iscp_msg_t*);
 /* Receive callback */
 typedef ina_rc_t (*ina_iscp_recv_cb)(void *user_data, ina_iscp_msg_t*);
 /* Reponse callback */
-typedef ina_rc_t (*ina_iscp_retn_cb)(void *user_data, ina_iscp_rc_t*);
+typedef ina_rc_t (*ina_iscp_retn_cb)(void *user_data, ina_iscp_msg_t*);
 
 /* ISCP context */
 typedef struct ina_iscp_ctx_s {
@@ -133,6 +130,7 @@ typedef struct ina_iscp_ctx_s {
     ina_time_event_t *time_event;
     ina_iscp_cmd_t   *cmds;
     ina_mempool_t    *mempool;
+    ina_iscp_msg_t   last_response;
     void *user_data;
 } ina_iscp_ctx_t;
 
@@ -207,6 +205,7 @@ INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx);
  * ctx          Valid ISCP context
  * cmd_id       Command identifier
  * p_count      Number of parameters to send or to receive
+ * r_count      Number of return values to send back 
  * handler      Command handler function called when the command is 
  *              received.
  *
@@ -214,7 +213,7 @@ INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx);
  * INA_SUCCESS if no error occurred
  */
 INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx, int cmd_id,int p_count, 
-                                      ina_iscp_handler_t handler);
+                                      int r_count, ina_iscp_handler_t handler);
 
 /*
  * Register one or more ISCP commands at once. Use INA_ISCP_CMDS, 
@@ -249,6 +248,48 @@ INA_API(ina_rc_t) ina_iscp_register_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds
  *             executed by the receiver w/o error.
  */
 INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
+
+ /*
+  * Make return values. Use this function only in ISCP handler.
+  *
+  * Like:
+  * ina_iscp_params_t *value = NULL;
+  * ina_iscp_return_values(&values, 3
+  *    INA_ISCP_TYPE_INT, 1,
+  *    INA_ISCP_TYPE_STR, "127.0.0.1"
+  *    INA_ISCP_TYPE_DBL, 2.3,
+  *    INA_ISCP_TYPE_INT, 3);
+  *
+  * Parameters
+  * count Number of values
+  * retvals Return values handle
+  * ... Return values list
+  *
+  * Return Value
+  * INA SUCCESS
+  */
+INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t ***values, int count, ...);
+/*
+ * Get return values from the last ISCP call.
+ *
+ * Like:
+ * int i;
+ * ina_str_t str;
+ * double d;
+ * ina_iscp_get_last_return_values(ctx,
+ * INA_ISCP_TYPE_INT, &i,
+ * INA_ISCP_TYPE_STR, &str
+ * INA_ISCP_TYPE_DBL, &d);
+ *
+ * Parameters
+ * ctx Valid ISCP context
+ * retvals Return values handle
+ * ... Return values list
+ *
+ * Return Value
+ * INA SUCCESS
+ */
+INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...);
 
 /*
  * Check and receive a previously regsisterd command. If a
