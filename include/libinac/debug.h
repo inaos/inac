@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-#ifndef INA_TRACE_LEVL
+#ifndef INA_TRACE_LEVEL
 #define INA_TRACE_LEVEL 1
 #endif
 
