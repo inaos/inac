@@ -40,7 +40,7 @@ extern "C" {
 
 #define INA_ISCP_NET_TIMEOUT  (10)    /* Default Net connect timeout in seconds */
 #define INA_ISCP_BUFFER_SIZE  (2048)  /* Max size of command data */
-#define INA_ISCP_HDR_SIZE     (sizeof(uint16_t)*4+sizeof(uint32_t)+sizeof(ina_rc_t))
+#define INA_ISCP_HDR_SIZE (sizeof(uint16_t)*4+sizeof(uint32_t)+sizeof(ina_rc_t))
 
 #define INA_ISCP_TYPE_INT64  (1)  /* uint64_t 8 bytes*/
 #define INA_ISCP_TYPE_DBL    (2)  /* double 8 bytes */
@@ -268,8 +268,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  * Return Value
  * INA SUCCESS
  */
-INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t ***values, int count, ...);
-
+INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t **values, int count, ...);
 /*
  * Get return values from the last ISCP call.
  *
