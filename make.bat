@@ -34,10 +34,19 @@ REM ---------------------------------
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
+SET INAC_ARCH=x86
+SET INAC_VC_VAR_ARG=x86
+if defined CommandPromptType (
+	if "%CommandPromptType%" == "Cross" (
+		SET INAC_ARCH=x64
+		SET INAC_VC_VAR_ARG=x86_amd64
+	)
+)
+
 if not defined INCLUDE (
 	if not defined VS110COMNTOOLS goto fail_vs_2012
 	if not exist "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" goto fail_vs_2012
-	call "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" x86
+	call "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" %INAC_VC_VAR_ARG%
 )
 
 if not exist %INAC_BUILD_SCRIPT% goto fail_no_build_script
@@ -107,7 +116,11 @@ SET INAC_WIN32_LUA_LIB_NAME=libinac_lua.lib
 
 call %INAC_BUILD_SCRIPT% %1 %2
 if not "%INAC_W32_BUILD_STAGE%" == "clean" (
-	LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib
+	if "%INAC_ARCH%" == "x64" (
+		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib /MACHINE:X64
+	) else (
+		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib
+	)
 )
 
 REM reset the main environment variables because they might have been deleted by the previous build
@@ -152,5 +165,8 @@ SET INAC_W32_BUILD_STAGE=
 
 SET INAC_HOME=
 SET INAC_BUILD_SCRIPT=
+
+SET INAC_ARCH=
+SET INAC_VC_VAR_ARG=
 
 goto:eof

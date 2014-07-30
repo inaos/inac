@@ -320,51 +320,53 @@ INA_API(ina_rc_t) ina_err_coredump(void *data) {
 
 INA_API(ina_rc_t) ina_err_backtrace(void *data)
 {
-#ifndef INA_OS_WIN32
-#else
-    EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
-    HANDLE process;
-    SYMBOL_INFO *symbol;
-    unsigned int i;
-    DWORD stack[100];
-    unsigned short frames = 0;
-    STACKFRAME frame = {0};
+#ifdef INA_OS_WIN32
+	#ifdef INA_CPU_X86_64
+	#else
+		EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
+		HANDLE process;
+		SYMBOL_INFO *symbol;
+		unsigned int i;
+		DWORD stack[100];
+		unsigned short frames = 0;
+		STACKFRAME frame = {0};
 
-    process = GetCurrentProcess();
-    SymInitialize(process, NULL, TRUE);
- 
-    /* setup initial stack frame */
-    frame.AddrPC.Offset = pExceptionPointers->ContextRecord->Eip;
-    frame.AddrPC.Mode = AddrModeFlat;
-    frame.AddrStack.Offset = pExceptionPointers->ContextRecord->Esp;
-    frame.AddrStack.Mode = AddrModeFlat;
-    frame.AddrFrame.Offset = pExceptionPointers->ContextRecord->Ebp;
-    frame.AddrFrame.Mode = AddrModeFlat;
+		process = GetCurrentProcess();
+		SymInitialize(process, NULL, TRUE);
+	 
+		/* setup initial stack frame */
+		frame.AddrPC.Offset = pExceptionPointers->ContextRecord->Eip;
+		frame.AddrPC.Mode = AddrModeFlat;
+		frame.AddrStack.Offset = pExceptionPointers->ContextRecord->Esp;
+		frame.AddrStack.Mode = AddrModeFlat;
+		frame.AddrFrame.Offset = pExceptionPointers->ContextRecord->Ebp;
+		frame.AddrFrame.Mode = AddrModeFlat;
 
-    symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
-    symbol->MaxNameLen = 255;
-    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
- 
-    while (StackWalk(IMAGE_FILE_MACHINE_I386,
-                     process,
-                     GetCurrentThread(),
-                     &frame,
-                     pExceptionPointers->ContextRecord,
-                     0,
-                     SymFunctionTableAccess,
-                     SymGetModuleBase,
-                     0 ) )
-    {
-        stack[frames++] = frame.AddrPC.Offset;
-    }
-    
-    for (i = 0; i < frames; i++) {
-        SymFromAddr(process, stack[i], 0, symbol);
-        printf("%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address);
-    }
-    
-    free(symbol);
-    SymCleanup(process);
+		symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+		symbol->MaxNameLen = 255;
+		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	 
+		while (StackWalk(IMAGE_FILE_MACHINE_I386,
+						 process,
+						 GetCurrentThread(),
+						 &frame,
+						 pExceptionPointers->ContextRecord,
+						 0,
+						 SymFunctionTableAccess,
+						 SymGetModuleBase,
+						 0 ) )
+		{
+			stack[frames++] = frame.AddrPC.Offset;
+		}
+		
+		for (i = 0; i < frames; i++) {
+			SymFromAddr(process, stack[i], 0, symbol);
+			printf("%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address);
+		}
+		
+		free(symbol);
+		SymCleanup(process);
+	#endif
 #endif
     return INA_SUCCESS;
 }
