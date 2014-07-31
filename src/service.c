@@ -512,9 +512,17 @@ static void __ina_service_signal_handler(ina_signal_t sig,
                                          int *exitcode)
 {
     if (sig == INA_SIGNAL_INT || sig == INA_SIGNAL_TERM) {
-        __ctx->descriptor->service_fn(
+        if (INA_SUCCEED(__ctx->descriptor->service_fn(
             __ctx, INA_SERVICE_STATUS_SHUTDOWN, 
-            (void*)__ctx->user_data);
+            (void*)__ctx->user_data))) {
+            __ctx->descriptor->service_fn(
+                __ctx, INA_SERVICE_STATUS_STOP,
+                (void*)__ctx->user_data);
+        } else {
+            __ctx->descriptor->service_fn(__ctx,
+                INA_SERVICE_STATUS_ERROR,
+                (void*)__ctx->user_data);
+        }
 #ifdef INA_OS_WIN32
         WaitForSingleObject(__ctx->main_thread, INFINITE);
 #endif
@@ -738,4 +746,29 @@ INA_API(ina_rc_t) ina_service_is_deamon(const ina_service_ctx_t *ctx)
         return INA_SUCCESS;
     }
     return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_start(const char *name)
+{
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_TRUE(strlen(name));
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_stop(const char *name)
+{
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_TRUE(strlen(name));
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_status(const char *name, ina_service_status_t *status)
+{
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_TRUE(strlen(name));
+    INA_ASSERT_NOTNULL(status);
+
+    return INA_SUCCESS;
 }

@@ -95,6 +95,8 @@ typedef enum ina_service_startup_type_e {
 #define INA_SERVICE_WORKINGDIR_MAXLEN        (1024)
 #define INA_SERVICE_CHKCONFIG_MAXLEN         (24)
 
+#define INA_OPT_SERVICE INA_OPT_STRING(NULL, "service", "console", "Service control: install, uninstall, deamon, console, report")
+
 /* Service descriptor */
 typedef struct ina_service_descriptor_s {
     char name[INA_SERVICE_NAME_MAXLEN];
@@ -193,6 +195,20 @@ INA_API(ina_rc_t) ina_service_get_mode(const ina_service_ctx_t *ctx,
  */
 INA_API(ina_rc_t) ina_service_is_deamon(const ina_service_ctx_t *ctx);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_mgnt_start(const char *name);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_mgnt_stop(const char *name);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_mgnt_status(const char *name, ina_service_status_t *status);
 #ifdef __cplusplus
 }
 #endif
