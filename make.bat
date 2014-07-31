@@ -34,10 +34,19 @@ REM ---------------------------------
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
+SET INAC_ARCH=x86
+SET INAC_VC_VAR_ARG=x86
+if defined CommandPromptType (
+       if "%CommandPromptType%" == "Cross" (
+               SET INAC_ARCH=x64
+               SET INAC_VC_VAR_ARG=x86_amd64
+       )
+)
+
 if not defined INCLUDE (
 	if not defined VS110COMNTOOLS goto fail_vs_2012
 	if not exist "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" goto fail_vs_2012
-	call "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" x86
+	call "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" %INAC_VC_VAR_ARG%
 )
 
 if not exist %INAC_BUILD_SCRIPT% goto fail_no_build_script
@@ -107,15 +116,29 @@ SET INAC_WIN32_LUA_LIB_NAME=libinac_lua.lib
 call %INAC_BUILD_SCRIPT% %1 %2
 if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if "%INAC_BUILD_TYPE%" == "debug" (
-		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
-			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-			%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
+		if "%INAC_ARCH%" == "x64" (
+			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib /MACHINE:X64
+		) else (
+			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
+		)
 	) else (
-		LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-			%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
-			%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-			%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
+		if "%INAC_ARCH%" == "x64" (
+			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51.lib /MACHINE:X64
+		) else (
+			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
+		)
 	)
 )
 
@@ -160,5 +183,8 @@ SET INAC_W32_BUILD_STAGE=
 
 SET INAC_HOME=
 SET INAC_BUILD_SCRIPT=
+
+SET INAC_ARCH=
+SET INAC_VC_VAR_ARG=
 
 goto:eof
