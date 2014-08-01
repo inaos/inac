@@ -62,6 +62,9 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_run_service(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx);
+static ina_rc_t __ina_service_mgnt_status(const  char *name, ina_service_status_t *status);
+static ina_rc_t __ina_service_mgnt_start(const char *name);
+static ina_rc_t __ina_service_mgnt_stop(const char *name);
 
 extern ina_service_descriptor_t __ina_service_section;
 
@@ -319,6 +322,22 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     }
     return INA_SUCCESS;
 }
+
+static ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_mgnt_status *status)
+{
+    return INA_FAILURE;
+}
+
+static ina_rc_t __ina_service_mgnt_start(const char *name)
+{
+    return INA_FAILURE;
+}
+
+static ina_rc_t __ina_service_mgnt_stop(const char *name)
+{
+    return INA_FAILURE;
+}
+
 #else
 extern char _binary____etc_template_init_script_tpl_start;
 extern char _binary____etc_template_init_script_tpl_end;
@@ -505,6 +524,58 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
+static ina_rc_t __ina_service_mgnt_start(const char *name)
+{
+    ina_str_t cmd;
+    int retval;
+    
+    cmd = ina_str_sprintf("/etc/init.d/%s start", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+static ina_rc_t __ina_service_mgnt_stop(const char *name)
+{
+    ina_str_t cmd;
+    int retval;
+    
+    cmd = ina_str_sprintf("/etc/init.d/%s stop", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_t *status)
+{
+    int lfp;
+    ina_str_t lock_file_path;
+
+    INA_ASSERT_NOTNULL(status);
+
+    *status = INA_SERVICE_STATUS_STOP;
+
+    lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, name);
+    lfp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
+    ina_str_free(lock_file_path);
+
+    if (lfp < 0) {
+        *status =  INA_SERVICE_STATUS_ERROR;
+        return INA_SUCCESS;
+    }
+    if (lockf(lfp, F_TLOCK, 0) < 0) {
+        close(lfp);
+        *status = INA_SERVICE_STATUS_START;
+    }
+    close(lfp);
+    return INA_SUCCESS;
+}
 #endif
 
 static void __ina_service_signal_handler(ina_signal_t sig, 
@@ -750,18 +821,45 @@ INA_API(ina_rc_t) ina_service_is_deamon(const ina_service_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_service_mgnt_start(const char *name)
 {
+    ina_service_status_t status;
     INA_ASSERT_NOTNULL(name);
     INA_ASSERT_TRUE(strlen(name));
 
-    return INA_SUCCESS;
+    if (!INA_SUCCEED(ina_service_mgnt_status(name, &status))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if (status == INA_SERVICE_STATUS_START) {
+        return INA_SUCCESS;
+    }
+
+    if (status == INA_SERVICE_STATUS_STOP) {
+        return __ina_service_mgnt_start(name);
+    }
+    /* TODO: specific error */
+    return INA_FAILURE;
 }
 
 INA_API(ina_rc_t) ina_service_mgnt_stop(const char *name)
 {
+    ina_service_status_t status;
+
     INA_ASSERT_NOTNULL(name);
     INA_ASSERT_TRUE(strlen(name));
 
-    return INA_SUCCESS;
+    if (!INA_SUCCEED(ina_service_mgnt_status(name, &status))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if (status == INA_SERVICE_STATUS_STOP) {
+        return INA_SUCCESS;
+    }
+
+    if (status == INA_SERVICE_STATUS_RUN) {
+        return __ina_service_mgnt_stop(name);
+    }
+    /* TODO: specific error */
+    return INA_FAILURE;
 }
 
 INA_API(ina_rc_t) ina_service_mgnt_status(const char *name, ina_service_status_t *status)
@@ -769,6 +867,5 @@ INA_API(ina_rc_t) ina_service_mgnt_status(const char *name, ina_service_status_t
     INA_ASSERT_NOTNULL(name);
     INA_ASSERT_TRUE(strlen(name));
     INA_ASSERT_NOTNULL(status);
-
-    return INA_SUCCESS;
+    return __ina_service_mgnt_status(name, status);
 }
