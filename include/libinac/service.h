@@ -135,6 +135,18 @@ INA_SERVICE_SECTION_PUSH ina_service_descriptor_t __ina_service_section INA_SERV
         startup,                                                             \
         exclusive_flag}
 
+#define INA_NO_SERVICE INA_SERVICE_DESCRIPTOR("", \
+    "", \
+    "", \
+    "", \
+    "", \
+    "", \
+    "", \
+    "", \
+    0,  \
+    INA_SERVICE_STARTUP_TYPE_AUTO, \
+    INA_NO)
+
 /*
  *
  */

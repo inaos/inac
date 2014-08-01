@@ -562,18 +562,12 @@ static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_
     *status = INA_SERVICE_STATUS_STOP;
 
     lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, name);
-    lfp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
-    ina_str_free(lock_file_path);
-
-    if (lfp < 0) {
-        *status =  INA_SERVICE_STATUS_ERROR;
-        return INA_SUCCESS;
-    }
-    if (lockf(lfp, F_TLOCK, 0) < 0) {
+    lfp = open(ina_str_cstr(lock_file_path), O_RDONLY, 0640);
+    if (lfp > 0) {
+        *status = INA_SERVICE_STATUS_RUN;
         close(lfp);
-        *status = INA_SERVICE_STATUS_START;
     }
-    close(lfp);
+    ina_str_free(lock_file_path);
     return INA_SUCCESS;
 }
 #endif
@@ -829,7 +823,7 @@ INA_API(ina_rc_t) ina_service_mgnt_start(const char *name)
         return INA_ERR_PUSH_LAST;
     }
 
-    if (status == INA_SERVICE_STATUS_START) {
+    if (status == INA_SERVICE_STATUS_RUN) {
         return INA_SUCCESS;
     }
 
