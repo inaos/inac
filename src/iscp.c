@@ -722,17 +722,32 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
     INA_TRACE3("ISCP send on fd %d", data->fd);
     
     if (INA_SUCCEED(ina_net_write(data->fd, (unsigned char*)msg, msg->length, &nb_write))) {
+        unsigned char *buf;
+        int tot_nb_read;
+
         INA_TRACE3("ISCP read response on fd %d", data->fd);
-        if (INA_SUCCEED(ina_net_read(data->fd, (unsigned char*)msg, INA_ISCP_HDR_SIZE, &nb_read))) {
-            if (nb_read > 0) {
-                nb_read = msg->length;
-                nb_read -= INA_ISCP_HDR_SIZE;
-                if (nb_read > 0) {
-                    if (!INA_SUCCEED(ina_net_read(data->fd, &((unsigned char*)msg)[INA_ISCP_HDR_SIZE],nb_read, &nb_read))) {
-                        return INA_ISCP_ESEND;
+
+        buf = (unsigned char*)msg;
+
+r1:
+        if (INA_SUCCEED(ina_net_read(data->fd, buf, sizeof(ina_iscp_msg_t), &nb_read))) {
+            tot_nb_read = nb_read;
+            buf += nb_read;       
+            if (tot_nb_read < INA_ISCP_HDR_SIZE) {
+                goto r1;
+            }
+ 
+            if (tot_nb_read < msg->length) {
+ r2:
+                if (INA_SUCCEED(ina_net_read(data->fd, buf,sizeof(ina_iscp_msg_t)-tot_nb_read, &nb_read))) {
+                    tot_nb_read += nb_read;
+                    buf += nb_read;       
+                    if (tot_nb_read < msg->length) {
+                        goto r2;
                     }
+                    return INA_SUCCESS;
                 }
-                INA_TRACE3("ISCP response on fd %d is %d", data->fd, msg->rc);
+            } else {
                 return INA_SUCCESS;
             }
         }
@@ -744,8 +759,9 @@ static ina_rc_t
 __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 {   
     int nb_read;
+    int tot_nb_read;
     ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
-
+    unsigned char *buf;
     nb_read = 0;
     
     INA_TRACE3("Acpect ISCP on fd %d", data->lfd);
@@ -767,13 +783,28 @@ __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
         return INA_EWAIT;
     }
 
-    if (INA_SUCCEED(ina_net_read(data->fd, (unsigned char*)msg, INA_ISCP_HDR_SIZE, &nb_read))) {
-        if (nb_read > 0) {
-            nb_read = msg->length;
-            nb_read -= INA_ISCP_HDR_SIZE;
-            if (nb_read > 0) {
-                return ina_net_read(data->fd, &((unsigned char*)msg)[INA_ISCP_HDR_SIZE],nb_read, &nb_read);
+    buf = (unsigned char*)msg;
+
+r1:
+    if (INA_SUCCEED(ina_net_read(data->fd, buf, sizeof(ina_iscp_msg_t), &nb_read))) {
+        tot_nb_read = nb_read;
+        buf += nb_read;       
+        if (tot_nb_read < INA_ISCP_HDR_SIZE) {
+            goto r1;
+        }
+ 
+        if (tot_nb_read < msg->length) {
+ r2:
+            if (INA_SUCCEED(ina_net_read(data->fd, buf,sizeof(ina_iscp_msg_t)-tot_nb_read, &nb_read))) {
+                tot_nb_read += nb_read;
+                buf += nb_read;       
+                if (tot_nb_read < msg->length) {
+                    goto r2;
+                }
+                return INA_SUCCESS;
             }
+        } else {
+            return INA_SUCCESS;
         }
     }
     return INA_ISCP_ERECV;
