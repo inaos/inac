@@ -35,8 +35,8 @@ int main(int argc,  char** argv)
     ina_str_t action;
  
     INA_OPTS(opt,
-        INA_OPT_STRING("n", "name", NULL, "Service name"),
-        INA_OPT_STRING("a", "action", "status", "Action: status, start, stop"));
+        INA_OPT_STRING("n", "name", NULL, "Service name for start,stop,status or binary path for install/uninstall"),
+        INA_OPT_STRING("a", "action", "status", "Action: status, start, stop, install, uninstall"));
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
         return EXIT_FAILURE;
@@ -51,12 +51,28 @@ int main(int argc,  char** argv)
             return EXIT_SUCCESS;            
         }
         printf("Error starting service %s\n", ina_str_cstr(name));
+
     } else if (strcasecmp("stop", ina_str_cstr(action)) == 0) {
         if (INA_SUCCEED(ina_service_mgnt_stop(ina_str_cstr(name)))) {
             printf("Service %s stopped.\n", ina_str_cstr(name));
             return EXIT_SUCCESS;            
         }
         printf("Error stopping service %s\n", ina_str_cstr(name));
+    
+    } else if (strcasecmp("install", ina_str_cstr(action)) == 0) {
+        if (INA_SUCCEED(ina_service_mgnt_install(ina_str_cstr(name), NULL))) {
+            printf("Service %s installed.\n", ina_str_cstr(name));
+            return EXIT_SUCCESS;            
+        }
+        printf("Error installing service %s\n", ina_str_cstr(name));
+    
+    } else if (strcasecmp("uninstall", ina_str_cstr(action)) == 0) {
+        if (INA_SUCCEED(ina_service_mgnt_uninstall(ina_str_cstr(name)))) {
+            printf("Service %s uninstalled.\n", ina_str_cstr(name));
+            return EXIT_SUCCESS;            
+        }
+        printf("Error uninstalling service %s\n", ina_str_cstr(name));
+    
     } else {
         ina_service_status_t status;
         ina_service_mgnt_status(ina_str_cstr(name), &status);

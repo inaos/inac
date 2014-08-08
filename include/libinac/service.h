@@ -221,6 +221,17 @@ INA_API(ina_rc_t) ina_service_mgnt_stop(const char *name);
  *
  */
 INA_API(ina_rc_t) ina_service_mgnt_status(const char *name, ina_service_status_t *status);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_mgnt_install(const char *bin_path, const char **options);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_service_mgnt_uninstall(const char *bin_path);
+
 #ifdef __cplusplus
 }
 #endif

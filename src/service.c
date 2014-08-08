@@ -863,3 +863,49 @@ INA_API(ina_rc_t) ina_service_mgnt_status(const char *name, ina_service_status_t
     INA_ASSERT_NOTNULL(status);
     return __ina_service_mgnt_status(name, status);
 }
+
+INA_API(ina_rc_t) ina_service_mgnt_install(const char *bin_path, const char **options)
+{
+    ina_str_t cmd;
+    ina_str_t args = ina_str_new(0);
+    int retval;
+
+    INA_ASSERT_NOTNULL(bin_path);
+    
+    if (options != NULL) {
+        while (*options != NULL) {
+            args = ina_str_catcstr(args, *options);
+            options++;
+        }
+    }
+    cmd = ina_str_sprintf("%s --service=install %s", bin_path, args);
+    retval = system(cmd);
+
+    ina_str_free(args);
+    ina_str_free(cmd);
+    
+    if (retval != 0) {
+        /* TODO: Specific error */
+        return INA_FAILURE;
+    }
+    return INA_SUCCESS;
+
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_uninstall(const char *bin_path)
+{
+    ina_str_t cmd;
+    int retval;
+
+    INA_ASSERT_NOTNULL(bin_path);
+    cmd = ina_str_sprintf("%s --service=uninstall", bin_path);
+    retval = system(cmd);
+
+    ina_str_free(cmd);
+
+    if (retval != 0) {
+        /* TODO: Specific error */
+        return INA_FAILURE;
+    }
+    return INA_SUCCESS;
+}
