@@ -462,12 +462,13 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             
             /* Store RC from command handler */
             INA_TRACE3("Call command handler for cmd_id %d", msg.cmd_id);
-            msg.rc = cmd->handler(msg.cmd_id, msg.p_count, params, msg.r_count, &retvals);
+            retvals = ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_param_t)*msg.r_count);
+            msg.rc = cmd->handler(msg.cmd_id, msg.p_count, params, msg.r_count, retvals);
 
             /* We return RC back to the callee */
             p = 0;
             n = 0;
-            if (msg.r_count > 0) {
+            if (msg.r_count > 0 && INA_SUCCEED(msg.rc)) {
                 param = retvals;
                 while (p < msg.r_count) {
                     INA_TRACE3("response msg offset=%ld", n + INA_ISCP_HDR_SIZE);
@@ -540,7 +541,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
     return rc;
 }
 
-INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t **values, int count, ...)
+INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t *values, int count, ...)
 {
     int c;
     va_list params;
@@ -553,12 +554,8 @@ INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t **values, int coun
         return INA_SUCCESS;
     }
 
-    *values = (ina_iscp_param_t*)ina_mem_alloc(sizeof(ina_iscp_param_t)*count);
-    if (*values == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     c = 0;
-    param = *values;
+    param = values;
     va_start(params, count);
     while (c++ < count) {
         INA_TRACE3("c=%d", c);
