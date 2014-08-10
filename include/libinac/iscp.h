@@ -76,7 +76,7 @@ typedef struct ina_iscp_param_s {
 } ina_iscp_param_t;
 
 /* Command handler */
-typedef ina_rc_t (*ina_iscp_handler_t)(int, int, const ina_iscp_param_t*, int, ina_iscp_param_t**);
+typedef ina_rc_t (*ina_iscp_handler_t)(int, int, ina_iscp_param_t*, int, ina_iscp_param_t***);
 
 /* Internal registry entry */
 typedef struct ina_ispc_cmd_s {
@@ -268,7 +268,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
  * Return Value
  * INA SUCCESS
  */
-INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t **values, int count, ...);
+INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t ***values, int count, ...);
 /*
  * Get return values from the last ISCP call.
  *
