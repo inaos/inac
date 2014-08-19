@@ -343,10 +343,10 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     *process = ina_mempool_dalloc(ctx->mempool, sizeof(ina_process_t));
 
     /* copy descriptor if not allocated from context pool */
-    if (INA_SUCCEED(ina_mempool_getbypointer(descriptor, &mempool)) && 
+    /*if (INA_SUCCEED(ina_mempool_getbypointer(descriptor, &mempool)) && 
         mempool == ctx->mempool) {
         (*process)->descriptor = descriptor;
-    } else { 
+    } else { */
         (*process)->descriptor = (ina_process_descriptor_t*)ina_mempool_dalloc(
                                         ctx->mempool, 
                                         sizeof(ina_process_descriptor_t));
@@ -374,7 +374,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
         (*process)->descriptor->start_flags = descriptor->start_flags;
         (*process)->descriptor->lifecycle = descriptor->lifecycle;
         (*process)->descriptor->managed_type = descriptor->managed_type;
-    } 
+    //} 
     (*process)->descriptor->c_ref = 1;
     (*process)->exit_code = 0;
     (*process)->key = INA_HASH_STR_TO_SDBM(descriptor->full_path);

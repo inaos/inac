@@ -323,7 +323,7 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
-static ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_mgnt_status *status)
+static ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_t *status)
 {
     return INA_FAILURE;
 }
@@ -651,7 +651,7 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
 INA_API(ina_rc_t) ina_service_get_data(const ina_service_ctx_t *ctx, const void **user_data)
 {
     INA_ASSERT_NOTNULL(ctx);
-    user_data = ctx->user_data;
+    *user_data = ctx->user_data;
     return INA_SUCCESS;
 }
 

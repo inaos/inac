@@ -63,11 +63,13 @@ typedef struct ina_time_tsc_s {
 } ina_time_tsc_t;
 
 
+#ifdef INA_OS_WIN32
+    #define INA_TIME_RDTSC(counter)  __rdtsc()
+#else
 #if defined(INA_CPU_X86_64)
-#if defined(INA_OS_LINUX)
     #define INA_TIME_RDTSC(counter) \
         INA_ASM INA_VOLATILE ("rdtsc" : "=a" ((counter).uint32.lo), "=d"((counter).uint32.hi))
-#elif defined(INA_OS_WIN32) 
+#elif defined(INA_CPU_X86) 
     #define INA_TIME_RDTSC(counter) \
         INA_ASM rdtsc \
         INA_ASM mov (counter).uint32.lo, eax \

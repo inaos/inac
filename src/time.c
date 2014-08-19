@@ -558,7 +558,7 @@ __ina_time_tsc_rdtsc_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos)
     uint64_t ns;
     uint64_t diff_ns;
 
-    diff_ns = (uint64_t)((double)((time->rtp.uint64 - time->ref))) / time->ticks_per_nano;
+    diff_ns = (uint64_t)(((double)((time->rtp.uint64 - time->ref))) / time->ticks_per_nano);
     ns =  time->refhpet + diff_ns;
 
     *secs = (time_t)(ns / 1000000000);
