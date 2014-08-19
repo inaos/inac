@@ -25,7 +25,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef INA_OS_WIN322
+#ifndef INA_OS_WIN32
 #define _GNU_SOURCE  
 #include <sched.h>
 #endif
@@ -85,7 +85,7 @@ INA_TEST(timer, event_rdtsc)
     t = NULL;
     e1 = NULL;
     e2 = NULL;
-    #ifndef INA_OS_WIN322
+    #ifndef INA_OS_WIN32
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
