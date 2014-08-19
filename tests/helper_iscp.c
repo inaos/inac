@@ -36,7 +36,7 @@ static void __cleanup_handler(int sig, int *error)
     *error = EXIT_SUCCESS;
 }
 
-static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t **retvals)
+static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {
     if (cmd_id != 3) {
         return INA_FAILURE;
@@ -53,7 +53,7 @@ static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, const i
     return INA_SUCCESS;
 }
 
-static ina_rc_t __command_1_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t **retvals)
+static ina_rc_t __command_1_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {
    ina_iscp_set_return_values(retvals, r_count,
         INA_ISCP_TYPE_DBL, 55.5,
@@ -62,7 +62,7 @@ static ina_rc_t __command_1_handler(int cmd_id, int count, const ina_iscp_param_
     return INA_SUCCESS;
 }
 
-static ina_rc_t __command_2_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t **retvals)
+static ina_rc_t __command_2_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {
     __running = 0;
     return INA_SUCCESS;

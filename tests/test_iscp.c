@@ -75,14 +75,14 @@ static ina_rc_t __null_retn_cb(void *user_data, ina_iscp_msg_t *msg)
    return INA_SUCCESS;
 }
 
-static ina_rc_t __null_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t **retvals)
+static ina_rc_t __null_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {
    ++__handler_count;
    __p_count = count;
    return INA_SUCCESS;
 }
 
-static ina_rc_t __null_handler2(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t **retvals)
+static ina_rc_t __null_handler2(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {   
    ++__handler_count;
    while (params) {
@@ -92,7 +92,7 @@ static ina_rc_t __null_handler2(int cmd_id, int count, const ina_iscp_param_t *p
    return INA_SUCCESS;
 }
 
-static ina_rc_t __check_params_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t **retvals)
+static ina_rc_t __check_params_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {   
    int i;
 
