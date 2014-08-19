@@ -1074,6 +1074,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 
+
 #ifdef INA_COMPILER_MSVC
 #define va_copy(dest, src) (dest = src)
 #endif
@@ -1090,6 +1091,16 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #define INA_CSTR_CASECMP    strcasecmp
 #endif
 
+#if defined(INA_COMPILER_MSVC)
+#define INA_ASM __asm
+#define INA_VOLATILE volatile
+#elif defined(INA_COMPILER_GCC)
+#define INA_ASM __asm__
+#define INA_VOLATILE __volatile__
+#else
+#define INA_ASM asm
+#define INA_VOLATILE volatile
+#endif
 #ifdef __cplusplus
 }
 #endif 
