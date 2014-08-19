@@ -70,7 +70,7 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
 }
-
+ 
 INA_TEST(timer, event_rdtsc)
 {
     ina_timer_t *t;
@@ -102,7 +102,7 @@ INA_TEST(timer, event_rdtsc)
     e2 = ina_timer_next_event(t);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NULL(e2);
-    ina_time_sleep(850);
+    ina_time_sleep(2000);
     e2 = ina_timer_next_event(t);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NOT_NULL(e2);

@@ -34,8 +34,18 @@
 extern "C" {
 #endif
 
+
 /* Time value - opaque */
 typedef struct ina_time_s ina_time_t;
+
+/* Time Stamp Counter Value*/
+typedef union ina_time_tsc_value_u {
+    uint64_t uint64;
+    struct {
+        uint32_t lo;
+        uint32_t hi;
+    } uint32;
+} ina_time_tsc_value_t;
 
 /* Time Stamp Counter */
 typedef struct ina_time_tsc_s {
@@ -46,11 +56,27 @@ typedef struct ina_time_tsc_s {
 #else
     struct timespec tp;
 #endif
-    uint64_t rtp;
+    ina_time_tsc_value_t rtp;
     uint64_t ref;
     uint64_t refhpet;
-    double ticks;
+    double ticks_per_nano;
 } ina_time_tsc_t;
+
+
+#if defined(INA_CPU_X86_64)
+#if defined(INA_OS_LINUX)
+    #define INA_TIME_RDTSC(counter) \
+        INA_ASM INA_VOLATILE ("rdtsc" : "=a" ((counter).uint32.lo), "=d"((counter).uint32.hi))
+#elif defined(INA_OS_WIN32) 
+    #define INA_TIME_RDTSC(counter) \
+        INA_ASM rdtsc \
+        INA_ASM mov (counter).uint32.lo, eax \
+        INA_ASM mov (counter).uint32.hi, edx
+#else
+    #error RDTCS not supported
+#endif
+#endif
+
 
 #define INA_TIME_MAX_USERDATA_LEN (30)
 #define INA_TIME_MAX_STAMPS       (1024)
