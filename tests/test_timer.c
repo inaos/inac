@@ -25,6 +25,10 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#ifndef INA_OS_WIN32
+#define _GNU_SOURCE  
+#include <sched.h>
+#endif
 #include <libinac/lib.h>
 
 INA_TEST(timer,init_destroy)
@@ -66,16 +70,27 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
 }
-
+ 
 INA_TEST(timer, event_rdtsc)
 {
     ina_timer_t *t;
     ina_time_event_t *e1;
     ina_time_event_t *e2;
+    struct timeval tv;
+    time_t nowtime;
+    struct tm *nowtm;
+    char tmbuf[64];
+
 
     t = NULL;
     e1 = NULL;
     e2 = NULL;
+    #ifndef INA_OS_WIN32
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+    CPU_SET(0, &mask);
+    sched_setaffinity(0, sizeof(mask), &mask);
+    #endif
     INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
     INA_TEST_ASSERT_SUCCEED(ina_timer_use_rdtsc(t, INA_YES));
@@ -87,10 +102,23 @@ INA_TEST(timer, event_rdtsc)
     e2 = ina_timer_next_event(t);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NULL(e2);
-    ina_time_sleep(850);
+    ina_time_sleep(2000);
     e2 = ina_timer_next_event(t);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
-}
 
+    INA_TEST_ASSERT_SUCCEED(ina_timer_delete_event(t, e1));
+    gettimeofday(&tv, NULL);
+    nowtime = tv.tv_sec;
+    nowtm = localtime(&nowtime);
+    strftime(tmbuf, sizeof tmbuf, "Timer event started at %Y-%m-%d %H:%M:%S", nowtm);
+    INA_TEST_MSG("%s", tmbuf);
+    e1 = ina_timer_create_event(t, 30*1000);
+    while (ina_timer_next_event(t) == NULL);
+    gettimeofday(&tv, NULL);
+    nowtime = tv.tv_sec;
+    nowtm = localtime(&nowtime);
+    strftime(tmbuf, sizeof tmbuf, "Timer event fired at %Y-%m-%d %H:%M:%S", nowtm);
+    INA_TEST_MSG("%s", tmbuf);   
+}

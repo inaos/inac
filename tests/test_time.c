@@ -134,7 +134,7 @@ INA_TEST(time, stopwatch_startime)
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &i))) {
-	INA_TEST_MSG("Stamp %ld, %.10f", i, w->ts->sec_duration);
+    INA_TEST_MSG("Stamp %ld, %.10f", i, w->ts->sec_duration);
         ++i;
     }
     INA_TEST_MSG("Duration in secs %.10f", w->tv->sec_duration);
@@ -171,7 +171,7 @@ INA_TEST(time, stopwatch_startime_rdtsc)
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
     while (INA_SUCCEED(ina_time_stopwatch_read_stamp(w, &i))) {
-	INA_TEST_MSG("Stamp %ld, %.10f", i, w->ts->sec_duration);
+    INA_TEST_MSG("Stamp %ld, %.10f", i, w->ts->sec_duration);
         ++i;
     }
     INA_TEST_MSG("Duration in secs %.10f", w->tv->sec_duration);
@@ -217,7 +217,7 @@ INA_TEST(time,read_clock)
 
     gettimeofday(&tv, NULL);
     INA_TEST_ASSERT_SUCCEED(ina_time_read_sys_clock(t));
-	INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(t, &secs, &us));
+    INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(t, &secs, &us));
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(t, &secs2, &us2));
     INA_TEST_ASSERT(secs > 0);
     INA_TEST_ASSERT_EQUAL_INTEGER(secs, secs2);
@@ -291,7 +291,7 @@ INA_TEST_DATA(time_ipc) {
 INA_TEST_SETUP(time_ipc) {
     INA_TEST_HELPER_INVOKE(&data->hid, time_ipc, stopwatch_create, 
         INA_NUM2STR(888),
-	NULL);
+    NULL);
 }
 
 INA_TEST_TEARDOWN(time_ipc) 
@@ -362,6 +362,7 @@ INA_TEST_TEARDOWN(time_ipc_rdtsc)
     }
 }
 
+#ifndef INA_OS_WIN32
 INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     int64_t c = 0;
     ina_time_tsc_t time;
@@ -399,4 +400,4 @@ INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     ina_time_sleep(500); /* Wait child is exit */
     INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
 }
-
+#endif
