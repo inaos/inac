@@ -64,7 +64,7 @@ typedef struct ina_time_tsc_s {
 
 
 #ifdef INA_OS_WIN32
-    #define INA_TIME_RDTSC(counter)  __rdtsc()
+    #define INA_TIME_RDTSC(counter)  counter.tp = __rdtsc()
 #else
 #if defined(INA_CPU_X86_64)
     #define INA_TIME_RDTSC(counter) \
