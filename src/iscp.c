@@ -413,34 +413,36 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             params = (ina_iscp_param_t*)ina_mempool_dalloc(
                                             ctx->mempool,
                                             sizeof(ina_iscp_param_t)*(msg.p_count));
-
+            param = params;
             while (n+INA_ISCP_HDR_SIZE < msg.length-sizeof(uint32_t)) {
-                params[p].type = *(uint8_t*)&msg.cmd_data[n];
-                INA_TRACE3("msg.type->%d", params[p].type);
+                unsigned char *c = &msg.cmd_data[n];
+                param->type = *(uint8_t*)c;
+                INA_TRACE3("msg.type->%d", param->type);
 
                 n+= sizeof(uint8_t);
-                switch (params[p].type) {
+                c = &msg.cmd_data[n];
+                switch (param->type) {
                     case INA_ISCP_TYPE_INT64:
                     {
-                        params[p].value.i = *(int64_t*)&msg.cmd_data[n];
+                        param->value.i = *(int64_t*)c;
                         n += sizeof(int64_t);
-                        INA_TRACE3("- Parameter %d type=int64_t value=%" INA_INT64_T_FMT, p, params[p].value.i);
+                        INA_TRACE3("- Parameter %d type=int64_t value=%" INA_INT64_T_FMT, p, param->value.i);
                         break;
                     }
                     case INA_ISCP_TYPE_DBL:
                     {
-                        params[p].value.d = *(double*)&msg.cmd_data[n];
+                        param->value.d = *(double*)c;
                         n += sizeof(double);
-                        INA_TRACE3("- Parameter %d type=double value=%f", p, params[p].value.d);
+                        INA_TRACE3("- Parameter %d type=double value=%f", p, param->value.d);
                         break;
                     }
                     case INA_ISCP_TYPE_STR:
                     {
                         int32_t i;
-                        i = *(int32_t*)&msg.cmd_data[n];
+                        i = *(int32_t*)c;
                         n += sizeof(int32_t);
-                        params[p].value.s = ina_str_new_fromcstr((const char*)&msg.cmd_data[n]);
-                        INA_TRACE3("- Parameter %d type=string value=%s", p, params[p].value.s);
+                        param->value.s = ina_str_new_fromcstr((const char*)&msg.cmd_data[n]);
+                        INA_TRACE3("- Parameter %d type=string value=%s", p, params->value.s);
                         INA_TRACE3("   - string length=%d", i);
                         n += i+1;
                         break;
@@ -453,6 +455,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                         return INA_ISCP_ETYPE;
                     }
                 }
+                param++;
                 ++p;
             }
 
@@ -601,29 +604,30 @@ INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...
     va_start(params, ctx);
      
     while (n+INA_ISCP_HDR_SIZE < ctx->last_response.length-sizeof(uint32_t)) {
-        type = *(uint8_t*)&ctx->last_response.cmd_data[n];
+        const unsigned char *c = &ctx->last_response.cmd_data[n];
+        type = *(uint8_t*)c;
         INA_TRACE3("last_response.type->%d", type);
         rtype = (uint8_t)va_arg(params, int);
-        n+= sizeof(uint8_t);
-
         if (type != rtype) {
             INA_TRACE3("Type not matching (requested %d found: %d)", type, rtype);
         }
-
+        n+= sizeof(uint8_t);
+        c = &ctx->last_response.cmd_data[n];
+  
         switch (type) {
             case INA_ISCP_TYPE_INT64:
-                *va_arg(params, int64_t *) = *(int64_t*)&ctx->last_response.cmd_data[n];
-                INA_TRACE3("- Return value %d type=int64_t value=%ld", p, *(int64_t*)&ctx->last_response.cmd_data[n]);
+                *va_arg(params, int64_t *) = *(int64_t*)c
+                INA_TRACE3("- Return value %d type=int64_t value=%ld", p, *(int64_t*)c);
                 n += sizeof(int64_t);
                 break;
             case INA_ISCP_TYPE_DBL:
-                *va_arg(params, double *)= *(double*)&ctx->last_response.cmd_data[n];
-                INA_TRACE3("- Return value %d type=double value=%f", p, *(double*)&ctx->last_response.cmd_data[n]);
+                *va_arg(params, double *)= *(double*)c;
+                INA_TRACE3("- Return value %d type=double value=%f", p, *(double*)c);
                 n += sizeof(double);
                 break;
             case INA_ISCP_TYPE_STR: {
                 int32_t i;
-                i = *(int32_t*)&ctx->last_response.cmd_data[n];
+                i = *(int32_t*)c;
                 n += sizeof(int32_t);
                 *va_arg(params, ina_str_t*)= ina_str_new_fromcstr((const char*)&ctx->last_response.cmd_data[n]);
                 INA_TRACE3("- Return %d type=string value=%s", p, (const char*)&ctx->last_response.cmd_data[n]);

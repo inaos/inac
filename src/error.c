@@ -369,7 +369,9 @@ INA_API(ina_rc_t) ina_err_coredump(void *data) {
 #ifndef INA_OS_WIN32
     char cmd[160];
     sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
-    system(cmd);
+    if (system(cmd) != 0) {
+        return INA_FAILURE;
+    } 
 #else
     EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
     BOOL dumped;
