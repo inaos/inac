@@ -27,6 +27,19 @@
  */
 #include <libinac/lib.h>
 
+INA_TEST(time, tsc_strftime)
+{
+    ina_str_t str = ina_str_new(128);
+    ina_time_tsc_t *time = NULL;
+    ina_time_tsc_new(&time);
+    INA_TEST_ASSERT_NOT_NULL(time);
+    INA_TEST_ASSERT_SUCCEED(ina_time_read_tsc_clock(time));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_strftime(str, "%H:%M:%S", time, INA_YES));
+    INA_TEST_MSG("result of ina_time_tsc_strftime(): %s", ina_str_cstr(str));
+    ina_str_free(str);
+    ina_time_tsc_free(&time);
+}
+
 INA_TEST(time,time_stamp)
 {
     ina_stopwatch_t *w = NULL;
