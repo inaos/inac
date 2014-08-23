@@ -220,15 +220,23 @@ INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time);
 /*
  * Read the second and nano-second part of the TSC
  */
-INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs, long *nanos);
+INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(const ina_time_tsc_t* time, time_t *secs, long *nanos);
 /*
  * Convert the ina_time_t to a UNIX timestamp and micro-seconds
  */
-INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, long *micros);
+INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *secs, long *micros);
 /*
  * Basically strftime
  */
 INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, size_t *written, const char *fmt, ina_time_t* time);
+
+/*
+ * Basically strftime but using TSC
+ */
+INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf, 
+                                        const char *fmt, 
+                                        const ina_time_tsc_t* time,
+                                        int show_nanos);
 
 /*
  * Create a new stopwatch
