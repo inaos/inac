@@ -59,12 +59,12 @@
 
 
 typedef ina_rc_t (*__ina_time_tsc_read_fp)(ina_time_tsc_t *time);
-typedef ina_rc_t (*__ina_time_tsc_seconds_nanos_fp)(ina_time_tsc_t* time, time_t *secs, long *nanos);
+typedef ina_rc_t (*__ina_time_tsc_seconds_nanos_fp)(const ina_time_tsc_t* time, time_t *secs, long *nanos);
 
 static ina_rc_t __ina_time_tsc_os_read(ina_time_tsc_t *time);
-static ina_rc_t __ina_time_tsc_os_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos);
+static ina_rc_t __ina_time_tsc_os_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos);
 static ina_rc_t __ina_time_tsc_rdtsc_read(ina_time_tsc_t *time);
-static ina_rc_t __ina_time_tsc_rdtsc_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos);
+static ina_rc_t __ina_time_tsc_rdtsc_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos);
 static __ina_time_tsc_read_fp __ina_time_tsc_read = __ina_time_tsc_os_read;
 static __ina_time_tsc_seconds_nanos_fp __ina_time_tsc_secnan = __ina_time_tsc_os_secnan;
 static double __ina_time_rdtsc_ticks_per_nano = 0;
@@ -171,7 +171,7 @@ INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
     return __ina_time_tsc_read(time);
 }
 
-INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs, long *nanos)
+INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(const ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
     return __ina_time_tsc_secnan(time, secs, nanos);
 }
@@ -194,6 +194,42 @@ INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen,
     }
 
     *written = nw;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf, 
+                                        const char *fmt, 
+                                        const ina_time_tsc_t* time, 
+                                        int show_nanos)
+{
+    char *b = (char*)buf;
+    size_t nw = 0;
+    struct tm *mtm;
+    time_t secs;
+    long nanos;
+
+    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_NOTNULL(fmt);
+    INA_ASSERT_NOTNULL(time);
+
+    ina_time_tsc_seconds_nanos(time, &secs, &nanos);
+    mtm = localtime(&secs);
+    nw = strftime(b, ina_str_size(buf), fmt, mtm);
+ 
+    if (nw == 0) {
+        return INA_FAILURE;
+    }
+ 
+    ina_str_adjust_len(buf);
+
+    if (show_nanos) {
+        char bs[15];
+        sprintf(bs, "%09ld", nanos);
+        if (ina_str_len(buf) > 0) {
+            buf = ina_str_catcstr(buf,".");
+        }
+        buf = ina_str_catcstr(buf, bs);
+    }
     return INA_SUCCESS;
 }
 
@@ -455,6 +491,22 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     return ina_time_stopwatch_valid(stopwatch);
 }
 
+INA_API(ina_rc_t) ina_time_stopwatch_dump(const ina_stopwatch_t *stopwatch)
+{
+    INA_ASSERT_NOTNULL(stopwatch);
+    
+    /*printf("Stopwatch ID: %d\n", stopwatch->id);
+    printf("Start time  : %s\n", stopwach->tv->start);
+    printf("Stop time   : %s\n", stopwatch->tv->top);
+    printf("N    rtp         ref       rethpet        tn");
+    
+    int64_t c = 0;
+    while (INA_SUCCEED(ina_time_stopwatch_read_stamp(stopwatch, &c))) {
+        printf("%lld %s\n", c, );
+    }*/
+    return INA_SUCCESS;
+}
+
 static ina_rc_t 
 __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create, 
             size_t max_stamps)
@@ -518,7 +570,7 @@ __ina_time_tsc_os_read(ina_time_tsc_t *time)
     return INA_SUCCESS;
 }
 static ina_rc_t 
-__ina_time_tsc_os_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos)
+__ina_time_tsc_os_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
 #ifdef INA_OS_WIN32
     double dsecs = __ina_lit_to_secs(&time->tp);
@@ -553,7 +605,7 @@ __ina_time_tsc_rdtsc_read(ina_time_tsc_t *time)
     return INA_SUCCESS;
 }
 static ina_rc_t 
-__ina_time_tsc_rdtsc_secnan(ina_time_tsc_t* time, time_t *secs, long *nanos)
+__ina_time_tsc_rdtsc_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
     uint64_t ns;
     uint64_t diff_ns;
