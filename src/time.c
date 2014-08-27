@@ -109,7 +109,7 @@ static void __ina_time_rdtsc_calibrate_ticks()
     struct timespec *tmpts = __ina_time_rdtsc_timespec_diff(&endts, &begints);
     uint64_t nsecElapsed = tmpts->tv_sec * 1000000000 + tmpts->tv_nsec;
     __ina_time_rdtsc_ticks_per_nano = (double)(end.uint64 - begin.uint64)/(double)nsecElapsed;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &refhpet);
+    clock_gettime(CLOCK_REALTIME, &refhpet);
     INA_TIME_RDTSC(ts);
     __ina_time_rdtsc_ref = ts.uint64;
     __ina_time_rdtsc_refhpet = refhpet.tv_sec * 1000000000 + refhpet.tv_nsec;
@@ -563,7 +563,7 @@ __ina_time_tsc_os_read(ina_time_tsc_t *time)
 #elif defined(INA_OS_OSX)
      time->tp = mach_absolute_time();
 #else
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
+    if (clock_gettime(CLOCK_REALTIME, &time->tp) == -1) {
         return INA_FAILURE;
     }
 #endif
