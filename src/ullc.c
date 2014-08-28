@@ -377,8 +377,8 @@ INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos)
 
     cursor = ctx->c_offset->cursor;
 
-    if (pos == -1 || pos > ctx->ring->cursor) {
-        pos = ctx->ring->cursor;
+    if (pos == -1 || pos > ctx->ring->next_ptr) {
+        pos = ctx->ring->next_ptr;
     }    
     if (__INA_ULLC_SWAP(&ctx->c_offset->cursor, cursor, pos) == cursor) {
         return INA_SUCCESS;
