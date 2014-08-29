@@ -385,8 +385,8 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
                 &stopwatch->tv->start.tp.tv_sec,
                 &stopwatch->tv->start.tp.tv_nsec);
 
-            stopwatch->ts->stamp.ref = stopwatch->tv->start.ref;
-            stopwatch->ts->stamp.refhpet = stopwatch->tv->start.refhpet;
+            /*stopwatch->ts->stamp.ref = stopwatch->tv->start.ref;
+            stopwatch->ts->stamp.refhpet = stopwatch->tv->start.refhpet;*/
 
             ina_time_tsc_seconds_nanos(&stopwatch->ts->stamp, 
                 &stopwatch->ts->stamp.tp.tv_sec,
@@ -396,12 +396,12 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
                 stopwatch->tv->start.tp.tv_sec);
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp.tv_nsec -
                     stopwatch->tv->start.tp.tv_nsec)/1000000000.0);
-   
+
         } else {
             ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index-1);
 
-            stopwatch->ts->stamp.ref = stopwatch->tv->start.ref;
-            stopwatch->ts->stamp.refhpet = stopwatch->tv->start.refhpet;
+            /*stopwatch->ts->stamp.ref = stopwatch->tv->start.ref;
+            stopwatch->ts->stamp.refhpet = stopwatch->tv->start.refhpet;*/
    
             ina_time_tsc_seconds_nanos(&stopwatch->ts->stamp, 
                 &stopwatch->ts->stamp.tp.tv_sec,
@@ -470,8 +470,8 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     INA_ASSERT_NOTNULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     
-    stopwatch->tv->stop.ref = stopwatch->tv->start.ref;
-    stopwatch->tv->stop.refhpet = stopwatch->tv->start.refhpet;
+    /*stopwatch->tv->stop.ref = stopwatch->tv->start.ref;
+    stopwatch->tv->stop.refhpet = stopwatch->tv->start.refhpet;*/
    
     ina_time_tsc_seconds_nanos(&stopwatch->tv->start, 
         &stopwatch->tv->start.tp.tv_sec, 
