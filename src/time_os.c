@@ -81,7 +81,7 @@ INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, 
+INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *secs, 
 						long *micros)
 {
 #ifdef INA_OS_WIN32

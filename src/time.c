@@ -74,7 +74,7 @@ static uint64_t __ina_time_rdtsc_ref = 0;
 static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
  
 #ifdef INA_OS_WIN32
-static double __ina_lit_to_secs(LARGE_INTEGER * L) 
+static double __ina_lit_to_secs(const LARGE_INTEGER * L) 
 {
     LARGE_INTEGER frequency;
     QueryPerformanceFrequency( &frequency ) ; 

@@ -78,7 +78,7 @@ INA_TEST(ullc, multiproducer)
         v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc1);
         v->d1 += c;
         v->d2 -= c;
-        v->i3 = abs(v->d1*v->d2);
+        v->i3 = (int32_t)abs(v->d1*v->d2);
         INA_ULLC_COMMIT(ullc1);
         v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc2);
         v->d1 += c;
