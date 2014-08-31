@@ -45,7 +45,7 @@ endif()
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
 set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
 
-file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c")
+file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c" "test.def")
 add_executable(test ${TEST_SRC})
 target_link_libraries(test ${PLATFORM_LIBS} ${LIBS})
 
