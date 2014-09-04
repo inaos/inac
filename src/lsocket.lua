@@ -28,7 +28,7 @@
 
 -- NOTES:
 -- * This is a very limited and simplified wrapper for lua-socket
--- * Its been stripped down to only support mobdebug
+-- * Its been stripped down to only support ldebug/mobdebug
 -- * We might enhance it in the future
 
 local ffi = require("ffi")
@@ -37,8 +37,6 @@ local sw = {}
 
 local _MODE_BLOCKING = 0
 local _MODE_NON_BLOCKING = 1
-
-local INA_EAGAIN = 22
 
 ffi.cdef[[
 typedef uint32_t ina_rc_t;
@@ -118,13 +116,32 @@ local meta_connection = {
       local sread = num_bytes or 1024
       local buf = ffi.new("char[?]", sread)
       local nread = ffi.new("int [1]")
-      local err = ffi.C.ina_net_read(c._fd[0], ffi.cast("unsigned char*", buf), sread, nread)
-      if c._mode == _MODE_NON_BLOCKING and err == INA_EAGAIN then
-        return nil
-      elseif err > 0 then
-        return nil, "Unknown error during net read"
-      end
-      local ret = ffi.string(buf, nread[0])
+	  local complete = false
+	  local total_read = 0
+	  local ret = ""
+	  repeat
+        local err = ffi.C.ina_net_read(c._fd[0], ffi.cast("unsigned char*", buf), sread, nread)
+        if err > 0 then
+          return nil, "Unknown error during net read"
+        elseif c._mode == _MODE_NON_BLOCKING and nread[0] < 0 and total_read == 0 then
+		  return nil, "timeout"
+		end
+		if nread[0] > 0 then
+		  total_read = total_read + nread[0]
+		  ret = ret..ffi.string(buf, nread[0])
+		end
+		if num_bytes then
+		  if total_read == num_bytes then
+		    complete = true
+		  end
+		else
+		  if c._mode == _MODE_BLOCKING and nread[0] < 1024 and total_read > 0 then
+		    complete = true
+	      elseif c._mode == _MODE_NON_BLOCKING and nread[0] == -1 then
+		    complete = true
+		  end
+		end
+	  until complete
       return ret
     end,
     -- if argument is 0 set non-blocking, otherwise blocking

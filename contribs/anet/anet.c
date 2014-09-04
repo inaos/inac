@@ -348,11 +348,6 @@ int anetRead(int fd, char *buf, int count)
     int nread;
 #ifdef WIN32
         nread = recv(fd,buf,count, 0);
-		if (nread < 0) {
-			if (WSAGetLastError() == WSAEWOULDBLOCK) {
-				return(ANET_OK);
-			}
-		}
 #else
 		nread = read(fd,buf,count);
 #endif

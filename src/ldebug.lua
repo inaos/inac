@@ -467,8 +467,8 @@ local function handle_breakpoint(peer)
 
   -- need to read few more characters
   buf = buf .. readnext(peer, 5-#buf)
+  
   if buf ~= 'SETB ' and buf ~= 'DELB ' then return end
-
   local res, _, partial = peer:receive() -- get the rest of the line; blocking
   if not res then
     if partial then buf = buf .. partial end
@@ -476,8 +476,14 @@ local function handle_breakpoint(peer)
   end
 
   local _, _, cmd, file, line = (buf..res):find("^([A-Z]+)%s+(.-)%s+(%d+)%s*$")
-  if cmd == 'SETB' then set_breakpoint(file, tonumber(line))
-  elseif cmd == 'DELB' then remove_breakpoint(file, tonumber(line))
+  local break_file
+  if mobdebug.debugfile then
+    break_file = mobdebug.debugfile
+  else
+    break_file = file
+  end
+  if cmd == 'SETB' then set_breakpoint(break_file, tonumber(line))
+  elseif cmd == 'DELB' then remove_breakpoint(break_file, tonumber(line))
   else
     -- this looks like a breakpoint command, but something went wrong;
     -- return here to let the "normal" processing to handle,
@@ -529,19 +535,6 @@ local function debug_hook(event, line)
       if not line then return end
     end
 
-    -- may need to fall through because of the following:
-    -- (1) step_into
-    -- (2) step_over and stack_level <= step_level (need stack_level)
-    -- (3) breakpoint; check for line first as it's known; then for file
-    -- (4) socket call (only do every Xth check)
-    -- (5) at least one watch is registered
-    if not (
-      step_into or step_over or breakpoints[line] or watchescnt > 0
-      or is_pending(server)
-    ) then checkcount = checkcount + 1; return end
-
-    checkcount = mobdebug.checkcount -- force check on the next command
-
     -- this is needed to check if the stack got shorter or longer.
     -- unfortunately counting call/return calls is not reliable.
     -- the discrepancy may happen when "pcall(load, '')" call is made
@@ -559,8 +552,8 @@ local function debug_hook(event, line)
 
     -- grab the filename and fix it if needed
     local file = lastfile
-    if (lastsource ~= caller.source) then
-      file, lastsource = caller.source, caller.source
+    if (lastsource ~= caller.short_src) then
+      file, lastsource = caller.short_src, caller.short_src
       -- technically, users can supply names that may not use '@',
       -- for example when they call loadstring('...', 'filename.lua').
       -- Unfortunately, there is no reliable/quick way to figure out
@@ -593,10 +586,32 @@ local function debug_hook(event, line)
       -- session, so do it here to at least avoid setting it for every line.
       seen_hook = true
       lastfile = file
+
     end
 
-    if is_pending(server) then handle_breakpoint(server) end
+	if mobdebug.debugchunk then
+	  if string.find(file, ".lua", 1, true) ~= nil then
+	    return
+	  else
+	    mobdebug.debugfile = file
+	  end
+	end
+	
+	-- may need to fall through because of the following:
+    -- (1) step_into
+    -- (2) step_over and stack_level <= step_level (need stack_level)
+    -- (3) breakpoint; check for line first as it's known; then for file
+    -- (4) socket call (only do every Xth check)
+    -- (5) at least one watch is registered
+    if not (
+      step_into or step_over or breakpoints[line] or watchescnt > 0
+      or is_pending(server)
+    ) then checkcount = checkcount + 1; return end
 
+    checkcount = mobdebug.checkcount -- force check on the next command
+	
+    if is_pending(server) then handle_breakpoint(server) end
+	
     local vars, status, res
     if (watchescnt > 0) then
       vars = capture_vars()
@@ -619,7 +634,7 @@ local function debug_hook(event, line)
       or (step_over and step_over == (coroutine.running() or 'main') and stack_level <= step_level)
       or has_breakpoint(file, line)
       or is_pending(server))
-
+	  
     if getin then
       vars = vars or capture_vars()
       step_into = false
@@ -706,7 +721,9 @@ local function debugger_loop(sev, svars, sfile, sline)
   while true do
     local line, err
     local wx = rawget(genv, "wx") -- use rawread to make strict.lua happy
-    if (wx or mobdebug.yield) and server.settimeout then server:settimeout(mobdebug.yieldtimeout) end
+    if (wx or mobdebug.yield) and server.settimeout then
+	  server:settimeout(mobdebug.yieldtimeout) 
+	end
     while true do
       line, err = server:receive()
       if not line and err == "timeout" then
@@ -729,7 +746,6 @@ local function debugger_loop(sev, svars, sfile, sline)
             win:Connect(wx.wxEVT_TIMER, exitLoop)
             app:MainLoop()
           end
-        elseif mobdebug.yield then mobdebug.yield()
         end
       elseif not line and err == "closed" then
         error("Debugger connection unexpectedly closed", 0)
@@ -744,7 +760,13 @@ local function debugger_loop(sev, svars, sfile, sline)
     if command == "SETB" then
       local _, _, _, file, line = string.find(line, "^([A-Z]+)%s+(.-)%s+(%d+)%s*$")
       if file and line then
-        set_breakpoint(file, tonumber(line))
+	    local break_file
+	    if mobdebug.debugfile then
+		  break_file = mobdebug.debugfile
+		else
+		  break_file = file
+		end
+        set_breakpoint(break_file, tonumber(line))
         server:send("200 OK\n")
       else
         server:send("400 Bad Request\n")
@@ -752,7 +774,13 @@ local function debugger_loop(sev, svars, sfile, sline)
     elseif command == "DELB" then
       local _, _, _, file, line = string.find(line, "^([A-Z]+)%s+(.-)%s+(%d+)%s*$")
       if file and line then
-        remove_breakpoint(file, tonumber(line))
+	    local break_file
+	    if mobdebug.debugfile then
+		  break_file = mobdebug.debugfile
+		else
+		  break_file = file
+		end
+        remove_breakpoint(break_file, tonumber(line))
         server:send("200 OK\n")
       else
         server:send("400 Bad Request\n")
@@ -777,9 +805,14 @@ local function debugger_loop(sev, svars, sfile, sline)
         server:send("400 Bad Request\n")
       end
     elseif command == "LOAD" then
+	  
       local _, _, size, name = string.find(line, "^[A-Z]+%s+(%d+)%s+(%S.-)%s*$")
+	  if mobdebug.debugchunk then
+		sline = nil
+		sfile = nil
+		mobdebug.chunkreal = name
+	  end
       size = tonumber(size)
-
       if abort == nil then -- no LOAD/RELOAD allowed inside start()
         if size > 0 then server:receive(size) end
         if sfile and sline then
@@ -846,31 +879,43 @@ local function debugger_loop(sev, svars, sfile, sline)
 
       local ev, vars, file, line, idx_watch = coroyield()
       eval_env = vars
+	  local run_file
+	  if mobdebug.debugfile then
+		run_file = mobdebug.chunkreal
+	  else
+	    run_file = file
+	  end
       if ev == events.BREAK then
-        server:send("202 Paused " .. file .. " " .. line .. "\n")
+        server:send("202 Paused " .. run_file .. " " .. line .. "\n")
       elseif ev == events.WATCH then
-        server:send("203 Paused " .. file .. " " .. line .. " " .. idx_watch .. "\n")
+        server:send("203 Paused " .. run_file .. " " .. line .. " " .. idx_watch .. "\n")
       elseif ev == events.RESTART then
         -- nothing to do
       else
-        server:send("401 Error in Execution " .. #file .. "\n")
-        server:send(file)
+        server:send("401 Error in Execution " .. #run_file .. "\n")
+        server:send(run_file)
       end
     elseif command == "STEP" then
       server:send("200 OK\n")
       step_into = true
-
+	  
       local ev, vars, file, line, idx_watch = coroyield()
+	  local step_file
+	  if mobdebug.debugfile then
+		step_file = mobdebug.chunkreal
+	  else
+	    step_file = file
+	  end
       eval_env = vars
       if ev == events.BREAK then
-        server:send("202 Paused " .. file .. " " .. line .. "\n")
+        server:send("202 Paused " .. step_file .. " " .. line .. "\n")
       elseif ev == events.WATCH then
-        server:send("203 Paused " .. file .. " " .. line .. " " .. idx_watch .. "\n")
+        server:send("203 Paused " .. step_file .. " " .. line .. " " .. idx_watch .. "\n")
       elseif ev == events.RESTART then
         -- nothing to do
       else
-        server:send("401 Error in Execution " .. #file .. "\n")
-        server:send(file)
+        server:send("401 Error in Execution " .. #step_file .. "\n")
+        server:send(step_file)
       end
     elseif command == "OVER" or command == "OUT" then
       server:send("200 OK\n")
@@ -883,15 +928,21 @@ local function debugger_loop(sev, svars, sfile, sline)
 
       local ev, vars, file, line, idx_watch = coroyield()
       eval_env = vars
+	  local over_file
+	  if mobdebug.debugfile then
+		over_file = mobdebug.chunkreal
+	  else
+	    over_file = file
+	  end
       if ev == events.BREAK then
-        server:send("202 Paused " .. file .. " " .. line .. "\n")
+        server:send("202 Paused " .. over_file .. " " .. line .. "\n")
       elseif ev == events.WATCH then
-        server:send("203 Paused " .. file .. " " .. line .. " " .. idx_watch .. "\n")
+        server:send("203 Paused " .. over_file .. " " .. line .. " " .. idx_watch .. "\n")
       elseif ev == events.RESTART then
         -- nothing to do
       else
-        server:send("401 Error in Execution " .. #file .. "\n")
-        server:send(file)
+        server:send("401 Error in Execution " .. #over_file .. "\n")
+        server:send(over_file)
       end
     elseif command == "BASEDIR" then
       local _, _, dir = string.find(line, "^[A-Z]+%s+(.+)%s*$")
@@ -1580,6 +1631,9 @@ mobdebug.coro = coro
 mobdebug.done = done
 mobdebug.pause = function() step_into = true end
 mobdebug.yield = nil -- callback
+mobdebug.yieldtimeout = 0
+mobdebug.debugfile = nil
+mobdebug.debugchunk = false
 
 -- this is needed to make "require 'modebug'" to work when mobdebug
 -- module is loaded manually
