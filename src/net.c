@@ -303,7 +303,7 @@ INA_API(ina_rc_t) ina_net_set_write_timeout(int fd, int msec)
 #ifdef INA_OS_WIN32
 INA_API(ina_rc_t) ina_net_block(int fd)
 {
-    unsigned long enable = 0;
+    unsigned long enable = 0; /* disable non-blocking */
     if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
         return INA_NET_ERROR("failed to block");
     }
