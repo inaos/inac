@@ -618,7 +618,7 @@ static void __ina_process_is_running(ina_process_t *process,
         process->exit_code = -1;
         *still_running = INA_YES;
     } else {
-        process->exit_code = exit_code;
+        process->exit_code = WEXITSTATUS(&exit_code);
         *still_running = INA_NO;
     }
 }
@@ -641,11 +641,11 @@ static void __ina_process_start(ina_process_t *process)
         
         if (process->descriptor->working_dir != NULL) {
             if (chdir(process->descriptor->working_dir) != 0) {
-                /* FIXME: FSM state change */
                 return;
             }
         }
         
+        c = 0;
         args[n++] = (char*)ina_str_cstr(process->descriptor->full_path);
         tokens = ina_str_split(process->descriptor->startup_args, " ", &c);
         while (c--) {
@@ -653,13 +653,22 @@ static void __ina_process_start(ina_process_t *process)
             n++;
         }
         args[n++] = NULL;
-        execvp(args[0], args);
-        perror("execvp()");
+        execv(args[0], args);
+        perror("execv()");
         _exit(127);
-    }
+    } else {
     
     /* Store pid */
     process->pid = pid;
+
+    int status;
+    if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
+        waitpid(process->pid, &status, 0);
+        if (WIFEXITED(status)) {
+            process->exit_code = WEXITSTATUS(status);
+        }
+    }
+}
 }
 
 static void __ina_process_stop(ina_process_t *process)
