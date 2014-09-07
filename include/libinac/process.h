@@ -52,6 +52,7 @@ typedef enum ina_process_managed_type_e {
 typedef enum ina_process_lifecycle_type_e {
     INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
     INA_PROCESS_LIFECYCLE_TYPE_MANAGED,
+    INA_PROCESS_LIFECYCLE_TYPE_WAIT
 } ina_process_lifecycle_type_t;
 
 typedef struct ina_process_descriptor_s {
