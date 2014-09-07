@@ -186,6 +186,15 @@ if "%INAC_W32_BUILD_STAGE%" == "dist" (
 	goto exit
 )
 
+REM Invoke the Test-Suite
+if "%INAC_W32_BUILD_STAGE%" == "test" (
+	if defined INAC_WIN32_C_TEST_SUITE_EXEC (
+		%INAC_WIN32_C_TEST_SUITE_EXEC%
+		REM FIXME: collect test logs and evalutate failure or success
+		goto exit
+	)
+)
+
 REM invoke code-generator if necessary
 SET "INAC_W32_CODE_GEN_FULL_PATH=%INAC_WIN32_PROJECT_DIR%\%INAC_WIN32_CODE_GEN_SCRIPT% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%"
 if defined INAC_WIN32_CODE_GEN_SCRIPT (
@@ -252,14 +261,6 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 		)
 	)
 	cd %INAC_WIN32_OLD_DIR%
-)
-
-REM Invoke the Test-Suite
-if defined INAC_WIN32_C_TEST_SUITE_EXEC (
-	if "%INAC_W32_BUILD_STAGE%" == "test" (
-		start cmd /c %INAC_WIN32_C_TEST_SUITE_EXEC%
-		REM FIXME: collect test logs and evalutate failure or success
-	)
 )
 
 REM compile lua to byte code - if there is any
