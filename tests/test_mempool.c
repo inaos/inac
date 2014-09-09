@@ -280,12 +280,12 @@ INA_TEST(mempool, auto_resize) {
     buffer = ina_mempool_dalloc(pool, 3096);
     INA_TEST_ASSERT_NOT_NULL(buffer);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
-#ifdef INA_CPU_X86
-    INA_TEST_ASSERT_EQUAL_INTEGER(7192, mi.size);
-    INA_TEST_ASSERT_EQUAL_INTEGER(6168, mi.used);
-#else
+#ifdef INA_CPU_X86_64
     INA_TEST_ASSERT_EQUAL_INTEGER(7200, mi.size);
     INA_TEST_ASSERT_EQUAL_INTEGER(6176, mi.used);
+#else
+    INA_TEST_ASSERT_EQUAL_INTEGER(7192, mi.size);
+    INA_TEST_ASSERT_EQUAL_INTEGER(6168, mi.used);
 #endif
 
 
