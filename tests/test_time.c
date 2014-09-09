@@ -260,7 +260,7 @@ INA_TEST(time_tsc,read_tsc)
     INA_TEST_MSG("%s", msg);
 
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());
-    clock_gettime(CLOCK_MONOTONIC_RAW, &test); 
+    clock_gettime(CLOCK_REALTIME, &test); 
 
     INA_TEST_ASSERT_SUCCEED(ina_time_read_tsc_clock(&t));
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&t, &sec, &nanos));
@@ -277,7 +277,7 @@ INA_TEST(time_tsc,read_tsc)
     INA_TEST_ASSERT_TRUE(abs(d) <= 1);
     
     for (i = 0; i < 1000; i++) {
-        clock_gettime(CLOCK_MONOTONIC_RAW, &test);
+        clock_gettime(CLOCK_REALTIME, &test);
         ina_time_read_tsc_clock(&t);
         ina_time_tsc_seconds_nanos(&t, &sec, &nanos);
         u1 = test.tv_nsec / 1000;
