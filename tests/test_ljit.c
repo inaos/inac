@@ -67,10 +67,9 @@ INA_TEST_FIXTURE(ljit, lsocket_echo_client)
     INA_TEST_ASSERT_NULL(ctx);
 }
 
-INA_TEST_FIXTURE(ljit, debug)
+INA_TEST_FIXTURE_SKIP(ljit, debug)
 {
     ina_ljit_ctx_t *ctx = NULL;
-    int r = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
 
