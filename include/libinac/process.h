@@ -113,8 +113,24 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
 /*
  *
  */
-INA_API(ina_rc_t) ina_process_descriptor_free(ina_process_ctx_t *ctx,
-                                      ina_process_descriptor_t **descriptor);
+INA_API(ina_rc_t) ina_process_descriptor_free(
+                                    ina_process_descriptor_t **descriptor);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_process_exec(ina_process_ctx_t *ctx, 
+                                   const char *full_path,
+                                   const char *startup_args,
+                                   ina_process_t **process);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_process_exec_and_wait(ina_process_ctx_t *ctx, 
+                                   const char *full_path,
+                                   const char *startup_args,
+                                   ina_process_t **process);
+
 /*
  * 
  */
@@ -124,35 +140,29 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_free(ina_process_ctx_t *ctx, 
-                                   ina_process_t **process);
+INA_API(ina_rc_t) ina_process_free(ina_process_t **process);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_start(ina_process_ctx_t *ctx, 
-                                    ina_process_t *process);
+INA_API(ina_rc_t) ina_process_start(ina_process_t *process);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_stop(ina_process_ctx_t *ctx, 
-                                   ina_process_t *process);
+INA_API(ina_rc_t) ina_process_stop(ina_process_t *process);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_query_state(ina_process_ctx_t *ctx, 
-                                          ina_process_t *process, 
+INA_API(ina_rc_t) ina_process_query_state(ina_process_t *process, 
                                           ina_fsm_state_t *state);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_should_be_running(ina_process_ctx_t *ctx, 
-                                                ina_process_t *process, 
+INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process, 
                                                 int *should_be_running);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_ctx_t *ctx, 
-                                            ina_process_t *process, 
+INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process, 
                                             int *exit_code);
 
 
