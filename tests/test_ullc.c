@@ -144,7 +144,7 @@ INA_TEST(ullc, consumer_get_set_pos)
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(consumer1, -1));
     v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
     INA_TEST_ASSERT_NULL(v);
-    INA_TEST_ASSERT_EQUAL_INTEGER(-1, pos);
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, pos);
 
     for (c = 0; c < 125; c++) {
         v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
