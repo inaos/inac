@@ -28,18 +28,10 @@
 #include <libinac/lib.h>
 
 static ina_rc_t __ina_service_fn(const ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data)
-{
-    int *value;
-    ina_service_descriptor_t *ds;
-    
-    if (INA_SUCCEED(ina_service_get_descriptor(ctx, &ds))) {
-        return INA_ERR_PUSH_LAST;
-    }
-
+{    
     switch (status) {
         case INA_SERVICE_STATUS_INIT:
-            value = (int*)ina_mem_alloc(sizeof(int));
-            ina_service_set_data(ctx, (void*)value);
+            break;
         case INA_SERVICE_STATUS_START:
             *((int*)user_data) = 1;
             break;
@@ -50,8 +42,6 @@ static ina_rc_t __ina_service_fn(const ina_service_ctx_t *ctx, ina_service_statu
             *((int*)user_data) = 3;
             break;
         case INA_SERVICE_STATUS_STOP:
-            ina_mem_free(user_data);
-            ina_service_set_data(ctx, NULL);
             break;
         case INA_SERVICE_STATUS_INSTALL:
             break;
