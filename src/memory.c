@@ -294,8 +294,8 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
             __ina_mp_free(pm);
         } else {
             pm->pos = 0;
-            pm->end = pm->size;
-            ina_mem_set(pm->m, 0, pm->size);
+            /*pm->end = pm->size;*/
+            ina_mem_set(pm->m, 0, pm->end);
         }
     }
     return INA_SUCCESS;
