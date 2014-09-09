@@ -484,7 +484,7 @@ static void __free_task(ina_cron_task_t **task)
         ina_str_free(t->cmd);
     }
     if (t->working_dir != NULL) {
-        ina_str_free(t->cmd);
+        ina_str_free(t->working_dir);
     }
     if (t->pattern != NULL) {
         ina_str_free(t->pattern);
