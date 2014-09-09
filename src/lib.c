@@ -528,6 +528,24 @@ __ina_get_binpath(ina_str_t path)
 
     /* Ensure proper NUL termination */
     buf[ret] = 0;
+#elif INA_OS_WIN32
+    HMODULE hMod;
+    DWORD ret;
+    size_t buf_size = ina_str_size(path);
+    char *buf = (char*)ina_str_cstr(path);
+
+    hMod = GetModuleHandle(NULL);
+    ret = GetModuleFileName(hMod, buf, buf_size);
+
+    if (ret == ERROR_INSUFFICIENT_BUFFER) {
+        return INA_FAILURE;
+    }
+    else if (ret >= ina_str_size(path)) {
+        return INA_FAILURE;
+    }
+
+    /* Ensure proper NUL termination */
+    buf[ret] = 0;
 #endif
     return INA_SUCCESS;   
 }

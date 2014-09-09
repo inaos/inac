@@ -220,7 +220,7 @@ INA_TEST_SKIP(process, should_be_running)
 
 INA_TEST(process, get_exit_code)
 {
-     ina_process_ctx_t *ctx;
+    ina_process_ctx_t *ctx;
     ina_process_t *process;
     ina_process_descriptor_t pd;
     int  exit_code;

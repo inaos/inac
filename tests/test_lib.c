@@ -96,7 +96,11 @@ INA_TEST(lib, opt_get_key_value)
 INA_TEST(lib, appname)
 {
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_name());
+#ifdef INA_OS_WIN32
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp("test.exe", ina_app_get_name()));
+#else
     INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp("test", ina_app_get_name()));
+#endif
 }
 
 INA_TEST(lib, apppath)
