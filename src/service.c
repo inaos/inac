@@ -325,16 +325,46 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
 
 static ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_t *status)
 {
-    return INA_FAILURE;
+    ina_str_t cmd;
+    int retval;
+    
+	INA_ASSERT_NOTNULL(status);
+    *status = INA_SERVICE_STATUS_STOP;
+
+    cmd = ina_str_sprintf("sc query \"%s\" | find \"RUNNING\"", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+		*status = INA_SERVICE_STATUS_RUN;
+    }
+    return INA_SUCCESS;
 }
 
 static ina_rc_t __ina_service_mgnt_start(const char *name)
 {
-    return INA_FAILURE;
+    ina_str_t cmd;
+    int retval;
+    
+    cmd = ina_str_sprintf("NET start %s", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+        return INA_SUCCESS;
+    }
+	return INA_FAILURE;
 }
 
 static ina_rc_t __ina_service_mgnt_stop(const char *name)
 {
+    ina_str_t cmd;
+    int retval;
+    
+    cmd = ina_str_sprintf("NET stop %s", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+        return INA_SUCCESS;
+    }
     return INA_FAILURE;
 }
 
