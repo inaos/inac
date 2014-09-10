@@ -212,7 +212,9 @@ INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(code);
     if (luaL_dostring(ctx->lstate, code) != 0) {
-        return INA_LJIT_ELUA(ctx);
+        INA_LJIT_ELUA(ctx);
+        ina_err_trace();
+        return ina_err_peek();
     }
     return INA_SUCCESS;
 }
