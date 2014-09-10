@@ -25,6 +25,10 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#ifndef INA_OS_WIN32
+#define _GNU_SOURCE  
+#include <sched.h>
+#endif
 #include <libinac/lib.h>
 
 INA_TEST(time, tsc_strftime)
@@ -164,6 +168,13 @@ INA_TEST(time, stopwatch_startime_rdtsc)
     int64_t i = 0;
 
 
+    #ifndef INA_OS_WIN32
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+    CPU_SET(0, &mask);
+    sched_setaffinity(0, sizeof(mask), &mask);
+    #endif
+
     ina_time_tsc_enable_rdtsc();
     gettimeofday(&tv_start, NULL);
     ina_time_read_tsc_clock(&start_ts);
@@ -259,6 +270,13 @@ INA_TEST(time_tsc,read_tsc)
 
     INA_TEST_MSG("%s", msg);
 
+    #ifndef INA_OS_WIN32
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+    CPU_SET(0, &mask);
+    sched_setaffinity(0, sizeof(mask), &mask);
+    #endif
+    
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());
     clock_gettime(CLOCK_REALTIME, &test); 
 
@@ -359,6 +377,12 @@ INA_TEST_DATA(time_ipc_rdtsc) {
 };
 
 INA_TEST_SETUP(time_ipc_rdtsc) {
+    #ifndef INA_OS_WIN32
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+    CPU_SET(0, &mask);
+    sched_setaffinity(0, sizeof(mask), &mask);
+    #endif
     ina_time_tsc_enable_rdtsc();
     ina_time_sleep(3000);
     INA_TEST_HELPER_INVOKE(&data->hid, time_ipc_rdtsc, stopwatch_create_rdtsc, 
