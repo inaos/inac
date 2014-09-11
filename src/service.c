@@ -194,38 +194,31 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     else {
         return INA_SERVICE_EUST;
     }
-    if (ctx->descriptor->username != NULL) {
+    if (ctx->descriptor->username != NULL && strlen(ctx->descriptor->username)) {
         username = ina_str_cstr(ctx->descriptor->username);
     }
-    if (ctx->descriptor->username != NULL) {
+    if (ctx->descriptor->password != NULL && strlen(ctx->descriptor->password)) {
         password = ina_str_cstr(ctx->descriptor->password);
     }
 
     if (serviceControlManager) {
         char path[_MAX_PATH + 1];
-        if (GetModuleFileName(0, path, sizeof(path)/sizeof(path[0])) > 0 ) {
             SC_HANDLE service;
-            if (ctx->descriptor->startup_args != NULL) {
-                strcat(path, " ");
-                strcat(path, ina_str_cstr(ctx->descriptor->startup_args));
-            }
             service = CreateService(serviceControlManager,
                 ina_str_cstr(ctx->descriptor->name), ina_str_cstr(ctx->descriptor->display_name),
                 SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
-                start_type, SERVICE_ERROR_NORMAL, path,
+                start_type, SERVICE_ERROR_NORMAL, ctx->descriptor->startup_args,
                 0, 0, 0, username, password);
-
+            
             if (service) {
                 SERVICE_DESCRIPTION svc_desc;
                 svc_desc.lpDescription = (LPSTR)ina_str_cstr(ctx->descriptor->description);
                 ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &svc_desc);
                 CloseServiceHandle(service);
-            }
-            else {
+            } else {
                 CloseServiceHandle(serviceControlManager);
                 return INA_SERVICE_ECAPI;
             }
-        }
         CloseServiceHandle(serviceControlManager);
     }
     else {
