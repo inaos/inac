@@ -94,6 +94,8 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
      int size;
      va_list argp;
      
+     return INA_SUCCESS;
+     
      if (is_error != INA_YES) {
          size = sprintf(__errormsg, "%s", "     MSG: ");
     } else {
