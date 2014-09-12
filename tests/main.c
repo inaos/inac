@@ -39,7 +39,8 @@ int main(int argc,  char** argv)
         INA_OPT_INT("x", "repeat", 1, "Test int argument"),
         INA_OPT_FLOAT("f", "float", 1.02, "Test float argument"),
         INA_OPT_STRING("r", "run", "all", "Test string argument"),
-        INA_OPT_STRING(NULL, "long-option", "long", "This is a long option without short option"));
+        INA_OPT_STRING(NULL, "long-option", "long", "This is a long option without short option"),
+        INA_OPT_FLAG(NULL, "tap", "Test Anything Protocol"));
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
         return EXIT_FAILURE;

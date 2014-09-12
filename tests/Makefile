@@ -38,4 +38,4 @@ clean:
 	@-rm -f *.o test
 
 test: all
-	./test
+	./test --tap

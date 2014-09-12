@@ -49,6 +49,7 @@ static const char* __suite_name;
 static const char* __helper_name;
 static const char* __binpath;
 static int         __last_signal = 0;
+static int         __tap = INA_NO;
 
 INA_TEST(suite, test) { }
 
@@ -94,13 +95,17 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
      int size;
      va_list argp;
      
-     return INA_SUCCESS;
-     
-     if (is_error != INA_YES) {
-         size = sprintf(__errormsg, "%s", "     MSG: ");
+
+    if (!__tap) {
+        if (is_error != INA_YES) {
+            size = sprintf(__errormsg, "%s", "     MSG: ");
+        } else {
+            size = sprintf(__errormsg, "%s", "ERR: ");
+        }
     } else {
-        size = sprintf(__errormsg, "%s", "     ERR: ");
+        size = sprintf(__errormsg, "%s", "# ");
     }
+ 
     __errorsize -= size;
     __errormsg += size;
     
@@ -447,16 +452,20 @@ INA_API(int) ina_test_run(int argc, char *argv[])
 
     __binpath = argv[0];
     
-    if (argc > 2) {
+    if (argc > 1) {
         if (strcmp(argv[1], "-h")==0) {
             return ina_test_helper_run(argc, argv);
         }
-    }
-
-    if (argc == 2) {
-        __suite_name = argv[1];
+        if (strcmp(argv[1], "--tap")==0) {
+            __tap = INA_YES;
+            if (argc > 2)
+            __suite_name = argv[2];
+        } else {
+            __suite_name = argv[1];
+        }
         filter = __ina_suite_filter;
     }
+
     begin = &INA_TEST_TNAME(suite, test);
     end = &INA_TEST_TNAME(suite, test);
 
@@ -488,8 +497,11 @@ INA_API(int) ina_test_run(int argc, char *argv[])
             total++;
         }
     }
-   /* print TAP plan */
-    printf("1..%d\n", total);
+   
+    /* print TAP plan */
+    if (!__tap) {
+        printf("1..%d\n", total);
+    }
  
     for (test = begin; test != end; test++) {
         if (test == &__ina_test_suite_test) {
@@ -499,13 +511,18 @@ INA_API(int) ina_test_run(int argc, char *argv[])
             __errorbuffer[0] = 0;
             __errorsize = __INA_MSG_SIZE-1;
             __errormsg = __errorbuffer;
-            /*printf("TEST %d/%d %s:%s ", index, total, test->suite_name, test->test_name);*/
-            /*fflush(stdout);*/
+            if (!__tap) {
+                printf("TEST %d/%d %s:%s ", index, total, test->suite_name, test->test_name);
+                fflush(stdout);
+            }
             if (test->skip) {
-                 printf("ok %d # skip %s:%s\n", index, test->suite_name, test->test_name);  
-                /*ina_cio_printf(-1,-1, INA_CIO_COLOR_YELLOW, 
+                if (!__tap) {
+                    ina_cio_printf(-1,-1, INA_CIO_COLOR_YELLOW, 
                         INA_CIO_COLOR_UNDEFINED, 
-                        "[SKIPPED]\n");*/
+                        "[SKIPPED]\n");                    
+                } else {
+                    printf("ok %d %s:%s # skip \n", index, test->suite_name, test->test_name); 
+                } 
                 num_skip++;
             } else {
                 void* old_sigabrt_handler = NULL;
@@ -530,17 +547,22 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                     } else {
                         test->run();
                     }
-                    printf("ok %d %s:%s\n", index, test->suite_name, test->test_name);  
-                    /*ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
+                    if (!__tap) {
+                        ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
                             INA_CIO_COLOR_UNDEFINED, 
-                            "[OK]\n");*/
+                            "[OK]\n");
+                    } else {
+                        printf("ok %d %s:%s\n", index, test->suite_name, test->test_name);                         
+                    }  
                     num_ok++;
                 } else {
-                    printf("not ok %d %s:%s\n", index, test->suite_name, test->test_name);  
-   
-                    /*ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
+                    if (!__tap) {
+                        ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
                             INA_CIO_COLOR_UNDEFINED, 
-                            "[FAIL]\n");*/
+                            "[FAIL]\n");
+                    } else {
+                        printf("not ok %d %s:%s\n", index, test->suite_name, test->test_name);  
+                    }
                     num_fail++;
                 }
                 signal(SIGABRT, old_sigabrt_handler);
@@ -549,20 +571,22 @@ INA_API(int) ina_test_run(int argc, char *argv[])
                     test->teardown(test->data);
                 }
 
-                /*if (__errorsize != __INA_MSG_SIZE-1) {
+                if (__errorsize != __INA_MSG_SIZE-1) {
                     printf("%s", __errorbuffer);
-                }*/
+                }
             }
             index++;
         }
     }
 
     color = (num_fail) ? INA_CIO_COLOR_RED : INA_CIO_COLOR_GREEN;
-    /*ina_cio_printf(-1,-1, color, INA_CIO_COLOR_UNDEFINED, 
+    if (!__tap) {
+        ina_cio_printf(-1,-1, color, INA_CIO_COLOR_UNDEFINED, 
                 "RESULTS: %d tests (%d ok, %d failed, %d skipped)\n", 
                 total, 
                 num_ok, 
                 num_fail, 
-                num_skip);*/
+                num_skip);
+    }
     return num_fail;
 }
