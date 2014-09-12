@@ -1,0 +1,138 @@
+/*
+ * Copyright (c) 2014, INAOS GmbH
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the INAOS GmbH nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software 
+ *       without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ */
+#include <libinac/lib.h>
+
+#define F1 0x01
+#define F2 0x02
+#define F3 0x04
+#define F4 0x08
+
+INA_TEST(ipc_flags, new_free)
+{
+    ina_ipc_flags_t *f1;
+    ina_ipc_flags_t *f2;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test", F1|F2|F3, &f1));
+    INA_TEST_ASSERT_NOT_NULL(f1);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_open("test", &f2));
+    INA_TEST_ASSERT_NOT_NULL(f2);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_free(&f1));
+    INA_TEST_ASSERT_NULL(f1);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_free(&f2));
+    INA_TEST_ASSERT_NULL(f2);
+}
+
+INA_TEST(ipc_flags, get_name)
+{
+    ina_ipc_flags_t *f1;
+    ina_ipc_flags_t *f2;
+    const char *name1;
+    const char *name2;
+
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_get_name", 0, &f1));
+    INA_TEST_ASSERT_NOT_NULL(f1);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get_name(f1, &name1));
+    INA_TEST_ASSERT_EQUAL_STR("test_get_name", name1);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_open("test_get_name", &f2));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get_name(f2, &name2));
+    INA_TEST_ASSERT_NOT_NULL(f2);
+
+    ina_ipc_flags_free(&f1);
+    ina_ipc_flags_free(&f2);
+ }
+
+INA_TEST(ipc_flags, get)
+{
+    ina_ipc_flags_t *f;
+    uint64_t v;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_get", F1|F2|F3, &f));
+    INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3));
+    ina_ipc_flags_free(&f);
+}
+
+INA_TEST(ipc_flags, set)
+{
+    ina_ipc_flags_t *f;
+    uint64_t v;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_set", F1|F2|F3, &f));
+    INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3|F4));
+    ina_ipc_flags_free(&f);
+}
+
+INA_TEST(ipc_flags, is_set)
+{
+ 
+    ina_ipc_flags_t *f;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_is_set", F1|F2|F3, &f));
+    INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_NOTSUCCEED(ina_ipc_flags_is_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F1));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F2));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F3));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F4|F1));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F4));  
+    ina_ipc_flags_free(&f);
+ }
+
+INA_TEST(ipc_flags, unset)
+{
+    ina_ipc_flags_t *f;
+    uint64_t v;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_unset", F1|F2|F3|F4, &f));
+    INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3|F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_unset(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3));
+    ina_ipc_flags_free(&f);
+ }
+
+
+INA_TEST(ipc_flags, wait)
+{
+    ina_ipc_flags_t *f;
+
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_wait", F1|F2|F3, &f));
+    INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_NOTSUCCEED(ina_ipc_flags_wait(f, F1|F2|F3|F4, 200));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, F1|F2|F3|F4, 200));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, F4, 200));
+    ina_ipc_flags_free(&f);
+}

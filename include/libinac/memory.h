@@ -240,6 +240,7 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
  * none
  */
 INA_API(void) ina_mem_free(void *ptr);
+
 INA_API(void) ina_mem_free_aligned(void *ptr);
 
 #ifdef __cplusplus

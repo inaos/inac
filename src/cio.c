@@ -110,6 +110,7 @@ INA_API(ina_rc_t) ina_cio_init(void)
         __ina_init_colors();
         __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
         __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
+        __attribs.flags = 0;
 	    __initialized = INA_YES;
     }
     return INA_SUCCESS;
@@ -344,6 +345,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
         }
         
         if (setattribs == INA_YES) {
+            new_attribs.flags = attribs.flags;
             ina_cio_set_attribs(&new_attribs);
         }
     }

@@ -4,8 +4,8 @@ SRC += $(wildcard helper*.c)
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
-MONITOR_BIN = ullc_monitor
-MEM_SPEED_BIN = mem_speed
+TOOLS = ullc_monitor service_mgr mem_speed
+TOOLS_OBJS = $(TOOLS:=.o)
 
 # ****************************************************************************
 # Linker settings
@@ -21,15 +21,12 @@ ifeq (,$(findstring Windows,$(OS)))
 endif
 
 
-all: $(OBJ)  main.o ullc_monitor mem_speed
+all: $(OBJ)  main.o tools
 	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS) 
 
-ullc_monitor: ullc_monitor.o
-	@$(CC) $(CFLAGS) -o $(MONITOR_BIN) ullc_monitor.o $(LDFLAGS) 
+tools: $(TOOLS_OBJS)
+	@for i in $(TOOLS); do $(CC) $(CFLAGS) -o $$i $$i.o $(LDFLAGS); done;
 	
-mem_speed: mem_speed.o
-	@$(CC) $(CFLAGS) -o $(MEM_SPEED_BIN) mem_speed.o $(LDFLAGS) 
-
 %.o: %.c
 	@echo compiling $<
 	@$(CC) $(CFLAGS)  -c $<
@@ -38,7 +35,7 @@ mem_speed: mem_speed.o
 
 clean:
 	@echo cleaning tests...
-	@-rm -f *.o test ullc_monitor mem_speed
+	@-rm -f *.o test $(TOOLS)
 
 test: all
-	./test
+	./test --tap

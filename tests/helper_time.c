@@ -62,3 +62,63 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     INA_TIME_STOPWATCH_DESTROY(&w);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
+
+#ifndef INA_OS_WIN32
+/* 
+ * Create a rdtsc stop watch with an given ID, makes 3 time stamps each 10 ms
+ * beetween.
+ */
+INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
+    int32_t id;
+    ina_stopwatch_t *w = NULL;
+    ina_time_tsc_t t;
+
+    INA_TEST_HELPER_CHECK_ARGC(1);
+    id = INA_TEST_HELPER_IARG(0);
+
+    if (!INA_SUCCEED(ina_time_tsc_enable_rdtsc())) {
+        INA_TEST_HELPER_SET_RC(ina_err_peek());
+        return;
+    }
+
+    if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, id, -1))) {
+        INA_TEST_HELPER_SET_RC(ina_err_peek());
+        return;
+    }
+ 
+    ina_time_tsc_t time;
+    double msec_duration = 0;
+    char user_data2[INA_TIME_MAX_USERDATA_LEN];
+    ina_time_read_tsc_clock(&t);    
+
+    INA_TIME_STOPWATCH_START_EX(w, &t);
+    ina_time_sleep(1000);
+    ina_time_sleep(10);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
+    msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
+    sprintf(user_data2, "%.10f", msec_duration);
+    INA_TIME_STOPWATCH_STAMP2(w, "helper", user_data2);
+    ina_time_sleep(10);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
+    msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
+    sprintf(user_data2, "%.10f", msec_duration);
+    INA_TIME_STOPWATCH_STAMP2(w, "helper", user_data2);
+    ina_time_sleep(10);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
+    msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
+    sprintf(user_data2, "%.10f", msec_duration);
+    INA_TIME_STOPWATCH_STAMP2(w, "helper", user_data2);
+    ina_time_sleep(10);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
+    msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
+    sprintf(user_data2, "%.10f", msec_duration);
+    INA_TIME_STOPWATCH_STAMP2(w, "helper", user_data2);
+    
+    while (INA_SUCCEED(ina_time_stopwatch_started(w))) {
+        ina_time_sleep(10);
+    }
+    INA_TIME_STOPWATCH_DESTROY(&w);
+    ina_time_tsc_disable_rdtsc();
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+}
+#endif

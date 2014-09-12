@@ -60,3 +60,17 @@ INA_TEST(util, crc32)
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_util_hash_crc32(0, str, ina_str_len(str)));
     INA_TEST_ASSERT_EQUAL_FLOATING(3966352177, ina_util_hash_crc32(3632233996, str, ina_str_len(str)));
 }
+INA_TEST(util, base64)
+{
+    char *ref_encoded = "QmFzZTY0IGlzIGEgZ2VuZXJpYyB0ZXJtIGZvciBhIG51bWJlciBvZiBzaW1pbGFyIGVuY29kaW5nIHNjaGVtZXMgdGhhdCBlbmNvZGUgYmluYXJ5IGRhdGEgYnkgdHJlYXRpbmcgaXQgbnVtZXJpY2FsbHkgYW5kIHRyYW5zbGF0aW5nIGl0IGludG8gYSBiYXNlIDY0IHJlcHJlc2VudGF0aW9uLiBUaGUgQmFzZTY0IHRlcm0gb3JpZ2luYXRlcyBmcm9tIGEgc3BlY2lmaWMgTUlNRSBjb250ZW50IHRyYW5zZmVyIGVuY29kaW5nLg==";
+    char *ref_decoded = "Base64 is a generic term for a number of similar encoding schemes that encode binary data by treating it numerically and translating it into a base 64 representation. The Base64 term originates from a specific MIME content transfer encoding.";
+    char buf[2048];
+    size_t outlen;
+    ina_mem_set(&buf, 0, 2048);
+
+    INA_TEST_ASSERT_SUCCEED(ina_util_base64_decode_chunk(ref_encoded, strlen(ref_encoded), (unsigned char*)buf, &outlen));
+    INA_TEST_ASSERT_EQUAL_STR(ref_decoded, buf);
+
+    INA_TEST_ASSERT_SUCCEED(ina_util_base64_encode_chunk(ref_decoded, strlen(ref_decoded), buf, 2024));
+    INA_TEST_ASSERT_EQUAL_STR(ref_encoded, buf);
+}

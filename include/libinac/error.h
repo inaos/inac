@@ -189,7 +189,8 @@ extern "C" {
 /* Verify if fatal error occurred */
 #define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
 /* Check retuen code if successful or handled */
-#define INA_SUCCEED(rc) (INA_SUCCESS == (rc) || INA_RC_REASON((rc)) == 0)
+#define INA_SUCCEED(rc) (INA_SUCCESS == (rc))
+
 
 
 /* Error-Module errors */

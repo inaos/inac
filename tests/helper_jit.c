@@ -27,11 +27,68 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_SKIP(cio, get_limits)
-{
-    ina_cio_pos_t pos;
+/*
+ * Lua Echo Server
+ */
+INA_TEST_HELPER(ljit, lua_echo_server) {
 
-    INA_TEST_ASSERT_SUCCEED(ina_cio_get_limits(&pos));
-    INA_TEST_ASSERT_TRUE(0 < pos.col);
-    INA_TEST_ASSERT_TRUE(0 < pos.row);
+    ina_ljit_ctx_t *ctx = NULL;
+    const char *addr;
+    int port;
+    int ret;
+
+    INA_TEST_HELPER_CHECK_ARGC(2);
+    addr = INA_TEST_HELPER_CARG(0);
+    port = INA_TEST_HELPER_IARG(1);
+
+    if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
+        *retval = ina_err_peek();
+        return;
+    }
+
+    ret = luaL_dostring(ctx->lstate, "t = require(\"test_lsocket\")\n");
+    if (ret != 0) {
+        *retval = ina_err_peek();
+        return;
+    }
+    
+    if (!INA_SUCCEED(ina_ljit_call(ctx, "t.echo_server", "si<i", addr, port))) {
+        *retval = ina_err_peek();
+        return;
+    }
+   
+    if (!INA_SUCCEED(ina_ljit_destroy(&ctx))) {
+        *retval = ina_err_peek();
+        return;
+    }
+}
+
+/*
+ * Lua Debug Server
+ */
+INA_TEST_HELPER(ljit, lua_debug_server) {
+
+    ina_ljit_ctx_t *ctx = NULL;
+    int ret;
+
+    if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
+        *retval = ina_err_peek();
+        return;
+    }
+
+    ret = luaL_dostring(ctx->lstate, "t = require(\"test_ldebug\")\n");
+    if (ret != 0) {
+        *retval = ina_err_peek();
+        return;
+    }
+    
+    if (!INA_SUCCEED(ina_ljit_call(ctx, "t.debug_server", "<"))) {
+        *retval = ina_err_peek();
+        return;
+    }
+   
+    if (!INA_SUCCEED(ina_ljit_destroy(&ctx))) {
+        *retval = ina_err_peek();
+        return;
+    }
 }

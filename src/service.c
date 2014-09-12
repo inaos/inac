@@ -34,12 +34,18 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #define INA_SERVICE_PID_FILE_FMT  "/var/run/%s.pid"
-#define INA_SERVICE_LOCK_FILE_FMT "/var/lock/subsys/%s"
+#define INA_SERVICE_LOCK_FILE_FMT "/var/lock/%s"
+#define __INA_CHKCONFIG_DFT " -  20 80"
+#define __INA_CHKCONFIG_CMD "chkconfig --%s %s"
+#else
+#define __INA_CHKCONFIG_DFT ""
 #endif
 
 struct ina_service_ctx_s {
+    int is_deamon;
     ina_service_mode_t mode;
     ina_service_descriptor_t *descriptor;
+    void *user_data;
 #ifdef INA_OS_WIN32
     HANDLE hmutex;
     HANDLE main_thread;
@@ -50,12 +56,15 @@ struct ina_service_ctx_s {
 #endif
 };
 
-static ina_service_ctx_t __ina_service_ctx;
+static ina_service_ctx_t *__ctx = NULL;
 
 static ina_rc_t __ina_service_install(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_run_service(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx);
+static ina_rc_t __ina_service_mgnt_status(const  char *name, ina_service_status_t *status);
+static ina_rc_t __ina_service_mgnt_start(const char *name);
+static ina_rc_t __ina_service_mgnt_stop(const char *name);
 
 extern ina_service_descriptor_t __ina_service_section;
 
@@ -63,9 +72,13 @@ extern ina_service_descriptor_t __ina_service_section;
 
 static DWORD __stdcall __ina_service_start_wrapper(LPVOID data)
 {
-    INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor);    
-    INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor->run_func);
-    return __ina_service_ctx.descriptor->run_func(__ina_service_ctx.descriptor->user_data);
+    INA_ASSERT_NOTNULL(__ctx->descriptor);    
+    INA_ASSERT_NOTNULL(__ctx->descriptor->service_fn);
+    if (!INA_SUCCEED(__ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_START, __ctx->user_data))) {
+        __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_ERROR, __ctx->user_data);
+        return INA_ERR_PUSH_LAST;
+    }
+    return __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_RUN, __ctx->user_data);
 }
 static void WINAPI ServiceControlHandler( DWORD controlCode )
 {
@@ -74,9 +87,9 @@ static void WINAPI ServiceControlHandler( DWORD controlCode )
             break;
         case SERVICE_CONTROL_SHUTDOWN:
         case SERVICE_CONTROL_STOP:
-            __ina_service_ctx.status.dwCurrentState = SERVICE_STOP_PENDING;
-            SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
-            SetEvent(__ina_service_ctx.stop_service_event);
+            __ctx->status.dwCurrentState = SERVICE_STOP_PENDING;
+            SetServiceStatus(__ctx->status_handle, &__ctx->status);
+            SetEvent(__ctx->stop_service_event);
             return;
         case SERVICE_CONTROL_PAUSE:
             break;
@@ -90,70 +103,70 @@ static void WINAPI ServiceControlHandler( DWORD controlCode )
                 /* unrecognised control code */
                 break;
     }
-    SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+    SetServiceStatus(__ctx->status_handle, &__ctx->status);
 }
 static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
 {
     /* initialise service status */
-    __ina_service_ctx.status.dwServiceType = SERVICE_WIN32;
-    __ina_service_ctx.status.dwCurrentState = SERVICE_STOPPED;
-    __ina_service_ctx.status.dwControlsAccepted = 0;
-    __ina_service_ctx.status.dwWin32ExitCode = NO_ERROR;
-    __ina_service_ctx.status.dwServiceSpecificExitCode = NO_ERROR;
-    __ina_service_ctx.status.dwCheckPoint = 0;
-    __ina_service_ctx.status.dwWaitHint = 0;
+    __ctx->status.dwServiceType = SERVICE_WIN32;
+    __ctx->status.dwCurrentState = SERVICE_STOPPED;
+    __ctx->status.dwControlsAccepted = 0;
+    __ctx->status.dwWin32ExitCode = NO_ERROR;
+    __ctx->status.dwServiceSpecificExitCode = NO_ERROR;
+    __ctx->status.dwCheckPoint = 0;
+    __ctx->status.dwWaitHint = 0;
 
-    __ina_service_ctx.status_handle = RegisterServiceCtrlHandler(
-                    ina_str_cstr(__ina_service_ctx.descriptor->name), 
+    __ctx->status_handle = RegisterServiceCtrlHandler(
+                    ina_str_cstr(__ctx->descriptor->name), 
                     ServiceControlHandler);
 
-    if (__ina_service_ctx.status_handle) {
+    if (__ctx->status_handle) {
         HANDLE thread_handle = INVALID_HANDLE_VALUE;
         DWORD thread_exit_code = 0;
 
         /* service is starting */
-        __ina_service_ctx.status.dwCurrentState = SERVICE_START_PENDING;
-        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+        __ctx->status.dwCurrentState = SERVICE_START_PENDING;
+        SetServiceStatus(__ctx->status_handle, &__ctx->status);
 
         /* do initialisation here */
         thread_handle = CreateThread(NULL, 0, __ina_service_start_wrapper, NULL, 0, NULL);
         INA_ASSERT_NOTEQUAL(INVALID_HANDLE_VALUE, thread_handle);
-        __ina_service_ctx.stop_service_event = CreateEvent(0, FALSE, FALSE, 0);
+        __ctx->stop_service_event = CreateEvent(0, FALSE, FALSE, 0);
         Sleep(1);
         GetExitCodeThread(thread_handle, &thread_exit_code);
         if (thread_exit_code != STILL_ACTIVE) {
-            __ina_service_ctx.status.dwCurrentState = SERVICE_STOPPED;
-            __ina_service_ctx.status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
-            __ina_service_ctx.status.dwServiceSpecificExitCode = thread_exit_code;
-            SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+            __ctx->status.dwCurrentState = SERVICE_STOPPED;
+            __ctx->status.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
+            __ctx->status.dwServiceSpecificExitCode = thread_exit_code;
+            SetServiceStatus(__ctx->status_handle, &__ctx->status);
             return;
         }
 
         /* running */
-        __ina_service_ctx.status.dwControlsAccepted |= (SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
-        __ina_service_ctx.status.dwCurrentState = SERVICE_RUNNING;
-        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+        __ctx->status.dwControlsAccepted |= (SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
+        __ctx->status.dwCurrentState = SERVICE_RUNNING;
+        SetServiceStatus(__ctx->status_handle, &__ctx->status);
 
         /* Wait for the stop-event to trigger */
-        WaitForSingleObject(__ina_service_ctx.stop_service_event, INFINITE);
+        WaitForSingleObject(__ctx->stop_service_event, INFINITE);
 
         /* we received a stop-event now execute the shutdown proc and join the thread */
-        INA_ASSERT_NOTNULL(__ina_service_ctx.descriptor->shutdown_func);
-        __ina_service_ctx.descriptor->shutdown_func(__ina_service_ctx.descriptor->user_data);
+        __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_SHUTDOWN, __ctx->user_data);
         WaitForSingleObject(thread_handle, INFINITE);
 
         /* service was stopped */
-        __ina_service_ctx.status.dwCurrentState = SERVICE_STOP_PENDING;
-        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+        __ctx->status.dwCurrentState = SERVICE_STOP_PENDING;
+        SetServiceStatus(__ctx->status_handle, &__ctx->status);
 
         /* do cleanup here */
-        CloseHandle(__ina_service_ctx.stop_service_event);
-        __ina_service_ctx.stop_service_event = 0;
+        CloseHandle(__ctx->stop_service_event);
+        __ctx->stop_service_event = 0;
 
         /* service is now stopped */
-        __ina_service_ctx.status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
-        __ina_service_ctx.status.dwCurrentState = SERVICE_STOPPED;
-        SetServiceStatus(__ina_service_ctx.status_handle, &__ina_service_ctx.status);
+        __ctx->status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
+        __ctx->status.dwCurrentState = SERVICE_STOPPED;
+        SetServiceStatus(__ctx->status_handle, &__ctx->status);
+       __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_STOP, (void*)__ctx->user_data);
     }
 }
 static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
@@ -181,38 +194,31 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     else {
         return INA_SERVICE_EUST;
     }
-    if (ctx->descriptor->username != NULL) {
+    if (ctx->descriptor->username != NULL && strlen(ctx->descriptor->username)) {
         username = ina_str_cstr(ctx->descriptor->username);
     }
-    if (ctx->descriptor->username != NULL) {
+    if (ctx->descriptor->password != NULL && strlen(ctx->descriptor->password)) {
         password = ina_str_cstr(ctx->descriptor->password);
     }
 
     if (serviceControlManager) {
         char path[_MAX_PATH + 1];
-        if (GetModuleFileName(0, path, sizeof(path)/sizeof(path[0])) > 0 ) {
             SC_HANDLE service;
-            if (ctx->descriptor->startup_args != NULL) {
-                strcat(path, " ");
-                strcat(path, ina_str_cstr(ctx->descriptor->startup_args));
-            }
             service = CreateService(serviceControlManager,
                 ina_str_cstr(ctx->descriptor->name), ina_str_cstr(ctx->descriptor->display_name),
                 SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
-                start_type, SERVICE_ERROR_NORMAL, path,
+                start_type, SERVICE_ERROR_NORMAL, ctx->descriptor->startup_args,
                 0, 0, 0, username, password);
-
+            
             if (service) {
                 SERVICE_DESCRIPTION svc_desc;
-                svc_desc.lpDescription = (LPSTR)ina_str_cstr(ctx->descriptor->short_description);
+                svc_desc.lpDescription = (LPSTR)ina_str_cstr(ctx->descriptor->description);
                 ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &svc_desc);
                 CloseServiceHandle(service);
-            }
-            else {
+            } else {
                 CloseServiceHandle(serviceControlManager);
                 return INA_SERVICE_ECAPI;
             }
-        }
         CloseServiceHandle(serviceControlManager);
     }
     else {
@@ -301,11 +307,60 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex((ina_service_ctx_t*)ctx))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ctx->descriptor->run_func(ctx->descriptor->user_data))) {
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START, (void*)ctx->user_data))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUN, (void*)ctx->user_data))) {
         return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
 }
+
+static ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_t *status)
+{
+    ina_str_t cmd;
+    int retval;
+    
+	INA_ASSERT_NOTNULL(status);
+    *status = INA_SERVICE_STATUS_STOP;
+
+    cmd = ina_str_sprintf("sc query \"%s\" | find \"RUNNING\"", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+		*status = INA_SERVICE_STATUS_RUN;
+    }
+    return INA_SUCCESS;
+}
+
+static ina_rc_t __ina_service_mgnt_start(const char *name)
+{
+    ina_str_t cmd;
+    int retval;
+    
+    cmd = ina_str_sprintf("NET start %s", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+        return INA_SUCCESS;
+    }
+	return INA_FAILURE;
+}
+
+static ina_rc_t __ina_service_mgnt_stop(const char *name)
+{
+    ina_str_t cmd;
+    int retval;
+    
+    cmd = ina_str_sprintf("NET stop %s", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
 #else
 extern char _binary____etc_template_init_script_tpl_start;
 extern char _binary____etc_template_init_script_tpl_end;
@@ -332,6 +387,8 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     ina_template_ctx_t *tpl_ctx;
     ina_template_env_t *env;
     ina_str_t out;
+    ina_str_t script_filepath;
+    FILE *fp;
     
     if (!INA_SUCCEED(ina_template_init(&tpl_ctx))) {
         return INA_ERR_PUSH_LAST;
@@ -349,8 +406,8 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     ina_template_set_string(env, "service_display_name",  ctx->descriptor->display_name);
     ina_template_set_string(env, "service_username", ctx->descriptor->username);
     ina_template_set_string(env, "service_startup", ctx->descriptor->startup_args);
-    ina_template_set_string(env, "service_short_description", ctx->descriptor->long_description);
-    ina_template_set_string(env, "service_long_description", ctx->descriptor->short_description);
+    ina_template_set_string(env, "service_description", ctx->descriptor->description);
+    ina_template_set_string(env, "service_chkconfig", ctx->descriptor->chkconfig);
  
     if (!INA_SUCCEED(ina_template_render(env, &out))) {
         return INA_ERR_PUSH_LAST;
@@ -358,11 +415,8 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     
     ina_template_destroy(&tpl_ctx);
 
-    /* write file to /etc/init.d/ */
-    
-    
     /*
-     * every distro seem to have a different way to manage autostart for services 
+     * every distro seem to have a different way to manage autopstart for services 
      *
      * something for the portable header?
      * -> http://stackoverflow.com/questions/7824625/in-the-code-c-file-how-i-can-find-the-linux-distribution-name-version
@@ -371,24 +425,37 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
      * Debian/Ubuntu: http://www.debuntu.org/how-to-managing-services-with-update-rc-d/
      * Suse: chkconfig I guess
      */
-
-
+    script_filepath = ina_str_new_fromcstr("/etc/init.d/");
+    script_filepath = ina_str_catcstr(script_filepath, ctx->descriptor->name);
+    fp = fopen(ina_str_cstr(script_filepath), "w");
+    if (fp) {
+        if (fwrite(ina_str_cstr(out), ina_str_len(out), 1, fp) <= 0) {
+            /* FIXME: Error handling */
+        }
+        fclose(fp);
+        chmod(ina_str_cstr(script_filepath), 0755);
+    }
     ina_str_free(out);
+    ina_str_free(script_filepath);
 
     return INA_SUCCESS;
 }
+
 static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t *ctx)
 {
-    
+    ina_str_t script_filepath;
+    script_filepath = ina_str_new_fromcstr("/etc/init.d/");
+    script_filepath = ina_str_catcstr(script_filepath, ctx->descriptor->name);
+    unlink(script_filepath);
     return INA_SUCCESS;
 }
+
 static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
 {
     pid_t pid;
-    int fp,lfp,pfp;
+    int fp,pfp;
     ina_str_t pid_str;
     ina_str_t pid_file_path;
-    ina_str_t lock_file_path;
 
     if (getppid() == 1) {
         return INA_SERVICE_EAID; /* already a daemon */
@@ -399,48 +466,68 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
         return INA_SERVICE_EFERR; /* fork error */
     }
     if (pid > 0) {
-        exit(0); /* parent exits */
+        exit(EXIT_SUCCESS); /* parent exits */
     }
 
-    setsid(); /* obtain a new process group */
+    if (setsid() < 0) { /* obtain a new process group */
+        exit(EXIT_FAILURE);
+    }
+  
+    signal(SIGCHLD, SIG_IGN);
+    signal(SIGHUP, SIG_IGN);
+
+    pid = fork();
+
+    if (pid < 0) {
+        return INA_SERVICE_EFERR; /* fork error */
+    }
+    if (pid > 0) {
+        exit(EXIT_SUCCESS); /* parent exits */
+    }
+
+    umask(0); /* protect files written by us */
 
     for (fp = getdtablesize(); fp >= 0; --fp) {
         close(fp); /* close all descriptors */
     }
-
+    
     fp = open("/dev/null", O_RDWR); /* open stdin */
-    dup(fp); /* stdout */
-    dup(fp); /* stderr */
-
-    umask(027); /* protect files written by us */
+    fp = dup(fp); /* stdout */
+    fp = dup(fp); /* stderr */
 
     /* set working-directory */
-    chdir(ina_str_cstr(ctx->descriptor->working_directory)); 
+    if (chdir(ina_str_cstr(ctx->descriptor->working_directory)) < 0) {
+        exit(EXIT_FAILURE);
+    } 
 
     pid_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
                             ina_str_cstr(ctx->descriptor->name));
-    lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
-                            ina_str_cstr(ctx->descriptor->name));
-
-    
-    lfp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
-    if (lfp < 0) {
+    pfp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
+    if (pfp < 0) {
         return INA_SERVICE_ELCO; /* can not open */
     }
-    if (lockf(lfp, F_TLOCK, 0) < 0) {
-        return INA_SERVICE_ELOCK; /* can not lock */
-    }
-    
-    pid_str = ina_str_sprintf("%d\n", getpid());
-
-    pfp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
-    write(pfp, ina_str_cstr(pid_str), ina_str_len(pid_str)); /* record pid to pid-file */
+    pid_str = ina_str_sprintf("%d\n", getpid()); 
+    if (ftruncate(pfp, 0) == 0) {
+        if (write(pfp, ina_str_cstr(pid_str), ina_str_len(pid_str)+1)<=0) {
+            close(pfp); 
+            return INA_SERVICE_ELCO;
+        }
+        close(pfp); 
+        return INA_SERVICE_ELCO;
+    } 
     close(pfp);
 
     ina_str_free(pid_file_path);
-    ina_str_free(lock_file_path);
-    ina_str_free(pid_str);
+    ina_str_free(pid_str);          close(pfp); 
+            return INA_SERVICE_ELCO;
+  
 
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START, (void*)ctx->user_data))) {
+       return INA_ERR_PUSH_LAST;
+    }
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUN, (void*)ctx->user_data))) {
+        return INA_ERR_PUSH_LAST;
+    }
     return INA_SUCCESS;
 }
 
@@ -459,13 +546,61 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
     if (lockf(lfp, F_TLOCK, 0) < 0) {
         return INA_SERVICE_ELOCK; /* can not lock */
     }
-
-    if (!INA_SUCCEED(ctx->descriptor->run_func(ctx->descriptor->user_data))) {
+   if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START, (void*)ctx->user_data))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_RUN, (void*)ctx->user_data))) {
         return INA_ERR_PUSH_LAST;
     }
     return INA_SUCCESS;
 }
 
+static ina_rc_t __ina_service_mgnt_start(const char *name)
+{
+    ina_str_t cmd;
+    int retval;
+    
+    cmd = ina_str_sprintf("/etc/init.d/%s start", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+static ina_rc_t __ina_service_mgnt_stop(const char *name)
+{
+    ina_str_t cmd;
+    int retval;
+    
+    cmd = ina_str_sprintf("/etc/init.d/%s stop", name);
+    retval = system(ina_str_cstr(cmd));
+    ina_str_free(cmd);
+    if (retval == 0) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_t *status)
+{
+    int lfp;
+    ina_str_t lock_file_path;
+
+    INA_ASSERT_NOTNULL(status);
+
+    *status = INA_SERVICE_STATUS_STOP;
+
+    lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, name);
+    lfp = open(ina_str_cstr(lock_file_path), O_RDONLY, 0640);
+    if (lfp > 0) {
+        *status = INA_SERVICE_STATUS_RUN;
+        close(lfp);
+    }
+    ina_str_free(lock_file_path);
+    return INA_SUCCESS;
+}
 #endif
 
 static void __ina_service_signal_handler(ina_signal_t sig, 
@@ -473,12 +608,19 @@ static void __ina_service_signal_handler(ina_signal_t sig,
                                          int *exitcode)
 {
     if (sig == INA_SIGNAL_INT || sig == INA_SIGNAL_TERM) {
-        /* Ignore default signal handling */
-        *sb = INA_SIGNAL_BEHAVIOR_IGNORE;
-        __ina_service_ctx.descriptor->shutdown_func(
-            __ina_service_ctx.descriptor->user_data);
+        if (INA_SUCCEED(__ctx->descriptor->service_fn(
+            __ctx, INA_SERVICE_STATUS_SHUTDOWN, 
+            (void*)__ctx->user_data))) {
+            __ctx->descriptor->service_fn(
+                __ctx, INA_SERVICE_STATUS_STOP,
+                (void*)__ctx->user_data);
+        } else {
+            __ctx->descriptor->service_fn(__ctx,
+                INA_SERVICE_STATUS_ERROR,
+                (void*)__ctx->user_data);
+        }
 #ifdef INA_OS_WIN32
-        WaitForSingleObject(__ina_service_ctx.main_thread, INFINITE);
+        WaitForSingleObject(__ctx->main_thread, INFINITE);
 #endif
     }
 }
@@ -487,17 +629,41 @@ INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
-    *ctx = &__ina_service_ctx;
+    if (__ctx != NULL) {
+        *ctx = __ctx;
+        return INA_SUCCESS;
+    }
+
+    __ctx = (ina_service_ctx_t*)ina_mem_alloc(sizeof(ina_service_ctx_t));
+    if (__ctx == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
 
 #ifdef INA_OS_WIN32
-    (*ctx)->hmutex = INVALID_HANDLE_VALUE;
-    (*ctx)->main_thread = GetCurrentThread();
+    __ctx->hmutex = INVALID_HANDLE_VALUE;
+    __ctx->main_thread = GetCurrentThread();
 #endif
-    return ina_service_get_descriptor(*ctx, &(*ctx)->descriptor);
-}
+    if (!INA_SUCCEED(ina_service_get_descriptor(__ctx, &__ctx->descriptor))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (__ctx->descriptor->service_fn) {
+        if (!INA_SUCCEED(__ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_INIT, (void*)__ctx->user_data))) {
+            return INA_ERR_PUSH_LAST;
+        }
+    }
+    *ctx = __ctx;
+    return INA_SUCCESS;
+} 
 
 INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
 {
+    if (*ctx == NULL || __ctx == NULL) {
+        return INA_SUCCESS;
+    }
+    if (__ctx != __ctx) {
+        return INA_FAILURE;
+    }
+
 #ifdef INA_OS_WIN32
     if ((*ctx)->hmutex != INVALID_HANDLE_VALUE) {
         ReleaseMutex((*ctx)->hmutex);
@@ -507,14 +673,70 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
         ina_mem_free((*ctx)->descriptor);
         (*ctx)->descriptor = NULL;
     }
+    ina_mem_free(ctx);
+    __ctx = NULL;
     *ctx = NULL;
     return INA_SUCCESS;
 }
+
+INA_API(ina_rc_t) ina_service_get_data(const ina_service_ctx_t *ctx, const void **user_data)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    *user_data = ctx->user_data;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_set_data(const ina_service_ctx_t *ctx, const void *user_data) 
+{
+    INA_ASSERT_NOTNULL(ctx);
+    ((ina_service_ctx_t*)ctx)->user_data = (void*)user_data;
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx, const void *user_data)
+{
+    ina_str_t cmd;
+    INA_ASSERT_NOTNULL(ctx);
+
+    if (user_data != NULL) {
+        ina_service_set_data(ctx, user_data);
+    }
+
+    /* Check if run in console mode */
+    if (INA_SUCCEED(ina_opt_get_string(INA_SERVICE_OPT_NAME, &cmd)) &&
+        INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_CONSOLE) == 0) {
+        return ina_service_run_service(ctx, INA_YES, user_data);
+    }
+
+    else if (INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_INSTALL) == 0) {
+        return ina_service_install(ctx);
+    }
+
+    else if (INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_UNINSTALL) == 0) {
+        return ina_service_uninstall(ctx);
+    }
+
+    else if (INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_DEAMON) == 0) {
+        return ina_service_run_service(ctx, INA_NO, user_data);
+    }
+
+    else if (INA_CSTR_CASECMP(ina_str_cstr(cmd), INA_SERVICE_CMD_REPORT) == 0) {
+        ina_service_descriptor_t *ds = NULL;
+        ina_service_get_descriptor(ctx, &ds);
+        INA_ASSERT_NOTNULL(ds);
+        return ds->service_fn(ctx, INA_SERVICE_STATUS_REPORT, (void*)user_data);
+    }
+    return INA_SUCCESS;
+}
+
 
 INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx, 
                                     ina_service_descriptor_t **descriptor)
 {
     ina_service_descriptor_t *ds;
+
+    INA_ASSERT_NOTNULL(ctx);
 
     if (ctx->descriptor) {
         *descriptor = ctx->descriptor;
@@ -522,6 +744,9 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
     }
 
     ds = ina_mem_alloc(sizeof(ina_service_descriptor_t));
+    if (ds == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
     ina_mem_cpy(ds, &__ina_service_section, sizeof(ina_service_descriptor_t));
     ((ina_service_ctx_t*)ctx)->descriptor = ds;
     return INA_SUCCESS;
@@ -529,22 +754,77 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
 
 INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
 {
-    return __ina_service_install(ctx);
+    ina_service_descriptor_t *ds = NULL;
+    
+    INA_ASSERT_NOTNULL(ctx);
+
+    ina_service_get_descriptor(ctx, &ds);
+    INA_ASSERT_NOTNULL(ds);
+  
+    if (strlen(ds->chkconfig) == 0) {
+        strcpy(ds->chkconfig, __INA_CHKCONFIG_DFT);
+    }
+
+    if (strlen(ds->startup_args) == 0) {
+        int index = 0;
+        ina_str_t key;
+        ina_str_t value;
+        ina_str_t startup_args = ina_str_new_fromcstr("");
+
+        startup_args = ina_str_catcstr(startup_args, ina_app_get_path());
+            
+        while (INA_SUCCEED(ina_opt_get_key_value(index, &key, &value))) {
+            if (INA_CSTR_CASECMP(ina_str_cstr(key), INA_SERVICE_OPT_NAME) != 0) {
+                startup_args = ina_str_catcstr(startup_args, " --");
+                startup_args = ina_str_cat(startup_args, key);
+                startup_args = ina_str_catcstr(startup_args, "=");
+                startup_args = ina_str_cat(startup_args, value);
+            }
+            index++;
+        }
+        startup_args = ina_str_catcstr(startup_args, " --");
+        startup_args = ina_str_catcstr(startup_args, INA_SERVICE_OPT_NAME);
+        startup_args = ina_str_catcstr(startup_args, "=");
+        startup_args = ina_str_catcstr(startup_args, INA_SERVICE_CMD_DEAMON);
+        strncpy(ds->startup_args, 
+            ina_str_cstr(startup_args), 
+            INA_SERVICE_STARTUP_ARGS_MAXLEN);
+    }
+
+    if (INA_SUCCEED(__ina_service_install(ctx))) {
+        ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_INSTALL, ctx->user_data);
+        return INA_SUCCESS;
+    }
+    ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_ERROR, ctx->user_data);
+    return INA_ERR_PUSH_LAST; 
 }
 
 INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
 {
-    return __ina_service_uninstall(ctx);
+    INA_ASSERT_NOTNULL(ctx);
+
+    if (INA_SUCCEED(__ina_service_uninstall(ctx))) {
+        ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_UNINSTALL, ctx->user_data);
+        return INA_SUCCESS;
+    }
+    ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_ERROR, ctx->user_data);
+    return INA_ERR_PUSH_LAST; 
 }
 
-INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx)
+INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console, const void *user_data)
 {
-    return __ina_service_run_service(ctx);
-}
+    INA_ASSERT_NOTNULL(ctx);
 
-INA_API(ina_rc_t) ina_service_run_console(const ina_service_ctx_t *ctx)
-{
+    ina_register_signal_handler(INA_SIGNAL_TERM, __ina_service_signal_handler);
     ina_register_signal_handler(INA_SIGNAL_INT, __ina_service_signal_handler);
+    
+    if (user_data != NULL) {
+        ina_service_set_data(ctx, user_data);
+    } 
+    if (!console) {
+        return __ina_service_run_service(ctx);
+    }
+    ((ina_service_ctx_t*)ctx)->is_deamon = INA_YES;
     return __ina_service_run_console(ctx);
 }
 
@@ -552,5 +832,109 @@ INA_API(ina_rc_t) ina_service_get_mode(const ina_service_ctx_t *ctx,
                                        ina_service_mode_t *mode)
 {
     *mode = ctx->mode;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_is_deamon(const ina_service_ctx_t *ctx) 
+{
+    INA_ASSERT_NOTNULL(ctx);
+    if (ctx->is_deamon) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_start(const char *name)
+{
+    ina_service_status_t status;
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_TRUE(strlen(name));
+
+    if (!INA_SUCCEED(ina_service_mgnt_status(name, &status))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if (status == INA_SERVICE_STATUS_RUN) {
+        return INA_SUCCESS;
+    }
+
+    if (status == INA_SERVICE_STATUS_STOP) {
+        return __ina_service_mgnt_start(name);
+    }
+    /* TODO: specific error */
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_stop(const char *name)
+{
+    ina_service_status_t status;
+
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_TRUE(strlen(name));
+
+    if (!INA_SUCCEED(ina_service_mgnt_status(name, &status))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if (status == INA_SERVICE_STATUS_STOP) {
+        return INA_SUCCESS;
+    }
+
+    if (status == INA_SERVICE_STATUS_RUN) {
+        return __ina_service_mgnt_stop(name);
+    }
+    /* TODO: specific error */
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_status(const char *name, ina_service_status_t *status)
+{
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_TRUE(strlen(name));
+    INA_ASSERT_NOTNULL(status);
+    return __ina_service_mgnt_status(name, status);
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_install(const char *bin_path, const char *startup_args)
+{
+    ina_str_t cmd;
+    int retval;
+
+    INA_ASSERT_NOTNULL(bin_path);
+    
+    
+    if (startup_args != NULL) {
+        cmd = ina_str_sprintf("%s --service=install %s", bin_path, startup_args);
+    } else {
+        cmd = ina_str_sprintf("%s --service=install", bin_path);        
+    }
+    retval = system(cmd);
+
+    ina_str_free(cmd);
+    
+    if (retval != 0) {
+        /* TODO: Specific error */
+        return INA_FAILURE;
+    }
+    return INA_SUCCESS;
+
+}
+
+INA_API(ina_rc_t) ina_service_mgnt_uninstall(const char *bin_path)
+{
+    ina_str_t cmd;
+    int retval;
+
+    INA_ASSERT_NOTNULL(bin_path);
+
+    cmd = ina_str_sprintf("%s --service=uninstall", bin_path);
+    retval = system(cmd);
+
+    ina_str_free(cmd);
+
+    if (retval != 0) {
+        /* TODO: Specific error */
+        return INA_FAILURE;
+    }
     return INA_SUCCESS;
 }

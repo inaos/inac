@@ -27,6 +27,60 @@
  */
 #include <libinac/lib.h>
 
+#define __INA_TCP_ADDR "127.0.0.1"
+#define __INA_TCP_PORT  8033
+
+INA_TEST_DATA(ljit) {
+    ina_test_hid_t echo_hid;
+    ina_test_hid_t debug_hid;
+};
+
+INA_TEST_SETUP(ljit) {
+    INA_TEST_HELPER_INVOKE(&data->echo_hid, ljit, lua_echo_server, 
+        __INA_TCP_ADDR, 
+         INA_NUM2STR(__INA_TCP_PORT),
+         NULL);
+    INA_TEST_HELPER_INVOKE(&data->debug_hid, ljit, lua_debug_server, NULL);
+}
+
+INA_TEST_TEARDOWN(ljit) {
+    INA_TEST_HELPER_TERMINATE(&data->echo_hid);
+    INA_TEST_HELPER_TERMINATE(&data->debug_hid);
+}
+
+INA_TEST_FIXTURE(ljit, lsocket_echo_client)
+{
+    ina_ljit_ctx_t *ctx = NULL;
+    int r = 0;
+
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, 
+                                    "t = require(\"test_lsocket\")\n"));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "t.echo_client", "si<i", 
+                                            "127.0.0.1", 
+                                            8033, 
+                                            &r));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
+}
+
+INA_TEST_FIXTURE_SKIP(ljit, debug)
+{
+    ina_ljit_ctx_t *ctx = NULL;
+
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, 
+                                    "t = require(\"test_ldebug\")\n"));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "t.debug_client", "<"));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
+}
 
 INA_TEST(ljit, call)
 {
@@ -55,11 +109,6 @@ INA_TEST(ljit, call)
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
-}
-
-INA_TEST(ljit, lsocket)
-{
-    printf("Future Lua socket wrapper test\n");
 }
 
 INA_TEST(ljit, luaL_dostring)

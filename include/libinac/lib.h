@@ -88,6 +88,7 @@
 #include <libinac/fsm.h>
 #include <libinac/service.h>
 #include <libinac/process.h>
+#include <libinac/ipc.h>
 #include <libinac/template.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
@@ -218,6 +219,18 @@ INA_API(const char*) ina_app_get_path(void);
  */
 INA_API(ina_rc_t) ina_app_init(const int argc,  char **argv, size_t pool_size, ina_opt_t *opt);
 
+/*
+ * Get the string key and value of an option at index.
+ *
+ * Parameters:
+ *  index   options index starting by 0
+ *  key     long name of option
+ *  value   option value as string
+ *
+ * Return Value
+ * INA_SUCCESS if option is available otherwise INA_FAILURE
+ */
+INA_API(ina_rc_t) ina_opt_get_key_value(int index, ina_str_t *key, ina_str_t *value);
 /*
  * Check whenever an option is available.
  *

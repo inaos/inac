@@ -90,16 +90,18 @@ if [ ! -n "$ORIGINAL_LUA_PATH" ]; then
 fi
 
 export LUA_PATH="$INAC_HOME/contribs/luajit/src/?.lua;$ORIGINAL_LUA_PATH"
-# Eval stage
+
 if [ ! -z "$1" ]; then
     export INAC_BUILD_STAGE="$1"
 fi
 
-if [ ! -z "$2" ]; then
+if [ ! -z "$2" ]; then    
     export INAC_BUILD_TYPE="$2"
 fi
 
-if [ "eval_param" != "$3" ]; then
+if [ "eval_params" == "$3" ]; then
+    return
+fi
 
     cd "$INAC_BUILD_PROJECT_DIR"
 
@@ -111,8 +113,8 @@ if [ "eval_param" != "$3" ]; then
     if [ "$INAC_BUILD_STAGE" != "clean" ]; then
     	if [ ! -z "$INAC_BUILD_CODE_GEN_SCRIPT" ]; then
         	$INAC_BUILD_LUAJIT "$INAC_BUILD_PROJECT_DIR/$INAC_BUILD_CODE_GEN_SCRIPT" $INAC_BUILD_PROJECT_DIR $INAC_BUILD_CODE_GEN_SCRIPT_ARGS
-        	if [ "$?" -ne "0" ]; then
-         		echo "Failed to run generator script $INAC_BUILD_CODE_GEN_SCRIPT"
+            if [ "$?" -ne "0" ]; then
+         		echo "Failed to run generator script $INAC_BUILD_CODE_cleaGEN_SCRIPT"
          		exit 1
         	fi
     	fi
@@ -123,13 +125,27 @@ if [ "eval_param" != "$3" ]; then
     # Run the build "tool" if any
     if [ -f "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool" ]; then
         . "$(dirname $INAC_BUILD_SCRIPT)/$INAC_BUILD_TOOL.tool"
+        if [ "$?" -ne "0" ]; then
+             cd $OLD_DIR
+            echo "Failed to build $INAC_BUILD_NAME. Stopping"
+            exit 1
+        fi
     elif [ "$INAC_BUILD_TOOL" == "make.sh" ]; then
         . ./make.sh 
+        if [ "$?" -ne "0" ]; then
+            cd $OLD_DIR
+            echo "Failed to build $INAC_BUILD_NAME. Stopping"
+            exit 1
+        fi
     elif [ "$INAC_BUILD_TOOL" == "none" ]; then
         echo "Skip build, non build tool"
     else    
         make $INAC_BUILD_MAKE_TARGET
+       if [ "$?" -ne "0" ]; then
+            cd $OLD_DIR
+            echo "Failed to build $INAC_BUILD_NAME. Stopping"
+            exit 1
+        fi
     fi
 
     cd $OLD_DIR
-fi

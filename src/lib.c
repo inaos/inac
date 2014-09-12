@@ -53,6 +53,8 @@ static void __ina_signal(int, void(*)(int));
 static __ina_sopt_t *__ina_opt_get(const char*); 
 /* display usage */
 static void __ina_opt_usage(void);
+/* get absolute path */
+static ina_rc_t __ina_get_binpath(ina_str_t path);
 
 /* initialization flag, > 0 lib/app initialized */
 static int32_t __initialized = 0;
@@ -120,14 +122,17 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             __appname = ina_str_new_fromcstr(basename);
         }
         /* FIXME: not sure for all platforms */
-        __apppath = ina_str_new_fromcstr(argv[0]);
+        __apppath = ina_str_new(256);
+        if (!INA_SUCCEED(__ina_get_binpath(__apppath))) {
+            __apppath = ina_str_new_fromcstr(argv[0]);
+        }
     }
 
     if (opt != NULL) {
         __ina_sopt_t *so = NULL;
         __ina_sopt_t *tmp_so =  NULL;
 
-        while (opt->short_opt) {
+        while (opt->long_opt) {
             __ina_lopt_t *lo;
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             if (so == NULL) {
@@ -139,7 +144,10 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             }
             so->desc = ina_str_new_fromcstr(opt->desc);
             so->type = opt->type;
-            HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
+            
+            if (strlen(so->opt)) {
+                HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
+            }
 
             lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
             if (lo == NULL) {
@@ -375,6 +383,28 @@ INA_API(ina_rc_t) ina_opt_isset(const char *opt)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key, 
+                                         ina_str_t *value)
+{
+    __ina_lopt_t *lo = NULL;
+
+    INA_ASSERT_TRUE(index >= 0);
+
+    *key = NULL;
+    *value = NULL;
+
+    for (lo = __lopt; lo != NULL && index > 0; lo=lo->hh.next) {
+        --index;
+    }
+
+    if (lo == NULL) {
+        return INA_FAILURE;
+    }
+    *key = lo->opt;
+    *value = lo->short_opt->value;
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
 {
     __ina_sopt_t *so = __ina_opt_get(opt);
@@ -437,7 +467,11 @@ __ina_opt_usage(void)
     
     HASH_ITER(hh, __lopt, lo, tmp_lo) {
         so = lo->short_opt;
-        printf(" -%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
+        if (strlen(so->opt) > 0) {
+            printf(" -%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
+        } else {
+            printf(" --%s", ina_str_cstr(lo->opt));
+        }
         if (so->type != INA_OPT_TYPE_FLAG) {
             printf("%s", "= [");
             if (so->type == INA_OPT_TYPE_STRING) {
@@ -450,11 +484,72 @@ __ina_opt_usage(void)
     printf("%s", "\n\n");
     HASH_ITER(hh, __lopt, lo, tmp_lo) {
         so = lo->short_opt;
-        printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), 
-               ina_str_cstr(lo->opt), 
-               ina_str_cstr(so->desc));
+        if (strlen(so->opt) > 0) {
+            printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), 
+                ina_str_cstr(lo->opt), 
+                ina_str_cstr(so->desc));
+        } else {
+            printf("        --%s , %s\n",  
+                ina_str_cstr(lo->opt), 
+                ina_str_cstr(so->desc));           
+        }
     }
 }
+
+static ina_rc_t 
+__ina_get_binpath(ina_str_t path)
+{
+#ifndef INA_OS_WIN32
+    char linkname[64]; /* /proc/<pid>/exe */
+    pid_t pid;
+    int ret;
+    char *buf;
+
+    buf = (char*)ina_str_cstr(path);
+
+    /* Get our PID and build the name of the link in /proc */
+    pid = getpid();
+    if (snprintf(linkname, sizeof(linkname), "/proc/%i/exe", pid) < 0) {
+        abort();
+    }
+
+    /* Now read the symbolic link */
+    ret = readlink(linkname, buf, ina_str_size(path));
+
+    /* In case of an error, leave the handling up to the caller */
+    if (ret == -1)
+        return INA_FAILURE;
+
+    /* Report insufficient buffer size */
+    if (ret >= ina_str_size(path)) {
+        errno = ERANGE;
+        return INA_FAILURE;
+    }
+
+    /* Ensure proper NUL termination */
+    buf[ret] = 0;
+#elif INA_OS_WIN32
+    HMODULE hMod;
+    DWORD ret;
+    size_t buf_size = ina_str_size(path);
+    char *buf = (char*)ina_str_cstr(path);
+
+    hMod = GetModuleHandle(NULL);
+    ret = GetModuleFileName(hMod, buf, buf_size);
+
+    if (ret == ERROR_INSUFFICIENT_BUFFER) {
+        return INA_FAILURE;
+    }
+    else if (ret >= ina_str_size(path)) {
+        return INA_FAILURE;
+    }
+
+    /* Ensure proper NUL termination */
+    buf[ret] = 0;
+#endif
+    return INA_SUCCESS;   
+}
+
 
 static void
 __ina_signal_handler(int sig)

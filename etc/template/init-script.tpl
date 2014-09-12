@@ -2,18 +2,9 @@
 #
 # @{service_name}      This shell script takes care of starting and stopping @{service_display_name}
 #
-# chkconfig: - 80 20
+# chkconfig: @{service_chkconfig}
+# description: @{service_description}
 #
-### BEGIN INIT INFO
-# Provides: @{service_name}
-# Required-Start: $network $local_fs
-# Required-Stop: $network $local_fs
-# Default-Start:
-# Default-Stop:
-# Description: @{service_long_description}
-# Short-Description: @{service_short_description}
-### END INIT INFO
-
 # Copyright (c) 2014, INAOS GmbH
 # All rights reserved.
 # 
@@ -62,7 +53,7 @@ fi
 INA_SERVICE_USER=@{service_username}
 
 # Define service-start command-line
-INA_SERVICE_STARTUP=@{service_startup}
+INA_SERVICE_STARTUP="@{service_startup}"
 
 RETVAL="0"
 
@@ -70,10 +61,10 @@ RETVAL="0"
 function start() {
 
     echo -n "Starting @{service_name}: "
-    if [ -f "/var/lock/subsys/${NAME}" ] ; then
+    if [ -f "/var/run/${NAME}.pid" ] ; then
 		read mypid < /var/run/${NAME}.pid
 		if [ -d "/proc/${mypid}" ]; then
-			log_success_msg
+			log_success_msg "[OK]"
 			return 0
 		fi
     fi
@@ -82,19 +73,22 @@ function start() {
     
     RETVAL="$?"
     if [ "$RETVAL" -eq 0 ]; then 
-        log_success_msg
+        log_success_msg "[OK]"
     else
-        log_failure_msg
+        log_failure_msg "[FAILED]"
     fi
     
     return $RETVAL
 }
-
+:
 # stop-service
 function stop() {
     RETVAL="0"
+    if [ -z "$SHUTDOWN_WAIT" ]; then
+      SHUTDOWN_WAIT="60"
+    fi
     echo -n "Stopping @{service_name}: "
-    if [ -f "/var/lock/subsys/${NAME}" ]; then
+    if [ -f "/var/run/${NAME}.pid" ]; then
         
 		# read pid and send SIGINT
 		read mypid < /var/run/${NAME}.pid
@@ -113,12 +107,12 @@ function stop() {
 			done
 			if [ "$count" -gt "$SHUTDOWN_WAIT" ]; then
 				if [ "$SHUTDOWN_VERBOSE" = "true" ]; then
-					echo "killing processes which didn't stop after $SHUTDOWN_WAIT seconds"
+					echo "killing processes which didnt stop after $SHUTDOWN_WAIT seconds"
 				fi
 				kill -9 $mypid
 			fi
-			log_success_msg            
-            rm -f /var/lock/subsys/${NAME} /var/run/${NAME}.pid
+			log_success_msg
+            rm -f /var/run/${NAME}.pid
         else
             log_failure_msg
         fi

@@ -36,7 +36,7 @@ static void __cleanup_handler(int sig, int *error)
     *error = EXIT_SUCCESS;
 }
 
-static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, ina_iscp_param_t *params)
+static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {
     if (cmd_id != 3) {
         return INA_FAILURE;
@@ -53,12 +53,16 @@ static ina_rc_t __receive_negaitve_double_handler(int cmd_id, int count, ina_isc
     return INA_SUCCESS;
 }
 
-static ina_rc_t __command_1_handler(int cmd_id, int count, ina_iscp_param_t *params)
+static ina_rc_t __command_1_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {
+   ina_iscp_set_return_values(retvals, r_count,
+        INA_ISCP_TYPE_DBL, 55.5,
+        INA_ISCP_TYPE_STR, "blabla",
+        INA_ISCP_TYPE_INT64, (int64_t)12);
     return INA_SUCCESS;
 }
 
-static ina_rc_t __command_2_handler(int cmd_id, int count, ina_iscp_param_t *params)
+static ina_rc_t __command_2_handler(int cmd_id, int count, const ina_iscp_param_t *params, int r_count, ina_iscp_param_t *retvals)
 {
     __running = 0;
     return INA_SUCCESS;
@@ -69,9 +73,9 @@ INA_TEST_HELPER(iscp_tcp, tcp_server) {
     int32_t port;
 
     INA_ISCP_CMDS(cmds,
-           INA_ISCP_SENDRECV_CMD(1, 3, __command_1_handler),
-           INA_ISCP_SENDRECV_CMD(2, 1, __command_2_handler),
-           INA_ISCP_SENDRECV_CMD(3, 1, __receive_negaitve_double_handler));
+           INA_ISCP_SENDRECV_CMD(1, 3, 3,__command_1_handler),
+           INA_ISCP_SENDRECV_CMD(2, 1, 0,__command_2_handler),
+           INA_ISCP_SENDRECV_CMD(3, 1, 0,__receive_negaitve_double_handler));
 
      INA_TEST_HELPER_CHECK_ARGC(2);
      addr = INA_TEST_HELPER_CARG(0);

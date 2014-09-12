@@ -90,7 +90,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     info->num_producers_alive = 0;
     info->num_consumers = rb->num_consumers;
     info->num_consumers_alive = 0;
-    info->mem_size = m->size;
+    /*info->mem_size = m->size;*/
     info->slot_size = rb->size;
     info->num_slots = rb->slots;
     info->current_slot = rb->cursor;
@@ -275,7 +275,7 @@ INA_API(ina_rc_t) ina_ullc_producer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos)
     INA_ASSERT_NOTNULL(pos);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
 
-    *pos = ctx->ring->cursor;
+    *pos = ctx->ring->next_ptr;
     return INA_SUCCESS;
 }
 
@@ -370,12 +370,15 @@ INA_API(ina_rc_t) ina_ullc_consumer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos)
 
 INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos)
 {
+    int64_t cursor;
+
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
-    int64_t cursor = ctx->c_offset->cursor;
 
-    if (pos == -1 || pos > ctx->ring->cursor) {
-        pos = ctx->ring->cursor;
+    cursor = ctx->c_offset->cursor;
+
+    if (pos == -1 || pos > ctx->ring->next_ptr) {
+        pos = ctx->ring->next_ptr;
     }    
     if (__INA_ULLC_SWAP(&ctx->c_offset->cursor, cursor, pos) == cursor) {
         return INA_SUCCESS;

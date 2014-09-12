@@ -40,6 +40,10 @@ else
 	for i in  `ls -A $INAC_BUILD_PROJECT_DIR/$INAC_BUILD_SOURCE_DIR/*.lua`; do
     		echo "Compiling $i..."
     		$INAC_BUILD_LUAJIT "$OPTIONS" "$i" $i.o
+    		if [ "$?" -ne "0" ]; then
+            	echo "Failed to build $i. Stopping"
+            	exit 1
+        	fi
 	done
 
 	# Create Library if neeed

@@ -34,8 +34,18 @@
 extern "C" {
 #endif
 
+
 /* Time value - opaque */
 typedef struct ina_time_s ina_time_t;
+
+/* Time Stamp Counter Value*/
+typedef union ina_time_tsc_value_u {
+    uint64_t uint64;
+    struct {
+        uint32_t lo;
+        uint32_t hi;
+    } uint32;
+} ina_time_tsc_value_t;
 
 /* Time Stamp Counter */
 typedef struct ina_time_tsc_s {
@@ -46,8 +56,29 @@ typedef struct ina_time_tsc_s {
 #else
     struct timespec tp;
 #endif
-    uint64_t rtp;
+    ina_time_tsc_value_t rtp;
+    uint64_t ref;
+    uint64_t refhpet;
+    double ticks_per_nano;
 } ina_time_tsc_t;
+
+
+#ifdef INA_OS_WIN32
+    #define INA_TIME_RDTSC(counter)  counter.uint64 = __rdtsc()
+#else
+#if defined(INA_CPU_X86_64)
+    #define INA_TIME_RDTSC(counter) \
+        INA_ASM INA_VOLATILE ("rdtsc" : "=a" ((counter).uint32.lo), "=d"((counter).uint32.hi))
+#elif defined(INA_CPU_X86) 
+    #define INA_TIME_RDTSC(counter) \
+        INA_ASM rdtsc \
+        INA_ASM mov (counter).uint32.lo, eax \
+        INA_ASM mov (counter).uint32.hi, edx
+#else
+    #error RDTCS not supported
+#endif
+#endif
+
 
 #define INA_TIME_MAX_USERDATA_LEN (30)
 #define INA_TIME_MAX_STAMPS       (1024)
@@ -114,14 +145,30 @@ typedef struct ina_stopwatch_s {
     ina_stopwatch_ts_t *ts;        /* current time stamp */
 } ina_stopwatch_t;
 
+#define INA_TIME_BACKEND_NAME_MAXLEN (64)
+
+/* TSC time backend information */
+typedef struct ina_time_tsc_info_s {
+    char backend_name[INA_TIME_BACKEND_NAME_MAXLEN];
+    int32_t  rdtsc_enabled;
+    uint64_t rdtsc_ref;
+    uint64_t rdtsc_refhpet;
+    double rdtsc_ticks_per_nano;
+} ina_time_tsc_info_t;
+
+/* Time backend information */
+typedef struct ina_time_sys_info_s {
+    char backend_name[INA_TIME_BACKEND_NAME_MAXLEN];
+} ina_time_sys_info_t;
+
 /*
- * System-Time backend information
+ * System Time backend information
  */
-INA_API(ina_rc_t) ina_time_sys_backend_info(ina_str_t *info);
+INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info);
 /*
- * TSC backend information
+ * TSC Time backend information
  */
-INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_str_t *info);
+INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info);
 /*
  * Sleep for X milli seconds
  */
@@ -157,11 +204,11 @@ INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
  * Enabling RDTSC is on process scope
  *
  */
-INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc();
+INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc(void);
 /*
  *
  */
-INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc();
+INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc(void);
 /*
  * Read the Time Stamp Counter
  */
@@ -173,15 +220,23 @@ INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time);
 /*
  * Read the second and nano-second part of the TSC
  */
-INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(ina_time_tsc_t* time, time_t *secs, long *nanos);
+INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(const ina_time_tsc_t* time, time_t *secs, long *nanos);
 /*
  * Convert the ina_time_t to a UNIX timestamp and micro-seconds
  */
-INA_API(ina_rc_t) ina_time_sys_seconds_micros(ina_time_t* time, time_t *secs, long *micros);
+INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *secs, long *micros);
 /*
  * Basically strftime
  */
 INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, size_t *written, const char *fmt, ina_time_t* time);
+
+/*
+ * Basically strftime but using TSC
+ */
+INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf, 
+                                        const char *fmt, 
+                                        const ina_time_tsc_t* time,
+                                        int show_nanos);
 
 /*
  * Create a new stopwatch

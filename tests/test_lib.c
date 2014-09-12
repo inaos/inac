@@ -56,6 +56,11 @@ INA_TEST(lib, opt)
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("x")); 
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("f"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("float"));
+    INA_TEST_ASSERT_NOTSUCCEED(ina_opt_isset(""));
+    INA_TEST_ASSERT_NOTSUCCEED(ina_opt_get_string("", &l_str_value));
+    INA_TEST_ASSERT_SUCCEED(ina_opt_isset("long-option"));
+    INA_TEST_ASSERT_SUCCEED(ina_opt_get_string("long-option", &l_str_value));
+    INA_TEST_ASSERT_EQUAL_STR("long", ina_str_cstr(l_str_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_string("run", &l_str_value));
     INA_TEST_ASSERT_NOT_NULL(l_str_value);
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_string("run", &s_str_value));
@@ -71,15 +76,37 @@ INA_TEST(lib, opt)
     INA_TEST_ASSERT_EQUAL_FLOATING(l_float_value, s_float_value);
     INA_TEST_ASSERT_EQUAL_FLOATING(l_float_value, (float)1.02);
 }
+
+INA_TEST(lib, opt_get_key_value)
+{
+    ina_str_t key = NULL;
+    ina_str_t value = NULL;
+
+    INA_TEST_ASSERT_SUCCEED(ina_opt_get_key_value(1, &key, &value));
+    INA_TEST_MSG("ina_opt_get_key_value() at index 0: key=%s, value=%s",
+        ina_str_cstr(key),
+        ina_str_cstr(value));
+    INA_TEST_ASSERT_NOT_NULL(key);
+    INA_TEST_ASSERT_NOT_NULL(value);
+    INA_TEST_ASSERT_NOTSUCCEED(ina_opt_get_key_value(10, &key, &value));
+    INA_TEST_ASSERT_NULL(key);
+    INA_TEST_ASSERT_NULL(value);    
+}
+
 INA_TEST(lib, appname)
 {
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_name());
+#ifdef INA_OS_WIN32
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp("test.exe", ina_app_get_name()));
+#else
     INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp("test", ina_app_get_name()));
+#endif
 }
 
 INA_TEST(lib, apppath)
 {
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_path());
+    INA_TEST_MSG("ina_app_get_path(): %s", ina_app_get_path());
 }
 
 INA_TEST(lib, set_cleanup_handler)

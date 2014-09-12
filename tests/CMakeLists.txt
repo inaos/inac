@@ -2,14 +2,13 @@ cmake_minimum_required (VERSION 2.6)
 SET(MSVC_INCREMENTAL_DEFAULT ON)
 project (inactest)
 
-STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
-${CMAKE_EXE_LINKER_FLAGS_DEBUG})
+SET( MSVC_INCREMENTAL_YES_FLAG "/INCREMENTAL:NO")
+STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags ${CMAKE_EXE_LINKER_FLAGS_DEBUG}) 
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO ${replacementFlags}" )
-
-STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags3
-${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
-SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/INCREMENTAL:NO
-${replacementFlags3}" )
+STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags3 ${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
+SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO ${replacementFlags3}) 
+SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/INCREMENTAL:NO ${replacementFlags3}" )
+ 
 
 set (DEPS_DIR "${CMAKE_SOURCE_DIR}/../contribs")
 set (BIN_DEPS_DIR "${CMAKE_SOURCE_DIR}/../contribs-bin")
@@ -45,9 +44,12 @@ endif()
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
 set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
 
-file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c")
+file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c" "test.def")
 add_executable(test ${TEST_SRC})
 target_link_libraries(test ${PLATFORM_LIBS} ${LIBS})
+
+add_executable(service_mgr service_mgr.c)
+target_link_libraries(service_mgr ${PLATFORM_LIBS} ${LIBS})
 
 if(WIN32) 
    add_custom_command(TARGET test POST_BUILD          
@@ -73,4 +75,8 @@ if(WIN32)
      COMMAND ${CMAKE_COMMAND} -E copy_if_different  
         "${PROJECT_SOURCE_DIR}/test_ljit.lua"         
         $<TARGET_FILE_DIR:test>)                  
+   add_custom_command(TARGET test POST_BUILD          
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${PROJECT_SOURCE_DIR}/test_lsocket.lua"         
+        $<TARGET_FILE_DIR:test>)
  endif()

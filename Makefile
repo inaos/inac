@@ -124,7 +124,7 @@ all:
 	@echo "String library	: $(INAC_STRING_LIB)"
 	@echo "Time backend	: $(INAC_TIME_BACKEND)"
 
-release: CFLAGS += -O2 -DINA_LOG_ENABLED=1 
+release: CFLAGS += -O3 -DINA_LOG_LEVEL=1
 	export CFLAGS
 release: INAC_BUILD_TYPE = release
 	export INAC_BUILD_TYPE

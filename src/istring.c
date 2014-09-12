@@ -350,11 +350,7 @@ INA_API(int) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs)
 
 INA_API(int) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs)
 {
-#ifdef INA_OS_WIN32
-    return _stricmp(lhs, rhs);
-#else
-    return strcasecmp(lhs, rhs);
-#endif
+    return INA_CSTR_CASECMP(lhs, rhs);
 }
 
 INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n)
