@@ -501,7 +501,7 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     }
    
     /* print TAP plan */
-    if (!__tap) {
+    if (__tap) {
         printf("1..%d\n", total);
     }
  
