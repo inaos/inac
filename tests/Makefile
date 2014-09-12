@@ -4,7 +4,7 @@ SRC += $(wildcard helper*.c)
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
-TOOLS = ullc_monitor service_mgr
+TOOLS = ullc_monitor service_mgr mem_speed
 TOOLS_OBJS = $(TOOLS:=.o)
 
 # ****************************************************************************
@@ -35,7 +35,7 @@ tools: $(TOOLS_OBJS)
 
 clean:
 	@echo cleaning tests...
-	@-rm -f *.o test
+	@-rm -f *.o test $(TOOLS)
 
 test: all
 	./test --tap

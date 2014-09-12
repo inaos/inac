@@ -66,6 +66,7 @@
 #include <libinac/types.h>
 #include <libinac/uthash.h>
 #include <libinac/memory.h>
+#include <libinac/mempool.h>
 #include <libinac/string.h>
 #include <libinac/log.h>
 #include <libinac/error.h>

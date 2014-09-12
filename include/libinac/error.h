@@ -192,6 +192,7 @@ extern "C" {
 #define INA_SUCCEED(rc) (INA_SUCCESS == (rc))
 
 
+
 /* Error-Module errors */
 #define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
 #define INA_ERR_EMSGLEN INA_ERR_ERROR(INA_EMSGLEN, "Message size")
