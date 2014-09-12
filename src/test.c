@@ -458,12 +458,14 @@ INA_API(int) ina_test_run(int argc, char *argv[])
         }
         if (strcmp(argv[1], "--tap")==0) {
             __tap = INA_YES;
-            if (argc > 2)
-            __suite_name = argv[2];
+            if (argc > 2) {
+                __suite_name = argv[2];
+                filter = __ina_suite_filter;
+            }
         } else {
             __suite_name = argv[1];
+            filter = __ina_suite_filter;
         }
-        filter = __ina_suite_filter;
     }
 
     begin = &INA_TEST_TNAME(suite, test);
