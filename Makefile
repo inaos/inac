@@ -129,7 +129,7 @@ release: CFLAGS += -O3 -DINA_LOG_LEVEL=1
 release: INAC_BUILD_TYPE = release
 	export INAC_BUILD_TYPE
 release: all
-	-coverage
+
 debug: CFLAGS += --coverage -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 
 	export CFLAGS
 debug: LDFLAGS += --coverage
@@ -145,6 +145,6 @@ clean:
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
 	@-rm -f ChangeLog
 
-test: 
+test: debug 
 	$(MAKE) test -C tests
 
