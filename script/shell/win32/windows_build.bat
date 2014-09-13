@@ -254,6 +254,7 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 		)
 	) else (
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR% mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
+		echo  %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
 			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
@@ -262,6 +263,7 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 			if ERRORLEVEL 1 goto exit_fail
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
+			cd
 			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
 			rem if ERRORLEVEL 1 goto exit_fail
 			for %%F in (*.sln) do (
