@@ -35,7 +35,7 @@ tools: $(TOOLS_OBJS)
 
 clean:
 	@echo cleaning tests...
-	@-rm -f *.o test
+	@-rm -f *.o $(BIN) $(TOOLS) *.gcno *.gcda *.gcov
 
 test: all
 	./test --tap

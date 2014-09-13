@@ -1,5 +1,8 @@
 .DS_Store
 .Makefile.swp
+*.gcda
+*.gcno
+*.gcov
 *.swp
 *.o
 *.a
