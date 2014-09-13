@@ -160,7 +160,7 @@ INA_TEST(time, stopwatch_startime)
 }
 
 
-INA_TEST(time, stopwatch_startime_rdtsc) 
+INA_TEST_SKIP(time, stopwatch_startime_rdtsc) 
 {
     struct timeval tv_start;
     ina_stopwatch_t *w;
@@ -256,7 +256,7 @@ INA_TEST(time,read_clock)
 }
 
 #ifndef INA_OS_WIN32
-INA_TEST(time_tsc,read_tsc)
+INA_TEST_SKIP(time_tsc,read_tsc)
 {
     struct timespec test;
     ina_time_tsc_t t;
