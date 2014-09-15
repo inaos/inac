@@ -186,6 +186,18 @@ if "%INAC_W32_BUILD_STAGE%" == "dist" (
 	goto exit
 )
 
+REM Invoke the Test-Suite
+SET INAC_WIN32_OLD_DIR=%CD%
+if "%INAC_W32_BUILD_STAGE%" == "test" (
+	if defined INAC_WIN32_C_TEST_SUITE_EXEC (
+		cd %INAC_WIN32_C_TEST_SUITE_WD%
+		call %INAC_WIN32_C_TEST_SUITE_EXEC%
+		REM FIXME: collect test logs and evalutate failure or success
+		cd %INAC_WIN32_OLD_DIR%
+		goto exit
+	)
+)
+
 REM invoke code-generator if necessary
 SET "INAC_W32_CODE_GEN_FULL_PATH=%INAC_WIN32_PROJECT_DIR%\%INAC_WIN32_CODE_GEN_SCRIPT% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%"
 if defined INAC_WIN32_CODE_GEN_SCRIPT (
@@ -194,8 +206,10 @@ if defined INAC_WIN32_CODE_GEN_SCRIPT (
 		echo Invoke Code-Generator
 		if defined INAC_WIN32_CODE_GEN_ARGS (
 			%INAC_W32_LUAJIT% %INAC_W32_CODE_GEN_FULL_PATH% %INAC_WIN32_CODE_GEN_ARGS%
+			if ERRORLEVEL 1 goto exit_fail
 		) else (
 			%INAC_W32_LUAJIT% %INAC_W32_CODE_GEN_FULL_PATH%
+			if ERRORLEVEL 1 goto exit_fail
 		)
 	)
 )
@@ -212,16 +226,20 @@ if defined INAC_WIN32_C_SOURCE_DIR (
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
 			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
+			if ERRORLEVEL 1 goto exit_fail
 			call nmake
+			if ERRORLEVEL 1 goto exit_fail
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
 			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_SOURCE_DIR%
+			if ERRORLEVEL 1 goto exit_fail
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
 				goto first_found
 			)
 			:first_found
 			call msbuild %INAC_WIN32_SLN_FILE% /m /property:Configuration=%INAC_BUILD_TYPE%
+			if ERRORLEVEL 1 goto exit_fail
 		)
 	)
 	cd %INAC_WIN32_OLD_DIR%
@@ -236,30 +254,28 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 		)
 	) else (
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR% mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
+		echo  %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
 			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			if ERRORLEVEL 1 goto exit_fail
 			call nmake
+			if ERRORLEVEL 1 goto exit_fail
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
+			cd
 			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			rem if ERRORLEVEL 1 goto exit_fail
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
 				goto first_found_test
 			)
 			:first_found_test
 			call msbuild %INAC_WIN32_SLN_FILE% /property:Configuration=%INAC_BUILD_TYPE%
+			if ERRORLEVEL 1 goto exit_fail
 		)
 	)
 	cd %INAC_WIN32_OLD_DIR%
-)
-
-REM Invoke the Test-Suite
-if defined INAC_WIN32_C_TEST_SUITE_EXEC (
-	if "%INAC_W32_BUILD_STAGE%" == "test" (
-		start cmd /c %INAC_WIN32_C_TEST_SUITE_EXEC%
-		REM FIXME: collect test logs and evalutate failure or success
-	)
 )
 
 REM compile lua to byte code - if there is any
@@ -276,16 +292,24 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 			echo Compiling...%%~nxi
 			if "%INAC_BUILD_TYPE%" == "debug" (
 				%INAC_W32_LUAJIT% -bg %%i %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%%~nxi.obj
+				if ERRORLEVEL 1 goto exit_fail
 			) else (
 				%INAC_W32_LUAJIT% -b %%i %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\%%~nxi.obj
+				if ERRORLEVEL 1 goto exit_fail
 			)
 		)
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\bc.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\bc.obj
+		if ERRORLEVEL 1 goto exit_fail
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\bcsave.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\bcsave.obj
+		if ERRORLEVEL 1 goto exit_fail
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dis_x64.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dis_x64.obj
+		if ERRORLEVEL 1 goto exit_fail
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dis_x86.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dis_x86.obj
+		if ERRORLEVEL 1 goto exit_fail
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\v.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\v.obj
+		if ERRORLEVEL 1 goto exit_fail
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\vmdef.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\vmdef.obj
+		if ERRORLEVEL 1 goto exit_fail
 		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dump.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dump.obj
 	)
 	cd %INAC_WIN32_OLD_DIR%
@@ -294,9 +318,14 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 REM build a lib file from the lua-byte code - if necessary
 if defined INAC_WIN32_LUA_LIB_NAME (
 	%INAC_W32_LIB_CMD% /OUT:%INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\%INAC_WIN32_LUA_LIB_NAME% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
+	if ERRORLEVEL 1 goto exit_fail
 )
 
 echo Build for %INAC_WIN32_BUILD_NAME% successful
+goto exit
+
+:exit_fail
+echo Build for %INAC_WIN32_BUILD_NAME% failed
 goto exit
 
 :fail_vs_env
@@ -417,7 +446,7 @@ if defined INAC_WIN32_DIST_FILES SET INAC_WIN32_DIST_FILES=
 if defined INAC_WIN32_DIST_PACKAGE_NAME SET INAC_WIN32_DIST_PACKAGE_NAME=
 if defined INAC_WIN32_CODE_GEN_ONLY SET INAC_WIN32_CODE_GEN_ONLY=
 if defined INAC_WIN32_CODE_GEN_ARGS SET INAC_WIN32_CODE_GEN_ARGS=
-
+if ERRORLEVEL 1 exit /B 1
 goto:eof
 
 REM -------------------------------------------------------------------------
