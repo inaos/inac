@@ -190,7 +190,7 @@ REM Invoke the Test-Suite
 SET INAC_WIN32_OLD_DIR=%CD%
 if "%INAC_W32_BUILD_STAGE%" == "test" (
 	if defined INAC_WIN32_C_TEST_SUITE_EXEC (
-		cd %INAC_WIN32_C_TEST_SOURCE_DIR%
+		cd %INAC_WIN32_C_TEST_SUITE_WD%
 		call %INAC_WIN32_C_TEST_SUITE_EXEC%
 		REM FIXME: collect test logs and evalutate failure or success
 		cd %INAC_WIN32_OLD_DIR%
