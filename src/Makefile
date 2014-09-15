@@ -64,6 +64,6 @@ $(INAC_LIB): $(OBJS)
 clean:
 	@echo cleaning src...
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
-	@-rm -f *.o *.a
+	@-rm -f *.o *.a *.gcno *.gcda *.gcov
 	@-rm -f $(OBJS)
 

@@ -21,10 +21,10 @@ ifeq (,$(findstring Windows,$(OS)))
 endif
 
 
-all: $(OBJ)  main.o tools
+all: $(OBJ)  main.o $(TOOLS)
 	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS) 
 
-tools: $(TOOLS_OBJS)
+$(TOOLS): $(TOOLS_OBJS)
 	@for i in $(TOOLS); do $(CC) $(CFLAGS) -o $$i $$i.o $(LDFLAGS); done;
 	
 %.o: %.c
@@ -35,7 +35,7 @@ tools: $(TOOLS_OBJS)
 
 clean:
 	@echo cleaning tests...
-	@-rm -f *.o test $(TOOLS)
+	@-rm -f *.o $(BIN) $(TOOLS) *.gcno *.gcda *.gcov
 
 test: all
 	./test --tap

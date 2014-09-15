@@ -1,5 +1,10 @@
 .DS_Store
 .Makefile.swp
+*.tap
+coverage.xml
+*.gcda
+*.gcno
+*.gcov
 *.swp
 *.o
 *.a
