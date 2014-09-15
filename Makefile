@@ -130,10 +130,8 @@ release: INAC_BUILD_TYPE = release
 	export INAC_BUILD_TYPE
 release: all
 
-debug: CFLAGS += --coverage -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 
+debug: CFLAGS +=  -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 
 	export CFLAGS
-debug: LDFLAGS += --coverage
-	export LDFLAGS
 debug: INAC_BUILD_TYPE = debug
 	export INAC_BUILD_TYPE
 debug: all
@@ -148,3 +146,8 @@ clean:
 test: debug 
 	$(MAKE) test -C tests
 
+coverage-test: CFLAGS += --coverage
+	export CFLAGS
+coverage-test: LDFLAGS += --coverage -lgcov
+	export LDFLAGS
+coverage-test: test	
