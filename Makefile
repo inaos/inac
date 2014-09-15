@@ -108,7 +108,7 @@ export CFLAGS
 export LDFLAGS
 export INAC_LIB
 export INAC_LIBS
-export INA_STRING_DEFINEDß
+export INA_STRING_DEFINED
 export INA_TIME_DEFINED
 
 default: release
