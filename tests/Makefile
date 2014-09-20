@@ -35,7 +35,7 @@ $(TOOLS): $(TOOLS_OBJS)
 
 clean:
 	@echo cleaning tests...
-	@-rm -f *.o $(BIN) $(TOOLS) *.gcno *.gcda *.gcov
+	@-rm -f *.o $(BIN) $(TOOLS) *.gcno *.gcda *.gcov* *.tap coverage.xml clog.xml
 
 test: all
 	./test --tap
