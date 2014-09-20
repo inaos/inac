@@ -142,7 +142,7 @@ clean:
 	@echo cleaning...
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
 	@-rm -f ChangeLog
-	@-rm -f clog.xml coverage.xml clog.xml *.tap 
+	@-rm -f *.tap 
 
 test: debug 
 	$(MAKE) test -C tests
