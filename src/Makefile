@@ -36,6 +36,13 @@ OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
 OBJS += $(SRC_TPL:%.tpl=%.o)
 
+OBJCPY=dummy
+ifeq (Darwin,$(shell uname -s))
+	OBJCPY=gobjcopy --target binary --binary-architecture i386
+else
+	OBJCPY=objcopy --input binary --output elf64-x86-64 --binary-architecture i386
+endif
+
 all: $(OBJS) $(INAC_LIB)
 	@echo compiling all for $(INAC_LIB)...
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
@@ -50,7 +57,7 @@ all: $(OBJS) $(INAC_LIB)
 
 %.o: %.tpl
 	@echo compile template $<
-	@objcopy --input binary --output elf64-x86-64 --binary-architecture i386 $<  $(basename $<).o
+	@$(OBJCPY) $< $(basename $<).o
 
 $(INAC_LIB): $(OBJS)
 	@for i in $(INAC_LIBS); do ar x $$i; done
