@@ -45,5 +45,5 @@ int main(int argc,  char** argv)
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
         return EXIT_FAILURE;
     }
-    return ina_test_run(argc, argv);
+    return ina_test_run(argc, argv, NULL);
 }

@@ -202,23 +202,22 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     }
 
     if (serviceControlManager) {
-        char path[_MAX_PATH + 1];
-            SC_HANDLE service;
-            service = CreateService(serviceControlManager,
-                ina_str_cstr(ctx->descriptor->name), ina_str_cstr(ctx->descriptor->display_name),
-                SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
-                start_type, SERVICE_ERROR_NORMAL, ctx->descriptor->startup_args,
-                0, 0, 0, username, password);
+        SC_HANDLE service;
+        service = CreateService(serviceControlManager,
+            ina_str_cstr(ctx->descriptor->name), ina_str_cstr(ctx->descriptor->display_name),
+            SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
+            start_type, SERVICE_ERROR_NORMAL, ctx->descriptor->startup_args,
+            0, 0, 0, username, password);
             
-            if (service) {
-                SERVICE_DESCRIPTION svc_desc;
-                svc_desc.lpDescription = (LPSTR)ina_str_cstr(ctx->descriptor->description);
-                ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &svc_desc);
-                CloseServiceHandle(service);
-            } else {
-                CloseServiceHandle(serviceControlManager);
-                return INA_SERVICE_ECAPI;
-            }
+        if (service) {
+            SERVICE_DESCRIPTION svc_desc;
+            svc_desc.lpDescription = (LPSTR)ina_str_cstr(ctx->descriptor->description);
+            ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, &svc_desc);
+            CloseServiceHandle(service);
+        } else {
+            CloseServiceHandle(serviceControlManager);
+            return INA_SERVICE_ECAPI;
+        }
         CloseServiceHandle(serviceControlManager);
     }
     else {
