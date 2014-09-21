@@ -465,7 +465,7 @@ extern "C" {
 #  ifdef __cplusplus__
 #    define INA_API(rtype) extern "C" INA_EXPORT rtype
 #  else
-#    define INA_API(rtype) extern rtype INA_EXPORT 
+#    define INA_API(rtype) extern INA_EXPORT rtype 
 #  endif
 #endif
 
