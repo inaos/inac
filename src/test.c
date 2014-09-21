@@ -437,7 +437,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     return retval;
 }
 
-INA_API(int) ina_test_run(int argc, char *argv[])
+INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
 {
     static int total = 0;
     static int num_ok = 0;
@@ -449,6 +449,7 @@ INA_API(int) ina_test_run(int argc, char *argv[])
     ina_test_testcase_t* begin;
     ina_test_testcase_t* end;
     ina_cio_color_t color;
+    int has_to_destroy_jit = 0;
 
     __binpath = argv[0];
     
@@ -579,6 +580,21 @@ INA_API(int) ina_test_run(int argc, char *argv[])
             }
             index++;
         }
+    }
+
+    /* Run Lua unit and specification tests */
+    if (ctx == NULL) {
+        has_to_destroy_jit = 1;
+        ina_ljit_init(&ctx);
+    }
+
+    if (luaL_dostring(ctx->lstate, "t = require(\"ltest\")\nt.run()\n") != 0) {
+        printf("%s", luaL_checkstring(ctx->lstate, 1));
+        return INA_FAILURE;
+    }
+
+    if (has_to_destroy_jit) {
+        ina_ljit_destroy(&ctx);
     }
 
     color = (num_fail) ? INA_CIO_COLOR_RED : INA_CIO_COLOR_GREEN;

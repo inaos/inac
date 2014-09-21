@@ -441,7 +441,7 @@ typedef struct ina_test_testcase_s {
 /*
  * Run tests
  */
-int ina_test_run(int argc, char *argv[]);
+int ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx);
 
 /*
  * Printout a message.
