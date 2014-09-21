@@ -46,6 +46,7 @@ REM * INAC_WIN32_LUA_TEST_SUITE_EXEC: Execute a Lua script to run a Lua test-sui
 REM * INAC_WIN32_C_BUILD_TOOL: Either 'cmake-nmake' or 'cmake-vs' - Optional
 REM * INAC_WIN32_LUA_SOURCE_DIR: Directory relative to PROJECT_DIR - Optional
 REM * INAC_WIN32_LUA_LIB_NAME: Name of the library where the lua byte-code is stored - Optional
+REM * INAC_WIN32_LUA_INC_JIT: Include the JIT directory of Luajit - Optional
 REM * INAC_WIN32_CODE_GEN_SCRIPT: Lua script that will be invoked before compilation, relative from PROJECT_DIR - Optional
 REM * INAC_WIN32_CODE_GEN_ARGS: Arguments for the code-generator - Optional
 REM * INAC_WIN32_DIST_PACKAGE_NAME: Full name of the zip package to be created (e.g. my-app-1.0.zip)
@@ -298,19 +299,21 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 				if ERRORLEVEL 1 goto exit_fail
 			)
 		)
-		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\bc.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\bc.obj
-		if ERRORLEVEL 1 goto exit_fail
-		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\bcsave.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\bcsave.obj
-		if ERRORLEVEL 1 goto exit_fail
-		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dis_x64.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dis_x64.obj
-		if ERRORLEVEL 1 goto exit_fail
-		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dis_x86.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dis_x86.obj
-		if ERRORLEVEL 1 goto exit_fail
-		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\v.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\v.obj
-		if ERRORLEVEL 1 goto exit_fail
-		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\vmdef.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\vmdef.obj
-		if ERRORLEVEL 1 goto exit_fail
-		%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dump.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dump.obj
+		if defined INAC_WIN32_LUA_INC_JIT (
+			%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\bc.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\bc.obj
+			if ERRORLEVEL 1 goto exit_fail
+			%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\bcsave.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\bcsave.obj
+			if ERRORLEVEL 1 goto exit_fail
+			%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dis_x64.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dis_x64.obj
+			if ERRORLEVEL 1 goto exit_fail
+			%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dis_x86.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dis_x86.obj
+			if ERRORLEVEL 1 goto exit_fail
+			%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\v.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\v.obj
+			if ERRORLEVEL 1 goto exit_fail
+			%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\vmdef.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\vmdef.obj
+			if ERRORLEVEL 1 goto exit_fail
+			%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dump.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dump.obj
+		)
 	)
 	cd %INAC_WIN32_OLD_DIR%
 )
@@ -319,6 +322,8 @@ REM build a lib file from the lua-byte code - if necessary
 if defined INAC_WIN32_LUA_LIB_NAME (
 	%INAC_W32_LIB_CMD% /OUT:%INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\%INAC_WIN32_LUA_LIB_NAME% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
 	if ERRORLEVEL 1 goto exit_fail
+	REM delete object files
+	rm %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
 )
 
 echo Build for %INAC_WIN32_BUILD_NAME% successful
@@ -441,6 +446,7 @@ if defined INAC_WIN32_C_TEST_SUITE_EXEC SET INAC_WIN32_C_TEST_SUITE_EXEC=
 if defined INAC_WIN32_C_BUILD_TOOL SET INAC_WIN32_C_BUILD_TOOL=
 if defined INAC_WIN32_LUA_SOURCE_DIR SET INAC_WIN32_LUA_SOURCE_DIR=
 if defined INAC_WIN32_LUA_LIB_NAME SET INAC_WIN32_LUA_LIB_NAME=
+if defined INAC_WIN32_LUA_INC_JIT SET INAC_WIN32_LUA_INC_JIT=
 if defined INAC_WIN32_CODE_GEN_SCRIPT SET INAC_WIN32_CODE_GEN_SCRIPT=
 if defined INAC_WIN32_DIST_FILES SET INAC_WIN32_DIST_FILES=
 if defined INAC_WIN32_DIST_PACKAGE_NAME SET INAC_WIN32_DIST_PACKAGE_NAME=

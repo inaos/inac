@@ -108,36 +108,49 @@ SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
 SET INAC_TIME_BACKEND=
 
-SET INAC_WIN32_BUILD_NAME=inac
+SET INAC_WIN32_BUILD_NAME=luatest
+SET INAC_WIN32_PROJECT_DIR=.
+SET INAC_WIN32_LUA_SOURCE_DIR=contribs\luatest
+SET INAC_WIN32_LUA_LIB_NAME=luatest.lib
+
+call %INAC_BUILD_SCRIPT% %1 %2
+
+REM reset the main environment variables because they might have been deleted by the previous build
+SET INAC_HOME=%CD%
+SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
+SET INAC_WIN32_BUILD_NAME=inac-lua
 SET INAC_WIN32_PROJECT_DIR=.
 SET INAC_WIN32_LUA_SOURCE_DIR=src
 SET INAC_WIN32_LUA_LIB_NAME=libinac_lua.lib
+SET INAC_WIN32_LUA_INC_JIT=true
 
 call %INAC_BUILD_SCRIPT% %1 %2
+
 if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if "%INAC_BUILD_TYPE%" == "debug" (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib /MACHINE:X64
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
 		)
 	) else (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51.lib /MACHINE:X64
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
 		)
 	)
 )
