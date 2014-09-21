@@ -51,6 +51,9 @@ target_link_libraries(test ${PLATFORM_LIBS} ${LIBS})
 add_executable(service_mgr service_mgr.c)
 target_link_libraries(service_mgr ${PLATFORM_LIBS} ${LIBS})
 
+add_executable(ilt ilt.c)
+target_link_libraries(ilt ${PLATFORM_LIBS} ${LIBS})
+
 if(WIN32) 
    add_custom_command(TARGET test POST_BUILD          
      COMMAND ${CMAKE_COMMAND} -E copy_if_different  
