@@ -493,9 +493,11 @@ INA_API(ina_rc_t) ina_process_reset(ina_process_t *process)
 INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process, 
                                             int *exit_code)
 {
+
+    int still_running;
     INA_ASSERT_NOTNULL(process);
     INA_ASSERT_NOTNULL(exit_code);
-
+    __ina_process_is_running(process, &still_running);
     *exit_code = process->exit_code;
     return INA_SUCCESS;
 }
@@ -597,6 +599,12 @@ static void __ina_process_start(ina_process_t *process)
         ina_str_cstr(process->descriptor->working_dir),
         &si, &process->pi
     );
+
+    if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
+        int still_running;
+        WaitForSingleObject(process->pi.hProcess, INFINITE);
+        __ina_process_is_running(process, &still_running);
+    }
 
     ina_str_free(cmd_line);
 }
