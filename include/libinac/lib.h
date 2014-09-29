@@ -140,10 +140,10 @@ extern "C" {
  { short_opt, long_opt, INA_OPT_TYPE_FLOAT, INA_NUM2STR(dft), desc }
 
 /* Define options map */
-#define INA_OPTS(name, ...)         \
-ina_opt_t name[] = {                \
-    __VA_ARGS__,                    \
-    {NULL, NULL, 0, NULL, NULL}     \
+#define INA_OPTS(name, ...)                        \
+ina_opt_t name[] = {                               \
+    __VA_ARGS__,                                   \
+    {NULL, NULL, INA_OPT_TYPE_INT, NULL, NULL}     \
 };
 
 typedef enum ina_opt_type_e {
