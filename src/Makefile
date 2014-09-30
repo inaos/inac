@@ -30,6 +30,7 @@ DIRS = $(shell ls -p |grep /)
 SRC = $(wildcard *.c)
 SRC_LUA = $(wildcard *.lua)
 SRC_LUA += $(wildcard ../contribs/luajit/src/jit/*.lua)
+SRC_LUA += $(wildcard ../contribs/luatest/*.lua)
 SRC_TPL += $(wildcard ../etc/template/*.tpl)
 
 OBJS = $(SRC:%.c=%.o)
@@ -63,6 +64,7 @@ $(INAC_LIB): $(OBJS)
 	@for i in $(INAC_LIBS); do ar x $$i; done
 	@ar crs $(INAC_LIB) *.o
 	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luajit/src/jit/*.o
+	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luatest/*.o
 	@ar crs $(INAC_LIB)  ../etc/template/*.o
 	@for i in $(DIRS); do ar cs $(INAC_LIB) $$i/*.o; done
 
