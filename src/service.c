@@ -610,6 +610,9 @@ static void __ina_service_signal_handler(ina_signal_t sig,
         if (INA_SUCCEED(__ctx->descriptor->service_fn(
             __ctx, INA_SERVICE_STATUS_SHUTDOWN, 
             (void*)__ctx->user_data))) {
+#ifdef INA_OS_WIN32
+        WaitForSingleObject(__ctx->main_thread, INFINITE);
+#endif
             __ctx->descriptor->service_fn(
                 __ctx, INA_SERVICE_STATUS_STOP,
                 (void*)__ctx->user_data);
@@ -618,9 +621,6 @@ static void __ina_service_signal_handler(ina_signal_t sig,
                 INA_SERVICE_STATUS_ERROR,
                 (void*)__ctx->user_data);
         }
-#ifdef INA_OS_WIN32
-        WaitForSingleObject(__ctx->main_thread, INFINITE);
-#endif
     }
 }
 
