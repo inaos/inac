@@ -821,9 +821,9 @@ INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int cons
         ina_service_set_data(ctx, user_data);
     } 
     if (!console) {
+        ((ina_service_ctx_t*)ctx)->is_deamon = INA_YES;
         return __ina_service_run_service(ctx);
     }
-    ((ina_service_ctx_t*)ctx)->is_deamon = INA_YES;
     return __ina_service_run_console(ctx);
 }
 
