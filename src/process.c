@@ -644,7 +644,7 @@ static void __ina_process_is_running(ina_process_t *process,
     int status;
 
     /* FIME: Error handling */
-    if (waitpid(process->pid, &status, WNOHANG) == 0) {
+    if (waitpid(process->pid, &status, 0) == 0) {
         process->exit_code = -1;
         *still_running = INA_YES;
     } else {
