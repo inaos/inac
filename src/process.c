@@ -393,7 +393,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
         (*process)->descriptor->managed_type = descriptor->managed_type;
     //} 
     (*process)->descriptor->c_ref = 1;
-    (*process)->exit_code = 0;
+    (*process)->exit_code = -1;
     (*process)->key = INA_HASH_STR_TO_SDBM(descriptor->full_path);
     (*process)->init = 1;
     (*process)->state = 0;
@@ -557,13 +557,14 @@ static void __ina_process_is_running(ina_process_t *process,
     DWORD ec;
     BOOL ret;
     /* FIME: Error handling */
+
+    *still_running = INA_NO;
+
     ret = GetExitCodeProcess(process->pi.hProcess, &ec);
     if (ec == STILL_ACTIVE) {
-        process->exit_code = -1;
         *still_running = INA_YES;
-    } else {
+    } else if (process->exit_code < 0) {
         process->exit_code = ec;
-        *still_running = INA_NO;
     }
 }
 
@@ -643,14 +644,14 @@ static void __ina_process_is_running(ina_process_t *process,
 {
     int status;
 
+    *still_running = INA_NO;
+
     /* FIME: Error handling */
-    if (waitpid(process->pid, &status, 0) == 0) {
-        process->exit_code = -1;
+    if (waitpid(process->pid, &status, WNOHANG) > 0) {
         *still_running = INA_YES;
-    } else {
+    } else if (process->exit_code < 0) {
         if (WIFEXITED(status)) {
             process->exit_code = WEXITSTATUS(status);
-            *still_running = INA_NO;
         }
     }
 }
@@ -690,17 +691,17 @@ static void __ina_process_start(ina_process_t *process)
         _exit(127);
     } else {
     
-    /* Store pid */
-    process->pid = pid;
+        /* Store pid */
+        process->pid = pid;
 
-    int status;
-    if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
-        waitpid(process->pid, &status, 0);
-        if (WIFEXITED(status)) {
-            process->exit_code = WEXITSTATUS(status);
+        int status;
+        if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
+            waitpid(process->pid, &status, 0);
+            if (WIFEXITED(status)) {
+                process->exit_code = WEXITSTATUS(status);
+            }
         }
     }
-}
 }
 
 static void __ina_process_stop(ina_process_t *process)
