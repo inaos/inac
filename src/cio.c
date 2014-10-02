@@ -28,6 +28,11 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#define __INA_CHECK_TTTY              \
+    if (!_isatty(_fileno(stdout))) {  \
+        return INA_CIO_ENOTTY;        \
+    }
+
 static int __ina_get_cursor_pos(ina_cio_pos_t *const pos);
 
 #ifdef INA_OS_WIN32
@@ -126,6 +131,7 @@ INA_API(ina_rc_t) ina_cio_clear(void)
     DWORD dwConSize;
 
     INA_ASSERT(__initialized);
+    __INA_CHECK_TTTY;
 
     if( hStdOut != INVALID_HANDLE_VALUE
         && GetConsoleScreenBufferInfo(hStdOut, &csbi)) {
@@ -172,6 +178,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 #ifdef INA_OS_WIN32
     CONSOLE_SCREEN_BUFFER_INFO info;
 #endif
+   __INA_CHECK_TTTY;
 
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(pos);
@@ -211,6 +218,8 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
 {
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(attribs);
+
+   __INA_CHECK_TTTY;
 
     __attribs.bg_color = attribs->bg_color;
     __attribs.fg_color = attribs->fg_color;
@@ -255,6 +264,8 @@ INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 {
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(pos);
+    __INA_CHECK_TTTY;
+    
     __ina_get_cursor_pos(pos);
     return INA_SUCCESS;
 }
@@ -272,6 +283,8 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
     COORD pos;
 #endif    
     INA_ASSERT(__initialized);
+
+   __INA_CHECK_TTTY;
 
     if (col < 0 && row < 0) {
         return INA_SUCCESS;
