@@ -555,7 +555,7 @@ __ina_time_tsc_os_read(ina_time_tsc_t *time)
 #elif defined(INA_OS_OSX)
      time->tp = mach_absolute_time();
 #else
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
+    if (clock_gettime(__INA_CLOCK_TYPE, &time->tp) == -1) {
         return INA_FAILURE;
     }
 #endif
