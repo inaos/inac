@@ -30,7 +30,7 @@
 
 #define __INA_CHECK_TTTY              \
     if (!_isatty(_fileno(stdout))) {  \
-        return INA_CIO_ENOTTY;        \
+        return INA_SUCCESS;           \
     }
 
 static int __ina_get_cursor_pos(ina_cio_pos_t *const pos);
