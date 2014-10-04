@@ -41,6 +41,10 @@
 #define __INA_CHKCONFIG_DFT ""
 #endif
 
+#ifdef INA_OS_OSX
+#include <dlfcn.h>
+#endif
+
 struct ina_service_ctx_s {
     int is_deamon;
     ina_service_mode_t mode;
@@ -361,8 +365,10 @@ static ina_rc_t __ina_service_mgnt_stop(const char *name)
 }
 
 #else
-extern char _binary____etc_template_init_script_tpl_start;
-extern char _binary____etc_template_init_script_tpl_end;
+#ifdef INA_OS_LUNIX*/
+extern char *_binary____etc_template_init_script_tpl_start;
+extern char *_binary____etc_template_init_script_tpl_end;
+#endif
 /*
  * NOTES:
  *
@@ -388,6 +394,15 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
     ina_str_t out;
     ina_str_t script_filepath;
     FILE *fp;
+#ifdef INA_OS_OSX
+    static char *_binary____etc_template_init_script_tpl_start = NULL;
+    if (_binary____etc_template_init_script_tpl_start == NULL) {
+         _binary____etc_template_init_script_tpl_start = (char*)dlsym(RTLD_DEFAULT, "_binary____etc_template_init_script_tpl_start");
+         if (_binary____etc_template_init_script_tpl_start == NULL) {
+            return INA_FAILURE;
+         }
+    }
+#endif
     
     if (!INA_SUCCEED(ina_template_init(&tpl_ctx))) {
         return INA_ERR_PUSH_LAST;
@@ -395,7 +410,7 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
 
     if (!INA_SUCCEED(ina_template_compile(tpl_ctx,
                      "init-script", 
-                     &_binary____etc_template_init_script_tpl_start, 
+                     _binary____etc_template_init_script_tpl_start, 
                      &env))) {
         return INA_ERR_PUSH_LAST;
     }
