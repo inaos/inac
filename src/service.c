@@ -365,9 +365,9 @@ static ina_rc_t __ina_service_mgnt_stop(const char *name)
 }
 
 #else
-#ifdef INA_OS_LUNIX*/
-extern char *_binary____etc_template_init_script_tpl_start;
-extern char *_binary____etc_template_init_script_tpl_end;
+#ifdef INA_OS_LINUX
+extern char _binary____etc_template_init_script_tpl_start;
+extern char _binary____etc_template_init_script_tpl_end;
 #endif
 /*
  * NOTES:
@@ -410,7 +410,7 @@ static ina_rc_t __ina_service_install(const ina_service_ctx_t *ctx)
 
     if (!INA_SUCCEED(ina_template_compile(tpl_ctx,
                      "init-script", 
-                     _binary____etc_template_init_script_tpl_start, 
+                     &_binary____etc_template_init_script_tpl_start, 
                      &env))) {
         return INA_ERR_PUSH_LAST;
     }
