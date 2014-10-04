@@ -314,16 +314,15 @@ if defined INAC_WIN32_LUA_SOURCE_DIR (
 			if ERRORLEVEL 1 goto exit_fail
 			%INAC_W32_LUAJIT% -b %INAC_W32_LUAJIT_DIR%\dump.lua %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\dump.obj
 		)
+		REM build a lib file from the lua-byte code - if necessary
+		if defined INAC_WIN32_LUA_LIB_NAME (
+			%INAC_W32_LIB_CMD% /OUT:%INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\%INAC_WIN32_LUA_LIB_NAME% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
+			if ERRORLEVEL 1 goto exit_fail
+			REM delete object files
+			del %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
+		)
 	)
 	cd %INAC_WIN32_OLD_DIR%
-)
-
-REM build a lib file from the lua-byte code - if necessary
-if defined INAC_WIN32_LUA_LIB_NAME (
-	%INAC_W32_LIB_CMD% /OUT:%INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\%INAC_WIN32_LUA_LIB_NAME% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
-	if ERRORLEVEL 1 goto exit_fail
-	REM delete object files
-	rm %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\lua\*.obj
 )
 
 echo Build for %INAC_WIN32_BUILD_NAME% successful

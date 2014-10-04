@@ -26,6 +26,10 @@
  */
 #include <libinac/lib.h>
 
+#if !defined(CLOCK_MONOTONIC_RAW)
+    #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#endif
+ 
 /* 
  * Create a stop watch with an given ID, makes 3 time stamps each 10 ms
  * beetween.

@@ -610,6 +610,9 @@ static void __ina_service_signal_handler(ina_signal_t sig,
         if (INA_SUCCEED(__ctx->descriptor->service_fn(
             __ctx, INA_SERVICE_STATUS_SHUTDOWN, 
             (void*)__ctx->user_data))) {
+#ifdef INA_OS_WIN32
+        WaitForSingleObject(__ctx->main_thread, INFINITE);
+#endif
             __ctx->descriptor->service_fn(
                 __ctx, INA_SERVICE_STATUS_STOP,
                 (void*)__ctx->user_data);
@@ -618,9 +621,6 @@ static void __ina_service_signal_handler(ina_signal_t sig,
                 INA_SERVICE_STATUS_ERROR,
                 (void*)__ctx->user_data);
         }
-#ifdef INA_OS_WIN32
-        WaitForSingleObject(__ctx->main_thread, INFINITE);
-#endif
     }
 }
 
@@ -821,9 +821,9 @@ INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int cons
         ina_service_set_data(ctx, user_data);
     } 
     if (!console) {
+        ((ina_service_ctx_t*)ctx)->is_deamon = INA_YES;
         return __ina_service_run_service(ctx);
     }
-    ((ina_service_ctx_t*)ctx)->is_deamon = INA_YES;
     return __ina_service_run_console(ctx);
 }
 

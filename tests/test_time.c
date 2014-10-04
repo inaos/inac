@@ -31,6 +31,10 @@
 #endif
 #include <libinac/lib.h>
 
+#if !defined(CLOCK_MONOTONIC_RAW)
+    #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#endif
+
 INA_TEST(time, tsc_strftime)
 {
     ina_str_t str = ina_str_new(128);

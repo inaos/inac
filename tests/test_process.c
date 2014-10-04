@@ -27,6 +27,11 @@
  */
 #include <libinac/lib.h>
 
+#ifndef INA_OS_WIN32
+#define __INA_TEST_EXE "test"
+#else
+#define __INA_TEST_EXE "test.exe"
+#endif
 
 INA_TEST_SKIP(process, init_destroy)
 {   
@@ -93,7 +98,7 @@ INA_TEST_SKIP(process, new_free)
     INA_TEST_ASSERT_NOT_NULL(ctx);
     
     ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
-    pd.full_path = ina_str_new_fromcstr("./test");
+    pd.full_path = ina_str_new_fromcstr(__INA_TEST_EXE);
     pd.working_dir = ina_str_new_fromcstr("./");
     pd.startup_args = ina_str_new_fromcstr("-h process");
     pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET;
@@ -123,7 +128,7 @@ INA_TEST(process, start_and_wait)
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
     ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
-    pd.full_path = ina_str_new_fromcstr("test");
+    pd.full_path = ina_str_new_fromcstr(__INA_TEST_EXE);
     pd.startup_args = ina_str_new_fromcstr("-h process spawn_and_wait 0");
     pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_WAIT;
    
@@ -173,7 +178,7 @@ INA_TEST_SKIP(process, state)
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
     ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
-    pd.full_path = ina_str_new_fromcstr("test");
+    pd.full_path = ina_str_new_fromcstr(__INA_TEST_EXE);
     pd.working_dir = ina_str_new_fromcstr("");
     pd.startup_args = ina_str_new_fromcstr("-h process spwan_and_forget");
     pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET;
@@ -202,7 +207,8 @@ INA_TEST_SKIP(process, should_be_running)
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
     ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
-    pd.full_path = ina_str_new_fromcstr("test");
+    pd.full_path = ina_str_new_fromcstr(__INA_TEST_EXE);
+
     pd.working_dir = NULL;
     pd.startup_args = ina_str_new_fromcstr("-h process spawn_and_wait 0");
     pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_WAIT;
@@ -229,7 +235,7 @@ INA_TEST(process, get_exit_code)
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
     ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
-    pd.full_path = ina_str_new_fromcstr("test");
+    pd.full_path = ina_str_new_fromcstr(__INA_TEST_EXE);
     pd.startup_args = ina_str_new_fromcstr("-h process spawn_and_wait 123");
     pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_WAIT;
    
