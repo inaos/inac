@@ -27,6 +27,9 @@
  */
 #include <libinac/lib.h>
 #include "config.h"
+#ifdef INA_OS_WIN32
+static HANDLE __main_thread = NULL;
+#endif
 
 /* Internal registry short option */
 typedef struct __ina_sopt_s {
@@ -105,6 +108,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
     
 #ifdef INA_OS_WIN32
     _set_abort_behavior(0, _WRITE_ABORT_MSG);
+    __main_thread = GetCurrentThread();
 #endif
     
     if (!INA_SUCCEED(ina_init(pool_size))) {
@@ -611,6 +615,9 @@ __ina_signal_handler(int sig)
     sh = __signal_handler_map[isig];
 
     if (sh) {
+#ifdef INA_OS_WIN32
+        WaitForSingleObject(__main_thread, INFINITE);
+#endif
         sh(isig, &sb, &exitcode);
     }
 
@@ -622,7 +629,7 @@ __ina_signal_handler(int sig)
                 ina_err_reset();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
-#endif
+#endif        
                 exit(EXIT_FAILURE);
             }
             break;        

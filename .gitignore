@@ -19,6 +19,7 @@ tests/test
 tests/ullc_monitor
 tests/service_mgr
 tests/ilt
+tests/iml
 contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/luajit/src/luajit.exp

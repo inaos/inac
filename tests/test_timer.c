@@ -70,7 +70,8 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
 }
- 
+
+#ifndef INA_OS_WIN32 
 INA_TEST(timer, event_rdtsc)
 {
     ina_timer_t *t;
@@ -122,3 +123,4 @@ INA_TEST(timer, event_rdtsc)
     strftime(tmbuf, sizeof tmbuf, "Timer event fired at %Y-%m-%d %H:%M:%S", nowtm);
     INA_TEST_MSG("%s", tmbuf);   
 }
+#endif
