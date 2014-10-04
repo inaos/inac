@@ -4,7 +4,7 @@ SRC += $(wildcard helper*.c)
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
-TOOLS = ullc_monitor service_mgr ilt
+TOOLS = ullc_monitor service_mgr ilt iml
 TOOLS_OBJS = $(TOOLS:=.o)
 
 # ****************************************************************************
