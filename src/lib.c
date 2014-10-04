@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 #ifdef INA_OS_WIN32
-static HANDLE __main_thread = NULL;
+static HANDLE __main_thread = NULL;
 #endif
 
 /* Internal registry short option */
