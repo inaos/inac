@@ -65,7 +65,7 @@ $(INAC_LIB): $(OBJS)
 	@ar crs $(INAC_LIB) *.o
 	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luajit/src/jit/*.o
 	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luatest/*.o
-	@ar crS $(INAC_LIB)  ../etc/template/*.o
+	@ar crs $(INAC_LIB)  ../etc/template/*.o
 	@for i in $(DIRS); do ar crs $(INAC_LIB) $$i/*.o; done
 
 .PHONY: clean
