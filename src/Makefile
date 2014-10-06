@@ -40,8 +40,10 @@ OBJS += $(SRC_TPL:%.tpl=%.o)
 OBJCPY=dummy
 ifeq (Darwin,$(shell uname -s))
 	OBJCPY=gobjcopy --input-target binary --output-target mach-o-x86-64 --binary-architecture i386
+	OBJCPY_AR_OPT = crS
 else
 	OBJCPY=objcopy --input binary --output elf64-x86-64 --binary-architecture i386
+	OBJCPY_AR_OPT = crs
 endif
 
 all: $(OBJS) $(INAC_LIB)
@@ -65,7 +67,7 @@ $(INAC_LIB): $(OBJS)
 	@ar crs $(INAC_LIB) *.o
 	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luajit/src/jit/*.o
 	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luatest/*.o
-	@ar crs $(INAC_LIB)  ../etc/template/*.o
+	@ar $(OBJCPY_AR_OPT) $(INAC_LIB)  ../etc/template/*.o
 	@for i in $(DIRS); do ar crs $(INAC_LIB) $$i/*.o; done
 
 .PHONY: clean
