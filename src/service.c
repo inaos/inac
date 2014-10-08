@@ -789,10 +789,12 @@ INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
             
         while (INA_SUCCEED(ina_opt_get_key_value(index, &key, &value))) {
             if (INA_CSTR_CASECMP(ina_str_cstr(key), INA_SERVICE_OPT_NAME) != 0) {
-                startup_args = ina_str_catcstr(startup_args, " --");
-                startup_args = ina_str_cat(startup_args, key);
-                startup_args = ina_str_catcstr(startup_args, "=");
-                startup_args = ina_str_cat(startup_args, value);
+                if (value != NULL) {
+                    startup_args = ina_str_catcstr(startup_args, " --");
+                    startup_args = ina_str_cat(startup_args, key);
+                    startup_args = ina_str_catcstr(startup_args, "=");
+                    startup_args = ina_str_cat(startup_args, value);
+                }
             }
             index++;
         }
