@@ -667,6 +667,8 @@ INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx, const char *id, ina_c
         *task = NULL;
     }
 
+    ina_str_free(skey);
+
     return INA_SUCCESS;
 }
 
