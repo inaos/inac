@@ -355,7 +355,6 @@ INA_API(ina_rc_t) ina_template_set_boolean(ina_template_env_t *env, const char *
     arg.value_type = __INA_TEMPLATE_DATATYPE_BOOLEAN;
     arg.b_val = boolean;
     return __ina_template_env_set(&arg, env);
-    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_template_set_string(ina_template_env_t *env, const char *key, ina_str_t str)
