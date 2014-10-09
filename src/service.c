@@ -599,8 +599,8 @@ static ina_rc_t __ina_service_mgnt_stop(const char *name)
 
 static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_t *status)
 {
-    int lfp;
-    ina_str_t lock_file_path;
+    int lfp = 0;
+    ina_str_t lock_file_path = NULL;
 
     INA_ASSERT_NOTNULL(status);
 
@@ -608,7 +608,7 @@ static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_
 
     lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, name);
     lfp = open(ina_str_cstr(lock_file_path), O_RDONLY, 0640);
-    if (lfp > 0) {
+    if (lfp >= 0) {
         *status = INA_SERVICE_STATUS_RUN;
         close(lfp);
     }
