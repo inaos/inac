@@ -322,6 +322,9 @@ INA_API(void) ina_exit(void)
     if (__appname != NULL) {
         ina_str_free(__appname);
     }
+    if (__apppath != NULL) {
+        ina_str_free(__apppath);
+    }
 
     /* FIXME: Crashes during tests because sys mem pool 
        was destroyed */
