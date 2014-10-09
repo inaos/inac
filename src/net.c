@@ -113,6 +113,7 @@ INA_API(ina_rc_t) ina_net_tcp_connect(int* fd, const char *addr, int port, int t
             fd_set fdset;
             struct timeval timeout;
 
+            ina_mem_set(&fdset, 0, sizeof(fd_set));
             FD_ZERO(&fdset);
             FD_SET(*fd, &fdset);
             timeout.tv_sec = timeout_sec;
