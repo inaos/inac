@@ -609,7 +609,8 @@ INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...
         INA_TRACE3("last_response.type->%d", type);
         rtype = (uint8_t)va_arg(params, int);
         if (type != rtype) {
-            INA_TRACE3("Type not matching (requested %d found: %d)", type, rtype);
+            INA_TRACE("Type not matching (requested %d found: %d)", type, rtype);
+            return INA_ISCP_ETYPE;
         }
         n+= sizeof(uint8_t);
         c = &ctx->last_response.cmd_data[n];
