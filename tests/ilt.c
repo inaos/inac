@@ -50,7 +50,11 @@ int main(int argc,  char** argv)
     if (strcmp("<bootstrap>", ina_str_cstr(bootstrp))!=0) {
         if (luaL_dofile(ctx->lstate, ina_str_cstr(bootstrp)) != 0) {
             printf("%s", luaL_checkstring(ctx->lstate, 1));
+            ina_str_free(bootstrp);
             return EXIT_FAILURE;
+        }
+        else {
+            ina_str_free(bootstrp);
         }
     }
 
