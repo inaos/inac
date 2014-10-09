@@ -90,6 +90,7 @@ static ina_signal_handler_t __signal_handler_map[] = {
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
 };
 
