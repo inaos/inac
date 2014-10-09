@@ -768,15 +768,15 @@ __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
     INA_TRACE3("Acpect ISCP on fd %d", data->lfd);
     
     if (INA_SUCCEED(ina_net_tcp_accept(&data->fd, data->lfd, NULL, NULL))) {
-        if (data->fd != -1) {
-            INA_TRACE3("Accepted ISCP fd %d", data->fd);
+        /*if (data->fd != -1) {*/
+            /*INA_TRACE3("Accepted ISCP fd %d", data->fd);*/
             /*if (!INA_SUCCEED(ina_net_nonblock(data->fd))) {
                 ina_net_close(data->fd);
                 data->fd = -1;
             }*/
             /*ina_net_set_read_timeout(data->fd, 100);
             ina_net_set_write_timeout(data->fd, 100);*/
-        }
+        /*}*/
     }
     
     if (data->fd == -1) {
