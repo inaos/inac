@@ -219,6 +219,8 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t inLen, unsigned 
     char *end = in + inLen;
     size_t buf = 1, len = 0;
     
+    *outLen = 0;
+
     while (in < end) {
         unsigned char c = base64_decode_tab[(int)(*in++)];
  
