@@ -269,7 +269,7 @@ static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t *ctx)
 static ina_rc_t __ina_service_win_setandcheck_mutex(ina_service_ctx_t *ctx)
 {
     ina_str_t mutex_name = ina_str_new_fromcstr("/ina_service_mutex_");
-    ina_str_cat(mutex_name, ctx->descriptor->name);
+    mutex_name = ina_str_catcstr(mutex_name, ctx->descriptor->name);
     if (ctx->descriptor->exclusive_flag) {
         HANDLE hmutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, ina_str_cstr(mutex_name));
         if (hmutex != NULL) {
