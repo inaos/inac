@@ -32,7 +32,7 @@ int main(int argc,  char** argv)
 {
     ina_rc_t rc;
     ina_ljit_ctx_t *ctx = NULL;
-    ina_str_t bootstrp;
+    ina_str_t bootstrp = NULL;
 
     INA_OPTS(opt,
         INA_OPT_STRING("b", "bootstrap", "<bootstrap>", "Full path to the bootstrap file"));
