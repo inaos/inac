@@ -274,7 +274,6 @@ INA_API(ina_rc_t) ina_err_trace(void)
 
     fprintf(stderr, "%s\n", "**** UNHANDLED ERROR START ******");
 
-    rc = ina_err_peek();
     n = __state.c;
     while (n--) {
         if (INA_SUCCEED(ina_err_fmtmsg(__state.errors[n].rc, str, 2048))) {
