@@ -225,7 +225,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
 
             tm = localtime(&error->ts);
 
-            if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
+            if (tm && strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
                 sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u,i:%d)",
                                             tmc, 
                                             error->file,
