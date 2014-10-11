@@ -202,9 +202,9 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
                     e = c;
                 }
 
-                if (s > 0 && (e-s) >= 0) {
+                if (s > 0) {
                     char buf[100];
-                    strncpy(buf, &argv[n][s], e-s);
+                    strncpy(buf, &argv[n][s], (size_t)(e-s));
                     buf[c-s] = 0;
                     INA_TRACE3("opt=%s", buf);
                     so = __ina_opt_get(buf);
