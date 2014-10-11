@@ -413,6 +413,10 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             params = (ina_iscp_param_t*)ina_mempool_dalloc(
                                             ctx->mempool,
                                             sizeof(ina_iscp_param_t)*(msg.p_count));
+            if (params == NULL) {
+                return INA_ERR_PUSH_LAST;
+            }
+
             param = params;
             while (n+INA_ISCP_HDR_SIZE < msg.length-sizeof(uint32_t)) {
                 unsigned char *c = &msg.cmd_data[n];
