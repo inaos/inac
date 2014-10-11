@@ -447,7 +447,7 @@ __ina_pop_error(void)
     INA_ASSERT(__state.c >= 0);
 
     if (__state.c > 0) {
-        for (i = 1; i < __state.c+1; ++i) {
+        for (i = 1; i < __state.c; ++i) {
             rc = INA_RC_PACK(INA_RC_OSFN(__state.errors[i].rc),
                              INA_RC_MOD(__state.errors[i].rc),
                              INA_RC_REASON(__state.errors[i].rc),
