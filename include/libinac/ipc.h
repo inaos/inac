@@ -104,11 +104,19 @@ extern "C" {
 #define INA_IPC_FLAGS_LAST INA_IPC_FLAGS_64
 #define INA_IPC_FLAGS_MAX 64
 
+#define INA_IPC_COUNTER_NAME_MAXLEN  (64)
+
 /*
  * Opaque types for IPC flag
  */
 typedef struct ina_ipc_flags_data_s ina_ipc_flags_data_t;
 typedef struct ina_ipc_flags_s ina_ipc_flags_t;
+
+/*
+ * Opaque types for IPC counter
+ */
+typedef struct ina_ipc_counter_data_s ina_ipc_counter_data_t;
+typedef struct ina_ipc_counter_s ina_ipc_counter_t;
 
 /*
  * Create an new IPC flag
@@ -153,8 +161,42 @@ INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value);
 /* 
  * Wait until flags are set
  */
-INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait_for, time_t msec_timeout);
+INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t *flags, uint64_t wait_for, time_t msec_timeout);
 
+/*
+ * Create an new IPC counter
+ */
+INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ipc_counter_t **counter);
+
+/*
+ * Open an IPC counter
+ */
+INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **counter);
+
+/* 
+ * Free an IPC counter
+ */
+INA_API(ina_rc_t) ina_ipc_counter_free(ina_ipc_counter_t **counter);
+
+/*
+ * Get an IPC counter value
+ */
+INA_API(ina_rc_t) ina_ipc_counter_get(const ina_ipc_counter_t *counter, uint64_t *value);
+
+/*
+ * Increment an IPC counter by a value (e.g. 1)
+ */
+INA_API(ina_rc_t) ina_ipc_counter_increment(ina_ipc_counter_t *counter, uint64_t value);
+
+/*
+ * Decrement an IPC counter by a value (e.g. 1)
+ */
+INA_API(ina_rc_t) ina_ipc_counter_decrement(ina_ipc_counter_t *counter, uint64_t value);
+
+/*
+ * Set an IPC counter to a specific value
+ */
+INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter, uint64_t value);
 
 #ifdef __cplusplus
 }

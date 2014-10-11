@@ -38,9 +38,21 @@ struct ina_ipc_flags_s {
 struct ina_ipc_flags_data_s {
     char name[INA_IPC_FLAGS_NAME_MAXLEN];
     int64_t  l;
-    uint64_t v;
+    volatile uint64_t v;
     uint64_t ka;
     uint32_t c_ref[64];
+};
+
+/* IPC counter */
+struct ina_ipc_counter_s {
+    ina_mempool_t *m;
+    ina_ipc_counter_data_t *data;
+};
+
+/* IPC counter data */
+struct ina_ipc_counter_data_s {
+    char name[INA_IPC_FLAGS_NAME_MAXLEN];
+    volatile uint64_t c;
 };
 
 #define __INA_ENTER_LOCK(d)
@@ -52,7 +64,7 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
 
     INA_ASSERT_NOTNULL(flags);
 
-    *flags = ina_mem_alloc(sizeof(ina_ipc_flags_t));
+    *flags = (ina_ipc_flags_t*)ina_mem_alloc(sizeof(ina_ipc_flags_t));
     if (*flags == NULL) {
         return INA_ERR_PUSH_LAST;
     }
@@ -65,7 +77,7 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
         ina_ipc_flags_free(flags);
         return INA_ERR_PUSH_LAST;
     }
-    (*flags)->data = ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
+    (*flags)->data = (ina_ipc_flags_data_t*)ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
     }
@@ -81,7 +93,7 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
     char mname[INA_IPC_FLAGS_NAME_MAXLEN+15];
     INA_ASSERT_NOTNULL(flags);
 
-    *flags = ina_mem_alloc(sizeof(ina_ipc_flags_t));
+    *flags = (ina_ipc_flags_t*)ina_mem_alloc(sizeof(ina_ipc_flags_t));
     if (*flags == NULL) {
         return INA_ERR_PUSH_LAST;
     }
@@ -93,7 +105,7 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
         ina_ipc_flags_free(flags);
         return INA_ERR_PUSH_LAST;
     }
-    (*flags)->data = ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
+    (*flags)->data = (ina_ipc_flags_data_t*)ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
     }
@@ -138,7 +150,7 @@ INA_API(ina_rc_t) ina_ipc_flags_set(ina_ipc_flags_t *flags, uint64_t value)
     INA_ASSERT_NOTNULL(flags);
     INA_ASSERT_NOTNULL(flags->data);
     __INA_ENTER_LOCK(flags->data);
-    flags->data->v |= value;
+    INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v | value);
     __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
 }
@@ -158,7 +170,7 @@ INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
     INA_ASSERT_NOTNULL(flags);
     INA_ASSERT_NOTNULL(flags->data);
     __INA_ENTER_LOCK(flags->data);
-    flags->data->v &= ~(value);
+    INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v & ~(value));
     __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
 }
@@ -195,4 +207,108 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ipc_counter_t **counter)
+{
+    char mname[INA_IPC_COUNTER_NAME_MAXLEN+18];
 
+    INA_ASSERT_NOTNULL(counter);
+
+    *counter = (ina_ipc_counter_t*)ina_mem_alloc(sizeof(ina_ipc_counter_t));
+    if (*counter == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+    strcpy(mname, "/ina_ipc_counter_");
+    strncat(mname, name, INA_IPC_COUNTER_NAME_MAXLEN);
+
+    if (!INA_SUCCEED(ina_mempool_create(&(*counter)->m, sizeof(ina_ipc_counter_data_t), 
+                     INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, 
+                     mname))) {
+        ina_ipc_counter_free(counter);
+        return INA_ERR_PUSH_LAST;
+    }
+    (*counter)->data = (ina_ipc_counter_data_t*)ina_mempool_dalloc((*counter)->m, sizeof(ina_ipc_counter_data_t));
+    if ((*counter)->data == NULL) {
+        ina_ipc_counter_free(counter);
+    }
+    (*counter)->data->c = initial;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **counter)
+{
+    char mname[INA_IPC_COUNTER_NAME_MAXLEN+18];
+
+    INA_ASSERT_NOTNULL(counter);
+
+    *counter = (ina_ipc_counter_t*)ina_mem_alloc(sizeof(ina_ipc_counter_t));
+    if (*counter == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+    strcpy(mname, "/ina_ipc_counter_");
+    strncat(mname, name, INA_IPC_COUNTER_NAME_MAXLEN);
+    if (!INA_SUCCEED(ina_mempool_create(&(*counter)->m, sizeof(ina_ipc_counter_data_t), 
+                     INA_MEM_SHARED, 
+                     mname))) {
+        ina_ipc_counter_free(counter);
+        return INA_ERR_PUSH_LAST;
+    }
+    (*counter)->data = (ina_ipc_counter_data_t*)ina_mempool_dalloc((*counter)->m, sizeof(ina_ipc_counter_data_t));
+    if ((*counter)->data == NULL) {
+        ina_ipc_counter_free(counter);
+    }
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ipc_counter_free(ina_ipc_counter_t **counter)
+{
+    INA_ASSERT_NOTNULL(counter);
+
+    if (*counter == NULL) {
+        return INA_SUCCESS;
+    }
+    if ((*counter)->m != NULL) {
+        ina_mempool_release((*counter)->m, INA_YES);
+    }
+    ina_mem_free(*counter);
+    *counter = NULL;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ipc_counter_get(const ina_ipc_counter_t *counter, uint64_t *value)
+{
+    INA_ASSERT_NOTNULL(counter);
+
+    *value = counter->data->c;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ipc_counter_increment(ina_ipc_counter_t *counter, uint64_t value)
+{
+    INA_ASSERT_NOTNULL(counter);
+
+    INA_ATOMIC_SWAP(&counter->data->c, counter->data->c, counter->data->c + value);
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ipc_counter_decrement(ina_ipc_counter_t *counter, uint64_t value)
+{
+    INA_ASSERT_NOTNULL(counter);
+
+    INA_ATOMIC_SWAP(&counter->data->c, counter->data->c, counter->data->c - value);
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter, uint64_t value)
+{
+    INA_ASSERT_NOTNULL(counter);
+
+    INA_ATOMIC_SWAP(&counter->data->c, counter->data->c, value);
+
+    return INA_SUCCESS;
+}
