@@ -368,7 +368,7 @@ INA_API(ina_rc_t) ina_err_coredump(void *data) {
 #ifndef INA_OS_WIN32
     char cmd[160];
     sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
-    if (system(cmd) != 0) {
+    if (system(cmd)) {
         return INA_FAILURE;
     } 
 #else
