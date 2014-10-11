@@ -253,7 +253,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
     n = 0;
     p = cmd->p_count;
-    type = -1;
+    type = 0;
 
     va_start(params, cmd_id);
 
