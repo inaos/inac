@@ -470,6 +470,9 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
             /* Store RC from command handler */
             INA_TRACE3("Call command handler for cmd_id %d", msg.cmd_id);
             retvals = ina_mempool_dalloc(ctx->mempool, sizeof(ina_iscp_param_t)*msg.r_count);
+            if (retvals == NULL) {
+                return INA_ERR_PUSH_LAST;
+            }
             msg.rc = cmd->handler(msg.cmd_id, msg.p_count, params, msg.r_count, retvals);
 
             /* We return RC back to the callee */
