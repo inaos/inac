@@ -748,7 +748,7 @@ INA_API(ina_rc_t) ina_cron_unregister_function(ina_cron_ctx_t *ctx, const char *
 
 INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, ina_str_t pattern, time_t now, time_t *last_exec_time)
 {
-    time_t t = now;
+    time_t t;
     ina_cron_func_t dummy;
     __ina_cron_schedulable_t sched;
     size_t slen = strlen(pattern);
