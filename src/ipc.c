@@ -288,7 +288,7 @@ INA_API(ina_rc_t) ina_ipc_counter_free(ina_ipc_counter_t **counter)
 INA_API(ina_rc_t) ina_ipc_counter_get(const ina_ipc_counter_t *counter, uint64_t *value)
 {
     INA_ASSERT_NOTNULL(counter);
-
+    INA_ASSERT_NOTNULL(value);
     *value = counter->data->c;
 
     return INA_SUCCESS;
