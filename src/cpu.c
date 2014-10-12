@@ -58,7 +58,7 @@ INA_API(ina_rc_t) ina_cpu_init()
 	char cpubrand[49];
 	ina_cpu_feature_t cpufeatures = 0;
 
-    __ina_cpu_ctx = (ina_cpu_ctx_t*)ina_mem_alloc(sizeof(struct ina_cpu_ctx_s));
+    __ina_cpu_ctx = (ina_cpu_ctx_t*)malloc(sizeof(struct ina_cpu_ctx_s));
 
 	/* cpus physical layout */
 	get_cpu_hw_info(&packages, &cores, &threads, &logical);
@@ -388,7 +388,7 @@ INA_API(ina_rc_t) ina_cpu_destroy()
         if (__ina_cpu_ctx->brand != NULL) {
             ina_str_free(__ina_cpu_ctx->brand);
         }
-        ina_mem_free(__ina_cpu_ctx);
+        free(__ina_cpu_ctx);
     }
     return INA_SUCCESS;
 }
