@@ -173,7 +173,7 @@ INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx)
     (*ctx)->clse_cb((*ctx)->user_data, 1);
     (*ctx)->clse_cb((*ctx)->user_data, 0);    
 
-    if (!INA_SUCCEED(ina_mempool_release((*ctx)->mempool, 0))) {
+    if (!INA_SUCCEED(ina_mempool_release((*ctx)->mempool, INA_YES))) {
         return INA_ERR_PUSH_LAST;
     }
     ina_timer_delete_event((*ctx)->timer, (*ctx)->time_event);
