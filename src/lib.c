@@ -301,6 +301,11 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     }
 #endif
 
+    /* initialize CPU module */
+    if (!INA_SUCCEED(ina_cpu_init())) {
+        return INA_ERR_PUSH_LAST;
+    }
+
     return INA_SUCCESS;
 }
 
@@ -316,6 +321,9 @@ INA_API(void) ina_exit(void)
     /* Reset CIO attributes */
     ina_cio_reset();
 
+	/* destroy cpu module */
+    ina_cpu_destroy();
+	
     if (__cleanup != NULL) {
         __cleanup(0, 0);
     }

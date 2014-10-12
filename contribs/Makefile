@@ -37,6 +37,8 @@ all:
 	$(MAKE) -C rapidxml
 	$(MAKE) -C axtls
 	$(MAKE) -C yajl
+	$(MAKE) -C lz4
+	$(MAKE) -C miniz
 
 test: all
 
@@ -58,4 +60,6 @@ clean:
 	$(MAKE) clean -C rapidxml
 	$(MAKE) clean -C axtls
 	$(MAKE) clean -C yajl
+	$(MAKE) clean -C lz4
+	$(MAKE) clean -C miniz
 

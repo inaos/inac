@@ -89,6 +89,8 @@
 #include <libinac/process.h>
 #include <libinac/ipc.h>
 #include <libinac/template.h>
+#include <libinac/cpu.h>
+#include <libinac/compression.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
