@@ -740,8 +740,10 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
 
 r1:
         if (INA_SUCCEED(ina_net_read(data->fd, buf, sizeof(ina_iscp_msg_t), &nb_read))) {
-            tot_nb_read = nb_read;
-            buf += nb_read;       
+            if (nb_read > 0) {
+                tot_nb_read = nb_read;
+                buf += nb_read;
+            }       
             if (tot_nb_read < INA_ISCP_HDR_SIZE) {
                 goto r1;
             }
