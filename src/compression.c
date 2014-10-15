@@ -33,7 +33,7 @@
 
 #define MINIZ_NO_MALLOC
 
-#include <contribs/miniz/miniz.c>
+#include <contribs/miniz/miniz.h>
 
 struct ina_compression_state_s;
 
