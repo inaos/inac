@@ -761,7 +761,7 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, ina_str_t patt
         ina_mem_free(buf);
         return ina_err_peek();
     }
-    ins_str_free(buf);
+    ina_str_free(buf);
 
     for (t = now - now % 60; t > 0; t -= 60) {
         struct tm *tp = localtime(&t);
