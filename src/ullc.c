@@ -103,6 +103,9 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
 {
     ina_ullc_ctx_t *pctx;
     
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOTNULL(ctx);
+
     if (version <= 0) {
         return INA_ULLC_EINVERSION;
     }
@@ -193,6 +196,8 @@ INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
 {
+    INA_ASSERT_NOTNULL(ctx);
+
     if (*ctx == NULL) {
         return INA_SUCCESS;
     }
@@ -282,6 +287,9 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
     ina_ullc_cursor_t *cons;
     ina_ullc_ctx_t* ccxt;
 
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOTNULL(ctx);
+
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
     if (*ctx == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -323,6 +331,8 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
 
 INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
 {
+    INA_ASSERT_NOTNULL(ctx);
+
     if (*ctx == NULL) {
         return INA_SUCCESS;
     }
