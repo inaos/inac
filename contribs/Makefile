@@ -26,6 +26,8 @@
 # OF SUCH DAMAGE.
 #
 
+OS := $(shell uname -s)
+
 all: 
 	@echo building contribs...
 	$(MAKE) -C luajit
@@ -37,6 +39,9 @@ all:
 	$(MAKE) -C rapidxml
 	$(MAKE) -C axtls
 	$(MAKE) -C yajl
+ifneq ($(OS), Darwin)
+	$(MAKE) -C cpu-topology
+endif
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
 
@@ -60,6 +65,9 @@ clean:
 	$(MAKE) clean -C rapidxml
 	$(MAKE) clean -C axtls
 	$(MAKE) clean -C yajl
+ifneq ($(OS), Darwin)
+	$(MAKE) clean -C cpu-topology
+endif
 	$(MAKE) clean -C lz4
 	$(MAKE) clean -C miniz
 
