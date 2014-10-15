@@ -68,8 +68,6 @@ typedef enum ina_compression_direction_e {
 typedef struct ina_compression_state_s ina_compression_state_t;
 
 /*
- * If you want a custom buffer length or have a fixed source-length,
- * otherwise INA_COMPRESSION_DEFAULT_BUFFER_SIZE can be used
  *
  */
 INA_API(ina_rc_t) ina_compression_new(ina_compression_state_t **state, ina_compression_type_t type,

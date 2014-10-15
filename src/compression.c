@@ -82,8 +82,8 @@ static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, c
 static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *state, const unsigned char *src, 
                                                     size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len)
 {
-	*wrote_len = LZ4_decompress_fast((const char*)src, (char*)dst, state->chunk_src_len);
-	if (wrote_len == 0) {
+	*wrote_len = LZ4_decompress_fast((const char*)src, (char*)dst, src_len);
+	if (wrote_len <= 0) {
 		return INA_FAILURE;
 	}
 	return INA_SUCCESS;
@@ -92,8 +92,8 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
 static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *state, const unsigned char *src, 
                                                     size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len)
 {
-	*wrote_len = LZ4_decompress_safe((const char*)src, (char*)dst, state->chunk_src_len, dst_len);
-	if (wrote_len == 0) {
+	*wrote_len = LZ4_decompress_safe((const char*)src, (char*)dst, src_len, dst_len);
+	if (wrote_len <= 0) {
 		return INA_FAILURE;
 	}
 	return INA_SUCCESS;
@@ -310,7 +310,6 @@ INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state,
 INA_API(ina_rc_t) ina_compression_decompress_chunk(ina_compression_state_t *state, const unsigned char *src,
                                                    size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len)
 {
-    state->chunk_src_len = src_len;
     return state->decompress_fn(state, src, src_len, dst, dst_len, wrote_len);
 }
 
