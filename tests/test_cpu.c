@@ -101,10 +101,10 @@ INA_TEST(cpu, test_supported)
     INA_TEST_ASSERT_SUCCEED(ina_cpu_is_supported(&supported));
 
     if (supported) {
-        INA_TEST_MSG("CPU is supported by INAC\n");
+        INA_TEST_MSG("CPU is supported by INAC\n", NULL);
     }
     else {
-        INA_TEST_MSG("CPU is NOT supported by INAC\n");
+        INA_TEST_MSG("CPU is NOT supported by INAC\n", NULL);
     }
 }
 
