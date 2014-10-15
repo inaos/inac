@@ -37,6 +37,7 @@ all:
 	$(MAKE) -C rapidxml
 	$(MAKE) -C axtls
 	$(MAKE) -C yajl
+	$(MAKE) -C cpu-topology
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
 
@@ -60,6 +61,7 @@ clean:
 	$(MAKE) clean -C rapidxml
 	$(MAKE) clean -C axtls
 	$(MAKE) clean -C yajl
+	$(MAKE) clean -C cpu-topology
 	$(MAKE) clean -C lz4
 	$(MAKE) clean -C miniz
 

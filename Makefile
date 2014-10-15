@@ -67,7 +67,8 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a $(INAC_CONTRIBS_DIR)/skiplist/skiplist.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.a $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
-        $(INAC_CONTRIBS_DIR)/yajl/yajl.a
+        $(INAC_CONTRIBS_DIR)/yajl/yajl.a $(INAC_CONTRIBS_DIR)/cpu-topology/cpu-topology.a \
+	$(INAC_CONTRIBS_DIR)/miniz/miniz.a $(INAC_CONTRIBS_DIR)/lz4/lz4.a
 # ****************************************************************************
 #  String implementation
 # ****************************************************************************
@@ -108,7 +109,7 @@ export CFLAGS
 export LDFLAGS
 export INAC_LIB
 export INAC_LIBS
-export INA_STRING_DEFINEDß
+export INA_STRING_DEFINED
 export INA_TIME_DEFINED
 
 default: release
