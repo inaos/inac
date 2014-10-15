@@ -217,7 +217,7 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
 
     INA_ASSERT_NOTNULL(counter);
     INA_ASSERT_NOTNULL(name);
-    INA_ASSERT_TRUE(strlen(name) > INA_IPC_COUNTER_NAME_MAXLEN);
+    INA_ASSERT_TRUE(strlen(name) < INA_IPC_COUNTER_NAME_MAXLEN);
 
     *counter = (ina_ipc_counter_t*)ina_mem_alloc(sizeof(ina_ipc_counter_t));
     if (*counter == NULL) {
