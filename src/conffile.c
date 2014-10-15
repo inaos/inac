@@ -100,6 +100,8 @@ static ina_rc_t __ina_get_value(ina_conffile_t*, const char*, const char*,
 
 INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
 {
+    INA_ASSERT_NOTNULL(cf);
+
     *cf = (ina_conffile_t*)ina_mem_alloc(sizeof(ina_conffile_t));
     if (*cf == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -124,6 +126,8 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
 
 INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf)
 {
+    INA_ASSERT_NOTNULL(cf);
+
     if (*cf == NULL) {
         return INA_SUCCESS;
     }
@@ -142,6 +146,10 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
     unsigned long key;
     ina_conffile_section_t *sp;
     ina_conffile_section_t *check;
+
+    INA_ASSERT_NOTNULL(cf);
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOTNULL(section);
     
     if (cf->prepared == INA_YES) {
         return INA_CONFFILE_EPREPARED;
@@ -340,6 +348,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
     ina_conffile_section_t *s, *stmp;
 
     INA_ASSERT_NOTNULL(cf);
+    INA_ASSERT_NOTNULL(filepath);
 
     /* Almost one section must be there */
     if (cf->sections == NULL) {
