@@ -27,7 +27,7 @@
  */
 #include <libinac/lib.h>
 
-
+#ifndef INA_OS_OSX
 INA_TEST(cpu, test_brand_string)
 {
     ina_str_t brand = NULL;
@@ -93,6 +93,7 @@ INA_TEST(cpu, test_logical_count)
 
     INA_TEST_MSG("CPU logical-count: %d\n", logical_count);
 }
+#endif
 
 INA_TEST(cpu, test_supported)
 {
@@ -101,10 +102,10 @@ INA_TEST(cpu, test_supported)
     INA_TEST_ASSERT_SUCCEED(ina_cpu_is_supported(&supported));
 
     if (supported) {
-        INA_TEST_MSG("CPU is supported by INAC\n", NULL);
+        INA_TEST_MSG("CPU and OS are supported by INAC\n", NULL);
     }
     else {
-        INA_TEST_MSG("CPU is NOT supported by INAC\n", NULL);
+        INA_TEST_MSG("CPU and OS are NOT supported by INAC\n", NULL);
     }
 }
 
