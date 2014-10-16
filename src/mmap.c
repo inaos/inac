@@ -28,6 +28,10 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifndef INA_OS_WIN32
+#include <sys/mman.h>
+#endif
+
 struct ina_mmap_ctx_s {
 	uint32_t allocation_granularity;
 };
@@ -70,7 +74,7 @@ INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx)
 
 INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd, 
                                int prot_flags, ina_mmap_mem_share_t share,
-							   size_t offset, size_t length, ina_mmap_mapping_t **mapping)
+                               size_t offset, size_t length, ina_mmap_mapping_t **mapping)
 {
 	void *data = NULL;
 	ina_file_stat_t *fstat;
@@ -84,14 +88,14 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	DWORD dwMapViewSize;
 	DWORD dwDesiredAccess;
 	size_t delta;
+
+	dwMaximumSizeLow = flen;
 #else
 #endif
 
 	ina_file_stat_new(fd, &fstat);
 	ina_file_stat_file_size(fstat, &flen);
 	ina_file_stat_free(fd, &fstat);
-
-	dwMaximumSizeLow = flen;
 
 	if (offset + length > flen) {
 		/* FIXME: proper error handling */
@@ -101,9 +105,9 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	*mapping = (ina_mmap_mapping_t*)ina_mem_alloc(sizeof(ina_mmap_mapping_t));
 	(*mapping)->length = length;
 	(*mapping)->offset = offset;
-	(*mapping)->fmap = NULL;
 
 #ifdef INA_OS_WIN32
+	(*mapping)->fmap = NULL;
 	if (prot_flags & INA_MMAP_MEM_PROT_READ) {
 		if (share & INA_MMAP_MEM_PROT_EXEC) {
 			flProtect = PAGE_EXECUTE_READ;
@@ -156,6 +160,14 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	}
 	data = (unsigned char*)(*mapping)->lpMapAddress + delta;
 #else
+    int pprot;
+    int pflags;
+    
+    void *mr = mmap(0, length, pprot, pflags, fd->fh, offset);
+    if (mr == MAP_FAILED) {
+        /* FIXME: handle error */
+        return INA_FAILURE;
+    }
 #endif
 	
 	(*mapping)->begin_mmap = data;
