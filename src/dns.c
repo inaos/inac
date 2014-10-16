@@ -69,7 +69,7 @@ INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, const char* hostname
     INA_ASSERT_NOTNULL(address_count);
     INA_ASSERT_NOTNULL(addresses);
 
-    remote_host = gethostbyname(ina_str_cstr(hostname));
+    remote_host = gethostbyname(hostname);
     if (remote_host == NULL || remote_host->h_addrtype != AF_INET) {
         return INA_DNS_ELOOKUP;
     }

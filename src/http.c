@@ -259,7 +259,7 @@ INA_API(ina_rc_t) ina_http_destroy(ina_http_ctx_t **pctx)
 		cnt++;
 	}
 
-	if (cnt != ctx->parser_pool_size) {
+	if (cnt != (*pctx)->parser_pool_size) {
 		/* push error parser leak */
 		return INA_FAILURE;
 	}
@@ -541,7 +541,7 @@ INA_API(ina_rc_t) ina_http_parser_should_keep_alive(ina_http_parser_t *p, int *s
 {
 	INA_ASSERT_NOTNULL(p);
 	INA_ASSERT_NOTNULL(should_keep_alive);
-	
+
 	*should_keep_alive = http_should_keep_alive(&p->intp);
 	return INA_SUCCESS;
 }
