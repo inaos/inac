@@ -27,6 +27,11 @@
 #
 
 # ****************************************************************************
+# Set make variables
+# ****************************************************************************
+OS := $(shell uname -s)
+
+# ****************************************************************************
 # Set general Environment variables
 # ****************************************************************************
 INAC_HOME_DIR=$(CURDIR)
@@ -63,12 +68,15 @@ DIRS = contribs contribs-bin doc include src tests
 # Libraries
 # ****************************************************************************
 INAC_LIB=libinac.a
+ifeq ($(OS), Linux)
+INAC_LINUX_LIBS=$(INAC_CONTRIBS_DIR)/cpu-topology/cpu-topology.a
+endif
 INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a $(INAC_CONTRIBS_DIR)/skiplist/skiplist.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.a $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
-        $(INAC_CONTRIBS_DIR)/yajl/yajl.a $(INAC_CONTRIBS_DIR)/cpu-topology/cpu-topology.a \
-	$(INAC_CONTRIBS_DIR)/miniz/miniz.a $(INAC_CONTRIBS_DIR)/lz4/lz4.a
+        $(INAC_CONTRIBS_DIR)/yajl/yajl.a $(INAC_CONTRIBS_DIR)/miniz/miniz.a \
+	$(INAC_CONTRIBS_DIR)/lz4/lz4.a $(INAC_LINUX_LIBS)
 # ****************************************************************************
 #  String implementation
 # ****************************************************************************

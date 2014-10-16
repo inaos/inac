@@ -28,7 +28,9 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifndef INA_OS_OSX
 #include <contribs/cpu-topology/cputopology.h>
+#endif
 
 struct ina_cpu_ctx_s {
     int package_count;
@@ -47,19 +49,25 @@ static ina_cpu_ctx_t *__ina_cpu_ctx = NULL;
 
 INA_API(ina_rc_t) ina_cpu_init()
 {
+#ifndef INA_OS_OSX
     char vendor[16];
-	int packages = 0;
-	int cores = 0;
-	int threads = 0;
+    int packages = 0;
+    int cores = 0;
+    int threads = 0;
     int logical = 0;
-	CPUIDinfo info;
-	int stepping, model, family, extmodel, extfam;
-	char brandstr[49];
-	char cpubrand[49];
-	ina_cpu_feature_t cpufeatures = 0;
+    int stepping, model, family, extmodel, extfam;
+    char brandstr[49];
+    char cpubrand[49];
+    ina_cpu_feature_t cpufeatures = 0;
+    CPUIDinfo info;
+#endif
 
     __ina_cpu_ctx = (ina_cpu_ctx_t*)malloc(sizeof(struct ina_cpu_ctx_s));
+    memset(__ina_cpu_ctx, 0, sizeof(struct ina_cpu_ctx_s));
 
+#ifdef INA_OS_OSX
+    return INA_SUCCESS;
+#else
 	/* cpus physical layout */
 	get_cpu_hw_info(&packages, &cores, &threads, &logical);
     __ina_cpu_ctx->package_count = packages;
@@ -377,6 +385,7 @@ INA_API(ina_rc_t) ina_cpu_init()
     __ina_cpu_ctx->features = cpufeatures;
 
     return INA_SUCCESS;
+#endif
 }
 
 INA_API(ina_rc_t) ina_cpu_destroy()
@@ -438,12 +447,16 @@ INA_API(ina_rc_t) ina_cpu_get_brand_string(ina_str_t *brand)
 INA_API(ina_rc_t) ina_cpu_is_supported(int *supported)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+#ifdef INA_OS_OSX
+    *supported = 0;
+#else
     if (strcmp(INA_CPU_SUPPORTED_VENDOR, ina_str_cstr(__ina_cpu_ctx->vendor)) == 0) {
         *supported = 1;
     }
     else {
         *supported = 0;
     }
+#endif
     return INA_SUCCESS;
 }
 
