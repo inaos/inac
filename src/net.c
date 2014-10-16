@@ -45,6 +45,7 @@
 
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
+    INA_ASSERT_NOTNULL(host);
 #ifdef INA_OS_WIN32
     if (gethostname(host, len) != 0) {
         int ec = WSAGetLastError();
@@ -81,6 +82,8 @@ INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port)
     char err[ANET_ERR_LEN];
 
     INA_ASSERT_NOTNULL(fd);
+    INA_ASSERT_NOTNULL(ip);
+    INA_ASSERT_NOTNULL(port);
     INA_ASSERT_TRUE(sfd > 0);
     
     *fd = anetTcpAccept(err, sfd, ip, port);
