@@ -33,7 +33,7 @@
 #endif
 
 struct ina_mmap_ctx_s {
-	uint32_t allocation_granularity;
+	size_t page_size;
 };
 
 struct ina_mmap_mapping_s {
@@ -41,6 +41,7 @@ struct ina_mmap_mapping_s {
 	HANDLE fmap;
 	LPVOID lpMapAddress;
 #else
+    void *addr;
 #endif
 	ina_file_t *fd;
 	size_t offset;
@@ -51,18 +52,12 @@ struct ina_mmap_mapping_s {
 
 INA_API(ina_rc_t) ina_mmap_init(ina_mmap_ctx_t **ctx)
 {
-#ifdef INA_OS_WIN32
-	SYSTEM_INFO sys_info;
-#endif
+    *ctx = (ina_mmap_ctx_t*)ina_mem_alloc(sizeof(ina_mmap_ctx_t));
 
-	*ctx = (ina_mmap_ctx_t*)ina_mem_alloc(sizeof(ina_mmap_ctx_t));
-
-#ifdef INA_OS_WIN32
-	GetSystemInfo(&sys_info);
-	(*ctx)->allocation_granularity = sys_info.dwAllocationGranularity;
-#else
-#endif
-	return INA_SUCCESS;
+    if (!INA_SUCCEED(ina_mem_get_pagesize(&(*ctx)->page_size))) {
+        return INA_ERR_PUSH_LAST;
+    }	
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx)
@@ -90,7 +85,6 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	size_t delta;
 
 	dwMaximumSizeLow = flen;
-#else
 #endif
 
 	ina_file_stat_new(fd, &fstat);
@@ -141,10 +135,10 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	// To calculate where to start the file mapping, round down the
 	// offset of the data into the file to the nearest multiple of the
 	// system allocation granularity.
-	dwFileMapStart = ((DWORD)(offset / ctx->allocation_granularity)) * ctx->allocation_granularity;
+	dwFileMapStart = ((DWORD)(offset / ctx->page_size)) * ctx->page_size;
 	
 	// Calculate the size of the file mapping view.
-	dwMapViewSize = (offset % ctx->allocation_granularity) + length;
+	dwMapViewSize = (offset % ctx->page_size) + length;
 	dwMapViewSize = max(dwMapViewSize, length);
 	
 	// The data of interest isn't at the beginning of the
@@ -160,14 +154,34 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	}
 	data = (unsigned char*)(*mapping)->lpMapAddress + delta;
 #else
-    int pprot;
-    int pflags;
+    int pprot = 0;
+    int pflags = 0;
+
+    if (prot_flags & INA_MMAP_MEM_PROT_READ) {
+        pprot |= PROT_READ;
+    }
+    if (prot_flags & INA_MMAP_MEM_PROT_WRITE) {
+        pprot |= PROT_WRITE;
+    }
+    if (prot_flags & INA_MMAP_MEM_PROT_EXEC) {
+        pprot |= PROT_EXEC;
+    }
+    switch (share) {
+        case INA_MMAP_MEM_SHARE_PRIVATE:
+            pflags |= MAP_PRIVATE;
+            break;
+        case INA_MMAP_MEM_SHARE_SHARED:
+            pflags |= MAP_SHARED;
+            break;
+    }
+    pflags |= MAP_FILE;
     
-    void *mr = mmap(0, length, pprot, pflags, fd->fh, offset);
-    if (mr == MAP_FAILED) {
+    (*mapping)->addr = mmap(0, length, pprot, pflags, *((int*)ina_file_os_handle(fd)), offset);
+    if ((*mapping)->addr == MAP_FAILED) {
         /* FIXME: handle error */
         return INA_FAILURE;
     }
+    data = (unsigned char*)(*mapping)->addr;
 #endif
 	
 	(*mapping)->begin_mmap = data;
@@ -182,6 +196,7 @@ INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mappin
 	UnmapViewOfFile((*mapping)->lpMapAddress);
 	CloseHandle((*mapping)->fmap);
 #else
+    munmap((*mapping)->addr, (*mapping)->length);
 #endif
 	ina_mem_free(*mapping);
 	*mapping = NULL;
@@ -200,6 +215,10 @@ INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 		return INA_FAILURE;
 	}
 #else
+    if (msync(mapping->addr, mapping->length, MS_SYNC) != 0) {
+        /* FIXME: handle error */
+        return INA_FAILURE;
+    }
 #endif
 	return INA_SUCCESS;
 }
@@ -216,7 +235,24 @@ INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memor
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, int advice)
+INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, ina_mmap_mem_advice_t advice)
 {
+#ifndef INA_OS_WIN32
+    int padvice = 0;
+
+    switch (advice) {
+        case INA_MMAP_MEM_ADVICE_SEQUENTIAL:
+            padvice = MADV_SEQUENTIAL;
+            break;
+        case INA_MMAP_MEM_ADVICE_RANDOM:
+            padvice = MADV_RANDOM;
+            break;
+    }
+    if (madvise(mapping->addr, mapping->length, padvice) != 0) {
+        /* FIXME: handle error */
+        return INA_FAILURE;
+    } 
+#endif
 	return INA_SUCCESS;
 }
+

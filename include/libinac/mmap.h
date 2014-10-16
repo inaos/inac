@@ -43,14 +43,19 @@ extern "C" {
 
 typedef enum ina_mmap_mem_prot_e {
     INA_MMAP_MEM_PROT_READ = 0x01,
-	INA_MMAP_MEM_PROT_WRITE = 0x02,
-	INA_MMAP_MEM_PROT_EXEC = 0x04,
+    INA_MMAP_MEM_PROT_WRITE = 0x02,
+    INA_MMAP_MEM_PROT_EXEC = 0x04,
 } ina_mmap_mem_prot_t;
 
 typedef enum ina_mmap_mem_share_e {
     INA_MMAP_MEM_SHARE_PRIVATE,
-	INA_MMAP_MEM_SHARE_SHARED
+    INA_MMAP_MEM_SHARE_SHARED
 } ina_mmap_mem_share_t;
+
+typedef enum ina_mmap_mem_advice_e {
+    INA_MMAP_MEM_ADVICE_SEQUENTIAL,
+    INA_MMAP_MEM_ADVICE_RANDOM
+} ina_mmap_mem_advice_t;
 
 /* opaque mmap types */
 typedef struct ina_mmap_ctx_s ina_mmap_ctx_t;
@@ -97,7 +102,7 @@ INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memor
 /*
  * In Windows 8 there will be PrefetchVirtualMemory for now this will be a noop in Windows
  */
-INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, int advice);
+INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, ina_mmap_mem_advice_t advice);
 
 #ifdef __cplusplus
 }
