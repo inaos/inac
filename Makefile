@@ -161,3 +161,7 @@ coverage-test: CFLAGS += --coverage
 coverage-test: LDFLAGS += --coverage -lgcov
 	export LDFLAGS
 coverage-test: test	
+
+static-analyse: CFLAGS += -DINA_ASSERT_NOTNULL_ENABLED
+	export CFLAGS
+static-analyse: release

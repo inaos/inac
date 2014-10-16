@@ -48,7 +48,7 @@ INA_API(ina_rc_t) ina_dns_destroy(ina_dns_ctx_t **ctx);
 /*
  *
  */
-INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, 
+INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, const char *hostname, 
                                         short *address_count, ina_str_t **addresses);
 
 #ifdef __cplusplus

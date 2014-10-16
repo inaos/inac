@@ -39,25 +39,37 @@ struct ina_dns_ctx_s {
 
 INA_API(ina_rc_t) ina_dns_init(ina_dns_ctx_t **ctx)
 {
+    INA_ASSERT_NOTNULL(ctx);
+
     *ctx = (ina_dns_ctx_t*)ina_mem_alloc(sizeof(ina_dns_ctx_t));
-    
+    if (*ctx == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_dns_destroy(ina_dns_ctx_t **ctx)
 {
-    ina_mem_free(*ctx);
-
+    INA_ASSERT_NOTNULL(ctx);
+    if (*ctx != NULL) {
+        ina_mem_free(*ctx);   
+    }
+    *ctx = NULL;
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, short *address_count, ina_str_t **addresses)
+INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, const char* hostname, short *address_count, ina_str_t **addresses)
 {
     short i, cnt;
     struct hostent *remote_host;
     ina_str_t *addresses_ptr;
 
-    remote_host = gethostbyname(ina_str_cstr(hostname));
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(hostname);
+    INA_ASSERT_NOTNULL(address_count);
+    INA_ASSERT_NOTNULL(addresses);
+
+    remote_host = gethostbyname(hostname);
     if (remote_host == NULL || remote_host->h_addrtype != AF_INET) {
         return INA_DNS_ELOOKUP;
     }
@@ -72,6 +84,9 @@ INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, ina_str_t hostname, 
     }
     
     *addresses = (ina_str_t*)ina_mem_alloc(sizeof(char)*15*cnt);
+    if (addresses == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
     addresses_ptr = *addresses;
 
     for (i = 0; i < cnt; i++) {
