@@ -323,6 +323,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     int setpos = INA_NO;
 
     INA_ASSERT(__initialized);
+    INA_ASSERT_NOTNULL(fmt);
 
     pos.col = 0;
     pos.row = 0;
