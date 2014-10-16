@@ -116,8 +116,7 @@ INA_API(ina_rc_t) ina_xml_parser_release(ina_xml_ctx_t *ctx, ina_xml_parser_t **
 
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(p);
-    INA_ASSERT_NOTNULL(parser);
-    *p = ctx->parser;
+    parser = *p;
 
     /* return parser */
     DL_APPEND(ctx->parsers, parser);
