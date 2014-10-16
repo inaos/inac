@@ -348,8 +348,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
     ina_conffile_section_t *s, *stmp;
 
     INA_ASSERT_NOTNULL(cf);
-    INA_ASSERT_NOTNULL(filepath);
-
+ 
     /* Almost one section must be there */
     if (cf->sections == NULL) {
         return INA_FAILURE;
