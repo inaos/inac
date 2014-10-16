@@ -181,7 +181,7 @@ INA_API(ina_rc_t) ina_ssl_read(ina_ssl_cn_t *cn,
     int ret;
 
     INA_ASSERT_NOTNULL(cn);
-    INA_ASSERT_NOTNULL(buff);
+    INA_ASSERT_NOTNULL(buf);
     INA_ASSERT_NOTNULL(bytes_read);
 
 read:
@@ -208,7 +208,7 @@ INA_API(ina_rc_t) ina_ssl_write(ina_ssl_cn_t *cn,
     int ret;
 
     INA_ASSERT_NOTNULL(cn);
-    INA_ASSERT_NOTNULL(buff);
+    INA_ASSERT_NOTNULL(buf);
     INA_ASSERT_NOTNULL(bytes_written);
 
     ret = ssl_write(cn->cn_impl, buf, buf_len);
