@@ -28,8 +28,20 @@
 #include <libinac/lib.h>
 
 
-INA_TEST_SKIP(file, test_file)
+INA_TEST(file, test_open_close)
 {
+    ina_file_ctx_t *ctx;
+    ina_file_t *f;
+    const char *test_file = "test.conf";
+    
+    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx));
+
+    INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file, INA_FILE_ACCESS_MODE_READ, 
+        INA_FILE_CREATE_MODE_OPEN, INA_FILE_SHARE_MODE_READ, 0, &f)); 
+
+    INA_TEST_ASSERT_SUCCEED(ina_file_free(ctx, &f));
+
+    INA_TEST_ASSERT_SUCCEED(ina_file_destroy(&ctx));
 }
 
 

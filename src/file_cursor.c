@@ -295,3 +295,4 @@ INA_API(ina_rc_t) ina_file_cursor_text_read_chunk(ina_file_cursor_t *cursor, siz
 {
 	return cursor->text_read_chunk_fp(cursor, requested, read, chunk);
 }
+
