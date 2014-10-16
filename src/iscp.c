@@ -58,6 +58,8 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
 {
     ina_rc_t rc = INA_SUCCESS;
 
+    INA_ASSERT_NOTNULL(ctx);
+
     *ctx = (ina_iscp_ctx_t*)ina_mem_alloc(sizeof(ina_iscp_ctx_t));
     if (*ctx == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -111,6 +113,8 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
 INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, int port)
 {
     ina_iscp_tcp_data_t *data = NULL;
+
+    INA_ASSERT_NOTNULL(addr);
 
     if (!INA_SUCCEED(ina_iscp_create(ctx, INA_ISCP_INET))) {
         return INA_ERR_PUSH_LAST;
@@ -557,6 +561,7 @@ INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t *values, int count
     va_list params;
     ina_iscp_param_t *param;
     INA_ASSERT(count >= 0);
+    INA_ASSERT_NOTNULL(values);
 
     INA_TRACE3("ISCP setting %d return values...", count);
 
@@ -604,6 +609,7 @@ INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...
     
 
     INA_ASSERT_NOTNULL(ctx);
+
     if (!INA_SUCCEED(ctx->last_response.rc)) {
         return ctx->last_response.rc;
     }
@@ -662,7 +668,7 @@ static ina_rc_t
 __ina_net_open_cb(void* user_data, int send)
 {
     ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
-
+  
     /* Open channel for sending **/
     if (send == 1) {    
         INA_TRACE3("ISCP channel for send");

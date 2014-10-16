@@ -73,7 +73,11 @@ struct ina_http_parser_s {
 
 static int __ina_http_on_body(http_parser *parser, const char *at, size_t length)
 {
-	ina_http_parser_t *p = (ina_http_parser_t*)parser->data;
+	ina_http_parser_t *p; 
+
+	INA_ASSERT_NOTNULL(parser);
+	p = (ina_http_parser_t*)parser->data;
+	INA_ASSERT_NOTNULL(p);
 
 	p->payload_ptr = at;
 	p->payload_len = length;
@@ -89,7 +93,11 @@ static int __ina_http_on_headers_complete(http_parser *parser)
 static int __ina_http_on_header_field(http_parser *parser, const char *at, size_t length)
 {
 	ina_http_header_t *h;
-	ina_http_parser_t *p = (ina_http_parser_t*)parser->data;
+	ina_http_parser_t *p;
+
+	INA_ASSERT_NOTNULL(parser);
+	p = (ina_http_parser_t*)parser->data;
+	INA_ASSERT_NOTNULL(p);
 
 	/* check and get a header from pool */
 	if (p->headers_used == p->header_pool_size) {
@@ -123,8 +131,11 @@ static int __ina_http_on_header_field(http_parser *parser, const char *at, size_
 static int __ina_http_on_header_value(http_parser *parser, const char *at, size_t length)
 {
 	ina_http_header_t *h;
-	ina_http_parser_t *p = (ina_http_parser_t*)parser->data;
+	ina_http_parser_t *p;
 
+	INA_ASSERT_NOTNULL(parser);
+	p = (ina_http_parser_t*)parser->data;
+	INA_ASSERT_NOTNULL(p);
 	h = p->cur_header;
 
 	h->value_begin = at;
@@ -140,7 +151,10 @@ static int __ina_http_on_message_begin(http_parser *parser)
 
 static int __ina_http_on_message_complete(http_parser *parser)
 {
-    ina_http_parser_t *p = (ina_http_parser_t*)parser->data;
+    ina_http_parser_t *p;
+    INA_ASSERT_NOTNULL(parser);
+    p = (ina_http_parser_t*)parser->data;
+    INA_ASSERT_NOTNULL(p);
 
     p->finished = 1;
 
@@ -154,7 +168,10 @@ static int __ina_http_on_status_complete(http_parser *parser)
 
 static int __ina_http_on_url(http_parser *parser, const char *at, size_t length)
 {
-	ina_http_parser_t *p = (ina_http_parser_t*)parser->data;
+	ina_http_parser_t *p; 
+	INA_ASSERT_NOTNULL(parser);
+	p = (ina_http_parser_t*)parser->data;
+	INA_ASSERT_NOTNULL(p);
 
 	p->url.begin = at;
 	p->url.len = length;
@@ -165,13 +182,20 @@ static int __ina_http_on_url(http_parser *parser, const char *at, size_t length)
 INA_API(ina_rc_t) ina_http_init(ina_http_ctx_t **ctx, ina_http_parser_type_t parser_type, int parser_pool_size)
 {
 	int i,z;
+	INA_ASSERT_NOTNULL(ctx);
 
 	*ctx = (ina_http_ctx_t*)ina_mem_alloc(sizeof(ina_http_ctx_t));
+	if (*ctx == NULL) {
+		return INA_ERR_PUSH_LAST;
+	}
 	(*ctx)->parser_pool_size = parser_pool_size;
 	(*ctx)->parsers = NULL;
 
 	for (i = 0; i < parser_pool_size; i++) {
 		ina_http_parser_t *p = (ina_http_parser_t*)ina_mem_alloc(sizeof(ina_http_parser_t));
+		if (p == NULL) {
+			return INA_ERR_PUSH_LAST;
+		}
 		
 		p->settings.on_body = __ina_http_on_body;
 		p->settings.on_headers_complete = __ina_http_on_headers_complete;
@@ -220,28 +244,28 @@ INA_API(ina_rc_t) ina_http_destroy(ina_http_ctx_t **pctx)
 {
 	ina_http_parser_t *p, *ptmp;
 	ina_http_header_t *h, *htmp;
-	ina_http_ctx_t *ctx = *pctx;
 	int cnt = 0;
 
+	INA_ASSERT_NOTNULL(pctx);
 	INA_ASSERT_NOTNULL(*pctx);
 
-	DL_FOREACH_SAFE(ctx->parsers, p, ptmp) {
+	DL_FOREACH_SAFE((*pctx)->parsers, p, ptmp) {
 		DL_FOREACH_SAFE(p->header_pool, h, htmp) {
 			DL_DELETE(p->header_pool, h);
 			ina_mem_free(h);
 		}
-		DL_DELETE(ctx->parsers, p);
+		DL_DELETE((*pctx)->parsers, p);
 		ina_mem_free(p);
 		cnt++;
 	}
 
-	if (cnt != ctx->parser_pool_size) {
+	if (cnt != (*pctx)->parser_pool_size) {
 		/* push error parser leak */
 		return INA_FAILURE;
 	}
 
 	ina_mem_free(*pctx);
-
+	*pctx = NULL;
 	return INA_SUCCESS;
 }
 
@@ -257,6 +281,7 @@ INA_API(ina_rc_t) ina_http_parser_borrow(ina_http_ctx_t *ctx, ina_http_parser_t 
 
 	/* return the head and delete from the list */
 	*p = ctx->parsers;
+	INA_ASSERT_NOTNULL(p);
 	DL_DELETE(ctx->parsers, *p);
 
 	http_parser_init(&(*p)->intp, (*p)->ipt);
@@ -268,10 +293,12 @@ INA_API(ina_rc_t) ina_http_parser_borrow(ina_http_ctx_t *ctx, ina_http_parser_t 
 
 INA_API(ina_rc_t) ina_http_parser_release(ina_http_ctx_t *ctx, ina_http_parser_t **parser)
 {
-	ina_http_parser_t *p = *parser;
+	ina_http_parser_t *p;
 	ina_http_header_t *h, *htmp;
 
 	INA_ASSERT_NOTNULL(ctx);
+	INA_ASSERT_NOTNULL(parser);
+	p = *parser;
 	INA_ASSERT_NOTNULL(p);
 
 	/* clean-up headers
@@ -301,6 +328,7 @@ INA_API(ina_rc_t) ina_http_parser_release(ina_http_ctx_t *ctx, ina_http_parser_t
 INA_API(ina_rc_t) ina_http_parser_url_get(ina_http_parser_t *p, ina_http_url_t **url)
 {
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(url);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -322,14 +350,13 @@ INA_API(ina_rc_t) ina_http_url_get_field(ina_http_url_t *url, uint16_t mask, con
 		*len = url->iu.field_data[mask].len;
 		return INA_SUCCESS;
 	}
-	else{
-		return INA_FAILURE;
-	}
+	return INA_FAILURE;
 }
 
 INA_API(ina_rc_t) ina_http_url_get_port(ina_http_url_t *url, uint16_t *port)
 {
 	INA_ASSERT_NOTNULL(url);
+	INA_ASSERT_NOTNULL(port);
 
 	*port = url->iu.port;
 	return INA_SUCCESS;
@@ -338,6 +365,7 @@ INA_API(ina_rc_t) ina_http_url_get_port(ina_http_url_t *url, uint16_t *port)
 INA_API(ina_rc_t) ina_http_parser_header_first(ina_http_parser_t *p, ina_http_header_t **first)
 {
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(first);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -350,6 +378,7 @@ INA_API(ina_rc_t) ina_http_parser_header_first(ina_http_parser_t *p, ina_http_he
 INA_API(ina_rc_t) ina_http_parser_header_next(ina_http_parser_t *p, ina_http_header_t **next)
 {
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(next);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -367,6 +396,8 @@ INA_API(ina_rc_t) ina_http_parser_header_by_name(ina_http_parser_t *p, const cha
 	ina_http_header_t *f = NULL;
 
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(name);
+	INA_ASSERT_NOTNULL(header);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -381,6 +412,8 @@ INA_API(ina_rc_t) ina_http_parser_header_get_field(ina_http_parser_t *p, ina_htt
 {
 	INA_ASSERT_NOTNULL(p);
 	INA_ASSERT_NOTNULL(header);
+	INA_ASSERT_NOTNULL(begin);
+	INA_ASSERT_NOTNULL(len);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -396,6 +429,8 @@ INA_API(ina_rc_t) ina_http_parser_header_get_value(ina_http_parser_t *p, ina_htt
 {
 	INA_ASSERT_NOTNULL(p);
 	INA_ASSERT_NOTNULL(header);
+	INA_ASSERT_NOTNULL(begin);
+	INA_ASSERT_NOTNULL(len);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -410,6 +445,8 @@ INA_API(ina_rc_t) ina_http_parser_header_get_value(ina_http_parser_t *p, ina_htt
 INA_API(ina_rc_t) ina_http_parser_payload_get(ina_http_parser_t *p, unsigned char **payload, size_t *payload_len)
 {
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(payload);
+	INA_ASSERT_NOTNULL(payload_len);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -424,6 +461,7 @@ INA_API(ina_rc_t) ina_http_parser_payload_get(ina_http_parser_t *p, unsigned cha
 INA_API(ina_rc_t) ina_http_parser_status_code(ina_http_parser_t *p, unsigned short *status)
 {
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(status);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -435,6 +473,7 @@ INA_API(ina_rc_t) ina_http_parser_status_code(ina_http_parser_t *p, unsigned sho
 INA_API(ina_rc_t) ina_http_parser_method(ina_http_parser_t *p, int *method)
 {
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(method);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -446,6 +485,8 @@ INA_API(ina_rc_t) ina_http_parser_method(ina_http_parser_t *p, int *method)
 INA_API(ina_rc_t) ina_http_parser_httpversion(ina_http_parser_t *p, unsigned short *major, unsigned short *minor)
 {
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(major);
+	INA_ASSERT_NOTNULL(minor);
 
 	if (!p->finished) {
 		return INA_FAILURE;
@@ -462,6 +503,8 @@ INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, 
     size_t nread;
 
 	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(in);
+	INA_ASSERT_NOTNULL(more);
 	
 	nread = http_parser_execute(&p->intp, &p->settings, in, inlen);
 
@@ -496,6 +539,9 @@ INA_API(ina_rc_t) ina_http_parser_eof(ina_http_parser_t *p)
 
 INA_API(ina_rc_t) ina_http_parser_should_keep_alive(ina_http_parser_t *p, int *should_keep_alive)
 {
+	INA_ASSERT_NOTNULL(p);
+	INA_ASSERT_NOTNULL(should_keep_alive);
+
 	*should_keep_alive = http_should_keep_alive(&p->intp);
 	return INA_SUCCESS;
 }

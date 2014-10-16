@@ -37,6 +37,7 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const
     ina_rc_t rc;
 
     INA_ASSERT_NOTNULL(cfg);
+    INA_ASSERT_NOTNULL(fmt);
 
     va_start(ap, fmt);
     rc = ina_log_v(cfg, level, fmt, ap);
@@ -70,7 +71,11 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level,
 INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target, 
                                 ina_log_level_t level, const char  *logfile)
 {
+    INA_ASSERT_NOTNULL(cfg);
     *cfg = (ina_log_cfg_t*)ina_mem_alloc(sizeof(ina_log_cfg_t));
+    if (*cfg == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
     (*cfg)->fp1 = NULL;
     (*cfg)->fp2 = NULL;
     (*cfg)->logfile = ina_str_new_fromcstr(logfile);
