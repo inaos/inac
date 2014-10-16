@@ -93,6 +93,7 @@ INA_API(ina_rc_t) ina_xml_destroy(ina_xml_ctx_t **ctx)
 INA_API(ina_rc_t) ina_xml_parser_borrow(ina_xml_ctx_t *ctx, ina_xml_parser_t **p)
 {
     INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(p);
 
     /* we ran out of parsers */
     if (ctx->parsers == NULL) {
@@ -111,10 +112,12 @@ INA_API(ina_rc_t) ina_xml_parser_borrow(ina_xml_ctx_t *ctx, ina_xml_parser_t **p
 
 INA_API(ina_rc_t) ina_xml_parser_release(ina_xml_ctx_t *ctx, ina_xml_parser_t **p)
 {
-    ina_xml_parser_t *parser = *p;
+    ina_xml_parser_t *parser;
 
     INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(p);
     INA_ASSERT_NOTNULL(parser);
+    *p = ctx->parser;
 
     /* return parser */
     DL_APPEND(ctx->parsers, parser);
@@ -125,6 +128,10 @@ INA_API(ina_rc_t) ina_xml_parser_release(ina_xml_ctx_t *ctx, ina_xml_parser_t **
 
 INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, ina_xml_elem_t **root)
 {
+    INA_ASSERT_NOTNULL(p);
+    INA_ASSERT_NOTNULL(source);
+    INA_ASSERT_NOTNULL(root);
+
 	if (rapidxml_parser_exec(p->doc, ina_str_cstr(source)) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
@@ -140,6 +147,9 @@ INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, 
 
 INA_API(ina_rc_t) ina_xml_elem_first(ina_xml_elem_t *elem, ina_xml_elem_t **first)
 {
+    INA_ASSERT_NOTNULL(elem);
+    INA_ASSERT_NOTNULL(first);
+
 	if (rapidxml_node_first(elem->elem, &elem->elem) > 0) {
 		/* FIXME: proper error handling */
         *first = NULL;
@@ -151,6 +161,9 @@ INA_API(ina_rc_t) ina_xml_elem_first(ina_xml_elem_t *elem, ina_xml_elem_t **firs
 
 INA_API(ina_rc_t) ina_xml_elem_next(ina_xml_elem_t *elem, ina_xml_elem_t **next)
 {
+    INA_ASSERT_NOTNULL(elem);
+    INA_ASSERT_NOTNULL(next);
+
 	if (rapidxml_node_next(elem->elem, &elem->elem) > 0) {
 		/* FIXME: proper error handling */
         return INA_FAILURE;
@@ -161,6 +174,10 @@ INA_API(ina_rc_t) ina_xml_elem_next(ina_xml_elem_t *elem, ina_xml_elem_t **next)
 
 INA_API(ina_rc_t) ina_xml_elem_name(ina_xml_elem_t *elem, const char **name, size_t *len)
 {
+    INA_ASSERT_NOTNULL(elem);
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOTNULL(len);
+
 	if (rapidxml_node_get_name(elem->elem, name, len) > 0) {
 		/* FIXME: proper error handling */
         return INA_FAILURE;
@@ -170,6 +187,10 @@ INA_API(ina_rc_t) ina_xml_elem_name(ina_xml_elem_t *elem, const char **name, siz
 
 INA_API(ina_rc_t) ina_xml_elem_value(ina_xml_elem_t *elem, const char **name, size_t *len)
 {
+    INA_ASSERT_NOTNULL(elem);
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOTNULL(len);
+
 	if (rapidxml_node_get_value(elem->elem, name, len) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
@@ -179,6 +200,9 @@ INA_API(ina_rc_t) ina_xml_elem_value(ina_xml_elem_t *elem, const char **name, si
 
 INA_API(ina_rc_t) ina_xml_elem_attr_first(ina_xml_elem_t *elem, ina_xml_attr_t **first)
 {
+    INA_ASSERT_NOTNULL(elem);
+    INA_ASSERT_NOTNULL(first);
+
 	if (rapidxml_node_first_attribute(elem->elem, &elem->attr.attr) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
@@ -189,6 +213,8 @@ INA_API(ina_rc_t) ina_xml_elem_attr_first(ina_xml_elem_t *elem, ina_xml_attr_t *
 
 INA_API(ina_rc_t) ina_xml_attr_next(ina_xml_attr_t *attr, ina_xml_attr_t **next)
 {
+    INA_ASSERT_NOTNULL(attr);
+    INA_ASSERT_NOTNULL(next);
 	if (rapidxml_attribute_next(attr->attr, &attr->attr) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
@@ -199,6 +225,10 @@ INA_API(ina_rc_t) ina_xml_attr_next(ina_xml_attr_t *attr, ina_xml_attr_t **next)
 
 INA_API(ina_rc_t) ina_xml_attr_name(ina_xml_attr_t *attr, const char **name, size_t *len)
 {
+    INA_ASSERT_NOTNULL(attr);
+    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOTNULL(len);
+
 	if (rapidxml_attribute_get_name(attr->attr, name, len) > 0) {
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
@@ -208,6 +238,10 @@ INA_API(ina_rc_t) ina_xml_attr_name(ina_xml_attr_t *attr, const char **name, siz
 
 INA_API(ina_rc_t) ina_xml_attr_value(ina_xml_attr_t *attr, const char **value, size_t *len)
 {
+    INA_ASSERT_NOTNULL(attr);
+    INA_ASSERT_NOTNULL(value);
+    INA_ASSERT_NOTNULL(len);
+
 	if (rapidxml_attribute_get_value(attr->attr, value, len) > 0) {
 		
 		return INA_FAILURE;
