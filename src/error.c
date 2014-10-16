@@ -113,9 +113,9 @@ INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line)
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
 {
     if (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0) {
-        return 1;
+        return INA_YES;
     }
-    return 0;
+    return INA_NO;
 }
 
 INA_API(ina_rc_t) ina_err_peek()
@@ -146,7 +146,7 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     
 }
 
-INA_API(ina_rc_t) ina_err_peek_last()
+INA_API(ina_rc_t) ina_err_peek_last(void)
 {
     INA_ASSERT(__initialized);
     if (__state.c > 0) {
