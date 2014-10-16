@@ -114,6 +114,7 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, in
 {
     ina_iscp_tcp_data_t *data = NULL;
 
+    INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(addr);
 
     if (!INA_SUCCEED(ina_iscp_create(ctx, INA_ISCP_INET))) {
