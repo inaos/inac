@@ -674,7 +674,7 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
     if (*ctx == NULL || __ctx == NULL) {
         return INA_SUCCESS;
     }
-    if (__ctx != __ctx) {
+    if (*ctx != __ctx) {
         return INA_FAILURE;
     }
 
