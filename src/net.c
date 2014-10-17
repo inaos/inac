@@ -82,7 +82,6 @@ INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port)
     char err[ANET_ERR_LEN];
 
     INA_ASSERT_NOTNULL(fd);
-    INA_ASSERT_NOTNULL(ip);
     INA_ASSERT_NOTNULL(port);
     INA_ASSERT_TRUE(sfd > 0);
     
