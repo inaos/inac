@@ -547,6 +547,7 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
 {
 	ina_cron_task_t *task = NULL;
     ina_str_t skey;
+    unsigned long key;
     
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(id);
@@ -555,7 +556,7 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
     INA_ASSERT_NOTNULL(working_dir);
 
     skey = ina_str_new_fromcstr(id);
-    unsigned long key = INA_HASH_STR_TO_SDBM(skey);
+    key = INA_HASH_STR_TO_SDBM(skey);
     ina_str_free(skey);
 	
 	/* check if we already have this task - by using the ID */
