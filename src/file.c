@@ -169,7 +169,11 @@ static ina_rc_t __ina_file_posix_map_flags(ina_file_access_mode_t access,
         case INA_FILE_SHARE_MODE_WRITE:
             break; 
         case INA_FILE_SHARE_MODE_EXCLUSIVE:
+#ifdef INA_OS_OSX
             *posix_flags |= O_EXLOCK;
+#else
+            *posix_flags |= O_EXCL;
+#endif
             break;
     }
     return INA_SUCCESS;
@@ -305,8 +309,13 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat)
     else {
         (*stat)->is_dir = 0;
     }
+#ifdef INA_OS_OSX
     (*stat)->mtime = fst.st_mtimespec.tv_sec;
     (*stat)->atime = fst.st_atimespec.tv_sec; 
+#else
+    (*stat)->mtime = fst.st_mtime;
+    (*stat)->atime = fst.st_atime;
+#endif
     
 #endif
     return INA_SUCCESS;
