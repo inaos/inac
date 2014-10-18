@@ -236,9 +236,11 @@ INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
 
 INA_API(ina_rc_t) ina_ljit_dump_stack(ina_ljit_ctx_t *ctx)
 {
+    int i;
+
     INA_ASSERT_NOTNULL(ctx);
 
-    int i = lua_gettop(ctx->lstate);
+    i = lua_gettop(ctx->lstate);
     fprintf(stdout, " \n----------------  Lua Stack Dump ----------------\n" );
     while(i) {
         int t = lua_type(ctx->lstate, i);

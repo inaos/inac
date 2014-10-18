@@ -83,8 +83,6 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	DWORD dwMapViewSize;
 	DWORD dwDesiredAccess;
 	size_t delta;
-
-	dwMaximumSizeLow = flen;
 #endif
 
 	ina_file_stat_new(fd, &fstat);
@@ -101,6 +99,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	(*mapping)->offset = offset;
 
 #ifdef INA_OS_WIN32
+    dwMaximumSizeLow = flen;
 	(*mapping)->fmap = NULL;
 	if (prot_flags & INA_MMAP_MEM_PROT_READ) {
 		if (share & INA_MMAP_MEM_PROT_EXEC) {
