@@ -45,6 +45,7 @@
 
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
+    INA_ASSERT_NOTNULL(host);
 #ifdef INA_OS_WIN32
     if (gethostname(host, len) != 0) {
         int ec = WSAGetLastError();

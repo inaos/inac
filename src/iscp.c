@@ -114,6 +114,7 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, in
 {
     ina_iscp_tcp_data_t *data = NULL;
 
+    INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(addr);
 
     if (!INA_SUCCEED(ina_iscp_create(ctx, INA_ISCP_INET))) {
@@ -668,7 +669,7 @@ static ina_rc_t
 __ina_net_open_cb(void* user_data, int send)
 {
     ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
-  
+
     /* Open channel for sending **/
     if (send == 1) {    
         INA_TRACE3("ISCP channel for send");
@@ -738,7 +739,7 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
     
     if (INA_SUCCEED(ina_net_write(data->fd, (unsigned char*)msg, msg->length, &nb_write))) {
         unsigned char *buf;
-        int tot_nb_read;
+        int tot_nb_read = 0;
 
         INA_TRACE3("ISCP read response on fd %d", data->fd);
 
@@ -776,7 +777,7 @@ static ina_rc_t
 __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 {   
     int nb_read;
-    int tot_nb_read;
+    int tot_nb_read = 0;
     ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
     unsigned char *buf;
     nb_read = 0;

@@ -323,6 +323,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     int setpos = INA_NO;
 
     INA_ASSERT(__initialized);
+    INA_ASSERT_NOTNULL(fmt);
 
     pos.col = 0;
     pos.row = 0;
@@ -752,11 +753,16 @@ INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
     char *buf = NULL;
     size_t buf_len = 0;
     size_t buf_pos = 0;
+    INA_ASSERT_NOTNULL(line);
     return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos);
 }
 
 INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
                                               size_t *buf_len, size_t *buf_pos)
 {
+    INA_ASSERT_NOTNULL(line);
+    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_NOTNULL(buf_len);
+    INA_ASSERT_NOTNULL(buf_pos);
     return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos);
 }
