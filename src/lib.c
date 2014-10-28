@@ -627,11 +627,11 @@ __ina_signal_handler(int sig)
     sh = __signal_handler_map[isig];
 
     if (sh) {
-#ifdef INA_OS_WIN32
-        WaitForSingleObject(__main_thread, INFINITE);
-#endif
         sh(isig, &sb, &exitcode);
     }
+#ifdef INA_OS_WIN32
+    WaitForSingleObject(__main_thread, INFINITE);
+#endif
 
     switch (sig) {
         case SIGABRT:
