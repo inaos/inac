@@ -28,6 +28,58 @@
 #include <libinac/lib.h>
 #include "test_ullc.h"
 
+INA_TEST(ullc, slow_consumer)
+{
+    ina_ullc_ctx_t *ullc;
+    ina_ullc_ctx_t *ullc1;
+    ina_test_ullc_t *v = NULL;
+    ina_test_ullc_t *v_old = NULL;
+    ina_test_hid_t hid;
+
+    ina_err_reset();
+    INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
+        1, 
+        128, 
+        2, 
+        1, 
+        "/ina_ullc_test3", 
+        INA_ULLC_WS_SIGNAL_WAIT, 
+        &ullc);
+    ina_err_trace();
+
+    INA_TEST_HELPER_INVOKE(&hid, ullc, create_fast_producer,  
+         INA_NUM2STR(1), INA_NUM2STR(128), INA_NUM2STR(2),
+         INA_NUM2STR(1), "/ina_ullc_test3", NULL);
+
+    INA_TEST_ASSERT_SUCCEED(INA_ULLC_CONSUMER_CREATE(ina_test_ullc_t, 
+        1, 
+        128, 
+        2, 
+        1, 
+        "/ina_ullc_test3",         
+        &ullc1));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_overrun_enable(ullc1));
+ 
+    while (1) {
+        v = INA_ULLC_GET(ina_test_ullc_t, ullc1);
+        if (v) {
+            ina_time_sleep(100);
+            INA_TRACE3("consumer %d, v=%d", ullc1->id, v->i3);
+            if (v->i3 == -1) {
+                break;
+            }
+            if (v_old != NULL) {
+                INA_TEST_ASSERT_EQUAL_INTEGER(v_old->i3, (v->i3 - 1));   
+            }
+            v_old = v;
+        }
+        ina_time_sleep(1);
+    }
+    ina_ullc_consumer_destroy(&ullc1);
+    ina_ullc_producer_destroy(&ullc);
+}
+
 INA_TEST(ullc, multiproducer)
 {
     ina_ullc_ctx_t *ullc1;

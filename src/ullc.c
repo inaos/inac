@@ -199,6 +199,24 @@ INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_ullc_overrun_enable(ina_ullc_ctx_t *ctx) 
+{
+    INA_ASSERT_NOTNULL(ctx);
+    if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, -1, INT64_MAX) == INT64_MAX) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
+INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, INT64_MAX, -1) == -1) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
+
 INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
 {
     return INA_SUCCESS;
@@ -233,16 +251,16 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
 
 INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
 {
-    int i;
-    int like_to_write;
-    int slow_consumer;
-    int num;
+    int64_t i;
+    int64_t like_to_write;
+    int64_t slow_consumer;
+    int64_t num;
     void *item;
 
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
 
-    slow_consumer = -1;
+    slow_consumer = ctx->ring->overrun_enabled;
     like_to_write = ctx->ring->next_ptr % ctx->ring->slots;
     num = ctx->ring->num_consumers;
 
@@ -472,6 +490,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         (*rb)->slots = slots;
         (*rb)->num_producers = num_producers;
         (*rb)->num_consumers = num_consumers;
+        (*rb)->overrun_enabled = -1;
         (*rb)->cursor = -1;
         (*rb)->next_ptr = 0;
         (*rb)->alive_producers = 0;
