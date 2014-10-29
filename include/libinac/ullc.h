@@ -155,17 +155,18 @@ typedef struct ina_ullc_rb_s {
     int32_t num_producers;
     size_t size;
     size_t slots;
-    volatile int64_t cursor;
-    volatile int64_t next_ptr;
-    volatile int64_t swait_count;
-    volatile int64_t alive_producers;
+    INA_VOLATILE int64_t cursor;
+    INA_VOLATILE int64_t next_ptr;
+    INA_VOLATILE int64_t swait_count;
+    INA_VOLATILE int64_t alive_producers;
+    INA_VOLATILE int64_t overrun_enabled;
     ina_semkey_t semkey; /*FIXME: multiple producer */
 } ina_ullc_rb_t;
 
 /* ULLC ring cursor */
 typedef struct ina_ullc_cursor_s {
-    volatile int64_t alive;
-    volatile int64_t cursor;
+    INA_VOLATILE int64_t alive;
+    INA_VOLATILE int64_t cursor;
  } ina_ullc_cursor_t;
 
 /* ullc context */
@@ -239,6 +240,17 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
  * Reset ULLC ring
  */
 INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name);
+
+/*
+ * Enable overrun. Producers doesn't wait for slow consumers 
+ */
+INA_API(ina_rc_t) ina_ullc_overrun_enable(ina_ullc_ctx_t *ctx);
+
+/*
+ * Disable overrun. Producers wait for slow consumers 
+ */
+INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx);
+
 
 /*
  *  Create a producer
