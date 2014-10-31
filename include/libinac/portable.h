@@ -465,7 +465,7 @@ extern "C" {
 #  ifdef __cplusplus__
 #    define INA_API(rtype) extern "C" INA_EXPORT rtype
 #  else
-#    define INA_API(rtype) extern rtype INA_EXPORT 
+#    define INA_API(rtype) extern INA_EXPORT rtype 
 #  endif
 #endif
 
@@ -1101,6 +1101,21 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #define INA_ASM asm
 #define INA_VOLATILE volatile
 #endif
+
+/* Atomic operations */
+
+#ifdef INA_OS_WIN32
+#define INA_ATOMIC_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
+#define INA_ATOMIC_DEC(vv_ptr) InterlockedDecrement64(vv_ptr)
+#define INA_ATOMIC_SWAP(vv_ptr,old,new) InterlockedCompareExchange64(vv_ptr,new,old)
+#elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
+#define INA_ATOMIC_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1)
+#define INA_ATOMIC_DEC(vv_ptr) __sync_fetch_and_sub(vv_ptr, 1)
+#define INA_ATOMIC_SWAP(vv_ptr,old,new) __sync_val_compare_and_swap(vv_ptr,old,new)
+#else
+#error Compiler not supported yet for INAC!
+#endif
+
 #ifdef __cplusplus
 }
 #endif 

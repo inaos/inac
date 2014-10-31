@@ -393,7 +393,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
         (*process)->descriptor->managed_type = descriptor->managed_type;
     //} 
     (*process)->descriptor->c_ref = 1;
-    (*process)->exit_code = 0;
+    (*process)->exit_code = -1;
     (*process)->key = INA_HASH_STR_TO_SDBM(descriptor->full_path);
     (*process)->init = 1;
     (*process)->state = 0;
@@ -407,8 +407,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
             || descriptor->managed_type == 
                INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
                 
-                ina_str_t id = ina_str_sprintf("START_%s", 
-                                        ina_str_cstr(descriptor->full_path));
+                ina_str_t id = ina_str_sprintf("START_%lld", (int64_t)process);
                 
                 INA_ASSERT_NOTNULL(descriptor->scheduled_start_pattern);
                 
@@ -426,8 +425,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
         if (descriptor->managed_type == 
             INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
             
-            ina_str_t id = ina_str_sprintf("STOP_%s", 
-                                    ina_str_cstr(descriptor->full_path));
+            ina_str_t id = ina_str_sprintf("STOP_%lld", (int64_t)process);
             
             INA_ASSERT_NOTNULL(descriptor->scheduled_stop_pattern);
             
@@ -493,9 +491,11 @@ INA_API(ina_rc_t) ina_process_reset(ina_process_t *process)
 INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process, 
                                             int *exit_code)
 {
+
+    int still_running;
     INA_ASSERT_NOTNULL(process);
     INA_ASSERT_NOTNULL(exit_code);
-
+    __ina_process_is_running(process, &still_running);
     *exit_code = process->exit_code;
     return INA_SUCCESS;
 }
@@ -555,13 +555,14 @@ static void __ina_process_is_running(ina_process_t *process,
     DWORD ec;
     BOOL ret;
     /* FIME: Error handling */
+
+    *still_running = INA_NO;
+
     ret = GetExitCodeProcess(process->pi.hProcess, &ec);
     if (ec == STILL_ACTIVE) {
-        process->exit_code = -1;
         *still_running = INA_YES;
-    } else {
+    } else if (process->exit_code < 0) {
         process->exit_code = ec;
-        *still_running = INA_NO;
     }
 }
 
@@ -597,6 +598,12 @@ static void __ina_process_start(ina_process_t *process)
         ina_str_cstr(process->descriptor->working_dir),
         &si, &process->pi
     );
+
+    if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
+        int still_running;
+        WaitForSingleObject(process->pi.hProcess, INFINITE);
+        __ina_process_is_running(process, &still_running);
+    }
 
     ina_str_free(cmd_line);
 }
@@ -635,14 +642,14 @@ static void __ina_process_is_running(ina_process_t *process,
 {
     int status;
 
+    *still_running = INA_NO;
+
     /* FIME: Error handling */
-    if (waitpid(process->pid, &status, WNOHANG) == 0) {
-        process->exit_code = -1;
+    if (waitpid(process->pid, &status, WNOHANG) > 0) {
         *still_running = INA_YES;
-    } else {
+    } else if (process->exit_code < 0) {
         if (WIFEXITED(status)) {
             process->exit_code = WEXITSTATUS(status);
-            *still_running = INA_NO;
         }
     }
 }
@@ -682,17 +689,17 @@ static void __ina_process_start(ina_process_t *process)
         _exit(127);
     } else {
     
-    /* Store pid */
-    process->pid = pid;
+        /* Store pid */
+        process->pid = pid;
 
-    int status;
-    if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
-        waitpid(process->pid, &status, 0);
-        if (WIFEXITED(status)) {
-            process->exit_code = WEXITSTATUS(status);
+        int status;
+        if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
+            waitpid(process->pid, &status, 0);
+            if (WIFEXITED(status)) {
+                process->exit_code = WEXITSTATUS(status);
+            }
         }
     }
-}
 }
 
 static void __ina_process_stop(ina_process_t *process)

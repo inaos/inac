@@ -312,11 +312,11 @@ __VA_ARGS__
     ina_conffile_section_t *__cs = NULL;                  \
     if (cf != NULL) __cf = cf;                            \
     if (!INA_SUCCEED(ina_conffile_init(&__cf)))       {   \
-        abort();                                          \
+        exit(EXIT_FAILURE);                               \
     }                                                     \
     __VA_ARGS__;                                          \
     if (!INA_SUCCEED(ina_conffile_process(__cf, fp)))   { \
-        abort();                                          \
+        exit(EXIT_FAILURE);                               \
     }                                                     \
     if (cf == NULL) cf = __cf;                            \
 }

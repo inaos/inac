@@ -90,6 +90,11 @@
 #include <libinac/process.h>
 #include <libinac/ipc.h>
 #include <libinac/template.h>
+#include <libinac/cpu.h>
+#include <libinac/compression.h>
+#include <libinac/file.h>
+#include <libinac/mmap.h>
+#include <libinac/file_cursor.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
@@ -141,10 +146,10 @@ extern "C" {
  { short_opt, long_opt, INA_OPT_TYPE_FLOAT, INA_NUM2STR(dft), desc }
 
 /* Define options map */
-#define INA_OPTS(name, ...)         \
-ina_opt_t name[] = {                \
-    __VA_ARGS__,                    \
-    {NULL, NULL, 0, NULL, NULL}     \
+#define INA_OPTS(name, ...)                        \
+ina_opt_t name[] = {                               \
+    __VA_ARGS__,                                   \
+    {NULL, NULL, INA_OPT_TYPE_INT, NULL, NULL}     \
 };
 
 typedef enum ina_opt_type_e {

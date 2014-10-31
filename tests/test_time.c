@@ -31,6 +31,10 @@
 #endif
 #include <libinac/lib.h>
 
+#if !defined(CLOCK_MONOTONIC_RAW)
+    #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#endif
+
 INA_TEST(time, tsc_strftime)
 {
     ina_str_t str = ina_str_new(128);
@@ -171,7 +175,7 @@ INA_TEST_SKIP(time, stopwatch_startime_rdtsc)
     int64_t i = 0;
 
 
-    #ifndef INA_OS_WIN32
+    #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
@@ -258,7 +262,7 @@ INA_TEST(time,read_clock)
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_free(&t));
 }
 
-#ifndef INA_OS_WIN32
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
 INA_TEST_SKIP(time_tsc,read_tsc)
 {
     struct timespec test;
@@ -273,12 +277,10 @@ INA_TEST_SKIP(time_tsc,read_tsc)
 
     INA_TEST_MSG("%s", msg);
 
-    #ifndef INA_OS_WIN32
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
     sched_setaffinity(0, sizeof(mask), &mask);
-    #endif
     
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());
     clock_gettime(CLOCK_REALTIME, &test); 
@@ -380,7 +382,7 @@ INA_TEST_DATA(time_ipc_rdtsc) {
 };
 
 INA_TEST_SETUP(time_ipc_rdtsc) {
-    #ifndef INA_OS_WIN32
+    #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
@@ -402,7 +404,7 @@ INA_TEST_TEARDOWN(time_ipc_rdtsc)
     }
 }
 
-#ifndef INA_OS_WIN32
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
 INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     int64_t c = 0;
     ina_time_tsc_t time;

@@ -810,11 +810,12 @@ local function debugger_loop(sev, svars, sfile, sline)
 	  if mobdebug.debugchunk then
 		sline = nil
 		sfile = nil
-		mobdebug.chunkreal = name
+		mobdebug.chunkreal = string.sub(name, 1, string.find(name, ".lua")+3)
 	  end
       size = tonumber(size)
       if abort == nil then -- no LOAD/RELOAD allowed inside start()
-        if size > 0 then server:receive(size) end
+        -- FIXME: its possible that we get the whole strategy together with the command, why?
+        if size > 0 and line:len() < size then server:receive(size) end
         if sfile and sline then
           server:send("201 Started " .. sfile .. " " .. sline .. "\n")
         else

@@ -50,11 +50,13 @@
 #if defined(INA_OS_LINUX)
 #define __INA_TIME_TSC_BACKEND_NAME "tsc backend: clock_gettime()"
 # if defined(CLOCK_MONOTONIC_RAW)
-#  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC_RAW
+#  define __INA_CLOCK_TYPE CLOCK_MONOTONIC_RAW
+# else
+#   define __INA_CLOCK_TYPE CLOCK_MONOTONIC
 # endif
 #endif
 #if defined(INA_OS_OSX)
-#  define STOPWATCH_CLOCK_TYPE CLOCK_MONOTONIC
+#  define __INA_CLOCK_TYPE CLOCK_MONOTONIC
 #endif
 
 
@@ -84,6 +86,11 @@ static void __ina_time_rdtsc_calibrate_ticks(void)
 {
     /* FIXME calibrate time for windows */
 }
+#elif defined(INA_OS_OSX)
+static void __ina_time_rdtsc_calibrate_ticks(void)
+{
+    /* FIXME calibrate time for osx */
+}
 #else
 struct timespec *__ina_time_rdtsc_timespec_diff(struct timespec *ts1, struct timespec *ts2)
 {
@@ -100,12 +107,12 @@ static void __ina_time_rdtsc_calibrate_ticks()
 {
     struct timespec begints, endts, refhpet;
     ina_time_tsc_value_t begin, end, ts;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &begints);
+    clock_gettime(__INA_CLOCK_TYPE, &begints);
     INA_TIME_RDTSC(begin);
     INA_VOLATILE uint64_t i;
     for (i = 0; i < 100000000; i++); /* must be CPU intensive */
     INA_TIME_RDTSC(end);
-    clock_gettime(CLOCK_MONOTONIC_RAW, &endts);
+    clock_gettime(__INA_CLOCK_TYPE, &endts);
     struct timespec *tmpts = __ina_time_rdtsc_timespec_diff(&endts, &begints);
     uint64_t nsecElapsed = tmpts->tv_sec * 1000000000 + tmpts->tv_nsec;
     __ina_time_rdtsc_ticks_per_nano = (double)(end.uint64 - begin.uint64)/(double)nsecElapsed;
@@ -463,7 +470,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->tv->sec_duration = __ina_lit_to_secs(&elapsed);
 #elif defined(INA_OS_OSX)
-    ina_time_read_tsc_clock(&stopwop);
+    ina_time_read_tsc_clock(&stopwatch->tv->stop);
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp - stopwatch->tv->stop.tp) / 1000000000;
 #else
     INA_ASSERT_NOTNULL(stopwatch);
@@ -547,7 +554,7 @@ __ina_time_tsc_os_read(ina_time_tsc_t *time)
 #elif defined(INA_OS_OSX)
      time->tp = mach_absolute_time();
 #else
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &time->tp) == -1) {
+    if (clock_gettime(__INA_CLOCK_TYPE, &time->tp) == -1) {
         return INA_FAILURE;
     }
 #endif

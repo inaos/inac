@@ -67,6 +67,16 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 REM Build 3rd party
 REM ---------------------------------
 
+REM build cpu-topology
+cd contribs\cpu-topology
+if "%INAC_W32_BUILD_STAGE%" == "clean" (
+	if exist get_cpuid.obj del get_cpuid.obj
+	if exist intel-cpu-topo.lib del intel-cpu-topo.lib
+) else (
+	call inac_32.bat
+)
+cd %INAC_HOME%	
+
 REM build luajit
 cd contribs\luajit\src
 if not exist msvcbuild.bat goto fail_no_luajit1
@@ -108,36 +118,53 @@ SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
 SET INAC_TIME_BACKEND=
 
-SET INAC_WIN32_BUILD_NAME=inac
+SET INAC_WIN32_BUILD_NAME=luatest
+SET INAC_WIN32_PROJECT_DIR=.
+SET INAC_WIN32_LUA_SOURCE_DIR=contribs\luatest
+SET INAC_WIN32_LUA_LIB_NAME=luatest.lib
+
+call %INAC_BUILD_SCRIPT% %1 %2
+
+REM reset the main environment variables because they might have been deleted by the previous build
+SET INAC_HOME=%CD%
+SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
+SET INAC_WIN32_BUILD_NAME=inac-lua
 SET INAC_WIN32_PROJECT_DIR=.
 SET INAC_WIN32_LUA_SOURCE_DIR=src
 SET INAC_WIN32_LUA_LIB_NAME=libinac_lua.lib
+SET INAC_WIN32_LUA_INC_JIT=true
 
 call %INAC_BUILD_SCRIPT% %1 %2
+
 if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if "%INAC_BUILD_TYPE%" == "debug" (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib /MACHINE:X64
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
+     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
+     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
 		)
 	) else (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51.lib /MACHINE:X64
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
+     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
+    			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
 		)
 	)
 )
@@ -150,7 +177,8 @@ SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
 SET INAC_WIN32_C_TEST_SOURCE_DIR=tests
-SET INAC_WIN32_C_TEST_SUITE_EXEC=..\buildtest\%INAC_BUILD_TYPE%\test.exe --tap
+SET INAC_WIN32_C_TEST_SUITE_EXEC=%INAC_HOME%\buildtest\%INAC_BUILD_TYPE%\test.exe --tap
+SET INAC_WIN32_C_TEST_SUITE_WD=%INAC_HOME%\buildtest\%INAC_BUILD_TYPE%
 
 call %INAC_BUILD_SCRIPT% %1 %2
 

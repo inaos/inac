@@ -94,7 +94,11 @@ extern "C" {
 #define INA_ASSERT_FALSE(v)
 #define INA_ASSERT_TRUE(v)
 #define INA_ASSERT_NULL(v)
+#ifdef INA_ASSERT_NOTNULL_ENABLED
+#define INA_ASSERT_NOTNULL(v) assert(v != NULL)
+#else
 #define INA_ASSERT_NOTNULL(v)
+#endif    
 #define INA_ASSERT_EQUAL(expected, actual)
 #define INA_ASSERT_NOTEQUAL(notexpected, actual)
 #define INA_ASSERT_SUCCESS(v)

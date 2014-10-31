@@ -63,6 +63,7 @@ extern "C" {
 #define INA_MOD_JSON     15
 #define INA_MOD_SERVICE  16
 #define INA_MOD_DNS      17
+#define INA_MOD_CIO      18
 #define INA_MOD_USER     32
 
 /* OS function identifiers */
@@ -122,8 +123,7 @@ extern "C" {
  */
 #define INA_ERR_PUSH(r,m,f,s) ina_err_push(m,f,r, __FILE__, __LINE__, s)
 
-/*
- * Push an error to the error state by passing only basic informations like
+/* * Push an error to the error state by passing only basic informations like
  * reason of failure and message
  *
  * Parameters
@@ -305,6 +305,11 @@ extern "C" {
 /* DNS errors */
 #define INA_DNS_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DNS, INA_OSFN_NONE, s)
 #define INA_DNS_ELOOKUP INA_SERVICE_ERROR(INA_ENET, "DNS lookup failed");
+
+/* CIO errors */
+#define INA_CIO_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CIO, INA_OSFN_NONE, s)
+#define INA_CIO_ENOTTY INA_CIO_ERROR(INA_EREAD, "No terminal");
+
 
 
 /* Error information */

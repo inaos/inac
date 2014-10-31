@@ -26,6 +26,10 @@
  */
 #include <libinac/lib.h>
 
+#if !defined(CLOCK_MONOTONIC_RAW)
+    #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#endif
+ 
 /* 
  * Create a stop watch with an given ID, makes 3 time stamps each 10 ms
  * beetween.
@@ -63,7 +67,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
 
-#ifndef INA_OS_WIN32
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
 /* 
  * Create a rdtsc stop watch with an given ID, makes 3 time stamps each 10 ms
  * beetween.

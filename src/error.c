@@ -113,9 +113,9 @@ INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line)
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
 {
     if (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0) {
-        return 1;
+        return INA_YES;
     }
-    return 0;
+    return INA_NO;
 }
 
 INA_API(ina_rc_t) ina_err_peek()
@@ -146,7 +146,7 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
     
 }
 
-INA_API(ina_rc_t) ina_err_peek_last()
+INA_API(ina_rc_t) ina_err_peek_last(void)
 {
     INA_ASSERT(__initialized);
     if (__state.c > 0) {
@@ -225,7 +225,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
 
             tm = localtime(&error->ts);
 
-            if (strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
+            if (tm && strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
                 sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u,i:%d)",
                                             tmc, 
                                             error->file,
@@ -237,7 +237,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
                                             INA_RC_HANDLED(error->rc),
                                             INA_RC_ID(error->rc));
 
-                if (strncpy(str, outstr, len) == NULL) {
+                if (strncpy(str, outstr, len-1) == NULL) {
                     return INA_ERR_EMSGFMT;
                 }
                 return INA_SUCCESS;
@@ -274,7 +274,6 @@ INA_API(ina_rc_t) ina_err_trace(void)
 
     fprintf(stderr, "%s\n", "**** UNHANDLED ERROR START ******");
 
-    rc = ina_err_peek();
     n = __state.c;
     while (n--) {
         if (INA_SUCCEED(ina_err_fmtmsg(__state.errors[n].rc, str, 2048))) {
@@ -369,7 +368,7 @@ INA_API(ina_rc_t) ina_err_coredump(void *data) {
 #ifndef INA_OS_WIN32
     char cmd[160];
     sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
-    if (system(cmd) != 0) {
+    if (system(cmd)) {
         return INA_FAILURE;
     } 
 #else
@@ -447,7 +446,7 @@ __ina_pop_error(void)
     INA_ASSERT(__state.c >= 0);
 
     if (__state.c > 0) {
-        for (i = 1; i < __state.c+1; ++i) {
+        for (i = 1; i < __state.c; ++i) {
             rc = INA_RC_PACK(INA_RC_OSFN(__state.errors[i].rc),
                              INA_RC_MOD(__state.errors[i].rc),
                              INA_RC_REASON(__state.errors[i].rc),

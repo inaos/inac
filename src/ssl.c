@@ -52,6 +52,8 @@ INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx,
 {
     uint32_t ax_options = 0;
 
+    INA_ASSERT_NOTNULL(ctx);
+
     *ctx = (ina_ssl_ctx_t*)ina_mem_alloc(sizeof(struct ina_ssl_ctx_s));
     if (*ctx == NULL) {
         return INA_ERR_PUSH_LAST;
@@ -73,6 +75,8 @@ INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx,
 
 INA_API(ina_rc_t) ina_ssl_destroy(ina_ssl_ctx_t **ctx)
 {
+    INA_ASSERT_NOTNULL(ctx);
+
     if (*ctx != NULL) {
         ssl_ctx_free((*ctx)->ctx_impl);
         ina_mem_free(*ctx);
@@ -85,6 +89,7 @@ INA_API(ina_rc_t) ina_ssl_client_new(ina_ssl_ctx_t *ctx,
                                      int fd)
 {
     INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(cn);
 
     if (ctx->cn != NULL) {
         return INA_SSL_EINIT;
@@ -136,7 +141,10 @@ INA_API(ina_rc_t) ina_ssl_server_new(ina_ssl_ctx_t *ctx,
                                      ina_ssl_cn_t **cn, 
                                      int client_fd)
 {
+    INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NULL(ctx->cn);
+    INA_ASSERT_NOTNULL(cn);
+
     ctx->cn = (ina_ssl_cn_t*)ina_mem_alloc(sizeof(struct ina_ssl_cn_s));
     if (ctx->cn)
 
@@ -153,6 +161,7 @@ INA_API(ina_rc_t) ina_ssl_server_new(ina_ssl_ctx_t *ctx,
 
 INA_API(ina_rc_t) ina_ssl_server_free(ina_ssl_ctx_t *ctx, ina_ssl_cn_t **cn)
 {
+    INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(ctx->cn);
     INA_ASSERT_TRUE((*cn)->server);
 
@@ -172,6 +181,8 @@ INA_API(ina_rc_t) ina_ssl_read(ina_ssl_cn_t *cn,
     int ret;
 
     INA_ASSERT_NOTNULL(cn);
+    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_NOTNULL(bytes_read);
 
 read:
     ret = ssl_read(cn->cn_impl, buf);
@@ -197,6 +208,8 @@ INA_API(ina_rc_t) ina_ssl_write(ina_ssl_cn_t *cn,
     int ret;
 
     INA_ASSERT_NOTNULL(cn);
+    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_NOTNULL(bytes_written);
 
     ret = ssl_write(cn->cn_impl, buf, buf_len);
     if (ret < 0) {

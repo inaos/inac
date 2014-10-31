@@ -28,6 +28,11 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#define __INA_CHECK_TTTY              \
+    if (!_isatty(_fileno(stdout))) {  \
+        return INA_SUCCESS;           \
+    }
+
 static int __ina_get_cursor_pos(ina_cio_pos_t *const pos);
 
 #ifdef INA_OS_WIN32
@@ -126,6 +131,7 @@ INA_API(ina_rc_t) ina_cio_clear(void)
     DWORD dwConSize;
 
     INA_ASSERT(__initialized);
+    __INA_CHECK_TTTY;
 
     if( hStdOut != INVALID_HANDLE_VALUE
         && GetConsoleScreenBufferInfo(hStdOut, &csbi)) {
@@ -172,6 +178,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 #ifdef INA_OS_WIN32
     CONSOLE_SCREEN_BUFFER_INFO info;
 #endif
+   __INA_CHECK_TTTY;
 
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(pos);
@@ -211,6 +218,8 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
 {
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(attribs);
+
+   __INA_CHECK_TTTY;
 
     __attribs.bg_color = attribs->bg_color;
     __attribs.fg_color = attribs->fg_color;
@@ -255,6 +264,8 @@ INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 {
     INA_ASSERT(__initialized);
     INA_ASSERT_NOTNULL(pos);
+    __INA_CHECK_TTTY;
+    
     __ina_get_cursor_pos(pos);
     return INA_SUCCESS;
 }
@@ -272,6 +283,8 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
     COORD pos;
 #endif    
     INA_ASSERT(__initialized);
+
+   __INA_CHECK_TTTY;
 
     if (col < 0 && row < 0) {
         return INA_SUCCESS;
@@ -310,6 +323,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     int setpos = INA_NO;
 
     INA_ASSERT(__initialized);
+    INA_ASSERT_NOTNULL(fmt);
 
     pos.col = 0;
     pos.row = 0;
@@ -739,11 +753,16 @@ INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
     char *buf = NULL;
     size_t buf_len = 0;
     size_t buf_pos = 0;
+    INA_ASSERT_NOTNULL(line);
     return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos);
 }
 
 INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
                                               size_t *buf_len, size_t *buf_pos)
 {
+    INA_ASSERT_NOTNULL(line);
+    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_NOTNULL(buf_len);
+    INA_ASSERT_NOTNULL(buf_pos);
     return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos);
 }
