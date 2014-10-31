@@ -4,7 +4,11 @@ SRC += $(wildcard helper*.c)
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
+<<<<<<< HEAD
 TOOLS = ullc_monitor service_mgr ilt iml
+=======
+TOOLS = ullc_monitor service_mgr mem_speed
+>>>>>>> origin/0.3
 TOOLS_OBJS = $(TOOLS:=.o)
 
 # ****************************************************************************

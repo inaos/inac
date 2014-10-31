@@ -32,6 +32,30 @@ INA_TEST(memory, memory_memfn)
 {
 }
 
+INA_TEST(memory, memory_align)
+{
+	INA_TEST_ASSERT_EQUAL_INTEGER(16, INA_MEM_ALIGN(1));
+	INA_TEST_ASSERT_EQUAL_INTEGER(16, INA_MEM_ALIGN(10));
+	INA_TEST_ASSERT_EQUAL_INTEGER(32, INA_MEM_ALIGN(17));
+	INA_TEST_ASSERT_EQUAL_INTEGER(48, INA_MEM_ALIGN(33));
+}
+
+INA_TEST(memory, memory_alloc_aligned)
+{
+    void *p;
+    p = ina_mem_alloc_aligned(2, 128);
+    INA_TEST_ASSERT_TRUE(INA_MEM_IS_ALIGNED(p, 2));
+    ina_mem_free(p);
+
+    p = ina_mem_alloc_aligned(4, 128);
+    INA_TEST_ASSERT_TRUE(INA_MEM_IS_ALIGNED(p, 4));
+    ina_mem_free(p);
+
+    p = ina_mem_alloc_aligned(16, 128);
+    INA_TEST_ASSERT_TRUE(INA_MEM_IS_ALIGNED(p, 16));
+    ina_mem_free(p);
+}
+
 INA_TEST(memory, pagesize)
 {
     size_t size = 0;
