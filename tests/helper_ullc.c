@@ -44,12 +44,14 @@ static void ina_test_helper_cleanup_consumer(int error, int *exitcode) {
 }
 
 /* Create a single */
-INA_TEST_HELPER(ullc, create_producer) {
+INA_TEST_HELPER(ullc, create_fast_producer) {
     const char* name;
     size_t consumers;
     size_t producers;
     size_t slots;
     int16_t version;
+    ina_test_ullc_t *v = NULL;
+    int c;
  
     ina_set_cleanup_handler(ina_test_helper_cleanup_producer);
 
@@ -60,6 +62,7 @@ INA_TEST_HELPER(ullc, create_producer) {
     consumers = (size_t)INA_TEST_HELPER_IARG(3);
     name = INA_TEST_HELPER_CARG(4);
 
+  
     if (!INA_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
         version, 
         slots, 
@@ -70,6 +73,24 @@ INA_TEST_HELPER(ullc, create_producer) {
         &ullc_ctx))) {
         INA_TEST_HELPER_SET_RC(INA_ERR_PUSH_LAST);
     }
+ 
+    INA_TRACE("created ullc producers: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
+        version, slots, producers, consumers, name);
+ 
+    ina_time_sleep(2000);
+
+    for (c = 0; c < 1000; c++) {
+        v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc_ctx);
+        v->i3 = c;
+        INA_ULLC_COMMIT(ullc_ctx);
+        ina_time_sleep(1);
+        c++;
+    }
+
+    v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc_ctx);
+    v->i3 = -1;
+    INA_ULLC_COMMIT(ullc_ctx);
+    ina_ullc_producer_destroy(&ullc_ctx);
  }
 
 /* Create a single */

@@ -21,6 +21,8 @@ set(SQLITE_LIB_NAME "sqlite")
 set(RAPIDXML_LIB_NAME "rapidxml")
 set(AXTLS_LIB_NAME "axtls")
 set(YAJL_LIB_NAME "yajl")
+set(LZ4_LIB_NAME "lz4")
+set(ICT_LIB_NAME "cpu-topology")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -82,7 +84,17 @@ set (YAJL_SRC     ${YAJL_SRC_DIR}/yajl.c ${YAJL_SRC_DIR}/yajl_alloc.c ${YAJL_SRC
                   ${YAJL_SRC_DIR}/yajl_encode.c ${YAJL_SRC_DIR}/yajl_gen.c ${YAJL_SRC_DIR}/yajl_lex.c
 				  ${YAJL_SRC_DIR}/yajl_parser.c ${YAJL_SRC_DIR}/yajl_tree.c ${YAJL_SRC_DIR}/yajl_version.c)
 add_library(${YAJL_LIB_NAME} ${YAJL_SRC})
-				  
+
+# LZ4
+set (LZ4_SRC_DIR ${DEPS_DIR}/lz4)
+set (LZ4_SRC     ${LZ4_SRC_DIR}/lz4.c ${LZ4_SRC_DIR}/lz4hc.c)
+add_library(${LZ4_LIB_NAME} ${LZ4_SRC})
+
+# Intel cpu-topology
+set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
+set (ICT_SRC     ${ICT_SRC_DIR}/cpu_topo.c ${ICT_SRC_DIR}/util_os.c)
+add_library(${ICT_LIB_NAME} ${ICT_SRC})
+
 # END dependencies
 
 add_definitions(-DINA_ISTRING_ENABLED -DINA_STRING_DEFINED)
@@ -103,7 +115,9 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
 				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c 
 				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c ${SRC_DIR}/json.c ${SRC_DIR}/service.c
-				 ${SRC_DIR}/process.c ${SRC_DIR}/dns.c ${SRC_DIR}/template.c ${SRC_DIR}/ipc.c)
+				 ${SRC_DIR}/process.c ${SRC_DIR}/dns.c ${SRC_DIR}/template.c ${SRC_DIR}/ipc.c
+				 ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c 
+				 ${SRC_DIR}/file_cursor.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 

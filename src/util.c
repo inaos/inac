@@ -211,14 +211,16 @@ INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t data
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t inLen, unsigned char *out, size_t *outLen)
+INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned char *out, size_t max_out, size_t *out_len)
 {
 #define __INA_UTILS_BASE64_WHITESPACE 64
 #define __INA_UTILS_BASE64_EQUALS     65
 #define __INA_UTILS_BASE64_INVALID    66
-    char *end = in + inLen;
+    char *end = in + in_len;
     size_t buf = 1, len = 0;
     
+    *out_len = 0;
+
     while (in < end) {
         unsigned char c = base64_decode_tab[(int)(*in++)];
  
@@ -236,7 +238,7 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t inLen, unsigned 
  
                 /* If the buffer is full, split it into bytes */
                 if (buf & 0x1000000) {
-                    if ((len += 3) > *outLen) {
+                    if ((len += 3) > max_out) {
                         return INA_FAILURE; /* buffer overflow */
                     }
                     *out++ = buf >> 16;
@@ -248,20 +250,20 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t inLen, unsigned 
     }
  
     if (buf & 0x40000) {
-        if ((len += 2) > *outLen) {
+        if ((len += 2) > max_out) {
             return INA_FAILURE; /* buffer overflow */
         }
         *out++ = buf >> 10;
         *out++ = buf >> 2;
     }
     else if (buf & 0x1000) {
-        if (++len > *outLen) {
+        if (++len > max_out) {
             return INA_FAILURE; /* buffer overflow */
         }
         *out++ = buf >> 4;
     }
  
-    *outLen = len; /* modify to reflect the actual output size */
+    *out_len = len; /* modify to reflect the actual output size */
 
     return INA_SUCCESS;
 }

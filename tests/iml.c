@@ -44,7 +44,7 @@ ina_cleanup_handler(int error, int *exitcode)
 
 int main(int argc,  char** argv) 
 {
-    int port;
+    int port = 0;
     unsigned char msgbuf[MSGBUFSIZE];
 
     INA_OPTS(opt,

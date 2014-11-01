@@ -90,6 +90,7 @@ static ina_signal_handler_t __signal_handler_map[] = {
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
 };
 
@@ -203,7 +204,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
 
                 if (s > 0) {
                     char buf[100];
-                    strncpy(buf, &argv[n][s], e-s);
+                    strncpy(buf, &argv[n][s], (size_t)(e-s));
                     buf[c-s] = 0;
                     INA_TRACE3("opt=%s", buf);
                     so = __ina_opt_get(buf);
@@ -300,6 +301,11 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     }
 #endif
 
+    /* initialize CPU module */
+    if (!INA_SUCCEED(ina_cpu_init())) {
+        return INA_ERR_PUSH_LAST;
+    }
+
     return INA_SUCCESS;
 }
 
@@ -315,12 +321,18 @@ INA_API(void) ina_exit(void)
     /* Reset CIO attributes */
     ina_cio_reset();
 
+	/* destroy cpu module */
+    ina_cpu_destroy();
+	
     if (__cleanup != NULL) {
         __cleanup(0, 0);
     }
 
     if (__appname != NULL) {
         ina_str_free(__appname);
+    }
+    if (__apppath != NULL) {
+        ina_str_free(__apppath);
     }
 
     /* FIXME: Crashes during tests because sys mem pool 
@@ -615,11 +627,11 @@ __ina_signal_handler(int sig)
     sh = __signal_handler_map[isig];
 
     if (sh) {
-#ifdef INA_OS_WIN32
-        WaitForSingleObject(__main_thread, INFINITE);
-#endif
         sh(isig, &sb, &exitcode);
     }
+#ifdef INA_OS_WIN32
+    WaitForSingleObject(__main_thread, INFINITE);
+#endif
 
     switch (sig) {
         case SIGABRT:

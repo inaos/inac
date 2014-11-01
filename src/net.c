@@ -45,6 +45,7 @@
 
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
+    INA_ASSERT_NOTNULL(host);
 #ifdef INA_OS_WIN32
     if (gethostname(host, len) != 0) {
         int ec = WSAGetLastError();
@@ -113,6 +114,7 @@ INA_API(ina_rc_t) ina_net_tcp_connect(int* fd, const char *addr, int port, int t
             fd_set fdset;
             struct timeval timeout;
 
+            ina_mem_set(&fdset, 0, sizeof(fd_set));
             FD_ZERO(&fdset);
             FD_SET(*fd, &fdset);
             timeout.tv_sec = timeout_sec;

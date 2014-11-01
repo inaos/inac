@@ -51,6 +51,8 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
     ina_timer_t* t;
     ina_time_event_t *sentinal; 
 
+    INA_ASSERT_NOTNULL(timer);
+
     sentinal = (ina_time_event_t*)ina_mem_alloc(sizeof(ina_time_event_t));
     if (sentinal == NULL) {
         return INA_MEM_EALLOC;
@@ -78,6 +80,8 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
     skipnode n, ntmp;
     ina_time_event_t *e;
     
+    INA_ASSERT_NOTNULL(timer);
+
     if (*timer == NULL) {
         return INA_SUCCESS;
     }
@@ -117,6 +121,8 @@ INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t mse
 
 INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno)
 {
+    INA_ASSERT_NOTNULL(timer);
+
     if (yesno == INA_YES && timer->use_rdtsc == INA_NO) {
         ina_time_tsc_enable_rdtsc();
     }
@@ -128,6 +134,9 @@ INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno)
 
 INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e)
 {
+    INA_ASSERT_NOTNULL(timer);
+    INA_ASSERT_NOTNULL(e);
+
     skiplist_delete_gc(timer->events, e);
     ina_mem_free(e);
     return INA_SUCCESS;

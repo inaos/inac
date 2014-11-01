@@ -271,7 +271,7 @@ static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t *ctx)
 static ina_rc_t __ina_service_win_setandcheck_mutex(ina_service_ctx_t *ctx)
 {
     ina_str_t mutex_name = ina_str_new_fromcstr("/ina_service_mutex_");
-    ina_str_cat(mutex_name, ctx->descriptor->name);
+    mutex_name = ina_str_catcstr(mutex_name, ctx->descriptor->name);
     if (ctx->descriptor->exclusive_flag) {
         HANDLE hmutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, ina_str_cstr(mutex_name));
         if (hmutex != NULL) {
@@ -599,8 +599,8 @@ static ina_rc_t __ina_service_mgnt_stop(const char *name)
 
 static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_t *status)
 {
-    int lfp;
-    ina_str_t lock_file_path;
+    int lfp = 0;
+    ina_str_t lock_file_path = NULL;
 
     INA_ASSERT_NOTNULL(status);
 
@@ -608,7 +608,7 @@ static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_
 
     lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, name);
     lfp = open(ina_str_cstr(lock_file_path), O_RDONLY, 0640);
-    if (lfp > 0) {
+    if (lfp >= 0) {
         *status = INA_SERVICE_STATUS_RUN;
         close(lfp);
     }
@@ -674,7 +674,7 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
     if (*ctx == NULL || __ctx == NULL) {
         return INA_SUCCESS;
     }
-    if (__ctx != __ctx) {
+    if (*ctx != __ctx) {
         return INA_FAILURE;
     }
 

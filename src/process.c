@@ -407,8 +407,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
             || descriptor->managed_type == 
                INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
                 
-                ina_str_t id = ina_str_sprintf("START_%s", 
-                                        ina_str_cstr(descriptor->full_path));
+                ina_str_t id = ina_str_sprintf("START_%lld", (int64_t)process);
                 
                 INA_ASSERT_NOTNULL(descriptor->scheduled_start_pattern);
                 
@@ -426,8 +425,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
         if (descriptor->managed_type == 
             INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
             
-            ina_str_t id = ina_str_sprintf("STOP_%s", 
-                                    ina_str_cstr(descriptor->full_path));
+            ina_str_t id = ina_str_sprintf("STOP_%lld", (int64_t)process);
             
             INA_ASSERT_NOTNULL(descriptor->scheduled_stop_pattern);
             

@@ -67,6 +67,16 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 REM Build 3rd party
 REM ---------------------------------
 
+REM build cpu-topology
+cd contribs\cpu-topology
+if "%INAC_W32_BUILD_STAGE%" == "clean" (
+	if exist get_cpuid.obj del get_cpuid.obj
+	if exist intel-cpu-topo.lib del intel-cpu-topo.lib
+) else (
+	call inac_32.bat
+)
+cd %INAC_HOME%	
+
 REM build luajit
 cd contribs\luajit\src
 if not exist msvcbuild.bat goto fail_no_luajit1
@@ -133,24 +143,28 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib /MACHINE:X64
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
+     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
+     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51d.lib
 		)
 	) else (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51.lib /MACHINE:X64
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
+     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
-				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
+				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
+    			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\contribs\luajit\src\lua51.lib
 		)
 	)
 )
