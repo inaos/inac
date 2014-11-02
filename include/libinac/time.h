@@ -49,8 +49,11 @@ typedef union ina_time_tsc_value_u {
 
 /* Time Stamp Counter */
 typedef struct ina_time_tsc_s {
-#ifdef WIN32
+#ifdef INA_OS_WIN32
     LARGE_INTEGER tp;
+    double freq_sec;
+    LARGE_INTEGER wref;
+    uint64_t wrefhpet;
 #elif defined(INA_OS_OSX)
     uint64_t tp;
 #else
@@ -143,6 +146,9 @@ typedef struct ina_stopwatch_s {
     ina_mempool_t *shared_mem;     /* allocated shared memory */
     ina_stopwatch_tv_t *tv;        /* stopwatch data */
     ina_stopwatch_ts_t *ts;        /* current time stamp */
+#ifdef INA_OS_WIN32
+    double freq_sec;               /* WIN32: tick count per second */
+#endif
 } ina_stopwatch_t;
 
 #define INA_TIME_BACKEND_NAME_MAXLEN (64)
@@ -237,6 +243,11 @@ INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
                                         const char *fmt, 
                                         const ina_time_tsc_t* time,
                                         int show_nanos);
+
+/*
+ * Convert the ina_time_tsc_t to a milli-second timestamp since epoch
+ */
+INA_API(ina_rc_t) ina_time_tsc_millis(ina_time_tsc_t *tsc, time_t *now_millis);
 
 /*
  * Create a new stopwatch
