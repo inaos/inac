@@ -115,7 +115,7 @@ endif
 # Timer implementation
 # ****************************************************************************
 ifeq (,$(INAC_TIMER_BACKEND))
-        INAC_TIMER_BACKEND=os
+        INAC_TIMER_BACKEND=skiplist
 endif
 ifeq (wheel, $(INAC_TIMER_BACKEND))
         CFLAGS+=-DINA_TIMER_BACKEND_WHEEL_ENABLED=1
