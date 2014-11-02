@@ -49,7 +49,6 @@ static ina_rc_t __ina_timer_bench_exec(int rdtsc, int iteration)
     ina_stopwatch_t *s2 = NULL;
     ina_stopwatch_t *s3 = NULL;
     double total = 0;
-    int64_t idx = 0;
 
     if (!INA_SUCCEED(ina_timer_init(&timer))) {
         return EXIT_FAILURE;
