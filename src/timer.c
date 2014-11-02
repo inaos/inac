@@ -26,97 +26,59 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
-#include <contribs/skiplist/skiplist.h>
 #include "config.h"
+#include "timer_backend.h"
 
 struct ina_timer_s {
-    skiplist events;
-    uint64_t next_event_id;
+    ina_time_tsc_t *stamp;
+    ina_timer_backend_t *be;
     int use_rdtsc;
 } ina_timer_s;
 
-/* Skip list compare callback */
-static int __ina_cmp(const void *, const void *);
-/* Get current time */
-static ina_rc_t __ina_get_time(time_t*, time_t*);
-/* Get current time and add milliseconds to the time value */
-static ina_rc_t __ina_add_millis_to_now(time_t, time_t*, time_t*);
-/* Seach the next event */
-static ina_time_event_t* __ina_search_nearest_event(ina_timer_t*);
-/* Reschedule time */
-static ina_rc_t __ina_reschedule_timer(ina_timer_t*, ina_time_event_t*);
+static time_t __ina_timer_tsc_to_msec(ina_time_tsc_t *tsc)
+{
+    time_t now_millis = 0;
+    ina_time_tsc_millis(tsc, &now_millis);
+    return now_millis;
+}
 
 INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
 {
     ina_timer_t* t;
-    ina_time_event_t *sentinal; 
-
+    
     INA_ASSERT_NOTNULL(timer);
-
-    sentinal = (ina_time_event_t*)ina_mem_alloc(sizeof(ina_time_event_t));
-    if (sentinal == NULL) {
-        return INA_MEM_EALLOC;
-    }
-    sentinal->id = 0;
-    sentinal->msec = 0;
-    sentinal->when_msec = 0;  
-    sentinal->when_sec = 0;
 
     *timer = (ina_timer_t*)ina_mem_alloc(sizeof(ina_timer_t));
     if (*timer == NULL) {
-        ina_mem_free(sentinal);
         return INA_MEM_EALLOC;
     }
     t = *timer;
-    t->next_event_id = 0;
-    t->events = skiplist_create(__ina_cmp, sentinal);
+    if (!INA_SUCCEED(ina_timer_backend_init(&t->be))) {
+        return INA_ERR_PUSH_LAST;
+    }
     t->use_rdtsc = INA_NO;
+    ina_time_tsc_new(&(*timer)->stamp);
 
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
 {
-    skipnode n, ntmp;
-    ina_time_event_t *e;
-    
     INA_ASSERT_NOTNULL(timer);
 
     if (*timer == NULL) {
         return INA_SUCCESS;
     }
 
-    SKIPLIST_FOREACH_SAFE((*timer)->events, n, ntmp) {
-        e = (ina_time_event_t*)skipnode_item(n);
-        ina_mem_free(e);
+    if (!INA_SUCCEED(ina_timer_backend_destroy(&(*timer)->be))) {
+        return INA_ERR_PUSH_LAST;
     }
-    skiplist_destroy((*timer)->events);
+
+    ina_time_tsc_free(&(*timer)->stamp);
     ina_mem_free(*timer);
     *timer = NULL;
 
     return INA_SUCCESS;
-}
-
-INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec)
-{
-    ina_time_event_t *e;
-    
-    INA_ASSERT_NOTNULL(timer);
-    INA_ASSERT(msec > 0);
-
-    e = (ina_time_event_t*)ina_mem_alloc(sizeof(ina_time_event_t));
-    if (e == NULL) {
-        INA_MEM_EALLOC;
-        return NULL;
-    }
-
-    e->id = ++timer->next_event_id;
-    e->msec = msec;
-
-    __ina_add_millis_to_now(msec, &e->when_sec, &e->when_msec);
-
-    skiplist_insert(timer->events, e);
-    return e;
 }
 
 INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno)
@@ -132,164 +94,79 @@ INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno)
     return INA_SUCCESS;
 }
 
+
+INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec)
+{
+    time_t now_millis;
+    
+    INA_ASSERT_NOTNULL(timer);
+
+    ina_time_read_tsc_clock(timer->stamp);
+    now_millis = __ina_timer_tsc_to_msec(timer->stamp);
+
+    return ina_timer_create_event_with_time(timer, now_millis, msec);
+}
+
+INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer, time_t n_msec, time_t e_msec)
+{
+    ina_time_event_t *e;
+    
+    INA_ASSERT_NOTNULL(timer);
+    INA_ASSERT(n_msec > 0);
+    INA_ASSERT(e_msec > 0);
+
+    e = (ina_time_event_t*)ina_mem_alloc(sizeof(ina_time_event_t));
+    if (e == NULL) {
+        INA_MEM_EALLOC;
+        return NULL;
+    }
+
+    if (!INA_SUCCEED(ina_timer_backend_create_event(timer->be, e, n_msec, e_msec))) {
+        INA_ERR_PUSH_LAST;
+        return NULL;
+    }
+
+    return e;
+}
+
 INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e)
 {
     INA_ASSERT_NOTNULL(timer);
     INA_ASSERT_NOTNULL(e);
 
-    skiplist_delete_gc(timer->events, e);
+    ina_timer_backend_delete_event(timer->be, e);
     ina_mem_free(e);
+
     return INA_SUCCESS;
 }
 
 INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer)
 {
-    time_t now_sec, now_msec;
-    ina_time_event_t *e;
-
+    time_t now_millis;
+    
     INA_ASSERT_NOTNULL(timer);
 
-    /* 
-	 * We do not need to handle clock-skew!
-	 * Since we're using a monotonic increasing clock. 
-	 * Check the function calls in __ina_get_time to get 
-	 * a better idea.
-	 */
+    ina_time_read_tsc_clock(timer->stamp);
+    now_millis = __ina_timer_tsc_to_msec(timer->stamp);
 
-    e = __ina_search_nearest_event(timer);
-    if (e == NULL) {
-        return NULL;
-    }
-    
-    /* check if event should fire if yes return it, if no return null */
-    __ina_get_time(&now_sec, &now_msec);
-    if (now_sec > e->when_sec || (now_sec == e->when_sec && now_msec >= e->when_msec)) {
-        __ina_reschedule_timer(timer, e);
-        return e;
-    }
-    return NULL;
+    return ina_timer_next_event_with_time(timer, now_millis);
 }
 
-INA_API(ina_rc_t) ina_timer_time_to_next(ina_timer_t *timer, time_t *how_long_msec)
+INA_API(ina_time_event_t*) ina_timer_next_event_with_time(ina_timer_t *timer, time_t now_millis)
 {
-    time_t now_sec, now_msec;
-    ina_time_event_t *shortest;
-    time_t hl_sec;
-    time_t hl_msec;
-
     INA_ASSERT_NOTNULL(timer);
-    INA_ASSERT_NOTNULL(how_long_msec);
 
-    shortest = __ina_search_nearest_event(timer);
-
-    /* Calculate the time missing for the nearest timer to fire. */
-    __ina_get_time(&now_sec, &now_msec);
-    hl_sec = shortest->when_sec - now_sec;
-    hl_msec = shortest->when_msec - now_msec;
-    if (shortest->when_msec < now_msec) {
-        hl_sec--;
-    }
-    if (hl_sec < 0 || hl_msec < 0) {
-        /* set to zero */
-        *how_long_msec = 0;
-    }
-    else {
-        *how_long_msec = hl_msec;
-    }
-    return INA_SUCCESS;
+    return ina_timer_backend_next_event_with_time(timer->be, now_millis);   
 }
 
-static int
- __ina_cmp(const void *list_value, const void *user_value)
+INA_API(ina_rc_t) ina_timer_time_to_next_event(ina_timer_t *timer, time_t *how_long_msec)
 {
-    const ina_time_event_t *l = (ina_time_event_t*)list_value;
-    const ina_time_event_t *u = (ina_time_event_t*)user_value;
-
-    /* if we compare against the sentinal */
-    if (l->id == 0) {
-        return(1);
-    }
-
-    if (l->id == u->id) {
-        return(0);
-    }
-    else {
-        if (l->when_sec > u->when_sec) {
-            return(1);
-        }
-        else if (l->when_sec < u->when_sec) {
-            return(-1);
-        }
-        else {
-            if (l->when_msec > u->when_msec) {
-                return(1);
-            }
-            else if (l->when_msec < u->when_msec) {
-                return(-1);
-            }
-            else {
-                if (l->id < u->id) {
-                    return(-1);
-                }
-                else {
-                    return(1);
-                }
-            }
-        }
-    }
-}
-
-static ina_rc_t 
-__ina_get_time(time_t *sec, time_t *msec)
-{
-    ina_time_tsc_t t;
-	long nanos;
-
-    INA_ASSERT_NOTNULL(sec);
-    INA_ASSERT_NOTNULL(msec);
-
-    ina_time_read_tsc_clock(&t);
-
-	ina_time_tsc_seconds_nanos(&t, sec, &nanos);
+    time_t now_millis;
     
-	*msec = nanos/1000/1000;
+    INA_ASSERT_NOTNULL(timer);
 
-    return INA_SUCCESS;
-}
+    ina_time_read_tsc_clock(timer->stamp);
+    now_millis = __ina_timer_tsc_to_msec(timer->stamp);
 
-static ina_rc_t
-__ina_add_millis_to_now(time_t msec_to_add, time_t *sec, time_t *msec)
-{
-    time_t cur_sec, cur_msec, when_sec, when_msec;
-    INA_ASSERT(msec_to_add > 0);
-    INA_ASSERT_NOTNULL(sec);
-    INA_ASSERT_NOTNULL(msec);
-
-    __ina_get_time(&cur_sec, &cur_msec);
-    when_sec = cur_sec + msec_to_add/1000;
-    when_msec = cur_msec + msec_to_add%1000;
-    if (when_msec >= 1000) {
-        when_sec++;
-        when_msec -= 1000;
-    }
-    *sec = when_sec;
-    *msec = when_msec;
-    return INA_SUCCESS;
-}
-
-static ina_time_event_t*
-__ina_search_nearest_event(ina_timer_t *timer)
-{
-    skipnode i = skiplist_at(timer->events,0);
-    ina_time_event_t *e = (ina_time_event_t*)skipnode_item(i);
-    return e;
-}
-
-static ina_rc_t 
-__ina_reschedule_timer(ina_timer_t *timer, ina_time_event_t *e)
-{
-    skiplist_delete_gc(timer->events, e);
-    __ina_add_millis_to_now(e->msec, &e->when_sec, &e->when_msec);
-    skiplist_insert(timer->events, e);
-    return INA_SUCCESS;
+    return ina_timer_backend_time_to_next_event(timer->be, now_millis, how_long_msec);
 }

@@ -76,7 +76,7 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.a $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
         $(INAC_CONTRIBS_DIR)/yajl/yajl.a $(INAC_CONTRIBS_DIR)/miniz/miniz.a \
-	$(INAC_CONTRIBS_DIR)/lz4/lz4.a $(INAC_LINUX_LIBS)
+	$(INAC_CONTRIBS_DIR)/lz4/lz4.a $(INAC_CONTRIBS_DIR)/timerwheel/timerwheel.a $(INAC_LINUX_LIBS)
 # ****************************************************************************
 #  String implementation
 # ****************************************************************************
@@ -111,14 +111,28 @@ endif
 ifeq (os, $(INAC_TIME_BACKEND))
 	CFLAGS+=-DINA_OSTIME_ENABLED=1
 endif
+# ****************************************************************************
+# Timer implementation
+# ****************************************************************************
+ifeq (,$(INAC_TIMER_BACKEND))
+        INAC_TIMER_BACKEND=skiplist
+endif
+ifeq (wheel, $(INAC_TIMER_BACKEND))
+        CFLAGS+=-DINA_TIMER_BACKEND_WHEEL_ENABLED=1
+endif
+ifeq (skiplist, $(INAC_TIMER_BACKEND))
+        CFLAGS+=-DINA_TIMER_SKIPLIST_ENABLED=1
+endif
 CFLAGS+=-DINA_STRING_DEFINED=1
 CFLAGS+=-DINA_TIME_DEFINED=1
+CFLAGS+=-DINA_TIMER_BACKEND_DEFINED=1
 export CFLAGS
 export LDFLAGS
 export INAC_LIB
 export INAC_LIBS
 export INA_STRING_DEFINED
 export INA_TIME_DEFINED
+export INA_TIMER_BACKEND_DEFINED
 
 default: release
 
@@ -132,6 +146,7 @@ all:
 	@echo "Build type	: $(INAC_BUILD_TYPE)"
 	@echo "String library	: $(INAC_STRING_LIB)"
 	@echo "Time backend	: $(INAC_TIME_BACKEND)"
+	@echo "Timer backend    : $(INAC_TIMER_BACKEND)"
 
 release: CFLAGS += -O3 -DINA_LOG_LEVEL=1
 	export CFLAGS

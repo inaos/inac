@@ -8,7 +8,9 @@ SET OLD_DIR=%CD%
 cd ..\..\..\
 
 SET INAC_TIME_BACKEND=time-os
+SET INAC_TIMER_BACKEND=timer-skiplist
 if not "%1" == "" SET INAC_TIME_BACKEND=%1
+if not "%2" == "" SET INAC_TIMER_BACKEND=%2
 
 if not exist build mkdir build
 cd build
