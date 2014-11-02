@@ -43,6 +43,11 @@
 #define INA_OSTIME_ENABLED 1
 #endif
 
+/* Define timer backend to use */
+#ifndef INA_TIMER_BACKEND_DEFINED
+#define INA_TIMER_SKIPLIST_ENABLED 1
+#endif
+
 /* Define default sys mem pool size */
 #ifndef INA_SYSMEMPOOL_SIZE
 #define INA_SYSMEMPOOL_SIZE  8*1024*1024

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2014, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,8 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_TIMER_H_
-#define _LIBINAC_TIMER_H_
+#ifndef _LIBINAC_TIMER_BACKEND_H_
+#define _LIBINAC_TIMER_BACKEND_H_
 
 #include <libinac/lib.h>
 
@@ -34,55 +34,40 @@
 extern "C" {
 #endif
 
-/* Timer */
-typedef struct ina_timer_s ina_timer_t;
-
-/* Time event */
-typedef struct ina_time_event_s {
-    uint64_t id;
-    void *data;
-} ina_time_event_t;
+typedef struct ina_timer_backend_s ina_timer_backend_t;
+typedef struct ina_timer_backend_event_s ina_timer_backend_event_t;
 
 /*
- * Create an new timer 
+ * Initialize timer backend
  */
-INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer);
+INA_API(ina_rc_t) ina_timer_backend_init(ina_timer_backend_t **backend);
+
 /*
- * Destroty a timer
+ * Destroy timer backend
  */
-INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer);
+INA_API(ina_rc_t) ina_timer_backend_destroy(ina_timer_backend_t **backend);
+
 /*
- * Enable RDTSC, make sure you understand the caveats 
- * -> check time.h
- * -> Only use on modern processors with Invariant TSC
- * -> Processes must be pinned to CPU
- * Per default RDTSC is disabled
+ * Create a new backend event for a timer
  */
-INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno);
+INA_API(ina_time_event_t*) ina_timer_backend_create_event(ina_timer_backend_t *backend, 
+                                                          ina_time_event_t *e,
+                                                          time_t n_msec,
+                                                          time_t e_msec);
 /*
- * Create a new time event for a timer
+ * Delete a backend event from a timer
  */
-INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec);
-/*
- * Create a new time event for a timer while providing current time
- */
-INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer, time_t n_msec, time_t e_msec);
-/*
- * Delete a time event from a timer
- */
-INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e);
-/*
- * Get the next elapsed time event
- */
-INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer);
+INA_API(ina_rc_t) ina_timer_backend_delete_event(ina_timer_backend_t *backend, ina_time_event_t *e);
+
 /*
  * Get the next elapsed time event by providing the milli-seconds since epoch
  */
-INA_API(ina_time_event_t*) ina_timer_next_event_with_time(ina_timer_t *timer, time_t now_millis);
+INA_API(ina_time_event_t*) ina_timer_backend_next_event_with_time(ina_timer_backend_t *backend, time_t now_millis);
+
 /*
  *  Calculate time in msec until the next time event will elapse.
  */
-INA_API(ina_rc_t) ina_timer_time_to_next_event(ina_timer_t *timer, time_t *how_long_msec);
+INA_API(ina_rc_t) ina_timer_backend_time_to_next_event(ina_timer_backend_t *backend, time_t now_millis, time_t *how_long_msec);
 
 #ifdef __cplusplus
 }

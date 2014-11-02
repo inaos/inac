@@ -259,6 +259,19 @@ INA_TEST(time,read_clock)
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_free(&t));
 }
 
+INA_TEST(time, tsc_millis)
+{
+    ina_time_tsc_t *t;
+    time_t now_millis = 0;
+    time_t now_sec = time(NULL);
+
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_new(&t));
+    INA_TEST_ASSERT_SUCCEED(ina_time_read_tsc_clock(t));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_millis(t, &now_millis));
+    INA_TEST_ASSERT_EQUAL_INTEGER(now_sec, (time_t)now_millis/1000);
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_free(&t));
+}
+
 #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
 INA_TEST_SKIP(time_tsc,read_tsc)
 {

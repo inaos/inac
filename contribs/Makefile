@@ -44,6 +44,7 @@ ifneq ($(OS), Darwin)
 endif
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
+	$(MAKE) -C timerwheel
 
 test: all
 
@@ -70,4 +71,5 @@ ifneq ($(OS), Darwin)
 endif
 	$(MAKE) clean -C lz4
 	$(MAKE) clean -C miniz
+	$(MAKE) clean -C timerwheel
 
