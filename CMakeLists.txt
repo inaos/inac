@@ -23,6 +23,7 @@ set(AXTLS_LIB_NAME "axtls")
 set(YAJL_LIB_NAME "yajl")
 set(LZ4_LIB_NAME "lz4")
 set(ICT_LIB_NAME "cpu-topology")
+set(TIMER_WHEEL_LIB_NAME "timerwheel")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -95,6 +96,11 @@ set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
 set (ICT_SRC     ${ICT_SRC_DIR}/cpu_topo.c ${ICT_SRC_DIR}/util_os.c)
 add_library(${ICT_LIB_NAME} ${ICT_SRC})
 
+# Timerwheel
+set (TIMER_WHEEL_SRC_DIR ${DEPS_DIR}/timerwheel)
+set (TIMER_WHEEL_SRC ${TIMER_WHEEL_SRC_DIR}/timeout.c)
+add_library(${TIMER_WHEEL_LIB_NAME} ${TIMER_WHEEL_SRC})
+
 # END dependencies
 
 add_definitions(-DINA_ISTRING_ENABLED -DINA_STRING_DEFINED)
@@ -105,6 +111,11 @@ if ($ENV{INAC_TIME_BACKEND} STREQUAL "time-meinberg")
 	add_definitions(-DINA_MBTIME_ENABLED -DINA_TIME_DEFINED)
 endif()
 MESSAGE(STATUS "Time-Backend: $ENV{INAC_TIME_BACKEND}")
+
+if ($ENV{INAC_TIMER_BACKEND} STREQUAL "timer-wheel")
+	add_definitions(-DINA_TIMER_BACKEND_WHEEL_ENABLED -DINA_TIMER_BACKEND_DEFINED)
+endif()
+MESSAGE(STATUS "Timer-Backend: $ENV{INAC_TIMER_BACKEND}")
 
 # END backend configuration
 
@@ -117,7 +128,7 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c ${SRC_DIR}/json.c ${SRC_DIR}/service.c
 				 ${SRC_DIR}/process.c ${SRC_DIR}/dns.c ${SRC_DIR}/template.c ${SRC_DIR}/ipc.c
 				 ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c 
-				 ${SRC_DIR}/file_cursor.c)
+				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
