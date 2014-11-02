@@ -42,23 +42,14 @@ static ina_rc_t __ina_timer_bench_create_events(ina_timer_t *timer)
     stop_event = ina_timer_create_event(timer, 20000);
     return INA_SUCCESS;
 }
-int main(int argc, char **argv)
+static ina_rc_t __ina_timer_bench_exec(int rdtsc, int iteration)
 {
     ina_timer_t *timer;
-    int rdtsc = INA_NO;
-    int64_t idx = 0;
     ina_stopwatch_t *s1 = NULL; 
     ina_stopwatch_t *s2 = NULL;
+    ina_stopwatch_t *s3 = NULL;
     double total = 0;
-
-    INA_OPTS(opt,
-        INA_OPT_INT("r", "rdtsc", INA_NO, "Use RDTSC"));
-
-    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
-        return EXIT_FAILURE;
-    }
-
-    ina_opt_get_int("r", &rdtsc);
+    int64_t idx = 0;
 
     if (!INA_SUCCEED(ina_timer_init(&timer))) {
         return EXIT_FAILURE;
@@ -72,33 +63,63 @@ int main(int argc, char **argv)
 
     INA_TIME_STOPWATCH_CREATE(&s1, 1, -1);
     INA_TIME_STOPWATCH_CREATE(&s2, 2, -1);
+    INA_TIME_STOPWATCH_CREATE(&s3, 3, -1);
 
     INA_TIME_STOPWATCH_START(s1);
     __ina_timer_bench_create_events(timer);
     INA_TIME_STOPWATCH_STOP(s1);
 
-    ina_time_stopwatch_read_stamp(s1, &idx);
-    printf("Time to create time-events in micro-sec: %f\n", s1->ts->usec_duration);
+    printf("IT-%d: Time to create time-events in micro-sec: %f\n", iteration, s1->tv->usec_duration);
+
+    INA_TIME_STOPWATCH_START(s3);
 
     for (;;) {
         ina_time_event_t *e;
         INA_TIME_STOPWATCH_START(s2);
         e = ina_timer_next_event(timer);
         INA_TIME_STOPWATCH_STOP(s2);
-        if (e->id == stop_event->id) {
+        if (e != NULL && e->id == stop_event->id) {
            break;
         }
-        ina_time_stopwatch_read_stamp(s2, &idx);
-        total += s2->ts->usec_duration;
+        total += s2->tv->usec_duration;
         ina_time_sleep(1);
     }
 
-    printf("Total time spent in ina_timer_next_event() %f\n", total);
+    INA_TIME_STOPWATCH_STOP(s3);
 
-    ina_timer_destroy(&timer);
+    printf("IT-%d: ina_timer_next_event() in micro-seconds: %f or in sec: %f\n", iteration, total, total/1000/1000);
+
+    printf("IT-%d: Test total time: %f\n", iteration, s3->tv->sec_duration);
 
     INA_TIME_STOPWATCH_DESTROY(&s1);
     INA_TIME_STOPWATCH_DESTROY(&s2);
+    INA_TIME_STOPWATCH_DESTROY(&s3);
+
+    ina_timer_destroy(&timer);
+
+    return INA_SUCCESS;
+}
+int main(int argc, char **argv)
+{
+    int rdtsc = INA_NO;
+    int iterations = 0;
+    int i;
+
+    INA_OPTS(opt,
+        INA_OPT_INT("r", "rdtsc", INA_NO, "Use RDTSC"),
+        INA_OPT_INT("i", "iterations", 1, "Number of benchmark iterations")
+    );
+
+    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
+        return EXIT_FAILURE;
+    }
+
+    ina_opt_get_int("r", &rdtsc);
+    ina_opt_get_int("i", &iterations);
+
+    for (i = 0; i < iterations; i++) {
+        __ina_timer_bench_exec(rdtsc, i+1);
+    }
     
     return EXIT_SUCCESS;
 }
