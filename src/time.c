@@ -76,15 +76,57 @@ static uint64_t __ina_time_rdtsc_ref = 0;
 static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
  
 #ifdef INA_OS_WIN32
-static double __ina_lit_to_secs(const LARGE_INTEGER * L) 
+static double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER * L) 
+{
+    return ((double)L->QuadPart / freq_sec);
+}
+static double __ina_freq_sec() 
 {
     LARGE_INTEGER frequency;
     QueryPerformanceFrequency( &frequency ) ; 
-    return ((double)L->QuadPart /(double)frequency.QuadPart);
+    return (double)frequency.QuadPart;
+}
+static void __ina_time_init(ina_time_tsc_t *time)
+{
+    ina_time_t *ts;
+    time_t sec;
+    long usec;
+    time->freq_sec = __ina_freq_sec();
+    ina_time_sys_new(&ts);
+    QueryPerformanceCounter(&time->wref);
+    ina_time_read_sys_clock(ts);
+    ina_time_sys_seconds_micros(ts, &sec, &usec);
+    ina_time_sys_free(&ts);
+    time->wrefhpet = sec * 1000000000 + (usec*1000);
 }
 static void __ina_time_rdtsc_calibrate_ticks(void)
 {
-    /* FIXME calibrate time for windows */
+    ina_time_t *begints, *endts, *refhpet;
+    ina_time_tsc_value_t begin, end, ts;
+    time_t bsecs,esecs,rsecs;
+    long bus,eus,rus;
+    uint64_t nsecElapsed;
+    INA_VOLATILE uint64_t i;
+    ina_time_sys_new(&begints);
+    ina_time_sys_new(&endts);
+    ina_time_sys_new(&refhpet);
+    ina_time_read_sys_clock(begints);
+    INA_TIME_RDTSC(begin);
+    for (i = 0; i < 100000000; i++); /* must be CPU intensive */
+    INA_TIME_RDTSC(end);
+    ina_time_read_sys_clock(endts);
+    ina_time_sys_seconds_micros(endts, &esecs, &eus);
+    ina_time_sys_seconds_micros(endts, &bsecs, &bus);
+    nsecElapsed = (esecs * 1000000000 + (eus*1000)) - (bsecs * 1000000000 + (bus*1000));
+    __ina_time_rdtsc_ticks_per_nano = (double)(end.uint64 - begin.uint64)/(double)nsecElapsed;
+    ina_time_read_sys_clock(refhpet);
+    INA_TIME_RDTSC(ts);
+    __ina_time_rdtsc_ref = ts.uint64;
+    ina_time_sys_seconds_micros(endts, &rsecs, &rus);
+    __ina_time_rdtsc_refhpet = rsecs * 1000000000 + (rus*1000);
+    ina_time_sys_free(&begints);
+    ina_time_sys_free(&endts);
+    ina_time_sys_free(&refhpet);
 }
 #elif defined(INA_OS_OSX)
 static void __ina_time_rdtsc_calibrate_ticks(void)
@@ -164,6 +206,9 @@ INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info)
 INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
 {
     *time = (ina_time_tsc_t*)ina_mem_alloc(sizeof(ina_time_tsc_t));
+#ifdef INA_OS_WIN32
+    __ina_time_init(*time);
+#endif
     return INA_SUCCESS;
 }
 
@@ -181,6 +226,20 @@ INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
 INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(const ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
     return __ina_time_tsc_secnan(time, secs, nanos);
+}
+
+INA_API(ina_rc_t) ina_time_tsc_millis(ina_time_tsc_t *tsc, time_t *now_millis)
+{
+    time_t secs = 0;
+    long nanos = 0;
+
+    INA_ASSERT_NOTNULL(tsc);
+    INA_ASSERT_NOTNULL(now_millis);
+
+    ina_time_tsc_seconds_nanos(tsc, &secs, &nanos);
+    *now_millis = (secs*1000) + (nanos/1000/1000);
+
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, 
@@ -371,7 +430,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
            elapsed.QuadPart = stopwatch->ts->stamp.tp.QuadPart - 
 		   ts->stamp.tp.QuadPart; 
         }
-        stopwatch->ts->sec_duration = __ina_lit_to_secs(&elapsed);
+        stopwatch->ts->sec_duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
 #elif defined(INA_OS_OSX)
         if (*stamp_index == 0) {
             /*stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
@@ -468,7 +527,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     INA_ASSERT_NOTNULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
-    stopwatch->tv->sec_duration = __ina_lit_to_secs(&elapsed);
+    stopwatch->tv->sec_duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
 #elif defined(INA_OS_OSX)
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp - stopwatch->tv->stop.tp) / 1000000000;
@@ -543,6 +602,12 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
         (*stopwatch)->tv->max_stamps = max_stamps;
         (*stopwatch)->tv->sec_duration = -1.0;
      }
+#ifdef INA_OS_WIN32
+     (*stopwatch)->freq_sec = __ina_freq_sec();
+     __ina_time_init(&(*stopwatch)->tv->start);
+     __ina_time_init(&(*stopwatch)->tv->stop);
+     __ina_time_init(&(*stopwatch)->tv->stamps.stamp);
+#endif
      (*stopwatch)->id = id;
      return INA_SUCCESS; 
 }
@@ -564,9 +629,11 @@ static ina_rc_t
 __ina_time_tsc_os_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
 #ifdef INA_OS_WIN32
-    double dsecs = __ina_lit_to_secs(&time->tp);
+    int64_t diff_cnt = time->tp.QuadPart - time->wref.QuadPart;
+    double dsecs = diff_cnt / time->freq_sec;
     double ipart = 0;
     double fpart = 0;
+    dsecs = (time->wrefhpet / 1000000000) + dsecs;
     fpart = modf(dsecs, &ipart);
     *secs = (time_t)ipart;
     *nanos = (long)(fpart*1000*1000*1000);
