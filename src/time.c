@@ -621,10 +621,10 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
      }
 #ifdef INA_OS_WIN32
      (*stopwatch)->freq_sec = __ina_freq_sec();
-#endif
      __ina_time_init(&(*stopwatch)->tv->start);
      __ina_time_init(&(*stopwatch)->tv->stop);
      __ina_time_init(&(*stopwatch)->tv->stamps.stamp);
+#endif
      (*stopwatch)->id = id;
      return INA_SUCCESS; 
 }
