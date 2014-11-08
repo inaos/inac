@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 #include "test_ullc.h"
 
-INA_TEST(ullc, slow_consumer)
+INA_TEST_SKIP(ullc, slow_consumer)
 {
     ina_ullc_ctx_t *ullc;
     ina_ullc_ctx_t *ullc1;

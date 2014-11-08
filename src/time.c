@@ -129,11 +129,29 @@ static void __ina_time_rdtsc_calibrate_ticks(void)
     ina_time_sys_free(&refhpet);
 }
 #elif defined(INA_OS_OSX)
+static void __ina_time_init(ina_time_tsc_t *time)
+{
+    /* FIXME: implement for osx if required */
+}
 static void __ina_time_rdtsc_calibrate_ticks(void)
 {
     /* FIXME calibrate time for osx */
 }
 #else
+static void __ina_time_init(ina_time_tsc_t *time)
+{
+    ina_time_t *ts;
+    time_t sec;
+    long usec;
+    struct timespec rtp;
+    ina_time_sys_new(&ts);
+    clock_gettime(__INA_CLOCK_TYPE, &rtp);
+    ina_time_read_sys_clock(ts);
+    ina_time_sys_seconds_micros(ts, &sec, &usec);
+    ina_time_sys_free(&ts);
+    time->refhpet = sec * 1000000000 + (usec*1000);
+    time->ref = (rtp.tv_sec * 1000000000) + rtp.tv_nsec;
+}
 struct timespec *__ina_time_rdtsc_timespec_diff(struct timespec *ts1, struct timespec *ts2)
 {
     static struct timespec ts;
@@ -206,9 +224,7 @@ INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info)
 INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
 {
     *time = (ina_time_tsc_t*)ina_mem_alloc(sizeof(ina_time_tsc_t));
-#ifdef INA_OS_WIN32
     __ina_time_init(*time);
-#endif
     return INA_SUCCESS;
 }
 
@@ -648,8 +664,11 @@ __ina_time_tsc_os_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos)
     *nanos = (long)ns;
     *secs /= 1000000000;
 #else
-    *secs = time->tp.tv_sec;
-    *nanos = time->tp.tv_nsec;
+    uint64_t stamp = (time->tp.tv_sec * 1000000000) + time->tp.tv_nsec;
+    uint64_t elapsed = stamp - time->ref;
+    uint64_t epoch_ns = time->refhpet + elapsed;
+    *secs = epoch_ns / 1000000000;
+    *nanos = epoch_ns % 1000000000;
 #endif
     return INA_SUCCESS;
 }
