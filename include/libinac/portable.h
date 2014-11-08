@@ -1116,6 +1116,17 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #error Compiler not supported yet for INAC!
 #endif
 
+/* Branch prediction hints */
+#ifdef INA_OS_WIN32
+#define INA_LIKELY(x)    (x)
+#define INA_UNLIKELY(x)  (x)
+#elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
+#define INA_LIKELY(x)    __builtin_expect(!!(x), 1)
+#define INA_UNLIKELY(x)  __builtin_expect(!!(x), 0)
+#else
+#error Compiler not supported yet for INAC!
+#endif
+
 #ifdef __cplusplus
 }
 #endif 
