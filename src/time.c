@@ -304,7 +304,7 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
 #ifdef INA_OS_WIN32
     Sleep((DWORD)msec);
 #else 
-    if (usleep(msec*1000) == -1) {
+    if (INA_UNLIKELY(usleep(msec*1000) == -1)) {
         return INA_FAILURE;
     }
 #endif
@@ -340,19 +340,19 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
 {
     INA_ASSERT_NOTNULL(stopwatch);
 #ifdef INA_OS_WIN32
-    if (stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart) {
+    if (INA_UNLIKELY(stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart)) {
         return INA_FAILURE;
     }
 #elif defined(INA_OS_OSX)
-    if (stopwatch->tv->stop.tp < stopwatch->tv->start.tp) {
+    if (INA_UNLIKELY(stopwatch->tv->stop.tp < stopwatch->tv->start.tp)) {
         return INA_FAILURE;
     }
 #else   
-    if (stopwatch->tv->stop.tp.tv_sec <  stopwatch->tv->start.tp.tv_sec) {
+    if (INA_UNLIKELY(stopwatch->tv->stop.tp.tv_sec <  stopwatch->tv->start.tp.tv_sec)) {
         return INA_FAILURE;
     }
     if (stopwatch->tv->stop.tp.tv_sec == stopwatch->tv->start.tp.tv_sec) {
-        if (stopwatch->tv->stop.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec) {
+        if (INA_UNLIKELY((stopwatch->tv->stop.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec)) {
             return INA_FAILURE;
         }
     }
@@ -492,13 +492,13 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch,
     ina_stopwatch_ts_t *ts = NULL;
 
     INA_ASSERT_NOTNULL(stopwatch);
-    if (stopwatch->tv->max_stamps == 0) {
+    if (INA_UNLIKELY(stopwatch->tv->max_stamps == 0)) {
         /* TODO: specific error */
         return INA_FAILURE;
     }
 
     si = __INA_TIME_INC(&stopwatch->tv->next_stamp);
-    if (si > stopwatch->tv->max_stamps) {
+    if (INA_UNLIKELY(si > stopwatch->tv->max_stamps)) {
         /* TODO: specific error */
         return INA_FAILURE;
     }
