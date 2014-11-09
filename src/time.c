@@ -368,7 +368,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
         return INA_FAILURE;
     }
     if (stopwatch->tv->stop.tp.tv_sec == stopwatch->tv->start.tp.tv_sec) {
-        if (INA_UNLIKELY((stopwatch->tv->stop.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec)) {
+        if (INA_UNLIKELY(stopwatch->tv->stop.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec)) {
             return INA_FAILURE;
         }
     }
