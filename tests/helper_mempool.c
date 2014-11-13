@@ -39,7 +39,7 @@ INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
     size = INA_TEST_HELPER_IARG(1);
 
     if (!INA_SUCCEED(ina_mempool_create(&mp, size, 
-        INA_MEM_SHARED|INA_MEM_SHARED_CREATE, ina_str_new_fromcstr(label)))) {
+        INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, ina_str_new_fromcstr(label)))) {
             INA_TEST_HELPER_SET_RC(ina_err_peek());
             return;
     }
