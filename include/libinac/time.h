@@ -83,7 +83,7 @@ typedef struct ina_time_tsc_s {
 #endif
 
 
-#define INA_TIME_MAX_USERDATA_LEN (30)
+#define INA_TIME_MAX_USERDATA_LEN (32)
 #define INA_TIME_MAX_STAMPS       (1024)
 
 
@@ -121,11 +121,11 @@ typedef struct ina_time_tsc_s {
 /* Stopwatch timestamp */
 typedef struct ina_stopwatch_ts_s {
     ina_time_tsc_t stamp;
-    char user_data1[INA_TIME_MAX_USERDATA_LEN];
-    char user_data2[INA_TIME_MAX_USERDATA_LEN];
     double sec_duration;
     double msec_duration;
     double usec_duration;
+    char user_data1[INA_TIME_MAX_USERDATA_LEN];
+    char user_data2[INA_TIME_MAX_USERDATA_LEN];
 } ina_stopwatch_ts_t;
 
 /* Stopwatch  data */
@@ -137,12 +137,14 @@ typedef struct ina_stopwatch_tv_s {
     double sec_duration;           /* duration in sections */
     double msec_duration;          /* duration in milliseconds */
     double usec_duration;          /* duration in microseconds */
+    char pad[8];                   /* padding */
     ina_stopwatch_ts_t stamps;     /* stamp records */
 } ina_stopwatch_tv_t;
 
 /* Stopwatch time values */
 typedef struct ina_stopwatch_s {
     int32_t id;                    /* stop watch id */
+    char pad[4];                   /* padding */
     ina_mempool_t *shared_mem;     /* allocated shared memory */
     ina_stopwatch_tv_t *tv;        /* stopwatch data */
     ina_stopwatch_ts_t *ts;        /* current time stamp */
@@ -151,15 +153,15 @@ typedef struct ina_stopwatch_s {
 #endif
 } ina_stopwatch_t;
 
-#define INA_TIME_BACKEND_NAME_MAXLEN (64)
+#define INA_TIME_BACKEND_NAME_MAXLEN (60)
 
 /* TSC time backend information */
 typedef struct ina_time_tsc_info_s {
-    char backend_name[INA_TIME_BACKEND_NAME_MAXLEN];
-    int32_t  rdtsc_enabled;
     uint64_t rdtsc_ref;
     uint64_t rdtsc_refhpet;
     double rdtsc_ticks_per_nano;
+    int32_t  rdtsc_enabled;
+    char backend_name[INA_TIME_BACKEND_NAME_MAXLEN];
 } ina_time_tsc_info_t;
 
 /* Time backend information */

@@ -25,6 +25,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#include <sys/stat.h>
 #include <libinac/lib.h>
 #include "config.h"
 
@@ -783,7 +784,7 @@ __ina_shm_open(ina_mempool_t *pool)
         }
     }
 
-    pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, 0x0770);
+    pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, S_IRUSR | S_IWUSR | S_IWGRP | S_IRGRP | S_IWOTH | S_IROTH);
     if (pool->shm_handle == -1) {
         return INA_MEM_ESHMALLOC;
     }

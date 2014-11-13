@@ -59,6 +59,7 @@ CC     = /usr/bin/gcc
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
          -I$(INAC_CONTRIBS_DIR) -I$(INAC_CONTRIBSBIN_DIR)
 CFLAGS += -DINA_LIB=1
+CFLAGS += -freorder-blocks-and-partition
 
 # ****************************************************************************
 # Subdirectories
@@ -115,7 +116,7 @@ endif
 # Timer implementation
 # ****************************************************************************
 ifeq (,$(INAC_TIMER_BACKEND))
-        INAC_TIMER_BACKEND=skiplist
+        INAC_TIMER_BACKEND=wheel
 endif
 ifeq (wheel, $(INAC_TIMER_BACKEND))
         CFLAGS+=-DINA_TIMER_BACKEND_WHEEL_ENABLED=1

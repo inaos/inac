@@ -83,13 +83,13 @@ INA_API(ina_time_event_t*) ina_timer_backend_create_event(ina_timer_backend_t *b
     INA_ASSERT_NOTNULL(e);
 
     e->data = (ina_timer_backend_event_t*)ina_mem_alloc(sizeof(ina_timer_backend_event_t));
-    if (e->data == NULL) {
+    if (INA_UNLIKELY(e->data == NULL)) {
         INA_MEM_EALLOC;
         return NULL;
     }
     sb = (ina_timer_backend_event_t*)e->data;
     sb->t = (struct timeout*)ina_mem_alloc(sizeof(struct timeout));
-    if (sb->t == NULL) {
+    if (INA_UNLIKELY(sb->t == NULL)) {
         ina_mem_free(e->data);
         INA_MEM_EALLOC;
         return NULL;

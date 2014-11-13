@@ -116,12 +116,12 @@ INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer, 
     INA_ASSERT(e_msec > 0);
 
     e = (ina_time_event_t*)ina_mem_alloc(sizeof(ina_time_event_t));
-    if (e == NULL) {
+    if (INA_UNLIKELY(e == NULL)) {
         INA_MEM_EALLOC;
         return NULL;
     }
 
-    if (!INA_SUCCEED(ina_timer_backend_create_event(timer->be, e, n_msec, e_msec))) {
+    if (INA_UNLIKELY(!INA_SUCCEED(ina_timer_backend_create_event(timer->be, e, n_msec, e_msec)))) {
         INA_ERR_PUSH_LAST;
         return NULL;
     }
