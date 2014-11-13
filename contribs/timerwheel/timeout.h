@@ -126,6 +126,7 @@ typedef void (*timeout_free)(void *mem_to_free);
 
 struct timeout {
 	int flags;
+        char pad[4];
 
 	timeout_t interval;
 	/* timeout interval if periodic */
@@ -141,9 +142,6 @@ struct timeout {
 
 	TAILQ_ENTRY(timeout) tqe;
 	/* entry member for struct timeout_list lists */
-
-	struct timeout_cb callback;
-	/* optional callback information */
 
     void *data;
     /* optional arbitrary data */
