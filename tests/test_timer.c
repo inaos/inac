@@ -85,7 +85,7 @@ INA_TEST(timer, event_rdtsc)
     t = NULL;
     e1 = NULL;
     e2 = NULL;
-    #ifndef INA_OS_WIN32
+    #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)   
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);

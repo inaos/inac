@@ -84,6 +84,11 @@ static void __ina_time_rdtsc_calibrate_ticks(void)
 {
     /* FIXME calibrate time for windows */
 }
+#elif defined(INA_OS_OSX)
+static void __ina_time_rdtsc_calibrate_ticks(void)
+{
+    /* FIXME calibrate time for osx */
+}
 #else
 struct timespec *__ina_time_rdtsc_timespec_diff(struct timespec *ts1, struct timespec *ts2)
 {
@@ -464,7 +469,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->tv->sec_duration = __ina_lit_to_secs(&elapsed);
 #elif defined(INA_OS_OSX)
-    ina_time_read_tsc_clock(&stopwop);
+    ina_time_read_tsc_clock(&stopwatch);
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp - stopwatch->tv->stop.tp) / 1000000000;
 #else
     INA_ASSERT_NOTNULL(stopwatch);
