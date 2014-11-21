@@ -267,3 +267,18 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned
 
     return INA_SUCCESS;
 }
+
+INA_API(int) ina_util_dbl_cmp_abs(double x, double y)
+{
+    return fabs(x - y) <= DBL_EPSILON;
+}
+
+INA_API(int) ina_util_dbl_cmp_rel(double x, double y)
+{
+    return fabs(x - y) <= DBL_EPSILON * INA_MAX(fabs(x), fabs(y));
+}
+
+INA_API(int) ina_util_dbl_cmp_save(double x, double y)
+{
+    return fabs(x - y) <= DBL_EPSILON * INA_MAX(1.0f, fabs(x), fabs(y));
+}
