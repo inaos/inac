@@ -253,7 +253,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
 
     n = 0;
     p = cmd->p_count;
-    type = -1;
+    type = 0;
 
     va_start(params, cmd_id);
 
@@ -723,7 +723,7 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
 
      if (INA_SUCCEED(ina_net_write(data->fd, (unsigned char*)msg, msg->length, &nb_write))) {
          unsigned char *buf;
-         int tot_nb_read;
+         int tot_nb_read = 0;
 
          INA_TRACE3("ISCP read response on fd %d", data->fd);
 
@@ -731,8 +731,10 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
 
 r1:
          if (INA_SUCCEED(ina_net_read(data->fd, buf, sizeof(ina_iscp_msg_t), &nb_read))) {
-             tot_nb_read = nb_read;
-             buf += nb_read;
+             if (nb_read > 0) {
+                 tot_nb_read = nb_read;
+                 buf += nb_read;
+             }
              if (tot_nb_read < INA_ISCP_HDR_SIZE) {
                  goto r1;
              }
@@ -759,7 +761,7 @@ static ina_rc_t
 __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 {
      int nb_read;
-     int tot_nb_read;
+     int tot_nb_read = 0;
      ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
      unsigned char *buf;
      nb_read = 0;
@@ -786,8 +788,10 @@ __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
      buf = (unsigned char*)msg;
 r1:
      if (INA_SUCCEED(ina_net_read(data->fd, buf, sizeof(ina_iscp_msg_t), &nb_read))) {
-         tot_nb_read = nb_read;
-         buf += nb_read;
+         if (nb_read > 0) {
+             tot_nb_read = nb_read;
+             buf += nb_read;
+         }
          if (tot_nb_read < INA_ISCP_HDR_SIZE) {
              goto r1;
          }
