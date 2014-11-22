@@ -68,7 +68,24 @@ INA_API(uint32_t) ina_util_hash_crc32(uint32_t hash, const void *data,
 INA_API(uint32_t) ina_util_hash_sdbm(uint32_t hash, const void *data, 
                                      size_t size);
 
-     
+/*
+ * Base64 encoding - calculate output length
+ *
+ */
+INA_API(ina_rc_t) ina_util_base64_encode_length(size_t in_length, unsigned int line_length, size_t *out_length);
+
+/*
+ * Base64 encoding - encode a chunk
+ *
+ */
+INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t dataLength, char* result, size_t resultSize);
+
+/*
+ * Base64 decoding - decode a chunk
+ *
+ */
+INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned char *out, size_t max_out, size_t *out_len);
+
 #ifdef __cplusplus
 }
 #endif 
