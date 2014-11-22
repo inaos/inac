@@ -280,5 +280,5 @@ INA_API(int) ina_util_dbl_cmp_rel(double x, double y)
 
 INA_API(int) ina_util_dbl_cmp_save(double x, double y)
 {
-    return fabs(x - y) <= DBL_EPSILON * INA_MAX(1.0f, fabs(x), fabs(y));
+    return fabs(x - y) <= DBL_EPSILON * INA_MAX(1.0f, INA_MAX(fabs(x), fabs(y)));
 }
