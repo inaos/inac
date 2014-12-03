@@ -84,6 +84,27 @@ INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t data
  *
  */
 INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned char *out, size_t max_out, size_t *out_len);
+
+/*
+ * Absolute tolerance test fails when X and Y become "large"
+ * This is the fastest possible comparision that is correct for 
+ * x, y < ?
+ *
+ */
+INA_API(int) ina_util_dbl_cmp_abs(double x, double y);
+
+/*
+ * Relative tolerance test fails when X and Y become "small"
+ *
+ */
+INA_API(int) ina_util_dbl_cmp_rel(double x, double y);
+
+/*
+ * Combined tolerance test that should work savely for all cases 
+ * however is the "slowest" variant
+ *
+ */
+INA_API(int) ina_util_dbl_cmp_save(double x, double y);
      
 #ifdef __cplusplus
 }

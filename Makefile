@@ -141,7 +141,7 @@ all:
 	@echo === INAOS Common C Library - $(INAC_BUILD_TYPE) -  ===
 	@echo Building....
 	-rm -f src/$(INAC_LIB)
-	@for i in $(DIRS); do $(MAKE) -C $$i; done
+	@for i in $(DIRS); do $(MAKE) -C $$i $(INAC_BUILD_TYPE); done
 	@echo === Done ===
 	@echo "Architecture	: $(shell uname -p)"
 	@echo "Build type	: $(INAC_BUILD_TYPE)"
@@ -149,7 +149,7 @@ all:
 	@echo "Time backend	: $(INAC_TIME_BACKEND)"
 	@echo "Timer backend    : $(INAC_TIMER_BACKEND)"
 
-release: CFLAGS += -O3 -DINA_LOG_LEVEL=1
+release: CFLAGS += -O3 -flto -march=native -DINA_LOG_LEVEL=1
 	export CFLAGS
 release: INAC_BUILD_TYPE = release
 	export INAC_BUILD_TYPE

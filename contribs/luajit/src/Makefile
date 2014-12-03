@@ -48,8 +48,8 @@ CCOPT= -O2 -fomit-frame-pointer
 # x86/x64 only: For GCC 4.2 or higher and if you don't intend to distribute
 # the binaries to a different machine you could also use: -march=native
 #
-CCOPT_x86= -march=i686
-CCOPT_x64=
+CCOPT_x86= -march=native
+CCOPT_x64= -march=native
 CCOPT_arm=
 CCOPT_ppc=
 CCOPT_ppcspe=
@@ -163,7 +163,7 @@ XCFLAGS=
 #   make HOST_CC="gcc -m32" CROSS=i586-mingw32msvc- TARGET_SYS=Windows
 #   make HOST_CC="gcc -m32" CROSS=powerpc-linux-gnu-
 
-CCOPTIONS= $(CCDEBUG) $(CCOPT) $(CCWARN) $(XCFLAGS) $(CFLAGS)
+CCOPTIONS= $(CCDEBUG) $(CCOPT) $(CCWARN) $(XCFLAGS) $(LCFLAGS)
 LDOPTIONS= $(CCDEBUG) $(LDFLAGS)
 
 HOST_CC= $(CC)

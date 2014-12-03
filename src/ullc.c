@@ -192,7 +192,7 @@ INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
 INA_API(ina_rc_t) ina_ullc_overrun_enable(ina_ullc_ctx_t *ctx) 
 {
     INA_ASSERT_NOTNULL(ctx);
-    if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, -1, INT64_MAX) == INT64_MAX) {
+    if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, INT64_MAX, -1) == INT64_MAX) {
         return INA_SUCCESS;
     }
     return INA_FAILURE;
@@ -201,7 +201,7 @@ INA_API(ina_rc_t) ina_ullc_overrun_enable(ina_ullc_ctx_t *ctx)
 INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
-    if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, INT64_MAX, -1) == -1) {
+    if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, -1, INT64_MAX) == -1) {
         return INA_SUCCESS;
     }
     return INA_FAILURE;
@@ -257,11 +257,13 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
     num = ctx->ring->num_consumers;
 
     while (slow_consumer > like_to_write) {
-        for (i = 0; i < num; i++) {
+        for (i = 0; i < num; ++i) {
+            slow_consumer = -1;
             int read_cur;
             if (ctx->c_offset[i].alive) {
                 read_cur = ctx->c_offset[i].cursor % ctx->ring->slots;
-                slow_consumer = INA_ULLC_MIN(slow_consumer, read_cur);
+                INA_TRACE3("wait consumer(%ld) %ld at position %d for %ld", i, slow_consumer, read_cur, like_to_write);
+                slow_consumer = INA_MAX(slow_consumer, read_cur);
             }
         }
     }
