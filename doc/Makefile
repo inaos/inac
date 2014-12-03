@@ -8,7 +8,11 @@ all:
 	$(MD2HTMLCMD) $< > $@
 
 install: all
-    
+
+debug: install
+
+release: install
+
 .PHONY: clean
 	
 clean:

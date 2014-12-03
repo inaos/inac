@@ -70,7 +70,11 @@ $(INAC_LIB): $(OBJS)
 	@ar $(OBJCPY_AR_OPT) $(INAC_LIB)  ../etc/template/*.o
 	@for i in $(DIRS); do ar crs $(INAC_LIB) $$i/*.o; done
 
-.PHONY: clean
+.PHONY: clean debug release
+
+debug: all
+
+release: all
 
 clean:
 	@echo cleaning src...
