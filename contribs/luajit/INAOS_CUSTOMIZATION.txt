@@ -23,3 +23,8 @@ change it back to link against the runtime as library
 <after> -> we add /MD
 
 @set LJCOMPILE=cl /nologo /c /MD /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE
+
+3) For linux build, we made the following changes to the src/Makefile
+- For CCOPTIONS we replaced CFLAGS with LCFLAGS
+- For CCOPT_x86 we use -march=native 
+- For CCOPT_x64 we use -march=native

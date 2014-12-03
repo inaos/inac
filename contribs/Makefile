@@ -26,6 +26,11 @@
 # OF SUCH DAMAGE.
 #
 
+<<<<<<< HEAD
+=======
+OS := $(shell uname -s)
+
+>>>>>>> e2fbf80... Use default optimization for luaJIT.
 all: 
 	@echo building contribs...
 	$(MAKE) -C luajit amalg
@@ -44,6 +49,8 @@ release: all
 	
 debug: XCFLAGS+= -DLUA_USE_APICHECK
 	export XCFLAGS
+debug: LCFLAGS+= -g
+	export LCFLAGS
 debug: all
 	
 .PHONY: clean
