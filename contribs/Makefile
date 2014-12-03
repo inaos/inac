@@ -27,10 +27,10 @@
 #
 
 OS := $(shell uname -s)
+OLD_CFLAGS:=$(CFLAGS)
 
-all: 
+all: luajit 
 	@echo building contribs...
-	$(MAKE) -C luajit amalg
 	$(MAKE) -C sqlite
 	$(MAKE) -C bstring
 	$(MAKE) -C anet
@@ -48,13 +48,22 @@ endif
 
 test: all
 
+
+luajit: CFLAGS+=-fno-lto
+	export CFLAGS
+luajit:
+	$(MAKE) -C luajit amalg
+luajit: CFLAGS=$(OLD_CFLAGS)
+	export CFLAGS
+ 
+
 release: all
 	
 debug: XCFLAGS+= -DLUA_USE_APICHECK
 	export XCFLAGS
 debug: all
 	
-.PHONY: clean
+.PHONY: clean luajit 
 
 clean:
 	@echo cleaning contribs...
