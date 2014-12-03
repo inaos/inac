@@ -32,6 +32,10 @@ ullc_monitor: ullc_monitor.o
 
 .PHONY: clean
 
+debug: all
+
+release: all
+
 clean:
 	@echo cleaning tests...
 	@-rm -f *.o test

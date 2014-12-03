@@ -117,7 +117,7 @@ all:
 	@echo === INAOS Common C Library - $(INAC_BUILD_TYPE) -  ===
 	@echo Building....
 	-rm -f src/$(INAC_LIB)
-	@for i in $(DIRS); do $(MAKE) -C $$i; done
+	@for i in $(DIRS); do $(MAKE) -C $$i $(INAC_BUILD_TYPE); done
 	@echo === Done ===
 	@echo "Architecture	: $(shell uname -p)"
 	@echo "Build type	: $(INAC_BUILD_TYPE)"

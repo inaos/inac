@@ -4,7 +4,11 @@ export INAC_INCLUDES
 
 all: $(HDR)
 
-.PHONY: clean
+debug: all
+
+relase: all
+
+.PHONY: clean debug release
 
 clean:
 	@echo Headers..

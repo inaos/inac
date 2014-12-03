@@ -30,8 +30,12 @@ all:
 	@echo building binary contribs...
 
 test: all
-	
-.PHONY: clean
+
+debug: all
+
+release: all
+
+.PHONY: clean debug relase
 
 clean:
 	@echo cleaning contribs...

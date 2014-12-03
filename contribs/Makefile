@@ -28,7 +28,7 @@
 
 all: 
 	@echo building contribs...
-	$(MAKE) -C luajit
+	$(MAKE) -C luajit amalg
 	$(MAKE) -C sqlite
 	$(MAKE) -C bstring
 	$(MAKE) -C anet
@@ -40,6 +40,8 @@ all:
 
 test: all
 
+release: all
+	
 debug: XCFLAGS+= -DLUA_USE_APICHECK
 	export XCFLAGS
 debug: all
