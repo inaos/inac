@@ -146,11 +146,12 @@ all:
 	@echo "Timer backend    : $(INAC_TIMER_BACKEND)"
 	@echo "CC               : $(CC)"
 	@echo "CXX              : $(CXX)"
-	@echo "GOV              : $(GCOV)"
 	@echo "CFLAGS           : $(CFLAGS)"
 	@echo "CXXFLAGS         : $(CXXFLAGS)"
 	@echo "LDFLAGS          : $(LDFLAGS)"
 	@echo "PATH             : $(PATH)"
+	@echo "LD_LIBRARY_PATH  : $(LD_LIBRARY_PATH)"
+	@echo "LIBRARY_PATH     : $(LIBRARY_PATH)"
 	-rm -f src/$(INAC_LIB)
 	@for i in $(DIRS); do $(MAKE) -C $$i $(INAC_BUILD_TYPE); done
 	@echo === Done ===
