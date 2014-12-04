@@ -26,11 +26,8 @@
 # OF SUCH DAMAGE.
 #
 
-<<<<<<< HEAD
-=======
 OS := $(shell uname -s)
 
->>>>>>> e2fbf80... Use default optimization for luaJIT.
 all: 
 	@echo building contribs...
 	$(MAKE) -C luajit amalg
