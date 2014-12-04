@@ -176,7 +176,11 @@ clean:
 	@echo cleaning...
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
 	@-rm -f ChangeLog
-	@-rm -f *.tap 
+	@-rm -f *.tap
+	@find . -name "*.gnco" -type f -delete
+	@find . -name "*.gcda" -type f -delete
+	@find . -name "*.gcov" -type f -delete
+ 
 
 test: debug 
 	$(MAKE) test -C tests
