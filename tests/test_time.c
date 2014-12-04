@@ -231,7 +231,7 @@ INA_TEST(time,read_clock)
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_free(&t));
 }
 
-#ifndef INA_OS_WIN32
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
 INA_TEST(time_tsc,read_tsc)
 {
     struct timespec test;
@@ -362,7 +362,7 @@ INA_TEST_TEARDOWN(time_ipc_rdtsc)
     }
 }
 
-#ifndef INA_OS_WIN32
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
 INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     int64_t c = 0;
     ina_time_tsc_t time;

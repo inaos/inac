@@ -83,8 +83,8 @@ INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t data
  * Base64 decoding - decode a chunk
  *
  */
-INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t inLen, unsigned char *out, size_t *outLen);
-     
+INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned char *out, size_t max_out, size_t *out_len);
+ 
 #ifdef __cplusplus
 }
 #endif 

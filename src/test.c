@@ -162,7 +162,7 @@ INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, const cha
                 int line) 
 {
     if (exp != real) {
-        INA_TEST_ERR("%s:%d  expected %"INA_INT64_T_FMT " , got %"INA_INT64_T_FMT, caller, line, exp, real);
+        INA_TEST_ERR("%s:%d  expected %"INA_INT64_T_FMT " , got %"INA_INT64_T_FMT, caller, line, (int64_t)exp, (int64_t)real);
         longjmp(__err, 1);
     }
 }

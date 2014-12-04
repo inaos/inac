@@ -36,6 +36,15 @@ OBJS = $(SRC:%.c=%.o)
 OBJS += $(SRC_LUA:%.lua=%.o)
 OBJS += $(SRC_TPL:%.tpl=%.o)
 
+BJCPY=dummy
+ifeq (Darwin,$(shell uname -s))
+	OBJCPY=gobjcopy --input-target binary --output-target mach-o-x86-64 --binary-architecture i386
+	OBJCPY_AR_OPT = crS
+else
+	OBJCPY=objcopy --input binary --output elf64-x86-64 --binary-architecture i386
+	OBJCPY_AR_OPT = crs
+endif
+
 all: $(OBJS) $(INAC_LIB)
 	@echo compiling all for $(INAC_LIB)...
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
@@ -50,16 +59,21 @@ all: $(OBJS) $(INAC_LIB)
 
 %.o: %.tpl
 	@echo compile template $<
-	@objcopy --input binary --output elf64-x86-64 --binary-architecture i386 $<  $(basename $<).o
-
+	@$(OBJCPY) $< $(basename $<).o
+ 
 $(INAC_LIB): $(OBJS)
 	@for i in $(INAC_LIBS); do ar x $$i; done
 	@ar crs $(INAC_LIB) *.o
 	@ar crs $(INAC_LIB)  $(INAC_CONTRIBS_DIR)/luajit/src/jit/*.o
 	@ar crs $(INAC_LIB)  ../etc/template/*.o
+	@ar $(OBJCPY_AR_OPT) $(INAC_LIB)  ../etc/template/*.o	
 	@for i in $(DIRS); do ar cs $(INAC_LIB) $$i/*.o; done
 
-.PHONY: clean
+.PHONY: clean debug release
+
+debug: all
+
+release: all
 
 clean:
 	@echo cleaning src...
