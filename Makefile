@@ -50,7 +50,6 @@ export LUA_PATH
 # ****************************************************************************
 # Compiler setting
 # ****************************************************************************
-CC     = /usr/bin/gcc 
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
          -I$(INAC_CONTRIBS_DIR) -I$(INAC_CONTRIBSBIN_DIR)
 CFLAGS += -DINA_LIB=1
@@ -119,10 +118,17 @@ all:
 	-rm -f src/$(INAC_LIB)
 	@for i in $(DIRS); do $(MAKE) -C $$i; done
 	@echo === Done ===
-	@echo "Architecture	: $(shell uname -p)"
-	@echo "Build type	: $(INAC_BUILD_TYPE)"
-	@echo "String library	: $(INAC_STRING_LIB)"
-	@echo "Time backend	: $(INAC_TIME_BACKEND)"
+	@echo "Architecture     : $(shell uname -p)"
+	@echo "Build type       : $(INAC_BUILD_TYPE)"
+	@echo "String library   : $(INAC_STRING_LIB)"
+	@echo "Time backend     : $(INAC_TIME_BACKEND)"
+	@echo "Timer backend    : $(INAC_TIMER_BACKEND)"
+	@echo "CC               : $(CC)"
+	@echo "CXX              : $(CXX)"
+	@echo "CFLAGS           : $(CFLAGS)"
+	@echo "CXXFLAGS         : $(CXXFLAGS)"
+	@echo "LDFLAGS          : $(LDFLAGS)"
+
 
 release: CFLAGS += -O2 -DINA_LOG_LEVEL=1
 	export CFLAGS
