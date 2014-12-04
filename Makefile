@@ -55,7 +55,6 @@ export LUA_PATH
 # ****************************************************************************
 # Compiler setting
 # ****************************************************************************
-CC     = /usr/bin/gcc 
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
          -I$(INAC_CONTRIBS_DIR) -I$(INAC_CONTRIBSBIN_DIR)
 CFLAGS += -DINA_LIB=1
@@ -140,14 +139,24 @@ default: release
 all: 
 	@echo === INAOS Common C Library - $(INAC_BUILD_TYPE) -  ===
 	@echo Building....
+	@echo "Architecture     : $(shell uname -p)"
+	@echo "Build type       : $(INAC_BUILD_TYPE)"
+	@echo "String library   : $(INAC_STRING_LIB)"
+	@echo "Time backend     : $(INAC_TIME_BACKEND)"
+	@echo "Timer backend    : $(INAC_TIMER_BACKEND)"
+	@echo "CC               : $(CC)"
+	@echo "CXX              : $(CXX)"
+	@echo "CFLAGS           : $(CFLAGS)"
+	@echo "CXXFLAGS         : $(CXXFLAGS)"
+	@echo "LDFLAGS          : $(LDFLAGS)"
+	@echo "PATH             : $(PATH)"
+	@echo "LD_LIBRARY_PATH  : $(LD_LIBRARY_PATH)"
+	@echo "LIBRARY_PATH     : $(LIBRARY_PATH)"
 	-rm -f src/$(INAC_LIB)
 	@for i in $(DIRS); do $(MAKE) -C $$i $(INAC_BUILD_TYPE); done
 	@echo === Done ===
-	@echo "Architecture	: $(shell uname -p)"
-	@echo "Build type	: $(INAC_BUILD_TYPE)"
-	@echo "String library	: $(INAC_STRING_LIB)"
-	@echo "Time backend	: $(INAC_TIME_BACKEND)"
-	@echo "Timer backend    : $(INAC_TIMER_BACKEND)"
+
+
 
 release: CFLAGS += -O3 -flto -march=native -DINA_LOG_LEVEL=1
 	export CFLAGS
@@ -167,7 +176,11 @@ clean:
 	@echo cleaning...
 	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
 	@-rm -f ChangeLog
-	@-rm -f *.tap 
+	@-rm -f *.tap
+	@find . -name "*.gnco" -type f -delete
+	@find . -name "*.gcda" -type f -delete
+	@find . -name "*.gcov" -type f -delete
+ 
 
 test: debug 
 	$(MAKE) test -C tests
