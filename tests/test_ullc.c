@@ -33,6 +33,7 @@ INA_TEST(ullc, slow_consumer)
     ina_ullc_ctx_t *ullc;
     ina_test_ullc_t *v = NULL;
     ina_test_hid_t hid;
+    int old;
 
     INA_TEST_HELPER_INVOKE(&hid, ullc, create_fast_producer,  
          INA_NUM2STR(1), INA_NUM2STR(128), INA_NUM2STR(2),
@@ -48,7 +49,7 @@ INA_TEST(ullc, slow_consumer)
 
     ina_ullc_overrun_disable(ullc);
 
-    int old = -1;
+    old = -1;
     while (1) {
         v = INA_ULLC_GET(ina_test_ullc_t, ullc);
         if (v) {
