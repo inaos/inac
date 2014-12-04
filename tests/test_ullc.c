@@ -198,9 +198,6 @@ INA_TEST(ullc, consumer_get_set_pos)
         INA_ULLC_COMMIT(producer);
     }
 
-    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_get_pos(producer, &pos));
-    INA_TEST_ASSERT_EQUAL_INTEGER(124, pos);
-
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer1, &pos));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, pos);
     v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
@@ -219,11 +216,22 @@ INA_TEST(ullc, consumer_get_set_pos)
     INA_TEST_ASSERT_EQUAL_INTEGER(103, pos);   
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(consumer1, 1024));
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer1, &pos));
-    INA_TEST_ASSERT_EQUAL_INTEGER(124, pos);
+    INA_TEST_ASSERT_EQUAL_INTEGER(125, pos);
+    v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
+    INA_TEST_ASSERT_NULL(v);
+    v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
+    v->d1 = 9999;
+    v->d2 = 1111;
+    v->i3 = abs(v->d1*v->d2);
+    INA_ULLC_COMMIT(producer); 
+    v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
+    INA_TEST_ASSERT_NOT_NULL(v);
  
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(consumer2, -1));
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer2, &pos));
-    INA_TEST_ASSERT_EQUAL_INTEGER(124, pos);
+    INA_TEST_ASSERT_EQUAL_INTEGER(126, pos);
+    v = INA_ULLC_GET(ina_test_ullc_t, consumer2);
+    INA_TEST_ASSERT_NULL(v);
  
     ina_ullc_producer_destroy(&producer);
     ina_ullc_consumer_destroy(&consumer1);

@@ -282,7 +282,7 @@ INA_API(ina_rc_t) ina_ullc_producer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos)
     INA_ASSERT_NOTNULL(pos);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
 
-    *pos = ctx->ring->cursor;
+    *pos = ctx->ring->next_ptr;
     return INA_SUCCESS;
 }
 
