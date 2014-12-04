@@ -139,9 +139,6 @@ default: release
 all: 
 	@echo === INAOS Common C Library - $(INAC_BUILD_TYPE) -  ===
 	@echo Building....
-	-rm -f src/$(INAC_LIB)
-	@for i in $(DIRS); do $(MAKE) -C $$i $(INAC_BUILD_TYPE); done
-	@echo === Done ===
 	@echo "Architecture     : $(shell uname -p)"
 	@echo "Build type       : $(INAC_BUILD_TYPE)"
 	@echo "String library   : $(INAC_STRING_LIB)"
@@ -149,9 +146,14 @@ all:
 	@echo "Timer backend    : $(INAC_TIMER_BACKEND)"
 	@echo "CC               : $(CC)"
 	@echo "CXX              : $(CXX)"
+	@echo "GOV              : $(GCOV)"
 	@echo "CFLAGS           : $(CFLAGS)"
 	@echo "CXXFLAGS         : $(CXXFLAGS)"
 	@echo "LDFLAGS          : $(LDFLAGS)"
+	@echo "PATH             : $(PATH)"
+	-rm -f src/$(INAC_LIB)
+	@for i in $(DIRS); do $(MAKE) -C $$i $(INAC_BUILD_TYPE); done
+	@echo === Done ===
 
 
 
