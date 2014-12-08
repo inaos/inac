@@ -438,11 +438,12 @@ INA_API(ina_str_t) ina_str_tolower(ina_str_t str)
     return str;
 }
 
-INA_API(ina_str_t) ina_str_clear(ina_str_t str)
+INA_API(ina_str_t) ina_str_truncate(ina_str_t str, size_t pos)
 {
     if (str != NULL) {
-        (__INA_HDR_OFFSET(str))->len = 0;
-        (__INA_HDR_OFFSET(str))->data[0] = '\0';
+        INA_ASSERT_TRUE(pos < (__INA_HDR_OFFSET(str))->len);
+        (__INA_HDR_OFFSET(str))->len = pos;
+        (__INA_HDR_OFFSET(str))->data[pos] = '\0';
     }
     return str;
 }

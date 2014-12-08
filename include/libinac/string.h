@@ -243,7 +243,7 @@ INA_API(const char*) ina_str_tok(char* str, const char *sep, char **next);
 
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str);
 INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
-INA_API(ina_str_t) ina_str_clear(ina_str_t str);
+INA_API(ina_str_t) ina_str_truncate(ina_str_t str, size_t pos);
 INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars);
 INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end);
 INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *count);

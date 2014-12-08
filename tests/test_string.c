@@ -438,14 +438,25 @@ INA_TEST(string, ina_str_tolower)
     ina_str_free(str);
 }
 
-INA_TEST(string, ina_str_clear)
+INA_TEST(string, ina_str_truncate_zero)
 {
     ina_str_t str = ina_str_new_fromcstr("Abc def   ");
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
-    ina_str_clear(str);
+    ina_str_truncate(str, 0);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(str));
     INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
+    INA_TEST_ASSERT_NOT_NULL(str);
+}
+
+INA_TEST(string, ina_str_truncate_pos)
+{
+    ina_str_t str = ina_str_new_fromcstr("Abc def   ");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
+    ina_str_truncate(str, 3);
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_STR("Abc", ina_str_cstr(str));
     INA_TEST_ASSERT_NOT_NULL(str);
 }
 
