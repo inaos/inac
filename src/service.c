@@ -554,10 +554,13 @@ static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
                                         ina_str_cstr(ctx->descriptor->name));
 
     lfp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
+    ina_str_free(lock_file_path);
+    
     if (lfp < 0) {
         return INA_SERVICE_ELCO; /* can not open */
     }
     if (lockf(lfp, F_TLOCK, 0) < 0) {
+        close(lfp);
         return INA_SERVICE_ELOCK; /* can not lock */
     }
    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START, (void*)ctx->user_data))) {
