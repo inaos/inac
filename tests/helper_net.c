@@ -121,7 +121,7 @@ INA_TEST_HELPER(net, udp_sender) {
                  INA_TEST_HELPER_SET_RC(INA_FAILURE);
             }
         }
-        close(socket);
+        close(s);
     }
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
  }
