@@ -122,7 +122,7 @@ INA_TEST_HELPER(net, udp_sender) {
             }
         }
     }
-    close(s)
+    close(s);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
  }
 
