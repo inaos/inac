@@ -425,6 +425,7 @@ INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
 {
     __ina_sopt_t *so = __ina_opt_get(opt);
     if (so == NULL) {
+        *value = NULL;
         /* FIXME: specific error */
         return INA_FAILURE;
     }
@@ -436,6 +437,7 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
 {
     __ina_sopt_t *so = __ina_opt_get(opt);
     if (so == NULL) {
+        *value = 0.0;
         /* FIXME: specific error */
         return INA_FAILURE;
     }
@@ -447,6 +449,7 @@ INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value)
 {
     __ina_sopt_t *so = __ina_opt_get(opt);
     if (so == NULL) {
+        *value = 0;
         /* FIXME: specific error */
         return INA_FAILURE;
     }
