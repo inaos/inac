@@ -274,9 +274,9 @@ INA_TEST(string, ina_str_ncat)
     ina_str_t part1 = ina_str_new_fromcstr("part1x");
     ina_str_t part2 = ina_str_new_fromcstr("part2x");
     ina_str_t part3 = ina_str_new_fromcstr("part3x");    
-    ina_str_ncat(str, part1, 5);
-    ina_str_ncat(str, part2, 5);
-    ina_str_ncat(str, part3, 5);
+    str = ina_str_ncat(str, part1, 5);
+    str = ina_str_ncat(str, part2, 5);
+    str = ina_str_ncat(str, part3, 5);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
     ina_str_free(str);
     ina_str_free(part1);
@@ -287,9 +287,9 @@ INA_TEST(string, ina_str_ncat)
 INA_TEST(string, ina_str_ncatcstr)
 {
     ina_str_t str = ina_str_new(128);
-    ina_str_ncat(str, "part1x", 5);
-    ina_str_ncat(str, "part2x", 5);
-    ina_str_ncat(str, "part3x", 5);
+    str = ina_str_ncat(str, "part1x", 5);
+    str = ina_str_ncat(str, "part2x", 5);
+    str = ina_str_ncat(str, "part3x", 5);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
     ina_str_free(str);
 }
