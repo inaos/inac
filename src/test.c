@@ -473,10 +473,11 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
     end = &INA_TEST_TNAME(suite, test);
 
     while (begin) {
-        ina_test_testcase_t* t = begin;
+        ina_test_testcase_t* t = begin-1;
         if (t->magic != INA_TEST_MAGIC) {
             break;
         }
+        begin--;
     }
     while (end) {
         ina_test_testcase_t* t = end+1;
