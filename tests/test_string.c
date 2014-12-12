@@ -277,12 +277,14 @@ INA_TEST(string, ina_str_ncat)
 {
     ina_str_t ref_str = NULL;
     ina_str_t str = ina_str_new(128);
-    ref_str = str;
     ina_str_t part1 = ina_str_new_fromcstr("part1x");
+    ina_str_t part2;
+    ina_str_t part3;
+    ref_str = str;
     INA_TEST_ASSERT_SAME(ref_str, str);
-    ina_str_t part2 = ina_str_new_fromcstr("part2x");
+    part2 = ina_str_new_fromcstr("part2x");
     INA_TEST_ASSERT_SAME(ref_str, str);
-    ina_str_t part3 = ina_str_new_fromcstr("part3x");
+    part3 = ina_str_new_fromcstr("part3x");
     INA_TEST_ASSERT_SAME(ref_str, str);    
     str = ina_str_ncat(str, part1, 5);
     str = ina_str_ncat(str, part2, 5);
