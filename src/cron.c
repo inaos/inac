@@ -785,7 +785,7 @@ INA_API(ina_rc_t) ina_cron_unregister_function(ina_cron_ctx_t *ctx, const char *
 	/* check if we already have this function - by using the ID */
 	HASH_FIND_ULONG(ctx->func_head, &key, func);
 	
-	if (func == NULL) {
+	if (func != NULL) {
 		HASH_DELETE(hh, ctx->func_head, func);
 		ina_mem_free(func);
 	}
