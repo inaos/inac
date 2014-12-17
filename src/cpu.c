@@ -109,7 +109,7 @@ INA_API(ina_rc_t) ina_cpu_init()
 		brandstr[48] = '\0';
 		i = 0;
 		while (brandstr[i] == ' ') i++;
-		strncpy(cpubrand, brandstr + i, sizeof(cpubrand));
+		strncpy(cpubrand, brandstr + i, sizeof(cpubrand) - 1);
 		cpubrand[48] = '\0';
         __ina_cpu_ctx->brand = ina_str_new_fromcstr(cpubrand);
 	}
