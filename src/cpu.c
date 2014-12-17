@@ -63,6 +63,9 @@ INA_API(ina_rc_t) ina_cpu_init()
 #endif
 
     __ina_cpu_ctx = (ina_cpu_ctx_t*)malloc(sizeof(struct ina_cpu_ctx_s));
+    if (__ina_cpu_ctx == NULL) {
+        return INA_EALLOC;
+    }
     memset(__ina_cpu_ctx, 0, sizeof(struct ina_cpu_ctx_s));
 
 #ifdef INA_OS_OSX
