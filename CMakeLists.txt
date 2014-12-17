@@ -22,6 +22,7 @@ set(RAPIDXML_LIB_NAME "rapidxml")
 set(AXTLS_LIB_NAME "axtls")
 set(YAJL_LIB_NAME "yajl")
 set(LZ4_LIB_NAME "lz4")
+set(MINIZ_LIB_NAME "miniz")
 set(ICT_LIB_NAME "cpu-topology")
 set(TIMER_WHEEL_LIB_NAME "timerwheel")
 set(INAC_LIB_NAME "libinac_c")
@@ -85,6 +86,11 @@ set (YAJL_SRC     ${YAJL_SRC_DIR}/yajl.c ${YAJL_SRC_DIR}/yajl_alloc.c ${YAJL_SRC
                   ${YAJL_SRC_DIR}/yajl_encode.c ${YAJL_SRC_DIR}/yajl_gen.c ${YAJL_SRC_DIR}/yajl_lex.c
 				  ${YAJL_SRC_DIR}/yajl_parser.c ${YAJL_SRC_DIR}/yajl_tree.c ${YAJL_SRC_DIR}/yajl_version.c)
 add_library(${YAJL_LIB_NAME} ${YAJL_SRC})
+
+# Miniz
+set (MINIZ_SRC_DIR ${DEPS_DIR}/miniz)
+set (MINIZ_SRC     ${MINIZ_SRC_DIR}/miniz.c)
+add_library(${MINIZ_LIB_NAME} ${MINIZ_SRC})
 
 # LZ4
 set (LZ4_SRC_DIR ${DEPS_DIR}/lz4)
