@@ -437,15 +437,8 @@ static void __run_jobs(ina_cron_ctx_t *ctx)
 	HASH_ITER(hh, ctx->task_head, task, ttmp) {
 		if (task->ready && task->pid < 0) {
 			task->ready = 0;
-            
             __run_job(task);
-		
-		    if (task->pid < 0) {
-		        task->ready = 1;
-		    }
-		    else if (task->pid > 0) {
-			    task->running = 1;
-		    }
+		    task->ready = 1;
 		}
 	}
 }
