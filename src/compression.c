@@ -245,6 +245,9 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
     else {
         *state = (ina_compression_state_t*)ina_mem_alloc(sizeof(struct ina_compression_state_s));
     }
+    if (*state == NULL) {
+        return INA_FAILURE;
+    }
 
     (*state)->type = type;
     (*state)->direction = direction;
