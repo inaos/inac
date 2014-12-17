@@ -65,7 +65,7 @@ static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, con
     
 	*wrote_len = LZ4_compress_withState(state->statedata, 
             (const char*)src, (char*)dst, state->chunk_src_len);
-	if (wrote_len == 0) {
+	if (*wrote_len == 0) {
 		return INA_FAILURE;
 	}
 	return INA_SUCCESS;
@@ -80,7 +80,7 @@ static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, c
 
 	*wrote_len = LZ4_compressHC_withStateHC(state->statedata, 
             (const char*)src, (char*)dst, state->chunk_src_len);
-	if (wrote_len == 0) {
+	if (*wrote_len == 0) {
 		return INA_FAILURE;
 	}
 	return INA_SUCCESS;
@@ -112,7 +112,7 @@ static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *sta
     *wrote_len = 0;
 
 	*wrote_len = LZ4_decompress_safe((const char*)src, (char*)dst, src_len, dst_len);
-	if (wrote_len <= 0) {
+	if (*wrote_len <= 0) {
 		return INA_FAILURE;
 	}
 	return INA_SUCCESS;
