@@ -59,11 +59,6 @@ typedef enum ina_compression_mode_e {
     INA_COMPRESSION_MODE_TRUSTED_SAFE,
 } ina_compression_mode_t;
 
-typedef enum ina_compression_direction_e {
-    INA_COMPRESSION_DIRECTION_COMPRESS,
-    INA_COMPRESSION_DIRECTION_DECOMPRESS,
-} ina_compression_direction_t;
-
 /* should be opaque */
 typedef struct ina_compression_state_s ina_compression_state_t;
 
@@ -71,14 +66,12 @@ typedef struct ina_compression_state_s ina_compression_state_t;
  *
  */
 INA_API(ina_rc_t) ina_compression_new(ina_compression_state_t **state, ina_compression_type_t type,
-                                               ina_compression_direction_t direction,
-                                               ina_compression_mode_t mode);
+                                      ina_compression_mode_t mode);
 /*
  *
  */
 INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state, ina_compression_type_t type,
-                                               ina_compression_direction_t direction, ina_compression_mode_t mode, 
-                                               ina_mempool_t *pool);
+                                                 ina_compression_mode_t mode, ina_mempool_t *pool);
 /*
  *
  */
