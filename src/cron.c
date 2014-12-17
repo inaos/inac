@@ -359,6 +359,10 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
 			ina_cron_task_t *task, *ttmp;
             ina_cron_func_t *func, *ftmp;
 			struct tm *tp = localtime(&t);
+
+            if (tp == NULL) {
+                return -1;
+            }
 	    
 			/* iterate through tasks */
 			HASH_ITER(hh, ctx->task_head, task, ttmp) {
