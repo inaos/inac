@@ -479,7 +479,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         (*rb)->slots = slots;
         (*rb)->num_producers = num_producers;
         (*rb)->num_consumers = num_consumers;
-        (*rb)->overrun_enabled = -1;
+        (*rb)->overrun_enabled = INT64_MAX;
         (*rb)->cursor = -1;
         (*rb)->next_ptr = 0;
         (*rb)->alive_producers = 0;
