@@ -823,6 +823,9 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, ina_str_t patt
 
     for (t = now - now % 60; t > 0; t -= 60) {
         struct tm *tp = localtime(&t);
+        if (tp == NULL) {
+            return INA_FAILURE;
+        }
         if (dummy.mins[tp->tm_min] && dummy.hours[tp->tm_hour] &&
 				(dummy.days[tp->tm_mday] || dummy.dow[tp->tm_wday]) &&
 				dummy.mons[tp->tm_mon]) {
