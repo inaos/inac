@@ -152,10 +152,14 @@ static ina_rc_t
 __ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, ina_str_t msg) {
     static const char *c = ".-*#";
     static char buf[64];
+    static struct tm *lt;
 
     time_t now = time(NULL);
 
-    strftime(buf,sizeof(buf),"%d %b %H:%M:%S",localtime(&now));
+    lt = localtime(&now);
+    INA_ASSERT_NOTNULL(lt);
+    
+    strftime(buf,sizeof(buf),"%d %b %H:%M:%S", lt);
 
     if (cfg->fp1 != NULL) {
         fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);

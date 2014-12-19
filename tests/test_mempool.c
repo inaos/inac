@@ -53,7 +53,7 @@ INA_TEST(mempool, nalloc)
 
     /* Allocate a NON reallocable buffer */
     buf2 = ina_mempool_nalloc(pool, 1024);
-    INA_TEST_ASSERT_NOT_NULL(buf1);
+    INA_TEST_ASSERT_NOT_NULL(buf2);
     ina_mem_set(buf2, 30, 1024);
 
     /* Release pool */
@@ -76,6 +76,8 @@ INA_TEST(mempool, nalloc)
 
     /* allocate new NOT reallocable buffer from the fresh pool */
     buf4 = ina_mempool_nalloc(pool, 5);
+    INA_TEST_ASSERT_NOT_NULL(buf4);
+
     /* New pointer same as the old one */
     INA_TEST_ASSERT_NOT_SAME(buf4, buf2);
     /* Verify buffer */
@@ -196,7 +198,7 @@ INA_TEST(mempool, fill_zero)
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     buf = (unsigned char*)ina_mempool_dalloc(pool, size);
-    INA_TEST_ASSERT_NOT_NULL(pool);
+    INA_TEST_ASSERT_NOT_NULL(buf);
     while (size--) {
         INA_TEST_ASSERT_EQUAL_FLOATING(*(buf++), 0);
     }
@@ -414,6 +416,7 @@ INA_TEST_FIXTURE(mempool_ipc, mempool_create)
         "/ina_test"));
     
     v = (int32_t*)ina_mempool_dalloc(data->mp, 1024*sizeof(int32_t));
+    INA_TEST_ASSERT_NOT_NULL(v);
     while (c < 1024) {
         INA_TEST_ASSERT_EQUAL_INTEGER(c, v[c]);
         c++;

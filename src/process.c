@@ -358,6 +358,9 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     }
     
     *process = ina_mempool_dalloc(ctx->mempool, sizeof(ina_process_t));
+    if (*process == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
 
     /* copy descriptor if not allocated from context pool */
     /*if (INA_SUCCEED(ina_mempool_getbypointer(descriptor, &mempool)) && 

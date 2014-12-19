@@ -199,6 +199,10 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
     key = (ina_conffile_section_key_t*)ina_mempool_dalloc(
                                         section->cf->mempool,
                                         sizeof(ina_conffile_section_key_t));
+    if (key == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+
     key->id = k;
     key->name = ina_str_new_fromcstr_using_pool(name, section->cf->mempool);
     key->required = required;
@@ -538,6 +542,7 @@ __ina_process_section_table(ina_conffile_t *cf)
                 res = (ina_conffile_section_res_t*)ina_mempool_dalloc(
                                         cf->mempool,
                                         sizeof(ina_conffile_section_res_t));
+                INA_ASSERT_NOTNULL(res);
                 res->id = rki;
                 res->key = ina_str_new_fromcstr_using_pool(rk, cf->mempool);
                 res->entries = NULL;
@@ -559,6 +564,7 @@ __ina_process_section_table(ina_conffile_t *cf)
                     res = (ina_conffile_section_res_t*)ina_mempool_dalloc(
                                         cf->mempool,
 				                        sizeof(ina_conffile_section_res_t));
+                    INA_ASSERT_NOTNULL(res);
                     res->id = rki;
                     res->key = ina_str_new_fromcstr_using_pool(rk, cf->mempool);
                     res->entries = NULL;

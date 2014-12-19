@@ -46,6 +46,8 @@ INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
 
     c = 0;
     v = (int32_t*)ina_mempool_dalloc(mp, size);
+    INA_ASSERT_NOTNULL(v);
+    
     while (c  < (size/sizeof(int32_t))) {
         v[c] = c;
         c++;

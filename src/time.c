@@ -269,6 +269,7 @@ INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen,
 
     ina_time_sys_seconds_micros(time, &secs, &micros);
     mtm = localtime(&secs);
+    INA_ASSERT_NOTNULL(mtm);
     nw = strftime(b, buflen, fmt, mtm);
 
     if (nw == 0) {
@@ -296,6 +297,7 @@ INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
 
     ina_time_tsc_seconds_nanos(time, &secs, &nanos);
     mtm = localtime(&secs);
+    INA_ASSERT_NOTNULL(mtm);
     nw = strftime(b, ina_str_size(buf), fmt, mtm);
  
     if (nw == 0) {
