@@ -461,7 +461,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 				    ts->stamp.tp) / 10000000.0);         
         } 
 #else
-        if (*stamp_index == 0) {
+        if (stamp_index && *stamp_index == 0) {
 
             ina_time_tsc_seconds_nanos(&stopwatch->tv->start,
                 &stopwatch->tv->start.tp.tv_sec,
