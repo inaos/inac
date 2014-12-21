@@ -67,6 +67,7 @@ INA_API(ina_str_t) ina_str_new(size_t len)
     hdr = (ina_str_hdr_t*)INA_MEM_MALLOC(len + 1 + sizeof(ina_str_hdr_t));
     if (hdr == NULL) {
         INA_STR_EALLOC;
+        return NULL;
     }
     hdr->size = len+1;
     hdr->len = 0;
@@ -751,6 +752,7 @@ __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
     }
     hdr->size = (hdr->size-hdr->len)+len;
     hdr = (ina_str_hdr_t*)INA_MEM_REALLOC(hdr, sizeof(ina_str_hdr_t) + hdr->size);
+    INA_ASSERT_NOTNULL(hdr);
     hdr->pooled = INA_NO;
     return hdr;
 }
