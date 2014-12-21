@@ -191,11 +191,11 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
 									  ina_file_cursor_t **cursor,
                                       ina_mmap_ctx_t *mmap_ctx)
 {
-	ina_file_stat_t *fstat;
-	size_t flen;
-	size_t map_len;
+	ina_file_stat_t *fstat = NULL;
+	size_t flen = 0;
+	size_t map_len = 0;
 	int proto_flags = INA_MMAP_MEM_PROT_READ;
-	void *head;
+	void *head = NULL;
 
 	ina_file_stat_new(file, &fstat);
 	ina_file_stat_file_size(fstat, &flen);
