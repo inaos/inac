@@ -72,8 +72,8 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
                                size_t offset, size_t length, ina_mmap_mapping_t **mapping)
 {
 	void *data = NULL;
-	ina_file_stat_t *fstat;
-	size_t flen;
+	ina_file_stat_t *fstat = NULL;
+	size_t flen = 0;
 
 #ifdef INA_OS_WIN32
 	DWORD flProtect = 0;
