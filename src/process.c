@@ -643,7 +643,7 @@ static void __ina_process_reset(ina_process_t *process)
 static void __ina_process_is_running(ina_process_t *process, 
                                       int *still_running)
 {
-    int status;
+    int status = 0;
 
     *still_running = INA_NO;
 
