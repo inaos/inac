@@ -691,11 +691,11 @@ static void __ina_process_start(ina_process_t *process)
         perror("execv()");
         _exit(127);
     } else {
-    
+        int status = 0;
+            
         /* Store pid */
         process->pid = pid;
 
-        int status;
         if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
             waitpid(process->pid, &status, 0);
             if (WIFEXITED(status)) {
