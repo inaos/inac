@@ -77,7 +77,7 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, size_t p
 	}
 
 	if (cursor->ext.m.buffer_idx != buffer_idx) {
-		size_t len = min(cursor->ext.m.buffer_size, cursor->ext.m.len);
+		size_t len = INA_MIN(cursor->ext.m.buffer_size, cursor->ext.m.len);
 		if (offset + len > cursor->ext.m.len) {
 			len = cursor->ext.m.len - offset;
 		}
@@ -191,11 +191,11 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
 									  ina_file_cursor_t **cursor,
                                       ina_mmap_ctx_t *mmap_ctx)
 {
-	ina_file_stat_t *fstat = NULL;
-	size_t flen = 0;
+	ina_file_stat_t *fstat = NULL;
+	size_t flen = 0;
 	size_t map_len = 0;
 	int proto_flags = INA_MMAP_MEM_PROT_READ;
-	void *head = NULL;
+	void *head = NULL;
 
 	ina_file_stat_new(file, &fstat);
 	ina_file_stat_file_size(fstat, &flen);

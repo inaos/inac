@@ -290,7 +290,7 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
         return INA_SUCCESS;
     }
     if (col < 0 || row < 0) {
-        ina_cio_pos_t pos;
+        ina_cio_pos_t pos = {0,0};
         ina_cio_get_pos(&pos);
         if (row < 0) {
             return ina_cio_move_to_row_and_col(pos.row, col);

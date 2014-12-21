@@ -185,6 +185,8 @@ INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx)
     /*
 	 * - keep track of all the open files
 	 */
+	INA_ASSERT_NOTNULL(ctx);
+	*ctx = NULL;
     return INA_SUCCESS;
 }
 
