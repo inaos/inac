@@ -160,7 +160,7 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx);
 /*
  *
  */
-INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx, const void *user_data);
+INA_API(ina_rc_t) ina_service_dispatch(ina_service_ctx_t *ctx, const void *user_data);
 
 
 /*
@@ -171,7 +171,7 @@ INA_API(ina_rc_t) ina_service_get_data(const ina_service_ctx_t *ctx, const void 
 /*
  *
  */
-INA_API(ina_rc_t) ina_service_set_data(const ina_service_ctx_t *ctx, const void *user_data);
+INA_API(ina_rc_t) ina_service_set_data(ina_service_ctx_t *ctx, const void *user_data);
 
 /*
  *
@@ -194,7 +194,7 @@ INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx);
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console, const void *user_data);
+INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, int console, const void *user_data);
 
 /*
  * 
