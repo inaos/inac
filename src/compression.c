@@ -317,7 +317,7 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
             sstate = LZ4_sizeofStateHC();
             break;
         default:
-            INA_ASSERT_TRUE(0):
+            INA_ASSERT_TRUE(0);
             break;
     }
     (*state)->mempool = pool;
