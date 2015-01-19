@@ -1,10 +1,14 @@
 SRC = $(wildcard *.c)
 OBJS = $(SRC:%.c=%.o) $(DIRS:%=%.o)
-THIS_LIB = sqlite.a
+LIB = sqlite.a
+CLI = sqlite
 
 
-all: $(OBJS)
-	@ar rcs $(THIS_LIB) $(OBJS)
+$(CLI): $(LIB)
+	$(CC) $(CFLAGS) -o $(CLI) shell.o $(LIB)  $(LDFLAGS) -lpthread -ldl
+
+$(LIB): $(OBJS)
+	@ar rcs $(LIB) $(OBJS)
 
 %.o: %.c
 	@echo compile $(CC) $<
