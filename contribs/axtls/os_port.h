@@ -41,16 +41,11 @@
 extern "C" {
 #endif
 
-#include "os_int.h"
+#include <libinac/lib.h>
 #include <stdio.h>
 
-#if defined(WIN32)
-#define STDCALL                 __stdcall
-#define EXP_FUNC                __declspec(dllexport)
-#else
 #define STDCALL
 #define EXP_FUNC
-#endif
 
 #if defined(_WIN32_WCE)
 #undef WIN32
@@ -117,7 +112,6 @@ extern "C" {
 
 typedef int socklen_t;
 
-EXP_FUNC void STDCALL gettimeofday(struct timeval* t,void* timezone);
 EXP_FUNC int STDCALL strcasecmp(const char *s1, const char *s2);
 EXP_FUNC int STDCALL getdomainname(char *buf, int buf_size);
 

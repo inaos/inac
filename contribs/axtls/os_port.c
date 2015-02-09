@@ -40,21 +40,6 @@
 #include "os_port.h"
 
 #ifdef WIN32
-/**
- * gettimeofday() not in Win32 
- */
-EXP_FUNC void STDCALL gettimeofday(struct timeval* t, void* timezone)
-{       
-#if defined(_WIN32_WCE)
-    t->tv_sec = time(NULL);
-    t->tv_usec = 0;                         /* 1sec precision only */ 
-#else
-    struct _timeb timebuffer;
-    _ftime(&timebuffer);
-    t->tv_sec = (long)timebuffer.time;
-    t->tv_usec = 1000 * timebuffer.millitm; /* 1ms precision */
-#endif
-}
 
 /**
  * strcasecmp() not in Win32
