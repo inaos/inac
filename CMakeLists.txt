@@ -73,7 +73,7 @@ add_library(${RAPIDXML_LIB_NAME} ${RAPIDXML_SRC})
 # AxTLS
 set (AXTLS_SRC_DIR ${DEPS_DIR}/axtls)
 set (AXTLS_SRC     ${AXTLS_SRC_DIR}/aes.c ${AXTLS_SRC_DIR}/bigint.c ${AXTLS_SRC_DIR}/crypto_misc.c
-				   ${AXTLS_SRC_DIR}/hmac.c ${AXTLS_SRC_DIR}/md2.c ${AXTLS_SRC_DIR}/md5.c
+				   ${AXTLS_SRC_DIR}/hmac.c  ${AXTLS_SRC_DIR}/md5.c ${AXTLS_SRC_DIR}/sha256.c
 				   ${AXTLS_SRC_DIR}/rc4.c ${AXTLS_SRC_DIR}/rsa.c ${AXTLS_SRC_DIR}/sha1.c 
 				   ${AXTLS_SRC_DIR}/os_port.c ${AXTLS_SRC_DIR}/asn1.c ${AXTLS_SRC_DIR}/gen_cert.c
 				   ${AXTLS_SRC_DIR}/loader.c ${AXTLS_SRC_DIR}/p12.c ${AXTLS_SRC_DIR}/tls1.c

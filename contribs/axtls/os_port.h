@@ -41,11 +41,16 @@
 extern "C" {
 #endif
 
-#include <libinac/lib.h>
+#include "os_int.h"
 #include <stdio.h>
 
+#if defined(WIN32)
+#define STDCALL                 __stdcall
+#define EXP_FUNC                __declspec(dllexport)
+#else
 #define STDCALL
 #define EXP_FUNC
+#endif
 
 #if defined(_WIN32_WCE)
 #undef WIN32
@@ -112,6 +117,7 @@ extern "C" {
 
 typedef int socklen_t;
 
+EXP_FUNC void STDCALL gettimeofday(struct timeval* t,void* timezone);
 EXP_FUNC int STDCALL strcasecmp(const char *s1, const char *s2);
 EXP_FUNC int STDCALL getdomainname(char *buf, int buf_size);
 
@@ -136,6 +142,24 @@ EXP_FUNC int STDCALL getdomainname(char *buf, int buf_size);
 #define TTY_FLUSH()
 
 #endif  /* Not Win32 */
+
+/* some functions to mutate the way these work */
+#define malloc(A)       ax_malloc(A)
+#ifndef realloc
+#define realloc(A,B)    ax_realloc(A,B)
+#endif
+#define calloc(A,B)     ax_calloc(A,B)
+
+EXP_FUNC void * STDCALL ax_malloc(size_t s);
+EXP_FUNC void * STDCALL ax_realloc(void *y, size_t s);
+EXP_FUNC void * STDCALL ax_calloc(size_t n, size_t s);
+EXP_FUNC int STDCALL ax_open(const char *pathname, int flags); 
+
+#ifdef CONFIG_PLATFORM_LINUX
+void exit_now(const char *format, ...) __attribute((noreturn));
+#else
+void exit_now(const char *format, ...);
+#endif
 
 /* Mutexing definitions */
 #if defined(CONFIG_SSL_CTX_MUTEXING)

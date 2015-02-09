@@ -60,13 +60,12 @@
  * @{
  */
 
-#include <libinac/lib.h>
-
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include "os_port.h"
 #include "bigint.h"
 
 #define V1      v->comps[v->size-1]                 /**< v1 for division */
