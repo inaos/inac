@@ -50,6 +50,7 @@ struct ina_service_ctx_s {
     SERVICE_STATUS_HANDLE status_handle;
     HANDLE stop_service_event;  
 #else
+    int lock_fp;
 #endif
 };
 
