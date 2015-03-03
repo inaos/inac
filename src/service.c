@@ -447,8 +447,17 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
     }
     
     fp = open("/dev/null", O_RDWR); /* open stdin */
-    dup(fp); /* stdout */
-    dup(fp); /* stderr */
+    if (fp == -1) {
+        exit(EXIT_FAILURE);
+    }
+    fp = dup(fp); /* stdout */
+    if (fp == -1) {
+        exit(EXIT_FAILURE);
+    }    
+    fp = dup(fp); /* stderr */
+    if (fp == -1) {
+        exit(EXIT_FAILURE);
+    }
 
     /* set working-directory */
     if (chdir(ina_str_cstr(ctx->descriptor->working_directory)) < 0) {
@@ -461,12 +470,20 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
     if (pfp < 0) {
         return INA_SERVICE_ELCO; /* can not open */
     }
-    pid_str = ina_str_sprintf("%d\n", getpid()); 
-    ftruncate(pfp, 0); 
-    write(pfp, ina_str_cstr(pid_str), ina_str_len(pid_str)+1); /* record pid to pid-file */
-    close(pfp);
-
-    ina_str_free(pid_file_path);
+    pid_str = ina_str_sprintf("%d\n", getpid());
+    INA_ASSERT_NOTNULL(pid_str); 
+    if (ftruncate(ctx->lock_fp, 0) == 0) {
+        if (write(ctx->lock_fp, ina_str_cstr(pid_str), ina_str_len(pid_str)+1)<=0) {
+            close(ctx->lock_fp); 
+            ina_str_free(pid_str);
+            return INA_SERVICE_ELCO;
+        }
+    } else {
+        ina_str_free(pid_str);
+        close(ctx->lock_fp); 
+        return INA_SERVICE_ELCO;
+    } 
+    close(ctx->lock_fp);
     ina_str_free(pid_str);
 
     if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START))) {
