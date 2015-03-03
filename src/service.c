@@ -513,7 +513,7 @@ static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
     fp = dup(fp); /* stdout */
     if (fp == -1) {
         exit(EXIT_FAILURE);
-    }
+    }    
     fp = dup(fp); /* stderr */
     if (fp == -1) {
         exit(EXIT_FAILURE);
@@ -541,6 +541,7 @@ static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
             ina_str_free(pid_str);
             return INA_SERVICE_ELCO;
         }
+    } else {
         ina_str_free(pid_str);
         close(ctx->lock_fp); 
         return INA_SERVICE_ELCO;
