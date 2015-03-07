@@ -60,6 +60,8 @@ int hdr_log_write_header(
     const char* user_prefix,
     struct timespec* timestamp);
 
+int hdr_log_get_version(double *version);
+
 /**
  * Write an hdr_histogram entry to the log.  It will be encoded in a similar
  * fashion to the approach used by the Java version of the HdrHistogram.  It will
@@ -84,6 +86,12 @@ int hdr_log_write_header(
 int hdr_log_write(
     struct hdr_log_writer* writer,
     FILE* file,
+    const struct timespec* start_timestamp,
+    const struct timespec* end_timestamp,
+    struct hdr_histogram* histogram);
+
+int hdr_log_write_str(struct hdr_log_writer* writer,
+    ina_str_t *str,
     const struct timespec* start_timestamp,
     const struct timespec* end_timestamp,
     struct hdr_histogram* histogram);
@@ -137,6 +145,10 @@ int hdr_log_read_header(struct hdr_log_reader* reader, FILE* file);
  */
 int hdr_log_read(
     struct hdr_log_reader* reader, FILE* file, struct hdr_histogram** histogram,
+    struct timespec* timestamp, struct timespec* interval);
+
+int hdr_log_read_str(
+    struct hdr_log_reader* reader, ina_str_t str_line, struct hdr_histogram** histogram,
     struct timespec* timestamp, struct timespec* interval);
 
 /**

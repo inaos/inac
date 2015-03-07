@@ -56,7 +56,7 @@
  * We have three component:
  * - Recorder
  * - Serializer
- * - Reporting
+ * - Reporter
  *
  * Our implementation uses the ULLC rings to transfer the samples from the recorder to the serializer component.
  * The recorder is a producer and the serializer is dummy producer because it has to be created first and a consumer 
@@ -71,38 +71,85 @@
 extern "C" {
 #endif
 
-/* opaque relational database context */
-typedef struct ina_histogram_ctx_s ina_histogram_ctx_t;
+/* opaque histogram recorder */
+typedef struct ina_histogram_recorder_s ina_histogram_recorder_t;
 
-/* 
+/* opaque histogram serializer */
+typedef struct ina_histogram_serializer_s ina_histogram_serializer_t;
 
+/* opaque histogram reporter */
+typedef struct ina_histogram_reporter_s ina_histogram_reporter_t;
 
-- Recorder
-  > ina_histogram_recorder_new(ina_str_t id,
-                               int64_t highest_trackable_value,
-  
-                               int significant_figures, 
-                               int sample_interval_ms)
-  > ina_histogram_recorder_free()
-  > ina_histogram_recorder_record(int64_t value)
-  > ina_histogram_recorder_process(int64_t time)
+typedef struct ina_histogram_record_s {
+    int64_t start_ts_ns;
+    int64_t end_ts_ns;
+    char data[104]; /* size of the hdr_histogram */
+    char free_text1[128];
+    char free_text2[128];
+    char free_text3[128];
+    char free_text4[128];
+} ina_histogram_record_t;
 
-- Serializer
-  > ina_histogram_serializer_new(ina_str_t id,
-                                 int64_t highest_trackable_value,
-  
-                                 int significant_figures)
-  > ina_histogram_serializer_free()
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_recorder_new(ina_histogram_recorder_t **recorder,
+                                             ina_str_t id,
+                                             int64_t highest_trackable_value,
+                                             int significant_figures,
+                                             int sample_interval_ms);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_recorder_free(ina_histogram_recorder_t **recorder);
 
-- Reporting
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_recorder_record(ina_histogram_recorder_t *recorder, int64_t value);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_recorder_process(ina_histogram_recorder_t *recorder, int64_t time);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_serializer_new(ina_histogram_serializer_t **serializer,
+                                               ina_str_t id,
+                                               int64_t highest_trackable_value,
+                                               int significant_figures);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_serializer_free(ina_histogram_serializer_t **serializer);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t *serializer, 
+                                                     ina_histogram_record_t *histogram,
+                                                     ina_str_t *record);
 
-*/
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_reporter_new(ina_histogram_reporter_t **reporter);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_reporter_free(ina_histogram_reporter_t **reporter);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_reporter_try_next_percentile(ina_histogram_reporter_t *reporter, 
+                                                             const ina_str_t record,
+                                                             ina_str_t *percentile);
 
 #ifdef __cplusplus
 }

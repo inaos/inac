@@ -871,6 +871,12 @@ int hdr_log_write_header(
     return 0;
 }
 
+int hdr_log_get_version(double *version)
+{
+    *version = LOG_MAJOR_VERSION+(LOG_MINOR_VERSION/10);
+    return 0;
+}
+
 int hdr_log_write(
     struct hdr_log_writer* writer,
     FILE* file,
@@ -917,6 +923,54 @@ cleanup:
 
     return result;
 }
+
+int hdr_log_write_str(struct hdr_log_writer* writer,
+    ina_str_t *str,
+    const struct timespec* start_timestamp,
+    const struct timespec* end_timestamp,
+    struct hdr_histogram* histogram)
+{
+    uint8_t* compressed_histogram = NULL;
+    size_t compressed_len = 0;
+    char* encoded_histogram = NULL;
+    int rc = 0;
+    int result = 0;
+    size_t encoded_len;
+
+    rc = hdr_encode_compressed(histogram, &compressed_histogram, &compressed_len);
+    if (rc != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, rc);
+    }
+
+    encoded_len = base64_encoded_len(compressed_len);
+    encoded_histogram = (char*)calloc(encoded_len + 1, sizeof(char));
+
+    rc = base64_encode(
+        compressed_histogram, compressed_len, encoded_histogram, encoded_len);
+    if (rc != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, rc);
+    }
+
+    *str = ina_str_new(encoded_len+256);
+    if (ina_str_snprintf(&(*str), encoded_len+256,
+        "%d.%d,%d.%d,%"PRIu64".0,%s\n",
+        (int) start_timestamp->tv_sec, (int) (start_timestamp->tv_nsec / 1000000),
+        (int) end_timestamp->tv_sec, (int) (end_timestamp->tv_nsec / 1000000),
+        hdr_max(histogram),
+        encoded_histogram) < 0)
+    {
+        result = EIO;
+    }
+
+cleanup:
+    free(compressed_histogram);
+    free(encoded_histogram);
+
+    return result;
+}
+
 
 // ########  ########    ###    ########  ######## ########
 // ##     ## ##         ## ##   ##     ## ##       ##     ##
@@ -1107,6 +1161,79 @@ int hdr_log_read(
 
 cleanup:
     free(line);
+    free(base64_histogram);
+    free(compressed_histogram);
+
+    return result;
+}
+
+int hdr_log_read_str(
+    struct hdr_log_reader* reader, ina_str_t str_line, struct hdr_histogram** histogram,
+    struct timespec* timestamp, struct timespec* interval)
+{
+    const char* format = "%d.%d,%d.%d,%d.%d,%s";
+    char* base64_histogram = NULL;
+    uint8_t* compressed_histogram = NULL;
+    size_t line_len = 0;
+    int result = 0;
+
+    int begin_s = 0;
+    int begin_ms = 0;
+    int end_s = 0;
+    int end_ms = 0;
+    int interval_max_s = 0;
+    int interval_max_ms = 0;
+    size_t base64_len;
+    size_t compressed_len;
+    int r;
+    int num_tokens;
+
+    ssize_t read = ina_str_len(str_line);
+
+    r = realloc_buffer(
+        (void**)&base64_histogram, sizeof(char), read, ZERO_ALL);
+    if (r != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, ENOMEM);
+    }
+
+    r = realloc_buffer(
+        (void**)&compressed_histogram, sizeof(uint8_t), read, ZERO_ALL);
+    if (r != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, ENOMEM);
+    }
+
+    num_tokens = sscanf(
+        ina_str_cstr(str_line), format, &begin_s, &begin_ms, &end_s, &end_ms,
+        &interval_max_s, &interval_max_ms, base64_histogram);
+
+    if (num_tokens != 7)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, EINVAL);
+    }
+
+    base64_len = strlen(base64_histogram);
+    compressed_len = base64_decoded_len(base64_len);
+
+    r = base64_decode(
+        base64_histogram, base64_len, compressed_histogram, compressed_len);
+
+    if (r != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, r);
+    }
+
+    r = hdr_decode_compressed(compressed_histogram, compressed_len, histogram);
+    if (r != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, r);
+    }
+
+    update_timespec(timestamp, begin_s, begin_ms);
+    update_timespec(interval, end_s, end_ms);
+
+cleanup:
     free(base64_histogram);
     free(compressed_histogram);
 

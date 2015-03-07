@@ -28,3 +28,94 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#include <contribs/hdr-histogram/hdr_histogram.h>
+#include <contribs/hdr-histogram/hdr_histogram_log.h>
+
+struct ina_histogram_recorder_s {
+    ina_str_t id;
+    ina_ullc_ctx_t *producer;
+    ina_timer_t *timer;
+    ina_time_event_t *phase; 
+};
+
+INA_API(ina_rc_t) ina_histogram_recorder_new(ina_histogram_recorder_t **recorder,
+                                             ina_str_t id,
+                                             int64_t highest_trackable_value,
+                                             int significant_figures,
+                                             int sample_interval_ms)
+{
+    *recorder = (ina_histogram_recorder_t*)ina_mem_alloc(sizeof(ina_histogram_recorder_t));
+
+    ina_str_cpy((*recorder)->id, id);
+    
+    if (!INA_SUCCEED(ina_timer_init(&(*recorder)->timer))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    
+
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_recorder_free(ina_histogram_recorder_t **recorder)
+{
+    ina_timer_destroy(&(*recorder)->timer);
+    ina_mem_free(*recorder);
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_recorder_record(ina_histogram_recorder_t *recorder, int64_t value)
+{
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_recorder_process(ina_histogram_recorder_t *recorder, int64_t time)
+{
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_serializer_new(ina_histogram_serializer_t **serializer,
+                                               ina_str_t id,
+                                               int64_t highest_trackable_value,
+                                               int significant_figures)
+{
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_serializer_free(ina_histogram_serializer_t **serializer)
+{
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t *serializer, 
+                                                     ina_histogram_record_t *histogram,
+                                                     ina_str_t *record)
+{
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_reporter_new(ina_histogram_reporter_t **reporter)
+{
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_reporter_free(ina_histogram_reporter_t **reporter)
+{
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_histogram_reporter_try_next_percentile(ina_histogram_reporter_t *reporter, 
+                                                             const ina_str_t record,
+                                                             ina_str_t *percentile)
+{
+    return INA_SUCCESS;
+}
