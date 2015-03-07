@@ -25,6 +25,7 @@ set(LZ4_LIB_NAME "lz4")
 set(MINIZ_LIB_NAME "miniz")
 set(ICT_LIB_NAME "cpu-topology")
 set(TIMER_WHEEL_LIB_NAME "timerwheel")
+set(HDR_HISTOGRAM_LIB_NAME "hdr-histogram")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -107,6 +108,11 @@ set (TIMER_WHEEL_SRC_DIR ${DEPS_DIR}/timerwheel)
 set (TIMER_WHEEL_SRC ${TIMER_WHEEL_SRC_DIR}/timeout.c)
 add_library(${TIMER_WHEEL_LIB_NAME} ${TIMER_WHEEL_SRC})
 
+# Hdr Histogram
+set (HDR_HISTOGRAM_SRC_DIR ${DEPS_DIR}/hdr-histogram)
+set (HDR_HISTOGRAM_SRC ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram.c ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram_log.c)
+add_library(${HDR_HISTOGRAM_LIB_NAME} ${HDR_HISTOGRAM_SRC})
+
 # END dependencies
 
 add_definitions(-DINA_ISTRING_ENABLED -DINA_STRING_DEFINED)
@@ -134,7 +140,8 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c ${SRC_DIR}/json.c ${SRC_DIR}/service.c
 				 ${SRC_DIR}/process.c ${SRC_DIR}/dns.c ${SRC_DIR}/template.c ${SRC_DIR}/ipc.c
 				 ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c 
-				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c)
+				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c
+				 ${SRC_DIR}/histogram.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 

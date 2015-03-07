@@ -94,6 +94,7 @@
 #include <libinac/file.h>
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
+#include <libinac/histogram.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
