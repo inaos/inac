@@ -90,6 +90,13 @@ typedef struct ina_histogram_record_s {
     char free_text4[128];
 } ina_histogram_record_t;
 
+typedef struct ina_histogram_meta_s {
+    char free_text1[128];
+    char free_text2[128];
+    char free_text3[128];
+    char free_text4[128];
+} ina_histogram_meta_t;
+
 /*
  *
  */
@@ -107,12 +114,32 @@ INA_API(ina_rc_t) ina_histogram_recorder_free(ina_histogram_recorder_t **recorde
 /*
  *
  */
+INA_API(ina_rc_t) ina_histogram_recorder_set_free_text1(ina_histogram_recorder_t *recorder, const char *text);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_recorder_set_free_text2(ina_histogram_recorder_t *recorder, const char *text);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_recorder_set_free_text3(ina_histogram_recorder_t *recorder, const char *text);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_histogram_recorder_set_free_text4(ina_histogram_recorder_t *recorder, const char *text);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_histogram_recorder_record(ina_histogram_recorder_t *recorder, int64_t value);
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_histogram_recorder_process(ina_histogram_recorder_t *recorder, int64_t time);
+INA_API(ina_rc_t) ina_histogram_recorder_process(ina_histogram_recorder_t *recorder, int64_t time_ns);
 
 /*
  *
@@ -131,8 +158,8 @@ INA_API(ina_rc_t) ina_histogram_serializer_free(ina_histogram_serializer_t **ser
  *
  */
 INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t *serializer, 
-                                                     ina_histogram_record_t *histogram,
-                                                     ina_str_t *record);
+                                                     ina_str_t *record,
+                                                     ina_histogram_meta_t *meta);
 
 /*
  *
