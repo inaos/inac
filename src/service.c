@@ -65,8 +65,8 @@ static ina_service_ctx_t *__ctx = NULL;
 
 static ina_rc_t __ina_service_install(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t*);
-static ina_rc_t __ina_service_run_service(ina_service_ctx_t*);
-static ina_rc_t __ina_service_run_console(ina_service_ctx_t *ctx);
+static ina_rc_t __ina_service_run_service(const ina_service_ctx_t*);
+static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx);
 static ina_rc_t __ina_service_mgnt_status(const  char *name, ina_service_status_t *status);
 static ina_rc_t __ina_service_mgnt_start(const char *name);
 static ina_rc_t __ina_service_mgnt_stop(const char *name);
