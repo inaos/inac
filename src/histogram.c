@@ -53,8 +53,11 @@ struct ina_histogram_serializer_s {
     ina_str_t id;
     ina_ullc_ctx_t *dummy;
     ina_ullc_ctx_t *consumer;
-    struct hdr_log_writer *writer;
-    struct hdr_histogram *hist;
+    struct hdr_log_writer writer;
+};
+
+struct ina_histogram_reporter_s {
+    struct hdr_log_reader reader;
 };
 
 INA_API(ina_rc_t) ina_histogram_recorder_new(ina_histogram_recorder_t **recorder,
@@ -99,6 +102,19 @@ INA_API(ina_rc_t) ina_histogram_recorder_free(ina_histogram_recorder_t **recorde
     ina_timer_delete_event((*recorder)->timer, (*recorder)->phase);
     ina_timer_destroy(&(*recorder)->timer);
     ina_ullc_producer_destroy(&(*recorder)->producer);
+    ina_str_free((*recorder)->id);
+    if ((*recorder)->free_text1 != NULL) {
+        ina_str_free((*recorder)->free_text1);
+    }
+    if ((*recorder)->free_text2 != NULL) {
+        ina_str_free((*recorder)->free_text2);
+    }
+    if ((*recorder)->free_text3 != NULL) {
+        ina_str_free((*recorder)->free_text3);
+    }
+    if ((*recorder)->free_text4 != NULL) {
+        ina_str_free((*recorder)->free_text4);
+    }
     ina_mem_free(*recorder);
     return INA_SUCCESS;
 }
@@ -175,13 +191,44 @@ INA_API(ina_rc_t) ina_histogram_serializer_new(ina_histogram_serializer_t **seri
                                                int64_t highest_trackable_value,
                                                int significant_figures)
 {
-    //hdr_log_writer_init(
+    *serializer = (ina_histogram_serializer_t*)ina_mem_alloc(sizeof(ina_histogram_serializer_t));
+
+    ina_str_cpy((*serializer)->id, id);
+
+    if (!INA_SUCCEED(INA_ULLC_PRODUCER_CREATE(
+        ina_histogram_record_t,
+        __INA_HISTOGRAM_ULLC_VERSION,
+        __INA_HISTOGRAM_ULLC_SOLTS,
+        __INA_HISTOGRAM_ULLC_PRODUCERS,
+        __INA_HISTOGRAM_ULLC_CONSUMERS,
+        ina_str_cstr(id),
+        INA_ULLC_WS_BUSY_WAIT,
+        &(*serializer)->dummy))) {
+            return INA_ERR_PUSH_LAST;
+    }
+
+    if (!INA_SUCCEED(INA_ULLC_CONSUMER_CREATE(
+        ina_histogram_record_t,
+        __INA_HISTOGRAM_ULLC_VERSION,
+        __INA_HISTOGRAM_ULLC_SOLTS,
+        __INA_HISTOGRAM_ULLC_PRODUCERS,
+        __INA_HISTOGRAM_ULLC_CONSUMERS,
+        ina_str_cstr(id),
+        &(*serializer)->consumer))) {
+            return INA_ERR_PUSH_LAST;
+    }
+
+    hdr_log_writer_init(&(*serializer)->writer);
+
     return INA_SUCCESS;
 }
 
 
 INA_API(ina_rc_t) ina_histogram_serializer_free(ina_histogram_serializer_t **serializer)
 {
+    ina_ullc_consumer_destroy(&(*serializer)->consumer);
+    ina_ullc_producer_destroy(&(*serializer)->dummy);
+    ina_str_free((*serializer)->id);
     return INA_SUCCESS;
 }
 
@@ -191,8 +238,16 @@ INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t 
                                                      ina_histogram_meta_t *meta)
 {
     ina_histogram_record_t *r = INA_ULLC_GET(ina_histogram_record_t, serializer->consumer);
+    struct hdr_histogram *h = (struct hdr_histogram*)r->data;
+    struct timespec st, et;
+
+    st.tv_sec = (time_t)r->start_ts_ns/1000;
+    st.tv_nsec = r->start_ts_ns % 1000;
+    et.tv_sec = (time_t)r->end_ts_ns/1000;
+    et.tv_nsec = r->end_ts_ns % 1000;
     
-    //hdr_log_write_str(serializer->writer, 
+    hdr_log_write_str(&serializer->writer, record, &st, &et, h);
+    
     strcpy(meta->free_text1, r->free_text1);
     strcpy(meta->free_text2, r->free_text2);
     strcpy(meta->free_text3, r->free_text3);
@@ -204,19 +259,32 @@ INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t 
 
 INA_API(ina_rc_t) ina_histogram_reporter_new(ina_histogram_reporter_t **reporter)
 {
+    *reporter = (ina_histogram_reporter_t*)ina_mem_alloc(sizeof(ina_histogram_reporter_t));
+
+    hdr_log_reader_init(&(*reporter)->reader);
+
     return INA_SUCCESS;
 }
 
 
 INA_API(ina_rc_t) ina_histogram_reporter_free(ina_histogram_reporter_t **reporter)
 {
+    ina_mem_free(*reporter);
     return INA_SUCCESS;
 }
 
 
-INA_API(ina_rc_t) ina_histogram_reporter_try_next_percentile(ina_histogram_reporter_t *reporter, 
-                                                             const ina_str_t record,
-                                                             ina_str_t *percentile)
+INA_API(ina_rc_t) ina_histogram_reporter_print_percentile(ina_histogram_reporter_t *reporter, 
+                                                          const ina_str_t record,
+                                                          FILE *stream,
+                                                          int32_t ticks_per_half_distance,
+                                                          double value_scale)
 {
+    struct hdr_histogram *h;
+    struct timespec ts, interval;
+
+    hdr_log_read_str(&reporter->reader, record, &h, &ts, &interval);
+    hdr_percentiles_print(h, stream, ticks_per_half_distance, value_scale, CLASSIC);
+
     return INA_SUCCESS;
 }
