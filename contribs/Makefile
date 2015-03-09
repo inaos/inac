@@ -45,6 +45,7 @@ endif
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
 	$(MAKE) -C timerwheel
+	$(MAKE) -C hdr-histogram
 
 test: all
 

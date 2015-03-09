@@ -817,7 +817,7 @@ static int print_version(FILE* f, const char* version)
 static int print_time(FILE* f, struct timespec* timestamp)
 {
     char time_str[128];
-    struct tm *date_time;
+    struct tm *date_time = NULL;
     long ms;
 
     if (!timestamp)
@@ -1174,7 +1174,6 @@ int hdr_log_read_str(
     const char* format = "%d.%d,%d.%d,%d.%d,%s";
     char* base64_histogram = NULL;
     uint8_t* compressed_histogram = NULL;
-    size_t line_len = 0;
     int result = 0;
 
     int begin_s = 0;
