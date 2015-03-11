@@ -44,8 +44,8 @@ struct ina_mmap_mapping_s {
     void *addr;
 #endif
 	ina_file_t *fd;
-	size_t offset;
-	size_t length;
+	uint64_t offset;
+	uint64_t length;
 	void *begin_mmap;
 	void *end_mmap;
 };
@@ -69,20 +69,22 @@ INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx)
 
 INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd, 
                                int prot_flags, ina_mmap_mem_share_t share,
-                               size_t offset, size_t length, ina_mmap_mapping_t **mapping)
+                               uint64_t offset, uint64_t length, ina_mmap_mapping_t **mapping)
 {
 	void *data = NULL;
 	ina_file_stat_t *fstat = NULL;
-	size_t flen = 0;
+	uint64_t flen = 0;
 
 #ifdef INA_OS_WIN32
 	DWORD flProtect = 0;
-	DWORD dwMaximumSizeHigh = 0;
-	DWORD dwMaximumSizeLow = 0;
-	DWORD dwFileMapStart;
-	DWORD dwMapViewSize;
+	uint64_t llFileMapStart;
+	uint64_t llMapViewSize;
+    DWORD dwHigh;
+    DWORD dwLow;
 	DWORD dwDesiredAccess;
-	size_t delta;
+	uint64_t delta;
+    DWORD dwAllocationGranularity;
+    SYSTEM_INFO si;
 #endif
 
 	ina_file_stat_new(fd, &fstat);
@@ -99,7 +101,6 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	(*mapping)->offset = offset;
 
 #ifdef INA_OS_WIN32
-    dwMaximumSizeLow = flen;
 	(*mapping)->fmap = NULL;
 	if (prot_flags & INA_MMAP_MEM_PROT_READ) {
 		if (share & INA_MMAP_MEM_PROT_EXEC) {
@@ -123,7 +124,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		dwDesiredAccess = FILE_MAP_WRITE;
 	}
 
-	(*mapping)->fmap = CreateFileMapping((HANDLE)ina_file_os_handle(fd), NULL, flProtect, dwMaximumSizeHigh, dwMaximumSizeLow, NULL);
+	(*mapping)->fmap = CreateFileMapping((HANDLE)ina_file_os_handle(fd), NULL, flProtect, 0, 0, NULL);
 	if ((*mapping)->fmap == INVALID_HANDLE_VALUE) {
 		/* FIXME: handle error */
 		DWORD err = GetLastError();
@@ -134,17 +135,23 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	// To calculate where to start the file mapping, round down the
 	// offset of the data into the file to the nearest multiple of the
 	// system allocation granularity.
-	dwFileMapStart = ((DWORD)(offset / ctx->page_size)) * ctx->page_size;
+    memset(&si, 0, sizeof(SYSTEM_INFO));
+    GetSystemInfo(&si);
+    dwAllocationGranularity = si.dwAllocationGranularity;
+	llFileMapStart = ((uint64_t)(offset / dwAllocationGranularity)) * dwAllocationGranularity;
 	
 	// Calculate the size of the file mapping view.
-	dwMapViewSize = (offset % ctx->page_size) + length;
-	dwMapViewSize = max(dwMapViewSize, length);
+	llMapViewSize = ( (offset % dwAllocationGranularity) + length );
+	llMapViewSize = INA_MAX(llMapViewSize, length);
 	
 	// The data of interest isn't at the beginning of the
 	// view, so determine how far into the view to set the pointer.
-	delta = offset - dwFileMapStart;
+	delta = offset - llFileMapStart;
+
+    dwHigh = ((llFileMapStart >> 32) & 0xFFFFFFFF);
+    dwLow = (llFileMapStart & 0xFFFFFFFF);
 	
-	(*mapping)->lpMapAddress = MapViewOfFile((*mapping)->fmap, dwDesiredAccess, 0, dwFileMapStart, dwMapViewSize);
+    (*mapping)->lpMapAddress = MapViewOfFile((*mapping)->fmap, dwDesiredAccess, dwHigh, dwLow, (SIZE_T)llMapViewSize);
 	if ((*mapping)->lpMapAddress == NULL) {
 		/* FIXME: handle error */
 		DWORD err = GetLastError();

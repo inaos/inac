@@ -39,7 +39,7 @@ struct ina_file_ctx_s {
 };
 
 struct ina_file_stat_s {
-	size_t file_size;
+	uint64_t file_size;
 	time_t atime;
 	time_t mtime;
 	int is_dir;
@@ -289,7 +289,7 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat)
 		return INA_FAILURE;
 	}
 	*stat = (ina_file_stat_t*)ina_mem_alloc(sizeof(ina_file_stat_t));
-	(*stat)->file_size = (size_t)pin.QuadPart;
+	(*stat)->file_size = pin.QuadPart;
 	(*stat)->is_dir = (FILE_ATTRIBUTE_DIRECTORY & attrs);
 	FileTimeToSystemTime((FILETIME*)&wt, &systime);
 	__ina_file_system_time_to_time_t(&systime, &(*stat)->mtime);
@@ -341,7 +341,7 @@ INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat, int *dir)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, size_t *file_size)
+INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, uint64_t *file_size)
 {
     /* we know the the file-size can not be negative */
     *file_size = stat->file_size;

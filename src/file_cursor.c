@@ -35,12 +35,13 @@ struct ina_file_cursor_s {
 	union {
 		struct {
 			int mmap_flags;
-			size_t position;
+			uint64_t position;
 			void *mem_pos;
 			ina_mmap_ctx_t *mmap_ctx;
 			ina_mmap_mapping_t *fm;
 			int eof;
-			size_t len;
+			uint64_t len;
+            uint64_t carry;
 			size_t buffer_size;
 			int buffer_idx;
 		} m;
@@ -66,18 +67,23 @@ static ina_rc_t ina_file_cursor_mmap_free(ina_file_cursor_t **cursor)
 	return INA_SUCCESS;
 }
 
-static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, size_t position)
+static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t position)
 {
 	void *head;
 	int buffer_idx = (int)floor((double)(position/cursor->ext.m.buffer_size));
-	size_t offset = buffer_idx * cursor->ext.m.buffer_size;
+    uint64_t tmp = (uint64_t)buffer_idx * (uint64_t)cursor->ext.m.buffer_size;
+	uint64_t offset = tmp - cursor->ext.m.carry;
 
 	if (position > cursor->ext.m.len) {
 		return INA_FAILURE;
 	}
 
 	if (cursor->ext.m.buffer_idx != buffer_idx) {
-		size_t len = INA_MIN(cursor->ext.m.buffer_size, cursor->ext.m.len);
+		uint64_t len = INA_MIN(cursor->ext.m.buffer_size, cursor->ext.m.len);
+        uint64_t tmp2 = (uint64_t)cursor->ext.m.buffer_idx * (uint64_t)cursor->ext.m.buffer_size;
+        uint64_t carry = tmp2 + len - cursor->ext.m.position;
+        offset = tmp - carry;
+        cursor->ext.m.carry = carry;
 		if (offset + len > cursor->ext.m.len) {
 			len = cursor->ext.m.len - offset;
 		}
@@ -156,15 +162,14 @@ static ina_rc_t ina_file_cursor_mmap_text_read_line(ina_file_cursor_t *cursor, c
 static ina_rc_t ina_file_cursor_mmap_binary_read_chunk(ina_file_cursor_t *cursor, size_t requested,
 												  size_t *read, const unsigned char **chunk)
 {
-	if (ina_file_cursor_set_pos(cursor, cursor->ext.m.position + requested) == INA_FAILURE) {
-		*read = cursor->ext.m.len - cursor->ext.m.position;
-		ina_file_cursor_set_pos(cursor, *read);
+	if (INA_SUCCEED(ina_file_cursor_set_pos(cursor, cursor->ext.m.position + requested))) {
+		*read = requested;
+        *chunk = (unsigned char*)cursor->ext.m.mem_pos - *read;
 	}
 	else {
-		*read = requested;
+		*read = 0;
+        *chunk = NULL;
 	}
-	
-	*chunk = (unsigned char*)cursor->ext.m.mem_pos - *read;
 
 	return INA_SUCCESS;
 }
@@ -192,8 +197,8 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
                                       ina_mmap_ctx_t *mmap_ctx)
 {
 	ina_file_stat_t *fstat = NULL;
-	size_t flen = 0;
-	size_t map_len = 0;
+	uint64_t flen = 0;
+	uint64_t map_len = 0;
 	int proto_flags = INA_MMAP_MEM_PROT_READ;
 	void *head = NULL;
 
@@ -234,6 +239,7 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
 	(*cursor)->ext.m.buffer_idx = 0;
 	(*cursor)->ext.m.buffer_size = buffer_size;
 	(*cursor)->ext.m.len = flen;
+    (*cursor)->ext.m.carry = 0;
 
 	if (cursor_type == INA_FILE_CURSOR_TYPE_MMAP) {
 		(*cursor)->free_fp = ina_file_cursor_mmap_free;
@@ -258,7 +264,7 @@ INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor)
 	return c->free_fp(cursor);
 }
 
-INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, size_t position)
+INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, uint64_t position)
 {
 	return cursor->set_pos_fp(cursor, position);
 }

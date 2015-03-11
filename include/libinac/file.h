@@ -132,7 +132,7 @@ INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat, int *dir);
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, size_t *file_size);
+INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, uint64_t *file_size);
 
 /*
  *

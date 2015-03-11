@@ -76,7 +76,7 @@ INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx);
  */
 INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd, 
                                int prot_flags, ina_mmap_mem_share_t share,
-							   size_t offset, size_t length, ina_mmap_mapping_t **mapping);
+							   uint64_t offset, uint64_t length, ina_mmap_mapping_t **mapping);
 
 /*
  *

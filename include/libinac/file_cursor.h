@@ -66,7 +66,7 @@ typedef enum ina_file_cursor_mode_e {
 typedef struct ina_file_cursor_s ina_file_cursor_t;
 
 typedef ina_rc_t (*ina_file_cursor_free_fp)(ina_file_cursor_t **cursor);
-typedef ina_rc_t (*ina_file_cursor_set_pos_fp)(ina_file_cursor_t *cursor, size_t position);
+typedef ina_rc_t (*ina_file_cursor_set_pos_fp)(ina_file_cursor_t *cursor, uint64_t position);
 typedef ina_rc_t (*ina_file_cursor_set_bof_fp)(ina_file_cursor_t *cursor);
 typedef ina_rc_t (*ina_file_cursor_set_eof_fp)(ina_file_cursor_t *cursor);
 typedef ina_rc_t (*ina_file_cursor_text_read_line_fp)(ina_file_cursor_t *cursor, const char **begin_line, size_t *len);
@@ -90,7 +90,7 @@ INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor);
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, size_t position);
+INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, uint64_t position);
 
 /*
  *
