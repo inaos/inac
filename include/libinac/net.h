@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,10 @@
  */
 
 #include <libinac/lib.h>
+
+#ifdef INA_OS_LINUX
+#include <netinet/in.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
