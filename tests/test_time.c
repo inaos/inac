@@ -74,6 +74,7 @@ INA_TEST(time,time_stamp)
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w));
 }
 
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
 INA_TEST(time, two_stopwatches)
 {
     ina_stopwatch_t *w1 = NULL;
@@ -106,6 +107,7 @@ INA_TEST(time, two_stopwatches)
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w1));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w2));
 } 
+#endif
 
 INA_TEST(time, stopwatch) 
 {
