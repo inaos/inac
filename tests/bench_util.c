@@ -28,6 +28,31 @@
 #include <stdlib.h>
 #include <libinac/lib.h>
 
+/*
+ * Rationals:
+ * 
+ * - Looking for an efficient binrary-search
+ * - Binary-Search vs. Linear-Search
+ * - Compiler optimizations
+ *
+ * - Considering the following blog-entry:
+ *   https://schani.wordpress.com/tag/c-optimization-linear-binary-search-sse2-simd/
+ *
+ * - Findings:
+ *   + Blog has missed an important point .. what was his compiler-string? version etc..?
+ *   + We have not tried all the possibilities in mentioned in the blog
+ *   + However since the author mentions that the fastest possible implementation of the binary 
+ *     search would be by using CMOV, we have advised that GCC (Apple LLVM version 6.0 (clang-600.0.56)) 
+ *     should optimize with -O3 -flto -fomit-frame-pointers -march=native
+ *     -> Looking at the generated assambly code the compiler already optimizes our simple binary search 
+ *        to use CMOV instructions.
+ *
+ * - Todo:
+ *
+ *   + Verify this on Linux with our currently supported gcc version
+ *
+ */
+
 uint32_t __ina_util_bin32search(uint32_t *haystack, uint32_t count, uint32_t needle)
 {
     uint32_t min = 0, max = count;
