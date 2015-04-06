@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,6 +148,31 @@ INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat, time_t *last_modifi
  *
  */
 INA_API(void*) ina_file_os_handle(ina_file_t *file);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, uint64_t len, uint64_t *read);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, uint64_t len, uint64_t *wrote); 
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_set_eof(ina_file_t *file);
 
 #ifdef __cplusplus
 }
