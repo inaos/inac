@@ -42,12 +42,17 @@ static void bf_cleanup_handler(int sig, int *error)
     if (file != NULL) {
         ina_file_free(ctx, &file);
     }
-    if (file_ctx != NULL) {
+    if (file != NULL) {
         ina_file_destroy(&ctx);
     }
     if (stopwatch != NULL) {
         ina_time_stopwatch_destroy(&stopwatch);
     }
+}
+
+static void bf_barre_io(void)
+{
+
 }
 
 
@@ -62,12 +67,13 @@ int main(int argc, char **argv)
 
     INA_OPTS(opt,
         INA_OPT_INT("f", "file", NULL, "Input file"),
-        INA_OPT_INT("b", "buffer-size", 1024, "Buffer size in KB")
+        INA_OPT_INT("b", "buffer-size", 4, "Buffer size in KB")
     );
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
         return EXIT_FAILURE;
     }
+    ina_set_cleanup_handler(bf_cleanup_handler);
 
     if (!INA_SUCCEED(ina_opt_get_string("f", &filepath))) {
         return EXIT_FAILURE;
@@ -94,20 +100,20 @@ int main(int argc, char **argv)
     }
 
     size = buffer_size*1024;
-    nb_read = 0;
+    nb_read = 1;
     read_buf = ina_mem_alloc(size);
 
     INA_TIME_STOPWATCH_START(stopwatch);
-    INA_TIME_STOPWATCH_STAMP1(stopwatch, "start reading");
-    while (INA_SUCCEED(ina_file_read(file, read_buf, size, &nb_read)) {
+    while (INA_SUCCEED(ina_file_read(file, read_buf, size, &nb_read)) && nb_read) {
         tot_nb_read += nb_read;
+        //printf("%lu\n", nb_read);
     }
-    INA_TIME_STOPWATCH_STAMP1(stopwatch, "end reading");
+    INA_TIME_STOPWATCH_STOP(stopwatch);
 
 
-    mb_sec = tot_nb_read/stopwatch->sec_duration/1024/1024;
+    mb_sec = tot_nb_read/stopwatch->tv->sec_duration/1024/1024;
 
-    printf("Average speed %f MB/s\n", mb_sec);
+    printf("Average speed %f MB/s, Duration %f seconds, MB %lu \n", mb_sec, stopwatch->tv->sec_duration, tot_nb_read/1024/1024 );
 
     return EXIT_SUCCESS;
 }
