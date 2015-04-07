@@ -28,10 +28,13 @@
 #include <stdlib.h>
 #include <libinac/lib.h>
 
-static ina_file_ctx_t  *ctx = NULL;
-static ina_file_t      *file = NULL;
-static ina_stopwatch_t *stopwatch = NULL;
-static unsigned char *read_buf = NULL;
+static ina_file_ctx_t    *file_ctx = NULL;
+static ina_mmap_ctx_t    *mmap_ctx = NULL;
+static ina_file_t        *file = NULL;
+static ina_file_cursor_t *cursor = NULL;
+static ina_stopwatch_t   *stopwatch = NULL;
+static unsigned char     *read_buf = NULL;
+static uint64_t tot_nb_read = 0;
 
 
 static void bf_cleanup_handler(int sig, int *error)
@@ -39,35 +42,133 @@ static void bf_cleanup_handler(int sig, int *error)
     if (read_buf != NULL) {
         ina_mem_free(read_buf);
     }
-    if (file != NULL) {
-        ina_file_free(ctx, &file);
+    if (cursor != NULL) {
+        ina_file_cursor_free(&cursor);
     }
     if (file != NULL) {
-        ina_file_destroy(&ctx);
+        ina_file_free(file_ctx, &file);
+    }
+    if (file_ctx != NULL) {
+        ina_file_destroy(&file_ctx);
+    }
+    if (mmap_ctx != NULL) {
+        ina_mmap_destroy(&mmap_ctx);
     }
     if (stopwatch != NULL) {
         ina_time_stopwatch_destroy(&stopwatch);
     }
 }
 
-static void bf_barre_io(void)
+static void bf_read(int buffer_size, const char *filepath)
 {
+    int64_t nb_read = -1;
 
+    if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
+            INA_FILE_ACCESS_MODE_READ,
+            INA_FILE_CREATE_MODE_OPEN,
+            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            0,
+            &file))) {
+
+        read_buf = ina_mem_alloc(buffer_size);
+
+        while (INA_SUCCEED(ina_file_read(file, read_buf, buffer_size, &nb_read)) && nb_read) {
+            tot_nb_read += nb_read;
+        }
+    }
 }
 
+static void bf_read_seq(int buffer_size, const char *filepath)
+{
+    int64_t nb_read = -1;
+
+    if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
+            INA_FILE_ACCESS_MODE_READ,
+            INA_FILE_CREATE_MODE_OPEN,
+            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            INA_FILE_FLAG_SEQUENTIAL_ACCESS,
+            &file))) {
+        read_buf = ina_mem_alloc(buffer_size);
+
+        while (INA_SUCCEED(ina_file_read(file, read_buf, buffer_size, &nb_read)) && nb_read) {
+            tot_nb_read += nb_read;
+        }
+    }
+}
+
+static void bf_read_cursor(int buffer_size, const char *filepath)
+{
+    size_t nb_read = -1;
+
+    if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
+            INA_FILE_ACCESS_MODE_READ,
+            INA_FILE_CREATE_MODE_OPEN,
+            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            INA_FILE_FLAG_SEQUENTIAL_ACCESS,
+            &file))) {
+        
+        if (INA_SUCCEED(ina_file_cursor_new(file,
+                INA_FILE_CURSOR_TYPE_FILEIO,
+                INA_FILE_CURSOR_MODE_READ_BINARY,
+                (size_t)buffer_size,
+                &cursor,
+                mmap_ctx))) {
+
+            const unsigned char *buf;
+
+            while (INA_SUCCEED(ina_file_cursor_binary_read_chunk(cursor, 
+                                    buffer_size, &nb_read, &buf)) && nb_read) {
+                tot_nb_read += nb_read;
+            }
+        }
+    }
+}
+
+static void bf_read_mmap_cursor(int buffer_size, const char *filepath)
+{
+    size_t nb_read = -1;
+
+    if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
+            INA_FILE_ACCESS_MODE_READ,
+            INA_FILE_CREATE_MODE_OPEN,
+            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            INA_FILE_FLAG_SEQUENTIAL_ACCESS,
+            &file))) {
+        
+        if (INA_SUCCEED(ina_file_cursor_new(file,
+                INA_FILE_CURSOR_TYPE_MMAP,
+                INA_FILE_CURSOR_MODE_READ_BINARY,
+                (size_t)buffer_size,
+                &cursor,
+                mmap_ctx))) {
+
+            const unsigned char *buf;
+
+            while (INA_SUCCEED(ina_file_cursor_binary_read_chunk(cursor, 
+                                    (size_t)buffer_size, &nb_read, &buf)) && nb_read) {
+                tot_nb_read += nb_read;
+            }
+        }
+    }
+}
 
 int main(int argc, char **argv)
 {
     ina_str_t filepath;
     int buffer_size;
-    uint64_t size;
-    uint64_t nb_read;
-    uint64_t tot_nb_read = 0;
+    int buffer_size_o;
+    ina_str_t size_unit;
+    ina_str_t benchmark;
     double mb_sec;
 
     INA_OPTS(opt,
         INA_OPT_INT("f", "file", NULL, "Input file"),
-        INA_OPT_INT("b", "buffer-size", 4, "Buffer size in KB")
+        INA_OPT_FLAG(NULL, "read", "Bare c read"),
+        INA_OPT_FLAG(NULL, "read-seq", "Bare c read using INA_FILE_FLAG_SEQUENTIAL_ACCESS"),
+        INA_OPT_FLAG(NULL, "read-cursor", "Squential read using cursor"),
+        INA_OPT_FLAG(NULL, "read-mmap-cursor", "Squential read using mmap cursor"),
+        INA_OPT_INT("b", "buffer-size", 4, "Buffer size (default 4)"),
+        INA_OPT_STRING("u", "buffer-size-unit", "kb", "Buffer size unit [KB/MB/GB]. Default KB")
     );
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
@@ -78,7 +179,10 @@ int main(int argc, char **argv)
     if (!INA_SUCCEED(ina_opt_get_string("f", &filepath))) {
         return EXIT_FAILURE;
     }
-    if (!INA_SUCCEED(ina_opt_get_int("b", &buffer_size))) {
+    if (!INA_SUCCEED(ina_opt_get_int("b", &buffer_size_o))) {
+        return EXIT_FAILURE;
+    }
+    if (!INA_SUCCEED(ina_opt_get_string("u", &size_unit))) {
         return EXIT_FAILURE;
     }
 
@@ -86,34 +190,60 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    if (!INA_SUCCEED(ina_file_init(&ctx))) {
+    if (!INA_SUCCEED(ina_file_init(&file_ctx))) {
         return EXIT_FAILURE;
     }
 
-    if (!INA_SUCCEED(ina_file_new(ctx, ina_str_cstr(filepath), 
-            INA_FILE_ACCESS_MODE_READWRITE,
-            INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_EXCLUSIVE,
-            0,
-            &file))) {
+    if (!INA_SUCCEED(ina_mmap_init(&mmap_ctx))) {
         return EXIT_FAILURE;
     }
 
-    size = buffer_size*1024;
-    nb_read = 1;
-    read_buf = ina_mem_alloc(size);
+    buffer_size = buffer_size_o;
+    if (INA_CSTR_CASECMP(size_unit, "kb") ==0 ) {
+        buffer_size *= 1024;
+    } else if (INA_CSTR_CASECMP(size_unit, "mb") == 0) {
+        buffer_size *= 1024*1024;
+    } else if (INA_CSTR_CASECMP(size_unit, "gb") == 0) {
+        buffer_size *= 1024*1024*1024;
+    } else {
+        printf("Invalid size unit!\n");
+        return EXIT_FAILURE;
+    }
+
 
     INA_TIME_STOPWATCH_START(stopwatch);
-    while (INA_SUCCEED(ina_file_read(file, read_buf, size, &nb_read)) && nb_read) {
-        tot_nb_read += nb_read;
-        //printf("%lu\n", nb_read);
+
+    if (INA_SUCCEED(ina_opt_isset("read"))) {
+        benchmark = ina_str_new_fromcstr("bf_read");
+        bf_read(buffer_size, ina_str_cstr(filepath));
+    }  else if (INA_SUCCEED(ina_opt_isset("read-seq"))) {
+        benchmark = ina_str_new_fromcstr("read_seq");
+        bf_read_seq(buffer_size, ina_str_cstr(filepath));
+    } else if (INA_SUCCEED(ina_opt_isset("read-cursor"))) {
+        benchmark = ina_str_new_fromcstr("bf_read_cursor");
+        bf_read_cursor(buffer_size, ina_str_cstr(filepath));
+    } else if (INA_SUCCEED(ina_opt_isset("read-mmap-cursor"))) {
+        benchmark = ina_str_new_fromcstr("bf_read_mmap_cursor");
+        bf_read_mmap_cursor(buffer_size, ina_str_cstr(filepath));
+    } else {
+        printf("Invalid benchmark!\n");
+        return EXIT_FAILURE;
     }
+
     INA_TIME_STOPWATCH_STOP(stopwatch);
 
 
     mb_sec = tot_nb_read/stopwatch->tv->sec_duration/1024/1024;
 
-    printf("Average speed %f MB/s, Duration %f seconds, MB %lu \n", mb_sec, stopwatch->tv->sec_duration, tot_nb_read/1024/1024 );
+    printf("%s: Average speed %f MB/s, Duration %f seconds, Total bytes read: %lu, buffer size: %d %s \n", 
+        benchmark,
+        mb_sec, 
+        stopwatch->tv->sec_duration, 
+        tot_nb_read,
+        (int)buffer_size_o,
+        size_unit);
+
+    ina_str_free(benchmark);
 
     return EXIT_SUCCESS;
 }
