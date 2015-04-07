@@ -99,7 +99,7 @@ static ina_rc_t ina_file_cursor_fileio_set_bof(ina_file_cursor_t *cursor)
 static ina_rc_t ina_file_cursor_fileio_binary_read_chunk(ina_file_cursor_t *cursor, size_t requested,
                                                          size_t *nread, const unsigned char **chunk)
 {
-    INA_ASSERT_TRUE(requested > cursor->ext.f.buffer_size);
+    INA_ASSERT_TRUE(requested <= cursor->ext.f.buffer_size);
     if (!INA_SUCCEED(ina_file_read(cursor->file, cursor->ext.f.buffer, 
                                     requested, (uint64_t*)nread))) {
         return INA_ERR_PUSH_LAST;
@@ -181,14 +181,16 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t
 {
 	void *head;
 	int buffer_idx = (int)floor((double)(position/cursor->ext.m.buffer_size));
+	printf("buffer_idx:%d\n", buffer_idx);
     uint64_t tmp = (uint64_t)buffer_idx * (uint64_t)cursor->ext.m.buffer_size;
 	uint64_t offset = tmp - cursor->ext.m.carry;
 
 	if (position > cursor->ext.m.len) {
 		return INA_FAILURE;
 	}
-
 	if (cursor->ext.m.buffer_idx != buffer_idx) {
+		printf("OK2\n");
+
 		uint64_t len = INA_MIN(cursor->ext.m.buffer_size, cursor->ext.m.len);
         uint64_t tmp2 = (uint64_t)cursor->ext.m.buffer_idx * (uint64_t)cursor->ext.m.buffer_size;
         uint64_t carry = tmp2 + len - cursor->ext.m.position;
