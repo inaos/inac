@@ -70,7 +70,7 @@ static ina_rc_t ina_file_cursor_fileio_free(ina_file_cursor_t **cursor)
 
 static ina_rc_t ina_file_cursor_fileio_set_pos(ina_file_cursor_t *cursor, uint64_t position)
 {
-	return ina_file_set_position(cursor->file, position);
+	return ina_file_set_pos(cursor->file, position);
 }
 
 static ina_rc_t ina_file_cursor_fileio_set_eof(ina_file_cursor_t *cursor)

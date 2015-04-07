@@ -31,6 +31,7 @@
 #ifndef INA_OS_WIN32
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 struct ina_file_ctx_s {
@@ -370,12 +371,12 @@ INA_API(void*) ina_file_os_handle(ina_file_t *file)
 #endif
 }
 
-INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, uint64_t len, uint64_t *read)
+INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, uint64_t len, uint64_t *nread)
 {
     INA_ASSERT_NOTNULL(file);
 #ifdef INA_OS_WIN32
 #else
-    *read = read(file->fh, buf, len);
+    *nread = read(file->fh, buf, len);
 #endif
     return INA_SUCCESS;
 }
@@ -395,7 +396,7 @@ INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file)
     INA_ASSERT_NOTNULL(file);
 #ifdef INA_OS_WIN32
 #else
-    lseek (file->fd, 0, SEEK_SET);
+    lseek (file->fh, 0, SEEK_SET);
 #endif
     return INA_SUCCESS;
 }
@@ -405,7 +406,7 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset)
     INA_ASSERT_NOTNULL(file);
 #ifdef INA_OS_WIN32
 #else
-    lseek (file->fd, offset, SEEK_CUR);
+    lseek (file->fh, offset, SEEK_CUR);
 #endif
     return INA_SUCCESS;
 }
@@ -415,7 +416,7 @@ INA_API(ina_rc_t) ina_file_set_eof(ina_file_t *file)
     INA_ASSERT_NOTNULL(file);
 #ifdef INA_OS_WIN32
 #else
-    lseek (file->fd, 0, SEEK_END);
+    lseek (file->fh, 0, SEEK_END);
 #endif
     return INA_SUCCESS;
 }
