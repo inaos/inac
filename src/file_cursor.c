@@ -181,7 +181,6 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t
 {
 	void *head;
 	int buffer_idx = (int)floor((double)(position/cursor->ext.m.buffer_size));
-	printf("buffer_idx:%d\n", buffer_idx);
     uint64_t tmp = (uint64_t)buffer_idx * (uint64_t)cursor->ext.m.buffer_size;
 	uint64_t offset = tmp - cursor->ext.m.carry;
 
@@ -189,8 +188,6 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t
 		return INA_FAILURE;
 	}
 	if (cursor->ext.m.buffer_idx != buffer_idx) {
-		printf("OK2\n");
-
 		uint64_t len = INA_MIN(cursor->ext.m.buffer_size, cursor->ext.m.len);
         uint64_t tmp2 = (uint64_t)cursor->ext.m.buffer_idx * (uint64_t)cursor->ext.m.buffer_size;
         uint64_t carry = tmp2 + len - cursor->ext.m.position;
