@@ -245,6 +245,12 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
         printf("%d", errno);
         return INA_FAILURE;
     }
+    if (flags & INA_FILE_FLAG_RANDOM_ACCESS) {
+		posix_fadvise(fhandle, 0, 0, POSIX_FADV_RANDOM);
+	}
+	else if (flags & INA_FILE_FLAG_SEQUENTIAL_ACCESS) {
+		posix_fadvise(fhandle, 0, 0, POSIX_FADV_SEQUENTIAL);
+	}
 #endif
 
     *file = (ina_file_t*)ina_mem_alloc(sizeof(ina_file_t));
@@ -377,6 +383,10 @@ INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, uint64_t l
 #ifdef INA_OS_WIN32
 #else
     *nread = read(file->fh, buf, len);
+    if (*nread < 0) {
+        /* FIXME: proper error handling */
+        return INA_FAILURE;
+    }
 #endif
     return INA_SUCCESS;
 }
@@ -387,6 +397,10 @@ INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, uint64_t 
 #ifdef INA_OS_WIN32
 #else
     *wrote = write(file->fh, buf, len);
+    if (*wrote < 0) {
+        /* FIXME: proper error handling */
+        return INA_FAILURE;
+    }
 #endif
     return INA_SUCCESS;
 }

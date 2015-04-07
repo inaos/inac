@@ -108,7 +108,7 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
     }
 
     if (!INA_SUCCEED(ina_file_cursor_new((*ctx)->fcapture, INA_FILE_CURSOR_TYPE_MMAP, 
-        INA_FILE_CURSOR_MODE_READ_BINARY, INA_FILE_CURSOR_BUFFER_1GB, &(*ctx)->fcur, (*ctx)->mmap_ctx))) {
+        INA_FILE_CURSOR_MODE_READ_BINARY, INA_FILE_CURSOR_MMAP_BUFFER_1GB, &(*ctx)->fcur, (*ctx)->mmap_ctx))) {
             return INA_ERR_PUSH_LAST;
     }
 
