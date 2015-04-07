@@ -50,7 +50,7 @@ typedef struct ina_pcap_ctx_s ina_pcap_ctx_t;
 /*
  *
  */
-INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, ina_pcap_ctx_t **ctx);
+INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, uint64_t buffer_size, ina_pcap_ctx_t **ctx);
 
 /*
  *

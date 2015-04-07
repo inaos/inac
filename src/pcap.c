@@ -69,25 +69,13 @@ struct ina_pcap_ctx_s {
  *
  */
 
-INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, ina_pcap_ctx_t **ctx)
+INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, uint64_t buffer_size, ina_pcap_ctx_t **ctx)
 {
-    FILE *fd;
     size_t read = 0;
     const unsigned char *chunk;
-
-    fd = fopen(pcap_file, "r");
-    if (!fd) {
-        /* FIXME: proper error handling */
-        return INA_FAILURE;
-    }
-    else {
-        fclose(fd);
-    }
-
-    /* currently not supported */
-    if (mode == INA_PCAP_OPEN_MODE_FIO) {
-        return INA_ENYI;
-    }
+    uint64_t file_cap_size = 0;
+    ina_file_stat_t *fstat;
+    uint64_t real_buffer = 0;
 
     *ctx = (ina_pcap_ctx_t*)ina_mem_alloc(sizeof(ina_pcap_ctx_t));
     (*ctx)->swap_bytes = 0;
@@ -103,13 +91,64 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
         &(*ctx)->fcapture))) {
             return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ina_mmap_init(&(*ctx)->mmap_ctx))) {
+
+    if (!INA_SUCCEED(ina_file_stat_new((*ctx)->fcapture, &fstat))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (!INA_SUCCEED(ina_file_stat_file_size(fstat, &file_cap_size))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (!INA_SUCCEED(ina_file_stat_free((*ctx)->fcapture, &fstat))) {
         return INA_ERR_PUSH_LAST;
     }
 
-    if (!INA_SUCCEED(ina_file_cursor_new((*ctx)->fcapture, INA_FILE_CURSOR_TYPE_MMAP, 
-        INA_FILE_CURSOR_MODE_READ_BINARY, INA_FILE_CURSOR_MMAP_BUFFER_1GB, &(*ctx)->fcur, (*ctx)->mmap_ctx))) {
-            return INA_ERR_PUSH_LAST;
+    switch (mode) {
+        case INA_PCAP_OPEN_MODE_FIO:
+            if (!INA_SUCCEED(ina_file_cursor_new((*ctx)->fcapture, INA_FILE_CURSOR_TYPE_FILEIO, 
+                INA_FILE_CURSOR_MODE_READ_BINARY, buffer_size, &(*ctx)->fcur, NULL))) {
+                    return INA_ERR_PUSH_LAST;
+            }
+            break;
+        case INA_PCAP_OPEN_MODE_MMAP:
+            if (!INA_SUCCEED(ina_mmap_init(&(*ctx)->mmap_ctx))) {
+                return INA_ERR_PUSH_LAST;
+            }
+#ifdef INA_CPU_X86_64
+            if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_1GB) {
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_1GB;
+            }
+            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_2GB) {
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_2GB;
+            }
+            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_4GB) {
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_4GB;
+            }
+            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_8GB) {
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_8GB;
+            }
+            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_16GB) {
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_16GB;
+            }
+            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_32GB) {
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_32GB;
+            }
+            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_64GB) {
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_64GB;
+            }
+            else {
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_128GB;
+            }
+#else
+            real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_1GB;
+#endif
+            if (!INA_SUCCEED(ina_file_cursor_new((*ctx)->fcapture, INA_FILE_CURSOR_TYPE_MMAP, 
+                INA_FILE_CURSOR_MODE_READ_BINARY, real_buffer, &(*ctx)->fcur, (*ctx)->mmap_ctx))) {
+                    return INA_ERR_PUSH_LAST;
+            }
+            break;
+        default:
+            INA_ASSERT_TRUE(1);
+            break;
     }
 
     /* read pcap header */
@@ -120,7 +159,7 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
 
     /* validate pcap header */
     INA_ASSERT_NOTNULL(chunk);
-    (*ctx)->pcap_hdr = ina_mem_alloc(sizeof(__ina_pcap_hdr_t));
+    (*ctx)->pcap_hdr = (__ina_pcap_hdr_t*)ina_mem_alloc(sizeof(__ina_pcap_hdr_t));
     ina_mem_cpy((*ctx)->pcap_hdr, chunk, sizeof(__ina_pcap_hdr_t));
 
     switch ((*ctx)->pcap_hdr->magic_number) {
@@ -140,6 +179,7 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
         default:
             /* this is not a pcap file */
             /* FIXME: proper error-handling */
+            INA_ASSERT_TRUE(1);
             return INA_FAILURE;
     }
 

@@ -90,7 +90,7 @@ typedef ina_rc_t (*ina_file_cursor_text_read_chunk_fp)(ina_file_cursor_t *cursor
  */
 INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file, 
 									  ina_file_cursor_type_t cursor_type,
-									  ina_file_cursor_mode_t mode, size_t buffer_size,
+									  ina_file_cursor_mode_t mode, uint64_t buffer_size,
 									  ina_file_cursor_t **cursor,
                                       ina_mmap_ctx_t *mmap_ctx);
 /*
