@@ -36,6 +36,8 @@
 
 #ifdef INA_OS_LINUX
 #include <netinet/in.h>
+#else if INA_OS_WIN32
+#include <WinSock2.h>
 #endif
 
 #ifdef __cplusplus
