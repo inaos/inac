@@ -152,12 +152,12 @@ INA_API(void*) ina_file_os_handle(ina_file_t *file);
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, uint64_t len, uint64_t *read);
+INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, int64_t len, int64_t *read);
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, uint64_t len, uint64_t *wrote); 
+INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, int64_t len, int64_t *wrote); 
 
 /*
  *
