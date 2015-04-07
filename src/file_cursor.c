@@ -42,12 +42,12 @@ struct ina_file_cursor_s {
 			int eof;
 			uint64_t len;
             uint64_t carry;
-			size_t buffer_size;
+			uint64_t buffer_size;
 			int buffer_idx;
 		} m;
 		struct {
             int eof;
-            size_t buffer_size;
+            uint64_t buffer_size;
             uint64_t len;
             uint64_t position;
             unsigned char *buffer;
@@ -137,7 +137,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor,
     if (cursor->ext.f.line != NULL) {
         ina_str_free(cursor->ext.f.line);
     }
-    if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, cursor->ext.f.buffer_size, &nread, &chunk))) {
+    if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
         return INA_ERR_PUSH_LAST;
     }
     if (nread == 0) {
@@ -161,7 +161,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor,
             }
         }
         cursor->ext.f.next_line = ina_str_ncatcstr(cursor->ext.f.next_line, chunk, nread);
-        if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, cursor->ext.f.buffer_size, &nread, &chunk))) {
+        if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
             return INA_ERR_PUSH_LAST;
         }
     }
@@ -301,7 +301,7 @@ static ina_rc_t ina_file_cursor_mmap_binary_readwrite_chunk(ina_file_cursor_t *c
 
 INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file, 
 									  ina_file_cursor_type_t cursor_type,
-									  ina_file_cursor_mode_t mode, size_t buffer_size,
+									  ina_file_cursor_mode_t mode, uint64_t buffer_size,
 									  ina_file_cursor_t **cursor,
                                       ina_mmap_ctx_t *mmap_ctx)
 {
@@ -364,7 +364,7 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
         (*cursor)->ext.f.buffer_size = buffer_size;
         (*cursor)->ext.f.eof = 0;
         (*cursor)->ext.f.position = 0;
-        (*cursor)->ext.f.buffer = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*buffer_size);
+        (*cursor)->ext.f.buffer = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*(size_t)buffer_size);
 		(*cursor)->free_fp = ina_file_cursor_fileio_free;
         (*cursor)->set_pos_fp = ina_file_cursor_fileio_set_pos;
         (*cursor)->set_bof_fp = ina_file_cursor_fileio_set_bof;
