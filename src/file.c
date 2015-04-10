@@ -177,6 +177,9 @@ static ina_rc_t __ina_file_posix_map_flags(ina_file_access_mode_t access,
 #endif
             break;
     }
+    if (flags & INA_FILE_FLAG_POSIX_DIRECT) {
+        *posix_flags |= O_DIRECT;
+    }
     return INA_SUCCESS;
 }
 #endif

@@ -69,6 +69,9 @@ extern "C" {
 #ifdef INA_OS_WIN32
 #define INA_FILE_FLAG_WIN32_OVERLAPPED     0x00000016
 #endif
+#ifndef INA_OS_WIN32
+#define INA_FILE_FLAG_POSIX_DIRECT         0x00000016
+#endif
 
 typedef enum ina_file_access_mode_e {
 	INA_FILE_ACCESS_MODE_READ,
