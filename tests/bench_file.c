@@ -27,6 +27,7 @@
  */
 #include <stdlib.h>
 #include <libinac/lib.h>
+#include <malloc.h>
 
 static ina_file_ctx_t    *file_ctx = NULL;
 static ina_mmap_ctx_t    *mmap_ctx = NULL;
@@ -96,6 +97,26 @@ static void bf_read_seq(int buffer_size, const char *filepath)
     }
 }
 
+static void bf_read_direct(int buffer_size, const char *filepath)
+{
+    int64_t nb_read = -1;
+
+    if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
+            INA_FILE_ACCESS_MODE_READ,
+            INA_FILE_CREATE_MODE_OPEN,
+            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            INA_FILE_FLAG_POSIX_DIRECT,
+            &file))) {
+
+        read_buf = memalign(4096 * 2, buffer_size + 4096);
+        read_buf += 4096;
+
+        while (INA_SUCCEED(ina_file_read(file, read_buf, buffer_size, &nb_read)) && nb_read) {
+            tot_nb_read += nb_read;
+        }
+    }
+}
+
 static void bf_read_cursor(int buffer_size, const char *filepath)
 {
     size_t nb_read = -1;
@@ -141,13 +162,14 @@ static void bf_read_mmap_cursor(int buffer_size, const char *filepath)
                 (size_t)buffer_size,
                 &cursor,
                 mmap_ctx))) {
-
             const unsigned char *buf;
 
             while (INA_SUCCEED(ina_file_cursor_binary_read_chunk(cursor, 
                                     (size_t)buffer_size, &nb_read, &buf)) && nb_read) {
                 tot_nb_read += nb_read;
             }
+        } else {
+            ina_err_trace();
         }
     }
 }
@@ -165,6 +187,7 @@ int main(int argc, char **argv)
         INA_OPT_INT("f", "file", NULL, "Input file"),
         INA_OPT_FLAG(NULL, "read", "Bare c read"),
         INA_OPT_FLAG(NULL, "read-seq", "Bare c read using INA_FILE_FLAG_SEQUENTIAL_ACCESS"),
+        INA_OPT_FLAG(NULL, "read-direct", "Bare c read using INA_FILE_FLAG_POSIX_DIRECT"),
         INA_OPT_FLAG(NULL, "read-cursor", "Squential read using cursor"),
         INA_OPT_FLAG(NULL, "read-mmap-cursor", "Squential read using mmap cursor"),
         INA_OPT_INT("b", "buffer-size", 4, "Buffer size (default 4)"),
@@ -210,7 +233,6 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-
     INA_TIME_STOPWATCH_START(stopwatch);
 
     if (INA_SUCCEED(ina_opt_isset("read"))) {
@@ -219,6 +241,9 @@ int main(int argc, char **argv)
     }  else if (INA_SUCCEED(ina_opt_isset("read-seq"))) {
         benchmark = ina_str_new_fromcstr("read_seq");
         bf_read_seq(buffer_size, ina_str_cstr(filepath));
+    }  else if (INA_SUCCEED(ina_opt_isset("read-direct"))) {
+        benchmark = ina_str_new_fromcstr("read_direct");
+        bf_read_direct(buffer_size, ina_str_cstr(filepath));
     } else if (INA_SUCCEED(ina_opt_isset("read-cursor"))) {
         benchmark = ina_str_new_fromcstr("bf_read_cursor");
         bf_read_cursor(buffer_size, ina_str_cstr(filepath));
