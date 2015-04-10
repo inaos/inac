@@ -67,7 +67,7 @@ static void bf_read(int buffer_size, const char *filepath)
     if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            INA_FILE_SHARE_MODE_READ,
             0,
             &file))) {
 
@@ -86,7 +86,7 @@ static void bf_read_seq(int buffer_size, const char *filepath)
     if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            INA_FILE_SHARE_MODE_READ,
             INA_FILE_FLAG_SEQUENTIAL_ACCESS,
             &file))) {
         read_buf = ina_mem_alloc(buffer_size);
@@ -104,8 +104,8 @@ static void bf_read_direct(int buffer_size, const char *filepath)
     if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_EXCLUSIVE,
-            INA_FILE_FLAG_POSIX_DIRECT,
+            INA_FILE_SHARE_MODE_READ,
+            INA_FILE_FLAG_POSIX_DIRECT|INA_FILE_FLAG_SEQUENTIAL_ACCESS,
             &file))) {
 
         read_buf = memalign(4096 * 2, buffer_size + 4096);
@@ -124,7 +124,7 @@ static void bf_read_cursor(int buffer_size, const char *filepath)
     if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            INA_FILE_SHARE_MODE_READ,
             INA_FILE_FLAG_SEQUENTIAL_ACCESS,
             &file))) {
         
@@ -152,7 +152,7 @@ static void bf_read_mmap_cursor(int buffer_size, const char *filepath)
     if (INA_SUCCEED(ina_file_new(file_ctx, filepath, 
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_EXCLUSIVE,
+            INA_FILE_SHARE_MODE_READ,
             INA_FILE_FLAG_SEQUENTIAL_ACCESS,
             &file))) {
         
