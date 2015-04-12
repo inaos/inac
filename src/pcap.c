@@ -81,6 +81,7 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
     (*ctx)->swap_bytes = 0;
     (*ctx)->nano_second_timestamps = 0;
     (*ctx)->first_packet = 1;
+    (*ctx)->mmap_ctx = NULL;
 
     if (!INA_SUCCEED(ina_file_init(&(*ctx)->file_ctx))) {
         return INA_ERR_PUSH_LAST;
@@ -200,7 +201,9 @@ INA_API(ina_rc_t) ina_pcap_close(ina_pcap_ctx_t **ctx)
 {
     ina_mem_free((*ctx)->pcap_hdr);
     ina_file_cursor_free(&(*ctx)->fcur);
-    ina_mmap_destroy(&(*ctx)->mmap_ctx);
+    if ((*ctx)->mmap_ctx != NULL) {
+        ina_mmap_destroy(&(*ctx)->mmap_ctx);
+    }
     ina_file_free((*ctx)->file_ctx, &(*ctx)->fcapture);
     ina_file_destroy(&(*ctx)->file_ctx);
     ina_mem_free(*ctx);

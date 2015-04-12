@@ -99,7 +99,6 @@ static ina_rc_t ina_file_cursor_fileio_set_bof(ina_file_cursor_t *cursor)
 static ina_rc_t ina_file_cursor_fileio_binary_read_chunk(ina_file_cursor_t *cursor, size_t requested,
                                                          size_t *nread, const unsigned char **chunk)
 {
-    INA_ASSERT_TRUE(requested >= cursor->ext.f.buffer_size);
     if (!INA_SUCCEED(ina_file_read(cursor->file, cursor->ext.f.buffer, 
                                     requested, (int64_t*)nread))) {
         return INA_ERR_PUSH_LAST;
