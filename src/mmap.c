@@ -69,6 +69,7 @@ INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx)
 
 INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd, 
                                int prot_flags, ina_mmap_mem_share_t share,
+                               ina_mmap_map_type_t map_type,
                                uint64_t offset, uint64_t length, ina_mmap_mapping_t **mapping)
 {
 	void *data = NULL;
@@ -180,7 +181,14 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
             pflags |= MAP_SHARED;
             break;
     }
-    pflags |= MAP_FILE;
+    switch (map_type) {
+    	case INA_MMAP_MAP_TYPE_FILE:
+    		pflags |= MAP_FILE;
+    		break;
+    	case INA_MMAP_MAP_TYPE_MEMORY:
+    		pflags |= MAP_ANONYMOUS;
+    		break;
+    }
     
     (*mapping)->addr = mmap(0, length, pprot, pflags, *((int*)ina_file_os_handle(fd)), offset);
     if ((*mapping)->addr == MAP_FAILED) {
@@ -199,7 +207,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mapping)
 {
 #ifdef INA_OS_WIN32
-	UnmapViewOfFile((*mapping)->lpMapAddress);
+	UnmapViewOfFile((*mappinmlockallg)->lpMapAddress);
 	CloseHandle((*mapping)->fmap);
 #else
     munmap((*mapping)->addr, (*mapping)->length);

@@ -197,7 +197,7 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t
 		}
 		ina_mmap_free(cursor->ext.m.mmap_ctx, &cursor->ext.m.fm);
 		ina_mmap_new(cursor->ext.m.mmap_ctx, cursor->file, cursor->ext.m.mmap_flags, 
-			INA_MMAP_MEM_SHARE_SHARED, offset, len, &cursor->ext.m.fm);
+			INA_MMAP_MEM_SHARE_SHARED,INA_MMAP_MAP_TYPE_FILE, offset, len, &cursor->ext.m.fm);
 		cursor->ext.m.buffer_idx = buffer_idx;
 	}
 
@@ -337,7 +337,9 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
         (*cursor)->ext.m.fm = NULL;
 
         ina_mmap_new(mmap_ctx, file, proto_flags,
-                INA_MMAP_MEM_SHARE_SHARED, 0, map_len, &(*cursor)->ext.m.fm);
+                INA_MMAP_MEM_SHARE_SHARED,
+                INA_MMAP_MAP_TYPE_FILE, 
+                0, map_len, &(*cursor)->ext.m.fm);
 
         ina_mmap_memory_head((*cursor)->ext.m.fm, &head);
 
