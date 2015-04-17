@@ -195,7 +195,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     if (pflags&MAP_FILE) {
     	(*mapping)->addr = mmap(0, length, pprot, pflags, *((int*)ina_file_os_handle(fd)), offset);
     } else {
-    	(*mapping)->addr = mmap(0, length, pprot, pflags, 0, offset);
+    	(*mapping)->addr = mmap(0, length, pprot, pflags, -1, offset);
     }
     if ((*mapping)->addr == MAP_FAILED) {
         /* FIXME: handle error */
