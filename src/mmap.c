@@ -88,13 +88,15 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     SYSTEM_INFO si;
 #endif
 
-	ina_file_stat_new(fd, &fstat);
-	ina_file_stat_file_size(fstat, &flen);
-	ina_file_stat_free(fd, &fstat);
+	if (fd) {
+		ina_file_stat_new(fd, &fstat);
+		ina_file_stat_file_size(fstat, &flen);
+		ina_file_stat_free(fd, &fstat);
 
-	if (offset + length > flen) {
-		/* FIXME: proper error handling */
-		return INA_FAILURE;
+		if (offset + length > flen) {
+			/* FIXME: proper error handling */
+			return INA_FAILURE;
+		}
 	}
 
 	*mapping = (ina_mmap_mapping_t*)ina_mem_alloc(sizeof(ina_mmap_mapping_t));
@@ -190,7 +192,11 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     		break;
     }
     
-    (*mapping)->addr = mmap(0, length, pprot, pflags, *((int*)ina_file_os_handle(fd)), offset);
+    if (pflags&MAP_FILE) {
+    	(*mapping)->addr = mmap(0, length, pprot, pflags, *((int*)ina_file_os_handle(fd)), offset);
+    } else {
+    	(*mapping)->addr = mmap(0, length, pprot, pflags, 0, offset);
+    }
     if ((*mapping)->addr == MAP_FAILED) {
         /* FIXME: handle error */
         return INA_FAILURE;
