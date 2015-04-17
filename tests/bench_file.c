@@ -3,7 +3,7 @@
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * mod                       ification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -35,7 +35,11 @@ static ina_file_t        *file = NULL;
 static ina_file_cursor_t *cursor = NULL;
 static ina_stopwatch_t   *stopwatch = NULL;
 static unsigned char     *read_buf = NULL;
-static uint64_t tot_nb_read = 0;
+static uint64_t           tot_nb_read = 0;
+static int                buffer_size = 0;
+static int                buffer_size_o = 0;
+static ina_str_t          size_unit = NULL;
+static ina_str_t          benchmark = NULL;
 
 
 static void bf_cleanup_handler(int sig, int *error)
@@ -56,7 +60,27 @@ static void bf_cleanup_handler(int sig, int *error)
         ina_mmap_destroy(&mmap_ctx);
     }
     if (stopwatch != NULL) {
+        double mb_sec;
+        
+        INA_TIME_STOPWATCH_STOP(stopwatch);
+
+        mb_sec = tot_nb_read/stopwatch->tv->sec_duration/1024/1024;
+
+        printf("%s: Average speed %f MB/s, Duration %f seconds, Total bytes read: %lu, buffer size: %d %s \n", 
+            benchmark,
+            mb_sec, 
+            stopwatch->tv->sec_duration, 
+            tot_nb_read,
+            (int)buffer_size_o,
+            size_unit);
         ina_time_stopwatch_destroy(&stopwatch);
+    }
+
+    if (benchmark) {
+        ina_str_free(benchmark);
+    }
+    if (size_unit) {
+        ina_str_free(size_unit);
     }
 }
 
@@ -177,11 +201,6 @@ static void bf_read_mmap_cursor(int buffer_size, const char *filepath)
 int main(int argc, char **argv)
 {
     ina_str_t filepath;
-    int buffer_size;
-    int buffer_size_o;
-    ina_str_t size_unit;
-    ina_str_t benchmark;
-    double mb_sec;
 
     INA_OPTS(opt,
         INA_OPT_INT("f", "file", NULL, "Input file"),
@@ -254,22 +273,6 @@ int main(int argc, char **argv)
         printf("Invalid benchmark!\n");
         return EXIT_FAILURE;
     }
-
-    INA_TIME_STOPWATCH_STOP(stopwatch);
-
-
-    mb_sec = tot_nb_read/stopwatch->tv->sec_duration/1024/1024;
-
-    printf("%s: Average speed %f MB/s, Duration %f seconds, Total bytes read: %lu, buffer size: %d %s \n", 
-        benchmark,
-        mb_sec, 
-        stopwatch->tv->sec_duration, 
-        tot_nb_read,
-        (int)buffer_size_o,
-        size_unit);
-
-    ina_str_free(benchmark);
-
     return EXIT_SUCCESS;
 }
 
