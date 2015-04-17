@@ -127,7 +127,11 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		dwDesiredAccess = FILE_MAP_WRITE;
 	}
 
-	(*mapping)->fmap = CreateFileMapping((HANDLE)ina_file_os_handle(fd), NULL, flProtect, 0, 0, NULL);
+	if (fd) {
+		(*mapping)->fmap = CreateFileMapping((HANDLE)ina_file_os_handle(fd), NULL, flProtect, 0, 0, NULL);
+	} else {
+		(*mapping)->fmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, flProtect, (DWORD)offset, (DWORD)length, NULL);		
+	}
 	if ((*mapping)->fmap == INVALID_HANDLE_VALUE) {
 		/* FIXME: handle error */
 		DWORD err = GetLastError();
