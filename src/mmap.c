@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -217,7 +217,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mapping)
 {
 #ifdef INA_OS_WIN32
-	UnmapViewOfFile((*mappinmlockallg)->lpMapAddress);
+	UnmapViewOfFile((*mapping)->lpMapAddress);
 	CloseHandle((*mapping)->fmap);
 #else
     munmap((*mapping)->addr, (*mapping)->length);
