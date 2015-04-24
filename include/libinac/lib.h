@@ -29,7 +29,9 @@
 #define _LIBINAC_LIB_H_
 
 #ifndef _WIN32
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/fcntl.h>
@@ -41,6 +43,7 @@
 #include <execinfo.h>
 #include <spawn.h>
 #include <unistd.h>
+#include <inttypes.h>
 #endif
 
 #ifdef _WIN32
