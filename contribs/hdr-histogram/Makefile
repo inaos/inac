@@ -8,7 +8,7 @@ all: $(OBJS)
 
 %.o: %.c
 	@echo compile $(CC) $<
-	@$(CC) $(CFLAGS) -c $<
+	@$(CC) $(CFLAGS) -I../../include -I../.. -c $<
 
 .PHONY: clean
 

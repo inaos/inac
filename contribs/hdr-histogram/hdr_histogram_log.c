@@ -16,6 +16,7 @@
 
 #include <contribs/miniz/miniz.h>
 #include <time.h>
+#include <inttypes.h>
 
 #ifdef INA_OS_WIN32
 typedef SSIZE_T ssize_t;
