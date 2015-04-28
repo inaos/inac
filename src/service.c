@@ -719,7 +719,7 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_service_enable_exit(ina_service_ctx_t *ctx)
+INA_API(ina_rc_t) ina_service_enable_stop(ina_service_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
     ctx->signal_behavior = INA_SIGNAL_BEHAVIOR_DFT;
@@ -727,7 +727,7 @@ INA_API(ina_rc_t) ina_service_enable_exit(ina_service_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_service_disable_exit(ina_service_ctx_t *ctx)
+INA_API(ina_rc_t) ina_service_disable_stop(ina_service_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
     ctx->signal_behavior = INA_SIGNAL_BEHAVIOR_IGNORE;

@@ -165,11 +165,11 @@ INA_API(ina_rc_t) ina_service_dispatch(ina_service_ctx_t *ctx, const void *user_
 /*
  *
  */
-INA_API(ina_rc_t) ina_service_enable_exit(ina_service_ctx_t *ctx);
+INA_API(ina_rc_t) ina_service_enable_stop(ina_service_ctx_t *ctx);
 /*
  *
  */
-INA_API(ina_rc_t) ina_service_disable_exit(ina_service_ctx_t *ctx);
+INA_API(ina_rc_t) ina_service_disable_stop(ina_service_ctx_t *ctx);
 
 /*
  *
