@@ -49,6 +49,7 @@ struct ina_service_ctx_s {
     int is_deamon;
     ina_service_mode_t mode;
     ina_service_descriptor_t *descriptor;
+    ina_signal_behavior_t signal_behavior;
     void *user_data;
 #ifdef INA_OS_WIN32
     HANDLE hmutex;
@@ -641,15 +642,20 @@ static void __ina_service_signal_handler(ina_signal_t sig,
             __ctx, INA_SERVICE_STATUS_SHUTDOWN, 
             (void*)__ctx->user_data))) {
 #ifdef INA_OS_WIN32
-        WaitForSingleObject(__ctx->main_thread, INFINITE);
+            WaitForSingleObject(__ctx->main_thread, INFINITE);
 #else
-        if (__ctx->lock_fp > 0) {
-            close(__ctx->lock_fp);
-        }
+            if (__ctx->lock_fp > 0) {
+                close(__ctx->lock_fp);
+            }
 #endif
-            __ctx->descriptor->service_fn(
-                __ctx, INA_SERVICE_STATUS_STOP,
-                (void*)__ctx->user_data);
+            *sb = __ctx->signal_behavior;
+
+            if (*sb == INA_SIGNAL_BEHAVIOR_DFT) {
+                __ctx->descriptor->service_fn(
+                    __ctx, INA_SERVICE_STATUS_STOP,
+                    (void*)__ctx->user_data);
+            }
+        
         } else {
             __ctx->descriptor->service_fn(__ctx,
                 INA_SERVICE_STATUS_ERROR,
@@ -671,6 +677,7 @@ INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx)
     if (__ctx == NULL) {
         return INA_ERR_PUSH_LAST;
     }
+    __ctx->signal_behavior = INA_SIGNAL_BEHAVIOR_DFT;
 
 #ifdef INA_OS_WIN32
     __ctx->hmutex = INVALID_HANDLE_VALUE;
@@ -709,6 +716,21 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
     ina_mem_free(ctx);
     __ctx = NULL;
     *ctx = NULL;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_enable_exit(ina_service_ctx_t *ctx)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    ctx->signal_behavior = INA_SIGNAL_BEHAVIOR_DFT;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_disable_exit(ina_service_ctx_t *ctx)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    ctx->signal_behavior = INA_SIGNAL_BEHAVIOR_IGNORE;
     return INA_SUCCESS;
 }
 
