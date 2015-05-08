@@ -97,6 +97,8 @@ fi
 
 if [ ! -z "$2" ]; then    
     export INAC_BUILD_TYPE="$2"
+else
+    export INAC_BUILD_TYPE="$1"
 fi
 
 if [ "eval_params" == "$3" ]; then
@@ -114,7 +116,7 @@ fi
     	if [ ! -z "$INAC_BUILD_CODE_GEN_SCRIPT" ]; then
         	$INAC_BUILD_LUAJIT "$INAC_BUILD_PROJECT_DIR/$INAC_BUILD_CODE_GEN_SCRIPT" $INAC_BUILD_PROJECT_DIR $INAC_BUILD_CODE_GEN_SCRIPT_ARGS
             if [ "$?" -ne "0" ]; then
-         		echo "Failed to run generator script $INAC_BUILD_CODE_cleaGEN_SCRIPT"
+         		echo "Failed to run generator script $INAC_BUILD_CODE_GEN_SCRIPT"
          		exit 1
         	fi
     	fi

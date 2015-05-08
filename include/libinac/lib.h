@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,9 @@
 #define _LIBINAC_LIB_H_
 
 #ifndef _WIN32
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/fcntl.h>
@@ -40,6 +43,7 @@
 #include <execinfo.h>
 #include <spawn.h>
 #include <unistd.h>
+#include <inttypes.h>
 #endif
 
 #ifdef _WIN32
@@ -95,6 +99,8 @@
 #include <libinac/file.h>
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
+#include <libinac/histogram.h>
+#include <libinac/pcap.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>

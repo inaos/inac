@@ -82,7 +82,7 @@ INA_TEST(service, get_descriptor)
 #ifndef INA_OS_WIN32
 INA_TEST(service, install_uninstall)
 {
-    ina_service_ctx_t *ctx;
+    ina_service_ctx_t *ctx = NULL;
  
     INA_TEST_ASSERT_SUCCEED(ina_service_init(&ctx));
     INA_TEST_ASSERT_SUCCEED(ina_service_install(ctx));

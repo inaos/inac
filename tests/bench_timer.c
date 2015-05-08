@@ -82,9 +82,7 @@ static ina_rc_t __ina_timer_bench_exec(int rdtsc, int iteration)
     }
 
     if (rdtsc) {
-        if (!INA_SUCCEED(ina_timer_use_rdtsc(timer, INA_YES))) {
-            return EXIT_FAILURE;
-        }    
+        ina_timer_use_rdtsc(timer, INA_YES);    
     }
 
     INA_TIME_STOPWATCH_CREATE(&s1, 1, -1);

@@ -22,8 +22,10 @@ set(RAPIDXML_LIB_NAME "rapidxml")
 set(AXTLS_LIB_NAME "axtls")
 set(YAJL_LIB_NAME "yajl")
 set(LZ4_LIB_NAME "lz4")
+set(MINIZ_LIB_NAME "miniz")
 set(ICT_LIB_NAME "cpu-topology")
 set(TIMER_WHEEL_LIB_NAME "timerwheel")
+set(HDR_HISTOGRAM_LIB_NAME "hdr-histogram")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -72,7 +74,7 @@ add_library(${RAPIDXML_LIB_NAME} ${RAPIDXML_SRC})
 # AxTLS
 set (AXTLS_SRC_DIR ${DEPS_DIR}/axtls)
 set (AXTLS_SRC     ${AXTLS_SRC_DIR}/aes.c ${AXTLS_SRC_DIR}/bigint.c ${AXTLS_SRC_DIR}/crypto_misc.c
-				   ${AXTLS_SRC_DIR}/hmac.c ${AXTLS_SRC_DIR}/md2.c ${AXTLS_SRC_DIR}/md5.c
+				   ${AXTLS_SRC_DIR}/hmac.c  ${AXTLS_SRC_DIR}/md5.c ${AXTLS_SRC_DIR}/sha256.c
 				   ${AXTLS_SRC_DIR}/rc4.c ${AXTLS_SRC_DIR}/rsa.c ${AXTLS_SRC_DIR}/sha1.c 
 				   ${AXTLS_SRC_DIR}/os_port.c ${AXTLS_SRC_DIR}/asn1.c ${AXTLS_SRC_DIR}/gen_cert.c
 				   ${AXTLS_SRC_DIR}/loader.c ${AXTLS_SRC_DIR}/p12.c ${AXTLS_SRC_DIR}/tls1.c
@@ -85,6 +87,11 @@ set (YAJL_SRC     ${YAJL_SRC_DIR}/yajl.c ${YAJL_SRC_DIR}/yajl_alloc.c ${YAJL_SRC
                   ${YAJL_SRC_DIR}/yajl_encode.c ${YAJL_SRC_DIR}/yajl_gen.c ${YAJL_SRC_DIR}/yajl_lex.c
 				  ${YAJL_SRC_DIR}/yajl_parser.c ${YAJL_SRC_DIR}/yajl_tree.c ${YAJL_SRC_DIR}/yajl_version.c)
 add_library(${YAJL_LIB_NAME} ${YAJL_SRC})
+
+# Miniz
+set (MINIZ_SRC_DIR ${DEPS_DIR}/miniz)
+set (MINIZ_SRC     ${MINIZ_SRC_DIR}/miniz.c)
+add_library(${MINIZ_LIB_NAME} ${MINIZ_SRC})
 
 # LZ4
 set (LZ4_SRC_DIR ${DEPS_DIR}/lz4)
@@ -100,6 +107,11 @@ add_library(${ICT_LIB_NAME} ${ICT_SRC})
 set (TIMER_WHEEL_SRC_DIR ${DEPS_DIR}/timerwheel)
 set (TIMER_WHEEL_SRC ${TIMER_WHEEL_SRC_DIR}/timeout.c)
 add_library(${TIMER_WHEEL_LIB_NAME} ${TIMER_WHEEL_SRC})
+
+# Hdr Histogram
+set (HDR_HISTOGRAM_SRC_DIR ${DEPS_DIR}/hdr-histogram)
+set (HDR_HISTOGRAM_SRC ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram.c ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram_log.c)
+add_library(${HDR_HISTOGRAM_LIB_NAME} ${HDR_HISTOGRAM_SRC})
 
 # END dependencies
 
@@ -128,7 +140,8 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c ${SRC_DIR}/json.c ${SRC_DIR}/service.c
 				 ${SRC_DIR}/process.c ${SRC_DIR}/dns.c ${SRC_DIR}/template.c ${SRC_DIR}/ipc.c
 				 ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c 
-				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c)
+				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c
+				 ${SRC_DIR}/histogram.c ${SRC_DIR}/pcap.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 

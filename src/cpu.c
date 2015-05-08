@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,9 @@ INA_API(ina_rc_t) ina_cpu_init()
 #endif
 
     __ina_cpu_ctx = (ina_cpu_ctx_t*)malloc(sizeof(struct ina_cpu_ctx_s));
+    if (__ina_cpu_ctx == NULL) {
+        return INA_EALLOC;
+    }
     memset(__ina_cpu_ctx, 0, sizeof(struct ina_cpu_ctx_s));
 
 #ifdef INA_OS_OSX
@@ -109,7 +112,7 @@ INA_API(ina_rc_t) ina_cpu_init()
 		brandstr[48] = '\0';
 		i = 0;
 		while (brandstr[i] == ' ') i++;
-		strncpy(cpubrand, brandstr + i, sizeof(cpubrand));
+		strncpy(cpubrand, brandstr + i, sizeof(cpubrand) - 1);
 		cpubrand[48] = '\0';
         __ina_cpu_ctx->brand = ina_str_new_fromcstr(cpubrand);
 	}
@@ -458,5 +461,28 @@ INA_API(ina_rc_t) ina_cpu_is_supported(int *supported)
     }
 #endif
     return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
+{
+#ifndef INA_OS_OSX
+#ifdef INA_OS_WIN32
+    HANDLE pid = GetCurrentProcess();
+    DWORD_PTR processAffinityMask = 1 << cpuid;
+
+    /* Set Affinity */
+    if (!SetProcessAffinityMask(pid, processAffinityMask)) {
+        return INA_FAILURE;
+    }
+#else
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+    CPU_SET(cpuid, &mask);
+    int ret = sched_setaffinity(0, sizeof(mask), &mask);
+    if (ret != 0) {
+        return INA_FAILURE;
+    }
+#endif
+#endif
 }
 

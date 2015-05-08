@@ -142,8 +142,7 @@ static int gen_dn(const char *name, uint8_t dn_type,
     buf[(*offset)++] = dn_type;
     buf[(*offset)++] = ASN1_PRINTABLE_STR;
     buf[(*offset)++] = name_size;
-    /* FIXME: check cast */
-    strcpy((char*)&buf[*offset], name);
+    strcpy(&buf[*offset], name);
     *offset += name_size;
 
 error:

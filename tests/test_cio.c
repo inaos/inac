@@ -29,7 +29,7 @@
 
 INA_TEST_SKIP(cio, get_limits)
 {
-    ina_cio_pos_t pos;
+    ina_cio_pos_t pos = {0,0};
 
     INA_TEST_ASSERT_SUCCEED(ina_cio_get_limits(&pos));
     INA_TEST_ASSERT_TRUE(0 < pos.col);

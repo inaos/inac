@@ -76,7 +76,8 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.a $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
         $(INAC_CONTRIBS_DIR)/yajl/yajl.a $(INAC_CONTRIBS_DIR)/miniz/miniz.a \
-	$(INAC_CONTRIBS_DIR)/lz4/lz4.a $(INAC_CONTRIBS_DIR)/timerwheel/timerwheel.a $(INAC_LINUX_LIBS)
+	$(INAC_CONTRIBS_DIR)/lz4/lz4.a $(INAC_CONTRIBS_DIR)/timerwheel/timerwheel.a \
+	$(INAC_CONTRIBS_DIR)/hdr-histogram/hdr-histogram.a $(INAC_LINUX_LIBS)
 # ****************************************************************************
 #  String implementation
 # ****************************************************************************

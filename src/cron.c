@@ -359,6 +359,10 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
 			ina_cron_task_t *task, *ttmp;
             ina_cron_func_t *func, *ftmp;
 			struct tm *tp = localtime(&t);
+
+            if (tp == NULL) {
+                return -1;
+            }
 	    
 			/* iterate through tasks */
 			HASH_ITER(hh, ctx->task_head, task, ttmp) {
@@ -433,15 +437,8 @@ static void __run_jobs(ina_cron_ctx_t *ctx)
 	HASH_ITER(hh, ctx->task_head, task, ttmp) {
 		if (task->ready && task->pid < 0) {
 			task->ready = 0;
-            
             __run_job(task);
-		
-		    if (task->pid < 0) {
-		        task->ready = 1;
-		    }
-		    else if (task->pid > 0) {
-			    task->running = 1;
-		    }
+		    task->ready = 1;
 		}
 	}
 }
@@ -785,7 +782,7 @@ INA_API(ina_rc_t) ina_cron_unregister_function(ina_cron_ctx_t *ctx, const char *
 	/* check if we already have this function - by using the ID */
 	HASH_FIND_ULONG(ctx->func_head, &key, func);
 	
-	if (func == NULL) {
+	if (func != NULL) {
 		HASH_DELETE(hh, ctx->func_head, func);
 		ina_mem_free(func);
 	}
@@ -819,6 +816,9 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, ina_str_t patt
 
     for (t = now - now % 60; t > 0; t -= 60) {
         struct tm *tp = localtime(&t);
+        if (tp == NULL) {
+            return INA_FAILURE;
+        }
         if (dummy.mins[tp->tm_min] && dummy.hours[tp->tm_hour] &&
 				(dummy.days[tp->tm_mday] || dummy.dow[tp->tm_wday]) &&
 				dummy.mons[tp->tm_mon]) {

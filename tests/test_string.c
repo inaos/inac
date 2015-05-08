@@ -260,23 +260,35 @@ INA_TEST(string, ina_str_cat)
 
 INA_TEST(string, ina_str_catcstr)
 {
+    ina_str_t ref_str = NULL;
     ina_str_t str = ina_str_new(128);
+    ref_str = str;
     str = ina_str_catcstr(str, "part1");
+    INA_TEST_ASSERT_SAME(ref_str, str);
     str = ina_str_catcstr(str, "part2");
+    INA_TEST_ASSERT_SAME(ref_str, str);
     str = ina_str_catcstr(str, "part3");
+    INA_TEST_ASSERT_SAME(ref_str, str);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
     ina_str_free(str);
 }
 
 INA_TEST(string, ina_str_ncat)
 {
+    ina_str_t ref_str = NULL;
     ina_str_t str = ina_str_new(128);
     ina_str_t part1 = ina_str_new_fromcstr("part1x");
-    ina_str_t part2 = ina_str_new_fromcstr("part2x");
-    ina_str_t part3 = ina_str_new_fromcstr("part3x");    
-    ina_str_ncat(str, part1, 5);
-    ina_str_ncat(str, part2, 5);
-    ina_str_ncat(str, part3, 5);
+    ina_str_t part2;
+    ina_str_t part3;
+    ref_str = str;
+    INA_TEST_ASSERT_SAME(ref_str, str);
+    part2 = ina_str_new_fromcstr("part2x");
+    INA_TEST_ASSERT_SAME(ref_str, str);
+    part3 = ina_str_new_fromcstr("part3x");
+    INA_TEST_ASSERT_SAME(ref_str, str);    
+    str = ina_str_ncat(str, part1, 5);
+    str = ina_str_ncat(str, part2, 5);
+    str = ina_str_ncat(str, part3, 5);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
     ina_str_free(str);
     ina_str_free(part1);
@@ -287,9 +299,9 @@ INA_TEST(string, ina_str_ncat)
 INA_TEST(string, ina_str_ncatcstr)
 {
     ina_str_t str = ina_str_new(128);
-    ina_str_ncat(str, "part1x", 5);
-    ina_str_ncat(str, "part2x", 5);
-    ina_str_ncat(str, "part3x", 5);
+    str = ina_str_ncat(str, "part1x", 5);
+    str = ina_str_ncat(str, "part2x", 5);
+    str = ina_str_ncat(str, "part3x", 5);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
     ina_str_free(str);
 }
@@ -362,6 +374,10 @@ INA_TEST(string, ina_str_cmp)
     INA_TEST_ASSERT_TRUE((result > 0));
     result = ina_str_casecmp(s3, s4);
     INA_TEST_ASSERT_TRUE((result < 0));
+    ina_str_free(s1);
+    ina_str_free(s2);
+    ina_str_free(s3);
+    ina_str_free(s4);
 }
 
 INA_TEST(string, ina_str_ncmp)
@@ -385,6 +401,10 @@ INA_TEST(string, ina_str_casecmp)
     INA_TEST_ASSERT_TRUE((result > 0));
     result = ina_str_casecmp(s3, s4);
     INA_TEST_ASSERT_TRUE((result < 0));
+    ina_str_free(s1);
+    ina_str_free(s2);
+    ina_str_free(s3);
+    ina_str_free(s4);
 }
 
 INA_TEST(string, ina_str_str)
@@ -438,15 +458,28 @@ INA_TEST(string, ina_str_tolower)
     ina_str_free(str);
 }
 
-INA_TEST(string, ina_str_clear)
+INA_TEST(string, ina_str_truncate_zero)
 {
     ina_str_t str = ina_str_new_fromcstr("Abc def   ");
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
-    ina_str_clear(str);
+    ina_str_truncate(str, 0);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(str));
     INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
     INA_TEST_ASSERT_NOT_NULL(str);
+    ina_str_free(str);
+}
+
+INA_TEST(string, ina_str_truncate_pos)
+{
+    ina_str_t str = ina_str_new_fromcstr("Abc def   ");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
+    ina_str_truncate(str, 3);
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_STR("Abc", ina_str_cstr(str));
+    INA_TEST_ASSERT_NOT_NULL(str);
+    ina_str_free(str);
 }
 
 INA_TEST(string, ina_str_trim)

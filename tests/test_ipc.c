@@ -137,6 +137,19 @@ INA_TEST(ipc_flags, wait)
     ina_ipc_flags_free(&f);
 }
 
+INA_TEST(ipc_flags, wait_ipc)
+{
+    ina_test_hid_t hid;
+    ina_ipc_flags_t *f;
+    
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_wait_ipc", 0, &f));
+    INA_TEST_ASSERT_NOTSUCCEED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 500));
+    INA_TEST_HELPER_INVOKE(&hid, ipc, set_unset_flag,  
+        "test_wait_ipc", NULL);    
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 1000));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, 0, 2500));
+}
+
 INA_TEST(ipc_counter, new_free)
 {
     ina_ipc_counter_t *c1;

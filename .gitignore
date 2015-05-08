@@ -19,6 +19,7 @@ tests/test
 tests/ullc_monitor
 tests/service_mgr
 tests/bench_timer
+tests/bench_file
 tests/ilt
 tests/iml
 contribs/rapidxml/build*

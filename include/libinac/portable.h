@@ -1127,6 +1127,19 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #error Compiler not supported yet for INAC!
 #endif
 
+/* byte swapping */
+#ifdef INA_OS_WIN32
+#define INA_BSWAP_16 _byteswap_ushort
+#define INA_BSWAP_32 _byteswap_ulong
+#define INA_BSWAP_64 _byteswap_uint64
+#elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
+#define INA_BSWAP_16 __builtin_bswap16
+#define INA_BSWAP_32 __builtin_bswap32
+#define INA_BSWAP_64 __builtin_bswap64
+#else
+#error Compiler not supported yet for INAC!
+#endif
+
 #ifdef __cplusplus
 }
 #endif 

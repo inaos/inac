@@ -290,7 +290,7 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
         return INA_SUCCESS;
     }
     if (col < 0 || row < 0) {
-        ina_cio_pos_t pos;
+        ina_cio_pos_t pos = {0,0};
         ina_cio_get_pos(&pos);
         if (row < 0) {
             return ina_cio_move_to_row_and_col(pos.row, col);
@@ -730,7 +730,8 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                     fprintf(stdout, "\b \b");
                     fflush(stdout);
                 }
-            } else if (c >=32 && c <= 126) {  
+            } else if (c >=32 && c <= 126) {
+                INA_ASSERT_NOTNULL(nb_buf);  
 	            buf = *nb_buf;
                 buf[*nb_buf_pos] = (char)c;
 	            *nb_buf_pos += 1;
@@ -742,6 +743,9 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 rc = INA_EAGAIN;
                 break;
             }
+        }
+        if (blocking == INA_YES) {
+            ina_time_sleep(10);
         }
     }
     tcsetattr(0, TCSANOW, &old_termios);

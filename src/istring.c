@@ -67,6 +67,7 @@ INA_API(ina_str_t) ina_str_new(size_t len)
     hdr = (ina_str_hdr_t*)INA_MEM_MALLOC(len + 1 + sizeof(ina_str_hdr_t));
     if (hdr == NULL) {
         INA_STR_EALLOC;
+        return NULL;
     }
     hdr->size = len+1;
     hdr->len = 0;
@@ -438,11 +439,12 @@ INA_API(ina_str_t) ina_str_tolower(ina_str_t str)
     return str;
 }
 
-INA_API(ina_str_t) ina_str_clear(ina_str_t str)
+INA_API(ina_str_t) ina_str_truncate(ina_str_t str, size_t pos)
 {
     if (str != NULL) {
-        (__INA_HDR_OFFSET(str))->len = 0;
-        (__INA_HDR_OFFSET(str))->data[0] = '\0';
+        INA_ASSERT_TRUE(pos < (__INA_HDR_OFFSET(str))->len);
+        (__INA_HDR_OFFSET(str))->len = pos;
+        (__INA_HDR_OFFSET(str))->data[pos] = '\0';
     }
     return str;
 }
@@ -750,6 +752,7 @@ __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
     }
     hdr->size = (hdr->size-hdr->len)+len;
     hdr = (ina_str_hdr_t*)INA_MEM_REALLOC(hdr, sizeof(ina_str_hdr_t) + hdr->size);
+    INA_ASSERT_NOTNULL(hdr);
     hdr->pooled = INA_NO;
     return hdr;
 }

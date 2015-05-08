@@ -49,6 +49,7 @@ struct ina_service_ctx_s {
     int is_deamon;
     ina_service_mode_t mode;
     ina_service_descriptor_t *descriptor;
+    ina_signal_behavior_t signal_behavior;
     void *user_data;
 #ifdef INA_OS_WIN32
     HANDLE hmutex;
@@ -57,6 +58,7 @@ struct ina_service_ctx_s {
     SERVICE_STATUS_HANDLE status_handle;
     HANDLE stop_service_event;  
 #else
+    int lock_fp;
 #endif
 };
 
@@ -64,8 +66,8 @@ static ina_service_ctx_t *__ctx = NULL;
 
 static ina_rc_t __ina_service_install(const ina_service_ctx_t*);
 static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t*);
-static ina_rc_t __ina_service_run_service(const ina_service_ctx_t*);
-static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx);
+static ina_rc_t __ina_service_run_service(ina_service_ctx_t*);
+static ina_rc_t __ina_service_run_console(ina_service_ctx_t *ctx);
 static ina_rc_t __ina_service_mgnt_status(const  char *name, ina_service_status_t *status);
 static ina_rc_t __ina_service_mgnt_start(const char *name);
 static ina_rc_t __ina_service_mgnt_stop(const char *name);
@@ -285,7 +287,7 @@ static ina_rc_t __ina_service_win_setandcheck_mutex(ina_service_ctx_t *ctx)
     }
     return INA_SUCCESS;
 }
-static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
+static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
 {
     SERVICE_TABLE_ENTRY serviceTable[] = {
         { (LPSTR)ina_str_cstr(ctx->descriptor->name), ServiceMain},
@@ -305,7 +307,7 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
-static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
+static ina_rc_t __ina_service_run_console(ina_service_ctx_t *ctx)
 {
     if (!INA_SUCCEED(__ina_service_win_setandcheck_mutex((ina_service_ctx_t*)ctx))) {
         return INA_ERR_PUSH_LAST;
@@ -464,10 +466,10 @@ static ina_rc_t __ina_service_uninstall(const ina_service_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
-static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
+static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
 {
     pid_t pid;
-    int fp,pfp;
+    int fp;
     ina_str_t pid_str;
     ina_str_t pid_file_path;
 
@@ -506,8 +508,17 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
     }
     
     fp = open("/dev/null", O_RDWR); /* open stdin */
+    if (fp == -1) {
+        exit(EXIT_FAILURE);
+    }
     fp = dup(fp); /* stdout */
+    if (fp == -1) {
+        exit(EXIT_FAILURE);
+    }    
     fp = dup(fp); /* stderr */
+    if (fp == -1) {
+        exit(EXIT_FAILURE);
+    }
 
     /* set working-directory */
     if (chdir(ina_str_cstr(ctx->descriptor->working_directory)) < 0) {
@@ -516,25 +527,28 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
 
     pid_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
                             ina_str_cstr(ctx->descriptor->name));
-    pfp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
-    if (pfp < 0) {
+    INA_ASSERT_NOTNULL(pid_file_path);
+    ctx->lock_fp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
+    ina_str_free(pid_file_path);
+
+    if (ctx->lock_fp < 0) {
         return INA_SERVICE_ELCO; /* can not open */
     }
-    pid_str = ina_str_sprintf("%d\n", getpid()); 
-    if (ftruncate(pfp, 0) == 0) {
-        if (write(pfp, ina_str_cstr(pid_str), ina_str_len(pid_str)+1)<=0) {
-            close(pfp); 
+    pid_str = ina_str_sprintf("%d\n", getpid());
+    INA_ASSERT_NOTNULL(pid_str); 
+    if (ftruncate(ctx->lock_fp, 0) == 0) {
+        if (write(ctx->lock_fp, ina_str_cstr(pid_str), ina_str_len(pid_str)+1)<=0) {
+            close(ctx->lock_fp); 
+            ina_str_free(pid_str);
             return INA_SERVICE_ELCO;
         }
-        close(pfp); 
+    } else {
+        ina_str_free(pid_str);
+        close(ctx->lock_fp); 
         return INA_SERVICE_ELCO;
     } 
-    close(pfp);
-
-    ina_str_free(pid_file_path);
-    ina_str_free(pid_str);          close(pfp); 
-            return INA_SERVICE_ELCO;
-  
+    close(ctx->lock_fp);
+    ina_str_free(pid_str);
 
     if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START, (void*)ctx->user_data))) {
        return INA_ERR_PUSH_LAST;
@@ -545,19 +559,21 @@ static ina_rc_t __ina_service_run_service(const ina_service_ctx_t *ctx)
     return INA_SUCCESS;
 }
 
-static ina_rc_t __ina_service_run_console(const ina_service_ctx_t *ctx)
+static ina_rc_t __ina_service_run_console(ina_service_ctx_t *ctx)
 {
-    int lfp;
     ina_str_t lock_file_path;
 
     lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
                                         ina_str_cstr(ctx->descriptor->name));
 
-    lfp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
-    if (lfp < 0) {
+    ctx->lock_fp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
+    ina_str_free(lock_file_path);
+    
+    if (ctx->lock_fp < 0) {
         return INA_SERVICE_ELCO; /* can not open */
     }
-    if (lockf(lfp, F_TLOCK, 0) < 0) {
+    if (lockf(ctx->lock_fp, F_TLOCK, 0) < 0) {
+        close(ctx->lock_fp);
         return INA_SERVICE_ELOCK; /* can not lock */
     }
    if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START, (void*)ctx->user_data))) {
@@ -626,11 +642,20 @@ static void __ina_service_signal_handler(ina_signal_t sig,
             __ctx, INA_SERVICE_STATUS_SHUTDOWN, 
             (void*)__ctx->user_data))) {
 #ifdef INA_OS_WIN32
-        WaitForSingleObject(__ctx->main_thread, INFINITE);
+            WaitForSingleObject(__ctx->main_thread, INFINITE);
+#else
+            if (__ctx->lock_fp > 0) {
+                close(__ctx->lock_fp);
+            }
 #endif
-            __ctx->descriptor->service_fn(
-                __ctx, INA_SERVICE_STATUS_STOP,
-                (void*)__ctx->user_data);
+            *sb = __ctx->signal_behavior;
+
+            if (*sb == INA_SIGNAL_BEHAVIOR_DFT) {
+                __ctx->descriptor->service_fn(
+                    __ctx, INA_SERVICE_STATUS_STOP,
+                    (void*)__ctx->user_data);
+            }
+        
         } else {
             __ctx->descriptor->service_fn(__ctx,
                 INA_SERVICE_STATUS_ERROR,
@@ -652,6 +677,7 @@ INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx)
     if (__ctx == NULL) {
         return INA_ERR_PUSH_LAST;
     }
+    __ctx->signal_behavior = INA_SIGNAL_BEHAVIOR_DFT;
 
 #ifdef INA_OS_WIN32
     __ctx->hmutex = INVALID_HANDLE_VALUE;
@@ -693,6 +719,21 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_service_enable_stop(ina_service_ctx_t *ctx)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    ctx->signal_behavior = INA_SIGNAL_BEHAVIOR_DFT;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_disable_stop(ina_service_ctx_t *ctx)
+{
+    INA_ASSERT_NOTNULL(ctx);
+    ctx->signal_behavior = INA_SIGNAL_BEHAVIOR_IGNORE;
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_service_get_data(const ina_service_ctx_t *ctx, const void **user_data)
 {
     INA_ASSERT_NOTNULL(ctx);
@@ -700,15 +741,15 @@ INA_API(ina_rc_t) ina_service_get_data(const ina_service_ctx_t *ctx, const void 
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_service_set_data(const ina_service_ctx_t *ctx, const void *user_data) 
+INA_API(ina_rc_t) ina_service_set_data(ina_service_ctx_t *ctx, const void *user_data) 
 {
     INA_ASSERT_NOTNULL(ctx);
-    ((ina_service_ctx_t*)ctx)->user_data = (void*)user_data;
+    ctx->user_data = (void*)user_data;
     return INA_SUCCESS;
 }
 
 
-INA_API(ina_rc_t) ina_service_dispatch(const ina_service_ctx_t *ctx, const void *user_data)
+INA_API(ina_rc_t) ina_service_dispatch(ina_service_ctx_t *ctx, const void *user_data)
 {
     ina_str_t cmd;
     INA_ASSERT_NOTNULL(ctx);
@@ -827,7 +868,7 @@ INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
     return INA_ERR_PUSH_LAST; 
 }
 
-INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int console, const void *user_data)
+INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, int console, const void *user_data)
 {
     INA_ASSERT_NOTNULL(ctx);
 
@@ -838,7 +879,7 @@ INA_API(ina_rc_t) ina_service_run_service(const ina_service_ctx_t *ctx, int cons
         ina_service_set_data(ctx, user_data);
     } 
     if (!console) {
-        ((ina_service_ctx_t*)ctx)->is_deamon = INA_YES;
+        ctx->is_deamon = INA_YES;
         return __ina_service_run_service(ctx);
     }
     return __ina_service_run_console(ctx);

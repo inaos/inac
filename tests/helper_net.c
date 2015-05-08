@@ -107,21 +107,29 @@ INA_TEST_HELPER(net, udp_sender) {
  
     ina_mem_set(buf, 0, 512);
    
-    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-        memset((char *) &si_other, 0, sizeof(si_other));
-        si_other.sin_family = AF_INET;
-        si_other.sin_port = htons(port);
-        if (inet_addr(addr) == 0) {
-            INA_TEST_HELPER_SET_RC(INA_FAILURE);
-        }
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) <  0) {
+        INA_TEST_HELPER_SET_RC(INA_FAILURE);
+        return;
+    }        
+    
+    memset((char *) &si_other, 0, sizeof(si_other));
+    si_other.sin_family = AF_INET;
+    si_other.sin_port = htons(port);
+    if (inet_addr(addr) != 0) {
         i = 0;
         while (1) {
             sprintf(buf, "This is packet %d\n", ++i);
             if (sendto(s, buf, 512, 0, (struct sockaddr*)&si_other, slen) == -1) {
-                 INA_TEST_HELPER_SET_RC(INA_FAILURE);
+                INA_TEST_HELPER_SET_RC(INA_FAILURE);
             }
         }
     }
+
+#if INA_OS_WIN32
+    closesocket(s);
+#else
+    close(s);
+#endif
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
  }
 

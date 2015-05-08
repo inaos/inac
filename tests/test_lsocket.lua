@@ -30,7 +30,8 @@ local lsocket = require("lsocket")
 local ffi = require("ffi")
 
 ffi.cdef[[
-unsigned int sleep(unsigned int seconds);
+typedef uint64_t time_t;
+ina_rc_t ina_time_sleep(time_t msec);
 ]]
 
 -- We do not want that much output in our tests
@@ -46,7 +47,7 @@ testlsocket.echo_server = function(host, port)
     local buf = c:receive()
     print("Server: "..buf)
     c:send(buf)
-    ffi.C.sleep(3000)
+    ffi.C.ina_time_sleep(3000)
   end
   
   return 0
