@@ -484,5 +484,6 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
     }
 #endif
 #endif
+    return INA_SUCCESS;
 }
 
