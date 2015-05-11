@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,27 +46,38 @@ typedef enum ina_file_cursor_mode_e {
 	INA_FILE_CURSOR_MODE_READWRITE_TEXT_LINE,
 	INA_FILE_CURSOR_MODE_READ_TEXT_CHUNK,
 	INA_FILE_CURSOR_MODE_READWRITE_TEXT_CHUNK,
+    INA_FILE_CURSOR_MODE_WRITE_BINARY,
+    INA_FILE_CURSOR_MODE_WRITE_TEXT_LINE,
+    INA_FILE_CURSOR_MODE_WRITE_TEXT_CHUNK,
 } ina_file_cursor_mode_t;
 
-#define INA_FILE_CUROSR_BUFFER_128MB    1024*1024*128
-#define INA_FILE_CURSOR_BUFFER_256MB    1024*1024*256
-#define INA_FILE_CURSOR_BUFFER_512MB    1024*1024*512
-#define INA_FILE_CURSOR_BUFFER_1GB      1024*1024*1024
+#define INA_FILE_CUROSR_MMAP_BUFFER_128MB    1024*1024*128
+#define INA_FILE_CURSOR_MMAP_BUFFER_256MB    1024*1024*256
+#define INA_FILE_CURSOR_MMAP_BUFFER_512MB    1024*1024*512
+#define INA_FILE_CURSOR_MMAP_BUFFER_1GB      1024*1024*1024
 #ifdef INA_CPU_X86_64
-#define INA_FILE_CURSOR_BUFFER_2GB      1024*1024*1024*2
-#define INA_FILE_CURSOR_BUFFER_4GB      1024*1024*1024*4
-#define INA_FILE_CURSOR_BUFFER_8GB      1024*1024*1024*8
-#define INA_FILE_CURSOR_BUFFER_16GB     1024*1024*1024*16
-#define INA_FILE_CURSOR_BUFFER_32GB     1024*1024*1024*32
-#define INA_FILE_CURSOR_BUFFER_64GB     1024*1024*1024*64
-#define INA_FILE_CURSOR_BUFFER_128GB    1024*1024*1024*128
+#define INA_FILE_CURSOR_MMAP_BUFFER_2GB      1024LL*1024LL*1024LL*2LL
+#define INA_FILE_CURSOR_MMAP_BUFFER_4GB      1024LL*1024LL*1024LL*4LL
+#define INA_FILE_CURSOR_MMAP_BUFFER_8GB      1024LL*1024LL*1024LL*8LL
+#define INA_FILE_CURSOR_MMAP_BUFFER_16GB     1024LL*1024LL*1024LL*16LL
+#define INA_FILE_CURSOR_MMAP_BUFFER_32GB     1024LL*1024LL*1024LL*32LL
+#define INA_FILE_CURSOR_MMAP_BUFFER_64GB     1024LL*1024LL*1024LL*64LL
+#define INA_FILE_CURSOR_MMAP_BUFFER_128GB    1024LL*1024LL*1024LL*128LL
 #endif
+
+#define INA_FILE_CURSOR_FILEIO_BUFFER_512B    512
+#define INA_FILE_CURSOR_FILEIO_BUFFER_4KB     1024*4
+#define INA_FILE_CURSOR_FILEIO_BUFFER_8KB     1024*8
+#define INA_FILE_CURSOR_FILEIO_BUFFER_12KB    1024*12
+#define INA_FILE_CURSOR_FILEIO_BUFFER_16KB    1024*16
+#define INA_FILE_CURSOR_FILEIO_BUFFER_32KB    1024*32
+
 
 /* opaque file types */
 typedef struct ina_file_cursor_s ina_file_cursor_t;
 
 typedef ina_rc_t (*ina_file_cursor_free_fp)(ina_file_cursor_t **cursor);
-typedef ina_rc_t (*ina_file_cursor_set_pos_fp)(ina_file_cursor_t *cursor, size_t position);
+typedef ina_rc_t (*ina_file_cursor_set_pos_fp)(ina_file_cursor_t *cursor, uint64_t position);
 typedef ina_rc_t (*ina_file_cursor_set_bof_fp)(ina_file_cursor_t *cursor);
 typedef ina_rc_t (*ina_file_cursor_set_eof_fp)(ina_file_cursor_t *cursor);
 typedef ina_rc_t (*ina_file_cursor_text_read_line_fp)(ina_file_cursor_t *cursor, const char **begin_line, size_t *len);
@@ -79,7 +90,7 @@ typedef ina_rc_t (*ina_file_cursor_text_read_chunk_fp)(ina_file_cursor_t *cursor
  */
 INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file, 
 									  ina_file_cursor_type_t cursor_type,
-									  ina_file_cursor_mode_t mode, size_t buffer_size,
+									  ina_file_cursor_mode_t mode, uint64_t buffer_size,
 									  ina_file_cursor_t **cursor,
                                       ina_mmap_ctx_t *mmap_ctx);
 /*
@@ -90,7 +101,7 @@ INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor);
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, size_t position);
+INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, uint64_t position);
 
 /*
  *

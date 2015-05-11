@@ -731,7 +731,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                     fflush(stdout);
                 }
             } else if (c >=32 && c <= 126) {
-                INA_ASSERT_NOTNULL(buf);  
+                INA_ASSERT_NOTNULL(nb_buf);  
 	            buf = *nb_buf;
                 buf[*nb_buf_pos] = (char)c;
 	            *nb_buf_pos += 1;
@@ -743,6 +743,9 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 rc = INA_EAGAIN;
                 break;
             }
+        }
+        if (blocking == INA_YES) {
+            ina_time_sleep(10);
         }
     }
     tcsetattr(0, TCSANOW, &old_termios);

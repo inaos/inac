@@ -52,6 +52,11 @@ typedef enum ina_mmap_mem_share_e {
     INA_MMAP_MEM_SHARE_SHARED
 } ina_mmap_mem_share_t;
 
+typedef enum ina_mmap_map_type_e {
+    INA_MMAP_MAP_TYPE_FILE,
+    INA_MMAP_MAP_TYPE_MEMORY
+} ina_mmap_map_type_t;
+
 typedef enum ina_mmap_mem_advice_e {
     INA_MMAP_MEM_ADVICE_SEQUENTIAL,
     INA_MMAP_MEM_ADVICE_RANDOM
@@ -76,7 +81,8 @@ INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx);
  */
 INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd, 
                                int prot_flags, ina_mmap_mem_share_t share,
-							   size_t offset, size_t length, ina_mmap_mapping_t **mapping);
+                               ina_mmap_map_type_t map_type,
+							   uint64_t offset, uint64_t length, ina_mmap_mapping_t **mapping);
 
 /*
  *

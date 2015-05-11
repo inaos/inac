@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,9 @@ extern "C" {
 #ifdef INA_OS_WIN32
 #define INA_FILE_FLAG_WIN32_OVERLAPPED     0x00000016
 #endif
+#ifndef INA_OS_WIN32
+#define INA_FILE_FLAG_POSIX_DIRECT         0x00000016
+#endif
 
 typedef enum ina_file_access_mode_e {
 	INA_FILE_ACCESS_MODE_READ,
@@ -132,7 +135,7 @@ INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat, int *dir);
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, size_t *file_size);
+INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, uint64_t *file_size);
 
 /*
  *
@@ -148,6 +151,31 @@ INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat, time_t *last_modifi
  *
  */
 INA_API(void*) ina_file_os_handle(ina_file_t *file);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, int64_t len, int64_t *read);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, int64_t len, int64_t *wrote); 
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_set_eof(ina_file_t *file);
 
 #ifdef __cplusplus
 }

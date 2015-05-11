@@ -100,7 +100,7 @@ INA_API(ina_time_event_t*) ina_timer_backend_create_event(ina_timer_backend_t *b
     /* let the timewheel know the current time */
     timeouts_update(backend->timeouts, n_msec);
 
-    sb->t = timeout_init(sb->t, 0);
+    sb->t = timeout_init(sb->t, TIMEOUT_INT);
     sb->t->data = e;
     timeouts_add(backend->timeouts, sb->t, e_msec);
 

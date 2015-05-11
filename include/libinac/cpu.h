@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014, INAOS GmbH
+* Copyright (c) 2014-2015, INAOS GmbH
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -143,6 +143,10 @@ INA_API(ina_rc_t) ina_cpu_get_brand_string(ina_str_t *brand);
  *
  */
 INA_API(ina_rc_t) ina_cpu_is_supported(int *supported);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_cpu_pin_to_core(int core);
 
 #ifdef __cplusplus
 }

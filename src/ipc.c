@@ -37,7 +37,7 @@ struct ina_ipc_flags_s {
 /* IPC flag data*/
 struct ina_ipc_flags_data_s {
     char name[INA_IPC_FLAGS_NAME_MAXLEN];
-    int64_t  l;
+    volatile int64_t  l;
     volatile uint64_t v;
     uint64_t ka;
     uint32_t c_ref[64];
@@ -55,8 +55,12 @@ struct ina_ipc_counter_data_s {
     volatile uint64_t c;
 };
 
-#define __INA_ENTER_LOCK(d)
-#define __INA_EXIT_LOCK(d)
+#define __INA_ENTER_LOCK(d)                     \
+do {                                            \
+    while (0 == INA_ATOMIC_SWAP(&d->l, 0, 1));  \
+} while (0);
+
+#define __INA_EXIT_LOCK(d) INA_ATOMIC_SWAP(&d->l, 1, 0);
 
 INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_flags_t **flags)
 {

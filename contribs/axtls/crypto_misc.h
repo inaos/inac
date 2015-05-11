@@ -112,6 +112,7 @@ const char * x509_display_error(int error);
 #define ASN1_TELETEX_STR        0x14
 #define ASN1_IA5_STR            0x16
 #define ASN1_UTC_TIME           0x17
+#define ASN1_GENERALIZED_TIME   0x18
 #define ASN1_UNICODE_STR        0x1e
 #define ASN1_SEQUENCE           0x30
 #define ASN1_CONTEXT_DNSNAME	0x82
@@ -125,8 +126,9 @@ const char * x509_display_error(int error);
 #define SIG_TYPE_MD2            0x02
 #define SIG_TYPE_MD5            0x04
 #define SIG_TYPE_SHA1           0x05
+#define SIG_TYPE_SHA256         0x0b
 
-int get_asn1_length(const uint8_t *buf, int *offset);
+uint32_t get_asn1_length(const uint8_t *buf, int *offset);
 int asn1_get_private_key(const uint8_t *buf, int len, RSA_CTX **rsa_ctx);
 int asn1_next_obj(const uint8_t *buf, int *offset, int obj_type);
 int asn1_skip_obj(const uint8_t *buf, int *offset, int obj_type);
