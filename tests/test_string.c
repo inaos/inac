@@ -458,6 +458,16 @@ INA_TEST(string, ina_str_tolower)
     ina_str_free(str);
 }
 
+INA_TEST(string, ina_str_truncte_empty_string)
+{
+    ina_str_t str = ina_str_new_fromcstr("");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    ina_str_truncate(str, 0);
+    INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(str));
+    ina_str_free(str);
+}
+
 INA_TEST(string, ina_str_truncate_zero)
 {
     ina_str_t str = ina_str_new_fromcstr("Abc def   ");

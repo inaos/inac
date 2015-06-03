@@ -442,7 +442,7 @@ INA_API(ina_str_t) ina_str_tolower(ina_str_t str)
 INA_API(ina_str_t) ina_str_truncate(ina_str_t str, size_t pos)
 {
     if (str != NULL) {
-        INA_ASSERT_TRUE(pos < (__INA_HDR_OFFSET(str))->len);
+        INA_ASSERT_TRUE(pos <= (__INA_HDR_OFFSET(str))->len);
         (__INA_HDR_OFFSET(str))->len = pos;
         (__INA_HDR_OFFSET(str))->data[pos] = '\0';
     }
