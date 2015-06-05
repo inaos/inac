@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,44 +87,55 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
 
 INA_API(void *) ina_mem_alloc(size_t size)
 {
-    void *p;
+    void *p = NULL;
     p = __ina_malloc(size);
+    INA_ASSERT_NOTNULL(p);
     ina_mem_set(p, 0, size);
     return p;
 }
 
 INA_API(void) ina_mem_free(void *ptr)
 {
+    INA_ASSERT_NOTNULL(ptr);
     __ina_free(ptr);
 }
 
 INA_API(void *) ina_mem_realloc(void *ptr, size_t nb)
 {
+    INA_ASSERT_NOTNULL(ptr);
     return __ina_realloc(ptr, nb);
 }
 
 INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb)
 {
+    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOTNULL(src);
     return __ina_memmove(dest, src, nb);
 }
 
 INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb)
 {
+    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOTNULL(src);
     return __ina_memcpy(dest, src, nb);
 }
 
 INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
 {
+    INA_ASSERT_NOTNULL(lhs);
+    INA_ASSERT_NOTNULL(rhs);
     return __ina_memcmp(lhs, rhs, nb);
 }
 
 INA_API(void *) ina_mem_set(void *dest, int value, size_t nb)
 {
+    INA_ASSERT_NOTNULL(dest);
     return __ina_memset(dest, value, nb);
 }
 
 INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
 {
+    INA_ASSERT_NOTNULL(dest);
     return __ina_memchr(dest, value, nb);
 }
 
