@@ -294,7 +294,7 @@ static void __fix_day_dow(__ina_cron_schedulable_t *sched)
         if (weekUsed && !daysUsed) {
             memset(func->days, 0, sizeof(func->days));
         }
-        if (daysUsed && !weekUsed) {
+        if (daysUsed) {
             memset(func->dow, 0, sizeof(func->dow));
         }
     }
