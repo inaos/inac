@@ -656,7 +656,7 @@ local function debug_hook(event, line)
     -- need to recheck once more as resume after 'stack' command may
     -- return something else (for example, 'exit'), which needs to be handled
     if status and res and res ~= 'stack' then
-      if abort == nil and res == "exit" then os.exit(1, true); return end
+      if abort == nil and res == "exit" then mobdebug.exit(1, true); return end
       abort = res
       -- only abort if safe; if not, there is another (earlier) check inside
       -- debug_hook, which will abort execution at the first safe opportunity
@@ -958,8 +958,8 @@ local function debugger_loop(sev, svars, sfile, sline)
     elseif command == "SUSPEND" then
       -- do nothing; it already fulfilled its role
     elseif command == "DONE" then
-      server:send("200 OK\n")
-      done()
+	  server:send("200 OK\n")
+	  mobdebug.done()
       return -- done with all the debugging
     elseif command == "STACK" then
       -- first check if we can execute the stack command
@@ -1007,7 +1007,7 @@ local function debugger_loop(sev, svars, sfile, sline)
         server:send("400 Bad Request\n")
       end
     elseif command == "EXIT" then
-      server:send("200 OK\n")
+	  server:send("200 OK\n")
       coroyield("exit")
     else
       server:send("400 Bad Request\n")
@@ -1629,7 +1629,9 @@ mobdebug.on = on
 mobdebug.off = off
 mobdebug.moai = moai
 mobdebug.coro = coro
+mobdebug.exit = os.exit
 mobdebug.done = done
+mobdebug.detach_and_close = done
 mobdebug.pause = function() step_into = true end
 mobdebug.yield = nil -- callback
 mobdebug.yieldtimeout = 0
