@@ -45,6 +45,8 @@ INA_LJIT_IMPORT(inac,lconffile);
 INA_LJIT_IMPORT(inac,ltemplate);
 INA_LJIT_IMPORT(inac,lsocket);
 INA_LJIT_IMPORT(inac,ldebug);
+INA_LJIT_IMPORT(inac,lcsv);
+INA_LJIT_IMPORT(inac,ldate);
 INA_LJIT_IMPORT(inac,ltest);
 
 INA_LJIT_PACKAGE(ljit);
