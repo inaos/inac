@@ -494,10 +494,8 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx, ina_cron_load_cb load_cb, 
     INA_ASSERT_NOTNULL(ctx);
 
 	*ctx = (ina_cron_ctx_t*)ina_mem_alloc(sizeof(ina_cron_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
-	if (load_cb) {
+
+    if (load_cb) {
 		(*ctx)->load_cb = load_cb;
 		/* load tasks */
 		(*ctx)->load_cb(*ctx);
