@@ -192,6 +192,7 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
     
     k = INA_HASH_CSTR_TO_SDBM(name);
 
+    HASH_FIND_ULONG(section->keys, &k, check);
     if (check != NULL) {
         return INA_CONFFILE_EDUPKEY;
     }
