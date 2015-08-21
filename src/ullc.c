@@ -120,9 +120,6 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
     }
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     pctx = *ctx;
 
     if (!INA_SUCCEED(__ina_ullc_ring_create(&pctx->ring, pctx, version, size, 
@@ -311,9 +308,6 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
     INA_ASSERT_NOTNULL(ctx);
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     ccxt = *ctx;
 
     if (!INA_SUCCEED(__ina_ullc_ring_create(&ccxt->ring, ccxt, version, size, 

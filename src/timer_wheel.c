@@ -47,9 +47,6 @@ INA_API(ina_rc_t) ina_timer_backend_init(ina_timer_backend_t **backend)
     ina_timer_backend_t *b;
     int err;
     *backend = (ina_timer_backend_t*)ina_mem_alloc(sizeof(ina_timer_backend_t));
-    if (*backend == NULL) {
-        return INA_MEM_EALLOC;
-    }
     b = *backend;
     b->timeouts = timeouts_open(0, &err, ina_mem_alloc, ina_mem_free);
     b->next_event_id = 0;
@@ -83,18 +80,8 @@ INA_API(ina_time_event_t*) ina_timer_backend_create_event(ina_timer_backend_t *b
     INA_ASSERT_NOTNULL(e);
 
     e->data = (ina_timer_backend_event_t*)ina_mem_alloc(sizeof(ina_timer_backend_event_t));
-    if (INA_UNLIKELY(e->data == NULL)) {
-        INA_MEM_EALLOC;
-        return NULL;
-    }
     sb = (ina_timer_backend_event_t*)e->data;
     sb->t = (struct timeout*)ina_mem_alloc(sizeof(struct timeout));
-    if (INA_UNLIKELY(sb->t == NULL)) {
-        ina_mem_free(e->data);
-        INA_MEM_EALLOC;
-        return NULL;
-    }
-
     e->id = ++backend->next_event_id;
 
     /* let the timewheel know the current time */

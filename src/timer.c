@@ -49,9 +49,6 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
     INA_ASSERT_NOTNULL(timer);
 
     *timer = (ina_timer_t*)ina_mem_alloc(sizeof(ina_timer_t));
-    if (*timer == NULL) {
-        return INA_MEM_EALLOC;
-    }
     t = *timer;
     if (!INA_SUCCEED(ina_timer_backend_init(&t->be))) {
         return INA_ERR_PUSH_LAST;
