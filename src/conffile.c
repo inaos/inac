@@ -103,9 +103,6 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
     INA_ASSERT_NOTNULL(cf);
 
     *cf = (ina_conffile_t*)ina_mem_alloc(sizeof(ina_conffile_t));
-    if (*cf == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
 
     if (!INA_SUCCEED(ina_ljit_init(&(*cf)->lctx))) {
         ina_mem_free(*cf);
