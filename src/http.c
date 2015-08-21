@@ -185,17 +185,11 @@ INA_API(ina_rc_t) ina_http_init(ina_http_ctx_t **ctx, ina_http_parser_type_t par
 	INA_ASSERT_NOTNULL(ctx);
 
 	*ctx = (ina_http_ctx_t*)ina_mem_alloc(sizeof(ina_http_ctx_t));
-	if (*ctx == NULL) {
-		return INA_ERR_PUSH_LAST;
-	}
 	(*ctx)->parser_pool_size = parser_pool_size;
 	(*ctx)->parsers = NULL;
 
 	for (i = 0; i < parser_pool_size; i++) {
 		ina_http_parser_t *p = (ina_http_parser_t*)ina_mem_alloc(sizeof(ina_http_parser_t));
-		if (p == NULL) {
-			return INA_ERR_PUSH_LAST;
-		}
 		
 		p->settings.on_body = __ina_http_on_body;
 		p->settings.on_headers_complete = __ina_http_on_headers_complete;

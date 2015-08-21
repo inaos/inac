@@ -71,9 +71,6 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
     INA_ASSERT_TRUE(strlen(name) < INA_IPC_FLAGS_NAME_MAXLEN);
 
     *flags = (ina_ipc_flags_t*)ina_mem_alloc(sizeof(ina_ipc_flags_t));
-    if (*flags == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     strcpy(mname, "/ina_ipc_flags_");
     strncat(mname, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
 
@@ -102,9 +99,6 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
     INA_ASSERT_TRUE(strlen(name) < INA_IPC_FLAGS_NAME_MAXLEN);
 
     *flags = (ina_ipc_flags_t*)ina_mem_alloc(sizeof(ina_ipc_flags_t));
-    if (*flags == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     strcpy(mname, "/ina_ipc_flags_");
     strncat(mname, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
     if (!INA_SUCCEED(ina_mempool_create(&(*flags)->m, sizeof(ina_ipc_flags_data_t), 
