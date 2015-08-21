@@ -799,9 +799,6 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
     }
 
     ds = ina_mem_alloc(sizeof(ina_service_descriptor_t));
-    if (ds == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     ina_mem_cpy(ds, &__ina_service_section, sizeof(ina_service_descriptor_t));
     ((ina_service_ctx_t*)ctx)->descriptor = ds;
     return INA_SUCCESS;

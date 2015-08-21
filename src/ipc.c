@@ -218,9 +218,6 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
     INA_ASSERT_TRUE(strlen(name) < INA_IPC_COUNTER_NAME_MAXLEN);
 
     *counter = (ina_ipc_counter_t*)ina_mem_alloc(sizeof(ina_ipc_counter_t));
-    if (*counter == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     strcpy(mname, "/ina_ipc_counter_");
     strncat(mname, name, INA_IPC_COUNTER_NAME_MAXLEN-1);
 
@@ -248,9 +245,6 @@ INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **cou
     INA_ASSERT_TRUE(strlen(name) < INA_IPC_COUNTER_NAME_MAXLEN);
 
     *counter = (ina_ipc_counter_t*)ina_mem_alloc(sizeof(ina_ipc_counter_t));
-    if (*counter == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     strcpy(mname, "/ina_ipc_counter_");
     strncat(mname, name, INA_IPC_COUNTER_NAME_MAXLEN-1);
     if (!INA_SUCCEED(ina_mempool_create(&(*counter)->m, sizeof(ina_ipc_counter_data_t), 

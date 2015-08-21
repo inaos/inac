@@ -255,9 +255,6 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
 
     *descriptor = (ina_process_descriptor_t*) ina_mem_alloc( 
                                         sizeof(ina_process_descriptor_t));
-    if (*descriptor == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     (*descriptor)->full_path = ina_str_new_fromcstr(full_path);
 
     if (working_dir) {

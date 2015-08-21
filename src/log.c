@@ -73,9 +73,6 @@ INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target,
 {
     INA_ASSERT_NOTNULL(cfg);
     *cfg = (ina_log_cfg_t*)ina_mem_alloc(sizeof(ina_log_cfg_t));
-    if (*cfg == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     (*cfg)->fp1 = NULL;
     (*cfg)->fp2 = NULL;
     (*cfg)->logfile = ina_str_new_fromcstr(logfile);

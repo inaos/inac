@@ -61,9 +61,6 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
     INA_ASSERT_NOTNULL(ctx);
 
     *ctx = (ina_iscp_ctx_t*)ina_mem_alloc(sizeof(ina_iscp_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     (*ctx)->backend = backend;
     
     switch ((*ctx)->backend) {

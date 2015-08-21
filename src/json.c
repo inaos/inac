@@ -212,10 +212,6 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
     size_t i;
 
     *ctx = (ina_json_ctx_t*)ina_mem_alloc(sizeof(ina_json_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
-
     (*ctx)->parser_pool_size = parser_pool_size;
     (*ctx)->generator_pool_size = generator_pool_size;
 
