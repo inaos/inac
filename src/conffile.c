@@ -182,15 +182,14 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
 {
     unsigned long k;
     ina_conffile_section_key_t *key;
-    ina_conffile_entry_t *check = NULL;
 
     INA_ASSERT_NOTNULL(section);
     INA_ASSERT_NOTNULL(name);
     
     k = INA_HASH_CSTR_TO_SDBM(name);
 
-    HASH_FIND_ULONG(section->keys, &k, check);
-    if (check != NULL) {
+    HASH_FIND_ULONG(section->keys, &k, key);
+    if (key != NULL) {
         return INA_CONFFILE_EDUPKEY;
     }
 

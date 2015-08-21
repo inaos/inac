@@ -212,6 +212,23 @@ INA_TEST(conffile, process_with_filepath)
 
 }
 
+INA_TEST(conffile, duplicate_key)
+{
+    ina_conffile_t *cf = NULL;
+    ina_conffile_section_t *cs = NULL;
+
+    __section_count = 0;
+    __named_section_count = 0;
+
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
+
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "debug", INA_YES, INA_NO, __ina_section_handler, &cs));
+    INA_TEST_ASSERT_NOT_NULL(cs);
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
+    INA_TEST_ASSERT_NOTSUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
+}
+
 
 INA_TEST(conffile, process_without_filepath)
 {
