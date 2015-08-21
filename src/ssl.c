@@ -55,10 +55,6 @@ INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx,
     INA_ASSERT_NOTNULL(ctx);
 
     *ctx = (ina_ssl_ctx_t*)ina_mem_alloc(sizeof(struct ina_ssl_ctx_s));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
-
     (*ctx)->options = options;
 
     if ((*ctx)->options&INA_SSL_ACCEPT_SELF_SIGNED) {
@@ -96,9 +92,6 @@ INA_API(ina_rc_t) ina_ssl_client_new(ina_ssl_ctx_t *ctx,
     }
 
     ctx->cn = (ina_ssl_cn_t*)ina_mem_alloc(sizeof(struct ina_ssl_cn_s));
-    if (ctx->cn == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
 
     if (ctx->options&INA_SSL_BLOCKING) {
         ctx->cn->blocking = INA_YES;        
@@ -148,9 +141,6 @@ INA_API(ina_rc_t) ina_ssl_server_new(ina_ssl_ctx_t *ctx,
     *cn = NULL;
 
     ctx->cn = (ina_ssl_cn_t*)ina_mem_alloc(sizeof(struct ina_ssl_cn_s));
-    if (ctx->cn == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     ctx->cn->cn_impl = ssl_server_new(ctx->ctx_impl, client_fd);
     if (ctx->cn->cn_impl == NULL) {
         return INA_SSL_EINIT;
