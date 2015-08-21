@@ -237,9 +237,7 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
                                             INA_RC_HANDLED(error->rc),
                                             INA_RC_ID(error->rc));
 
-                if (strncpy(str, outstr, len-1) == NULL) {
-                    return INA_ERR_EMSGFMT;
-                }
+                strncpy(str, outstr, len-1);
                 return INA_SUCCESS;
             }
         }
