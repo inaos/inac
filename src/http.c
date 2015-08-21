@@ -500,6 +500,8 @@ INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, 
 	INA_ASSERT_NOTNULL(in);
 	INA_ASSERT_NOTNULL(more);
 	
+    *more = 1;
+
 	nread = http_parser_execute(&p->intp, &p->settings, in, inlen);
 
     if (nread != inlen) {
@@ -508,9 +510,6 @@ INA_API(ina_rc_t) ina_http_parser_execute(ina_http_parser_t *p, const char *in, 
 
     if (p->finished) {
 	    *more = 0;
-    }
-    else {
-        *more = 1;
     }
 
 	return INA_SUCCESS;
