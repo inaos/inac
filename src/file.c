@@ -281,6 +281,9 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat)
 	LARGE_INTEGER utcFT = {0};
 	SYSTEMTIME systime;
 
+    INA_ASSERT_NOTNULL(file);
+    INA_ASSERT_NOTNULL(stat);
+
 	if (!GetFileSizeEx(file->fh, &pin)) {
 		/* FIXME: handle error */
 		return INA_FAILURE;
@@ -299,7 +302,10 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat)
 	__ina_file_system_time_to_time_t(&systime, &(*stat)->atime);
 #else
     struct stat fst;
-    
+   
+    INA_ASSERT_NOTNULL(file);
+    INA_ASSERT_NOTNULL(stat);
+ 
     ina_mem_set(&fst, 0, sizeof(struct stat));
     if (fstat(file->fh, &fst) != 0) {
         /* FIXME: handle error */
