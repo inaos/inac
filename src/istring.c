@@ -773,6 +773,7 @@ __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
     hdr = (ina_str_hdr_t*)ina_mempool_ralloc(pool, hdr, 
                             sizeof(ina_str_hdr_t) + old_size,
                             sizeof(ina_str_hdr_t) + hdr->size);
+    INA_ASSERT_NOTNULL(hdr);
     return hdr;
 }
 
