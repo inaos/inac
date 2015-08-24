@@ -307,7 +307,9 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
 	ina_file_stat_t *fstat = NULL;
 	uint64_t flen = 0;
 
-	ina_file_stat_new(file, &fstat);
+	if (!INA_SUCCEED(ina_file_stat_new(file, &fstat))) {
+		return INA_ERR_PUSH_LAST;
+	}
 	ina_file_stat_file_size(fstat, &flen);
 	ina_file_stat_free(file, &fstat);
 
