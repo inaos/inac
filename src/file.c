@@ -60,7 +60,7 @@ struct ina_file_s {
 };
 
 #ifdef INA_OS_WIN32
-static ina_rc_t __ina_file_win_map_flags(ina_file_access_mode_t access, 
+static void __ina_file_win_map_flags(ina_file_access_mode_t access, 
 										 ina_file_create_mode_t create,
 										 ina_file_share_mode_t share,
 										 int flags,
@@ -120,9 +120,8 @@ static ina_rc_t __ina_file_win_map_flags(ina_file_access_mode_t access,
 	if (flags & INA_FILE_FLAG_WIN32_OVERLAPPED) {
 		*dwFlagsAndAttributes |= FILE_FLAG_OVERLAPPED;
 	}
-	return INA_SUCCESS;
 }
-static ina_rc_t __ina_file_system_time_to_time_t(SYSTEMTIME *systemTime, time_t *unixts)
+static void __ina_file_system_time_to_time_t(SYSTEMTIME *systemTime, time_t *unixts)
 {
 	unsigned __int64 utcDosTime;
 	LARGE_INTEGER jan1970FT = {0};
@@ -132,11 +131,9 @@ static ina_rc_t __ina_file_system_time_to_time_t(SYSTEMTIME *systemTime, time_t 
     SystemTimeToFileTime(systemTime, (FILETIME*)&utcFT);
     utcDosTime = (utcFT.QuadPart - jan1970FT.QuadPart)/10000000;
     *unixts = (time_t)utcDosTime;
-
-	return INA_SUCCESS;
 }
 #else
-static ina_rc_t __ina_file_posix_map_flags(ina_file_access_mode_t access,
+static void __ina_file_posix_map_flags(ina_file_access_mode_t access,
                                            ina_file_create_mode_t create,
                                            ina_file_share_mode_t share,
                                            int flags,
@@ -180,7 +177,6 @@ static ina_rc_t __ina_file_posix_map_flags(ina_file_access_mode_t access,
     if (flags & INA_FILE_FLAG_POSIX_DIRECT) {
         *posix_flags |= O_DIRECT;
     }
-    return INA_SUCCESS;
 }
 #endif
 
@@ -214,10 +210,8 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
 	DWORD dwFlagsAndAttributes;
 	HANDLE fhandle;
 	
-	if (!INA_SUCCEED(__ina_file_win_map_flags(access, create, share, flags, 
-		&dwDesiredAccess, &dwShareMode, &dwCreationDisposition, &dwFlagsAndAttributes))) {
-			return INA_ERR_PUSH_LAST;
-	}
+	__ina_file_win_map_flags(access, create, share, flags, 
+		&dwDesiredAccess, &dwShareMode, &dwCreationDisposition, &dwFlagsAndAttributes);
 
 	fhandle = CreateFileA(file_fqn, dwDesiredAccess, dwShareMode, NULL,
 		dwCreationDisposition, dwFlagsAndAttributes, NULL);
@@ -233,9 +227,7 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
     int mode = 0;
     int fhandle;
 
-    if (!INA_SUCCEED(__ina_file_posix_map_flags(access, create, share, flags, &posix_flags, &mode))) {
-        return INA_ERR_PUSH_LAST;
-    }
+    __ina_file_posix_map_flags(access, create, share, flags, &posix_flags, &mode);
 
     if (mode == 0) {
         fhandle = open(file_fqn, posix_flags);

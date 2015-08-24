@@ -148,9 +148,9 @@ INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx)
 {
     *ctx = (ina_process_ctx_t*)ina_mem_alloc(sizeof(ina_process_ctx_t));
     (*ctx)->processes = NULL;
-    if (!INA_SUCCEED(ina_time_sys_new(&(*ctx)->systime))) {
-        return INA_ERR_PUSH_LAST;
-    }
+    
+    ina_time_sys_new(&(*ctx)->systime);
+ 
     if (!INA_SUCCEED(ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL))) {
         return INA_ERR_PUSH_LAST;
     }
@@ -189,10 +189,10 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx)
     if (!INA_SUCCEED(ina_time_read_sys_clock(ctx->systime))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(ina_time_sys_seconds_micros(ctx->systime, 
-        &curr_time_sec, &curr_time_micros))) {
-        return INA_ERR_PUSH_LAST;
-    }
+    
+    ina_time_sys_seconds_micros(ctx->systime, 
+                                &curr_time_sec, 
+                                &curr_time_micros);
 
     HASH_ITER(hh, ctx->processes, p, pt) {
         /* if we need to perfom init checks */

@@ -80,10 +80,7 @@ INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
     INA_TEST_HELPER_CHECK_ARGC(1);
     id = INA_TEST_HELPER_IARG(0);
 
-    if (!INA_SUCCEED(ina_time_tsc_enable_rdtsc())) {
-        INA_TEST_HELPER_SET_RC(ina_err_peek());
-        return;
-    }
+    ina_time_tsc_enable_rdtsc();
 
     if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, id, -1))) {
         INA_TEST_HELPER_SET_RC(ina_err_peek());
