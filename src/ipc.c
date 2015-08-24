@@ -230,6 +230,7 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
     (*counter)->data = (ina_ipc_counter_data_t*)ina_mempool_dalloc((*counter)->m, sizeof(ina_ipc_counter_data_t));
     if ((*counter)->data == NULL) {
         ina_ipc_counter_free(counter);
+        return INA_ERR_PUSH_LAST;
     }
     (*counter)->data->c = initial;
 
