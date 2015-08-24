@@ -601,6 +601,7 @@ __ina_process_entries(ina_conffile_t *cf, ina_conffile_section_res_t *res)
             entry = (ina_conffile_entry_t*)ina_mempool_dalloc(
                                             cf->mempool,
                                             sizeof(ina_conffile_entry_t));
+            INA_ASSERT_NOTNULL(entry);
             entry->id = INA_HASH_CSTR_TO_SDBM(k);
             entry->key = ina_str_new_fromcstr_using_pool(k, cf->mempool);
             lua_getfield(lstate, -1 , __INA_ATTR_VALUE);
