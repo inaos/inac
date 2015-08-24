@@ -165,11 +165,11 @@ INA_API(ina_rc_t) ina_histogram_recorder_record(ina_histogram_recorder_t *record
 
 INA_API(ina_rc_t) ina_histogram_recorder_process(ina_histogram_recorder_t *recorder, int64_t time_ns)
 {
-    ina_time_event_t *e;
+    ina_time_event_t *e = NULL;
     time_t time_ms = (time_t)(time_ns/1000/1000);
     e = ina_timer_next_event_with_time(recorder->timer, time_ms);
     /* phase change */
-    if (e->id == recorder->phase->id) {
+    if (e && e->id == recorder->phase->id) {
         ina_histogram_record_t *r = INA_ULLC_CLAIM(ina_histogram_record_t, recorder->producer);
         ina_mem_cpy(r->data, recorder->hist, sizeof(recorder->hist));
         strcpy(r->free_text1, ina_str_cstr(recorder->free_text1));
