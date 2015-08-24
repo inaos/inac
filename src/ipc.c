@@ -83,6 +83,7 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
     (*flags)->data = (ina_ipc_flags_data_t*)ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
+        return INA_ERR_PUSH_LAST;
     }
     strncpy((*flags)->data->name, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
     if (initial != INA_IPC_FLAGS_IGNORE) {
