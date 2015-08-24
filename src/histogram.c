@@ -238,21 +238,23 @@ INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t 
                                                      ina_histogram_meta_t *meta)
 {
     ina_histogram_record_t *r = INA_ULLC_GET(ina_histogram_record_t, serializer->consumer);
-    struct hdr_histogram *h = (struct hdr_histogram*)r->data;
-    struct timespec st, et;
-
-    st.tv_sec = (time_t)r->start_ts_ns/1000;
-    st.tv_nsec = r->start_ts_ns % 1000;
-    et.tv_sec = (time_t)r->end_ts_ns/1000;
-    et.tv_nsec = r->end_ts_ns % 1000;
     
-    hdr_log_write_str(&serializer->writer, record, &st, &et, h);
-    
-    strcpy(meta->free_text1, r->free_text1);
-    strcpy(meta->free_text2, r->free_text2);
-    strcpy(meta->free_text3, r->free_text3);
-    strcpy(meta->free_text4, r->free_text4);
+    if (r != NULL) {
+        struct hdr_histogram *h = (struct hdr_histogram*)r->data;
+        struct timespec st, et;
 
+        st.tv_sec = (time_t)r->start_ts_ns/1000;
+        st.tv_nsec = r->start_ts_ns % 1000;
+        et.tv_sec = (time_t)r->end_ts_ns/1000;
+        et.tv_nsec = r->end_ts_ns % 1000;
+    
+        hdr_log_write_str(&serializer->writer, record, &st, &et, h);
+    
+        strcpy(meta->free_text1, r->free_text1);
+        strcpy(meta->free_text2, r->free_text2);
+        strcpy(meta->free_text3, r->free_text3);
+        strcpy(meta->free_text4, r->free_text4);
+    }
     return INA_SUCCESS;
 }
 
