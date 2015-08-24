@@ -412,9 +412,12 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 
             /* FIXME: Push an error , if fails */
             /* FXIME: shm can not handled in chunks ! */
-            ina_mempool_create(&pool->current->child, nsize, 
+            if (!INA_SUCCEED(ina_mempool_create(&pool->current->child, nsize, 
                     pool->cf|INA_MEM_CHILD, 
-                    pool->label);
+                    pool->label))) {
+                INA_ERR_PUSH_LAST;
+                return NULL;
+            }
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
         } else {
