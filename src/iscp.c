@@ -82,6 +82,8 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
     }
     
     if (!INA_SUCCEED(rc)) {
+        ina_mem_free(*ctx);
+        *ctx = NULL;
         return INA_ERR_PUSH_LAST;
     }
 
