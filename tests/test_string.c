@@ -604,6 +604,7 @@ INA_TEST(string, ina_str_adjust_len)
 INA_TEST(string, ina_str_substr)
 {
     ina_str_t str = ina_str_new_fromcstr("exctrat a substring from a string");
+    INA_TEST_ASSERT_NOT_NULL(str);
     ina_str_t substr = ina_str_substr(str, 10, 18);
     INA_TEST_ASSERT_NOT_NULL(substr);
     INA_TEST_ASSERT_EQUAL_STR("substring", substr);
