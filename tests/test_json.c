@@ -94,6 +94,7 @@ INA_TEST(json, parser_execute)
     ina_json_ctx_t    *ctx = NULL;
     ina_json_parser_t *p =  NULL;
     INA_TEST_ASSERT_SUCCEED(ina_json_init(&ctx, 1, 1));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_borrow(ctx,  &p));
         
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_execute(p, 
@@ -138,7 +139,7 @@ INA_TEST(json, parser_try_data)
 
     INA_TEST_ASSERT_SUCCEED(ina_json_init(&ctx, 1, 0));
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_borrow(ctx,  &p));
-        
+    INA_TEST_ASSERT_NOT_NULL(p);
     INA_TEST_ASSERT_SUCCEED(ina_json_parser_execute(p, 
                                 (unsigned char *)__object, 
                                 strlen(__object),
