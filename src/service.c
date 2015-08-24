@@ -561,10 +561,11 @@ static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
 
 static ina_rc_t __ina_service_run_console(ina_service_ctx_t *ctx)
 {
-    ina_str_t lock_file_path;
+    ina_str_t lock_file_path = NULL;
 
     lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
                                         ina_str_cstr(ctx->descriptor->name));
+    INA_ASSERT_NOTNULL(lock_file_path);
 
     ctx->lock_fp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
     ina_str_free(lock_file_path);
@@ -623,6 +624,8 @@ static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_
     *status = INA_SERVICE_STATUS_STOP;
 
     lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, name);
+    INA_ASSERT_NOTNULL(lock_file_path);
+    
     lfp = open(ina_str_cstr(lock_file_path), O_RDONLY, 0640);
     if (lfp >= 0) {
         *status = INA_SERVICE_STATUS_RUN;
