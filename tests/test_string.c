@@ -366,6 +366,11 @@ INA_TEST(string, ina_str_cmp)
     ina_str_t s4 = ina_str_new_fromcstr("abCD");
     int result = 0;
 
+    INA_TEST_ASSERT_NOT_NULL(s1);
+    INA_TEST_ASSERT_NOT_NULL(s2);
+    INA_TEST_ASSERT_NOT_NULL(s3);
+    INA_TEST_ASSERT_NOT_NULL(s4); 
+ 
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s1, s2));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s1));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s3));
