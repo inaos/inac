@@ -53,7 +53,7 @@ struct ina_mmap_mapping_s {
 INA_API(ina_rc_t) ina_mmap_init(ina_mmap_ctx_t **ctx)
 {
     *ctx = (ina_mmap_ctx_t*)ina_mem_alloc(sizeof(ina_mmap_ctx_t));
-    ina_mem_get_pagesize(&(*ctx)->page_size));
+    ina_mem_get_pagesize(&(*ctx)->page_size);
     return INA_SUCCESS;
 }
 
