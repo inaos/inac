@@ -343,8 +343,6 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                   ina_process_descriptor_t *descriptor, 
                                   ina_process_t **process)
 {
-    ina_mempool_t *mempool = NULL;
-
     INA_ASSERT_NOTNULL(descriptor);
     INA_ASSERT_NOTNULL(ctx);
 
