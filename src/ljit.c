@@ -135,9 +135,10 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
         /* get function */
         lua_getglobal(ctx->lstate, fname); 
     } else {    
+        char *obj_name_c;
         ina_str_t obj_name = ina_str_new_fromcstr(fname);
         INA_ASSERT_NOTNULL(obj_name);
-        char *obj_name_c = (char*)ina_str_cstr(obj_name);
+        obj_name_c = (char*)ina_str_cstr(obj_name);
         obj_name_c[cfname - fname] = '\0';
         lua_getglobal(ctx->lstate, obj_name_c);
         cfname++;
