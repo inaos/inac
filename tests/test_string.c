@@ -609,9 +609,10 @@ INA_TEST(string, ina_str_adjust_len)
 
 INA_TEST(string, ina_str_substr)
 {
+    ina_str_t substr = NULL;
     ina_str_t str = ina_str_new_fromcstr("exctrat a substring from a string");
     INA_TEST_ASSERT_NOT_NULL(str);
-    ina_str_t substr = ina_str_substr(str, 10, 18);
+    substr = ina_str_substr(str, 10, 18);
     INA_TEST_ASSERT_NOT_NULL(substr);
     INA_TEST_ASSERT_EQUAL_STR("substring", substr);
     ina_str_free(str);
@@ -670,7 +671,7 @@ INA_TEST(string, simple_allocation_with_pool)
 
 INA_TEST(string, simple_allocation_without_pool)
 {
-	ina_str_t str1;
+    ina_str_t str1;
     ina_str_t str2;
 
     str1 = ina_str_new_fromcstr("hallo");
