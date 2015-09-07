@@ -147,6 +147,18 @@ csv.add_row = function(ref, ...)
   rows = nil
 end
 
+csv.add_row_table = function(ref, rows)
+  _check_ref(ref)
+  if not ref._header_fin then
+    error("Header not finalized yet!")
+  end
+  local n = #rows
+  if n ~= ref._cols then
+    error("Your trying to add "..n.." tupels however allowed only "..ref._cols)
+  end
+  _emit_line(ref, ref._cols, rows)
+end
+
 csv.destroy = function(ref)
   _check_ref(ref)
   if ref._file then
