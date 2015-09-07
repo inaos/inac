@@ -1,7 +1,7 @@
 @echo off
 
 REM
-REM Copyright (c) 2013-2014, INAOS GmbH
+REM Copyright (c) 2013-2015, INAOS GmbH
 REM All rights reserved.
 REM
 REM Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ REM * INAC_WIN32_LUA_INC_JIT: Include the JIT directory of Luajit - Optional
 REM * INAC_WIN32_CODE_GEN_SCRIPT: Lua script that will be invoked before compilation, relative from PROJECT_DIR - Optional
 REM * INAC_WIN32_CODE_GEN_ARGS: Arguments for the code-generator - Optional
 REM * INAC_WIN32_DIST_PACKAGE_NAME: Full name of the zip package to be created (e.g. my-app-1.0.zip)
-REM * INAC_WIN32_DIST_FILES: Batch array of (fully qualified) files that will be packaged for distribution.
+REM * INAC_WIN32_DIST_CONFIG: Fully qualified path to distribution config file.
 REM
 REM Environment variable rules
 REM --------------------------
@@ -180,7 +180,7 @@ if "%INAC_W32_BUILD_STAGE%" == "dist" (
 	if not defined INAC_WIN32_DIST_PACKAGE_NAME goto fail_dist_package_name
 	echo Creating distribution package ...
 	mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist
-	for /F "tokens=2* delims=.=" %%A in ('SET INAC_WIN32_DIST_FILES.') do copy %%B %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist
+	for /F "tokens=*" %%A in (%INAC_WIN32_DIST_CONFIG%) do copy %%A %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist
 	cscript %INAC_W32_ZIP_TOOL% %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\%INAC_WIN32_DIST_PACKAGE_NAME%
 	rmdir /s /q %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%\dist
 	echo Created package %INAC_WIN32_DIST_PACKAGE_NAME%
@@ -447,7 +447,7 @@ if defined INAC_WIN32_LUA_SOURCE_DIR SET INAC_WIN32_LUA_SOURCE_DIR=
 if defined INAC_WIN32_LUA_LIB_NAME SET INAC_WIN32_LUA_LIB_NAME=
 if defined INAC_WIN32_LUA_INC_JIT SET INAC_WIN32_LUA_INC_JIT=
 if defined INAC_WIN32_CODE_GEN_SCRIPT SET INAC_WIN32_CODE_GEN_SCRIPT=
-if defined INAC_WIN32_DIST_FILES SET INAC_WIN32_DIST_FILES=
+if defined INAC_WIN32_DIST_CONFIG SET INAC_WIN32_DIST_CONFIG=
 if defined INAC_WIN32_DIST_PACKAGE_NAME SET INAC_WIN32_DIST_PACKAGE_NAME=
 if defined INAC_WIN32_CODE_GEN_ONLY SET INAC_WIN32_CODE_GEN_ONLY=
 if defined INAC_WIN32_CODE_GEN_ARGS SET INAC_WIN32_CODE_GEN_ARGS=
