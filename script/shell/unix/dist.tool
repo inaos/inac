@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2013-2014, INAOS GmbH
+# Copyright (c) 2013-2015, INAOS GmbH
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,5 +30,5 @@
 if [ "$INAC_BUILD_STAGE" == "clean" ]; then
 	rm -f $INAC_BUILD_PROJECT_DIR/*.tar.gz
 else
-        tar czfv "$INAC_BUILD_NAME-$INAC_BUILD_VERSION".tar.gz $INAC_BUILD_FILES
+        tar czfv "$INAC_BUILD_NAME-$INAC_BUILD_VERSION".tar.gz -T $INAC_BUILD_FILE_LIST
 fi
