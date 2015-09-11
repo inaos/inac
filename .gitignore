@@ -24,6 +24,7 @@ tests/ilt
 tests/iml
 contribs/rapidxml/build*
 contribs/sqlite/buildall/*
+contribs/sqlite/libsqlite3.so
 contribs/luajit/src/luajit.exp
 contribs/luajit/src/luajitd.exp
 contribs/luajit/src/host/buildvm
