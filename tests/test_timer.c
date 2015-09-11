@@ -69,6 +69,24 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
+    ina_timer_destroy(&t);
+}
+
+INA_TEST(timer, stress_test)
+{
+    ina_timer_t *t = NULL;
+    ina_time_event_t *e = NULL;
+    int c = 0;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
+    INA_TEST_ASSERT_NOT_NULL(t);
+
+    e = ina_timer_create_event(t, 3000);
+    for (c = 0; c < 1000000; c++) {
+        ina_time_event_t *ne;
+        ne = ina_timer_next_event(t);
+    }
+    ina_timer_delete_event(t, e);
 }
 
 #ifndef INA_OS_WIN32 
