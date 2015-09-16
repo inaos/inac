@@ -156,6 +156,9 @@ case "$1" in
             if [ -d "/proc/${mypid}" ]; then
                 echo "${NAME} (pid ${mypid}) is running..."
                 RETVAL="0"
+            else
+                echo "${NAME} is abnormally stopped"
+                RETVAL="3"
             fi
         else
             pid=`$(/usr/bin/pgrep -d , "${INA_SERVICE_STARTUP}")`
