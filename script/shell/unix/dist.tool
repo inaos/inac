@@ -30,5 +30,5 @@
 if [ "$INAC_BUILD_STAGE" == "clean" ]; then
 	rm -f $INAC_BUILD_PROJECT_DIR/*.tar.gz
 else
-        tar czfv "$INAC_BUILD_NAME-$INAC_BUILD_VERSION".tar.gz < $INAC_BUILD_FILE_LIST
+        tar czfv "$INAC_BUILD_NAME-$INAC_BUILD_VERSION".tar.gz --files-from $INAC_BUILD_FILE_LIST
 fi
