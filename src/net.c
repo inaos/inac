@@ -32,11 +32,14 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <ifaddrs.h>
+#include <net/if.h>
 #endif
 
 #include <contribs/anet/anet.h>
@@ -329,7 +332,7 @@ INA_API(ina_rc_t) ina_net_block(int fd)
 #endif
 
 #ifdef INA_OS_WIN32
-INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac[6])
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
 {
     DWORD ret;
     IPAddr dst_ip;
@@ -350,4 +353,39 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac[6])
     return INA_SUCCESS;
 }
 #else
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
+{
+    struct ifaddrs *ifaddr, *ifa;
+    struct ifreq ifr;
+    int fd;
+    int found = 0;
+
+    if (getifaddrs(&ifaddr) == -1) {
+        return INA_FAILURE;
+    }
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+            struct sockaddr_in *sin = (struct sockaddr_in*)ifa->ifa_addr;
+            const char *qip = inet_ntoa(sin->sin_addr);
+            if (strcmp(qip, ip) == 0) {
+                found = 1;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        freeifaddrs(ifaddr);
+        return INA_FAILURE;
+    }
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    ifr.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr.ifr_name, ifa->ifa_name, IFNAMSIZ-1);
+    ioctl(fd, SIOCGIFHWADDR, &ifr);
+    close(fd);
+    memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
+    freeifaddrs(ifaddr);
+
+    return INA_SUCCESS;
+}
 #endif
+

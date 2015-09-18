@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,13 @@
  * OF SUCH DAMAGE.
  */
 #include <libinac/lib.h>
+
+#ifdef INA_OS_LINUX
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <netdb.h>
+#endif
 
 #define __INA_TCP_ADDR "127.0.0.1"
 #define __INA_TCP_PORT  8033
@@ -122,4 +129,31 @@ INA_TEST_FIXTURE(net, tcp_write_read_1000_times) {
         INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
     }
 }
+#ifdef INA_OS_WIN32
+#else
+INA_TEST(net, mac_addr)
+{
+    struct ifaddrs *ifaddr, *ifa;
+    char host[NI_MAXHOST];
+    char *ip = NULL;
+    char *mac = (char*)malloc(sizeof(6));
 
+    INA_TEST_ASSERT_FALSE(getifaddrs(&ifaddr) == -1);
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL || ifa->ifa_addr->sa_family != AF_INET) {
+            continue;
+        }
+        getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+        if (strcmp(ifa->ifa_name, "eth0") == 0) {
+            ip = strdup(host);
+            break;
+        }
+    }
+
+    INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(ip, mac));
+    
+    free(ip);
+    freeifaddrs(ifaddr);
+}
+#endif
