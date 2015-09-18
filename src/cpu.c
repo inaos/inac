@@ -37,9 +37,9 @@ struct ina_cpu_ctx_s {
     int core_count;
     int thread_count;
     int logical_count;
-    int family;
-    int model;
-    int stepping;
+    uint8_t family;
+    uint8_t model;
+    uint8_t stepping;
     ina_cpu_feature_t features;
     ina_str_t brand;
     ina_str_t vendor;
@@ -55,7 +55,7 @@ INA_API(ina_rc_t) ina_cpu_init()
     int cores = 0;
     int threads = 0;
     int logical = 0;
-    int stepping, model, family, extmodel, extfam;
+    uint8_t stepping, model, family, extmodel, extfam;
     char brandstr[49];
     char cpubrand[49];
     ina_cpu_feature_t cpufeatures = 0;
@@ -484,6 +484,15 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
     }
 #endif
 #endif
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family, uint8_t *model, uint8_t *stepping)
+{
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    *family = __ina_cpu_ctx->family;
+    *model = __ina_cpu_ctx->model;
+    *stepping = __ina_cpu_ctx->stepping;
     return INA_SUCCESS;
 }
 
