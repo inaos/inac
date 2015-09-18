@@ -174,6 +174,11 @@ INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *so
  */
 INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *source);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac[6]);
+
 #ifdef __cplusplus
 }
 #endif

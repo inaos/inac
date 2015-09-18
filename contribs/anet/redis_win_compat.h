@@ -7,6 +7,7 @@
 
 #include <Ws2tcpip.h>
 #include <mswsock.h>
+#include <Iphlpapi.h>
 
 #define inline __inline
 

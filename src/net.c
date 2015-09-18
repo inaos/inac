@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -326,4 +326,28 @@ INA_API(ina_rc_t) ina_net_block(int fd)
     }
     return INA_SUCCESS;
 }
+#endif
+
+#ifdef INA_OS_WIN32
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac[6])
+{
+    DWORD ret;
+    IPAddr dst_ip;
+    ULONG mac_addr[2];
+    ULONG phy_addr_len = 6;
+    int i;
+ 
+    dst_ip = inet_addr(ip);
+
+    ret = SendARP(dst_ip , INADDR_ANY, mac_addr, &phy_addr_len);
+     
+    if(phy_addr_len) {
+        BYTE *bMacAddr = (BYTE*) & mac_addr;
+        for (i = 0; i < (int)phy_addr_len; i++) {
+            *mac[i] = (char)bMacAddr[i];
+        }
+    }
+    return INA_SUCCESS;
+}
+#else
 #endif
