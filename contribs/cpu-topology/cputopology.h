@@ -252,7 +252,7 @@ typedef struct
 
 
 unsigned long getBitsFromDWORD(const unsigned int val, const char from, const char to);
-static unsigned  createMask(unsigned  numEntries, unsigned  *maskLength);
+/*static unsigned  createMask(unsigned  numEntries, unsigned  *maskLength);*/
 unsigned SlectOrdfromPkg(unsigned  package,unsigned  core, unsigned  logical);
 
 unsigned  GetOSLogicalProcessorCount();
