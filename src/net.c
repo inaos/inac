@@ -347,7 +347,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     if(phy_addr_len) {
         BYTE *bMacAddr = (BYTE*) & mac_addr;
         for (i = 0; i < (int)phy_addr_len; i++) {
-            *mac[i] = (char)bMacAddr[i];
+            mac[i] = (char)bMacAddr[i];
         }
     }
     return INA_SUCCESS;

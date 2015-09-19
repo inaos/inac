@@ -25,6 +25,12 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+
+#ifdef INA_OS_WIN32
+#include <winsock2.h>
+#include <iphlpapi.h>
+#endif
+
 #include <libinac/lib.h>
 
 #ifdef INA_OS_LINUX
@@ -130,6 +136,78 @@ INA_TEST_FIXTURE(net, tcp_write_read_1000_times) {
     }
 }
 #ifdef INA_OS_WIN32
+INA_TEST(net, mac_addr)
+{
+    char *mac = (char*)malloc(sizeof(6));
+    char *test_ip;
+    int found = 0;
+
+    /* first the get first IP-Address of the system */
+#define WORKING_BUFFER_SIZE 15000
+#define MAX_TRIES 3
+    DWORD dwSize = 0;
+    DWORD dwRetVal = 0;
+    unsigned int i = 0;
+
+    ULONG family = AF_INET;
+    ULONG flags = GAA_FLAG_SKIP_DNS_SERVER;
+    LPVOID lpMsgBuf = NULL;
+
+    PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+    ULONG outBufLen = 0;
+    ULONG Iterations = 0;
+
+    PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+    PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+    PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
+    PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
+    IP_ADAPTER_DNS_SERVER_ADDRESS *pDnServer = NULL;
+    IP_ADAPTER_PREFIX *pPrefix = NULL;
+
+    outBufLen = WORKING_BUFFER_SIZE;
+    do {
+        pAddresses = (IP_ADAPTER_ADDRESSES *)ina_mem_alloc(outBufLen);
+        INA_TEST_ASSERT_NOT_NULL(pAddresses);
+        dwRetVal = GetAdaptersAddresses(family, flags, NULL, pAddresses, &outBufLen);
+        if (dwRetVal == ERROR_BUFFER_OVERFLOW) {
+            ina_mem_free(pAddresses);
+            pAddresses = NULL;
+        }
+        else {
+            break;
+        }
+        Iterations++;
+    } while ((dwRetVal == ERROR_BUFFER_OVERFLOW) && (Iterations < MAX_TRIES));
+
+    if (dwRetVal == NO_ERROR) {
+        pCurrAddresses = pAddresses;
+        while (pCurrAddresses) {
+            pUnicast = pCurrAddresses->FirstUnicastAddress;
+            if (pUnicast != NULL) {
+                for (i = 0; pUnicast != NULL; i++) {
+                    if (pUnicast->Address.lpSockaddr->sa_family == AF_INET) {
+                        struct sockaddr_in *sin = (struct sockaddr_in*)pUnicast->Address.lpSockaddr;
+                        char *ip = inet_ntoa(sin->sin_addr);
+                        if (!found && strncmp("127.", ip, 4) != 0) {
+                            test_ip = _strdup(ip);
+                            found = 1;
+                        }
+                    }
+                    pUnicast = pUnicast->Next;
+                }
+            }
+            pCurrAddresses = pCurrAddresses->Next;
+        }
+    }
+    if (pAddresses) {
+        ina_mem_free(pAddresses);
+    }
+
+    /* execute the actual test now that we have an IP address */
+    INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(test_ip, mac));
+
+    free(test_ip);
+}
 #else
 INA_TEST(net, mac_addr)
 {
