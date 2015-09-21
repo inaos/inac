@@ -141,7 +141,7 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/process.c ${SRC_DIR}/dns.c ${SRC_DIR}/template.c ${SRC_DIR}/ipc.c
 				 ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c 
 				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c
-				 ${SRC_DIR}/histogram.c ${SRC_DIR}/pcap.c)
+				 ${SRC_DIR}/histogram.c ${SRC_DIR}/pcap.c ${SRC_DIR}/gzip.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
