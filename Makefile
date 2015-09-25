@@ -101,9 +101,9 @@ endif
 # ****************************************************************************
 # Hardware accelarated networking
 # ****************************************************************************
-INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/solarflare/openonload/lib64/libonload_ext.a
-CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/solarfalare/openonload/include
-CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/mellanox/vma/include
+INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/solarflare/lib64/libonload_ext.a
+CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/solarflare/include
+CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/mellanox/include
 # ****************************************************************************
 # Time implementation
 # ****************************************************************************

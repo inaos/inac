@@ -42,11 +42,17 @@ typedef struct __ina_net_hw_func_s {
     ina_net_hw_accelerate_loopback_fp accelerate_loopback_fp;
 } __ina_net_hw_func_t;
 
+struct ina_net_hw_ctx_s {
+    ina_str_t name;
+    __ina_net_hw_func_t funcs;
+    void *data;
+};
+
 /* Solarflare Openonload */
 INA_API(ina_rc_t) __ina_net_hw_onload_enabled(ina_net_hw_ctx_t *ctx);
 INA_API(ina_rc_t) __ina_net_hw_onload_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature);
 INA_API(ina_rc_t) __ina_net_hw_onload_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias);
-INA_API(ina_rc_t) INA_INLINE __ina_net_hw_onload_select(__ina_net_hw_func_t *f)
+ina_rc_t INA_INLINE __ina_net_hw_onload_select(__ina_net_hw_func_t *f)
 {
     f->enabled_fp = __ina_net_hw_onload_enabled;
     f->feature_check_fp = __ina_net_hw_onload_feature_check;
@@ -58,7 +64,7 @@ INA_API(ina_rc_t) INA_INLINE __ina_net_hw_onload_select(__ina_net_hw_func_t *f)
 INA_API(ina_rc_t) __ina_net_hw_vma_enabled(ina_net_hw_ctx_t *ctx);
 INA_API(ina_rc_t) __ina_net_hw_vma_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature);
 INA_API(ina_rc_t) __ina_net_hw_vma_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias);
-INA_API(ina_rc_t) INA_INLINE __ina_net_hw_vma_select(__ina_net_hw_func_t *f)
+ina_rc_t INA_INLINE __ina_net_hw_vma_select(__ina_net_hw_func_t *f)
 {
     f->enabled_fp = __ina_net_hw_vma_enabled;
     f->feature_check_fp = __ina_net_hw_vma_feature_check;

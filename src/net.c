@@ -40,7 +40,6 @@
 #include <unistd.h>
 #include <ifaddrs.h>
 #include <net/if.h>
-#include <poll.h>
 #endif
 
 #include <contribs/anet/anet.h>
@@ -48,12 +47,6 @@
 #include <libinac/lib.h>
 
 #include "net_hw.h"
-
-struct ina_net_hw_ctx_s {
-    ina_str_t name;
-    __ina_net_hw_func_t funcs; 
-    void *data;
-};
 
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {

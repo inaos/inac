@@ -32,7 +32,7 @@
 
 #ifdef INA_OS_LINUX
 
-#include <onload_ext.h>
+#include <onload/extensions.h>
 
 INA_API(ina_rc_t) __ina_net_hw_onload_enabled(ina_net_hw_ctx_t *ctx)
 {
@@ -58,7 +58,7 @@ INA_API(ina_rc_t) __ina_net_hw_onload_feature_check(ina_net_hw_ctx_t *ctx, ina_n
             if (ctx->data == NULL) {
                 return INA_FAILURE;
             }
-            fd = (int)ctx->data;
+            fd = *((int*)ctx->data);
             if (onload_fd_check_feature(fd, ONLOAD_FD_FEAT_MSG_WARM) > 0) {
                 return INA_SUCCESS;
             }
