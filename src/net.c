@@ -50,8 +50,8 @@
 #include "net_hw.h"
 
 struct ina_net_hw_ctx_s {
-    __ina_net_hw_func_t funcs; 
     ina_str_t name;
+    __ina_net_hw_func_t funcs; 
     void *data;
 };
 
@@ -438,17 +438,17 @@ INA_API(ina_rc_t) ina_net_hw_init(ina_net_hw_ctx_t **ctx, ina_net_hw_backend_t b
     (*ctx)->name = ina_str_new_fromcstr(name);
 
     switch (backend) {
-        INA_NET_HW_BACKEND_SOLARFLARE_ONLOAD:
+        case INA_NET_HW_BACKEND_SOLARFLARE_ONLOAD:
             __ina_net_hw_onload_select(&(*ctx)->funcs);
             break;
-        INA_NET_HW_BACKEND_MELLANOX_VMA:
+        case INA_NET_HW_BACKEND_MELLANOX_VMA:
             __ina_net_hw_vma_select(&(*ctx)->funcs); 
             break;
         default:
             INA_ASSERT_TRUE(0); 
     }
 
-    if (!INA_SUCCEED((*ctx)->funcs->enabled_fp(*ctx))) {
+    if (!INA_SUCCEED((*ctx)->funcs.enabled_fp(*ctx))) {
         return INA_ERR_PUSH_LAST;
     }
 

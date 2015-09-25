@@ -25,18 +25,21 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#ifndef _LIBINAC_NET_HW_H__
+#define _LIBINAC_NET_HW_H__
+
 #include <libinac/lib.h>
 #include "config.h"
 
 /* functionn pointers */
 typedef ina_rc_t (*ina_net_hw_enabled_fp)(ina_net_hw_ctx_t *ctx);
 typedef ina_rc_t (*ina_net_hw_feature_check_fp)(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature);
-typedef ina_rc_t (*ina_net_hw_accelerate_loopback)(ina_net_hw_ctx_t *ctx, int fc, const char *alias);
+typedef ina_rc_t (*ina_net_hw_accelerate_loopback_fp)(ina_net_hw_ctx_t *ctx, int fc, const char *alias);
 
 typedef struct __ina_net_hw_func_s {
     ina_net_hw_enabled_fp enabled_fp;
     ina_net_hw_feature_check_fp feature_check_fp;
-    ina_net_hw_accelerate_loopback accelerate_loopback_fp;
+    ina_net_hw_accelerate_loopback_fp accelerate_loopback_fp;
 } __ina_net_hw_func_t;
 
 /* Solarflare Openonload */
@@ -63,3 +66,4 @@ INA_API(ina_rc_t) INA_INLINE __ina_net_hw_vma_select(__ina_net_hw_func_t *f)
     return INA_SUCCESS;
 }
 
+#endif

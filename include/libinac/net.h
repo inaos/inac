@@ -44,7 +44,7 @@
 extern "C" {
 #endif
 
-typdef struct ina_net_hw_ctx_s ina_net_hw_ctx_t;
+typedef struct ina_net_hw_ctx_s ina_net_hw_ctx_t;
 
 typedef enum ina_net_hw_backend_e {
     INA_NET_HW_BACKEND_SOLARFLARE_ONLOAD = 0,
@@ -115,6 +115,10 @@ typedef struct ina_net_udp_hdr_s {
 	u_short	uh_ulen;		/* datagram length */
 	u_short	uh_sum;			/* datagram checksum */
 } ina_net_udp_hdr_t;
+
+#ifdef INA_OS_WIN32
+typedef ULONG nfds_t;
+#endif
 
 /*
  * Resovle an host name into to a ip address
@@ -207,7 +211,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac);
  * compared to kernel sleep. Timeout is in milliseconds
  *
  */
-INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout);
+INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *num_fds_ready);
 
 /*
  *

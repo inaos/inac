@@ -30,6 +30,8 @@
 
 #include "net_hw.h"
 
+#ifdef INA_OS_LINUX
+
 #include <onload_ext.h>
 
 INA_API(ina_rc_t) __ina_net_hw_onload_enabled(ina_net_hw_ctx_t *ctx)
@@ -87,3 +89,17 @@ INA_API(ina_rc_t) __ina_net_hw_onload_accelerate_loopback(ina_net_hw_ctx_t *ctx,
     return INA_SUCCESS;
 }
 
+#else
+INA_API(ina_rc_t) __ina_net_hw_onload_enabled(ina_net_hw_ctx_t *ctx)
+{
+    return INA_ENYI;
+}
+INA_API(ina_rc_t) __ina_net_hw_onload_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature)
+{
+    return INA_ENYI;
+}
+INA_API(ina_rc_t) __ina_net_hw_onload_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias)
+{
+    return INA_ENYI;
+}
+#endif
