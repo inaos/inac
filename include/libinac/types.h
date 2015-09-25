@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,16 @@ INA_INLINE void ina_cpy_decimal(const ina_decimal_t *src, ina_decimal_t *dst)
 {
     dst->exponent = src->exponent;
     dst->mantissa = src->mantissa;
+}
+/*
+ * Compare decimal values:
+ * - returns 0 if the decimals are equal
+ * - returns > 0 if the lhs is bigger then rhs
+ * - return < 0 if the lhs is smaller then rhs
+ */
+INA_INLINE int ina_cmp_decimal(const ina_decimal_t *lhs, const ina_decimal_t *rhs)
+{
+    return memcmp(lhs, rhs, sizeof(ina_decimal_t));
 }
 /*
  * Convert a double to a decimal type.

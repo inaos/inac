@@ -40,11 +40,20 @@
 #include <unistd.h>
 #include <ifaddrs.h>
 #include <net/if.h>
+#include <poll.h>
 #endif
 
 #include <contribs/anet/anet.h>
 
 #include <libinac/lib.h>
+
+#include "net_hw.h"
+
+struct ina_net_hw_ctx_s {
+    __ina_net_hw_func_t funcs; 
+    ina_str_t name;
+    void *data;
+};
 
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
@@ -388,4 +397,80 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     return INA_SUCCESS;
 }
 #endif
+
+INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *num_fds_ready)
+{
+#ifdef INA_OS_WIN32
+    int rc = WSAPoll(fds, nfds, timeout);
+    if (rc == SOCKET_ERROR) {
+        int ec = WSAGetLastError();
+        char err[ANET_ERR_LEN];
+        sprintf(err, "poll failed with error-code: %d", ec);
+        return INA_NET_ERROR(err);
+    }
+    *num_fds_ready = rc;
+#else
+    int rc = poll(fds, nfds, timeout);
+    if (rc < 0) {
+        char err[ANET_ERR_LEN];
+        sprintf(err, "poll failed with error-code: %d", errno);
+        return INA_NET_ERROR(err);
+    }
+    *num_fds_ready = rc;
+#endif    
+    return INA_SUCCESS;
+}
+
+INA_API(int) ina_net_hw_support_present_on_os()
+{
+#ifdef INA_OS_LINUX
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+INA_API(ina_rc_t) ina_net_hw_init(ina_net_hw_ctx_t **ctx, ina_net_hw_backend_t backend)
+{
+    const char *name = ina_net_hw_backend_str[backend];
+    
+    *ctx = (ina_net_hw_ctx_t*)ina_mem_alloc(sizeof(ina_net_hw_ctx_t));
+    (*ctx)->name = ina_str_new_fromcstr(name);
+
+    switch (backend) {
+        INA_NET_HW_BACKEND_SOLARFLARE_ONLOAD:
+            __ina_net_hw_onload_select(&(*ctx)->funcs);
+            break;
+        INA_NET_HW_BACKEND_MELLANOX_VMA:
+            __ina_net_hw_vma_select(&(*ctx)->funcs); 
+            break;
+        default:
+            INA_ASSERT_TRUE(0); 
+    }
+
+    if (!INA_SUCCEED((*ctx)->funcs->enabled_fp(*ctx))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_hw_destroy(ina_net_hw_ctx_t **ctx)
+{
+    ina_str_free((*ctx)->name);
+    ina_mem_free(*ctx);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_hw_set_user_data(ina_net_hw_ctx_t *ctx, void *data)
+{
+    ctx->data = data;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_hw_backend_name(ina_net_hw_ctx_t *ctx, ina_str_t *name)
+{
+    *name = ctx->name;
+    return INA_SUCCESS;
+}
 
