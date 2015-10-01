@@ -44,13 +44,19 @@ typedef enum ina_pcap_open_mode_e {
 	INA_PCAP_OPEN_MODE_MMAP
 } ina_pcap_open_mode_t;
 
+typedef enum ina_pcap_file_compression_e {
+	INA_PCAP_FILE_COMPRESSION_NONE,
+	INA_PCAP_FILE_COMPRESSION_GZIP
+} ina_pcap_file_compression_t;
+
 /* opaque */
 typedef struct ina_pcap_ctx_s ina_pcap_ctx_t;
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, uint64_t buffer_size, ina_pcap_ctx_t **ctx);
+INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, uint64_t buffer_size, 
+                                ina_pcap_file_compression_t compression, ina_pcap_ctx_t **ctx);
 
 /*
  *
