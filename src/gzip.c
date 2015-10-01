@@ -102,6 +102,8 @@ struct ina_gzip_file_s {
 	unsigned char *initial_buffer;
 	size_t initial_buffer_len;
     size_t initial_buffer_consumed;
+    unsigned char *gzip_buffer;
+    ina_compression_state_t *gzip_cstate;
 };
 
 #define _INA_GZIP_FLAG_TEXT      (1 << 0)
@@ -291,11 +293,28 @@ INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file, uint64_t buffer_size, ina
         return INA_ERR_PUSH_LAST;
     }
 
+    if (!INA_SUCCEED(ina_compression_new(&(*gzf)->gzip_cstate, INA_COMPRESSION_TYPE_DEFLATE, INA_COMPRESSION_MODE_TRUSTED_FAST))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requested, size_t *read, unsigned char **chunk)
 {
+    /* FIXME: 
+     * => We have two major issues at the moment with this implementation.. basically this implementation does not work 
+     *    at all.. its just here as a idea
+     * + Problem 1: If we request to read X bytes from the file.. this nice but in reality we'll read more then requested 
+     *              because we do not know how many bytes we'll have after decompression.. or we only return as many 
+     *              bytes as requested but then we have to have an intelligent buffer.. hopefully without memcpy and stuff
+     * + Problem 2: I do not like the initial buffer handling as it is below here.. it seems too messy and complicated
+     * + Problem 3: We need to make sure we handle the decompression properly here
+     * + Problem 4: We need to adjust the test-case for the gzip module.. because currently it assumes compressed output of this method.
+     *
+     *
+     */
+    size_t read_from_file = 0;
     if (gzf->initial) {
         if (requested >= gzf->initial_buffer_len && gzf->initial_buffer_consumed == 0) {
             *chunk = gzf->initial_buffer;
@@ -323,6 +342,12 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
     if (*read < requested) {
         *read -= 8;
     }
+
+    read_from_file = *read;
+    if (!INA_SUCCEED(ina_compression_decompress_chunk(gzf->gzip_cstate, gzf->gzip_buffer, 
+                                    read_from_file, (unsigned char*)(*chunk), requested, read))) {
+        return INA_ERR_PUSH_LAST;
+    }
     
     return INA_SUCCESS;
 }
@@ -331,6 +356,12 @@ INA_API(ina_rc_t) ina_gzip_close(ina_gzip_file_t **gzf)
 {
     if ((*gzf)->initial_buffer != NULL) {
         ina_mem_free((*gzf)->initial_buffer);
+    }
+    if ((*gzf)->gzip_buffer != NULL) {
+        ina_mem_free((*gzf)->gzip_buffer);
+    }
+    if ((*gzf)->gzip_cstate != NULL) {
+        ina_compression_free(&(*gzf)->gzip_cstate);
     }
     ina_file_cursor_free(&(*gzf)->fcur);
     ina_file_free((*gzf)->file_ctx, &(*gzf)->fgzip);
