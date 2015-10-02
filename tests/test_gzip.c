@@ -32,10 +32,10 @@ static const char *my_test_string = "EUR/USD,GBP/USD,USD/JPY,AUD/USD,EUR/JPY,USD
   "EUR/AUD,EUR/NOK,EUR/PLN,USD/SEK,USD/NOK,USD/INR,USD/PLN," \
   "USD/CNY,USD/BRL,GBP/AUD,EUR/CAD,GBP/CHF,GBP/CAD";
   
-INA_TEST_SKIP(gzip, test_gzip)
+INA_TEST(gzip, test_gzip)
 {
     ina_gzip_file_t *gzf;
-    size_t read;
+    size_t read = 0;
     unsigned char *chunk;
     ina_compression_state_t *cstate;
     size_t wrote_len = 0;
@@ -45,6 +45,7 @@ INA_TEST_SKIP(gzip, test_gzip)
 
     buf_cur = buf;
     ina_mem_set(buf_cur, 0, 4*1024);
+    INA_TEST_MSG("out_bytes: %d", strlen(my_test_string));
     INA_TEST_ASSERT_SUCCEED(ina_compression_new(&cstate, INA_COMPRESSION_TYPE_DEFLATE, INA_COMPRESSION_MODE_TRUSTED_FAST));
     INA_TEST_ASSERT_SUCCEED(ina_gzip_open("test_gzip.gz", 4*1024, &gzf));
     INA_TEST_ASSERT_SUCCEED(ina_gzip_read_next_block(gzf, 1024, &read, &chunk));
@@ -55,6 +56,7 @@ INA_TEST_SKIP(gzip, test_gzip)
         tot_len += wrote_len;
         INA_TEST_ASSERT_SUCCEED(ina_gzip_read_next_block(gzf, 1024, &read, &chunk));
     }
+    INA_TEST_MSG("tot_len: %d", tot_len);
     buf[tot_len] = '\0';
     INA_TEST_ASSERT_TRUE(strcmp(my_test_string, (const char*)buf) == 0);
     INA_TEST_ASSERT_SUCCEED(ina_gzip_close(&gzf));

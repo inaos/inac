@@ -176,7 +176,7 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 		}
 		if ( (hdr->flg & _INA_GZIP_FLAG_NAME) && !proc_name ) {
 			int end = 0;
-			int text_start = pos++;
+			int text_start = pos;
 			while (pos < _INA_GZIP_BUF_REMAIN) {
 				char c = buffer[pos++];
 				if (c == '\0') {
@@ -244,12 +244,11 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 	}
 	
 	if (_INA_GZIP_BUF_REMAIN > 0) {
-		file->initial_buffer_len = _INA_GZIP_BUF_REMAIN;
+		file->initial_buffer_len = _INA_GZIP_BUF_REMAIN-1;
 		file->initial_buffer = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*file->initial_buffer_len);
 		ina_mem_cpy(file->initial_buffer, buffer+pos, _INA_GZIP_BUF_REMAIN-1);
         file->initial = 1;
 	}
-	
 	return INA_SUCCESS;
 }
 
@@ -340,15 +339,13 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
     }
     /* this is the last block - we need to chop-off the 4-byte crc and 4-byte input len */
     if (*read < requested) {
-        *read -= 8;
+        /**read -= 8;*/
     }
-
-    read_from_file = *read;
+    /*read_from_file = *read;
     if (!INA_SUCCEED(ina_compression_decompress_chunk(gzf->gzip_cstate, gzf->gzip_buffer, 
                                     read_from_file, (unsigned char*)(*chunk), requested, read))) {
         return INA_ERR_PUSH_LAST;
-    }
-    
+    }*/
     return INA_SUCCESS;
 }
 

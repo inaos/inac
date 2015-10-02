@@ -95,9 +95,9 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
     *wrote_len = 0;
 
     INA_ASSERT_TRUE(state->chunk_src_len > 0);
-
     read = LZ4_decompress_fast((const char*)src, (char*)dst, state->chunk_src_len);
 	if (read < 0) {
+            printf("%s\n", "d2");
 		return INA_FAILURE;
 	}
     *wrote_len = state->chunk_src_len;
@@ -213,7 +213,7 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     *wrote_len = 0;
     stream = (mz_stream*)state->statedata;
     INA_ASSERT_NOTNULL(stream);
-    
+
     ina_mem_set(stream, 0, sizeof(stream));
     if (state->mempool) {
         stream->opaque = state->mempool;
@@ -230,7 +230,7 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     stream->next_out = dst;
     stream->avail_out = (mz_uint32)dst_len;
     
-    status = mz_inflateInit(stream);
+    status = mz_inflateInit2(stream, -MZ_DEFAULT_WINDOW_BITS);
     if (status != MZ_OK) {
         return INA_FAILURE;
     }

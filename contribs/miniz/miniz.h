@@ -95,6 +95,7 @@ typedef void *(*mz_alloc_func)(void *opaque, size_t items, size_t size);
 typedef void (*mz_free_func)(void *opaque, void *address);
 typedef void *(*mz_realloc_func)(void *opaque, void *address, size_t items, size_t size);
 
+// TODO: I can't encode "1.16" here, argh
 #define MZ_VERSION          "9.1.15"
 #define MZ_VERNUM           0x91F0
 #define MZ_VER_MAJOR        9
@@ -563,12 +564,37 @@ struct tinfl_decompressor_tag; typedef struct tinfl_decompressor_tag tinfl_decom
 // Return status.
 typedef enum
 {
+  // This flags indicates the inflator needs 1 or more input bytes to make forward progress, but the caller is indicating that no more are available. The compressed data
+  // is probably corrupted. If you call the inflator again with more bytes it'll try to continue processing the input but this is a BAD sign (either the data is corrupted or you called it incorrectly).
+  // If you call it again with no input you'll just get TINFL_STATUS_FAILED_CANNOT_MAKE_PROGRESS again.
+  TINFL_STATUS_FAILED_CANNOT_MAKE_PROGRESS = -4,
+
+  // This flag indicates that one or more of the input parameters was obviously bogus. (You can try calling it again, but if you get this error the calling code is wrong.)
   TINFL_STATUS_BAD_PARAM = -3,
+
+  // This flags indicate the inflator is finished but the adler32 check of the uncompressed data didn't match. If you call it again it'll return TINFL_STATUS_DONE.
   TINFL_STATUS_ADLER32_MISMATCH = -2,
+
+  // This flags indicate the inflator has somehow failed (bad code, corrupted input, etc.). If you call it again without resetting via tinfl_init() it it'll just keep on returning the same status failure code.
   TINFL_STATUS_FAILED = -1,
+
+  // Any status code less than TINFL_STATUS_DONE must indicate a failure.
+
+  // This flag indicates the inflator has returned every byte of uncompressed data that it can, has consumed every byte that it needed, has successfully reached the end of the deflate stream, and
+  // if zlib headers and adler32 checking enabled that it has successfully checked the uncompressed data's adler32. If you call it again you'll just get TINFL_STATUS_DONE over and over again.
   TINFL_STATUS_DONE = 0,
+
+  // This flag indicates the inflator MUST have more input data (even 1 byte) before it can make any more forward progress, or you need to clear the TINFL_FLAG_HAS_MORE_INPUT
+  // flag on the next call if you don't have any more source data. If the source data was somehow corrupted it's also possible (but unlikely) for the inflator to keep on demanding input to
+  // proceed, so be sure to properly set the TINFL_FLAG_HAS_MORE_INPUT flag.
   TINFL_STATUS_NEEDS_MORE_INPUT = 1,
+
+  // This flag indicates the inflator definitely has 1 or more bytes of uncompressed data available, but it cannot write this data into the output buffer.
+  // Note if the source compressed data was corrupted it's possible for the inflator to return a lot of uncompressed data to the caller. I've been assuming you know how much uncompressed data to expect
+  // (either exact or worst case) and will stop calling the inflator and fail after receiving too much. In pure streaming scenarios where you have no idea how many bytes to expect this may not be possible
+  // so I may need to add some code to address this.
   TINFL_STATUS_HAS_MORE_OUTPUT = 2
+
 } tinfl_status;
 
 // Initializes the decompressor to its initial state.
@@ -760,6 +786,14 @@ mz_uint32 tdefl_get_adler32(tdefl_compressor *d);
 // strategy may be either MZ_DEFAULT_STRATEGY, MZ_FILTERED, MZ_HUFFMAN_ONLY, MZ_RLE, or MZ_FIXED
 mz_uint tdefl_create_comp_flags_from_zip_params(int level, int window_bits, int strategy);
 #endif // #ifndef MINIZ_NO_ZLIB_APIS
+
+// Allocate the tdefl_compressor and tinfl_decompressor structures in C so that
+// non-C language bindings to tdefl_ and tinfl_ API don't need to worry about
+// structure size and allocation mechanism.
+tdefl_compressor *tdefl_compressor_alloc();
+void tdefl_compressor_free(tdefl_compressor *pComp);
+tinfl_decompressor *tinfl_decompressor_alloc();
+void tinfl_decompressor_free(tinfl_decompressor *pDecomp);
 
 #ifdef __cplusplus
 }
