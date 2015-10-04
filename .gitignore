@@ -16,8 +16,8 @@ coverage.xml
 tests/suites.c
 tests/suites.h
 tests/test
-tests/ullc_monitor
-tests/service_mgr
+tools/ullc_monitor
+tools/service_mgr
 tests/bench_timer
 tests/bench_file
 tests/ilt
