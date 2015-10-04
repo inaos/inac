@@ -18,6 +18,7 @@ tests/suites.h
 tests/test
 tools/ullc_monitor
 tools/service_mgr
+tools/iz
 tests/bench_timer
 tests/bench_file
 tests/ilt
