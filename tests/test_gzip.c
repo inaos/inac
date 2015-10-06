@@ -46,7 +46,7 @@ INA_TEST(gzip, test_gzip)
     buf_cur = buf;
     ina_mem_set(buf_cur, 0, 4*1024);
     INA_TEST_MSG("out_bytes: %d", strlen(my_test_string));
-    INA_TEST_ASSERT_SUCCEED(ina_compression_new(&cstate, INA_COMPRESSION_TYPE_DEFLATE, INA_COMPRESSION_MODE_TRUSTED_FAST));
+    INA_TEST_ASSERT_SUCCEED(ina_compression_new(&cstate, INA_COMPRESSION_TYPE_DEFLATE_RAW, INA_COMPRESSION_MODE_TRUSTED_FAST));
     INA_TEST_ASSERT_SUCCEED(ina_gzip_open("test_gzip.gz", 4*1024, &gzf));
     INA_TEST_ASSERT_SUCCEED(ina_gzip_read_next_block(gzf, 1024, &read, &chunk));
     while (read > 0) {

@@ -50,6 +50,7 @@ extern "C" {
 
 typedef enum ina_compression_type_e {
     INA_COMPRESSION_TYPE_DEFLATE,
+    INA_COMPRESSION_TYPE_DEFLATE_RAW,
     INA_COMPRESSION_TYPE_LZ4,
     INA_COMPRESSION_TYPE_LZ4HC,
 } ina_compression_type_t;

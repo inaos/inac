@@ -54,6 +54,7 @@ struct ina_compression_state_s {
     size_t chunk_src_len;
     size_t chunk_proposed_dst_len;
     void *statedata;
+    int flags;
 };
 
 static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, const unsigned char *src, 
@@ -174,7 +175,7 @@ static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, c
     stream->next_out = dst;
     stream->avail_out = (mz_uint32)dst_len;
     
-    status = mz_deflateInit(stream, MZ_DEFAULT_COMPRESSION);
+    status = mz_deflateInit(stream, state->flags);
     if (status != MZ_OK) {
         return INA_FAILURE;
     }
@@ -230,7 +231,7 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     stream->next_out = dst;
     stream->avail_out = (mz_uint32)dst_len;
     
-    status = mz_inflateInit2(stream, -MZ_DEFAULT_WINDOW_BITS);
+    status = mz_inflateInit2(stream, state->flags);
     if (status != MZ_OK) {
         return INA_FAILURE;
     }
@@ -287,12 +288,19 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
 
     (*state)->type = type;
     (*state)->chunk_src_len = 0;
+    (*state)->flags = 0;
     switch (type) {
         case INA_COMPRESSION_TYPE_DEFLATE:
+        case INA_COMPRESSION_TYPE_DEFLATE_RAW:
             (*state)->compress_fn = ina_compression_compress_miniz;
             (*state)->decompress_fn = ina_compression_decompress_miniz;
             (*state)->dest_len_fn = ina_compression_bounds_miniz;
             sstate = sizeof(mz_stream);
+            if (type == INA_COMPRESSION_TYPE_DEFLATE) {
+                (*state)->flags = MZ_DEFAULT_WINDOW_BITS;
+            } else {
+                (*state)->flags = -MZ_DEFAULT_WINDOW_BITS;
+            }
             break;
         case INA_COMPRESSION_TYPE_LZ4:
             (*state)->compress_fn = ina_compression_compress_lz4;
