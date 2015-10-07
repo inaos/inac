@@ -19,7 +19,6 @@ endif
 
 all: $(OBJ) 
 	echo Building tools
-	echo $(TOOLS)
 	@for i in $(TOOLS); do $(CC) $(CFLAGS) -o $$i $$i.o $(LDFLAGS); done;
 	
 %.o: %.c
