@@ -56,6 +56,7 @@ struct ina_file_cursor_s {
 		} f;
 	} ext;
 	ina_file_cursor_free_fp free_fp;
+	ina_file_cursor_get_buffer_size_fp get_buffer_size_fp;
 	ina_file_cursor_set_pos_fp set_pos_fp;
 	ina_file_cursor_set_bof_fp set_bof_fp;
 	ina_file_cursor_set_eof_fp set_eof_fp;
@@ -79,6 +80,12 @@ static ina_rc_t ina_file_cursor_fileio_free(ina_file_cursor_t **cursor)
 	ina_mem_free(*cursor);
     *cursor = NULL;
     return INA_SUCCESS;
+}
+
+static ina_rc_t ina_file_cursor_fileio_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size)
+{
+	*buffer_size = cursor->ext.f.buffer_size;
+	return INA_SUCCESS;
 }
 
 static ina_rc_t ina_file_cursor_fileio_set_pos(ina_file_cursor_t *cursor, uint64_t position)
@@ -173,6 +180,12 @@ static ina_rc_t ina_file_cursor_mmap_free(ina_file_cursor_t **cursor)
 	ina_mmap_free((*cursor)->ext.m.mmap_ctx, &(*cursor)->ext.m.fm);
 	ina_mem_free(*cursor);
 	*cursor = NULL;
+	return INA_SUCCESS;
+}
+
+static ina_rc_t ina_file_cursor_mmap_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size)
+{
+	*buffer_size = cursor->ext.m.buffer_size;
 	return INA_SUCCESS;
 }
 
@@ -354,6 +367,7 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
         (*cursor)->ext.m.len = flen;
 		(*cursor)->ext.m.carry = 0;
 		(*cursor)->free_fp = ina_file_cursor_mmap_free;
+		(*cursor)->get_buffer_size_fp = ina_file_cursor_mmap_get_buffer_size;
 		(*cursor)->set_pos_fp = ina_file_cursor_mmap_set_pos;
 		(*cursor)->set_bof_fp = ina_file_cursor_mmap_set_bof;
 		(*cursor)->set_eof_fp = ina_file_cursor_mmap_set_eof;
@@ -369,6 +383,7 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
         (*cursor)->ext.f.position = 0;
         (*cursor)->ext.f.buffer = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*(size_t)buffer_size);
 		(*cursor)->free_fp = ina_file_cursor_fileio_free;
+		(*cursor)->get_buffer_size_fp = ina_file_cursor_fileio_get_buffer_size;
         (*cursor)->set_pos_fp = ina_file_cursor_fileio_set_pos;
         (*cursor)->set_bof_fp = ina_file_cursor_fileio_set_bof;
         (*cursor)->set_eof_fp = ina_file_cursor_fileio_set_eof;
@@ -385,6 +400,12 @@ INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor)
 {
 	ina_file_cursor_t *c = *cursor;
 	return c->free_fp(cursor);
+}
+
+INA_API(ina_rc_t) ina_file_cursor_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size)
+{
+	INA_ASSERT_NOTNULL(cursor);
+	return cursor->get_buffer_size_fp(cursor, buffer_size);
 }
 
 INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, uint64_t position)
