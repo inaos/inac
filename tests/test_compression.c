@@ -41,6 +41,7 @@ static void __ina_test_compression(ina_mempool_t *pool, ina_compression_type_t c
     size_t dest_len;
     size_t src_len = strlen(my_test_string);
     size_t wrote_len;
+    size_t read_len;
     unsigned char *dest_buf;
     unsigned char *buf;
 
@@ -62,7 +63,7 @@ static void __ina_test_compression(ina_mempool_t *pool, ina_compression_type_t c
     }
 
     INA_TEST_ASSERT_SUCCEED(ina_compression_compress_chunk(cstate, (const unsigned char*)my_test_string, 
-        src_len, dest_buf, dest_len, &wrote_len));
+        src_len, dest_buf, dest_len, &wrote_len, &read_len, INA_NO));
 
     if (pool == NULL) {
         buf = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*(src_len+1));
@@ -73,7 +74,7 @@ static void __ina_test_compression(ina_mempool_t *pool, ina_compression_type_t c
     }
 
     INA_TEST_ASSERT_SUCCEED(ina_compression_decompress_chunk(cstate, dest_buf, wrote_len, 
-        buf, src_len+1, &wrote_len));
+        buf, src_len+1, &wrote_len, &read_len, INA_NO));
 
     buf[wrote_len] = '\0';
     INA_TEST_ASSERT_TRUE(strcmp(my_test_string, (const char*)buf) == 0);

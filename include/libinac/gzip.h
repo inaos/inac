@@ -41,7 +41,7 @@ typedef struct ina_gzip_file_s ina_gzip_file_t;
 /*
  *
  */
-INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file, uint64_t buffer_size, ina_gzip_file_t **gzf);
+INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file, size_t buffer_size, ina_gzip_file_t **gzf);
 
 /*
  *

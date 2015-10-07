@@ -38,10 +38,10 @@
 struct ina_compression_state_s;
 
 typedef ina_rc_t (*ina_compression_compress_fn)(struct ina_compression_state_s *state, const unsigned char *src,
-                                                unsigned char *dst, size_t dst_len, size_t *wrote_len);
+                                                unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more);
 
 typedef ina_rc_t (*ina_compression_decompress_fn)(struct ina_compression_state_s *state, const unsigned char *src,
-                                                  size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len);
+                                                  size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more);
 
 typedef ina_rc_t (*ina_compression_dest_len_fn)(struct ina_compression_state_s *state, size_t *dst_len);
 
@@ -55,14 +55,19 @@ struct ina_compression_state_s {
     size_t chunk_proposed_dst_len;
     void *statedata;
     int flags;
+    int more;
+    int initialized;
+    int finalized;
 };
 
 static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, const unsigned char *src, 
-                                             unsigned char *dst, size_t dst_len, size_t *wrote_len)
+                                             unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
+    INA_ASSERT_NOTNULL(read_len);
     *wrote_len = 0;
+    *read_len = 0;
     
 	*wrote_len = LZ4_compress_withState(state->statedata, 
             (const char*)src, (char*)dst, state->chunk_src_len);
@@ -73,11 +78,13 @@ static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, con
 }
 
 static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, const unsigned char *src, 
-                                             unsigned char *dst, size_t dst_len, size_t *wrote_len)
+                                             unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
+    INA_ASSERT_NOTNULL(read_len);
     *wrote_len = 0;
+    *read_len = 0;
 
 	*wrote_len = LZ4_compressHC_withStateHC(state->statedata, 
             (const char*)src, (char*)dst, state->chunk_src_len);
@@ -88,17 +95,17 @@ static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, c
 }
 
 static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *state, const unsigned char *src, 
-                                                    size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len)
+                                                    size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
     int read = 0;
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
+    INA_ASSERT_NOTNULL(read_len);
     *wrote_len = 0;
 
     INA_ASSERT_TRUE(state->chunk_src_len > 0);
-    read = LZ4_decompress_fast((const char*)src, (char*)dst, state->chunk_src_len);
+    *read_len = LZ4_decompress_fast((const char*)src, (char*)dst, state->chunk_src_len);
 	if (read < 0) {
-            printf("%s\n", "d2");
 		return INA_FAILURE;
 	}
     *wrote_len = state->chunk_src_len;
@@ -106,11 +113,13 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
 }
 
 static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *state, const unsigned char *src, 
-                                                    size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len)
+                                                    size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
+    INA_ASSERT_NOTNULL(read_len);
     *wrote_len = 0;
+    *read_len = 0;
 
 	*wrote_len = LZ4_decompress_safe((const char*)src, (char*)dst, src_len, dst_len);
 	if (*wrote_len <= 0) {
@@ -147,7 +156,7 @@ static void ina_mz_wp_free_func(void *opaque, void *address)
 }
 
 static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, const unsigned char *src, 
-                                               unsigned char *dst, size_t dst_len, size_t *wrote_len)
+                                               unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
     int status;
     mz_stream *stream;
@@ -159,51 +168,49 @@ static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, c
     stream = (mz_stream*)state->statedata;
     INA_ASSERT_NOTNULL(stream);
 
-    ina_mem_set(stream, 0, sizeof(stream));
-    if (state->mempool) {
-        stream->opaque = state->mempool;
-        stream->zalloc = ina_mz_wp_alloc_func;
-        stream->zfree = ina_mz_wp_free_func;
+    if (!state->initialized) {
+        ina_mem_set(stream, 0, sizeof(stream));
+        if (state->mempool) {
+            stream->opaque = state->mempool;
+            stream->zalloc = ina_mz_wp_alloc_func;
+            stream->zfree = ina_mz_wp_free_func;
+        } else {
+            stream->zalloc = ina_mz_wop_alloc_func;
+            stream->zfree = ina_mz_wop_free_func;
+        }
+        status = mz_deflateInit(stream, state->flags);
+        if (status != MZ_OK) {
+            return INA_FAILURE;
+        }
+        state->initialized = INA_YES;
     }
-    else {
-        stream->zalloc = ina_mz_wop_alloc_func;
-        stream->zfree = ina_mz_wop_free_func;
-    }
-    
+
     stream->next_in = src;
     stream->avail_in = (mz_uint32)state->chunk_src_len;
     stream->next_out = dst;
     stream->avail_out = (mz_uint32)dst_len;
-    
-    status = mz_deflateInit(stream, state->flags);
-    if (status != MZ_OK) {
-        return INA_FAILURE;
-    }
-    
-    status = mz_deflate(stream, MZ_FINISH);
-    if (status != MZ_STREAM_END) {
-        mz_deflateEnd(stream);
-        if (status == MZ_OK) {
-            /* BUF_ERROR */
-            return INA_FAILURE;
-        }
-        else {
-            return INA_FAILURE;
-        }
-    }
+        
+    status = mz_deflate(stream, MZ_SYNC_FLUSH);
     
     *wrote_len = stream->total_out;
-    
-    if (mz_deflateEnd(stream) == MZ_OK) {
-        return INA_SUCCESS;
-    }
-    else {
+    *read_len = stream->total_in;
+
+    if (status != MZ_STREAM_END && status != MZ_OK) {
         return INA_FAILURE;
     }
+    
+    if (!more) {
+        state->initialized = INA_NO;
+        state->finalized = INA_YES;
+        if (mz_deflateEnd(stream) != MZ_OK) {
+            return INA_FAILURE;
+        }
+    }
+    return INA_SUCCESS;
 }
 
 static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state, const unsigned char *src, 
-                                                 size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len)
+                                                 size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
     int status;
     mz_stream *stream;
@@ -212,49 +219,49 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     INA_ASSERT_NOTNULL(wrote_len);
 
     *wrote_len = 0;
+    *read_len = 0;
     stream = (mz_stream*)state->statedata;
     INA_ASSERT_NOTNULL(stream);
 
-    ina_mem_set(stream, 0, sizeof(stream));
-    if (state->mempool) {
-        stream->opaque = state->mempool;
-        stream->zalloc = ina_mz_wp_alloc_func;
-        stream->zfree = ina_mz_wp_free_func;
+    if (!state->initialized) {
+        ina_mem_set(stream, 0, sizeof(stream));
+        if (state->mempool) {
+            stream->opaque = state->mempool;
+            stream->zalloc = ina_mz_wp_alloc_func;
+            stream->zfree = ina_mz_wp_free_func;
+        } else {
+            stream->zalloc = ina_mz_wop_alloc_func;
+            stream->zfree = ina_mz_wop_free_func;
+        }
+        status = mz_inflateInit2(stream, state->flags);
+        if (status != MZ_OK) {
+            return INA_FAILURE;
+        }
+        state->initialized = INA_YES;
     }
-    else {
-        stream->zalloc = ina_mz_wop_alloc_func;
-        stream->zfree = ina_mz_wop_free_func;
-    }
-    
+
     stream->next_in = src;
     stream->avail_in = (mz_uint32)src_len;
     stream->next_out = dst;
     stream->avail_out = (mz_uint32)dst_len;
+        
+    status = mz_inflate(stream, MZ_NO_FLUSH);
+    *wrote_len = dst_len - stream->avail_out;
+    *read_len = src_len - stream->avail_in;
     
-    status = mz_inflateInit2(stream, state->flags);
-    if (status != MZ_OK) {
+    if (status != MZ_STREAM_END && status != MZ_OK) {
+        printf("decompress status %d\n", status);
         return INA_FAILURE;
-    }
-    
-    status = mz_inflate(stream, MZ_FINISH);
-    if (status != MZ_STREAM_END) {
-        mz_inflateEnd(stream);
-        if ((status == MZ_BUF_ERROR) && (!stream->avail_in)) {
-            /* BUF_ERR */
-            return INA_FAILURE;
-        }
-        else {
-            return INA_FAILURE;
-        }
-    }
-    *wrote_len = stream->total_out;
+    }    
 
-    if (mz_inflateEnd(stream) == MZ_OK) {
-        return INA_SUCCESS;
+    if (!more) {
+        state->initialized = INA_NO;
+        state->finalized = INA_YES;
+        if (mz_inflateEnd(stream) != MZ_OK) {
+            return INA_FAILURE;
+        }
     }
-    else {
-        return INA_FAILURE;
-    }
+    return INA_SUCCESS;
 }
 
 static ina_rc_t ina_compression_bounds_miniz(struct ina_compression_state_s *state, size_t *dst_len)
@@ -328,6 +335,7 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
             INA_ASSERT_TRUE(0);
             break;
     }
+
     (*state)->mempool = pool;
     if (pool != NULL) {
         (*state)->statedata = ina_mempool_dalloc(pool, sstate);
@@ -335,6 +343,7 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
     else {
         (*state)->statedata = ina_mem_alloc(sstate);
     }
+
 
     return INA_SUCCESS;
 }
@@ -353,18 +362,18 @@ INA_API(ina_rc_t) ina_compression_free(ina_compression_state_t **state)
 }
 
 INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state, const unsigned char *src,
-                                                 size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len)
+                                                 size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
     INA_ASSERT_NOTNULL(state);
 
     state->chunk_src_len = src_len;
-    return state->compress_fn(state, src, dst, dst_len, wrote_len);
+    return state->compress_fn(state, src, dst, dst_len, wrote_len, read_len, more);
 }
 
 INA_API(ina_rc_t) ina_compression_decompress_chunk(ina_compression_state_t *state, const unsigned char *src,
-                                                   size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len)
+                                                   size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
-    return state->decompress_fn(state, src, src_len, dst, dst_len, wrote_len);
+    return state->decompress_fn(state, src, src_len, dst, dst_len, wrote_len, read_len, more);
 }
 
 INA_API(ina_rc_t) ina_compression_get_destination_len(ina_compression_state_t *state, size_t src_len, size_t *len)

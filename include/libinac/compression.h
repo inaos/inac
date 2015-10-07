@@ -76,6 +76,11 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
 /*
  *
  */
+INA_API(ina_rc_t) ina_compression_reset(ina_compression_state_t *state);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_compression_free(ina_compression_state_t **state);
 /*
  *
@@ -85,12 +90,12 @@ INA_API(ina_rc_t) ina_compression_get_destination_len(ina_compression_state_t *s
  *
  */
 INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state, const unsigned char *src,
-                                                 size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len);
+                                                 size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more);
 /*
  *
  */										   
 INA_API(ina_rc_t) ina_compression_decompress_chunk(ina_compression_state_t *state, const unsigned char *src,
-                                                   size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len);
+                                                   size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more);
 
 #ifdef __cplusplus
 }
