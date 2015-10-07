@@ -244,10 +244,20 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     stream->avail_in = (mz_uint32)src_len;
     stream->next_out = dst;
     stream->avail_out = (mz_uint32)dst_len;
+
+    printf("dst_len %ld, avail_out %d\n", dst_len,stream->avail_out);    
+    printf("src_len %ld, avail_in %d\n", src_len , stream->avail_in);
+    
         
     status = mz_inflate(stream, MZ_NO_FLUSH);
+    printf("inflate status %d\n", status);
     *wrote_len = dst_len - stream->avail_out;
     *read_len = src_len - stream->avail_in;
+    printf("dst_len %ld, avail_out %d\n", dst_len,stream->avail_out);    
+    printf("src_len %ld, avail_in %d\n", src_len , stream->avail_in);
+    printf("dst %ld\n", stream->next_out-dst);    
+    printf("src %ld\n", stream->next_in-src);
+    
     
     if (status != MZ_STREAM_END && status != MZ_OK) {
         printf("decompress status %d\n", status);

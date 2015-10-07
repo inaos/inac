@@ -324,7 +324,9 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
     }
 
     /*more = ((gzf->nbread - (gzf->bufpos-gzf->buffer)) > requested);*/
-    more = gzf->nbread == gzf->buffer_size;
+    /*more = gzf->nbread == gzf->buffer_size;*/
+    more = (gzf->nbread - (gzf->bufpos-gzf->buffer) > 0);
+
     printf("more: %d\n", more);
     if (!INA_SUCCEED(ina_compression_decompress_chunk(gzf->gzip_cstate, 
     								gzf->bufpos, 
@@ -339,17 +341,16 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
    		return INA_ERR_PUSH_LAST;
     }
     gzf->bufpos = gzf->bufpos+consumed;
-    gzf->bufpos++;
     printf("requested: %ld\n", requested);
     printf("read: %ld\n", *read);
     printf("consumed: %ld\n", consumed);
 
 
     /* this is the last block - we need to chop-off the 4-byte crc and 4-byte input len */
-    if (*read < requested) {
+    /*if (*read < requested) {
     	 gzf->bufpos = gzf->bufpos+8;
     	*read -= 8;
-    }
+    }*/
     if (++c == 20) {
     	exit(0);
     }
