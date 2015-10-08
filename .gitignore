@@ -22,7 +22,7 @@ tools/iz
 tests/bench_timer
 tests/bench_file
 tests/ilt
-tests/iml
+tools/iml
 contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/sqlite/libsqlite3.so

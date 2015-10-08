@@ -18,7 +18,6 @@ endif
 
 
 all: $(OBJ) 
-	echo Building tools
 	@for i in $(TOOLS); do $(CC) $(CFLAGS) -o $$i $$i.o $(LDFLAGS); done;
 	
 %.o: %.c
@@ -32,7 +31,7 @@ debug: all
 release: all
 
 clean:
-	@echo cleaning tests...
+	@echo cleaning tools...
 	@-rm -f *.o $(TOOLS) *.gcno *.gcda *.gcov* *.tap
 
 test: all

@@ -48,14 +48,8 @@ file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c" "test.def")
 add_executable(test ${TEST_SRC})
 target_link_libraries(test ${PLATFORM_LIBS} ${LIBS})
 
-add_executable(service_mgr service_mgr.c)
-target_link_libraries(service_mgr ${PLATFORM_LIBS} ${LIBS})
-
 add_executable(ilt ilt.c)
 target_link_libraries(ilt ${PLATFORM_LIBS} ${LIBS})
-
-add_executable(iml iml.c)
-target_link_libraries(iml ${PLATFORM_LIBS} ${LIBS})
 
 add_executable(bench_timer bench_timer.c)
 target_link_libraries(bench_timer ${PLATFORM_LIBS} ${LIBS})
