@@ -39,7 +39,7 @@ int main(int argc,  char** argv)
     ina_str_t out_filepath;
     size_t read;
     int64_t wrote;
-    unsigned char buf[1024*2];
+    unsigned char buf[1024];
     unsigned char *chunk;
  
     INA_OPTS(opt,
@@ -55,7 +55,7 @@ int main(int argc,  char** argv)
   
     chunk = buf;
 
-    if (!INA_SUCCEED(ina_gzip_open(ina_str_cstr(in_filepath), 1024, &gzf))) {
+    if (!INA_SUCCEED(ina_gzip_open(ina_str_cstr(in_filepath), 4*1024, &gzf))) {
         return EXIT_FAILURE;
     }
     if (!INA_SUCCEED(ina_file_init(&fctx))) {
@@ -71,11 +71,10 @@ int main(int argc,  char** argv)
         return EXIT_FAILURE;
     }
   
-    while (INA_SUCCEED(ina_gzip_read_next_block(gzf, 1024*4, &read, &chunk)) && read > 0) {
+    while (INA_SUCCEED(ina_gzip_read_next_block(gzf, 1024, &read, &chunk)) && read > 0) {
         ina_file_write(of, chunk, (int64_t)read, &wrote);
         chunk = buf;
     }
- /*printf("%s\n",chunk );*/
     ina_gzip_close(&gzf);
     ina_file_free(fctx, &of);
     ina_file_destroy(&fctx);

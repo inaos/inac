@@ -240,7 +240,6 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 			return INA_FAILURE;
 		}
 	}
-	printf("%s\n", "HEADER OK");
 	file->bufpos = file->buffer+pos;
 	return INA_SUCCESS;
 }
@@ -291,35 +290,19 @@ INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file, size_t buffer_size, ina_g
 
 INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requested, size_t *read, unsigned char **chunk)
 {
-    /* FIXME: 
-     * => We have two major issues at the moment with this implementation.. basically this implementation does not work 
-     *    at all.. its just here as a idea
-     * + Problem 1: If we request to read X bytes from the file.. this nice but in reality we'll read more then requested 
-     *              because we do not know how many bytes we'll have after decompression.. or we only return as many 
-     *              bytes as requested but then we have to have an intelligent buffer.. hopefully without memcpy and stuff
-     * + Problem 2: I do not like the initial buffer handling as it is below here.. it seems too messy and complicated
-     * + Problem 3: We need to make sure we handle the decompression properly here
-     * + Problem 4: We need to adjust the test-case for the gzip module.. because currently it assumes compressed output of this method.
-     *
-     *
-     */
     size_t consumed = 0;
     int more = INA_NO;
-    static int c = 0;
 
-    printf("%s buffer %p, bufpos %p len: %ld read: %d\n", "NEXT", gzf->buffer, gzf->bufpos, gzf->bufpos-gzf->buffer, gzf->nbread);
-    printf("DIFF %d\n", gzf->nbread - (gzf->bufpos-gzf->buffer));
+    /*printf("%s buffer %p, bufpos %p len: %ld read: %d\n", "NEXT", gzf->buffer, gzf->bufpos, gzf->bufpos-gzf->buffer, gzf->nbread);
+    printf("DIFF %d\n", gzf->nbread - (gzf->bufpos-gzf->buffer));*/
     /* Buffer fully consumed, read again from file */
     if (gzf->bufpos == gzf->buffer+gzf->nbread) {
-    	printf("%s\n", "READ");
     	if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk(gzf->fcur, 
     							gzf->buffer_size, 
     							&gzf->nbread, 
     							&gzf->buffer))) {
     		return INA_ERR_PUSH_LAST;
     	}
-    	printf("buffer_size %ld\n", gzf->buffer_size );
-    	printf("nbread: %ld\n", gzf->nbread);
     	gzf->bufpos = gzf->buffer;
     }
 
@@ -327,7 +310,7 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
     /*more = gzf->nbread == gzf->buffer_size;*/
     more = (gzf->nbread - (gzf->bufpos-gzf->buffer) > 0);
 
-    printf("more: %d\n", more);
+    /*printf("more: %d\n", more);*/
     if (!INA_SUCCEED(ina_compression_decompress_chunk(gzf->gzip_cstate, 
     								gzf->bufpos, 
                                    	(gzf->nbread - (gzf->bufpos-gzf->buffer)), 
@@ -336,14 +319,14 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
                                     read,
                                     &consumed,
                                     more))) {
-    	printf("consumed: %ld\n", consumed);
-    	printf("%s\n", "ERROR");
+    	/*printf("consumed: %ld\n", consumed);
+    	printf("%s\n", "ERROR");*/
    		return INA_ERR_PUSH_LAST;
     }
     gzf->bufpos = gzf->bufpos+consumed;
-    printf("requested: %ld\n", requested);
+    /*printf("requested: %ld\n", requested);
     printf("read: %ld\n", *read);
-    printf("consumed: %ld\n", consumed);
+    printf("consumed: %ld\n", consumed);*/
 
 
     /* this is the last block - we need to chop-off the 4-byte crc and 4-byte input len */
@@ -351,10 +334,6 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
     	 gzf->bufpos = gzf->bufpos+8;
     	*read -= 8;
     }*/
-    if (++c == 20) {
-    	exit(0);
-    }
-
     return INA_SUCCESS;
 }
 
