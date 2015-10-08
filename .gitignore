@@ -51,6 +51,7 @@ build/*
 buildall/*
 buildtest/*
 tests/build/*
+tools/build/*
 !contribs-bin/meinberg/lib/mbgdevio.lib
 !contribs-bin/meinberg/lib64/mbgdevio.lib
 src/__.SYMDEF SORTED
