@@ -189,6 +189,17 @@ SET INAC_WIN32_C_TEST_SUITE_WD=%INAC_HOME%\buildtest\%INAC_BUILD_TYPE%
 
 call %INAC_BUILD_SCRIPT% %1 %2
 
+REM reset the main environment variables because they might have been deleted by the previous build
+SET INAC_HOME=%CD%
+SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
+
+SET INAC_WIN32_BUILD_NAME=tools
+SET INAC_WIN32_PROJECT_DIR=tools
+SET INAC_WIN32_C_SOURCE_DIR=.
+SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
+
+call %INAC_BUILD_SCRIPT% %1 %2
+
 goto exit
 
 :fail_vs_2012
