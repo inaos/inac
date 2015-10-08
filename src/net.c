@@ -527,7 +527,17 @@ INA_API(ina_rc_t) ina_net_hw_backend_name(ina_net_hw_ctx_t *ctx, ina_str_t *name
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_net_hw_enabled(ina_net_hw_ctx_t *ctx)
+{
+    return ctx->funcs.enabled_fp(ctx);
+}
+
 INA_API(ina_rc_t) ina_net_hw_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature)
 {
     return ctx->funcs.feature_check_fp(ctx, feature);
+}
+
+INA_API(ina_rc_t) ina_net_hw_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias)
+{
+    return ctx->funcs.accelerate_loopback_fp(ctx, fd, alias);
 }

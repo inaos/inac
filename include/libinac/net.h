@@ -265,6 +265,11 @@ INA_API(ina_rc_t) ina_net_hw_backend_name(ina_net_hw_ctx_t *ctx, ina_str_t *name
 /*
  *
  */
+INA_API(ina_rc_t) ina_net_hw_enabled(ina_net_hw_ctx_t *ctx);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_hw_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias);
 
 /*
