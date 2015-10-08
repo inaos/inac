@@ -22,6 +22,7 @@ if not exist build mkdir build
 cd build
 call %CMD% ..
 cd..
+cd..
 
 cd tools
 if not exist build mkdir build
