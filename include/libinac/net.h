@@ -121,6 +121,9 @@ typedef struct ina_net_udp_hdr_s {
 typedef ULONG nfds_t;
 #endif
 
+/* opaque UDP receiver */
+typedef struct ina_net_udp_receiver_s ina_net_udp_receiver_t;
+
 /*
  * Resovle an host name into to a ip address
  * 
@@ -190,6 +193,26 @@ INA_API(ina_rc_t) ina_net_close(int fd);
  *
  */
 INA_API(ina_rc_t) ina_net_udp_bind(int* fd, const char *addr, int port);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_udp_socket(int* fd);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_udp_send(int fd, ina_net_udp_receiver_t *receiver, unsigned char *buf, int nb, int* nb_write);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_net_udp_receiver_t **receiver);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_udp_receiver_free(const char *address, int port, ina_net_udp_receiver_t **receiver);
 
 /*
  *
