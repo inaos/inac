@@ -83,7 +83,7 @@ static ina_rc_t __ina_pcap_read_chunk_gzip(ina_pcap_ctx_t *ctx, size_t how_much,
     return ina_gzip_read_next_block(ctx->gzip_ctx, how_much, read, (unsigned char**)chunk);
 }
 
-INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, uint64_t buffer_size, 
+INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, size_t buffer_size, 
                                 ina_pcap_file_compression_t compression, ina_pcap_ctx_t **ctx)
 {
     size_t read = 0;
@@ -302,9 +302,9 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_pcap_read_udp_header(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *raw_packet, ina_net_udp_hdr_t **udp_hdr)
+INA_API(ina_rc_t) ina_pcap_read_headers(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *raw_packet, 
+                                        ina_net_ip_t **ip_hdr, ina_net_udp_hdr_t **udp_hdr)
 {
-    ina_net_ip_t *ip;
 	unsigned int ip_header_length;
     unsigned char *packet = raw_packet;
     size_t pack_len = packet_len;
@@ -326,15 +326,15 @@ INA_API(ina_rc_t) ina_pcap_read_udp_header(ina_pcap_ctx_t *ctx, size_t packet_le
         return INA_FAILURE;
     }
 
-	ip = (ina_net_ip_t*)packet;
-	ip_header_length = ip->ip_hl * 4;	/* ip_hl is in 4-byte words */
+	*ip_hdr = (ina_net_ip_t*)packet;
+	ip_header_length = (*ip_hdr)->ip_hl * 4;	/* ip_hl is in 4-byte words */
 
 	if (pack_len < ip_header_length) {
         /* FIXME: proper error handling */
         return INA_FAILURE;
     }
 
-	if (ip->ip_p != IPPROTO_UDP) {
+	if ((*ip_hdr)->ip_p != IPPROTO_UDP) {
         /* FIXME: proper error handling */
         return INA_FAILURE;
     }

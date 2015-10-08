@@ -55,7 +55,7 @@ typedef struct ina_pcap_ctx_s ina_pcap_ctx_t;
 /*
  *
  */
-INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, uint64_t buffer_size, 
+INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, size_t buffer_size, 
                                 ina_pcap_file_compression_t compression, ina_pcap_ctx_t **ctx);
 
 /*
@@ -71,7 +71,8 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
 /*
  *
  */
-INA_API(ina_rc_t) ina_pcap_read_udp_header(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *packet, ina_net_udp_hdr_t **udp_hdr);
+INA_API(ina_rc_t) ina_pcap_read_headers(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *packet, 
+                                           ina_net_ip_t **ip_hdr, ina_net_udp_hdr_t **udp_hdr);
 
 #ifdef __cplusplus
 }
