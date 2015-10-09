@@ -73,7 +73,6 @@ int main(int argc,  char** argv)
   
     while (INA_SUCCEED(ina_gzip_read_next_block(gzf, 1024, &read, &chunk)) && read > 0) {
         ina_file_write(of, chunk, (int64_t)read, &wrote);
-        chunk = buf;
     }
     ina_gzip_close(&gzf);
     ina_file_free(fctx, &of);
