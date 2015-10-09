@@ -60,6 +60,7 @@ struct ina_pcap_ctx_s {
     ina_file_cursor_t *fcur;
     ina_mmap_ctx_t *mmap_ctx;
     ina_gzip_file_t *gzip_ctx;
+    unsigned char *gzip_buffer;
     __ina_pcap_hdr_t *pcap_hdr;
     int swap_bytes;
     int nano_second_timestamps;
@@ -80,7 +81,22 @@ static ina_rc_t __ina_pcap_read_chunk_cursor(ina_pcap_ctx_t *ctx, size_t how_muc
 
 static ina_rc_t __ina_pcap_read_chunk_gzip(ina_pcap_ctx_t *ctx, size_t how_much, size_t *read, const unsigned char **chunk)
 {
-    return ina_gzip_read_next_block(ctx->gzip_ctx, how_much, read, (unsigned char**)chunk);
+    ina_rc_t rc;
+    unsigned char *orig = ctx->gzip_buffer;
+    size_t tot_read = 0;
+    *read = 0;
+    while (tot_read < how_much) {
+        rc = ina_gzip_read_next_block(ctx->gzip_ctx, how_much-tot_read, read, &ctx->gzip_buffer);
+        if (*read == 0) {
+            break;
+        }
+        tot_read += *read;
+        ctx->gzip_buffer += *read;
+    }
+    ctx->gzip_buffer = orig;
+    *chunk = ctx->gzip_buffer;
+    *read = tot_read;
+    return rc;
 }
 
 INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, size_t buffer_size, 
@@ -104,6 +120,7 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
     (*ctx)->first_packet = 1;
     (*ctx)->mmap_ctx = NULL;
     (*ctx)->gzip_ctx = NULL;
+    (*ctx)->gzip_buffer = NULL;
     (*ctx)->fcur = NULL;
     (*ctx)->file_ctx = NULL;
     (*ctx)->fcapture = NULL;
@@ -183,6 +200,7 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
         if (!INA_SUCCEED(ina_gzip_open(pcap_file, buffer_size, &(*ctx)->gzip_ctx))) {
             return INA_ERR_PUSH_LAST;
         }
+        (*ctx)->gzip_buffer = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*buffer_size);
         (*ctx)->read_chunk_fp = __ina_pcap_read_chunk_gzip;
     }
 
@@ -240,6 +258,9 @@ INA_API(ina_rc_t) ina_pcap_close(ina_pcap_ctx_t **ctx)
     if ((*ctx)->mmap_ctx != NULL) {
         ina_mmap_destroy(&(*ctx)->mmap_ctx);
     }
+    if ((*ctx)->gzip_buffer != NULL) {
+        ina_mem_free((*ctx)->gzip_buffer);
+    }
     if ((*ctx)->gzip_ctx != NULL) {
         ina_gzip_close(&(*ctx)->gzip_ctx);
     }
@@ -253,7 +274,8 @@ INA_API(ina_rc_t) ina_pcap_close(ina_pcap_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **packet)
+INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **packet,
+                                       uint64_t *ts_micros)
 {
     __ina_pcaprec_hdr_t *rec;
     size_t requested = 0;
@@ -276,7 +298,6 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
     rec = (__ina_pcaprec_hdr_t*)chunk;
 
     /* do some validation on the first packet */
-    INA_ASSERT_TRUE(rec->incl_len == rec->orig_len);
     if (ctx->first_packet) {
         if (rec->incl_len != rec->orig_len) {
             /* FIXME proper error handling */
@@ -284,7 +305,11 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
         }
         ctx->first_packet = 0;
     }
+    /* Included len should never become larger than orig_len or the snaplen value of the global header. */
+    INA_ASSERT_TRUE(rec->incl_len <= rec->orig_len);
+    INA_ASSERT_TRUE(rec->incl_len <= ctx->pcap_hdr->snaplen);
 
+    *ts_micros = (rec->ts_sec*1000ULL*1000ULL) + rec->ts_usec;
     requested = rec->incl_len;
     if (!INA_SUCCEED(ctx->read_chunk_fp(ctx, requested, 
         &read, &chunk))) {

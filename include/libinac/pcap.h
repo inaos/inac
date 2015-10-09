@@ -66,13 +66,14 @@ INA_API(ina_rc_t) ina_pcap_close(ina_pcap_ctx_t **ctx);
 /*
  *
  */
-INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **packet);
+INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **packet,
+                                       uint64_t *ts_micros);
 
 /*
  *
  */
 INA_API(ina_rc_t) ina_pcap_read_headers(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *packet, 
-                                           ina_net_ip_t **ip_hdr, ina_net_udp_hdr_t **udp_hdr);
+                                        ina_net_ip_t **ip_hdr, ina_net_udp_hdr_t **udp_hdr);
 
 #ifdef __cplusplus
 }
