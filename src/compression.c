@@ -190,7 +190,7 @@ static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, c
     stream->next_out = dst;
     stream->avail_out = (mz_uint32)dst_len;
         
-    status = mz_deflate(stream, MZ_SYNC_FLUSH);
+    status = mz_deflate(stream, (more?MZ_SYNC_FLUSH:MZ_FINISH));
     
     *wrote_len = stream->total_out;
     *read_len = stream->total_in;
@@ -245,7 +245,7 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     stream->next_out = dst;
     stream->avail_out = (mz_uint32)dst_len;
 
-    status = mz_inflate(stream, MZ_SYNC_FLUSH);
+    status = mz_inflate(stream, (more?MZ_SYNC_FLUSH:MZ_FINISH));
     *wrote_len = dst_len - stream->avail_out;
     *read_len = src_len - stream->avail_in;
     

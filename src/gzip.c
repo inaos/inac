@@ -308,7 +308,11 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
 
     /*more = ((gzf->nbread - (gzf->bufpos-gzf->buffer)) > requested);*/
     /*more = gzf->nbread == gzf->buffer_size;*/
-    more = (gzf->nbread - (gzf->bufpos-gzf->buffer) > 0);
+    if (gzf->nbread == gzf->buffer_size) {
+        more = (gzf->nbread - (gzf->bufpos-gzf->buffer) > 0);
+    } else {
+        more = (gzf->nbread - (gzf->bufpos-gzf->buffer) > 8);
+    }
 
     /*printf("more: %d\n", more);*/
     if (!INA_SUCCEED(ina_compression_decompress_chunk(gzf->gzip_cstate, 
