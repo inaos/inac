@@ -34,7 +34,7 @@
 /* functionn pointers */
 typedef ina_rc_t (*ina_net_hw_enabled_fp)(ina_net_hw_ctx_t *ctx);
 typedef ina_rc_t (*ina_net_hw_feature_check_fp)(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature);
-typedef ina_rc_t (*ina_net_hw_accelerate_loopback_fp)(ina_net_hw_ctx_t *ctx, int fc, const char *alias);
+typedef ina_rc_t (*ina_net_hw_accelerate_loopback_fp)(ina_net_hw_ctx_t *ctx, int fd, const char *alias);
 
 typedef struct __ina_net_hw_func_s {
     ina_net_hw_enabled_fp enabled_fp;

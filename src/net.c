@@ -48,6 +48,12 @@
 
 #include "net_hw.h"
 
+struct ina_net_udp_receiver_s {
+    ina_str_t ip;
+    int port;
+    struct sockaddr_in addr;
+};
+
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
     INA_ASSERT_NOTNULL(host);
@@ -274,6 +280,60 @@ INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *s
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_net_udp_socket(int* fd)
+{
+    char err[ANET_ERR_LEN];
+
+    INA_ASSERT_TRUE(fd > 0);
+
+    if (anetUdpSocket(err) == ANET_ERR) {
+        return INA_NET_ERROR(err);
+    }
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_udp_send(int fd, ina_net_udp_receiver_t *receiver, unsigned char *buf, int nb, int* nb_write)
+{
+    INA_ASSERT_TRUE(fd > 0);
+    INA_ASSERT_NOTNULL(receiver);
+    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_TRUE(nb > 0);
+    INA_ASSERT_NOTNULL(nb_write);
+
+    *nb_write = anetUdpSendto(fd, &receiver->addr, (char*)buf, nb);
+    if (*nb_write == ANET_ERR) {
+        /* FIXME : Stay in line with the coding standards */
+        /*         define Error message in error.h */
+        return INA_NET_ERROR("Error sending");
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_net_udp_receiver_t **receiver)
+{
+    INA_ASSERT_NOTNULL(receiver);
+
+    *receiver = (ina_net_udp_receiver_t*)ina_mem_alloc(sizeof(ina_net_udp_receiver_t));
+    (*receiver)->ip = ina_str_new_fromcstr(address);
+    (*receiver)->port = port;
+
+    ina_mem_set(&(*receiver)->addr, 0, sizeof((*receiver)->addr));
+    (*receiver)->addr.sin_family = AF_INET;
+    if (address && inet_aton(address, &(*receiver)->addr.sin_addr) == 0) {
+        return INA_NET_ERROR("Invalid IP address");
+    }
+    (*receiver)->addr.sin_port = port;
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_udp_receiver_free(const char *address, int port, ina_net_udp_receiver_t **receiver)
+{
+    ina_str_free((*receiver)->ip);
+    ina_mem_free(*receiver);
+    return INA_SUCCESS;
+}
 
 INA_API(ina_rc_t) ina_net_set_read_timeout(int fd, int msec)
 {
@@ -467,3 +527,17 @@ INA_API(ina_rc_t) ina_net_hw_backend_name(ina_net_hw_ctx_t *ctx, ina_str_t *name
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_net_hw_enabled(ina_net_hw_ctx_t *ctx)
+{
+    return ctx->funcs.enabled_fp(ctx);
+}
+
+INA_API(ina_rc_t) ina_net_hw_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature)
+{
+    return ctx->funcs.feature_check_fp(ctx, feature);
+}
+
+INA_API(ina_rc_t) ina_net_hw_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias)
+{
+    return ctx->funcs.accelerate_loopback_fp(ctx, fd, alias);
+}
