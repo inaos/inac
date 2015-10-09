@@ -286,7 +286,8 @@ INA_API(ina_rc_t) ina_net_udp_socket(int* fd)
 
     INA_ASSERT_TRUE(fd > 0);
 
-    if (anetUdpSocket(err) == ANET_ERR) {
+    *fd = anetUdpSocket(err);
+    if (*fd == ANET_ERR) {
         return INA_NET_ERROR(err);
     }
 
