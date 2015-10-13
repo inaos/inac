@@ -79,6 +79,7 @@ typedef struct ina_file_cursor_s ina_file_cursor_t;
 typedef ina_rc_t (*ina_file_cursor_free_fp)(ina_file_cursor_t **cursor);
 typedef ina_rc_t (*ina_file_cursor_get_buffer_size_fp)(const ina_file_cursor_t *cursor, uint64_t *buffer_size);
 typedef ina_rc_t (*ina_file_cursor_set_pos_fp)(ina_file_cursor_t *cursor, uint64_t position);
+typedef ina_rc_t (*ina_file_cursor_get_pos_fp)(const ina_file_cursor_t *cursor, uint64_t *position);
 typedef ina_rc_t (*ina_file_cursor_set_bof_fp)(ina_file_cursor_t *cursor);
 typedef ina_rc_t (*ina_file_cursor_set_eof_fp)(ina_file_cursor_t *cursor);
 typedef ina_rc_t (*ina_file_cursor_text_read_line_fp)(ina_file_cursor_t *cursor, const char **begin_line, size_t *len);
@@ -102,7 +103,23 @@ INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor);
 /*
  *
  */
- INA_API(ina_rc_t) ina_file_cursor_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size);
+INA_API(ina_rc_t) ina_file_cursor_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_cursor_get_mode(const ina_file_cursor_t *cursor, ina_file_cursor_mode_t *mode);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_cursor_get_type(const ina_file_cursor_t *cursor, ina_file_cursor_type_t *type);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_cursor_get_pos(const ina_file_cursor_t *cursor, uint64_t *position);
+
 /*
  *
  */
