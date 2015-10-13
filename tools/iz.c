@@ -58,7 +58,7 @@ int main(int argc,  char** argv)
     if (!INA_SUCCEED(ina_gzip_open(ina_str_cstr(in_filepath), 4*1024, &gzf))) {
         return EXIT_FAILURE;
     }
-    if (!INA_SUCCEED(ina_file_init(&fctx))) {
+    if (!INA_SUCCEED(ina_file_init(&fctx, 0))) {
         ina_gzip_close(&gzf);
         return EXIT_FAILURE;
     }

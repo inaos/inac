@@ -50,6 +50,7 @@
 #include <windows.h>
 #include <minwindef.h>
 #include <wincon.h>
+#include <io.h>
 #endif
 
 #include <stdio.h>

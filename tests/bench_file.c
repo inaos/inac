@@ -232,7 +232,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    if (!INA_SUCCEED(ina_file_init(&file_ctx))) {
+    if (!INA_SUCCEED(ina_file_init(&file_ctx, 0))) {
         return EXIT_FAILURE;
     }
 

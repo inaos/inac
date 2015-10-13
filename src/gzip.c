@@ -255,7 +255,7 @@ INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file, size_t buffer_size, ina_g
     (*gzf)->is_text = 0;
     (*gzf)->name = NULL;
 
-    if (!INA_SUCCEED(ina_file_init(&(*gzf)->file_ctx))) {
+    if (!INA_SUCCEED(ina_file_init(&(*gzf)->file_ctx, 0))) {
         return INA_ERR_PUSH_LAST;
     }
     if (!INA_SUCCEED(ina_file_new((*gzf)->file_ctx, gzip_file, 

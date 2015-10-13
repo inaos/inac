@@ -34,7 +34,7 @@ INA_TEST(file, test_open_close)
     ina_file_t *f;
     const char *test_file = "test.conf";
     
-    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
 
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file, INA_FILE_ACCESS_MODE_READ, 
         INA_FILE_CREATE_MODE_OPEN, INA_FILE_SHARE_MODE_READ, 0, &f)); 

@@ -126,7 +126,7 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
     (*ctx)->fcapture = NULL;
 
     if (compression == INA_PCAP_FILE_COMPRESSION_NONE) {
-        if (!INA_SUCCEED(ina_file_init(&(*ctx)->file_ctx))) {
+        if (!INA_SUCCEED(ina_file_init(&(*ctx)->file_ctx, 0))) {
             return INA_ERR_PUSH_LAST;
         }
         if (!INA_SUCCEED(ina_file_new((*ctx)->file_ctx, pcap_file, 

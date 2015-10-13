@@ -98,7 +98,7 @@ typedef struct ina_file_stat_s ina_file_stat_t;
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx);
+INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode);
 
 /*
  *
@@ -126,6 +126,16 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat);
  *
  */
 INA_API(ina_rc_t) ina_file_stat_free(ina_file_t *file, ina_file_stat_t **stat);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_get_mode(const ina_file_t *file, mode_t *mode);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_set_mode(const ina_file_t *file, mode_t mode);
 
 /*
  *
