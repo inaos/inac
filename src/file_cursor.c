@@ -97,7 +97,7 @@ static ina_rc_t ina_file_cursor_fileio_get_pos(const ina_file_cursor_t *cursor, 
 
 static ina_rc_t ina_file_cursor_fileio_set_pos(ina_file_cursor_t *cursor, uint64_t position)
 {
-	if (INA_SUCCEED(ina_file_set_pos(cursor->file, position))) {
+	if (INA_SUCCEED(ina_file_set_pos(cursor->file, position, INA_FILE_SEEK_MODE_SET))) {
 		cursor->ext.f.position = position;
 		return INA_SUCCESS;
 	}

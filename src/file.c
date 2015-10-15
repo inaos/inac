@@ -470,7 +470,7 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_s
     LONG high = offset >> 32;
     LONG low = offset & 0xffffffff;
     INA_ASSERT_NOTNULL(file);
-    if (SetFilePointer(file->fh, low, &high, modes[mode]) == INVALID_SET_FILE_POINTER) {
+    if (SetFilePointer(file->fh, low, &high,pos modes[mode]) == INVALID_SET_FILE_POINTER) {
         /* FIXME: proper error handling */
         return INA_FAILURE;
     }
