@@ -90,6 +90,11 @@ typedef enum ina_file_share_mode_e {
 	INA_FILE_SHARE_MODE_WRITE
 } ina_file_share_mode_t;
 
+typedef enum ina_file_seek_mode_e {
+	INA_FILE_SEEK_MODE_SET,
+	INA_FILE_SEEK_MODE_CUR
+} ina_file_seek_mode_t;
+
 /* opaque file types */
 typedef struct ina_file_ctx_s ina_file_ctx_t;
 typedef struct ina_file_s ina_file_t;
@@ -180,7 +185,12 @@ INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file);
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset);
+INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_seek_mode_t mode);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset, ina_file_seek_mode_t mode);
 
 /*
  *

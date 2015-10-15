@@ -463,19 +463,41 @@ INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset)
+INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_seek_mode_t mode)
 {
 #ifdef INA_OS_WIN32
+    static DWORD modes[2] = {FILE_BEGIN,FILE_CURRENT};
     LONG high = offset >> 32;
     LONG low = offset & 0xffffffff;
     INA_ASSERT_NOTNULL(file);
-    if (SetFilePointer(file->fh, low, &high, FILE_CURRENT) == INVALID_SET_FILE_POINTER) {
+    if (SetFilePointer(file->fh, low, &high, modes[mode]) == INVALID_SET_FILE_POINTER) {
         /* FIXME: proper error handling */
         return INA_FAILURE;
     }
 #else
+    static int modes[2] = {SEEK_SET, SEEK_CUR};
     INA_ASSERT_NOTNULL(file);
-    lseek (file->fh, offset, SEEK_CUR);
+    lseek (file->fh, offset, modes[mode]);
+#endif
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset, ina_file_seek_mode_t mode)
+{
+#ifdef INA_OS_WIN32
+    static DWORD modes[2] = {FILE_BEGIN,FILE_CURRENT};
+    LONG high = 0
+    LONG low = 0;
+    INA_ASSERT_NOTNULL(file);
+    if (GetFilePointer(file->fh, low, &high, modes[mode]) == INVALID_SET_FILE_POINTER) {
+        /* FIXME: proper error handling */
+        return INA_FAILURE;
+    }f
+    *offset = high;
+#else
+    static int modes[2] = {SEEK_SET, SEEK_CUR};
+    INA_ASSERT_NOTNULL(file);
+    *offset = (uint64_t)lseek(file->fh, 0, modes[mode]);
 #endif
     return INA_SUCCESS;
 }
