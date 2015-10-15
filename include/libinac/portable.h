@@ -1177,7 +1177,7 @@ typedef int mode_t;
 #define S_IWOTH      0x00020000;  /* does nothing */
 #define S_IXOTH      0x00010000;  /* does nothing */
 #   endif
-#define INA_MS_MODE_MASK = 0x0000ffff;  ///< low word
+#define INA_MS_MODE_MASK 0x0000ffff;  /* low word */
 #endif
 
 #endif
