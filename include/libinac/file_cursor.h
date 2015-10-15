@@ -99,7 +99,10 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
  *
  */
 INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor);
-
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_cursor_get_file(const ina_file_cursor_t *cursor, ina_file_t **file);
 /*
  *
  */

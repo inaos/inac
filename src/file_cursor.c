@@ -421,6 +421,14 @@ INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor)
 	return c->free_fp(cursor);
 }
 
+INA_API(ina_rc_t) ina_file_cursor_get_file(const ina_file_cursor_t *cursor, ina_file_t **file)
+{
+	INA_ASSERT_NOTNULL(cursor);
+	INA_ASSERT_NOTNULL(file);
+	*file = cursor->file;
+	return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_file_cursor_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size)
 {
 	INA_ASSERT_NOTNULL(cursor);
