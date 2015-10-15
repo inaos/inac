@@ -51,6 +51,8 @@
 #include <minwindef.h>
 #include <wincon.h>
 #include <io.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 #include <stdio.h>
