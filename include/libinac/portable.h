@@ -1170,14 +1170,14 @@ typedef int mode_t;
 #define S_IWOTH      _S_IWRITE    /* write by *USER* */
 #define S_IXOTH      0x00010000   /* does nothing    */
 #   else
-#define S_IRGRP      0x00200000;  /* does nothing */
-#define S_IWGRP      0x00100000;  /* does nothing */
-#define S_IXGRP      0x00080000;  /* does nothing */
-#define S_IROTH      0x00040000;  /* does nothing */
-#define S_IWOTH      0x00020000;  /* does nothing */
-#define S_IXOTH      0x00010000;  /* does nothing */
+#define S_IRGRP      0x00200000   /* does nothing */
+#define S_IWGRP      0x00100000   /* does nothing */
+#define S_IXGRP      0x00080000   /* does nothing */
+#define S_IROTH      0x00040000   /* does nothing */
+#define S_IWOTH      0x00020000   /* does nothing */
+#define S_IXOTH      0x00010000   /* does nothing */
 #   endif
-#define INA_MS_MODE_MASK 0x0000ffff;  /* low word */
+#define INA_MS_MODE_MASK 0x0000ffff  /* low word */
 #endif
 
 #endif
