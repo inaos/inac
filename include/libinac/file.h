@@ -132,6 +132,12 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat);
  */
 INA_API(ina_rc_t) ina_file_stat_free(ina_file_t *file, ina_file_stat_t **stat);
 
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_file_get_filepath(const ina_file_t *file, ina_str_t *filepath);
+
 /*
  *
  */

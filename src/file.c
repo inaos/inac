@@ -48,9 +48,9 @@ struct ina_file_stat_s {
 };
 
 struct ina_file_s {
+    ina_str_t file_path;
 #ifdef INA_OS_WIN32
 	HANDLE fh;
-	char file_path[MAX_PATH];
 #else
 	int fh;
 #endif
@@ -255,20 +255,24 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
     (*file)->create = create;
     (*file)->share = share;
     (*file)->fh = fhandle;
-#ifdef INA_OS_WIN32
-    strcpy((*file)->file_path, file_fqn);
-#endif
+    (*file)->file_path = ina_str_new_fromcstr(file_fqn);
 
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file)
 {
+    INA_ASSERT_NOTNULL(file);
+    if (*file == NULL) {
+        return INA_SUCCESS;
+    }
+
 #ifdef INA_OS_WIN32
 	CloseHandle((*file)->fh);
-#else
+#elseok
     close((*file)->fh);
 #endif
+    ina_str_free((*file)->file_path);
     ina_mem_free(*file);
     *file = NULL;
     return INA_SUCCESS;
@@ -341,6 +345,14 @@ INA_API(ina_rc_t) ina_file_stat_free(ina_file_t *file, ina_file_stat_t **stat)
 {
     ina_mem_free(*stat);
     *stat = NULL;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_file_get_filepath(const ina_file_t *file, ina_str_t *filepath)
+{
+    INA_ASSERT_NOTNULL(file);
+    INA_ASSERT_NOTNULL(filepath);
+    *filepath = ina_str_dup(file->file_path);
     return INA_SUCCESS;
 }
 
