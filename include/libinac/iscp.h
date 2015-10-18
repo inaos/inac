@@ -62,6 +62,9 @@ ina_iscp_cmd_t name[] = {            \
 typedef enum ina_iscp_backend_e {
     INA_ISCP_NONE = 0,
     INA_ISCP_INET,
+#ifndef INA_OS_WIN32
+    INA_ISCP_UXDS,
+#endif
     INA_ISCP_DEFAULT = INA_ISCP_INET,
 } ina_iscp_backend_t;
 
@@ -166,6 +169,19 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
  * INA_SUCCESS if no error occurred
  */
 INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, int port);
+
+#ifndef INA_OS_WIN32
+/*
+ * Create a Unix domain socket ISCP context
+ *
+ * Parameters
+ * ctx          Pointer to a context pointer to create
+ *
+ * Return Value
+ * INA_SUCCESS if no error occurred
+ */
+INA_API(ina_rc_t) ina_iscp_create_uxds(ina_iscp_ctx_t **ctx, const char* socket_path);
+#endif
 
 /*
  * Set the send and receive callbacks.

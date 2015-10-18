@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2013, INAOS GmbH
+* Copyright (c) 2012-2015, INAOS GmbH
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -166,6 +166,53 @@ INA_TEST_FIXTURE(iscp_tcp, send_tcp) {
     INA_TEST_ASSERT_EQUAL_STR("blabla", ina_str_cstr(str));    
                             
 }
+
+#ifndef INA_OS_WIN32
+INA_TEST_DATA(iscp_uds) {
+    ina_test_hid_t hid;
+    ina_iscp_ctx_t *iscp;
+};
+
+INA_TEST_SETUP(iscp_uds) {
+    INA_TEST_HELPER_INVOKE(&data->hid, iscp_uds, uds_server, "\0iscp_test", NULL);
+    ina_iscp_create_uxds(&data->iscp, "\0iscp_test");
+}
+
+INA_TEST_TEARDOWN(iscp_uds) {
+    INA_TEST_HELPER_TERMINATE(&data->hid);
+    ina_iscp_destroy(&data->iscp);
+    ina_err_reset();
+}
+
+INA_TEST_FIXTURE(iscp_uds, send_negative_double) {
+      INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 3, 1, 0, NULL));
+      INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 3, INA_ISCP_TYPE_DBL, -3.2));
+}
+
+INA_TEST_FIXTURE(iscp_uds, send_uds) {
+    double d = 0.0;
+    int64_t i = 0;
+    ina_str_t str = NULL;
+
+    INA_TEST_ASSERT_NOT_NULL(data->iscp);
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_register(data->iscp, 1, 3, 3, NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_send(data->iscp, 1,
+                            INA_ISCP_TYPE_INT64, 20LL,
+                            INA_ISCP_TYPE_DBL, 5.2,
+                            INA_ISCP_TYPE_STR, "test"));
+
+    INA_TEST_ASSERT_SUCCEED(ina_iscp_get_last_return_values(data->iscp,
+                                  INA_ISCP_TYPE_DBL, &d,
+                                  INA_ISCP_TYPE_STR, &str,
+                                  INA_ISCP_TYPE_INT64, &i));
+
+    INA_TEST_ASSERT_EQUAL_FLOATING(55.5, d);
+    INA_TEST_ASSERT_EQUAL_INTEGER(12, i);
+    INA_TEST_ASSERT_EQUAL_STR("blabla", ina_str_cstr(str));
+
+}
+#endif
 
 INA_TEST(iscp_null, send_recv_checkparams)
 {
