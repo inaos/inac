@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,7 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
 
 INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, int port)
 {
-    ina_iscp_tcp_data_t *data = NULL;
+    ina_iscp_net_data_t *data = NULL;
 
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(addr);
@@ -120,7 +120,7 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, in
         return INA_ERR_PUSH_LAST;
     }
     
-    data = (ina_iscp_tcp_data_t*)ina_mempool_dalloc((*ctx)->mempool, sizeof(ina_iscp_tcp_data_t));
+    data = (ina_iscp_net_data_t*)ina_mempool_dalloc((*ctx)->mempool, sizeof(ina_iscp_net_data_t));
     if (data == NULL) {
         return INA_ERR_PUSH_LAST;
     }
@@ -667,7 +667,7 @@ INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...
 static ina_rc_t 
 __ina_net_open_cb(void* user_data, int send)
 {
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
 
     /* Open channel for sending **/
     if (send == 1) {    
@@ -711,7 +711,7 @@ __ina_net_open_cb(void* user_data, int send)
 static ina_rc_t 
 __ina_net_clse_cb(void* user_data, int send)
 {
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
     if (send == 1 && data->fd != -1) {
         INA_TRACE3("ISCP close client fd %d", data->fd);
         ina_net_close(data->fd);
@@ -729,7 +729,7 @@ __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
 {
     int nb_write;
     int nb_read;
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
 
     nb_write = 0;
     nb_read = 0;
@@ -777,7 +777,7 @@ __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 {   
     int nb_read;
     int tot_nb_read = 0;
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
     unsigned char *buf;
     nb_read = 0;
     
@@ -836,7 +836,7 @@ static ina_rc_t
 __ina_net_retn_cb(void *user_data, ina_iscp_msg_t *msg)
 {
     int nb_write;
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
 
     INA_ASSERT_NOTNULL(msg);
     nb_write = 0;

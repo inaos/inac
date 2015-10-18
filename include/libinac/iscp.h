@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,14 +134,15 @@ typedef struct ina_iscp_ctx_s {
     void *user_data;
 } ina_iscp_ctx_t;
 
-/* ISCP context for TCP IP */
-typedef struct ina_iscp_tcp_data_s {
+/* ISCP context for NET backends */
+typedef struct ina_iscp_net_data_s {
     ina_str_t addr;     /* IP */
     int       port;     /* Port */
+    ina_str_t sockpath; /* Socket path */
     int       fd;       /* File descriptor */
     int       lfd;      /* File descriptor for listener */
     int       timeout_sec; /* Timeout for TCP connect  default 10 seconds */
-} ina_iscp_tcp_data_t;
+} ina_iscp_net_data_t;
 
 /*
  * Create a generic ISCP context
@@ -156,7 +157,7 @@ typedef struct ina_iscp_tcp_data_s {
 INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backend);
 
 /*
- * Create a generic ISCP context
+ * Create a TCP ISCP context
  *
  * Parameters
  * ctx          Pointer to a context pointer to create
