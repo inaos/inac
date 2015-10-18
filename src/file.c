@@ -268,8 +268,8 @@ INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file)
     }
 
 #ifdef INA_OS_WIN32
-	CloseHandle((*file)->fh);
-#elseok
+    CloseHandle((*file)->fh);
+#else
     close((*file)->fh);
 #endif
     ina_str_free((*file)->file_path);
