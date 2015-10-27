@@ -1073,7 +1073,11 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #error UNSUPPORTED COMPILER
 #endif
 
-
+#if !defined(GCC_VERSION) || GCC_VERSION <= 30406
+#define INA_PACK(x,y) y ## _e; typedef x y;
+#else
+#define INA_PACK(x,y) INA_PACKED y
+#endif
 
 #ifdef INA_COMPILER_MSVC
 #define va_copy(dest, src) (dest = src)
