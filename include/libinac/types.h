@@ -36,10 +36,12 @@ extern "C" {
 typedef uint32_t ina_rc_t;
 
 /* Decimal type */
-typedef struct ina_decimal_s {
+INA_VS_BEGIN_PACK
+typedef struct INA_PACKED ina_decimal_s {
     int32_t exponent;
     int64_t mantissa;
 } ina_decimal_t;
+INA_VS_END_PACK
 
 /*
  * Copy a decimal.
