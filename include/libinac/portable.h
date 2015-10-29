@@ -1152,13 +1152,14 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #ifdef INA_OS_WIN32
 typedef int mode_t;
 
-/// @Note If STRICT_UGO_PERMISSIONS is not defined, then setting Read for any
-///       of User, Group, or Other will set Read for User and setting Write
-///       will set Write for User.  Otherwise, Read and Write for Group and
-///       Other are ignored.
-///
-/// @Note For the POSIX modes that do not have a Windows equivalent, the modes
-///       defined here use the POSIX values left shifted 16 bits.
+/* If STRICT_UGO_PERMISSIONS is not defined, then setting Read for any
+ * of User, Group, or Other will set Read for User and setting Write
+ * will set Write for User.  Otherwise, Read and Write for Group and
+ * Other are ignored.
+ *
+ * For the POSIX modes that do not have a Windows equivalent, the modes
+ * defined here use the POSIX values left shifted 16 bits.
+ */
 
 #define S_ISUID      0x08000000   /* does nothing  */
 #define S_ISGID      0x04000000   /* does nothing  */
@@ -1185,3 +1186,10 @@ typedef int mode_t;
 #endif
 
 #endif
+
+ #ifdef _DEBUG
+ #ifndef DEBUG
+ #define DEBUG 1
+ #endif
+ #endif
+
