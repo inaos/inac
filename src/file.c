@@ -494,12 +494,11 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_s
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset, ina_file_seek_mode_t mode)
+INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset)
 {
 #ifdef INA_OS_WIN32
     DWORD dwOffset;
     INA_ASSERT_NOTNULL(file);
-    INA_ASSERT_TRUE(mode == INA_FILE_SEEK_MODE_CUR);
     dwOffset = SetFilePointer(file->fh, 0, NULL, FILE_CURRENT);
     if (dwOffset == INVALID_SET_FILE_POINTER) {
         /* FIXME: proper error handling */
@@ -507,9 +506,8 @@ INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset, ina_file_
     }
     *offset = dwOffset;
 #else
-    static int modes[2] = {SEEK_SET, SEEK_CUR};
     INA_ASSERT_NOTNULL(file);
-    *offset = (uint64_t)lseek(file->fh, 0, modes[mode]);
+    *offset = (uint64_t)lseek(file->fh, 0, SEEK_CUR);
 #endif
     return INA_SUCCESS;
 }

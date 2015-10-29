@@ -196,7 +196,7 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_s
 /*
  *
  */
-INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset, ina_file_seek_mode_t mode);
+INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset);
 
 /*
  *
