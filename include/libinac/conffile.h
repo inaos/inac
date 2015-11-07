@@ -40,9 +40,9 @@ typedef enum ina_conffile_value_type_e {
     INA_CONFFILE_VALUE_TYPE_NUMBER,
 } ina_conffile_value_type_t;
 
-/* Confiuration file entry */
+/* Configuration file entry */
 typedef struct ina_conffile_entry_s ina_conffile_entry_t;
-/* Configuration file section, can be namen or unnamed */
+/* Configuration file section, can be named or unnamed */
 typedef struct ina_conffile_section_s ina_conffile_section_t;
 
 /* Configuration file data */
@@ -96,7 +96,7 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf);
  * cb		Callback to process the entries for that section or NULL if
  * 		entries should not be proccessed.
  * section	Pointer to an section pointer. Contains the newly created
- * 		section or NULL if any error occured.
+ * 		section or NULL if any error occurred.
  *
  * Return Value
  * INA_SUCCESS if section was created successfully.
@@ -118,7 +118,7 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, const char *name,
  *		INA_NO value key is marked as optional.
  *
  * Return Value
- * INA_SUCCESS if value key was successfuly added.  
+ * INA_SUCCESS if value key was successfully added.
  */
 INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section, 
                     const char *name, ina_conffile_value_type_t value_type, 
@@ -250,17 +250,17 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
 INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf);
 
 /*
- *  Add a string value key to the configration file.
+ *  Add a string value key to the configuration file.
  *  
  *  Parameters
  *  name	string	Name of value key
- *  required	boolean	Define if value is reuired or optional
+ *  required	boolean	Define if value is required or optional
  */
 #define INA_CONFFILE_STRING_KEY(name, required) \
 ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required)
 
 /*
- * Add a number value key to the confiuration file.
+ * Add a number value key to the configuration file.
  *
  * Parameters
  * name		string	Name of value key
@@ -270,7 +270,7 @@ ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_STRING, required)
 ina_conffile_add_key(__cs, name, INA_CONFFILE_VALUE_TYPE_NUMBER, required)
 
 /* 
- * Add an unnamed section to the configration file.
+ * Add an unnamed section to the configuration file.
  *
  * Parameters
  * name		string	 Section name
@@ -298,13 +298,13 @@ ina_conffile_add_section(__cf, name, required, INA_YES, handler, &__cs); \
 __VA_ARGS__
 
 /*
- * Define configration file using the standard pattern. 
+ * Define configuration file using the standard pattern.
  *
  * Parameters
- * cf	Pointer to a configuration file. NULL if it's not itended to use
- *      the configration values after  processing the configuration file
- * ...  Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add 
- *      named or unamed section to the configuration file
+ * cf   Pointer to a configuration file. NULL if it's not itended to use
+ *      the configuration values after processing the configuration file
+ *      Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add
+ *      named or unnamed section to the configuration file.
  */
 #define INA_CONFFILE(cf, fp, ...)                         \
 {                                                         \
