@@ -122,7 +122,8 @@ typedef struct ina_fsm_transition_s {
  
 /* Get last set event of a FSM */
 #define INA_FSM_GET_EVENT(id, status)                                        \
-    id##_get_fsm_event(status)
+    __ina_fsm_noop();                                                        \
+    id##_get_fsm_event(status)      
 
 /* Get the next state for a FSM */
 #define INA_FSM_NEXT_STATE(id, status, userdata)                             \
