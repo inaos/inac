@@ -40,7 +40,6 @@
 extern "C" {
 #endif
 
-#include "os_port.h"
 #include "version.h"
 #include "config.h"
 #include "crypto.h"

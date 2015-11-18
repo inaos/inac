@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 /* FSM action function prototype  */
-typedef void (*ina_fsm_action_fn_t)();
+typedef void (*ina_fsm_action_fn_t)(void *userdata);
 
 /* FSM status, holding current state and last event */
 typedef uint16_t ina_fsm_status_t;
