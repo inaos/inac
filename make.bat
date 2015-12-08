@@ -73,7 +73,11 @@ if "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if exist get_cpuid.obj del get_cpuid.obj
 	if exist intel-cpu-topo.lib del intel-cpu-topo.lib
 ) else (
-	call inac_32.bat
+	if "%INAC_ARCH%" == "x64" (
+        call inac_64.bat
+	) else (
+		call inac_32.bat
+	)
 )
 cd %INAC_HOME%	
 
@@ -180,6 +184,10 @@ REM reset the main environment variables because they might have been deleted by
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
+if "%INAC_ARCH%" == "x64" (
+	echo FIXME: In Windows 64bit mode we currently do not build tests and tools due to an bug
+) else (
+
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
@@ -199,6 +207,8 @@ SET INAC_WIN32_C_SOURCE_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
 
 call %INAC_BUILD_SCRIPT% %1 %2
+
+)
 
 goto exit
 
