@@ -130,7 +130,7 @@ int main(int argc,  char** argv)
         }
     }
     else {
-        printf("You have to choose a program option, use --help");
+        printf("You have to choose a program option, use --help\n");
     }
 
     return EXIT_SUCCESS;
