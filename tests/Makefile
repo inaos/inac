@@ -1,7 +1,6 @@
 DIRS = $(shell ls -p |grep /)
 SRC = $(wildcard test*.c)
 SRC += $(wildcard helper*.c)
-SRC += $(wildcard bench*.c)
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
