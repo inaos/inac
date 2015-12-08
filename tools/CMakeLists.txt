@@ -61,3 +61,6 @@ target_link_libraries(iz ${PLATFORM_LIBS} ${LIBS})
 
 add_executable(icpu icpu.c)
 target_link_libraries(icpu ${PLATFORM_LIBS} ${LIBS})
+
+add_executable(imem imem.c)
+target_link_libraries(imem ${PLATFORM_LIBS} ${LIBS})
