@@ -30,7 +30,6 @@
 
 static ina_stopwatch_t   *stopwatch = NULL;
 static ina_str_t          benchmark = NULL;
-static __m128i            shuffle_mask[16];
 
 size_t intersect_zipper(int32_t *A, int32_t *B, size_t s_a, size_t s_b, int32_t *C) 
 {
@@ -49,8 +48,6 @@ size_t intersect_zipper(int32_t *A, int32_t *B, size_t s_a, size_t s_b, int32_t 
     }
     return counter;
 }
-
-
 
 static void its_cleanup_handler(int sig, int *error)
 {
@@ -74,7 +71,7 @@ int main(int argc, char **argv)
     size_t len;
 
     INA_OPTS(opt,
-        INA_OPT_INT("i", "size", NULL, "Number of elements in the intersection arrays"),
+        INA_OPT_INT("i", "size", 1024, "Number of elements in the intersection arrays"),
         INA_OPT_FLAG("z", "zipper", "Execute a simple zipper intersection")
     );
 
@@ -87,13 +84,13 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    ina_opt_get_int("i", &len);
+    ina_opt_get_int("i", (int*)&len);
     A = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
     B = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
     C = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
 
     INA_TIME_STOPWATCH_START(stopwatch);
-
+    
     if (INA_SUCCEED(ina_opt_isset("z"))) {
         benchmark = ina_str_new_fromcstr("zipper");
         intersect_zipper(A, B, len, len, C);
