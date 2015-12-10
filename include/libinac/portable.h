@@ -1182,6 +1182,10 @@ typedef int mode_t;
 #define S_IWOTH      0x00020000   /* does nothing */
 #define S_IXOTH      0x00010000   /* does nothing */
 #   endif
+#define S_IRWXU (S_IRUSR | S_IWUSR | S_IXUSR)
+#define S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
+#define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
+
 #define INA_MS_MODE_MASK 0x0000ffff  /* low word */
 #endif
 
