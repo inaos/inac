@@ -85,7 +85,7 @@ typedef struct ina_fsm_transition_s {
         ina_fsm_transition_t *__fsmt = &__##id##_fsm_transitions                        \
             [id##_get_fsm_event(*s)][id##_get_fsm_state(*s)];                           \
         id##_fsm_state_t new_state = (id##_fsm_state_t)__fsmt->next_state;              \
-        __fsmt->action(u);                                                              \
+        if (__fsmt->action) __fsmt->action(u);                                                              \
         id##_set_fsm_state(s, new_state);                                               \
         return new_state;                                                               \
     }                                                                                   \
@@ -94,7 +94,7 @@ typedef struct ina_fsm_transition_s {
         ina_fsm_transition_t *__fsmt = &__##id##_fsm_transitions                        \
             [e][id##_get_fsm_state(*s)];                                                \
         id##_fsm_state_t new_state = (id##_fsm_state_t)__fsmt->next_state;              \
-        __fsmt->action(u);                                                              \
+        if (__fsmt->action) __fsmt->action(u);                                                              \
         id##_set_fsm_state(s, new_state);                                               \
         return new_state;                                                               \
     }
@@ -107,7 +107,7 @@ typedef struct ina_fsm_transition_s {
     { action, next_state }
 /* Define a non state transition in a FSM transition map */
 #define INA_FSM_NO_TRANSITION(state)                                         \
-    { NULL, 0 }
+    { NULL, state }
 
 /* Get the current state of an FSM */
 #define INA_FSM_GET_STATE(id, status)                                        \
