@@ -23,6 +23,8 @@ tests/bench_timer
 tests/bench_file
 tests/ilt
 tools/iml
+tools/imem
+tools/icpu
 contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/sqlite/libsqlite3.so
