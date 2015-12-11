@@ -50,13 +50,14 @@ INA_FSM_EVENTS(signal_fsm,
     INA_FSM_EVENT(TURN_ON_OFF),
     INA_FSM_EVENT(SWITCH));
     
-void do_nothing(signal_light_t *sl)
+void do_nothing(void *userdata)
 {
     
 }
 
-void turn_on(signal_light_t *sl)
+void turn_on(void *userdata)
 {
+    signal_light_t *sl = (signal_light_t*)userdata;
     INA_TRACE2("turn_on");
     INA_TEST_ASSERT_TRUE(sl->is_on == INA_NO);
     INA_TEST_ASSERT_TRUE(sl->is_red == INA_NO);
@@ -67,8 +68,9 @@ void turn_on(signal_light_t *sl)
     INA_FSM_SET_EVENT(signal_fsm, sl->fsm_status, SWITCH);
 }
 
-void turn_off(signal_light_t *sl)
+void turn_off(void *userdata)
 {
+    signal_light_t *sl = (signal_light_t*)userdata;
     INA_TRACE2("turn_off");
     INA_TEST_ASSERT_TRUE(sl->is_on == INA_YES);
     INA_TEST_ASSERT_TRUE(sl->is_red == INA_NO );
@@ -79,8 +81,9 @@ void turn_off(signal_light_t *sl)
     sl->is_green = INA_NO;
 }
 
-void turn_red_on(signal_light_t *sl)
+void turn_red_on(void *userdata)
 {
+    signal_light_t *sl = (signal_light_t*)userdata;
     INA_TRACE2("turn_red_on");
     INA_TEST_ASSERT_TRUE(sl->is_on == INA_YES);
     INA_TEST_ASSERT_TRUE(sl->is_red == INA_NO );
@@ -94,8 +97,9 @@ void turn_red_on(signal_light_t *sl)
     sl->is_red = INA_YES;
 }
 
-void turn_orange_on(signal_light_t *sl)
+void turn_orange_on(void *userdata)
 {
+    signal_light_t *sl = (signal_light_t*)userdata;
     INA_TRACE2("turn_orange_on");
     INA_TEST_ASSERT_TRUE(sl->is_on == INA_YES);
     INA_TEST_ASSERT_TRUE(sl->is_red == INA_YES);
@@ -105,8 +109,9 @@ void turn_orange_on(signal_light_t *sl)
     sl->is_orange = INA_YES;
 }
 
-void turn_green_on(signal_light_t *sl)
+void turn_green_on(void *userdata)
 {
+    signal_light_t *sl = (signal_light_t*)userdata;
     INA_TRACE2("turn_green_on");
     INA_TEST_ASSERT_TRUE(sl->is_on == INA_YES);
     INA_TEST_ASSERT_TRUE(sl->is_red == INA_NO);

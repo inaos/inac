@@ -62,6 +62,8 @@ int anetPeerToString(int fd, char *ip, int *port);
 
 /* UDP */
 int anetUdpBind(char *err, char *addr, int port);
+int anetUdpSocket(char *err);
+int anetUdpSendto(int fd, struct sockaddr_in *addr, char *buf, int count);
 int anetJoinGroup(char* err, int fd, char *localif, char *source);
 int anetLeaveGroup(char* err, int fd, char *localif, char *source);
 

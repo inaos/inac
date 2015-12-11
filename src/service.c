@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,8 +71,6 @@ static ina_rc_t __ina_service_run_console(ina_service_ctx_t *ctx);
 static ina_rc_t __ina_service_mgnt_status(const  char *name, ina_service_status_t *status);
 static ina_rc_t __ina_service_mgnt_start(const char *name);
 static ina_rc_t __ina_service_mgnt_stop(const char *name);
-
-extern ina_service_descriptor_t __ina_service_section;
 
 #ifdef INA_OS_WIN32
 

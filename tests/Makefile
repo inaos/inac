@@ -4,8 +4,6 @@ SRC += $(wildcard helper*.c)
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
-TOOLS = ullc_monitor service_mgr ilt iml bench_timer bench_file
-TOOLS_OBJS = $(TOOLS:=.o)
 
 # ****************************************************************************
 # Linker settings
@@ -21,11 +19,8 @@ ifeq (,$(findstring Windows,$(OS)))
 endif
 
 
-all: $(OBJ)  main.o $(TOOLS)
+all: $(OBJ)  main.o
 	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS) 
-
-$(TOOLS): $(TOOLS_OBJS)
-	@for i in $(TOOLS); do $(CC) $(CFLAGS) -o $$i $$i.o $(LDFLAGS); done;
 	
 %.o: %.c
 	@echo compiling $<
@@ -39,7 +34,7 @@ release: all
 
 clean:
 	@echo cleaning tests...
-	@-rm -f *.o $(BIN) $(TOOLS) *.gcno *.gcda *.gcov* *.tap
+	@-rm -f *.o $(BIN)  *.gcno *.gcda *.gcov* *.tap
 
 test: all
 	./test --tap

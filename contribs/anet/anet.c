@@ -631,3 +631,27 @@ int anetLeaveGroup(char* err, int fd, char *localif, char *source)
 	return(ANET_OK);
 }
 
+int anetUdpSocket(char *err)
+{
+    int s;
+
+    if ((s = anetCreateSocket(err,AF_INET,ANET_SOCKET_TYPE_UDP)) == ANET_ERR) {
+        return ANET_ERR;
+    }
+
+    return s;
+}
+
+int anetUdpSendto(int fd, struct sockaddr_in *addr, char *buf, int count)
+{
+    int nwritten, totlen = 0;
+    while(totlen != count) {
+        nwritten = sendto(fd, buf, count-totlen, 0, (struct sockaddr*)addr, sizeof(*addr));
+        if (nwritten == 0) return totlen;
+        if (nwritten == -1) return -1;
+        totlen += nwritten;
+        buf += nwritten;
+    }
+    return totlen;
+}
+

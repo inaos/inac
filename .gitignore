@@ -16,12 +16,13 @@ coverage.xml
 tests/suites.c
 tests/suites.h
 tests/test
-tests/ullc_monitor
-tests/service_mgr
+tools/ullc_monitor
+tools/service_mgr
+tools/iz
 tests/bench_timer
 tests/bench_file
 tests/ilt
-tests/iml
+tools/iml
 contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/sqlite/libsqlite3.so
@@ -50,6 +51,8 @@ build/*
 buildall/*
 buildtest/*
 tests/build/*
+tools/build/*
+tools/buildall/*
 !contribs-bin/meinberg/lib/mbgdevio.lib
 !contribs-bin/meinberg/lib64/mbgdevio.lib
 src/__.SYMDEF SORTED

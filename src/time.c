@@ -116,13 +116,13 @@ static void __ina_time_rdtsc_calibrate_ticks(void)
     INA_TIME_RDTSC(end);
     ina_time_read_sys_clock(endts);
     ina_time_sys_seconds_micros(endts, &esecs, &eus);
-    ina_time_sys_seconds_micros(endts, &bsecs, &bus);
+    ina_time_sys_seconds_micros(begints, &bsecs, &bus);
     nsecElapsed = (esecs * 1000000000 + (eus*1000)) - (bsecs * 1000000000 + (bus*1000));
     __ina_time_rdtsc_ticks_per_nano = (double)(end.uint64 - begin.uint64)/(double)nsecElapsed;
     ina_time_read_sys_clock(refhpet);
     INA_TIME_RDTSC(ts);
     __ina_time_rdtsc_ref = ts.uint64;
-    ina_time_sys_seconds_micros(endts, &rsecs, &rus);
+    ina_time_sys_seconds_micros(refhpet, &rsecs, &rus);
     __ina_time_rdtsc_refhpet = rsecs * 1000000000 + (rus*1000);
     ina_time_sys_free(&begints);
     ina_time_sys_free(&endts);
