@@ -40,7 +40,7 @@ struct ina_ipc_flags_data_s {
     volatile int64_t  l;
     volatile uint64_t v;
     uint64_t ka;
-    uint32_t c_ref[64];
+    uint32_t c_ref[INA_IPC_FLAGS_MAX];
 };
 
 /* IPC counter */
@@ -150,9 +150,19 @@ INA_API(ina_rc_t) ina_ipc_flags_get(const ina_ipc_flags_t *flags, uint64_t *valu
 
 INA_API(ina_rc_t) ina_ipc_flags_set(ina_ipc_flags_t *flags, uint64_t value)
 {
+    uint64_t j;
+
     INA_ASSERT_NOTNULL(flags);
     INA_ASSERT_NOTNULL(flags->data);
     __INA_ENTER_LOCK(flags->data);
+    
+    /* Increment reference count for each single flag */
+    for (j = 0; j < INA_IPC_FLAGS_MAX; ++j) {
+        if ((value & ( 1ULL << j)) >> j) {
+            ++flags->data->c_ref[j];
+        }
+    }
+        
     INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v | value);
     __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
@@ -170,10 +180,21 @@ INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t* flags, uint64_t va
 
 INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
 {
+    uint64_t j;
     INA_ASSERT_NOTNULL(flags);
     INA_ASSERT_NOTNULL(flags->data);
     __INA_ENTER_LOCK(flags->data);
-    INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v & ~(value));
+
+    /* Unset flag if reference count is zero */
+    for (j = 0; j < INA_IPC_FLAGS_MAX; ++j) {
+        if ((value & ( 1ULL << j)) >> j) {
+            if (--flags->data->c_ref[j] == 0) {
+                uint64_t mask = 0;
+                mask = 1ULL << (uint64_t)(j)|0;
+                INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v & ~(mask));
+            }
+        }
+    }
     __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
 }

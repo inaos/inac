@@ -121,8 +121,29 @@ INA_TEST(ipc_flags, unset)
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
     INA_TEST_ASSERT_TRUE(v == (F1|F2|F3));
     ina_ipc_flags_free(&f);
- }
+}
 
+INA_TEST(ipc_flags, ref_count)
+{
+    ina_ipc_flags_t *f;
+    uint64_t v;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_unset", F1|F2|F3|F4, &f));
+    INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3|F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F1|F2));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_unset(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_unset(f, F1|F2));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_unset(f, F1|F2));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F3));
+    ina_ipc_flags_free(&f);
+ }
 
 INA_TEST(ipc_flags, wait)
 {
