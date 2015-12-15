@@ -128,7 +128,7 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 	int proc_crc = 0;
 	uint32_t head_crc32 = 0;
 	uint16_t head_crc16 = 0;
-    size_t pos;
+    size_t pos = 0;
 	
 	hdr = &file->hdr;
 	
@@ -343,12 +343,24 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
 
 INA_API(ina_rc_t) ina_gzip_close(ina_gzip_file_t **gzf)
 {
+	INA_ASSERT_NOTNULL(gzf);
+
+	if (*gzf == NULL) {
+		return INA_SUCCESS;
+	}
     if ((*gzf)->gzip_cstate != NULL) {
         ina_compression_free(&(*gzf)->gzip_cstate);
     }
-    ina_file_cursor_free(&(*gzf)->fcur);
-    ina_file_free((*gzf)->file_ctx, &(*gzf)->fgzip);
-    ina_file_destroy(&(*gzf)->file_ctx);
+    if ((*gzf)->fcur != NULL) {
+    	ina_file_cursor_free(&(*gzf)->fcur);
+    }
+    if ((*gzf)->fgzip != NULL) {
+    	ina_file_free((*gzf)->file_ctx, &(*gzf)->fgzip);
+    }
+    if ((*gzf)->file_ctx != NULL) {
+    	ina_file_destroy(&(*gzf)->file_ctx);
+    }
     ina_mem_free(*gzf);
+    *gzf = NULL;
     return INA_SUCCESS;
 }
