@@ -49,15 +49,24 @@ size_t intersect_zipper(int32_t *A, int32_t *B, size_t s_a, size_t s_b, int32_t 
     return counter;
 }
 
+void intersect_logical(char *A, char *B, char *C, size_t len)
+{
+    size_t i;
+    for (i = 0; i < len; i++) {
+        C[i] = A[i] & B[i];
+    }
+}
+
 static void its_cleanup_handler(int sig, int *error)
 {
-    if (stopwatch != NULL) {
+    if (stopwatch != NULL && INA_SUCCEED(ina_time_stopwatch_started(stopwatch))) {
         
         INA_TIME_STOPWATCH_STOP(stopwatch);
 
         printf("%s: Duration %f seconds\n", 
-            benchmark,
+            ina_str_cstr(benchmark),
             stopwatch->tv->sec_duration);
+        
         ina_time_stopwatch_destroy(&stopwatch);
     }
     if (benchmark) {
@@ -67,12 +76,12 @@ static void its_cleanup_handler(int sig, int *error)
 
 int main(int argc, char **argv)
 {
-    int32_t *A, *B, *C;
     size_t len;
 
     INA_OPTS(opt,
         INA_OPT_INT("i", "size", 1024, "Number of elements in the intersection arrays"),
-        INA_OPT_FLAG("z", "zipper", "Execute a simple zipper intersection")
+        INA_OPT_FLAG("z", "zipper", "Execute a simple zipper intersection"),
+        INA_OPT_FLAG("l", "logical", "Execute a logical intersection of two equally sized arrays")
     );
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
@@ -85,19 +94,34 @@ int main(int argc, char **argv)
     }
 
     ina_opt_get_int("i", (int*)&len);
-    A = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
-    B = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
-    C = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
-
-    INA_TIME_STOPWATCH_START(stopwatch);
     
     if (INA_SUCCEED(ina_opt_isset("z"))) {
+        int32_t *A, *B, *C;
         benchmark = ina_str_new_fromcstr("zipper");
+        A = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
+        B = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
+        C = (int32_t*)ina_mem_alloc(sizeof(int32_t)*len);
+        INA_TIME_STOPWATCH_START(stopwatch);
         intersect_zipper(A, B, len, len, C);
-    } else {
+        ina_mem_free(A);
+        ina_mem_free(B);
+        ina_mem_free(C);
+    }
+    else if (INA_SUCCEED(ina_opt_isset("l"))) {
+        char *A, *B, *C;
+        benchmark = ina_str_new_fromcstr("logical");
+        A = (char*)ina_mem_alloc(sizeof(char)*len);
+        B = (char*)ina_mem_alloc(sizeof(char)*len);
+        C = (char*)ina_mem_alloc(sizeof(char)*len);
+        ina_mem_set(B, 1, sizeof(char)*len);
+        INA_TIME_STOPWATCH_START(stopwatch);
+        intersect_logical(A, B, C, len);
+    }
+    else {
         printf("Invalid benchmark!\n");
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }
 
