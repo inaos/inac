@@ -115,7 +115,7 @@ static ina_rc_t __ina_percentile_heap_pop(__ina_percentile_heap_t *h)
         if ((other < h->count) && h->cmp(h->data[other], h->data[swap])) {
              swap = other;
         }
-        if h->cmp(temp, h->data[swap]) {
+        if (h->cmp(temp, h->data[swap])) {
              break; /* If the bigger child is less than or equal to its parent, the heap is reordered */
         }
         h->data[i] = h->data[swap];
@@ -139,7 +139,7 @@ INA_API(ina_rc_t) ina_percentile_new(ina_percentile_t **p, double percentile, si
     *p = (ina_percentile_t*)ina_mem_alloc(sizeof(ina_percentile_t));
     (*p)->percentile = percentile;
     
-    if (!INA_SUCCEED(ina_mempool_create((*p)->mem, 4*1024, INA_MEM_DYNAMIC, NULL))) {
+    if (!INA_SUCCEED(ina_mempool_create(&(*p)->mem, 4*1024, INA_MEM_DYNAMIC, NULL))) {
         return INA_ERR_PUSH_LAST;
     }
 
@@ -157,11 +157,12 @@ INA_API(ina_rc_t) ina_percentile_free(ina_percentile_t **p)
 {
     ina_mempool_release((*p)->mem, INA_YES);
     ina_mem_free(*p);
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_percentile_add(ina_percentile_t *p, uint16_t value)
 {
-    size_t cout_lower;
+    size_t count_lower;
 
     if (p->lower->count == 0 || value <= *p->lower->data) {
         __ina_percentile_heap_push(p->lower, value);
@@ -176,7 +177,7 @@ INA_API(ina_rc_t) ina_percentile_add(ina_percentile_t *p, uint16_t value)
         __ina_percentile_heap_pop(p->lower);
         __ina_percentile_heap_push(p->upper, value); 
     }
-    else if (_lower.size() < size_lower) {
+    else if (p->lower->count < count_lower) {
         /* upper to lower */
         __ina_percentile_heap_pop(p->upper);
         __ina_percentile_heap_push(p->lower, value);

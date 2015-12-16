@@ -104,6 +104,7 @@
 #include <libinac/histogram.h>
 #include <libinac/pcap.h>
 #include <libinac/gzip.h>
+#include <libinac/percentile.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>

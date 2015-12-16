@@ -25,39 +25,44 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_PERCENTILE_H_
-#define _LIBINAC_PERCENTILE_H_
-
 #include <libinac/lib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static int __test_percentile_input[] = {
+    43, 54, 56, 61, 62, 66, 68, 69, 69, 70, 71, 72, 77, 78, 79, 85, 87, 88, 89, 93, 95, 96, 98, 99, 99
+};
 
-/* opaque percentile type */
-typedef struct ina_percentile_s ina_percentile_t;
+INA_TEST_SKIP(percentile, test_percentile_90)
+{
+    size_t test_size = sizeof(__test_percentile_input)/sizeof(int);
+    ina_percentile_t *p;
+    double test_percentile = 0.9;
+    size_t i;
+    uint16_t actual_percentile = 0;
 
-/*
- *
- */
-INA_API(ina_rc_t) ina_percentile_new(ina_percentile_t **p, double percentile, size_t size);
-/*
- *
- */
-INA_API(ina_rc_t) ina_percentile_free(ina_percentile_t **p);
-/*
- * adds a number in O(log(N))
- *
- */
-INA_API(ina_rc_t) ina_percentile_add(ina_percentile_t *p, uint16_t value);
-/*
- * access the percentile in O(1)
- *
- */
-INA_API(ina_rc_t) ina_percentile_get(ina_percentile_t *p, uint16_t *value);
-
-#ifdef __cplusplus
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_new(&p, test_percentile, test_size));
+    for (i = 0; i < test_size; i++) {
+        INA_TEST_ASSERT_SUCCEED(ina_percentile_add(p, __test_percentile_input[i]));
+    }
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_get(p, &actual_percentile));
+    INA_TEST_ASSERT_EQUAL_INTEGER(98, actual_percentile);
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_free(&p));
 }
-#endif 
 
-#endif
+INA_TEST_SKIP(percentile, test_percentile_50)
+{
+    size_t test_size = sizeof(__test_percentile_input)/sizeof(int);
+    ina_percentile_t *p;
+    double test_percentile = 0.5;
+    size_t i;
+    uint16_t actual_percentile = 0;
+
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_new(&p, test_percentile, test_size));
+    for (i = 0; i < test_size; i++) {
+        INA_TEST_ASSERT_SUCCEED(ina_percentile_add(p, __test_percentile_input[i]));
+    }
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_get(p, &actual_percentile));
+    INA_TEST_ASSERT_EQUAL_INTEGER(77, actual_percentile);
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_free(&p));
+}
+
+
