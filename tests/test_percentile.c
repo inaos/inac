@@ -31,7 +31,7 @@ static int __test_percentile_input[] = {
     43, 54, 56, 61, 62, 66, 68, 69, 69, 70, 71, 72, 77, 78, 79, 85, 87, 88, 89, 93, 95, 96, 98, 99, 99
 };
 
-INA_TEST_SKIP(percentile, test_percentile_90)
+INA_TEST(percentile, test_percentile_90)
 {
     size_t test_size = sizeof(__test_percentile_input)/sizeof(int);
     ina_percentile_t *p;

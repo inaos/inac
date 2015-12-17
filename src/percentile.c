@@ -31,7 +31,6 @@
 typedef int (*__ina_percentile_heap_cmp_fn)(uint16_t, uint16_t);
 
 typedef struct __ina_percentile_heap_s {
-    size_t size;
     size_t count;
     uint16_t *data;
     ina_mempool_t *mem;
@@ -58,10 +57,9 @@ static int __ina_percentile_heap_min_cmp(uint16_t a, uint16_t b)
 static ina_rc_t __ina_percentile_heap_new(__ina_percentile_heap_t **h, ina_mempool_t *pool, 
                                           size_t initial_size, int max_heap)
 {
-    size_t base_size = sizeof(uint16_t)*initial_size;
+    size_t base_size = sizeof(uint16_t)*(initial_size+1);
     
     *h = (__ina_percentile_heap_t*)ina_mempool_dalloc(pool, sizeof(__ina_percentile_heap_t));
-    (*h)->size = base_size;
     (*h)->count = 0;
     (*h)->mem = pool;
     (*h)->data = (uint16_t*)ina_mempool_dalloc(pool, base_size);
@@ -133,7 +131,7 @@ static ina_rc_t __ina_percentile_heap_front(__ina_percentile_heap_t *h, uint16_t
 
 INA_API(ina_rc_t) ina_percentile_new(ina_percentile_t **p, double percentile, size_t size)
 {
-    size_t lower_size = (size_t)floor(size * percentile);
+    size_t lower_size = (size_t)ceil(size * percentile);
     size_t upper_size = size - lower_size;
  
     *p = (ina_percentile_t*)ina_mem_alloc(sizeof(ina_percentile_t));
@@ -171,7 +169,7 @@ INA_API(ina_rc_t) ina_percentile_add(ina_percentile_t *p, uint16_t value)
         __ina_percentile_heap_push(p->upper, value);
     }
 
-    count_lower = (size_t)((p->lower->count + p->upper->count) * p->percentile) + 1;
+    count_lower = (size_t)ceil((p->lower->count + p->upper->count) * p->percentile);
     if (p->lower->count > count_lower) {
         /* lower to upper */
         __ina_percentile_heap_pop(p->lower);
@@ -187,7 +185,7 @@ INA_API(ina_rc_t) ina_percentile_add(ina_percentile_t *p, uint16_t value)
 
 INA_API(ina_rc_t) ina_percentile_get(ina_percentile_t *p, uint16_t *value)
 {
-    __ina_percentile_heap_front(p->lower, value);
+    __ina_percentile_heap_front(p->upper, value);
     return INA_SUCCESS;
 }
 
