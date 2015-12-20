@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 
 struct ina_json_parser_s {
     yajl_alloc_funcs json_alloc_funcs;
+    uint16_t stack_max;
     uint32_t stack_size;
     uint32_t stack_pointer;
     ina_json_data_t *stack;
@@ -56,12 +57,13 @@ struct ina_json_gen_s {
     struct ina_json_gen_s *prev;  
 };
 
-static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p)
+static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p, uint16_t stack_size)
 {
+    p->stack_max = stack_size;
     p->stack_size = 0;
     p->stack_pointer = 0;
     p->stack = (ina_json_data_t*)ina_mem_alloc(
-                    sizeof(ina_json_data_t)*__INA_JSON_PARSER_DATA_STACK_SIZE);
+                    sizeof(ina_json_data_t)*stack_size);
     return INA_SUCCESS;
 }
 
@@ -73,7 +75,7 @@ static ina_rc_t __ina_parser_stack_destroy(ina_json_parser_t *p)
 
 INA_INLINE int __ina_check_and_incr_data_stack(ina_json_parser_t *p)
 {
-    if (p->stack_pointer++ == __INA_JSON_PARSER_DATA_STACK_SIZE) {
+    if (p->stack_pointer++ == p->stack_max) {
         p->error_state = INA_ELIMIT;
         p->error_msg = ina_str_new_fromcstr("Data Stack overflow");
         return INA_NO;
@@ -204,10 +206,10 @@ static yajl_callbacks __yajl_callbacks = {
     __ina_yajl_cb_end_array
 };
 
-
-INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, 
-                                uint32_t parser_pool_size, 
-                                uint32_t generator_pool_size)
+INA_API(ina_rc_t) ina_json_init_custom_stack(ina_json_ctx_t **ctx, 
+                                             uint32_t parser_pool_size,
+                                             uint32_t generator_pool_size,
+                                             uint16_t stack_size)
 {
     size_t i;
 
@@ -229,7 +231,7 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
         if (p == NULL) {
             return INA_ERR_PUSH_LAST;
         }
-        if (!INA_SUCCEED(__ina_parser_stack_create(p))) {
+        if (!INA_SUCCEED(__ina_parser_stack_create(p, stack_size))) {
             return INA_ERR_PUSH_LAST;
         }
         p->json_alloc_funcs.ctx = (void*)(*ctx)->mempool;
@@ -253,6 +255,13 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
         DL_APPEND((*ctx)->generators, g);
     }
     return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, 
+                                uint32_t parser_pool_size, 
+                                uint32_t generator_pool_size)
+{
+    return ina_json_init_custom_stack(ctx, parser_pool_size, generator_pool_size, __INA_JSON_PARSER_DATA_STACK_SIZE);
 }
 
 INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx)
