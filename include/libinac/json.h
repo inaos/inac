@@ -45,7 +45,6 @@ typedef struct ina_json_ctx_s {
     int32_t generator_pool_size;  /* Pool size for pre-allocated generators */
     ina_json_parser_t *parsers;   /* Pre-allocated parsers */
     ina_json_gen_t *generators;   /* Pre-allocated generators */
-    ina_mempool_t *mempool;       /* Memory pool uses by parsers/generators */
 } ina_json_ctx_t;
 
 /* Parsing events */
@@ -122,12 +121,6 @@ INA_API(ina_rc_t) ina_json_init_custom_stack(ina_json_ctx_t **ctx,
  * RC INA_ELOGIC returned if not all parser and/or generators are released.
  */
 INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx);
-
-/*
- * Resets the underlaying mempool of the context
- *
- */
-INA_API(ina_rc_t) ina_json_context_reset(ina_json_ctx_t *ctx);
 
 /*
  * Borrow a parser from the context parser pool.
