@@ -307,6 +307,12 @@ INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_json_context_reset(ina_json_ctx_t *ctx)
+{
+    ina_mempool_release(ctx->mempool, INA_NO);
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_json_parser_borrow(ina_json_ctx_t *ctx, 
                                          ina_json_parser_t **parser)
 {

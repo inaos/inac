@@ -124,6 +124,12 @@ INA_API(ina_rc_t) ina_json_init_custom_stack(ina_json_ctx_t **ctx,
 INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx);
 
 /*
+ * Resets the underlaying mempool of the context
+ *
+ */
+INA_API(ina_rc_t) ina_json_context_reset(ina_json_ctx_t *ctx);
+
+/*
  * Borrow a parser from the context parser pool.
  *
  * Parameters:
