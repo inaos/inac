@@ -92,7 +92,7 @@ static ina_rc_t __ina_percentile_heap_push(__ina_percentile_heap_t *h, uint16_t 
     }
     h->data[i] = value;
 
-    return INA_SUCCESS; 
+    return INA_SUCCESS;
 }
 
 static ina_rc_t __ina_percentile_heap_pop(__ina_percentile_heap_t *h)
