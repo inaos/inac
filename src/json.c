@@ -184,8 +184,8 @@ void *__ina_yajl_realloc(void *ctx, void *ptr, size_t sz)
     ina_mempool_t *pool = (ina_mempool_t*)ctx;
     INA_ASSERT_NOTNULL(ctx);
     p = ina_mempool_dalloc(pool, sz);
-    if (ptr != NULL) {
-        ina_mem_cpy(p, ptr, sz);
+    if (INA_LIKELY(ptr != NULL)) {
+        ina_mem_cpy(p, ptr, sz/2);
     }
     return p;
 }
