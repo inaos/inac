@@ -92,24 +92,6 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
                                 uint32_t generator_pool_size);
 
 /*
- * Initialize a JSON context with a custom parser stack-size
- *
- * Parameters:
- * ctx                 Pointer to a context pointer to hold created JSON 
- *                     context.
- * parser_pool_size    Fixed size of parser pool
- * generator_pool_size Fixed size of generator pool
- * parser stack size   Specify a custom stack-size
- *
- * Return:
- * INA_SUCCESS if no error occurred.
- */
-INA_API(ina_rc_t) ina_json_init_custom_stack(ina_json_ctx_t **ctx, 
-                                             uint32_t parser_pool_size,
-                                             uint32_t generator_pool_size,
-                                             uint16_t stack_size);
-
-/*
  * Destroy a JSON context. Destroy fails if not all prevouslly borrowed
  * parser and/or generators are released.
  *

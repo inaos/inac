@@ -59,7 +59,7 @@ struct ina_json_gen_s {
     struct ina_json_gen_s *prev;  
 };
 
-static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p, uint16_t stack_size)
+static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p, uint32_t stack_size)
 {
     p->stack_max = stack_size;
     p->stack_size = 0;
@@ -208,10 +208,9 @@ static yajl_callbacks __yajl_callbacks = {
     __ina_yajl_cb_end_array
 };
 
-INA_API(ina_rc_t) ina_json_init_custom_stack(ina_json_ctx_t **ctx, 
-                                             uint32_t parser_pool_size,
-                                             uint32_t generator_pool_size,
-                                             uint16_t stack_size)
+INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, 
+                                uint32_t parser_pool_size, 
+                                uint32_t generator_pool_size)
 {
     size_t i;
 
@@ -231,7 +230,7 @@ INA_API(ina_rc_t) ina_json_init_custom_stack(ina_json_ctx_t **ctx,
                                         NULL))) {
             return INA_ERR_PUSH_LAST;
         }
-        if (!INA_SUCCEED(__ina_parser_stack_create(p, stack_size))) {
+        if (!INA_SUCCEED(__ina_parser_stack_create(p, __INA_JSON_PARSER_DATA_STACK_SIZE))) {
             return INA_ERR_PUSH_LAST;
         }
         p->json_alloc_funcs.ctx = (void*)p->mempool;
@@ -261,13 +260,6 @@ INA_API(ina_rc_t) ina_json_init_custom_stack(ina_json_ctx_t **ctx,
         DL_APPEND((*ctx)->generators, g);
     }
     return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, 
-                                uint32_t parser_pool_size, 
-                                uint32_t generator_pool_size)
-{
-    return ina_json_init_custom_stack(ctx, parser_pool_size, generator_pool_size, __INA_JSON_PARSER_DATA_STACK_SIZE);
 }
 
 INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx)
@@ -395,6 +387,7 @@ INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *parser,
                 "first or reset parser");        
     }
 
+    parser->stack_size = 0;
     s  = yajl_parse(parser->handle, buffer, buf_len);
     if (complete == INA_YES) {
         s = yajl_complete_parse(parser->handle);
