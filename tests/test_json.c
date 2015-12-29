@@ -564,3 +564,39 @@ INA_TEST(json, generator)
     INA_TEST_ASSERT_SUCCEED(ina_json_generator_release(ctx, &g));
     INA_TEST_ASSERT_SUCCEED(ina_json_destroy(&ctx));
 }
+
+INA_TEST(json, generator_large)
+{
+
+    ina_json_ctx_t      *ctx = NULL;
+    ina_json_gen_t      *g = NULL;
+    const unsigned char *buffer;
+    size_t               buf_len;
+    ina_str_t            json_str;
+    size_t               i;
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_init(&ctx, 1, 1));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_borrow(ctx,  &g));
+    INA_TEST_ASSERT_NOT_NULL(g);
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_start_object(g));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_string(g,
+                                                "arrayOfStrings", 
+                                                strlen("arrayOfStrings")));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_start_array(g));
+    for (i=0;i<500000;++i) {
+        INA_TEST_ASSERT_SUCCEED(ina_json_generator_add_string(g, 
+                                                          "item", 
+                                                          strlen("item")));
+    }
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_end_array(g));
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_end_object(g));
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_get_buffer(g, &buffer, &buf_len));
+    json_str = ina_str_new_fromblk((const char*)buffer, buf_len);
+    INA_TEST_MSG("lenght of json_str: %d", ina_str_len(json_str));
+  
+    INA_TEST_ASSERT_SUCCEED(ina_json_generator_release(ctx, &g));
+    INA_TEST_ASSERT_SUCCEED(ina_json_destroy(&ctx));
+
+    ina_str_free(json_str);
+}
