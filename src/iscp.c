@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,10 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifndef INA_OS_WIN32
+#include <sys/un.h>
+#endif
+
 /*
  * Net callback to open an ISCP channel.
  */
@@ -53,6 +57,17 @@ static ina_rc_t __ina_net_recv_cb(void*, ina_iscp_msg_t*);
  */
 static ina_rc_t __ina_net_retn_cb(void*, ina_iscp_msg_t*);
 
+#ifndef INA_OS_WIN32
+/*
+ * Unix Domain Socket callback to open an ISCP channel.
+ */
+static ina_rc_t __ina_uds_open_cb(void*, int);
+
+/*
+ * Unix Domain Socket callback to close an ISCP channel.
+ */
+static ina_rc_t __ina_uds_clse_cb(void*, int);
+#endif
 
 INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backend)
 {
@@ -61,9 +76,6 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
     INA_ASSERT_NOTNULL(ctx);
 
     *ctx = (ina_iscp_ctx_t*)ina_mem_alloc(sizeof(ina_iscp_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     (*ctx)->backend = backend;
     
     switch ((*ctx)->backend) {
@@ -78,6 +90,15 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
                                              __ina_net_retn_cb);
             break;
         };
+#ifndef INA_OS_WIN32
+        case INA_ISCP_UXDS:
+            rc = ina_iscp_set_callbacks(*ctx, __ina_uds_open_cb,
+                                             __ina_uds_clse_cb,
+                                             __ina_net_send_cb,
+                                             __ina_net_recv_cb,
+                                             __ina_net_retn_cb);
+            break;
+#endif
         default: 
         {
             break;
@@ -85,6 +106,8 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
     }
     
     if (!INA_SUCCEED(rc)) {
+        ina_mem_free(*ctx);
+        *ctx = NULL;
         return INA_ERR_PUSH_LAST;
     }
 
@@ -112,7 +135,7 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
 
 INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, int port)
 {
-    ina_iscp_tcp_data_t *data = NULL;
+    ina_iscp_net_data_t *data = NULL;
 
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(addr);
@@ -121,12 +144,13 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, in
         return INA_ERR_PUSH_LAST;
     }
     
-    data = (ina_iscp_tcp_data_t*)ina_mempool_dalloc((*ctx)->mempool, sizeof(ina_iscp_tcp_data_t));
+    data = (ina_iscp_net_data_t*)ina_mempool_dalloc((*ctx)->mempool, sizeof(ina_iscp_net_data_t));
     if (data == NULL) {
         return INA_ERR_PUSH_LAST;
     }
 
     data->addr = ina_str_new_fromcstr_using_pool(addr, (*ctx)->mempool);
+    data->sockpath = NULL;
     data->port = port;
     data->fd   = -1;
     data->lfd  = -1;
@@ -135,6 +159,34 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, in
 
     return INA_SUCCESS;
 }
+
+#ifndef INA_OS_WIN32
+INA_API(ina_rc_t) ina_iscp_create_uxds(ina_iscp_ctx_t **ctx, const char* socket_path)
+{
+    ina_iscp_net_data_t *data = NULL;
+
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(socket_path);
+
+    if (!INA_SUCCEED(ina_iscp_create(ctx, INA_ISCP_UXDS))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    data = (ina_iscp_net_data_t*)ina_mempool_dalloc((*ctx)->mempool, sizeof(ina_iscp_net_data_t));
+    if (data == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    data->sockpath = ina_str_new_fromcstr_using_pool(socket_path, (*ctx)->mempool);
+    data->addr = NULL;
+    data->port = 0;
+    data->fd   = -1;
+    data->lfd  = -1;
+    data->timeout_sec = INA_ISCP_NET_TIMEOUT;
+    (*ctx)->user_data = data;
+    return INA_SUCCESS;
+}
+#endif
 
 INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_ctx_t *ctx,
                         ina_iscp_open_cb open_cb, ina_iscp_clse_cb clse_cb,
@@ -668,7 +720,7 @@ INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...
 static ina_rc_t 
 __ina_net_open_cb(void* user_data, int send)
 {
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
 
     /* Open channel for sending **/
     if (send == 1) {    
@@ -709,10 +761,73 @@ __ina_net_open_cb(void* user_data, int send)
     return INA_SUCCESS;
 }
 
+#ifndef INA_OS_WIN32
+static ina_rc_t
+__ina_uds_open_cb(void* user_data, int send)
+{
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
+
+    /* Open channel for sending **/
+    if (send == 1) {
+        INA_TRACE3("ISCP channel for send");
+        /* Check if the channel is sill open */
+        if (data->fd == -1) {
+            int fd = 0;
+            struct sockaddr_un addr;
+            INA_TRACE3("Open ISCP channel for send");
+            if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+                return INA_NET_ERROR("Could not create socket");
+            }
+            data->fd = fd;
+            memset(&addr, 0, sizeof(addr));
+            addr.sun_family = AF_UNIX;
+            strncpy(addr.sun_path, ina_str_cstr(data->sockpath), sizeof(addr.sun_path)-1);
+            if (connect(data->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+                return INA_NET_ERROR("Could not connect");
+            }
+            INA_TRACE3("Open ISCP channel ready to send");
+        }
+        return INA_SUCCESS;
+    }
+
+    if (data->lfd  == -1) {
+        int fd = 0;
+        struct sockaddr_un addr;
+        INA_TRACE3("Open ISCP channel for receive socket_path %s",
+            ina_str_cstr(data->sockpath));
+
+        /* Open chnannel for receiving */
+        if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+            return INA_NET_ERROR("Could not create socket");
+        }
+        data->lfd = fd;
+        memset(&addr, 0, sizeof(addr));
+        addr.sun_family = AF_UNIX;
+        strncpy(addr.sun_path, ina_str_cstr(data->sockpath), sizeof(addr.sun_path)-1);
+        unlink(ina_str_cstr(data->sockpath));
+        if (bind(data->lfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+            return INA_NET_ERROR("Could not bind to socket");
+        }
+        if (listen(data->lfd, 511) == -1) { /* We'll use the same magic 511 as in anet */
+            return INA_NET_ERROR("Could not listen");
+        }
+
+        if (!INA_SUCCEED(ina_net_nonblock(data->lfd))) {
+            close(data->lfd);
+            data->lfd = -1;
+            data->fd = -1;
+            return ina_err_peek();
+        }
+        INA_TRACE3("ISCP channel ready to receive");
+    }
+    return INA_SUCCESS;
+}
+#endif
+
 static ina_rc_t 
 __ina_net_clse_cb(void* user_data, int send)
 {
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
     if (send == 1 && data->fd != -1) {
         INA_TRACE3("ISCP close client fd %d", data->fd);
         ina_net_close(data->fd);
@@ -725,12 +840,30 @@ __ina_net_clse_cb(void* user_data, int send)
     return INA_SUCCESS;
 }
 
+#ifndef INA_OS_WIN32
+static ina_rc_t
+__ina_uds_clse_cb(void* user_data, int send)
+{
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
+    if (send == 1 && data->fd != -1) {
+        INA_TRACE3("ISCP close client fd %d", data->fd);
+        close(data->fd);
+        data->fd = -1;
+    } else if (data->lfd != -1){
+        INA_TRACE3("ISCP close server fd %d", data->fd);
+        close(data->lfd);
+        data->lfd = -1;
+    }
+    return INA_SUCCESS;
+}
+#endif
+
 static ina_rc_t
 __ina_net_send_cb(void *user_data, ina_iscp_msg_t *msg)
 {
     int nb_write;
     int nb_read;
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
 
     nb_write = 0;
     nb_read = 0;
@@ -778,7 +911,7 @@ __ina_net_recv_cb(void *user_data, ina_iscp_msg_t *msg)
 {   
     int nb_read;
     int tot_nb_read = 0;
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
     unsigned char *buf;
     nb_read = 0;
     
@@ -837,7 +970,7 @@ static ina_rc_t
 __ina_net_retn_cb(void *user_data, ina_iscp_msg_t *msg)
 {
     int nb_write;
-    ina_iscp_tcp_data_t *data = (ina_iscp_tcp_data_t*)user_data;
+    ina_iscp_net_data_t *data = (ina_iscp_net_data_t*)user_data;
 
     INA_ASSERT_NOTNULL(msg);
     nb_write = 0;

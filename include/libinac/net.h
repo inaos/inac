@@ -36,6 +36,7 @@
 
 #ifdef INA_OS_LINUX
 #include <netinet/in.h>
+#include <poll.h>
 #elif INA_OS_WIN32
 #include <winsock.h>
 #endif
@@ -43,6 +44,28 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct ina_net_hw_ctx_s ina_net_hw_ctx_t;
+
+typedef enum ina_net_hw_backend_e {
+    INA_NET_HW_BACKEND_SOLARFLARE_ONLOAD = 0,
+    INA_NET_HW_BACKEND_MELLANOX_VMA,
+} ina_net_hw_backend_t;
+
+static const char ina_net_hw_backend_str[][32] = {
+    "SOLARFLARE - OPENONLOAD",
+    "MELLANOX - VMA"
+};
+
+typedef enum ina_net_hw_feature_s {
+    INA_NET_HW_FEATURE_ZERO_COPY_UDP_RECEIVE,
+    INA_NET_HW_FEATURE_ZERO_COPY_UDP_SEND,
+    INA_NET_HW_FEATURE_ZERO_COPY_TCP_RECEIVE,
+    INA_NET_HW_FEATURE_ZERO_COPY_TCP_SEND,
+    INA_NET_HW_FEATURE_MSG_WARM, /* Keep the TLB and CPU cache warm for infrequent send() */
+    INA_NET_HW_FEATURE_TPL_SEND,
+    INA_NET_HW_FEATURE_LOOPBACK, /* Accelerate loopback traffic in usermode or hw */
+} ina_net_hw_feature_t;
 
 #define INA_NET_ETHER_ADDR_LEN  6
 
@@ -93,6 +116,13 @@ typedef struct ina_net_udp_hdr_s {
 	u_short	uh_ulen;		/* datagram length */
 	u_short	uh_sum;			/* datagram checksum */
 } ina_net_udp_hdr_t;
+
+#ifdef INA_OS_WIN32
+typedef ULONG nfds_t;
+#endif
+
+/* opaque UDP receiver */
+typedef struct ina_net_udp_receiver_s ina_net_udp_receiver_t;
 
 /*
  * Resovle an host name into to a ip address
@@ -167,12 +197,85 @@ INA_API(ina_rc_t) ina_net_udp_bind(int* fd, const char *addr, int port);
 /*
  *
  */
+INA_API(ina_rc_t) ina_net_udp_socket(int* fd);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_udp_send(int fd, ina_net_udp_receiver_t *receiver, unsigned char *buf, int nb, int* nb_write);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_net_udp_receiver_t **receiver);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_udp_receiver_free(const char *address, int port, ina_net_udp_receiver_t **receiver);
+
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *source);
 
 /*
  *
  */
 INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *source);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac);
+
+/*
+ * Level triggered readiness notification, good enough for a couple of thousend
+ * connections and operates only in userspace. When HW accelerated does spin-wait
+ * compared to kernel sleep. Timeout is in milliseconds
+ *
+ */
+INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *num_fds_ready);
+
+/*
+ *
+ */
+INA_API(int) ina_net_hw_support_present_on_os();
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_hw_init(ina_net_hw_ctx_t **ctx, ina_net_hw_backend_t backend);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_hw_destroy(ina_net_hw_ctx_t **ctx);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_hw_set_user_data(ina_net_hw_ctx_t *ctx, void *data);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_hw_backend_name(ina_net_hw_ctx_t *ctx, ina_str_t *name);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_hw_enabled(ina_net_hw_ctx_t *ctx);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_hw_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_hw_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature);
 
 #ifdef __cplusplus
 }

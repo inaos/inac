@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,9 @@ ina_iscp_cmd_t name[] = {            \
 typedef enum ina_iscp_backend_e {
     INA_ISCP_NONE = 0,
     INA_ISCP_INET,
+#ifndef INA_OS_WIN32
+    INA_ISCP_UXDS,
+#endif
     INA_ISCP_DEFAULT = INA_ISCP_INET,
 } ina_iscp_backend_t;
 
@@ -134,14 +137,15 @@ typedef struct ina_iscp_ctx_s {
     void *user_data;
 } ina_iscp_ctx_t;
 
-/* ISCP context for TCP IP */
-typedef struct ina_iscp_tcp_data_s {
+/* ISCP context for NET backends */
+typedef struct ina_iscp_net_data_s {
     ina_str_t addr;     /* IP */
     int       port;     /* Port */
+    ina_str_t sockpath; /* Socket path */
     int       fd;       /* File descriptor */
     int       lfd;      /* File descriptor for listener */
     int       timeout_sec; /* Timeout for TCP connect  default 10 seconds */
-} ina_iscp_tcp_data_t;
+} ina_iscp_net_data_t;
 
 /*
  * Create a generic ISCP context
@@ -156,7 +160,7 @@ typedef struct ina_iscp_tcp_data_s {
 INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backend);
 
 /*
- * Create a generic ISCP context
+ * Create a TCP ISCP context
  *
  * Parameters
  * ctx          Pointer to a context pointer to create
@@ -165,6 +169,19 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backe
  * INA_SUCCESS if no error occurred
  */
 INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, int port);
+
+#ifndef INA_OS_WIN32
+/*
+ * Create a Unix domain socket ISCP context
+ *
+ * Parameters
+ * ctx          Pointer to a context pointer to create
+ *
+ * Return Value
+ * INA_SUCCESS if no error occurred
+ */
+INA_API(ina_rc_t) ina_iscp_create_uxds(ina_iscp_ctx_t **ctx, const char* socket_path);
+#endif
 
 /*
  * Set the send and receive callbacks.

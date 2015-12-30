@@ -147,6 +147,10 @@ INA_API(ina_rc_t) ina_cpu_is_supported(int *supported);
  *
  */
 INA_API(ina_rc_t) ina_cpu_pin_to_core(int core);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family, uint8_t *model, uint8_t *stepping);
 
 #ifdef __cplusplus
 }

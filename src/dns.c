@@ -42,9 +42,7 @@ INA_API(ina_rc_t) ina_dns_init(ina_dns_ctx_t **ctx)
     INA_ASSERT_NOTNULL(ctx);
 
     *ctx = (ina_dns_ctx_t*)ina_mem_alloc(sizeof(ina_dns_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
+
     return INA_SUCCESS;
 }
 

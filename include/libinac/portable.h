@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1073,7 +1073,11 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #error UNSUPPORTED COMPILER
 #endif
 
-
+#if !defined(GCC_VERSION) || GCC_VERSION <= 30406
+#define INA_PACK(x,y) y ## _e; typedef x y;
+#else
+#define INA_PACK(x,y) INA_PACKED y
+#endif
 
 #ifdef INA_COMPILER_MSVC
 #define va_copy(dest, src) (dest = src)
@@ -1103,7 +1107,6 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /* Atomic operations */
-
 #ifdef INA_OS_WIN32
 #define INA_ATOMIC_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
 #define INA_ATOMIC_DEC(vv_ptr) InterlockedDecrement64(vv_ptr)
@@ -1127,6 +1130,15 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #error Compiler not supported yet for INAC!
 #endif
 
+/* C99 restrict a.k.a. pointer aliasing hint */
+#ifdef INA_OS_WIN32
+#define INA_RESTRICT    __restrict
+#elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
+#define INA_RESTRICT    __restrict__
+#else
+#error Compiler not supported yet for INAC!
+#endif
+
 /* byte swapping */
 #ifdef INA_OS_WIN32
 #define INA_BSWAP_16 _byteswap_ushort
@@ -1145,4 +1157,51 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif 
 
 
+#ifdef INA_OS_WIN32
+typedef int mode_t;
+
+/* If STRICT_UGO_PERMISSIONS is not defined, then setting Read for any
+ * of User, Group, or Other will set Read for User and setting Write
+ * will set Write for User.  Otherwise, Read and Write for Group and
+ * Other are ignored.
+ *
+ * For the POSIX modes that do not have a Windows equivalent, the modes
+ * defined here use the POSIX values left shifted 16 bits.
+ */
+
+#define S_ISUID      0x08000000   /* does nothing  */
+#define S_ISGID      0x04000000   /* does nothing  */
+#define S_ISVTX      0x02000000   /* does nothing  */
+#define S_IRUSR      _S_IREAD     /* read by user  */
+#define S_IWUSR      _S_IWRITE    /* write by user */
+#define S_IXUSR      0x00400000   /* does nothing  */
+#   ifndef STRICT_UGO_PERMISSIONS
+#define S_IRGRP      _S_IREAD     /* read by *USER*  */
+#define S_IWGRP      _S_IWRITE    /* write by *USER* */
+#define S_IXGRP      0x00080000   /* does nothing    */
+#define S_IROTH      _S_IREAD     /* read by *USER*  */
+#define S_IWOTH      _S_IWRITE    /* write by *USER* */
+#define S_IXOTH      0x00010000   /* does nothing    */
+#   else
+#define S_IRGRP      0x00200000   /* does nothing */
+#define S_IWGRP      0x00100000   /* does nothing */
+#define S_IXGRP      0x00080000   /* does nothing */
+#define S_IROTH      0x00040000   /* does nothing */
+#define S_IWOTH      0x00020000   /* does nothing */
+#define S_IXOTH      0x00010000   /* does nothing */
+#   endif
+#define S_IRWXU (S_IRUSR | S_IWUSR | S_IXUSR)
+#define S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
+#define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
+
+#define INA_MS_MODE_MASK 0x0000ffff  /* low word */
 #endif
+
+#endif
+
+ #ifdef _DEBUG
+ #ifndef DEBUG
+ #define DEBUG 1
+ #endif
+ #endif
+

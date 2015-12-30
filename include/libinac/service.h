@@ -112,6 +112,8 @@ typedef struct ina_service_descriptor_s {
     int32_t exclusive_flag;
 } ina_service_descriptor_t;
 
+extern ina_service_descriptor_t __ina_service_section;
+
 /* Setup service section  */
 #define INA_SERVICE_DESCRIPTOR(name, display_name,                           \
                                description,                                  \

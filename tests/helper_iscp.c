@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,3 +101,38 @@ INA_TEST_HELPER(iscp_tcp, tcp_server) {
     }
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
+
+#ifndef INA_OS_WIN32
+INA_TEST_HELPER(iscp_uds, uds_server) {
+    const char *socket_path;
+
+    INA_ISCP_CMDS(cmds,
+           INA_ISCP_SENDRECV_CMD(1, 3, 3,__command_1_handler),
+           INA_ISCP_SENDRECV_CMD(2, 1, 0,__command_2_handler),
+           INA_ISCP_SENDRECV_CMD(3, 1, 0,__receive_negaitve_double_handler));
+
+     INA_TEST_HELPER_CHECK_ARGC(2);
+     socket_path = INA_TEST_HELPER_CARG(0);
+
+     ina_set_cleanup_handler(__cleanup_handler);
+
+     if (!INA_SUCCEED(ina_iscp_create_uxds(&__iscp, socket_path))) {
+         INA_TEST_HELPER_SET_RC(ina_err_peek());
+         return;
+     }
+
+    if (!INA_SUCCEED(ina_iscp_register_ex(__iscp, cmds))) {
+        INA_TEST_HELPER_SET_RC(ina_err_peek());
+        return;
+    }
+
+    __running = 1;
+
+    while (__running) {
+        ina_iscp_recv(__iscp, 1, 0);
+        ina_time_sleep(10);
+    }
+    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+}
+#endif
+

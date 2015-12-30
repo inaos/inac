@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,27 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <ifaddrs.h>
+#include <net/if.h>
 #endif
 
 #include <contribs/anet/anet.h>
 
 #include <libinac/lib.h>
+
+#include "net_hw.h"
+
+struct ina_net_udp_receiver_s {
+    ina_str_t ip;
+    int port;
+    struct sockaddr_in addr;
+};
 
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
@@ -269,6 +280,62 @@ INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *s
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_net_udp_socket(int* fd)
+{
+    char err[ANET_ERR_LEN];
+
+    INA_ASSERT_TRUE(fd > 0);
+
+    *fd = anetUdpSocket(err);
+    if (*fd == ANET_ERR) {
+        return INA_NET_ERROR(err);
+    }
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_udp_send(int fd, ina_net_udp_receiver_t *receiver, unsigned char *buf, int nb, int* nb_write)
+{
+    INA_ASSERT_TRUE(fd > 0);
+    INA_ASSERT_NOTNULL(receiver);
+    INA_ASSERT_NOTNULL(buf);
+    INA_ASSERT_TRUE(nb > 0);
+    INA_ASSERT_NOTNULL(nb_write);
+
+    *nb_write = anetUdpSendto(fd, &receiver->addr, (char*)buf, nb);
+    if (*nb_write == ANET_ERR) {
+        /* FIXME : Stay in line with the coding standards */
+        /*         define Error message in error.h */
+        return INA_NET_ERROR("Error sending");
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_net_udp_receiver_t **receiver)
+{
+    INA_ASSERT_NOTNULL(receiver);
+
+    *receiver = (ina_net_udp_receiver_t*)ina_mem_alloc(sizeof(ina_net_udp_receiver_t));
+    (*receiver)->ip = ina_str_new_fromcstr(address);
+    (*receiver)->port = port;
+
+    ina_mem_set(&(*receiver)->addr, 0, sizeof((*receiver)->addr));
+
+    (*receiver)->addr.sin_family = AF_INET;
+    if (address && inet_aton(address, &(*receiver)->addr.sin_addr) == 0) {
+        return INA_NET_ERROR("Invalid IP address");
+    }
+    (*receiver)->addr.sin_port = htons(port);
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_udp_receiver_free(const char *address, int port, ina_net_udp_receiver_t **receiver)
+{
+    ina_str_free((*receiver)->ip);
+    ina_mem_free(*receiver);
+    return INA_SUCCESS;
+}
 
 INA_API(ina_rc_t) ina_net_set_read_timeout(int fd, int msec)
 {
@@ -327,3 +394,152 @@ INA_API(ina_rc_t) ina_net_block(int fd)
     return INA_SUCCESS;
 }
 #endif
+
+#ifdef INA_OS_WIN32
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
+{
+    DWORD ret;
+    IPAddr dst_ip;
+    ULONG mac_addr[2];
+    ULONG phy_addr_len = 6;
+    int i;
+ 
+    dst_ip = inet_addr(ip);
+
+    ret = SendARP(dst_ip , INADDR_ANY, mac_addr, &phy_addr_len);
+     
+    if(phy_addr_len) {
+        BYTE *bMacAddr = (BYTE*) & mac_addr;
+        for (i = 0; i < (int)phy_addr_len; i++) {
+            mac[i] = (char)bMacAddr[i];
+        }
+    }
+    return INA_SUCCESS;
+}
+#else
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
+{
+    struct ifaddrs *ifaddr, *ifa;
+    struct ifreq ifr;
+    int fd;
+    int found = 0;
+
+    if (getifaddrs(&ifaddr) == -1) {
+        return INA_FAILURE;
+    }
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+            struct sockaddr_in *sin = (struct sockaddr_in*)ifa->ifa_addr;
+            const char *qip = inet_ntoa(sin->sin_addr);
+            if (strcmp(qip, ip) == 0) {
+                found = 1;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        freeifaddrs(ifaddr);
+        return INA_FAILURE;
+    }
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    ifr.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr.ifr_name, ifa->ifa_name, IFNAMSIZ-1);
+    ioctl(fd, SIOCGIFHWADDR, &ifr);
+    close(fd);
+    memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
+    freeifaddrs(ifaddr);
+
+    return INA_SUCCESS;
+}
+#endif
+
+INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *num_fds_ready)
+{
+#ifdef INA_OS_WIN32
+    int rc = WSAPoll(fds, nfds, timeout);
+    if (rc == SOCKET_ERROR) {
+        int ec = WSAGetLastError();
+        char err[ANET_ERR_LEN];
+        sprintf(err, "poll failed with error-code: %d", ec);
+        return INA_NET_ERROR(err);
+    }
+    *num_fds_ready = rc;
+#else
+    int rc = poll(fds, nfds, timeout);
+    if (rc < 0) {
+        char err[ANET_ERR_LEN];
+        sprintf(err, "poll failed with error-code: %d", errno);
+        return INA_NET_ERROR(err);
+    }
+    *num_fds_ready = rc;
+#endif    
+    return INA_SUCCESS;
+}
+
+INA_API(int) ina_net_hw_support_present_on_os()
+{
+#ifdef INA_OS_LINUX
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+INA_API(ina_rc_t) ina_net_hw_init(ina_net_hw_ctx_t **ctx, ina_net_hw_backend_t backend)
+{
+    const char *name = ina_net_hw_backend_str[backend];
+    
+    *ctx = (ina_net_hw_ctx_t*)ina_mem_alloc(sizeof(ina_net_hw_ctx_t));
+    (*ctx)->name = ina_str_new_fromcstr(name);
+
+    switch (backend) {
+        case INA_NET_HW_BACKEND_SOLARFLARE_ONLOAD:
+            __ina_net_hw_onload_select(&(*ctx)->funcs);
+            break;
+        case INA_NET_HW_BACKEND_MELLANOX_VMA:
+            __ina_net_hw_vma_select(&(*ctx)->funcs); 
+            break;
+        default:
+            INA_ASSERT_TRUE(0); 
+    }
+
+    if (!INA_SUCCEED((*ctx)->funcs.enabled_fp(*ctx))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_hw_destroy(ina_net_hw_ctx_t **ctx)
+{
+    ina_str_free((*ctx)->name);
+    ina_mem_free(*ctx);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_hw_set_user_data(ina_net_hw_ctx_t *ctx, void *data)
+{
+    ctx->data = data;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_hw_backend_name(ina_net_hw_ctx_t *ctx, ina_str_t *name)
+{
+    *name = ctx->name;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_hw_enabled(ina_net_hw_ctx_t *ctx)
+{
+    return ctx->funcs.enabled_fp(ctx);
+}
+
+INA_API(ina_rc_t) ina_net_hw_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature)
+{
+    return ctx->funcs.feature_check_fp(ctx, feature);
+}
+
+INA_API(ina_rc_t) ina_net_hw_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias)
+{
+    return ctx->funcs.accelerate_loopback_fp(ctx, fd, alias);
+}

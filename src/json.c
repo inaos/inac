@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,14 @@
 
 struct ina_json_parser_s {
     yajl_alloc_funcs json_alloc_funcs;
-    uint32_t stack_size;
-    uint32_t stack_pointer;
+    uint16_t stack_max;
+    uint16_t stack_size;
+    uint16_t stack_pointer;
     ina_json_data_t *stack;
     yajl_handle handle;
     ina_rc_t error_state;
     ina_str_t error_msg;
+    ina_mempool_t *mempool;
     struct ina_json_parser_s *next;
     struct ina_json_parser_s *prev;
 };
@@ -52,16 +54,18 @@ struct ina_json_parser_s {
 struct ina_json_gen_s {
     yajl_alloc_funcs json_alloc_funcs;
     yajl_gen handle;
+    ina_mempool_t *mempool;
     struct ina_json_gen_s *next;
     struct ina_json_gen_s *prev;  
 };
 
-static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p)
+static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p, uint16_t stack_size)
 {
+    p->stack_max = stack_size;
     p->stack_size = 0;
     p->stack_pointer = 0;
     p->stack = (ina_json_data_t*)ina_mem_alloc(
-                    sizeof(ina_json_data_t)*__INA_JSON_PARSER_DATA_STACK_SIZE);
+                    sizeof(ina_json_data_t)*stack_size);
     return INA_SUCCESS;
 }
 
@@ -73,7 +77,7 @@ static ina_rc_t __ina_parser_stack_destroy(ina_json_parser_t *p)
 
 INA_INLINE int __ina_check_and_incr_data_stack(ina_json_parser_t *p)
 {
-    if (p->stack_pointer++ == __INA_JSON_PARSER_DATA_STACK_SIZE) {
+    if (p->stack_pointer++ == p->stack_max) {
         p->error_state = INA_ELIMIT;
         p->error_msg = ina_str_new_fromcstr("Data Stack overflow");
         return INA_NO;
@@ -121,7 +125,7 @@ int __ina_yajl_cb_string(void *ctx, const unsigned char *value, size_t len)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_DATA_STRING;
-    p->stack[p->stack_pointer].value.s = value;
+    p->stack[p->stack_pointer].value.s = ina_str_new_fromblk_using_pool(value, len, p->mempool);
     p->stack[p->stack_pointer].size = len; 
     return __ina_check_and_incr_data_stack(p);
 }
@@ -138,7 +142,7 @@ int __ina_yajl_cb_map_key(void *ctx, const unsigned char *key, size_t len)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_OBJECT_KEY;
-    p->stack[p->stack_pointer].value.s = key;
+    p->stack[p->stack_pointer].value.s = ina_str_new_fromblk_using_pool(key, len, p->mempool);
     p->stack[p->stack_pointer].size = len; 
     return __ina_check_and_incr_data_stack(p);
 }
@@ -184,8 +188,8 @@ void *__ina_yajl_realloc(void *ctx, void *ptr, size_t sz)
     ina_mempool_t *pool = (ina_mempool_t*)ctx;
     INA_ASSERT_NOTNULL(ctx);
     p = ina_mempool_dalloc(pool, sz);
-    if (ptr != NULL) {
-        ina_mem_cpy(p, ptr, sz);
+    if (INA_LIKELY(ptr != NULL)) {
+        ina_mem_cpy(p, ptr, sz/2);
     }
     return p;
 }
@@ -204,7 +208,6 @@ static yajl_callbacks __yajl_callbacks = {
     __ina_yajl_cb_end_array
 };
 
-
 INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, 
                                 uint32_t parser_pool_size, 
                                 uint32_t generator_pool_size)
@@ -212,20 +215,8 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
     size_t i;
 
     *ctx = (ina_json_ctx_t*)ina_mem_alloc(sizeof(ina_json_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
-
     (*ctx)->parser_pool_size = parser_pool_size;
     (*ctx)->generator_pool_size = generator_pool_size;
-
-    if (!INA_SUCCEED(ina_mempool_create(&(*ctx)->mempool, 
-                                        1024*1024*5, 
-                                        INA_MEM_DYNAMIC, 
-                                        NULL))) {
-        ina_mem_free(*ctx);
-        return INA_ERR_PUSH_LAST;
-    }
 
     for (i = 0; i < parser_pool_size; i++) {
         ina_json_parser_t *p = (ina_json_parser_t*)ina_mem_alloc(
@@ -233,10 +224,16 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
         if (p == NULL) {
             return INA_ERR_PUSH_LAST;
         }
-        if (!INA_SUCCEED(__ina_parser_stack_create(p))) {
+        if (!INA_SUCCEED(ina_mempool_create(&p->mempool, 
+                                        1024*1024, /* 1MB */
+                                        INA_MEM_DYNAMIC, 
+                                        NULL))) {
             return INA_ERR_PUSH_LAST;
         }
-        p->json_alloc_funcs.ctx = (void*)(*ctx)->mempool;
+        if (!INA_SUCCEED(__ina_parser_stack_create(p, __INA_JSON_PARSER_DATA_STACK_SIZE))) {
+            return INA_ERR_PUSH_LAST;
+        }
+        p->json_alloc_funcs.ctx = (void*)p->mempool;
         p->json_alloc_funcs.malloc = __ina_yajl_alloc;
         p->json_alloc_funcs.realloc = __ina_yajl_realloc;
         p->json_alloc_funcs.free = __ina_yajl_free;
@@ -249,7 +246,13 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
     for (i = 0; i < generator_pool_size; i++) {
         ina_json_gen_t *g = (ina_json_gen_t*)ina_mem_alloc(
                                     sizeof(struct ina_json_gen_s));
-        g->json_alloc_funcs.ctx = (void*)(*ctx)->mempool;
+        if (!INA_SUCCEED(ina_mempool_create(&g->mempool, 
+                                        1024*1024, /* 1MB */
+                                        INA_MEM_DYNAMIC, 
+                                        NULL))) {
+            return INA_ERR_PUSH_LAST;
+        }
+        g->json_alloc_funcs.ctx = g->mempool;
         g->json_alloc_funcs.malloc = __ina_yajl_alloc;
         g->json_alloc_funcs.realloc = __ina_yajl_realloc;
         g->json_alloc_funcs.free = __ina_yajl_free;
@@ -272,6 +275,7 @@ INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx)
         __ina_parser_stack_destroy(p);
         DL_DELETE(c->parsers, p);
         yajl_free(p->handle);
+        ina_mempool_release(p->mempool, INA_YES);
         ina_mem_free(p);
         cnt++;
     }
@@ -285,6 +289,7 @@ INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx)
     DL_FOREACH_SAFE(c->generators, g, gtmp) {
         DL_DELETE(c->generators, g);
         yajl_gen_free(g->handle);
+        ina_mempool_release(g->mempool, INA_YES);
         ina_mem_free(g);
         cnt++;
     }
@@ -292,8 +297,6 @@ INA_API(ina_rc_t) ina_json_destroy(ina_json_ctx_t **ctx)
     if (cnt != c->generator_pool_size) {
          return INA_JSON_EPOOLF;
     }
-
-    ina_mempool_release((*ctx)->mempool, INA_YES);
 
     ina_mem_free(*ctx);
 
@@ -384,6 +387,7 @@ INA_API(ina_rc_t) ina_json_parser_execute(ina_json_parser_t *parser,
                 "first or reset parser");        
     }
 
+    parser->stack_size = 0;
     s  = yajl_parse(parser->handle, buffer, buf_len);
     if (complete == INA_YES) {
         s = yajl_complete_parse(parser->handle);
@@ -434,6 +438,7 @@ INA_API(ina_rc_t) ina_json_parser_reset(ina_json_parser_t *parser)
     yajl_free(parser->handle);
     parser->stack_pointer = 0;
     parser->stack_size = 0;
+    ina_mempool_release(parser->mempool, INA_NO);
     parser->handle = yajl_alloc(&__yajl_callbacks, &parser->json_alloc_funcs, parser);
     return INA_SUCCESS;
 }
@@ -541,6 +546,7 @@ INA_API(ina_rc_t) ina_json_generator_reset(ina_json_gen_t *generator)
 {
     INA_ASSERT_NOTNULL(generator);
     yajl_gen_free(generator->handle);
+    ina_mempool_release(generator->mempool, INA_NO);
     generator->handle = yajl_gen_alloc(&generator->json_alloc_funcs);
     return INA_SUCCESS;
 }

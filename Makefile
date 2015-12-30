@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014, INAOS GmbH
+# Copyright (c) 2013-2015, INAOS GmbH
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ CFLAGS += -freorder-blocks-and-partition
 # ****************************************************************************
 # Subdirectories
 # ****************************************************************************
-DIRS = contribs contribs-bin doc include src tests
+DIRS = contribs contribs-bin doc include src tests tools
 # ****************************************************************************
 # Libraries
 # ****************************************************************************
@@ -98,6 +98,12 @@ ifeq (sds,$(INAC_STRING_LIB))
   	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/sds/sds.a
 	CFLAGS+=-DINA_SSTRING_ENABLED=1
 endif
+# ****************************************************************************
+# Hardware accelarated networking
+# ****************************************************************************
+INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/solarflare/lib64/libonload_ext.a
+CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/solarflare/include
+CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/mellanox/include
 # ****************************************************************************
 # Time implementation
 # ****************************************************************************

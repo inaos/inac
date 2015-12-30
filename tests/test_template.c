@@ -42,7 +42,7 @@
 INA_TEST(template, simple)
 {
     ina_str_t tpl;
-    ina_template_ctx_t *ctx;
+    ina_template_ctx_t *ctx = NULL;
     ina_template_env_t *env;
     ina_template_table_t *tbl;
     ina_template_table_t *funcs;
@@ -62,6 +62,7 @@ INA_TEST(template, simple)
     tpl = ina_str_new_fromcstr(_INA_TEMPLATE_TEST_TPL);
 
     INA_TEST_ASSERT_SUCCEED(ina_template_init(&ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
 
     INA_TEST_ASSERT_SUCCEED(ina_template_compile(ctx, "test1", tpl, &env));
     

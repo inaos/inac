@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,8 +71,6 @@ static ina_rc_t __ina_service_run_console(ina_service_ctx_t *ctx);
 static ina_rc_t __ina_service_mgnt_status(const  char *name, ina_service_status_t *status);
 static ina_rc_t __ina_service_mgnt_start(const char *name);
 static ina_rc_t __ina_service_mgnt_stop(const char *name);
-
-extern ina_service_descriptor_t __ina_service_section;
 
 #ifdef INA_OS_WIN32
 
@@ -561,10 +559,11 @@ static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
 
 static ina_rc_t __ina_service_run_console(ina_service_ctx_t *ctx)
 {
-    ina_str_t lock_file_path;
+    ina_str_t lock_file_path = NULL;
 
     lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
                                         ina_str_cstr(ctx->descriptor->name));
+    INA_ASSERT_NOTNULL(lock_file_path);
 
     ctx->lock_fp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
     ina_str_free(lock_file_path);
@@ -623,6 +622,8 @@ static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_
     *status = INA_SERVICE_STATUS_STOP;
 
     lock_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, name);
+    INA_ASSERT_NOTNULL(lock_file_path);
+    
     lfp = open(ina_str_cstr(lock_file_path), O_RDONLY, 0640);
     if (lfp >= 0) {
         *status = INA_SERVICE_STATUS_RUN;
@@ -798,12 +799,10 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
         return INA_SUCCESS;
     }
 
-    ds = ina_mem_alloc(sizeof(ina_service_descriptor_t));
-    if (ds == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
+    ds = (ina_service_descriptor_t*)ina_mem_alloc(sizeof(ina_service_descriptor_t));
     ina_mem_cpy(ds, &__ina_service_section, sizeof(ina_service_descriptor_t));
     ((ina_service_ctx_t*)ctx)->descriptor = ds;
+    *descriptor = ds;
     return INA_SUCCESS;
 }
 

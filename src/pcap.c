@@ -52,15 +52,20 @@ typedef struct __ina_pcaprec_hdr_s {
 	uint32_t orig_len;       /* actual length of packet */
 } __ina_pcaprec_hdr_t;
 
+typedef ina_rc_t (*__ina_pcap_read_chunk_fp)(ina_pcap_ctx_t *ctx, size_t how_much, size_t *read, const unsigned char **chunk);
+
 struct ina_pcap_ctx_s {
     ina_file_ctx_t *file_ctx;
     ina_file_t *fcapture;
     ina_file_cursor_t *fcur;
     ina_mmap_ctx_t *mmap_ctx;
+    ina_gzip_file_t *gzip_ctx;
+    unsigned char *gzip_buffer;
     __ina_pcap_hdr_t *pcap_hdr;
     int swap_bytes;
     int nano_second_timestamps;
     int first_packet;
+    __ina_pcap_read_chunk_fp read_chunk_fp;
 };
 
 /** 
@@ -69,7 +74,33 @@ struct ina_pcap_ctx_s {
  *
  */
 
-INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, uint64_t buffer_size, ina_pcap_ctx_t **ctx)
+static ina_rc_t __ina_pcap_read_chunk_cursor(ina_pcap_ctx_t *ctx, size_t how_much, size_t *read, const unsigned char **chunk)
+{
+    return ina_file_cursor_binary_read_chunk(ctx->fcur, how_much, read, chunk);
+}
+
+static ina_rc_t __ina_pcap_read_chunk_gzip(ina_pcap_ctx_t *ctx, size_t how_much, size_t *read, const unsigned char **chunk)
+{
+    ina_rc_t rc;
+    unsigned char *orig = ctx->gzip_buffer;
+    size_t tot_read = 0;
+    *read = 0;
+    while (tot_read < how_much) {
+        rc = ina_gzip_read_next_block(ctx->gzip_ctx, how_much-tot_read, read, &ctx->gzip_buffer);
+        if (*read == 0) {
+            break;
+        }
+        tot_read += *read;
+        ctx->gzip_buffer += *read;
+    }
+    ctx->gzip_buffer = orig;
+    *chunk = ctx->gzip_buffer;
+    *read = tot_read;
+    return rc;
+}
+
+INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, size_t buffer_size, 
+                                ina_pcap_file_compression_t compression, ina_pcap_ctx_t **ctx)
 {
     size_t read = 0;
     const unsigned char *chunk;
@@ -77,83 +108,104 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
     ina_file_stat_t *fstat;
     uint64_t real_buffer = 0;
 
+    if (mode == INA_PCAP_OPEN_MODE_MMAP && compression != INA_PCAP_FILE_COMPRESSION_NONE) {
+        /* MMAP only makes sense here if the file is not compressed */
+        /* FIXME: proper error handling */
+        return INA_FAILURE;
+    }
+
     *ctx = (ina_pcap_ctx_t*)ina_mem_alloc(sizeof(ina_pcap_ctx_t));
     (*ctx)->swap_bytes = 0;
     (*ctx)->nano_second_timestamps = 0;
     (*ctx)->first_packet = 1;
     (*ctx)->mmap_ctx = NULL;
+    (*ctx)->gzip_ctx = NULL;
+    (*ctx)->gzip_buffer = NULL;
+    (*ctx)->fcur = NULL;
+    (*ctx)->file_ctx = NULL;
+    (*ctx)->fcapture = NULL;
 
-    if (!INA_SUCCEED(ina_file_init(&(*ctx)->file_ctx))) {
-        return INA_ERR_PUSH_LAST;
-    }
-    if (!INA_SUCCEED(ina_file_new((*ctx)->file_ctx, pcap_file, 
-        INA_FILE_ACCESS_MODE_READ, INA_FILE_CREATE_MODE_OPEN, 
-        INA_FILE_SHARE_MODE_READ, INA_FILE_FLAG_SEQUENTIAL_ACCESS,
-        &(*ctx)->fcapture))) {
+    if (compression == INA_PCAP_FILE_COMPRESSION_NONE) {
+        if (!INA_SUCCEED(ina_file_init(&(*ctx)->file_ctx, 0))) {
             return INA_ERR_PUSH_LAST;
-    }
-
-    if (!INA_SUCCEED(ina_file_stat_new((*ctx)->fcapture, &fstat))) {
-        return INA_ERR_PUSH_LAST;
-    }
-    if (!INA_SUCCEED(ina_file_stat_file_size(fstat, &file_cap_size))) {
-        return INA_ERR_PUSH_LAST;
-    }
-    if (!INA_SUCCEED(ina_file_stat_free((*ctx)->fcapture, &fstat))) {
-        return INA_ERR_PUSH_LAST;
-    }
-
-    switch (mode) {
-        case INA_PCAP_OPEN_MODE_FIO:
-            if (!INA_SUCCEED(ina_file_cursor_new((*ctx)->fcapture, INA_FILE_CURSOR_TYPE_FILEIO, 
-                INA_FILE_CURSOR_MODE_READ_BINARY, buffer_size, &(*ctx)->fcur, NULL))) {
-                    return INA_ERR_PUSH_LAST;
-            }
-            break;
-        case INA_PCAP_OPEN_MODE_MMAP:
-            if (!INA_SUCCEED(ina_mmap_init(&(*ctx)->mmap_ctx))) {
+        }
+        if (!INA_SUCCEED(ina_file_new((*ctx)->file_ctx, pcap_file, 
+            INA_FILE_ACCESS_MODE_READ, INA_FILE_CREATE_MODE_OPEN, 
+            INA_FILE_SHARE_MODE_READ, INA_FILE_FLAG_SEQUENTIAL_ACCESS,
+            &(*ctx)->fcapture))) {
                 return INA_ERR_PUSH_LAST;
-            }
-#ifdef INA_CPU_X86_64
-            if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_1GB) {
-                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_1GB;
-            }
-            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_2GB) {
-                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_2GB;
-            }
-            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_4GB) {
-                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_4GB;
-            }
-            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_8GB) {
-                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_8GB;
-            }
-            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_16GB) {
-                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_16GB;
-            }
-            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_32GB) {
-                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_32GB;
-            }
-            else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_64GB) {
-                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_64GB;
-            }
-            else {
-                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_128GB;
-            }
-#else
-            real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_1GB;
-#endif
-            if (!INA_SUCCEED(ina_file_cursor_new((*ctx)->fcapture, INA_FILE_CURSOR_TYPE_MMAP, 
-                INA_FILE_CURSOR_MODE_READ_BINARY, real_buffer, &(*ctx)->fcur, (*ctx)->mmap_ctx))) {
+        }
+
+        if (!INA_SUCCEED(ina_file_stat_new((*ctx)->fcapture, &fstat))) {
+            return INA_ERR_PUSH_LAST;
+        }
+        if (!INA_SUCCEED(ina_file_stat_file_size(fstat, &file_cap_size))) {
+            return INA_ERR_PUSH_LAST;
+        }
+        if (!INA_SUCCEED(ina_file_stat_free((*ctx)->fcapture, &fstat))) {
+            return INA_ERR_PUSH_LAST;
+        }
+
+        switch (mode) {
+            case INA_PCAP_OPEN_MODE_FIO:
+                if (!INA_SUCCEED(ina_file_cursor_new((*ctx)->fcapture, INA_FILE_CURSOR_TYPE_FILEIO, 
+                    INA_FILE_CURSOR_MODE_READ_BINARY, buffer_size, &(*ctx)->fcur, NULL))) {
+                        return INA_ERR_PUSH_LAST;
+                }
+                break;
+            case INA_PCAP_OPEN_MODE_MMAP:
+                if (!INA_SUCCEED(ina_mmap_init(&(*ctx)->mmap_ctx))) {
                     return INA_ERR_PUSH_LAST;
-            }
-            break;
-        default:
-            INA_ASSERT_TRUE(1);
-            break;
+                }
+#ifdef INA_CPU_X86_64
+                if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_1GB) {
+                    real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_1GB;
+                }
+                else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_2GB) {
+                    real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_2GB;
+                }
+                else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_4GB) {
+                    real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_4GB;
+                }
+                else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_8GB) {
+                    real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_8GB;
+                }
+                else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_16GB) {
+                    real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_16GB;
+                }
+                else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_32GB) {
+                    real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_32GB;
+                }
+                else if (buffer_size <= INA_FILE_CURSOR_MMAP_BUFFER_64GB) {
+                    real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_64GB;
+                }
+                else {
+                    real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_128GB;
+                }
+#else
+                real_buffer = INA_FILE_CURSOR_MMAP_BUFFER_1GB;
+#endif
+                if (!INA_SUCCEED(ina_file_cursor_new((*ctx)->fcapture, INA_FILE_CURSOR_TYPE_MMAP, 
+                    INA_FILE_CURSOR_MODE_READ_BINARY, real_buffer, &(*ctx)->fcur, (*ctx)->mmap_ctx))) {
+                        return INA_ERR_PUSH_LAST;
+                }
+                break;
+            default:
+                INA_ASSERT_TRUE(1);
+                break;
+        }
+        (*ctx)->read_chunk_fp = __ina_pcap_read_chunk_cursor;
+    }
+    else {
+        if (!INA_SUCCEED(ina_gzip_open(pcap_file, buffer_size, &(*ctx)->gzip_ctx))) {
+            return INA_ERR_PUSH_LAST;
+        }
+        (*ctx)->gzip_buffer = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*buffer_size);
+        (*ctx)->read_chunk_fp = __ina_pcap_read_chunk_gzip;
     }
 
     /* read pcap header */
-    if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk((*ctx)->fcur, sizeof(__ina_pcap_hdr_t), 
+    if (!INA_SUCCEED((*ctx)->read_chunk_fp(*ctx, sizeof(__ina_pcap_hdr_t), 
         &read, &chunk))) {
             return INA_ERR_PUSH_LAST;
     }
@@ -200,17 +252,30 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
 INA_API(ina_rc_t) ina_pcap_close(ina_pcap_ctx_t **ctx)
 {
     ina_mem_free((*ctx)->pcap_hdr);
-    ina_file_cursor_free(&(*ctx)->fcur);
+    if ((*ctx)->fcur != NULL) {
+        ina_file_cursor_free(&(*ctx)->fcur);
+    }
     if ((*ctx)->mmap_ctx != NULL) {
         ina_mmap_destroy(&(*ctx)->mmap_ctx);
     }
-    ina_file_free((*ctx)->file_ctx, &(*ctx)->fcapture);
-    ina_file_destroy(&(*ctx)->file_ctx);
+    if ((*ctx)->gzip_buffer != NULL) {
+        ina_mem_free((*ctx)->gzip_buffer);
+    }
+    if ((*ctx)->gzip_ctx != NULL) {
+        ina_gzip_close(&(*ctx)->gzip_ctx);
+    }
+    if ((*ctx)->fcapture != NULL) {
+        ina_file_free((*ctx)->file_ctx, &(*ctx)->fcapture);
+    }
+    if ((*ctx)->file_ctx != NULL) {
+        ina_file_destroy(&(*ctx)->file_ctx);
+    }
     ina_mem_free(*ctx);
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **packet)
+INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **packet,
+                                       uint64_t *ts_micros)
 {
     __ina_pcaprec_hdr_t *rec;
     size_t requested = 0;
@@ -220,7 +285,7 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
      *packet_len = 0;
      *packet = NULL;
 
-    if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk(ctx->fcur, sizeof(__ina_pcaprec_hdr_t), 
+    if (!INA_SUCCEED(ctx->read_chunk_fp(ctx, sizeof(__ina_pcaprec_hdr_t), 
         &read, &chunk))) {
             return INA_ERR_PUSH_LAST;
     }
@@ -233,7 +298,6 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
     rec = (__ina_pcaprec_hdr_t*)chunk;
 
     /* do some validation on the first packet */
-    INA_ASSERT_TRUE(rec->incl_len == rec->orig_len);
     if (ctx->first_packet) {
         if (rec->incl_len != rec->orig_len) {
             /* FIXME proper error handling */
@@ -241,9 +305,13 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
         }
         ctx->first_packet = 0;
     }
+    /* Included len should never become larger than orig_len or the snaplen value of the global header. */
+    INA_ASSERT_TRUE(rec->incl_len <= rec->orig_len);
+    INA_ASSERT_TRUE(rec->incl_len <= ctx->pcap_hdr->snaplen);
 
+    *ts_micros = (rec->ts_sec*1000ULL*1000ULL) + rec->ts_usec;
     requested = rec->incl_len;
-    if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk(ctx->fcur, requested, 
+    if (!INA_SUCCEED(ctx->read_chunk_fp(ctx, requested, 
         &read, &chunk))) {
             return INA_ERR_PUSH_LAST;
     }
@@ -259,9 +327,9 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_pcap_read_udp_header(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *raw_packet, ina_net_udp_hdr_t **udp_hdr)
+INA_API(ina_rc_t) ina_pcap_read_headers(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *raw_packet, 
+                                        ina_net_ip_t **ip_hdr, ina_net_udp_hdr_t **udp_hdr)
 {
-    ina_net_ip_t *ip;
 	unsigned int ip_header_length;
     unsigned char *packet = raw_packet;
     size_t pack_len = packet_len;
@@ -283,15 +351,15 @@ INA_API(ina_rc_t) ina_pcap_read_udp_header(ina_pcap_ctx_t *ctx, size_t packet_le
         return INA_FAILURE;
     }
 
-	ip = (ina_net_ip_t*)packet;
-	ip_header_length = ip->ip_hl * 4;	/* ip_hl is in 4-byte words */
+	*ip_hdr = (ina_net_ip_t*)packet;
+	ip_header_length = (*ip_hdr)->ip_hl * 4;	/* ip_hl is in 4-byte words */
 
 	if (pack_len < ip_header_length) {
         /* FIXME: proper error handling */
         return INA_FAILURE;
     }
 
-	if (ip->ip_p != IPPROTO_UDP) {
+	if ((*ip_hdr)->ip_p != IPPROTO_UDP) {
         /* FIXME: proper error handling */
         return INA_FAILURE;
     }

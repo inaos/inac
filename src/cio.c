@@ -725,7 +725,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 *nb_buf_len = 0;
                 break;
             } else if (c == '\b' || (int)c == 127) {
-                if ((*nb_buf_pos) > 0) {
+                if ((*nb_buf_pos) > 0 && buf != NULL) {
                     buf[(*nb_buf_pos)--] = 0;
                     fprintf(stdout, "\b \b");
                     fflush(stdout);

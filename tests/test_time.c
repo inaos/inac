@@ -115,10 +115,11 @@ INA_TEST(time, two_stopwatches)
 INA_TEST(time, stopwatch) 
 {
     struct timeval tv_start;
-    ina_stopwatch_t *w;
+    ina_stopwatch_t *w = NULL;
 
     gettimeofday(&tv_start, NULL);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
+    INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, w->tv->next_stamp);
     INA_TEST_ASSERT_EQUAL_FLOATING(INA_TIME_MAX_STAMPS, w->tv->max_stamps);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
@@ -137,7 +138,7 @@ INA_TEST(time, stopwatch)
 INA_TEST(time, stopwatch_startime) 
 {
     struct timeval tv_start;
-    ina_stopwatch_t *w;
+    ina_stopwatch_t *w = NULL;
     ina_time_tsc_t start_ts;
     int64_t i = 0;
 
@@ -145,6 +146,7 @@ INA_TEST(time, stopwatch_startime)
     ina_time_read_tsc_clock(&start_ts);
     ina_time_sleep(200);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
+    INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, w->tv->next_stamp);
     INA_TEST_ASSERT_EQUAL_FLOATING(INA_TIME_MAX_STAMPS, w->tv->max_stamps);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, &start_ts));
@@ -172,7 +174,7 @@ INA_TEST(time, stopwatch_startime)
 INA_TEST_SKIP(time, stopwatch_startime_rdtsc) 
 {
     struct timeval tv_start;
-    ina_stopwatch_t *w;
+    ina_stopwatch_t *w = NULL;
     ina_time_tsc_t start_ts;
     int64_t i = 0;
 
@@ -189,6 +191,7 @@ INA_TEST_SKIP(time, stopwatch_startime_rdtsc)
     ina_time_read_tsc_clock(&start_ts);
     ina_time_sleep(200);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
+    INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, w->tv->next_stamp);
     INA_TEST_ASSERT_EQUAL_FLOATING(INA_TIME_MAX_STAMPS, w->tv->max_stamps);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, &start_ts));

@@ -596,8 +596,10 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
 
     /* Run Lua unit and specification tests */
     if (ctx == NULL) {
+        if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
+            return INA_FAILURE;
+        }
         has_to_destroy_jit = 1;
-        ina_ljit_init(&ctx);
     }
 
     if (luaL_dostring(ctx->lstate, "t = require(\"ltest\")\nt.run()\n") != 0) {

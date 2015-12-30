@@ -28,7 +28,50 @@
 #include <libinac/lib.h>
 
 
-INA_TEST_SKIP(mmap, test_mmap)
+INA_TEST(mmap, test_init_destroy)
 {
+	ina_mmap_ctx_t *ctx = NULL;
+
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_init(&ctx));
+	INA_TEST_ASSERT_NOT_NULL(ctx);
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
+	INA_TEST_ASSERT_NULL(ctx);
+}
+
+INA_TEST(mmap, test_new_free)
+{
+	ina_mmap_ctx_t *ctx = NULL;
+	ina_mmap_mapping_t *m = NULL;
+
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_init(&ctx));
+	INA_TEST_ASSERT_NOT_NULL(ctx);
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_new(ctx, NULL, INA_MMAP_MEM_PROT_READ, INA_MMAP_MEM_SHARE_SHARED, INA_MMAP_MAP_TYPE_MEMORY, 0, 1024*1024*1024, &m));
+	INA_TEST_ASSERT_NOT_NULL(m);
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_free(ctx, &m));
+	INA_TEST_ASSERT_NULL(m);
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
+	INA_TEST_ASSERT_NULL(ctx);
+}
+
+INA_TEST_SKIP(mmap, synch)
+{
+	/*
+	INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping);
+	*/
+}
+
+INA_TEST_SKIP(mmap, memory_head_tail)
+{
+	/*
+	INA_API(ina_rc_t) ina_mmap_memory_head(ina_mmap_mapping_t *mapping, void **memory);
+	INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memory);
+	*/
+}
+
+INA_TEST_SKIP(mmap, advice) 
+{
+	/*
+	INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, ina_mmap_mem_advice_t advice);
+	*/
 }
 

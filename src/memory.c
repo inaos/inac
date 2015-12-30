@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,8 +96,9 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
 
 INA_API(void *) ina_mem_alloc(size_t size)
 {
-    void *p;
+    void *p = NULL;
     p = __ina_malloc(size);
+    INA_ASSERT_NOTNULL(p);
     ina_mem_set(p, 0, size);
     return p;
 }
@@ -131,6 +132,7 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
 
 INA_API(void) ina_mem_free(void *ptr)
 {
+    INA_ASSERT_NOTNULL(ptr);
     __ina_free(ptr);
 }
 
@@ -147,31 +149,40 @@ INA_API(void) ina_mem_free_aligned(void *ptr)
 
 INA_API(void *) ina_mem_realloc(void *ptr, size_t nb)
 {
+    INA_ASSERT_NOTNULL(ptr);
     return __ina_realloc(ptr, nb);
 }
 
 INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb)
 {
+    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOTNULL(src);
     return __ina_memmove(dest, src, nb);
 }
 
 INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb)
 {
+    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOTNULL(src);
     return __ina_memcpy(dest, src, nb);
 }
 
 INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
 {
+    INA_ASSERT_NOTNULL(lhs);
+    INA_ASSERT_NOTNULL(rhs);
     return __ina_memcmp(lhs, rhs, nb);
 }
 
 INA_API(void *) ina_mem_set(void *dest, int value, size_t nb)
 {
+    INA_ASSERT_NOTNULL(dest);
     return __ina_memset(dest, value, nb);
 }
 
 INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
 {
+    INA_ASSERT_NOTNULL(dest);
     return __ina_memchr(dest, value, nb);
 }
 
@@ -264,7 +275,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         }
     } else {
         (*pool)->shm_handle = 0;
-        (*pool)->m = __ina_mp_malloc(size);
+        (*pool)->m = (unsigned char*)__ina_mp_malloc(size);
     }
 
     if ((*pool)->m == NULL) {
@@ -325,6 +336,8 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
             ref->pool = NULL;
         }
     }
+
+    pool->current = pool;
 
     pn = pool;
     pm = NULL;
@@ -488,6 +501,7 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
 INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
+    size_t nsize;
 
     INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->current);
@@ -497,10 +511,21 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
         size = INA_MEM_ALIGN(size);
     }
 
+retry:
+
     if ((pool->current->pos + size > pool->current->end) || 
         (pool->current->pos + size < pool->current->pos)) {
         if (pool->cf&INA_MEM_DYNAMIC) {
-            size_t nsize = 0;
+            if (pool->current->child != NULL) {
+                pool->current = pool->current->child;
+                goto retry;
+            }
+            nsize = 0;
+            if (pool->cf&INA_MEM_BESTFIT) {
+                 /* TODO: Best Fit strategy */
+            }
+
+            nsize = 0;
   
             if (pool->cf&INA_MEM_AUTOSIZE || size > pool->size) {
                 nsize = size;
@@ -510,9 +535,12 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 
             /* FIXME: Push an error , if fails */
             /* FXIME: shm can not handled in chunks ! */
-            ina_mempool_create(&pool->current->child, nsize, 
+            if (!INA_SUCCEED(ina_mempool_create(&pool->current->child, nsize, 
                     pool->cf|INA_MEM_CHILD, 
-                    pool->label);
+                    pool->label))) {
+                INA_ERR_PUSH_LAST;
+                return NULL;
+            }
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
         } else {

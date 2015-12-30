@@ -54,6 +54,8 @@ INA_TEST_FIXTURE(ljit, lsocket_echo_client)
     int r = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
     INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, 
                                     "t = require(\"test_lsocket\")\n"));
@@ -72,6 +74,8 @@ INA_TEST_FIXTURE_SKIP(ljit, debug)
     ina_ljit_ctx_t *ctx = NULL;
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
     INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, 
                                     "t = require(\"test_ldebug\")\n"));

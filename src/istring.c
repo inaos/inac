@@ -442,7 +442,7 @@ INA_API(ina_str_t) ina_str_tolower(ina_str_t str)
 INA_API(ina_str_t) ina_str_truncate(ina_str_t str, size_t pos)
 {
     if (str != NULL) {
-        INA_ASSERT_TRUE(pos < (__INA_HDR_OFFSET(str))->len);
+        INA_ASSERT_TRUE(pos <= (__INA_HDR_OFFSET(str))->len);
         (__INA_HDR_OFFSET(str))->len = pos;
         (__INA_HDR_OFFSET(str))->data[pos] = '\0';
     }
@@ -773,6 +773,7 @@ __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
     hdr = (ina_str_hdr_t*)ina_mempool_ralloc(pool, hdr, 
                             sizeof(ina_str_hdr_t) + old_size,
                             sizeof(ina_str_hdr_t) + hdr->size);
+    INA_ASSERT_NOTNULL(hdr);
     return hdr;
 }
 

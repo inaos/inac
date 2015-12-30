@@ -50,6 +50,9 @@
 #include <windows.h>
 #include <minwindef.h>
 #include <wincon.h>
+#include <io.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 #include <stdio.h>
@@ -101,6 +104,8 @@
 #include <libinac/file_cursor.h>
 #include <libinac/histogram.h>
 #include <libinac/pcap.h>
+#include <libinac/gzip.h>
+#include <libinac/percentile.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>

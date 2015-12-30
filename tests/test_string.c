@@ -366,6 +366,11 @@ INA_TEST(string, ina_str_cmp)
     ina_str_t s4 = ina_str_new_fromcstr("abCD");
     int result = 0;
 
+    INA_TEST_ASSERT_NOT_NULL(s1);
+    INA_TEST_ASSERT_NOT_NULL(s2);
+    INA_TEST_ASSERT_NOT_NULL(s3);
+    INA_TEST_ASSERT_NOT_NULL(s4); 
+ 
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s1, s2));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s1));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s3));
@@ -436,6 +441,7 @@ INA_TEST(string, ina_str_strcstr)
 INA_TEST(string, ina_str_rchr)
 {
     ina_str_t str = ina_str_new_fromcstr("search a x in a string with xxx in it.");
+    INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("x in it.", ina_str_rchr(str, 'x'));
     INA_TEST_ASSERT_NULL(ina_str_rchr(str, 'y'));
     INA_TEST_ASSERT_NULL(ina_str_rchr(str, '\0'));
@@ -455,6 +461,16 @@ INA_TEST(string, ina_str_tolower)
     ina_str_t str = ina_str_new_fromcstr("abABCDE123zZ+-=)(/&%+)");
     INA_TEST_ASSERT_NULL(ina_str_tolower(NULL));
     INA_TEST_ASSERT_EQUAL_STR("ababcde123zz+-=)(/&%+)", ina_str_tolower(str));
+    ina_str_free(str);
+}
+
+INA_TEST(string, ina_str_truncte_empty_string)
+{
+    ina_str_t str = ina_str_new_fromcstr("");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    ina_str_truncate(str, 0);
+    INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(str));
     ina_str_free(str);
 }
 
@@ -593,8 +609,10 @@ INA_TEST(string, ina_str_adjust_len)
 
 INA_TEST(string, ina_str_substr)
 {
+    ina_str_t substr = NULL;
     ina_str_t str = ina_str_new_fromcstr("exctrat a substring from a string");
-    ina_str_t substr = ina_str_substr(str, 10, 18);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    substr = ina_str_substr(str, 10, 18);
     INA_TEST_ASSERT_NOT_NULL(substr);
     INA_TEST_ASSERT_EQUAL_STR("substring", substr);
     ina_str_free(str);
@@ -653,7 +671,7 @@ INA_TEST(string, simple_allocation_with_pool)
 
 INA_TEST(string, simple_allocation_without_pool)
 {
-	ina_str_t str1;
+    ina_str_t str1;
     ina_str_t str2;
 
     str1 = ina_str_new_fromcstr("hallo");

@@ -27,18 +27,104 @@
  */
 #include <libinac/lib.h>
 
+INA_TEST(util, dbl_cmp_abs)
+{
+    double v1,v2;
+
+    v1 = 10000000.0 + DBL_EPSILON;
+    v2 = 10000000.0 + DBL_EPSILON + DBL_EPSILON*0.1;
+    INA_TEST_ASSERT_EQUAL_FLOATING(v1, v2);
+
+    v2 = 10000000.0 + DBL_EPSILON + DBL_EPSILON*1.000000000000001;
+    INA_TEST_ASSERT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_util_dbl_cmp_abs(v1, v2));
+
+    v1 = 1.0 + DBL_EPSILON;
+    v2 = 1.0 + DBL_EPSILON + DBL_EPSILON*0.1;
+    INA_TEST_ASSERT_EQUAL_FLOATING(v1, v2);
+
+    v2 = 1.0 + DBL_EPSILON + DBL_EPSILON*1.000000000000001;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_util_dbl_cmp_abs(v1, v2));
+}
+
+INA_TEST(util, dbl_cmp_rel)
+{
+    double v1,v2;
+
+    v1 = 0.01 + DBL_EPSILON;
+    v2 = 0.01 + DBL_EPSILON + DBL_EPSILON*0.1;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(1, ina_util_dbl_cmp_rel(v1, v2));
+
+    v2 = 0.01 + DBL_EPSILON + DBL_EPSILON*1.000000000000001;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(1, ina_util_dbl_cmp_rel(v1, v2));
+
+    v1 = 0.01 + DBL_EPSILON;
+    v2 = 0.01 + DBL_EPSILON + DBL_EPSILON*0.1;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(1, ina_util_dbl_cmp_rel(v1, v2));
+
+    v2 = 0.01 + DBL_EPSILON*0.000000000000000000000000001;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(1, ina_util_dbl_cmp_rel(v1, v2));
+}
+
+INA_TEST(util, dbl_cmp_save)
+{
+   double v1,v2;
+
+    v1 = 0.01 + DBL_EPSILON;
+    v2 = 0.01 + DBL_EPSILON + DBL_EPSILON*0.1;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_util_dbl_cmp_save(v1, v2));
+
+    v2 = 0.01 + DBL_EPSILON + DBL_EPSILON*1.000000000000001;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_util_dbl_cmp_save(v1, v2));
+
+    v1 = 0.01 + DBL_EPSILON;
+    v2 = 0.01 + DBL_EPSILON + DBL_EPSILON*0.1;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_util_dbl_cmp_save(v1, v2));
+
+    v2 = 0.01 + DBL_EPSILON*0.000000000000000000000000001;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_util_dbl_cmp_save(v1, v2));
+
+    v1 = 10000000.0 + DBL_EPSILON;
+    v2 = 10000000.0 + DBL_EPSILON + DBL_EPSILON*0.1;
+    INA_TEST_ASSERT_EQUAL_FLOATING(v1, v2);
+
+    v2 = 10000000.0 + DBL_EPSILON + DBL_EPSILON*1.000000000000001;
+    INA_TEST_ASSERT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_util_dbl_cmp_save(v1, v2));
+
+    v1 = 1.0 + DBL_EPSILON;
+    v2 = 1.0 + DBL_EPSILON + DBL_EPSILON*0.1;
+    INA_TEST_ASSERT_EQUAL_FLOATING(v1, v2);
+
+    v2 = 1.0 + DBL_EPSILON + DBL_EPSILON*1.000000000000001;
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(v1, v2);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_util_dbl_cmp_save(v1, v2));
+}
+
+
 INA_TEST(util, sdbm_macro)
 {
-    ina_str_t str;
+    ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_FLOATING(1195757874, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
 }
 
 INA_TEST(util, sdbm)
 {
-    ina_str_t str;
+    ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_FLOATING(1195757874, ina_util_hash_sdbm(0, str, ina_str_len(str)));
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_util_hash_sdbm(0, str, ina_str_len(str)));
     INA_TEST_ASSERT_EQUAL_FLOATING(1732587620, ina_util_hash_sdbm(1195757874, str, ina_str_len(str)));
@@ -46,16 +132,18 @@ INA_TEST(util, sdbm)
 
 INA_TEST(util, crc32_macro)
 {
-    ina_str_t str;
+    ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_FLOATING(3632233996, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
 }
 
 INA_TEST(util, crc32)
 {
-    ina_str_t str;
+    ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_FLOATING(3632233996, ina_util_hash_crc32(0, str, ina_str_len(str)));
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_util_hash_crc32(0, str, ina_str_len(str)));
     INA_TEST_ASSERT_EQUAL_FLOATING(3966352177, ina_util_hash_crc32(3632233996, str, ina_str_len(str)));

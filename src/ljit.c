@@ -45,6 +45,8 @@ INA_LJIT_IMPORT(inac,lconffile);
 INA_LJIT_IMPORT(inac,ltemplate);
 INA_LJIT_IMPORT(inac,lsocket);
 INA_LJIT_IMPORT(inac,ldebug);
+INA_LJIT_IMPORT(inac,lcsv);
+INA_LJIT_IMPORT(inac,ldate);
 INA_LJIT_IMPORT(inac,ltest);
 
 INA_LJIT_PACKAGE(ljit);
@@ -64,9 +66,6 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     INA_ASSERT_NOTNULL(ctx);
 
     *ctx = (ina_ljit_ctx_t*)ina_mem_alloc(sizeof(ina_ljit_ctx_t));
-    if (*ctx == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
     (*ctx)->lstate = luaL_newstate();
     if ((*ctx)->lstate == NULL) {
         ina_mem_free(*ctx);
@@ -136,8 +135,10 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
         /* get function */
         lua_getglobal(ctx->lstate, fname); 
     } else {    
+        char *obj_name_c;
         ina_str_t obj_name = ina_str_new_fromcstr(fname);
-        char *obj_name_c = (char*)ina_str_cstr(obj_name);
+        INA_ASSERT_NOTNULL(obj_name);
+        obj_name_c = (char*)ina_str_cstr(obj_name);
         obj_name_c[cfname - fname] = '\0';
         lua_getglobal(ctx->lstate, obj_name_c);
         cfname++;

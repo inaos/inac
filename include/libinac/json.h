@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@ typedef struct ina_json_ctx_s {
     int32_t generator_pool_size;  /* Pool size for pre-allocated generators */
     ina_json_parser_t *parsers;   /* Pre-allocated parsers */
     ina_json_gen_t *generators;   /* Pre-allocated generators */
-    ina_mempool_t *mempool;       /* Memory pool uses by parsers/generators */
 } ina_json_ctx_t;
 
 /* Parsing events */
@@ -67,7 +66,7 @@ typedef struct ina_json_data_s {
     ina_json_parse_event_t event;
     size_t size;
     union {
-        const unsigned char *s;
+        ina_str_t s;
         int32_t b;
         int64_t i;
         double  d;
@@ -91,6 +90,7 @@ typedef struct ina_json_data_s {
 INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx, 
                                 uint32_t parser_pool_size,
                                 uint32_t generator_pool_size);
+
 /*
  * Destroy a JSON context. Destroy fails if not all prevouslly borrowed
  * parser and/or generators are released.
@@ -137,7 +137,7 @@ INA_API(ina_rc_t) ina_json_parser_release(ina_json_ctx_t *ctx,
  * buffer       Input buffer
  * len          Buffer length to parse
  * complete     Indicate whenever parsing is complete (INA_YES). This allow
- *              stream parsing (not yet implemented).
+ *              stream parsing.
  *
  * Return:
  * INA_SUCCESS if no error occured.

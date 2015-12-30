@@ -103,9 +103,6 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
     INA_ASSERT_NOTNULL(cf);
 
     *cf = (ina_conffile_t*)ina_mem_alloc(sizeof(ina_conffile_t));
-    if (*cf == NULL) {
-        return INA_ERR_PUSH_LAST;
-    }
 
     if (!INA_SUCCEED(ina_ljit_init(&(*cf)->lctx))) {
         ina_mem_free(*cf);
@@ -185,14 +182,14 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
 {
     unsigned long k;
     ina_conffile_section_key_t *key;
-    ina_conffile_entry_t *check = NULL;
 
     INA_ASSERT_NOTNULL(section);
     INA_ASSERT_NOTNULL(name);
     
     k = INA_HASH_CSTR_TO_SDBM(name);
 
-    if (check != NULL) {
+    HASH_FIND_ULONG(section->keys, &k, key);
+    if (key != NULL) {
         return INA_CONFFILE_EDUPKEY;
     }
 
@@ -604,6 +601,7 @@ __ina_process_entries(ina_conffile_t *cf, ina_conffile_section_res_t *res)
             entry = (ina_conffile_entry_t*)ina_mempool_dalloc(
                                             cf->mempool,
                                             sizeof(ina_conffile_entry_t));
+            INA_ASSERT_NOTNULL(entry);
             entry->id = INA_HASH_CSTR_TO_SDBM(k);
             entry->key = ina_str_new_fromcstr_using_pool(k, cf->mempool);
             lua_getfield(lstate, -1 , __INA_ATTR_VALUE);
