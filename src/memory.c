@@ -217,7 +217,7 @@ INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t
         }
     } else {
         (*pool)->shm_handle = 0;
-        (*pool)->m = __ina_mp_malloc(size);
+        (*pool)->m = (unsigned char*)__ina_mp_malloc(size);
     }
 
     if ((*pool)->m == NULL) {
@@ -278,6 +278,8 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy)
             ref->pool = NULL;
         }
     }
+
+    pool->current = pool;
 
     pn = pool;
     pm = NULL;
@@ -385,9 +387,15 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
     ret = NULL;
     size = __INA_MEM_ALIGN(size);
 
+retry:
+
     if ((pool->current->pos + size > pool->current->end) || 
         (pool->current->pos + size < pool->current->pos)) {
         if (pool->cf&INA_MEM_DYNAMIC) {
+            if (pool->current->child != NULL) {
+                pool->current = pool->current->child;
+                goto retry;
+            }
             size_t nsize = 0;
             if (pool->cf&INA_MEM_BESTFIT) {
                  /* TODO: Best Fit strategy */
