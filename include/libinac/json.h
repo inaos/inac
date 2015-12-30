@@ -66,7 +66,7 @@ typedef struct ina_json_data_s {
     ina_json_parse_event_t event;
     size_t size;
     union {
-        const unsigned char *s;
+        const ina_str_t s;
         int32_t b;
         int64_t i;
         double  d;
@@ -137,7 +137,7 @@ INA_API(ina_rc_t) ina_json_parser_release(ina_json_ctx_t *ctx,
  * buffer       Input buffer
  * len          Buffer length to parse
  * complete     Indicate whenever parsing is complete (INA_YES). This allow
- *              stream parsing (not yet implemented).
+ *              stream parsing.
  *
  * Return:
  * INA_SUCCESS if no error occured.
