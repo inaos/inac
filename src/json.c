@@ -40,8 +40,8 @@
 struct ina_json_parser_s {
     yajl_alloc_funcs json_alloc_funcs;
     uint16_t stack_max;
-    uint16_t stack_size;
-    uint16_t stack_pointer;
+    uint32_t stack_size;
+    uint32_t stack_pointer;
     ina_json_data_t *stack;
     yajl_handle handle;
     ina_rc_t error_state;
@@ -59,7 +59,7 @@ struct ina_json_gen_s {
     struct ina_json_gen_s *prev;  
 };
 
-static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p, uint16_t stack_size)
+static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p, uint32_t stack_size)
 {
     p->stack_max = stack_size;
     p->stack_size = 0;

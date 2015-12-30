@@ -66,7 +66,7 @@ typedef struct ina_json_data_s {
     ina_json_parse_event_t event;
     size_t size;
     union {
-        const ina_str_t s;
+        ina_str_t s;
         int32_t b;
         int64_t i;
         double  d;
