@@ -391,6 +391,7 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
 INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
+    size_t nsize;
 
     INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->current);
@@ -407,7 +408,7 @@ retry:
                 pool->current = pool->current->child;
                 goto retry;
             }
-            size_t nsize = 0;
+            nsize = 0;
             if (pool->cf&INA_MEM_BESTFIT) {
                  /* TODO: Best Fit strategy */
             }
