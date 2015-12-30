@@ -130,6 +130,117 @@ INA_TEST(json, parser_reset)
     INA_TEST_ASSERT_SUCCEED(ina_json_destroy(&ctx));                                
 }
 
+INA_TEST(json, parser_try_data_stream)
+{
+
+    #define BUFFER_SIZE  16
+    ina_json_ctx_t    *ctx = NULL;
+    ina_json_parser_t *p =  NULL;
+    const ina_json_data_t   *data = NULL;
+    unsigned char* buf = (unsigned char*)__object;
+    size_t tot_read = 0;
+    size_t read = BUFFER_SIZE;
+    ina_str_t json_str = ina_str_new(strlen(__object));
+    ina_str_t str_val;
+    static int last_event = -1;
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_json_init(&ctx, 1, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_json_parser_borrow(ctx,  &p));
+    INA_TEST_ASSERT_NOT_NULL(p);
+    
+    while (tot_read < strlen(__object)) {
+        char sbuf[20];
+        INA_TEST_ASSERT_SUCCEED(ina_json_parser_execute(p, 
+                                    buf, 
+                                    read,
+                                    ((tot_read+read)<strlen(__object)?INA_NO:INA_YES)));
+
+        while(INA_SUCCEED(ina_json_parser_try_data(p, &data))) {
+            switch (data->event) {
+                case INA_JSON_PARSE_EVENT_START_OBJECT:
+                    if (last_event == INA_JSON_PARSE_EVENT_END_OBJECT) {
+                        json_str = ina_str_catcstr(json_str, ",");    
+                    }
+
+                    json_str = ina_str_catcstr(json_str, "{");
+                    break;
+                case INA_JSON_PARSE_EVENT_OBJECT_KEY:
+                    if (last_event == INA_JSON_PARSE_EVENT_END_OBJECT || 
+                        last_event == INA_JSON_PARSE_EVENT_END_ARRAY  ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_STRING ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_DOUBLE ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_INT ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_NULL ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_BOOL) {
+                        json_str = ina_str_catcstr(json_str, ",");    
+                    }
+                    json_str = ina_str_catcstr(json_str, "\"");
+                    str_val = ina_str_new_fromblk(data->value.s, data->size);
+                    json_str = ina_str_cat(json_str, str_val);
+                    ina_str_free(str_val);
+                    json_str = ina_str_catcstr(json_str, "\"");
+                    json_str = ina_str_catcstr(json_str, ":");
+                    break;
+                case INA_JSON_PARSE_EVENT_END_OBJECT:
+                    json_str = ina_str_catcstr(json_str, "}");
+                    break;
+                case INA_JSON_PARSE_EVENT_START_ARRAY:
+                    json_str = ina_str_catcstr(json_str, "[");
+                    break;
+                case INA_JSON_PARSE_EVENT_END_ARRAY:
+                    json_str = ina_str_catcstr(json_str, "]");
+                    break;
+                case INA_JSON_PARSE_EVENT_DATA_NULL:
+                    json_str = ina_str_catcstr(json_str, "null");
+                    break;
+                case INA_JSON_PARSE_EVENT_DATA_INT:
+                    if (last_event == INA_JSON_PARSE_EVENT_END_OBJECT || 
+                        last_event == INA_JSON_PARSE_EVENT_END_ARRAY  ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_STRING ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_DOUBLE ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_INT ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_NULL ||
+                        last_event == INA_JSON_PARSE_EVENT_DATA_BOOL) {
+                        json_str = ina_str_catcstr(json_str, ",");    
+                    }
+                    sprintf(sbuf, "%ld", data->value.i);
+                    json_str = ina_str_catcstr(json_str, sbuf);
+                    break;
+                case INA_JSON_PARSE_EVENT_DATA_DOUBLE:
+                    sprintf(sbuf, "%.1f", data->value.d);
+                    json_str = ina_str_catcstr(json_str, sbuf);
+                    break;
+                case INA_JSON_PARSE_EVENT_DATA_BOOL:
+                    if (data->value.b) {
+                        json_str = ina_str_catcstr(json_str, "true");
+                    } else {
+                        json_str = ina_str_catcstr(json_str, "false");
+                    }
+                    break;
+                case INA_JSON_PARSE_EVENT_DATA_STRING:
+                    json_str = ina_str_catcstr(json_str, "\"");
+                    str_val = ina_str_new_fromblk(data->value.s, data->size);
+                    json_str = ina_str_cat(json_str, str_val);
+                    ina_str_free(str_val);
+                    json_str = ina_str_catcstr(json_str, "\"");
+                    break;
+
+            }
+            INA_TEST_MSG("JSON event %d", data->event);
+            last_event = data->event;
+        }
+        tot_read += read;
+        buf += read;
+
+        if (tot_read+read > strlen(__object)) {
+            read = strlen(__object)-tot_read;
+        }
+    }
+    INA_TEST_ASSERT_EQUAL_STR(__object, ina_str_cstr(json_str));
+}
+
+
 INA_TEST(json, parser_try_data)
 {
     ina_json_ctx_t    *ctx = NULL;
