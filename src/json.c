@@ -59,10 +59,11 @@ struct ina_json_gen_s {
 
 static ina_rc_t __ina_parser_stack_create(ina_json_parser_t *p, uint16_t stack_size)
 {
+    p->stack_max = stack_size;
     p->stack_size = 0;
     p->stack_pointer = 0;
     p->stack = (ina_json_data_t*)ina_mem_alloc(
-                    sizeof(ina_json_data_t)*__INA_JSON_PARSER_DATA_STACK_SIZE);
+                    sizeof(ina_json_data_t)*stack_size);
     return INA_SUCCESS;
 }
 
@@ -74,7 +75,7 @@ static ina_rc_t __ina_parser_stack_destroy(ina_json_parser_t *p)
 
 INA_INLINE int __ina_check_and_incr_data_stack(ina_json_parser_t *p)
 {
-    if (p->stack_pointer++ == __INA_JSON_PARSER_DATA_STACK_SIZE) {
+    if (p->stack_pointer++ == p->stack_max) {
         p->error_state = INA_ELIMIT;
         p->error_msg = ina_str_new_fromcstr("Data Stack overflow");
         return INA_NO;
@@ -122,7 +123,7 @@ int __ina_yajl_cb_string(void *ctx, const unsigned char *value, size_t len)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_DATA_STRING;
-    p->stack[p->stack_pointer].value.s = ina_str_new_fromblk_using_pool(value, len, p->mempool);
+    p->stack[p->stack_pointer].value.s = ina_str_new_fromblk(value, len);
     p->stack[p->stack_pointer].size = len; 
     return __ina_check_and_incr_data_stack(p);
 }
@@ -139,7 +140,7 @@ int __ina_yajl_cb_map_key(void *ctx, const unsigned char *key, size_t len)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_OBJECT_KEY;
-    p->stack[p->stack_pointer].value.s = ina_str_new_fromblk_using_pool(key, len, p->mempool);
+    p->stack[p->stack_pointer].value.s = ina_str_new_fromblk(key, len);
     p->stack[p->stack_pointer].size = len; 
     return __ina_check_and_incr_data_stack(p);
 }
@@ -185,7 +186,7 @@ void *__ina_yajl_realloc(void *ctx, void *ptr, size_t sz)
     ina_mempool_t *pool = (ina_mempool_t*)ctx;
     INA_ASSERT_NOTNULL(ctx);
     p = ina_mempool_dalloc(pool, sz);
-    if (INA_LIKELY(ptr != NULL)) {
+    if (ptr != NULL) {
         ina_mem_cpy(p, ptr, sz/2);
     }
     return p;
@@ -234,7 +235,7 @@ INA_API(ina_rc_t) ina_json_init(ina_json_ctx_t **ctx,
         if (p == NULL) {
             return INA_ERR_PUSH_LAST;
         }
-        if (!INA_SUCCEED(__ina_parser_stack_create(p))) {
+        if (!INA_SUCCEED(__ina_parser_stack_create(p, __INA_JSON_PARSER_DATA_STACK_SIZE))) {
             return INA_ERR_PUSH_LAST;
         }
         p->json_alloc_funcs.ctx = (void*)(*ctx)->mempool;
