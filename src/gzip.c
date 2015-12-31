@@ -146,7 +146,7 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 	for (;;) {
 		pos = 0;
 		/* read next buffer */
-        if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk(file->fcur, file->buffer_size, &file->nbread, &file->buffer))) {
+        if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk(file->fcur, file->buffer_size, &file->nbread, (const unsigned char**)&file->buffer))) {
             return INA_ERR_PUSH_LAST;
         }
 		if (file->nbread == 0) {
@@ -162,7 +162,9 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 			skip = 0;
 		}
 		if ( (hdr->flg & _INA_GZIP_FLAG_EXTRA) && !proc_extra ) {
-			uint16_t xlen = file->buffer[pos++] << 8 | file->buffer[pos++];
+			++pos;
+			uint16_t xlen = (file->buffer[pos] << 8 | file->buffer[pos+1]);
+			++pos;
 			/* skip over the extra flag - we do not need it */
 			if (pos + xlen > _INA_GZIP_BUF_REMAIN) {
 				skip = (pos + xlen) - _INA_GZIP_BUF_REMAIN;
@@ -188,7 +190,7 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 				}
 				else {
 					file->name = ina_str_dup(text_buf);
-					file->name = ina_str_ncatcstr(file->name, (const char*)file->buffer[text_start], end);
+					file->name = ina_str_ncatcstr(file->name, (const char*)&file->buffer[text_start], end);
 				}
 				proc_name = 1;
 			}
@@ -198,7 +200,7 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 					text_buf = ina_str_new_fromblk(&file->buffer[text_start], end - text_start);
 				}
 				else {
-					text_buf = ina_str_ncatcstr(text_buf, (const char*)file->buffer[text_start], end);
+					text_buf = ina_str_ncatcstr(text_buf, (const char*)&file->buffer[text_start], end);
 				}
 				continue;
 				_INA_GZIP_DO_HEADER_CRC(file->nbread);
@@ -217,7 +219,9 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 				continue;
 			}
 			else {
-				header_crc = file->buffer[pos++] << 8 | file->buffer[pos++];
+				++pos;
+				header_crc = file->buffer[pos] << 8 | file->buffer[pos+1];
+				++pos;
 				proc_crc = 1;
 			}
 		}
@@ -271,7 +275,7 @@ INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file, size_t buffer_size, ina_g
 
     /* read gzip header */
     if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk((*gzf)->fcur, sizeof(_ina_gzip_header_t), 
-        &(*gzf)->nbread, &(*gzf)->buffer))) {
+        &(*gzf)->nbread, (const unsigned char**)&(*gzf)->buffer))) {
             return INA_ERR_PUSH_LAST;
     }
 
@@ -301,7 +305,7 @@ read_again:
     	if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk(gzf->fcur, 
     							gzf->buffer_size, 
     							&gzf->nbread, 
-    							&gzf->buffer))) {
+    							(const unsigned char**)&gzf->buffer))) {
     		return INA_ERR_PUSH_LAST;
     	}
     	gzf->bufpos = gzf->buffer;
