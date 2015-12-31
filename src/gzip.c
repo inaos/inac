@@ -293,6 +293,7 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
     size_t consumed = 0;
     int more = INA_NO;
 
+read_again:
     /*printf("%s buffer %p, bufpos %p len: %ld read: %d\n", "NEXT", gzf->buffer, gzf->bufpos, gzf->bufpos-gzf->buffer, gzf->nbread);
     printf("DIFF %d\n", gzf->nbread - (gzf->bufpos-gzf->buffer));*/
     /* Buffer fully consumed, read again from file */
@@ -328,6 +329,10 @@ INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requeste
    		return INA_ERR_PUSH_LAST;
     }
     gzf->bufpos = gzf->bufpos+consumed;
+
+    if (*read > 0 && *read < requested) {
+    	goto read_again;
+    }
     /*printf("requested: %ld\n", requested);
     printf("read: %ld\n", *read);
     printf("consumed: %ld\n", consumed);*/
