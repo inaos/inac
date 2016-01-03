@@ -51,11 +51,8 @@ extern "C" {
  * TODO:
  * -----
  *
- * 1. Create a test-suite; I believe we should extract the sanitiy-tests from smasher.
- *    Port it to C and add it as dependency to inac, then use them from the test-suite.
- *    To test all the hashes. All hashes should at least pass these two santiy tests.
- *
- * 2. Provide a refactor lua-script which finds all usages of the old hashes located in util.h (sdbm)
+ * 1. Provide a refactor lua-script which finds all usages of the old hashes located in util.h (sdbm)
+ * 2. Clean-up the github issues related to hash-functions ;)
  *
  */
 
