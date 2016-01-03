@@ -33,7 +33,11 @@
 #include <contribs/memhash/memhash.h>
 
 /* intrinsics */
+#ifdef INA_OS_WIN32
+#include <nmmintrin.h>
+#else
 #include <x86intrin.h>
+#endif
 
 #ifdef INA_OS_WIN32
 #define __INA_HASH_ROTL32(x,y)    _rotl(x,y)
@@ -1035,9 +1039,15 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 #ifdef INA_CPU_X86_64
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u64, crc, uint64_t, buf, size);
 #endif
+#ifdef INA_OS_WIN32
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, (unsigned int)crc, uint32_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, (unsigned int)crc, uint16_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, (unsigned int)crc, uint8_t, buf, size);
+#else
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, buf, size);
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, buf, size);
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, buf, size);
+#endif
 
     /* Post-process the crc */
     return crc;
