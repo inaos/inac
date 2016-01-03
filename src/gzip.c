@@ -162,8 +162,9 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 			skip = 0;
 		}
 		if ( (hdr->flg & _INA_GZIP_FLAG_EXTRA) && !proc_extra ) {
+            uint16_t xlen;
 			++pos;
-			uint16_t xlen = (file->buffer[pos] << 8 | file->buffer[pos+1]);
+			xlen = (file->buffer[pos] << 8 | file->buffer[pos+1]);
 			++pos;
 			/* skip over the extra flag - we do not need it */
 			if (pos + xlen > _INA_GZIP_BUF_REMAIN) {
