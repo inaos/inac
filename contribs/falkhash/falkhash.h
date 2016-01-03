@@ -1,0 +1,11 @@
+#pragma once
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+uint64_t falkhash64(const void * key, int len, uint64_t seed);
+
+#if defined (__cplusplus)
+}
+#endif
