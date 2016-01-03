@@ -380,7 +380,7 @@ INA_TEST(hash, all_64_bit)
         aes_hw_support = 1;
     }
     else {
-        INA_TEST_MSG("CPU has no AES hardware support, therefore we can not test falkhash");
+        INA_TEST_MSG("CPU has no AES hardware support, feature: %d", aes_hw_support);
     }
 
     w.which = 1;

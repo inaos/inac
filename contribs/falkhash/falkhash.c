@@ -1,12 +1,11 @@
 #include "../../include/libinac/lib.h"
-#pragma warning(push, 0)
-#ifdef _MSC_VER
-#include <intrin.h>
+#ifdef INA_OS_WIN32
+    #pragma warning(push, 0)
+    #include <intrin.h>
+    #pragma warning(pop)
 #else
 #include <x86intrin.h>
 #endif
-#pragma warning(pop)
-
 /* Discard SAL annotations if you're not using MSVC :( */
 #ifndef _MSC_VER
 #define _In_

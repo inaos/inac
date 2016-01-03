@@ -33,13 +33,12 @@
 #include <contribs/memhash/memhash.h>
 
 /* intrinsics */
-#include <smmintrin.h>
-#include <nmmintrin.h>
+#include <x86intrin.h>
 
 #ifdef INA_OS_WIN32
 #define __INA_HASH_ROTL32(x,y)    _rotl(x,y)
 #else
-static INA_INLINE uint32_t __ina_hash_rotl32(uint32_t x, int8_t r)
+INA_INLINE uint32_t __ina_hash_rotl32(uint32_t x, int8_t r)
 {
     return (x << r) | (x >> (32 - r));
 }
@@ -72,7 +71,7 @@ static INA_INLINE uint32_t __ina_hash_rotl32(uint32_t x, int8_t r)
 	c ^= b; c -= __INA_HASH_LOOKUP3_ROT(b, 24);             \
 } while (0)
 
-static INA_INLINE uint32_t __ina_hash_le_uint32_read(const void* ptr)
+INA_INLINE uint32_t __ina_hash_le_uint32_read(const void* ptr)
 {
 	/* allow unaligned read on Intel x86 and x86_64 platforms */
 #if defined(__i386__) || defined(_M_IX86) || defined(_X86_) || defined(__x86_64__) || defined(_M_X64)
@@ -253,7 +252,7 @@ INA_API(uint64_t) ina_hash_64_fnv(uint64_t hash, const void *data, size_t size)
    http://www.azillionmonkeys.com/qed/hash.html */
 
 #ifndef get16bits
-static INA_INLINE uint16_t get16bits(const void * p)
+INA_INLINE uint16_t get16bits(const void * p)
 {
   return *(const uint16_t*)p;
 }
@@ -613,7 +612,7 @@ struct __ina_hash_spooky_state
 #if defined(INA_OS_WIN32) && defined(__rotl64)
 #define __INA_HASH_SPOOKY_ROT64(x,y) __rotl64(x,y)
 #else
-static INA_INLINE uint64_t __ina_hash_spooky_rot64(uint64_t x, int k)
+INA_INLINE uint64_t __ina_hash_spooky_rot64(uint64_t x, int k)
 {
 	return (x << k) | (x >> (64 - k));
 }
@@ -633,7 +632,7 @@ static INA_INLINE uint64_t __ina_hash_spooky_rot64(uint64_t x, int k)
  *   When run forward or backwards one Mix
  * I tried 3 pairs of each; they all differed by at least 212 bits.
  */
-static INA_INLINE void __ina_hash_spooky_mix
+INA_INLINE void __ina_hash_spooky_mix
 (
 	const uint64_t *data,
 	uint64_t *s0, uint64_t *s1, uint64_t *s2,  uint64_t *s3,
@@ -671,7 +670,7 @@ static INA_INLINE void __ina_hash_spooky_mix
  * Two iterations was almost good enough for a 64-bit result, but a
  * 128-bit result is reported, so End() does three iterations.
  */
-static INA_INLINE void __ina_hash_spooky_endPartial
+INA_INLINE void __ina_hash_spooky_endPartial
 (
 	uint64_t *h0, uint64_t *h1, uint64_t *h2,  uint64_t *h3,
 	uint64_t *h4, uint64_t *h5, uint64_t *h6,  uint64_t *h7,
@@ -692,7 +691,7 @@ static INA_INLINE void __ina_hash_spooky_endPartial
 	*h10+= *h0;		*h1 ^= *h10;	*h0 = __INA_HASH_SPOOKY_ROT64(*h0, 54);
 }
 
-static INA_INLINE void __ina_hash_spooky_end
+INA_INLINE void __ina_hash_spooky_end
 (
 	uint64_t *h0,	uint64_t *h1,	uint64_t *h2,	uint64_t *h3,
 	uint64_t *h4,	uint64_t *h5,	uint64_t *h6,	uint64_t *h7,
@@ -719,7 +718,7 @@ static INA_INLINE void __ina_hash_spooky_end
  * with diffs defined by either xor or subtraction
  * with a base of all zeros plus a counter, or plus another bit, or random
  */
-static INA_INLINE void __ina_hash_spooky_short_mix
+INA_INLINE void __ina_hash_spooky_short_mix
 (
 	uint64_t *h0,
 	uint64_t *h1,
@@ -753,7 +752,7 @@ static INA_INLINE void __ina_hash_spooky_short_mix
  * For every pair of input bits,
  * with probability 50 +- .75% (the worst case is approximately that)
  */
-static INA_INLINE void __ina_hash_spooky_short_end
+INA_INLINE void __ina_hash_spooky_short_end
 (
 	uint64_t *h0,
 	uint64_t *h1,
@@ -879,177 +878,6 @@ static void __ina_hash_spooky_shorthash
 	*hash2 = b;
 }
 
-static void __ina_hash_spooky_init
-(
-	struct __ina_hash_spooky_state *state,
-	uint64_t seed1,
-	uint64_t seed2
-)
-{
-	state->m_length = 0;
-	state->m_remainder = 0;
-	state->m_state[0] = seed1;
-	state->m_state[1] = seed2;
-}
-
-static void __ina_hash_spooky_update
-(
-	struct __ina_hash_spooky_state *state,
-	const void *message,
-	size_t length
-)
-{
-	uint64_t h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11;
-	size_t newLength = length + state->m_remainder;
-	uint8_t remainder;
-	union
-	{
-		const uint8_t *p8;
-		uint64_t *p64;
-		size_t i;
-	} u;
-	const uint64_t *endp;
-
-	/* Is this message fragment too short?  If it is, stuff it away. */
-	if (newLength < __INA_HASH_SPOOKY_SC_BUFSIZE)
-	{
-		memcpy(&((uint8_t *)state->m_data)[state->m_remainder], message, length);
-		state->m_length = length + state->m_length;
-		state->m_remainder = (uint8_t)newLength;
-		return;
-	}
-
-	/* init the variables */
-	if (state->m_length < __INA_HASH_SPOOKY_SC_BUFSIZE)
-	{
-		h0 = h3 = h6 = h9  = state->m_state[0];
-		h1 = h4 = h7 = h10 = state->m_state[1];
-		h2 = h5 = h8 = h11 = __INA_HASH_SPOOKY_SC_CONST;
-	}
-	else
-	{
-		h0 = state->m_state[0];
-		h1 = state->m_state[1];
-		h2 = state->m_state[2];
-		h3 = state->m_state[3];
-		h4 = state->m_state[4];
-		h5 = state->m_state[5];
-		h6 = state->m_state[6];
-		h7 = state->m_state[7];
-		h8 = state->m_state[8];
-		h9 = state->m_state[9];
-		h10 = state->m_state[10];
-		h11 = state->m_state[11];
-	}
-	state->m_length = length + state->m_length;
-
-	/* if we've got anything stuffed away, use it now */
-	if (state->m_remainder)
-	{
-		uint8_t prefix = __INA_HASH_SPOOKY_SC_BUFSIZE-state->m_remainder;
-		memcpy(&(((uint8_t *)state->m_data)[state->m_remainder]), message, prefix);
-		u.p64 = state->m_data;
-		__ina_hash_spooky_mix(u.p64, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-		__ina_hash_spooky_mix(&u.p64[__INA_HASH_SPOOKY_SC_NUMVARS], &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-		u.p8 = ((const uint8_t *)message) + prefix;
-		length -= prefix;
-	}
-	else
-	{
-		u.p8 = (const uint8_t *)message;
-	}
-
-	/* handle all whole blocks of SC_BLOCKSIZE bytes */
-	endp = u.p64 + (length/__INA_HASH_SPOOKY_SC_BLOCKSIZE)*__INA_HASH_SPOOKY_SC_NUMVARS;
-	remainder = (uint8_t)(length-((const uint8_t *)endp - u.p8));
-	if (__INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS || (u.i & 0x7) == 0)
-	{
-		while (u.p64 < endp)
-		{
-			__ina_hash_spooky_mix(u.p64, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-			u.p64 += __INA_HASH_SPOOKY_SC_NUMVARS;
-		}
-	}
-	else
-	{
-		while (u.p64 < endp)
-		{
-			memcpy(state->m_data, u.p8, __INA_HASH_SPOOKY_SC_BLOCKSIZE);
-			__ina_hash_spooky_mix(state->m_data, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-			u.p64 += __INA_HASH_SPOOKY_SC_NUMVARS;
-		}
-	}
-
-	/* stuff away the last few bytes */
-	state->m_remainder = remainder;
-	memcpy(state->m_data, endp, remainder);
-
-	/* stuff away the variables */
-	state->m_state[0] = h0;
-	state->m_state[1] = h1;
-	state->m_state[2] = h2;
-	state->m_state[3] = h3;
-	state->m_state[4] = h4;
-	state->m_state[5] = h5;
-	state->m_state[6] = h6;
-	state->m_state[7] = h7;
-	state->m_state[8] = h8;
-	state->m_state[9] = h9;
-	state->m_state[10] = h10;
-	state->m_state[11] = h11;
-}
-
-static void __ina_hash_spooky_final
-(
-	struct __ina_hash_spooky_state *state,
-	uint64_t *hash1,
-	uint64_t *hash2
-)
-{
-	uint64_t h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11;
-	const uint64_t *data = (const uint64_t *)state->m_data;
-	uint8_t remainder = state->m_remainder;
-
-	/* init the variables */
-	if (state->m_length < __INA_HASH_SPOOKY_SC_BUFSIZE)
-	{
-		__ina_hash_spooky_shorthash(state->m_data, state->m_length, hash1, hash2);
-		return;
-	}
-
-	h0 = state->m_state[0];
-	h1 = state->m_state[1];
-	h2 = state->m_state[2];
-	h3 = state->m_state[3];
-	h4 = state->m_state[4];
-	h5 = state->m_state[5];
-	h6 = state->m_state[6];
-	h7 = state->m_state[7];
-	h8 = state->m_state[8];
-	h9 = state->m_state[9];
-	h10 = state->m_state[10];
-	h11 = state->m_state[11];
-
-	if (remainder >= __INA_HASH_SPOOKY_SC_BLOCKSIZE)
-	{
-		/* m_data can contain two blocks; handle any whole first block */
-		__ina_hash_spooky_mix(data, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-		data += __INA_HASH_SPOOKY_SC_NUMVARS;
-		remainder -= __INA_HASH_SPOOKY_SC_BLOCKSIZE;
-	}
-
-	/* mix in the last partial block, and the length mod SC_BLOCKSIZE */
-	memset(&((uint8_t *)data)[remainder], 0, (__INA_HASH_SPOOKY_SC_BLOCKSIZE-remainder));
-
-	((uint8_t *)data)[__INA_HASH_SPOOKY_SC_BLOCKSIZE-1] = remainder;
-	__ina_hash_spooky_mix(data, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-
-	/* do some final mixing */
-	__ina_hash_spooky_end(&h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-
-	*hash1 = h0;
-	*hash2 = h1;
-}
 
 static void __ina_hash_spooky_hash128
 (
@@ -1207,9 +1035,9 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 #ifdef INA_CPU_X86_64
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u64, crc, uint64_t, buf, size);
 #endif
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, (unsigned int)crc, uint32_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, (unsigned int)crc, uint16_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, (unsigned int)crc, uint8_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, buf, size);
 
     /* Post-process the crc */
     return crc;
