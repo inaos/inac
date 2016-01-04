@@ -1053,9 +1053,23 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
     return crc;
 }
 
+INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t size)
+{
+    /* Note: tested with smasher the hash quality as well as the speed does not seem to change due to the cast */
+    uint64_t h = ina_hash_64_memhash(hash, data, size);
+    return (uint32_t)h;
+}
+
 INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t size)
 {
     return memhash(data, size, hash);
+}
+
+INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t size)
+{
+    /* Note: tested with smasher the hash quality as well as the speed does not seem to change due to the cast */
+    uint64_t h = ina_hash_64_falkhash(hash, data, size);
+    return (uint32_t)h;
 }
 
 INA_API(uint64_t) ina_hash_64_falkhash(uint64_t hash, const void *data, size_t size)

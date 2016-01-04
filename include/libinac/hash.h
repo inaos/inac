@@ -398,6 +398,20 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
  */
 INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t size);
 /*
+ * Calculate 32bit Jesse W. Towner's memhash, adopted from 64bit version
+ *
+ * Source: see 64bit version
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return Value
+ *  Hash
+ */
+INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t size);
+/*
  * Calculate 64bit Jesse W. Towner's memhash, inpired by http://locklessinc.com/articles/fast_hash/
  *
  * Source: https://github.com/upcaste/upcaste/blob/master/src/upcore/src/cstring/gas/x86_64/memhash.s
@@ -411,6 +425,20 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t size);
+/*
+ * Calculate 32bit falkhash
+ *
+ * Source: see 64bit version
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return Value
+ *  Hash
+ */
+INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t size);
 /*
  * Calculate 64bit falkhash
  *

@@ -55,7 +55,7 @@ typedef struct __ina_hash_test_call_wrapper_s {
 } __ina_hash_test_call_wrapper_t;
 
 static __ina_hash_rand_t __ina_hash_test_rand;
-static __ina_test_hash32_info_t __hash32_all[11];
+static __ina_test_hash32_info_t __hash32_all[13];
 static __ina_test_hash64_info_t __hash64_all[7];
 
 static void __ina_hash_test_mix()
@@ -262,7 +262,7 @@ static void __ina_hash_test_appended_zeroes_test(ina_str_t name, __ina_hash_test
     INA_TEST_MSG("PASSED sanity check 2 for %s", ina_str_cstr(name));
 }
 
-static void __ina_hash_test_init32()
+static void __ina_hash_test_init32(int has_aes_support)
 {
     ina_mem_set(__hash32_all, 0, sizeof(__hash32_all));
 
@@ -320,14 +320,36 @@ static void __ina_hash_test_init32()
     __hash32_all[10].name = ina_str_new_fromcstr("crc_hw");
     __hash32_all[10].test1_expected = 1;
     __hash32_all[10].test2_expected = 1;
+
+    __hash32_all[11].hash = ina_hash_32_memhash;
+    __hash32_all[11].name = ina_str_new_fromcstr("memhash");
+    __hash32_all[11].test1_expected = 1;
+    __hash32_all[11].test2_expected = 1;
+
+    if (has_aes_support) {
+        __hash32_all[12].hash = ina_hash_32_falkhash;
+        __hash32_all[12].name = ina_str_new_fromcstr("falkhash");
+        __hash32_all[12].test1_expected = 1;
+        __hash32_all[12].test2_expected = 1;
+    }
 }
 
 INA_TEST(hash, all_32_bit) {
     int i;
+    int aes_hw_support = 0;
+    ina_cpu_feature_t cpu_features;
     __ina_hash_test_call_wrapper_t w;
 
+    INA_TEST_ASSERT_SUCCEED(ina_cpu_get_features(&cpu_features));
+    if (cpu_features & INA_CPU_FEATURE_AES) {
+        aes_hw_support = 1;
+    }
+    else {
+        INA_TEST_MSG("CPU has no AES hardware support, feature: %d", aes_hw_support);
+    }
+
     w.which = 0;
-    __ina_hash_test_init32();
+    __ina_hash_test_init32(aes_hw_support);
 
     for (i = 0; i < sizeof(__hash32_all)/sizeof(__ina_test_hash32_info_t); i++) {
         __ina_test_hash32_info_t *hi = &__hash32_all[i];
