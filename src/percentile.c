@@ -131,8 +131,9 @@ static ina_rc_t __ina_percentile_heap_front(__ina_percentile_heap_t *h, uint16_t
 
 INA_API(ina_rc_t) ina_percentile_new(ina_percentile_t **p, double percentile, size_t size)
 {
-    size_t lower_size = (size_t)ceil(size * percentile);
-    size_t upper_size = size - lower_size;
+    // FIXME: check if this makes sense - test case!
+    /*size_t lower_size = (size_t)ceil(size * percentile);
+    size_t upper_size = size - lower_size;*/
  
     *p = (ina_percentile_t*)ina_mem_alloc(sizeof(ina_percentile_t));
     (*p)->percentile = percentile;
@@ -141,10 +142,10 @@ INA_API(ina_rc_t) ina_percentile_new(ina_percentile_t **p, double percentile, si
         return INA_ERR_PUSH_LAST;
     }
 
-    if (!INA_SUCCEED(__ina_percentile_heap_new(&(*p)->lower, (*p)->mem, lower_size, INA_YES))) {
+    if (!INA_SUCCEED(__ina_percentile_heap_new(&(*p)->lower, (*p)->mem, size, INA_YES))) {
         return INA_ERR_PUSH_LAST;
     }
-    if (!INA_SUCCEED(__ina_percentile_heap_new(&(*p)->upper, (*p)->mem, upper_size, INA_NO))) {
+    if (!INA_SUCCEED(__ina_percentile_heap_new(&(*p)->upper, (*p)->mem, size, INA_NO))) {
         return INA_ERR_PUSH_LAST;
     }
 

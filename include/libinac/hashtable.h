@@ -82,6 +82,7 @@ extern "C" {
  * 1. Investigate open questions:
  *    - Should we use chaining or open addressing? or both by choice and use-case?
  *      Here a post which contains some input in that regard: http://preshing.com/20110603/hash-table-performance-tests/
+ *    - https://en.wikipedia.org/wiki/Hopscotch_hashing?
  *    - What should be a macro and what can be typed c-code?
  *    - We should probably have some fixed size variants and dynamic ones.. if dynamic how to grow:
  *      Quadratic probing, linear probing etc.
