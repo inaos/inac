@@ -77,7 +77,9 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.a $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
         $(INAC_CONTRIBS_DIR)/yajl/yajl.a $(INAC_CONTRIBS_DIR)/miniz/miniz.a \
 	$(INAC_CONTRIBS_DIR)/lz4/lz4.a $(INAC_CONTRIBS_DIR)/timerwheel/timerwheel.a \
-	$(INAC_CONTRIBS_DIR)/hdr-histogram/hdr-histogram.a $(INAC_LINUX_LIBS)
+	$(INAC_CONTRIBS_DIR)/hdr-histogram/hdr-histogram.a $(INAC_CONTRIBS_DIR)/xxhash/xxhash.a \
+	$(INAC_CONTRIBS_DIR)/falkhash/falkhash.a $(INAC_CONTRIBS_DIR)/memhash/memhash.a \
+	$(INAC_LINUX_LIBS)
 # ****************************************************************************
 #  String implementation
 # ****************************************************************************
@@ -171,7 +173,7 @@ release: INAC_BUILD_TYPE = release
 	export INAC_BUILD_TYPE
 release: all
 
-debug: CFLAGS +=  -g -DDEBUG -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 
+debug: CFLAGS +=  -g -DDEBUG -msse4.2 -maes -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 
 	export CFLAGS
 debug: INAC_BUILD_TYPE = debug
 	export INAC_BUILD_TYPE
