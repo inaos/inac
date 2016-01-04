@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,7 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf);
  * named	INA_YES to mark the section as a named section, otherwise
  *  		INA_NO.
  * cb		Callback to process the entries for that section or NULL if
- * 		entries should not be proccessed.
+ * 		entries should not be processed.
  * section	Pointer to an section pointer. Contains the newly created
  * 		section or NULL if any error occurred.
  *
@@ -301,12 +301,13 @@ __VA_ARGS__
  * Define configuration file using the standard pattern.
  *
  * Parameters
- * cf   Pointer to a configuration file. NULL if it's not itended to use
+ * cf   Pointer to a configuration file. NULL if it's not intended to use
  *      the configuration values after processing the configuration file
  *      Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add
  *      named or unnamed section to the configuration file.
  */
 #define INA_CONFFILE(cf, fp, ...)                         \
+while(0)                                                  \
 {                                                         \
     ina_conffile_t *__cf = NULL;                          \
     ina_conffile_section_t *__cs = NULL;                  \
@@ -318,8 +319,12 @@ __VA_ARGS__
     if (!INA_SUCCEED(ina_conffile_process(__cf, fp)))   { \
         exit(EXIT_FAILURE);                               \
     }                                                     \
-    if (cf == NULL) cf = __cf;                            \
-}
+    if (cf == NULL) {                                     \
+        cf = __cf;                                        \
+    } else {                                              \
+        ina_conffile_destroy(&__cf);                      \
+    }                                                     \
+}                                                         \
 
 #ifdef __cplusplus
 }
