@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,51 +27,42 @@
  */
 #include <libinac/lib.h>
 
+static int __test_percentile_input[] = {
+    43, 54, 56, 61, 62, 66, 68, 69, 69, 70, 71, 72, 77, 78, 79, 85, 87, 88, 89, 93, 95, 96, 98, 99, 99
+};
 
-INA_TEST(mmap, test_init_destroy)
+INA_TEST(percentile, test_percentile_90)
 {
-	ina_mmap_ctx_t *ctx = NULL;
+    size_t test_size = sizeof(__test_percentile_input)/sizeof(int);
+    ina_percentile_t *p;
+    double test_percentile = 0.9;
+    size_t i;
+    uint16_t actual_percentile = 0;
 
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_init(&ctx));
-	INA_TEST_ASSERT_NOT_NULL(ctx);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
-	INA_TEST_ASSERT_NULL(ctx);
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_new(&p, test_percentile, test_size));
+    for (i = 0; i < test_size; i++) {
+        INA_TEST_ASSERT_SUCCEED(ina_percentile_add(p, __test_percentile_input[i]));
+    }
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_get(p, &actual_percentile));
+    INA_TEST_ASSERT_EQUAL_INTEGER(98, actual_percentile);
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_free(&p));
 }
 
-INA_TEST(mmap, test_new_free)
+INA_TEST_SKIP(percentile, test_percentile_50)
 {
-	ina_mmap_ctx_t *ctx = NULL;
-	ina_mmap_mapping_t *m = NULL;
+    size_t test_size = sizeof(__test_percentile_input)/sizeof(int);
+    ina_percentile_t *p;
+    double test_percentile = 0.5;
+    size_t i;
+    uint16_t actual_percentile = 0;
 
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_init(&ctx));
-	INA_TEST_ASSERT_NOT_NULL(ctx);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_new(ctx, NULL, INA_MMAP_MEM_PROT_READ, INA_MMAP_MEM_SHARE_SHARED, INA_MMAP_MAP_TYPE_MEMORY, 0, 1024*1024*1024, &m));
-	INA_TEST_ASSERT_NOT_NULL(m);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_free(ctx, &m));
-	INA_TEST_ASSERT_NULL(m);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
-	INA_TEST_ASSERT_NULL(ctx);
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_new(&p, test_percentile, test_size));
+    for (i = 0; i < test_size; i++) {
+        INA_TEST_ASSERT_SUCCEED(ina_percentile_add(p, __test_percentile_input[i]));
+    }
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_get(p, &actual_percentile));
+    INA_TEST_ASSERT_EQUAL_INTEGER(77, actual_percentile);
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_free(&p));
 }
 
-INA_TEST_SKIP(mmap, synch)
-{
-	/*
-	INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping);
-	*/
-}
-
-INA_TEST_SKIP(mmap, memory_head_tail)
-{
-	/*
-	INA_API(ina_rc_t) ina_mmap_memory_head(ina_mmap_mapping_t *mapping, void **memory);
-	INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memory);
-	*/
-}
-
-INA_TEST_SKIP(mmap, advice) 
-{
-	/*
-	INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, ina_mmap_mem_advice_t advice);
-	*/
-}
 

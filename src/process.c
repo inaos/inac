@@ -56,10 +56,10 @@ static void __ina_process_start(ina_process_t*);
 static void __ina_process_stop(ina_process_t*);
 static void __ina_process_reset(ina_process_t*);
 
-static void __ina_process_fsm_event_start(ina_process_t*);
-static void __ina_process_fsm_event_stop(ina_process_t*);
-static void __ina_process_fsm_event_reset(ina_process_t*);
-static void __ina_process_fsm_event_error(ina_process_t*);
+static void __ina_process_fsm_event_start(void*);
+static void __ina_process_fsm_event_stop(void*);
+static void __ina_process_fsm_event_reset(void*);
+static void __ina_process_fsm_event_error(void*);
 
 INA_FSM_TRANSITIONS(process_fsm,
     INA_FSM_TRANSITION_EVENT(INA_PROCESS_START,
@@ -98,29 +98,33 @@ INA_FSM_TRANSITIONS(process_fsm,
 );
 
 
-static void __ina_process_fsm_event_start(ina_process_t *process)
+static void __ina_process_fsm_event_start(void *user_data)
 {
+    ina_process_t *process = (ina_process_t*)user_data; 
     INA_ASSERT_NOTNULL(process);
     INA_ASSERT_NOTNULL(process->descriptor);
     __ina_process_start(process);
 }
 
-static void __ina_process_fsm_event_stop(ina_process_t *process)
+static void __ina_process_fsm_event_stop(void *user_data)
 {
+    ina_process_t *process = (ina_process_t*)user_data; 
     INA_ASSERT_NOTNULL(process);
     INA_ASSERT_NOTNULL(process->descriptor);
     __ina_process_stop(process);
 }
 
-static void __ina_process_fsm_event_reset(ina_process_t *process)
+static void __ina_process_fsm_event_reset(void *user_data)
 {
+    ina_process_t *process = (ina_process_t*)user_data;
     INA_ASSERT_NOTNULL(process);
     INA_ASSERT_NOTNULL(process->descriptor);
     __ina_process_reset(process);
 }
 
-static void __ina_process_fsm_event_error(ina_process_t *process)
+static void __ina_process_fsm_event_error(void *user_data)
 {
+    ina_process_t *process = (ina_process_t*)user_data; 
     INA_ASSERT_NOTNULL(process);
     /* FIXME error handling */
 }

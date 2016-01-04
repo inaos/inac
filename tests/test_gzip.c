@@ -56,4 +56,23 @@ INA_TEST(gzip, test_gzip)
     INA_TEST_ASSERT_SUCCEED(ina_gzip_close(&gzf));
 }
 
+INA_TEST(gzip, test_requested)
+{
+    ina_gzip_file_t *gzf;
+    size_t read = 0;
+    unsigned char *chunk;
+    unsigned char buf[4*1024];
+
+    ina_mem_set(buf, 0, 4*1024);
+    chunk = buf;
+    INA_TEST_ASSERT_SUCCEED(ina_gzip_open("test_gzip.gz", 4*1024, &gzf));
+    
+    INA_TEST_ASSERT_SUCCEED(ina_gzip_read_next_block(gzf, 8, &read, &chunk));
+    INA_TEST_MSG("read: %d", read);
+    INA_TEST_MSG("buf: %s", buf);
+    INA_TEST_ASSERT_EQUAL_INTEGER(8, read);
+    INA_TEST_ASSERT_TRUE(strcmp("EUR/USD,", (const char*)buf) == 0);
+    INA_TEST_ASSERT_SUCCEED(ina_gzip_close(&gzf));
+}
+
 

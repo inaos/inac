@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1107,7 +1107,6 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /* Atomic operations */
-
 #ifdef INA_OS_WIN32
 #define INA_ATOMIC_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
 #define INA_ATOMIC_DEC(vv_ptr) InterlockedDecrement64(vv_ptr)
@@ -1127,6 +1126,15 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
 #define INA_LIKELY(x)    __builtin_expect(!!(x), 1)
 #define INA_UNLIKELY(x)  __builtin_expect(!!(x), 0)
+#else
+#error Compiler not supported yet for INAC!
+#endif
+
+/* C99 restrict a.k.a. pointer aliasing hint */
+#ifdef INA_OS_WIN32
+#define INA_RESTRICT    __restrict
+#elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
+#define INA_RESTRICT    __restrict__
 #else
 #error Compiler not supported yet for INAC!
 #endif
@@ -1182,6 +1190,10 @@ typedef int mode_t;
 #define S_IWOTH      0x00020000   /* does nothing */
 #define S_IXOTH      0x00010000   /* does nothing */
 #   endif
+#define S_IRWXU (S_IRUSR | S_IWUSR | S_IXUSR)
+#define S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
+#define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
+
 #define INA_MS_MODE_MASK 0x0000ffff  /* low word */
 #endif
 

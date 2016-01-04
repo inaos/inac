@@ -320,11 +320,12 @@ INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_ne
     (*receiver)->port = port;
 
     ina_mem_set(&(*receiver)->addr, 0, sizeof((*receiver)->addr));
+
     (*receiver)->addr.sin_family = AF_INET;
     if (address && inet_aton(address, &(*receiver)->addr.sin_addr) == 0) {
         return INA_NET_ERROR("Invalid IP address");
     }
-    (*receiver)->addr.sin_port = port;
+    (*receiver)->addr.sin_port = htons(port);
 
     return INA_SUCCESS;
 }

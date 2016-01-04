@@ -54,6 +54,9 @@ target_link_libraries(ilt ${PLATFORM_LIBS} ${LIBS})
 add_executable(bench_timer bench_timer.c)
 target_link_libraries(bench_timer ${PLATFORM_LIBS} ${LIBS})
 
+add_executable(bench_intersect bench_intersect.c)
+target_link_libraries(bench_intersect ${PLATFORM_LIBS} ${LIBS})
+
 if(WIN32) 
    add_custom_command(TARGET test POST_BUILD          
      COMMAND ${CMAKE_COMMAND} -E copy_if_different  

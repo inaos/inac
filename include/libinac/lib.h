@@ -88,6 +88,7 @@
 #include <libinac/ssl.h>
 #include <libinac/xml.h>
 #include <libinac/json.h>
+#include <libinac/hash.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
 #include <libinac/cron.h>
@@ -104,6 +105,7 @@
 #include <libinac/histogram.h>
 #include <libinac/pcap.h>
 #include <libinac/gzip.h>
+#include <libinac/percentile.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>

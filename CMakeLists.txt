@@ -26,6 +26,8 @@ set(MINIZ_LIB_NAME "miniz")
 set(ICT_LIB_NAME "cpu-topology")
 set(TIMER_WHEEL_LIB_NAME "timerwheel")
 set(HDR_HISTOGRAM_LIB_NAME "hdr-histogram")
+set(XXHASH_LIB_NAME "xxhash")
+set(FALKHASH_LIB_NAME "falkhash")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -113,6 +115,16 @@ set (HDR_HISTOGRAM_SRC_DIR ${DEPS_DIR}/hdr-histogram)
 set (HDR_HISTOGRAM_SRC ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram.c ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram_log.c)
 add_library(${HDR_HISTOGRAM_LIB_NAME} ${HDR_HISTOGRAM_SRC})
 
+# xxhash
+set (XXHASH_SRC_DIR ${DEPS_DIR}/xxhash)
+set (XXHASH_SRC ${XXHASH_SRC_DIR}/xxhash.c)
+add_library(${XXHASH_LIB_NAME} ${XXHASH_SRC})
+
+# falkhash
+set (FALKHASH_SRC_DIR ${DEPS_DIR}/falkhash)
+set (FALKHASH_SRC ${FALKHASH_SRC_DIR}/falkhash.c)
+add_library(${FALKHASH_LIB_NAME} ${FALKHASH_SRC})
+
 # END dependencies
 
 add_definitions(-DINA_ISTRING_ENABLED -DINA_STRING_DEFINED)
@@ -142,7 +154,8 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c 
 				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c
 				 ${SRC_DIR}/histogram.c ${SRC_DIR}/pcap.c ${SRC_DIR}/gzip.c 
-				 ${SRC_DIR}/net_hw_openonload.c ${SRC_DIR}/net_hw_vma.c)
+				 ${SRC_DIR}/net_hw_openonload.c ${SRC_DIR}/net_hw_vma.c ${SRC_DIR}/percentile.c 
+				 ${SRC_DIR}/hash.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
