@@ -12,6 +12,7 @@
 #define _In_reads_bytes_(x)
 #endif
 
+#if defined(INA_OS_WIN32) || defined(__AES__)
 /* falkhash()
  *
  * Summary:
@@ -107,6 +108,12 @@ uint64_t falkhash64(const void * key, int len, uint64_t seed)
     _mm_storeu_si128((__m128i*)hash, val);
     return hash[0];
 }
+#else
+uint64_t falkhash64(const void * key, int len, uint64_t seed)
+{
+    return 0;
+}
+#endif
 
 /*void
 print_m128(_In_ __m128i val)
