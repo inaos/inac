@@ -155,15 +155,16 @@ INA_API(ina_rc_t) ina_ipc_flags_set(ina_ipc_flags_t *flags, uint64_t value)
     INA_ASSERT_NOTNULL(flags);
     INA_ASSERT_NOTNULL(flags->data);
     __INA_ENTER_LOCK(flags->data);
-    
-    /* Increment reference count for each single flag */
+            
+    INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v | value);
+
+        /* Increment reference count for each single flag */
     for (j = 0; j < INA_IPC_FLAGS_MAX; ++j) {
         if ((value & ( 1ULL << j)) >> j) {
             ++flags->data->c_ref[j];
         }
     }
-        
-    INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v | value);
+
     __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
 }
@@ -188,7 +189,7 @@ INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
     /* Unset flag if reference count is zero */
     for (j = 0; j < INA_IPC_FLAGS_MAX; ++j) {
         if ((value & ( 1ULL << j)) >> j) {
-            if (--flags->data->c_ref[j] == 0) {
+            if (flags->data->c_ref[j] > 0 && --flags->data->c_ref[j] == 0) {
                 uint64_t mask = 0;
                 mask = 1ULL << (uint64_t)(j)|0;
                 INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v & ~(mask));
@@ -228,6 +229,27 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
     if (timeout == INA_YES) {
         return INA_FAILURE;
     }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_ipc_flags_dump(const ina_ipc_flags_t *flags)
+{
+    uint64_t j;
+    INA_ASSERT_NOTNULL(flags);
+    __INA_ENTER_LOCK(flags->data);
+
+    printf("IPC flags :%s\n", flags->data->name);
+    /* Unset flag if reference count is zero */
+    for (j = 0; j < INA_IPC_FLAGS_MAX; ++j) {
+        printf(" - %3"INA_UINT64_T_FMT":", j);
+        if ((flags->data->v & ( 1ULL << j)) >> j) {
+           printf("ON  (c_ref=%d)\n", flags->data->c_ref[j]);
+        } else {
+           printf("OFF (c_ref=%d)\n", flags->data->c_ref[j]);            
+        }
+    }
+
+    __INA_EXIT_LOCK(flags->data);
     return INA_SUCCESS;
 }
 

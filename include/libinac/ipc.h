@@ -164,6 +164,11 @@ INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value);
 INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t *flags, uint64_t wait_for, time_t msec_timeout);
 
 /*
+ * Dumps flags to the standard output
+ */
+INA_API(ina_rc_t) ina_ipc_flags_dump(const ina_ipc_flags_t *flags);
+
+/*
  * Create an new IPC counter
  */
 INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ipc_counter_t **counter);
