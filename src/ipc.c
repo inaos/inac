@@ -200,6 +200,26 @@ INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_ipc_flags_clear(ina_ipc_flags_t *flags, uint64_t value)
+{
+    uint64_t j;
+    INA_ASSERT_NOTNULL(flags);
+    INA_ASSERT_NOTNULL(flags->data);
+    __INA_ENTER_LOCK(flags->data);
+
+    /* Unset flag if reference count is zero */
+    for (j = 0; j < INA_IPC_FLAGS_MAX; ++j) {
+        if ((value & ( 1ULL << j)) >> j) {
+            uint64_t mask = 0;
+            mask = 1ULL << (uint64_t)(j)|0;
+            INA_ATOMIC_SWAP(&flags->data->v, flags->data->v, flags->data->v & ~(mask));
+            flags->data->c_ref[j] = 0;
+        }
+    }
+    __INA_EXIT_LOCK(flags->data);
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait_for, time_t msec_timeout)
 {
     ina_timer_t *timer;

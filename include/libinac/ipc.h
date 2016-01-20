@@ -158,6 +158,12 @@ INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t *flags, uint64_t va
  */
 INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value);
 
+/*
+ * Clear flag mask
+ */
+INA_API(ina_rc_t) ina_ipc_flags_clear(ina_ipc_flags_t *flags, uint64_t value);
+
+
 /* 
  * Wait until flags are set
  */
