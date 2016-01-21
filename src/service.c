@@ -32,6 +32,7 @@
 
 #ifndef INA_OS_WIN32
 #include <unistd.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 #define INA_SERVICE_PID_FILE_FMT  "/var/run/%s.pid"
 #define INA_SERVICE_LOCK_FILE_FMT "/var/lock/%s"
@@ -59,6 +60,7 @@ struct ina_service_ctx_s {
     HANDLE stop_service_event;  
 #else
     int lock_fp;
+    int pid_fp;
 #endif
 };
 
@@ -470,6 +472,7 @@ static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
     int fp;
     ina_str_t pid_str;
     ina_str_t pid_file_path;
+    ina_str_t lock_file_path;
 
     if (getppid() == 1) {
         return INA_SERVICE_EAID; /* already a daemon */
@@ -523,17 +526,45 @@ static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
         exit(EXIT_FAILURE);
     } 
 
+    /* create the PID fild */
     pid_file_path = ina_str_sprintf(INA_SERVICE_PID_FILE_FMT, 
                             ina_str_cstr(ctx->descriptor->name));
     INA_ASSERT_NOTNULL(pid_file_path);
-    ctx->lock_fp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
+    ctx->pid_fp = open(ina_str_cstr(pid_file_path), O_RDWR | O_CREAT, 0640);
     ina_str_free(pid_file_path);
 
-    if (ctx->lock_fp < 0) {
+    if (ctx->pid_fp < 0) {
         return INA_SERVICE_ELCO; /* can not open */
     }
     pid_str = ina_str_sprintf("%d\n", getpid());
     INA_ASSERT_NOTNULL(pid_str); 
+
+    if (ftruncate(ctx->pid_fp, 0) == 0) {
+        if (write(ctx->pid_fp, ina_str_cstr(pid_str), ina_str_len(pid_str)+1)<=0) {
+            close(ctx->pid_fp); 
+            ina_str_free(pid_str);
+            return INA_SERVICE_ELCO;
+        }
+    } else {
+        ina_str_free(pid_str);
+        close(ctx->pid_fp); 
+        return INA_SERVICE_ELCO;
+    } 
+    close(ctx->pid_fp);
+
+    /* create the lock file */
+    lock_file_path = ina_str_sprintf(INA_SERVICE_LOCK_FILE_FMT, 
+                            ina_str_cstr(ctx->descriptor->name));
+    INA_ASSERT_NOTNULL(lock_file_path);
+    ctx->lock_fp = open(ina_str_cstr(lock_file_path), O_RDWR | O_CREAT, 0640);
+    ina_str_free(lock_file_path);
+
+    if (flock(ctx->lock_fp, LOCK_EX) != 0) {
+        ina_str_free(pid_str);
+        close(ctx->lock_fp);
+        return INA_SERVICE_ELCO;
+
+    }
     if (ftruncate(ctx->lock_fp, 0) == 0) {
         if (write(ctx->lock_fp, ina_str_cstr(pid_str), ina_str_len(pid_str)+1)<=0) {
             close(ctx->lock_fp); 
@@ -544,9 +575,10 @@ static ina_rc_t __ina_service_run_service(ina_service_ctx_t *ctx)
         ina_str_free(pid_str);
         close(ctx->lock_fp); 
         return INA_SERVICE_ELCO;
-    } 
-    close(ctx->lock_fp);
+    }
     ina_str_free(pid_str);
+
+
 
     if (!INA_SUCCEED(ctx->descriptor->service_fn(ctx, INA_SERVICE_STATUS_START, (void*)ctx->user_data))) {
        return INA_ERR_PUSH_LAST;
