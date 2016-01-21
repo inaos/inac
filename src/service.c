@@ -669,25 +669,7 @@ static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_
 #ifndef INA_OS_WIN32
 static void __ina_service_cleanup(void) 
 {
-    ina_str_t filepath;
-    if (__ctx->lock_fp > 0) {
-        close(__ctx->lock_fp);
-    }
-
-    filepath = ina_str_sprintf(
-                    INA_SERVICE_LOCK_FILE_FMT, 
-                    ina_str_cstr(__ctx->descriptor->name));
-    unlink(ina_str_cstr(filepath));
-    ina_str_free(filepath);
- 
-    if (__ctx->pid_fp > 0) {
-        close(__ctx->pid_fp);
-    }
-    filepath = ina_str_sprintf(
-                    INA_SERVICE_PID_FILE_FMT, 
-                    ina_str_cstr(__ctx->descriptor->name));
-    unlink(ina_str_cstr(filepath));
-    ina_str_free(filepath);
+    ina_service_destroy(&__ctx);
 }
 #endif
 
@@ -764,12 +746,33 @@ INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx)
     if ((*ctx)->hmutex != INVALID_HANDLE_VALUE) {
         ReleaseMutex((*ctx)->hmutex);
     }
-#endif
+#else
+    ina_str_t filepath;
+    if ((*ctx)->lock_fp > 0) {
+        close((*ctx)->lock_fp);
+    }
+
+    filepath = ina_str_sprintf(
+                    INA_SERVICE_LOCK_FILE_FMT, 
+                    ina_str_cstr((*ctx)->descriptor->name));
+    unlink(ina_str_cstr(filepath));
+    ina_str_free(filepath);
+ 
+    if ((*ctx)->pid_fp > 0) {
+        close((*ctx)->pid_fp);
+    }
+    filepath = ina_str_sprintf(
+                    INA_SERVICE_PID_FILE_FMT, 
+                    ina_str_cstr((*ctx)->descriptor->name));
+    unlink(ina_str_cstr(filepath));
+    ina_str_free(filepath);
+#endif    
     if ((*ctx)->descriptor){
         ina_mem_free((*ctx)->descriptor);
         (*ctx)->descriptor = NULL;
     }
-    ina_mem_free(ctx);
+
+    ina_mem_free(*ctx);
     __ctx = NULL;
     *ctx = NULL;
     return INA_SUCCESS;
