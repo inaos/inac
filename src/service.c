@@ -666,6 +666,31 @@ static  ina_rc_t __ina_service_mgnt_status(const char *name, ina_service_status_
 }
 #endif
 
+#ifndef INA_OS_WIN32
+static void __ina_service_cleanup(void) 
+{
+    ina_str_t filepath;
+    if (__ctx->lock_fp > 0) {
+        close(__ctx->lock_fp);
+    }
+
+    filepath = ina_str_sprintf(
+                    INA_SERVICE_LOCK_FILE_FMT, 
+                    ina_str_cstr(__ctx->descriptor->name));
+    unlink(ina_str_cstr(filepath));
+    ina_str_free(filepath);
+ 
+    if (__ctx->pid_fp > 0) {
+        close(__ctx->pid_fp);
+    }
+    filepath = ina_str_sprintf(
+                    INA_SERVICE_PID_FILE_FMT, 
+                    ina_str_cstr(__ctx->descriptor->name));
+    unlink(ina_str_cstr(filepath));
+    ina_str_free(filepath);
+}
+#endif
+
 static void __ina_service_signal_handler(ina_signal_t sig, 
                                          ina_signal_behavior_t *sb, 
                                          int *exitcode)
@@ -676,10 +701,6 @@ static void __ina_service_signal_handler(ina_signal_t sig,
             (void*)__ctx->user_data))) {
 #ifdef INA_OS_WIN32
             WaitForSingleObject(__ctx->main_thread, INFINITE);
-#else
-            if (__ctx->lock_fp > 0) {
-                close(__ctx->lock_fp);
-            }
 #endif
             *sb = __ctx->signal_behavior;
 
@@ -715,6 +736,8 @@ INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx)
 #ifdef INA_OS_WIN32
     __ctx->hmutex = INVALID_HANDLE_VALUE;
     __ctx->main_thread = GetCurrentThread();
+#else
+    atexit(__ina_service_cleanup);
 #endif
     if (!INA_SUCCEED(ina_service_get_descriptor(__ctx, &__ctx->descriptor))) {
         return INA_ERR_PUSH_LAST;
