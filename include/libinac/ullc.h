@@ -212,7 +212,10 @@ typedef struct ina_ullc_flags_s {
     ina_ullc_producer_create(version, sizeof(type), slots, producers, consumers, name, ws, ctx)
 #define INA_ULLC_CONSUMER_CREATE(type, version, slots, producers, consumers, name, ctx) \
     ina_ullc_consumer_create(version, sizeof(type), slots, producers, consumers, name, ctx)
-    
+
+/* Claim and commit */
+#define INA_ULLC_WRITE(ctx, src) do { ina_mem_cpy(ina_ullc_producer_claim(ctx), (void*)src, ctx->ring->size); ina_ullc_producer_commit(ctx); } while (0)
+
 /* Clain an item */
 #define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
 /* Commit an item */
