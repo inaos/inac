@@ -123,12 +123,29 @@ INA_TEST(ipc_flags, unset)
     ina_ipc_flags_free(&f);
 }
 
+INA_TEST(ipc_flags, clear)
+{
+    ina_ipc_flags_t *f;
+    uint64_t v;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_clear", F1|F2|F3|F4, &f));
+    INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3|F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_clear(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    INA_TEST_ASSERT_TRUE(v == (F1|F2|F3));
+    ina_ipc_flags_free(&f);
+}
+
 INA_TEST(ipc_flags, ref_count)
 {
     ina_ipc_flags_t *f;
     uint64_t v;
   
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_unset", F1|F2|F3|F4, &f));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_refcount", F1|F2|F3|F4, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
     INA_TEST_ASSERT_TRUE(v == (F1|F2|F3|F4));
@@ -141,6 +158,7 @@ INA_TEST(ipc_flags, ref_count)
     INA_TEST_ASSERT_TRUE(v == (F1|F2|F3));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_unset(f, F1|F2));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
+    ina_ipc_flags_dump(f);
     INA_TEST_ASSERT_TRUE(v == (F3));
     ina_ipc_flags_free(&f);
  }
@@ -169,6 +187,21 @@ INA_TEST(ipc_flags, wait_ipc)
         "test_wait_ipc", NULL);    
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 1000));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, 0, 2500));
+}
+
+INA_TEST(ipc_flags, dump)
+{
+    ina_ipc_flags_t *f;
+  
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test", 0, &f));
+    INA_TEST_ASSERT_NOT_NULL(f);
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F2));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_unset(f, F3));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_dump(f));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_free(&f));
+
 }
 
 INA_TEST(ipc_counter, new_free)
@@ -250,3 +283,4 @@ INA_TEST(ipc_counter, dec_get)
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_free(&c));
     INA_TEST_ASSERT_NULL(c);
 }
+
