@@ -1387,7 +1387,7 @@ int rapidxml_node_first(rapidxml_node_t *node, rapidxml_node_t **first)
         return 1;
     }
 	*first = __node_first_node(node, NULL, 0, 1);
-	return 0;
+	return *first == NULL ? 1 : 0;
 }
 
 int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next)
@@ -1397,7 +1397,7 @@ int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next)
         return 1;
     }
 	*next = __node_next_sibling(node, NULL, 0, 1);
-	return 0;
+	return *next == NULL ? 1 : 0;
 }
 
 int rapidxml_node_last(rapidxml_node_t *node, rapidxml_node_t **last)
