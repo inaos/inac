@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ struct ina_xml_attr_s {
 } ina_xml_attr_s;
 
 struct ina_xml_elem_s {
+    ina_xml_parser_t *p;
 	ina_xml_attr_t attr;
 	rapidxml_node_t *elem;
 } ina_xml_elem_s;
@@ -44,6 +45,7 @@ struct ina_xml_elem_s {
 struct ina_xml_parser_s {
 	rapidxml_doc_t *doc;
 	ina_xml_elem_t root;
+    ina_mempool_t *elem_pool;
 	struct ina_xml_parser_s *next;
 	struct ina_xml_parser_s *prev;
 } ina_xml_parser_s;
@@ -59,6 +61,9 @@ INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size)
 	for (i = 0; i < parser_pool_size; i++) {
 		ina_xml_parser_t *p = (ina_xml_parser_t*)ina_mem_alloc(sizeof(ina_xml_parser_t));
 		rapidxml_parser_init(&p->doc, 0, NULL, ina_mem_alloc, ina_mem_free);
+        if (!INA_SUCCEED(ina_mempool_create(&p->elem_pool, 1024, INA_MEM_DYNAMIC, NULL))) {
+            return INA_ERR_PUSH_LAST;
+        }
 		DL_APPEND((*ctx)->parsers, p);	
 	}
 	
@@ -75,6 +80,7 @@ INA_API(ina_rc_t) ina_xml_destroy(ina_xml_ctx_t **ctx)
 
     DL_FOREACH_SAFE(c->parsers, p, ptmp) {
         rapidxml_parser_destroy(&p->doc);
+        ina_mempool_release(p->elem_pool, INA_YES);
         DL_DELETE(c->parsers, p);
         ina_mem_free(p);
         cnt++;
@@ -106,6 +112,7 @@ INA_API(ina_rc_t) ina_xml_parser_borrow(ina_xml_ctx_t *ctx, ina_xml_parser_t **p
     DL_DELETE(ctx->parsers, *p);
 
     rapidxml_parser_reset((*p)->doc);
+    ina_mempool_release((*p)->elem_pool, INA_NO);
 
     return INA_SUCCESS;
 }
@@ -139,6 +146,7 @@ INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, 
 		/* FIXME: proper error handling */
 		return INA_FAILURE;
 	}
+    p->root.p = p;
 	*root = &p->root;
 	
 	return INA_SUCCESS;
@@ -149,7 +157,8 @@ INA_API(ina_rc_t) ina_xml_elem_first(ina_xml_elem_t *elem, ina_xml_elem_t **firs
     INA_ASSERT_NOTNULL(elem);
     INA_ASSERT_NOTNULL(first);
 
-    *first = elem;
+    *first = (ina_xml_elem_t*)ina_mempool_dalloc(elem->p->elem_pool, sizeof(ina_xml_elem_t));
+    (*first)->p = elem->p;
 	if (rapidxml_node_first(elem->elem, &(*first)->elem) > 0) {
 		/* FIXME: proper error handling */
         *first = NULL;
