@@ -264,6 +264,7 @@ INA_TEST_FIXTURE(xml, attr_next)
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_first(data->itr, &data->itr));
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_attr_first(data->itr, &attr));
     INA_TEST_ASSERT_NOT_NULL(attr);
+    c++;
     while (INA_SUCCEED(ina_xml_attr_next(attr, &attr))) {
         c++;
     }
