@@ -149,12 +149,13 @@ INA_API(ina_rc_t) ina_xml_elem_first(ina_xml_elem_t *elem, ina_xml_elem_t **firs
     INA_ASSERT_NOTNULL(elem);
     INA_ASSERT_NOTNULL(first);
 
-	if (rapidxml_node_first(elem->elem, &elem->elem) > 0) {
+    *first = elem;
+	if (rapidxml_node_first(elem->elem, &(*first)->elem) > 0) {
 		/* FIXME: proper error handling */
         *first = NULL;
 		return INA_FAILURE;
 	}
-	*first = elem;
+	
 	return INA_SUCCESS;
 }
 
@@ -163,11 +164,12 @@ INA_API(ina_rc_t) ina_xml_elem_next(ina_xml_elem_t *elem, ina_xml_elem_t **next)
     INA_ASSERT_NOTNULL(elem);
     INA_ASSERT_NOTNULL(next);
 
-	if (rapidxml_node_next(elem->elem, &elem->elem) > 0) {
+    *next = elem;
+	if (rapidxml_node_next(elem->elem, &(*next)->elem) > 0) {
 		/* FIXME: proper error handling */
         return INA_FAILURE;
 	}
-    *next = elem;
+    
 	return INA_SUCCESS;
 }
 
