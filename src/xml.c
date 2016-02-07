@@ -50,6 +50,24 @@ struct ina_xml_parser_s {
 	struct ina_xml_parser_s *prev;
 } ina_xml_parser_s;
 
+static void* __rapidxml_alloc_func(void *pool, size_t size)
+{
+    return ina_mem_alloc(size);
+}
+static void __rapidxml_free_func(void *pool, void *ptr)
+{
+    ina_mem_free(ptr);
+}
+
+static void* __rapidxml_alloc_func_mp(void *pool, size_t size)
+{
+    return ina_mempool_dalloc((ina_mempool_t*)pool, size);
+}
+static void __rapidxml_free_func_mp(void *pool, void *ptr)
+{
+    /* nothing to do as we use a mempool */
+}
+
 INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size)
 {
 	int i;
@@ -57,17 +75,39 @@ INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size)
 	*ctx = (ina_xml_ctx_t*)ina_mem_alloc(sizeof(ina_xml_ctx_t));
 	(*ctx)->parser_pool_size = parser_pool_size;
 	(*ctx)->parsers = NULL;
+    (*ctx)->mp = 0;
 	
 	for (i = 0; i < parser_pool_size; i++) {
 		ina_xml_parser_t *p = (ina_xml_parser_t*)ina_mem_alloc(sizeof(ina_xml_parser_t));
-		rapidxml_parser_init(&p->doc, 0, NULL, ina_mem_alloc, ina_mem_free);
+		rapidxml_parser_init(&p->doc, 0, NULL, NULL, __rapidxml_alloc_func, __rapidxml_free_func);
         if (!INA_SUCCEED(ina_mempool_create(&p->elem_pool, 1024, INA_MEM_DYNAMIC, NULL))) {
             return INA_ERR_PUSH_LAST;
         }
-		DL_APPEND((*ctx)->parsers, p);	
+		DL_APPEND((*ctx)->parsers, p);
 	}
 	
 	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_xml_init_using_pool(ina_xml_ctx_t **ctx, 
+                                          int parser_pool_size, 
+                                          ina_mempool_t *pool)
+{
+    int i;
+
+    *ctx = (ina_xml_ctx_t*)ina_mempool_dalloc(pool, sizeof(ina_xml_ctx_t));
+	(*ctx)->parser_pool_size = parser_pool_size;
+	(*ctx)->parsers = NULL;
+    (*ctx)->mp = 1;
+	
+	for (i = 0; i < parser_pool_size; i++) {
+        ina_xml_parser_t *p = (ina_xml_parser_t*)ina_mempool_dalloc(pool, sizeof(ina_xml_parser_t));
+		rapidxml_parser_init(&p->doc, 0, NULL, pool, __rapidxml_alloc_func_mp, __rapidxml_free_func_mp);
+        p->elem_pool = pool;
+		DL_APPEND((*ctx)->parsers, p);
+	}
+
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_xml_destroy(ina_xml_ctx_t **ctx)
@@ -80,13 +120,19 @@ INA_API(ina_rc_t) ina_xml_destroy(ina_xml_ctx_t **ctx)
 
     DL_FOREACH_SAFE(c->parsers, p, ptmp) {
         rapidxml_parser_destroy(&p->doc);
-        ina_mempool_release(p->elem_pool, INA_YES);
+        if (!(*ctx)->mp) {
+            ina_mempool_release(p->elem_pool, INA_YES);
+        }
         DL_DELETE(c->parsers, p);
-        ina_mem_free(p);
+        if (!(*ctx)->mp) {
+            ina_mem_free(p);
+        }
         cnt++;
     }
 
-    ina_mem_free(*ctx);
+    if (!(*ctx)->mp) {
+        ina_mem_free(*ctx);
+    }
 
     if (cnt != c->parser_pool_size) {
         /* FIXME: push proper error */

@@ -29,6 +29,7 @@ typedef struct __rapidxml_mempool_s {
     char static_memory[RAPIDXML_STATIC_POOL_SIZE];    /* Static raw memory */
     rapidxml_alloc_func alloc_func;                   /* Allocator function, or 0 if default is to be used */
     rapidxml_free_func free_func;                     /* Free function, or 0 if default is to be used */
+    void *user_data;
 } __rapidxml_mempool_t;
 
 typedef struct __rapidxml_mempool_header_s {
@@ -140,12 +141,13 @@ static char *__mempool_align(char *ptr)
 /*
  * 
  */
-static void __mempool_init(__rapidxml_mempool_t *pool_ptr, rapidxml_parse_error_handler err_handler)
+static void __mempool_init(__rapidxml_mempool_t *pool_ptr, void *mem_userdata, rapidxml_parse_error_handler err_handler)
 {
 	pool_ptr->err_handler = err_handler;
 	pool_ptr->begin = pool_ptr->static_memory;
 	pool_ptr->ptr = __mempool_align(pool_ptr->begin);
 	pool_ptr->end = pool_ptr->static_memory + sizeof(pool_ptr->static_memory);
+    pool_ptr->user_data = mem_userdata;
 }
 /*
  * 
@@ -155,7 +157,7 @@ static char *__mempool_allocate_raw(__rapidxml_mempool_t *pool_ptr, size_t size)
 	/* Allocate */
 	void *memory;   
 	if (pool_ptr->alloc_func) {  /* Allocate memory using either user-specified allocation function or global operator new[] */
-		memory = pool_ptr->alloc_func(size);
+        memory = pool_ptr->alloc_func(pool_ptr->user_data, size);
 		assert(memory); /* Allocator is not allowed to return 0, on failure it must either throw, stop the program or use longjmp */
 	}
 	else {
@@ -280,14 +282,14 @@ static void __mempool_clear(__rapidxml_mempool_t *pool_ptr)
 	while (pool_ptr->begin != pool_ptr->static_memory) {
 		char *previous_begin = ((__rapidxml_mempool_header_t*)__mempool_align(pool_ptr->begin))->previous_begin;
 		if (pool_ptr->free_func) {
-			pool_ptr->free_func(pool_ptr->begin);
+            pool_ptr->free_func(pool_ptr->user_data, pool_ptr->begin);
 		}
         else {
 			free(pool_ptr->begin);
 		}
         pool_ptr->begin = previous_begin;
     }
-	__mempool_init(pool_ptr, pool_ptr->err_handler);
+    __mempool_init(pool_ptr, pool_ptr->user_data, pool_ptr->err_handler);
 }
 /*
  * 
@@ -1318,10 +1320,10 @@ static void __default_error_handler(const char *what, const char *where)
 /* PUBLIC API */
 
 int rapidxml_parser_init(rapidxml_doc_t **doc, int flags, rapidxml_parse_error_handler err_handler, 
-						 rapidxml_alloc_func alloc_fun, rapidxml_free_func free_fun)
+						 void *mem_userdata, rapidxml_alloc_func alloc_fun, rapidxml_free_func free_fun)
 {
 	if (alloc_fun) {
-		*doc = (rapidxml_doc_t*)alloc_fun(sizeof(rapidxml_doc_t));
+		*doc = (rapidxml_doc_t*)alloc_fun(mem_userdata, sizeof(rapidxml_doc_t));
 		(*doc)->mempool.alloc_func = alloc_fun;
 	}
 	else {
@@ -1342,7 +1344,7 @@ int rapidxml_parser_init(rapidxml_doc_t **doc, int flags, rapidxml_parse_error_h
 	}
 	(*doc)->root = NULL;
 	(*doc)->flags = flags;
-	__mempool_init(&(*doc)->mempool, (*doc)->err_handler);
+	__mempool_init(&(*doc)->mempool, mem_userdata, (*doc)->err_handler);
 
 	return 0;
 }
@@ -1351,7 +1353,7 @@ int rapidxml_parser_destroy(rapidxml_doc_t **doc)
 {
 	__mempool_clear(&(*doc)->mempool);
 	if ((*doc)->mempool.free_func) {
-		(*doc)->mempool.free_func(*doc);
+        (*doc)->mempool.free_func((*doc)->mempool.user_data, *doc);
 	}
 	else {
 		free(*doc);
