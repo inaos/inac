@@ -21,6 +21,10 @@ typedef enum __rapidxml_node_type_e
 typedef unsigned char (*test_func)(char c);
 typedef unsigned char (*test_func2)(char c1, char c2);
 
+struct __rapidxml_mempool_s;
+
+typedef void* (*__mempool_allocate_aligned_fn)(struct __rapidxml_mempool_s *, size_t);
+
 typedef struct __rapidxml_mempool_s {
 	rapidxml_parse_error_handler err_handler;
 	char *begin;                                      /* Start of raw memory making up current pool */
@@ -30,7 +34,10 @@ typedef struct __rapidxml_mempool_s {
     rapidxml_alloc_func alloc_func;                   /* Allocator function, or 0 if default is to be used */
     rapidxml_free_func free_func;                     /* Free function, or 0 if default is to be used */
     void *user_data;
+    __mempool_allocate_aligned_fn alloc_align_fn;
 } __rapidxml_mempool_t;
+
+
 
 typedef struct __rapidxml_mempool_header_s {
 	char *previous_begin;
@@ -173,6 +180,13 @@ static char *__mempool_allocate_raw(__rapidxml_mempool_t *pool_ptr, size_t size)
 /*
  * 
  */
+static void * __mempool_allocate_aligned_mp(__rapidxml_mempool_t *pool_ptr, size_t size)
+{
+    return pool_ptr->alloc_func(pool_ptr->user_data, size);
+}
+/*
+ * 
+ */
 static void * __mempool_allocate_aligned(__rapidxml_mempool_t *pool_ptr, size_t size)
 {
 	/* Calculate aligned pointer */
@@ -217,7 +231,7 @@ static void * __mempool_allocate_aligned(__rapidxml_mempool_t *pool_ptr, size_t 
 static rapidxml_node_t *__mempool_allocate_node(__rapidxml_mempool_t *pool_ptr, __rapidxml_node_type_t type, 
 										 const char *name, const char *value, size_t name_size, size_t value_size)
 {
-	void *memory = __mempool_allocate_aligned(pool_ptr, sizeof(rapidxml_node_t));
+    void *memory = pool_ptr->alloc_align_fn(pool_ptr, sizeof(rapidxml_node_t));
     rapidxml_node_t *node = (rapidxml_node_t*)memory;
 	node->type = type;
     if (name) {
@@ -248,7 +262,7 @@ static rapidxml_node_t *__mempool_allocate_node(__rapidxml_mempool_t *pool_ptr, 
 static rapidxml_attr_t *__mempool_allocate_attribute(__rapidxml_mempool_t *pool_ptr, const char *name, const char *value, 
 													 size_t name_size, size_t value_size)
 {
-	void *memory = __mempool_allocate_aligned(pool_ptr, sizeof(rapidxml_attr_t));
+    void *memory = pool_ptr->alloc_align_fn(pool_ptr, sizeof(rapidxml_attr_t));
     rapidxml_attr_t *attribute = (rapidxml_attr_t*)memory;
     if (name) {
         if (name_size > 0) {
@@ -1345,6 +1359,12 @@ int rapidxml_parser_init(rapidxml_doc_t **doc, int flags, rapidxml_parse_error_h
 	(*doc)->root = NULL;
 	(*doc)->flags = flags;
 	__mempool_init(&(*doc)->mempool, mem_userdata, (*doc)->err_handler);
+    if (mem_userdata == NULL) {
+        (*doc)->mempool.alloc_align_fn = __mempool_allocate_aligned;
+    }
+    else {
+        (*doc)->mempool.alloc_align_fn = __mempool_allocate_aligned_mp;
+    }
 
 	return 0;
 }
