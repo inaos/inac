@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2014,2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -246,6 +246,7 @@ INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
 INA_API(ina_str_t) ina_str_truncate(ina_str_t str, size_t pos);
 INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars);
 INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end);
+INA_API(ina_str_t) ina_str_substr_using_pool(const ina_str_t str, int start, int end, ina_mempool_t *pool);
 INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *count);
 INA_API(ina_rc_t)  ina_str_split_free_tokens(ina_str_t *tokens);
 INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str);
