@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,6 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
         ctx = NULL;
         return INA_LJIT_ENSTATE;
     }
-    luaL_openlibs((*ctx)->lstate);
     luaL_openlibs((*ctx)->lstate);
     lua_getglobal((*ctx)->lstate, "package");
     lua_getfield((*ctx)->lstate, -1, "path");

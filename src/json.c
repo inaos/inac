@@ -125,7 +125,7 @@ int __ina_yajl_cb_string(void *ctx, const unsigned char *value, size_t len)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_DATA_STRING;
-    p->stack[p->stack_pointer].value.s = value;
+    p->stack[p->stack_pointer].value.s = ina_str_new_fromblk_using_pool(value, len, p->mempool);
     p->stack[p->stack_pointer].size = len; 
     return __ina_check_and_incr_data_stack(p);
 }
@@ -142,7 +142,7 @@ int __ina_yajl_cb_map_key(void *ctx, const unsigned char *key, size_t len)
 {
     ina_json_parser_t *p = (ina_json_parser_t*)ctx;
     p->stack[p->stack_pointer].event = INA_JSON_PARSE_EVENT_OBJECT_KEY;
-    p->stack[p->stack_pointer].value.s = key;
+    p->stack[p->stack_pointer].value.s = ina_str_new_fromblk_using_pool(key, len, p->mempool);
     p->stack[p->stack_pointer].size = len; 
     return __ina_check_and_incr_data_stack(p);
 }

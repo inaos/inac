@@ -1,7 +1,7 @@
 @echo off
 
 REM
-REM Copyright (c) 2013-2014, INAOS GmbH
+REM Copyright (c) 2013-2016, INAOS GmbH
 REM All rights reserved.
 REM
 REM Redistribution and use in source and binary forms, with or without
@@ -81,6 +81,20 @@ if "%INAC_W32_BUILD_STAGE%" == "clean" (
 )
 cd %INAC_HOME%	
 
+REM build memhash
+cd contribs\memhash
+if "%INAC_W32_BUILD_STAGE%" == "clean" (
+	if exist memhash.obj del memhash.obj
+	if exist memhash.lib del memhash.lib
+) else (
+	if "%INAC_ARCH%" == "x64" (
+        call memhash_64.bat
+	) else (
+		call memhash_32.bat
+	)
+)
+cd %INAC_HOME%	
+
 REM build luajit
 cd contribs\luajit\src
 if not exist msvcbuild.bat goto fail_no_luajit1
@@ -152,14 +166,16 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
-				%INAC_HOME%\contribs\luajit\src\lua51d.lib /MACHINE:X64
+				%INAC_HOME%\contribs\luajit\src\lua51d.lib %INAC_HOME%\contribs\memhash\memhash.lib %INAC_HOME%\buildall\xxhash.lib ^
+				%INAC_HOME%\buildall\falkhash.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
-				%INAC_HOME%\contribs\luajit\src\lua51d.lib
+				%INAC_HOME%\contribs\luajit\src\lua51d.lib %INAC_HOME%\contribs\memhash\memhash.lib %INAC_HOME%\buildall\xxhash.lib ^
+				%INAC_HOME%\buildall\falkhash.lib
 		)
 	) else (
 		if "%INAC_ARCH%" == "x64" (
@@ -168,14 +184,16 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
-				%INAC_HOME%\contribs\luajit\src\lua51.lib /MACHINE:X64
+				%INAC_HOME%\contribs\luajit\src\lua51.lib %INAC_HOME%\contribs\memhash\memhash.lib %INAC_HOME%\buildall\xxhash.lib ^
+				%INAC_HOME%\buildall\falkhash.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
 				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
-				%INAC_HOME%\contribs\luajit\src\lua51.lib
+				%INAC_HOME%\contribs\luajit\src\lua51.lib %INAC_HOME%\contribs\memhash\memhash.lib %INAC_HOME%\buildall\xxhash.lib ^
+				%INAC_HOME%\buildall\falkhash.lib
 		)
 	)
 )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, INAOS GmbH
+ * Copyright (c) 2014-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ struct ina_file_cursor_s {
 	ina_file_t *file;
 	ina_file_cursor_type_t cur_type;
 	ina_file_cursor_mode_t mode;
+    ina_mempool_t *mpref;
 	union {
 		struct {
 			int mmap_flags;
@@ -53,6 +54,7 @@ struct ina_file_cursor_s {
             unsigned char *buffer;
             ina_str_t line;
             ina_str_t next_line;
+            ina_mempool_t *lmp;
 		} f;
 	} ext;
 	ina_file_cursor_free_fp free_fp;
@@ -71,6 +73,9 @@ struct ina_file_cursor_s {
 
 static ina_rc_t ina_file_cursor_fileio_free(ina_file_cursor_t **cursor)
 {
+    if ((*cursor)->ext.f.lmp != NULL) {
+        ina_mempool_release((*cursor)->ext.f.lmp, INA_YES);
+    }
     if ((*cursor)->ext.f.line != NULL) {
         ina_str_free((*cursor)->ext.f.line);
     }
@@ -178,6 +183,47 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor,
             }
         }
         cursor->ext.f.next_line = ina_str_ncatcstr(cursor->ext.f.next_line, chunk, nread);
+        if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
+            return INA_ERR_PUSH_LAST;
+        }
+    }
+}
+
+static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *cursor, const char **begin_line, size_t *len)
+{
+    size_t nread = 0;
+    const char *chunk;
+    if (cursor->ext.f.lmp == NULL) {
+        if (!INA_SUCCEED(ina_mempool_create(&cursor->ext.f.lmp, 1024, INA_MEM_DYNAMIC, NULL))) {
+            return INA_ERR_PUSH_LAST;
+        }
+    }
+    else {
+        ina_mempool_release(cursor->ext.f.lmp, INA_NO);
+    }
+    if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    if (nread == 0) {
+        *begin_line = NULL;
+        *len = 0;
+        return INA_SUCCESS;
+    }
+    for (;;) {
+        unsigned int i;
+        for (i = 0; i < nread; i++) {
+            char c = chunk[i];
+            if (c == '\n') {
+                cursor->ext.f.next_line = ina_str_ncatcstr_using_pool(cursor->ext.f.next_line, chunk, i, cursor->ext.f.lmp);
+                cursor->ext.f.line = ina_str_dup_using_pool(cursor->ext.f.next_line, cursor->ext.f.lmp);
+                *begin_line = ina_str_cstr(cursor->ext.f.line);
+                *len = ina_str_len(cursor->ext.f.line);
+                cursor->ext.f.next_line = ina_str_new_using_pool(nread - i, cursor->ext.f.lmp);
+                cursor->ext.f.next_line = ina_str_ncatcstr_using_pool(cursor->ext.f.next_line, chunk+i, nread, cursor->ext.f.lmp);
+                return INA_SUCCESS;
+            }
+        }
+        cursor->ext.f.next_line = ina_str_ncatcstr_using_pool(cursor->ext.f.next_line, chunk, nread, cursor->ext.f.lmp);
         if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
             return INA_ERR_PUSH_LAST;
         }
@@ -327,14 +373,13 @@ static ina_rc_t ina_file_cursor_mmap_binary_readwrite_chunk(ina_file_cursor_t *c
 	return INA_FAILURE;
 }
 
-
-INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file, 
-									  ina_file_cursor_type_t cursor_type,
-									  ina_file_cursor_mode_t mode, uint64_t buffer_size,
-									  ina_file_cursor_t **cursor,
-                                      ina_mmap_ctx_t *mmap_ctx)
+static ina_rc_t ina_file_cursor_init_internal(ina_file_t *file, 
+                                              ina_file_cursor_type_t cursor_type,
+                                              ina_file_cursor_mode_t mode, uint64_t buffer_size,
+                                              ina_file_cursor_t *cursor,
+                                              ina_mmap_ctx_t *mmap_ctx)
 {
-	ina_file_stat_t *fstat = NULL;
+    ina_file_stat_t *fstat = NULL;
 	uint64_t flen = 0;
 
 	if (!INA_SUCCEED(ina_file_stat_new(file, &fstat))) {
@@ -343,10 +388,9 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
 	ina_file_stat_file_size(fstat, &flen);
 	ina_file_stat_free(file, &fstat);
 
-	*cursor = (ina_file_cursor_t*)ina_mem_alloc(sizeof(ina_file_cursor_t));
-	(*cursor)->file = file;
-    (*cursor)->cur_type = cursor_type;
-    (*cursor)->mode = mode;
+	cursor->file = file;
+    cursor->cur_type = cursor_type;
+    cursor->mode = mode;
 
 	if (cursor_type == INA_FILE_CURSOR_TYPE_MMAP) {
 		int proto_flags = INA_MMAP_MEM_PROT_READ;
@@ -358,7 +402,7 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
                 || mode == INA_FILE_CURSOR_MODE_READWRITE_TEXT_LINE) {
                 proto_flags |= INA_MMAP_MEM_PROT_WRITE;
         }
-		(*cursor)->ext.m.mmap_ctx = mmap_ctx;
+		cursor->ext.m.mmap_ctx = mmap_ctx;
         if (flen <= buffer_size) {
                 map_len = flen;
             }
@@ -366,53 +410,87 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
                 map_len = buffer_size;
         }
 
-        (*cursor)->ext.m.fm = NULL;
+        cursor->ext.m.fm = NULL;
 
         ina_mmap_new(mmap_ctx, file, proto_flags,
                 INA_MMAP_MEM_SHARE_SHARED,
                 INA_MMAP_MAP_TYPE_FILE, 
-                0, map_len, &(*cursor)->ext.m.fm);
+                0, map_len, &cursor->ext.m.fm);
 
-        ina_mmap_memory_head((*cursor)->ext.m.fm, &head);
+        ina_mmap_memory_head(cursor->ext.m.fm, &head);
 
-        (*cursor)->ext.m.mmap_flags = proto_flags;
-        (*cursor)->ext.m.position = 0;
-        (*cursor)->ext.m.mem_pos = head;
-        (*cursor)->ext.m.eof = 0;
-        (*cursor)->ext.m.buffer_idx = 0;
-        (*cursor)->ext.m.buffer_size = buffer_size;
-        (*cursor)->ext.m.len = flen;
-		(*cursor)->ext.m.carry = 0;
-		(*cursor)->free_fp = ina_file_cursor_mmap_free;
-		(*cursor)->get_buffer_size_fp = ina_file_cursor_mmap_get_buffer_size;
-		(*cursor)->get_pos_fp = ina_file_cursor_mmap_get_pos;
-		(*cursor)->set_pos_fp = ina_file_cursor_mmap_set_pos;
-		(*cursor)->set_bof_fp = ina_file_cursor_mmap_set_bof;
-		(*cursor)->set_eof_fp = ina_file_cursor_mmap_set_eof;
-		(*cursor)->text_read_line_fp = ina_file_cursor_mmap_text_read_line;
-		(*cursor)->bin_read_chunk_fp = ina_file_cursor_mmap_binary_read_chunk;
-		(*cursor)->bin_readwrite_fp = ina_file_cursor_mmap_binary_readwrite_chunk;
-		(*cursor)->text_read_chunk_fp = ina_file_cursor_mmap_text_read_chunk;
+        cursor->ext.m.mmap_flags = proto_flags;
+        cursor->ext.m.position = 0;
+        cursor->ext.m.mem_pos = head;
+        cursor->ext.m.eof = 0;
+        cursor->ext.m.buffer_idx = 0;
+        cursor->ext.m.buffer_size = buffer_size;
+        cursor->ext.m.len = flen;
+		cursor->ext.m.carry = 0;
+		cursor->free_fp = ina_file_cursor_mmap_free;
+		cursor->get_buffer_size_fp = ina_file_cursor_mmap_get_buffer_size;
+		cursor->get_pos_fp = ina_file_cursor_mmap_get_pos;
+		cursor->set_pos_fp = ina_file_cursor_mmap_set_pos;
+		cursor->set_bof_fp = ina_file_cursor_mmap_set_bof;
+		cursor->set_eof_fp = ina_file_cursor_mmap_set_eof;
+		cursor->text_read_line_fp = ina_file_cursor_mmap_text_read_line;
+		cursor->bin_read_chunk_fp = ina_file_cursor_mmap_binary_read_chunk;
+		cursor->bin_readwrite_fp = ina_file_cursor_mmap_binary_readwrite_chunk;
+		cursor->text_read_chunk_fp = ina_file_cursor_mmap_text_read_chunk;
 	}
 	else {
-        (*cursor)->ext.f.len = flen;
-        (*cursor)->ext.f.buffer_size = buffer_size;
-        (*cursor)->ext.f.eof = 0;
-        (*cursor)->ext.f.position = 0;
-        (*cursor)->ext.f.buffer = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*(size_t)buffer_size);
-		(*cursor)->free_fp = ina_file_cursor_fileio_free;
-		(*cursor)->get_buffer_size_fp = ina_file_cursor_fileio_get_buffer_size;
-        (*cursor)->get_pos_fp = ina_file_cursor_fileio_get_pos;
-        (*cursor)->set_pos_fp = ina_file_cursor_fileio_set_pos;
-        (*cursor)->set_bof_fp = ina_file_cursor_fileio_set_bof;
-        (*cursor)->set_eof_fp = ina_file_cursor_fileio_set_eof;
-        (*cursor)->text_read_line_fp = ina_file_cursor_fileio_text_read_line;
-        (*cursor)->bin_read_chunk_fp = ina_file_cursor_fileio_binary_read_chunk;
-        (*cursor)->bin_readwrite_fp = ina_file_cursor_fileio_binary_readwrite_chunk;
-        (*cursor)->text_read_chunk_fp = ina_file_cursor_fileio_text_read_chunk;
+        cursor->ext.f.len = flen;
+        cursor->ext.f.buffer_size = buffer_size;
+        cursor->ext.f.eof = 0;
+        cursor->ext.f.position = 0;
+        if (cursor->mpref == NULL) {
+            cursor->ext.f.buffer = (unsigned char*)ina_mem_alloc(sizeof(unsigned char)*(size_t)buffer_size);
+        }
+        else {
+            cursor->ext.f.buffer = (unsigned char*)ina_mempool_dalloc(cursor->mpref, sizeof(unsigned char)*(size_t)buffer_size);
+        }
+		cursor->free_fp = ina_file_cursor_fileio_free;
+		cursor->get_buffer_size_fp = ina_file_cursor_fileio_get_buffer_size;
+        cursor->get_pos_fp = ina_file_cursor_fileio_get_pos;
+        cursor->set_pos_fp = ina_file_cursor_fileio_set_pos;
+        cursor->set_bof_fp = ina_file_cursor_fileio_set_bof;
+        cursor->set_eof_fp = ina_file_cursor_fileio_set_eof;
+        if (cursor->mpref == NULL) {
+            cursor->text_read_line_fp = ina_file_cursor_fileio_text_read_line;
+        }
+        else {
+            cursor->text_read_line_fp = ina_file_cursor_fileio_text_read_line_mp;
+        }
+        cursor->bin_read_chunk_fp = ina_file_cursor_fileio_binary_read_chunk;
+        cursor->bin_readwrite_fp = ina_file_cursor_fileio_binary_readwrite_chunk;
+        cursor->text_read_chunk_fp = ina_file_cursor_fileio_text_read_chunk;
 	}
+    return INA_SUCCESS;
+}
 
-	return INA_SUCCESS;
+INA_API(ina_rc_t) ina_file_cursor_new_using_pool(ina_file_t *file, 
+                                                 ina_file_cursor_type_t cursor_type,
+                                                 ina_file_cursor_mode_t mode, uint64_t buffer_size,
+                                                 ina_file_cursor_t **cursor,
+                                                 ina_mmap_ctx_t *mmap_ctx,
+                                                 ina_mempool_t *pool)
+{
+    *cursor = (ina_file_cursor_t*)ina_mempool_dalloc(pool, sizeof(ina_file_cursor_t));
+    (*cursor)->mpref = pool;
+    return ina_file_cursor_init_internal(file, cursor_type, mode, buffer_size, *cursor, mmap_ctx);
+}
+
+
+INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file, 
+									  ina_file_cursor_type_t cursor_type,
+									  ina_file_cursor_mode_t mode, uint64_t buffer_size,
+									  ina_file_cursor_t **cursor,
+                                      ina_mmap_ctx_t *mmap_ctx)
+{
+	
+    *cursor = (ina_file_cursor_t*)ina_mem_alloc(sizeof(ina_file_cursor_t));
+    (*cursor)->mpref = NULL;
+	return ina_file_cursor_init_internal(file, cursor_type, mode, buffer_size, *cursor, mmap_ctx);
 }
 
 INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor)

@@ -42,8 +42,8 @@ typedef enum rapidxml_parse_flags_e {
 } rapidxml_parse_flags_t;
 
 typedef void (*rapidxml_parse_error_handler)(const char *what, const char *where);
-typedef void *(*rapidxml_alloc_func)(size_t);
-typedef void (*rapidxml_free_func)(void *);
+typedef void *(*rapidxml_alloc_func)(void *, size_t);
+typedef void (*rapidxml_free_func)(void *, void *);
 
 /* opaque */
 typedef struct rapidxml_attr_s rapidxml_attr_t;
@@ -55,7 +55,7 @@ typedef struct rapidxml_node_s rapidxml_node_t;
 typedef struct rapidxml_doc_s rapidxml_doc_t;
 
 int rapidxml_parser_init(rapidxml_doc_t **doc, int flags, rapidxml_parse_error_handler err_handler, 
-						 rapidxml_alloc_func alloc_fun, rapidxml_free_func free_fun);
+						 void *mem_userdata, rapidxml_alloc_func alloc_fun, rapidxml_free_func free_fun);
 
 int rapidxml_parser_exec(rapidxml_doc_t *doc, const char *data);
 

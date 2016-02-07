@@ -46,6 +46,9 @@ endif
 	$(MAKE) -C miniz
 	$(MAKE) -C timerwheel
 	$(MAKE) -C hdr-histogram
+	$(MAKE) -C xxhash
+	$(MAKE) -C falkhash
+	$(MAKE) -C memhash
 
 test: all
 
@@ -77,4 +80,8 @@ endif
 	$(MAKE) clean -C lz4
 	$(MAKE) clean -C miniz
 	$(MAKE) clean -C timerwheel
+	$(MAKE) clean -C hdr-histogram
+	$(MAKE) clean -C xxhash
+	$(MAKE) clean -C falkhash
+	$(MAKE) clean -C memhash
 

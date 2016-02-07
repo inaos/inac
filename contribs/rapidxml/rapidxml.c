@@ -21,6 +21,10 @@ typedef enum __rapidxml_node_type_e
 typedef unsigned char (*test_func)(char c);
 typedef unsigned char (*test_func2)(char c1, char c2);
 
+struct __rapidxml_mempool_s;
+
+typedef void* (*__mempool_allocate_aligned_fn)(struct __rapidxml_mempool_s *, size_t);
+
 typedef struct __rapidxml_mempool_s {
 	rapidxml_parse_error_handler err_handler;
 	char *begin;                                      /* Start of raw memory making up current pool */
@@ -29,7 +33,11 @@ typedef struct __rapidxml_mempool_s {
     char static_memory[RAPIDXML_STATIC_POOL_SIZE];    /* Static raw memory */
     rapidxml_alloc_func alloc_func;                   /* Allocator function, or 0 if default is to be used */
     rapidxml_free_func free_func;                     /* Free function, or 0 if default is to be used */
+    void *user_data;
+    __mempool_allocate_aligned_fn alloc_align_fn;
 } __rapidxml_mempool_t;
+
+
 
 typedef struct __rapidxml_mempool_header_s {
 	char *previous_begin;
@@ -140,7 +148,7 @@ static char *__mempool_align(char *ptr)
 /*
  * 
  */
-static void __mempool_init(__rapidxml_mempool_t *pool_ptr, rapidxml_parse_error_handler err_handler)
+static void __mempool_init(__rapidxml_mempool_t *pool_ptr, void *mem_userdata, rapidxml_parse_error_handler err_handler)
 {
 	pool_ptr->err_handler = err_handler;
 	if (mem_userdata == NULL) {
@@ -158,7 +166,7 @@ static char *__mempool_allocate_raw(__rapidxml_mempool_t *pool_ptr, size_t size)
 	/* Allocate */
 	void *memory;   
 	if (pool_ptr->alloc_func) {  /* Allocate memory using either user-specified allocation function or global operator new[] */
-		memory = pool_ptr->alloc_func(size);
+        memory = pool_ptr->alloc_func(pool_ptr->user_data, size);
 		assert(memory); /* Allocator is not allowed to return 0, on failure it must either throw, stop the program or use longjmp */
 	}
 	else {
@@ -170,6 +178,13 @@ static char *__mempool_allocate_raw(__rapidxml_mempool_t *pool_ptr, size_t size)
 
     }
 	return (char*)memory;
+}
+/*
+ * 
+ */
+static void * __mempool_allocate_aligned_mp(__rapidxml_mempool_t *pool_ptr, size_t size)
+{
+    return pool_ptr->alloc_func(pool_ptr->user_data, size);
 }
 /*
  * 
@@ -218,7 +233,7 @@ static void * __mempool_allocate_aligned(__rapidxml_mempool_t *pool_ptr, size_t 
 static rapidxml_node_t *__mempool_allocate_node(__rapidxml_mempool_t *pool_ptr, __rapidxml_node_type_t type, 
 										 const char *name, const char *value, size_t name_size, size_t value_size)
 {
-	void *memory = __mempool_allocate_aligned(pool_ptr, sizeof(rapidxml_node_t));
+    void *memory = pool_ptr->alloc_align_fn(pool_ptr, sizeof(rapidxml_node_t));
     rapidxml_node_t *node = (rapidxml_node_t*)memory;
 	node->type = type;
     if (name) {
@@ -249,7 +264,7 @@ static rapidxml_node_t *__mempool_allocate_node(__rapidxml_mempool_t *pool_ptr, 
 static rapidxml_attr_t *__mempool_allocate_attribute(__rapidxml_mempool_t *pool_ptr, const char *name, const char *value, 
 													 size_t name_size, size_t value_size)
 {
-	void *memory = __mempool_allocate_aligned(pool_ptr, sizeof(rapidxml_attr_t));
+    void *memory = pool_ptr->alloc_align_fn(pool_ptr, sizeof(rapidxml_attr_t));
     rapidxml_attr_t *attribute = (rapidxml_attr_t*)memory;
     if (name) {
         if (name_size > 0) {
@@ -286,14 +301,14 @@ static void __mempool_clear(__rapidxml_mempool_t *pool_ptr)
 	while (pool_ptr->begin != pool_ptr->static_memory) {
 		char *previous_begin = ((__rapidxml_mempool_header_t*)__mempool_align(pool_ptr->begin))->previous_begin;
 		if (pool_ptr->free_func) {
-			pool_ptr->free_func(pool_ptr->begin);
+            pool_ptr->free_func(pool_ptr->user_data, pool_ptr->begin);
 		}
         else {
 			free(pool_ptr->begin);
 		}
         pool_ptr->begin = previous_begin;
     }
-	__mempool_init(pool_ptr, pool_ptr->err_handler);
+    __mempool_init(pool_ptr, pool_ptr->user_data, pool_ptr->err_handler);
 }
 /*
  * 
@@ -1324,10 +1339,10 @@ static void __default_error_handler(const char *what, const char *where)
 /* PUBLIC API */
 
 int rapidxml_parser_init(rapidxml_doc_t **doc, int flags, rapidxml_parse_error_handler err_handler, 
-						 rapidxml_alloc_func alloc_fun, rapidxml_free_func free_fun)
+						 void *mem_userdata, rapidxml_alloc_func alloc_fun, rapidxml_free_func free_fun)
 {
 	if (alloc_fun) {
-		*doc = (rapidxml_doc_t*)alloc_fun(sizeof(rapidxml_doc_t));
+		*doc = (rapidxml_doc_t*)alloc_fun(mem_userdata, sizeof(rapidxml_doc_t));
 		(*doc)->mempool.alloc_func = alloc_fun;
 	}
 	else {
@@ -1348,7 +1363,13 @@ int rapidxml_parser_init(rapidxml_doc_t **doc, int flags, rapidxml_parse_error_h
 	}
 	(*doc)->root = NULL;
 	(*doc)->flags = flags;
-	__mempool_init(&(*doc)->mempool, (*doc)->err_handler);
+	__mempool_init(&(*doc)->mempool, mem_userdata, (*doc)->err_handler);
+    if (mem_userdata == NULL) {
+        (*doc)->mempool.alloc_align_fn = __mempool_allocate_aligned;
+    }
+    else {
+        (*doc)->mempool.alloc_align_fn = __mempool_allocate_aligned_mp;
+    }
 
 	return 0;
 }
@@ -1357,7 +1378,7 @@ int rapidxml_parser_destroy(rapidxml_doc_t **doc)
 {
 	__mempool_clear(&(*doc)->mempool);
 	if ((*doc)->mempool.free_func) {
-		(*doc)->mempool.free_func(*doc);
+        (*doc)->mempool.free_func((*doc)->mempool.user_data, *doc);
 	}
 	else {
 		free(*doc);
@@ -1393,7 +1414,7 @@ int rapidxml_node_first(rapidxml_node_t *node, rapidxml_node_t **first)
         return 1;
     }
 	*first = __node_first_node(node, NULL, 0, 1);
-	return 0;
+	return *first == NULL ? 1 : 0;
 }
 
 int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next)
@@ -1403,7 +1424,7 @@ int rapidxml_node_next(rapidxml_node_t *node, rapidxml_node_t **next)
         return 1;
     }
 	*next = __node_next_sibling(node, NULL, 0, 1);
-	return 0;
+	return *next == NULL ? 1 : 0;
 }
 
 int rapidxml_node_last(rapidxml_node_t *node, rapidxml_node_t **last)
@@ -1413,7 +1434,7 @@ int rapidxml_node_last(rapidxml_node_t *node, rapidxml_node_t **last)
         return 1;
     }
 	*last = __node_last_node(node, NULL, 0, 1);
-	return 0;
+	return *last == NULL ? 1 : 0;
 }
 
 int rapidxml_node_get_name(rapidxml_node_t *node, const char **name, size_t *len)
@@ -1437,7 +1458,7 @@ int rapidxml_node_first_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
         return 1;
     }
 	*attr = __node_first_attribute(node, NULL, 0, 1);
-	return 0;
+	return *attr == NULL ? 1 : 0;
 }
 
 int rapidxml_node_last_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
@@ -1447,7 +1468,7 @@ int rapidxml_node_last_attribute(rapidxml_node_t *node, rapidxml_attr_t **attr)
         return 1;
     }
 	*attr = __node_last_attribute(node, NULL, 0, 1);
-	return 0;
+	return *attr == NULL ? 1 : 0;
 }
 
 int rapidxml_attribute_next(rapidxml_attr_t *attr, rapidxml_attr_t **next)
@@ -1457,7 +1478,7 @@ int rapidxml_attribute_next(rapidxml_attr_t *attr, rapidxml_attr_t **next)
         return 1;
     }
 	*next = __attr_next_attribute(attr, NULL, 0, 1);
-	return 0;
+	return *next == NULL ? 1 : 0;
 }
 
 int rapidxml_attribute_previous(rapidxml_attr_t *attr, rapidxml_attr_t **previous)
@@ -1467,7 +1488,7 @@ int rapidxml_attribute_previous(rapidxml_attr_t *attr, rapidxml_attr_t **previou
         return 1;
     }
     *previous = __attr_previous_attribute(attr, NULL, 0, 1);
-    return 0;
+    return *previous == NULL ? 1 : 0;
 }
 
 int rapidxml_attribute_get_name(rapidxml_attr_t *attr, const char **name, size_t *len)

@@ -1,5 +1,5 @@
 --
--- Copyright (c) 2013-2014, INAOS GmbH
+-- Copyright (c) 2013-2016, INAOS GmbH
 -- All rights reserved.
 --
 -- Redistribution and use in source and binary forms, with or without
@@ -170,7 +170,7 @@ end
 lconffile.process = function(sections, config_file)
   local f = io.open(config_file, "r")
   if not f then
-    error("Error opening file")
+    error("Error opening file: "..(config_file or "config_file is nil"))
   end
   local code = f:read("*a")
   f:close()

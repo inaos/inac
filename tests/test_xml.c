@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2013,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -175,6 +175,7 @@ INA_TEST_FIXTURE(xml, elem_next)
     INA_TEST_ASSERT_NULL(value);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, len);
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_first(data->itr, &data->itr));
+    c++;
     while (INA_SUCCEED(ina_xml_elem_next(data->itr, &data->itr))) {
         c++;
     }
@@ -263,6 +264,7 @@ INA_TEST_FIXTURE(xml, attr_next)
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_first(data->itr, &data->itr));
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_attr_first(data->itr, &attr));
     INA_TEST_ASSERT_NOT_NULL(attr);
+    c++;
     while (INA_SUCCEED(ina_xml_attr_next(attr, &attr))) {
         c++;
     }
