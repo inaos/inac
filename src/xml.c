@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,6 +106,9 @@ INA_API(ina_rc_t) ina_xml_parser_borrow(ina_xml_ctx_t *ctx, ina_xml_parser_t **p
     DL_DELETE(ctx->parsers, *p);
 
     rapidxml_parser_reset((*p)->doc);
+    if (!ctx->mp) {
+        ina_mempool_release((*p)->elem_pool, INA_NO);
+    }
 
     return INA_SUCCESS;
 }

@@ -143,9 +143,12 @@ static char *__mempool_align(char *ptr)
 static void __mempool_init(__rapidxml_mempool_t *pool_ptr, rapidxml_parse_error_handler err_handler)
 {
 	pool_ptr->err_handler = err_handler;
-	pool_ptr->begin = pool_ptr->static_memory;
-	pool_ptr->ptr = __mempool_align(pool_ptr->begin);
-	pool_ptr->end = pool_ptr->static_memory + sizeof(pool_ptr->static_memory);
+	if (mem_userdata == NULL) {
+		pool_ptr->begin = pool_ptr->static_memory;
+		pool_ptr->ptr = __mempool_align(pool_ptr->begin);
+		pool_ptr->end = pool_ptr->static_memory + sizeof(pool_ptr->static_memory);
+	}
+    pool_ptr->user_data = mem_userdata;
 }
 /*
  * 
@@ -277,6 +280,9 @@ static rapidxml_attr_t *__mempool_allocate_attribute(__rapidxml_mempool_t *pool_
  */
 static void __mempool_clear(__rapidxml_mempool_t *pool_ptr)
 {
+    if (pool_ptr->user_data != NULL) {
+        return;
+    }
 	while (pool_ptr->begin != pool_ptr->static_memory) {
 		char *previous_begin = ((__rapidxml_mempool_header_t*)__mempool_align(pool_ptr->begin))->previous_begin;
 		if (pool_ptr->free_func) {
