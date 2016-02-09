@@ -145,6 +145,10 @@ struct dirent* readdir(DIR *dir)
         if (!dir->result.d_name || _findnext(dir->handle, &dir->info) != -1) {
             result = &dir->result;
             result->d_name = dir->info.name;
+            resutt->d_type = DT_REG;
+            if (dir->info.attrib&_A_SUBDIR) {
+                result->type = DT_DIR;
+            }
         }
     } else {
         errno = EBADF;

@@ -55,7 +55,8 @@ typedef enum ina_dir_sort_attrib_e {
 
 /* Directory entry typ */
 typedef enum ina_dir_entry_type_e {
-    INA_DIR_ENTRY_TYPE_FILE = 1,
+    INA_DIR_ENTRY_TYPE_UNKNOWN = 0,
+    INA_DIR_ENTRY_TYPE_FILE,
     INA_DIR_ENTRY_TYPE_DIR
 } ina_dir_entry_type_t;
 

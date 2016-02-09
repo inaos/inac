@@ -197,6 +197,22 @@ INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
                 }
                 walker->last->name = ina_str_new_fromcstr_using_pool(f->d_name,
                                                                      walker->smp);
+                switch (f->d_type) {
+                    case DT_UNKNOWN:
+                    case DT_FIFO:
+                    case DT_SOCK:
+                    case DT_CHR:
+                    case DT_BLK:
+                    case DT_LNK:
+                        walker->last->type = INA_DIR_ENTRY_TYPE_UNKNOWN;
+                        break;
+                    case DT_REG:
+                        walker->last->type = INA_DIR_ENTRY_TYPE_FILE;
+                        break;
+                    case DT_DIR:
+                        walker->last->type = INA_DIR_ENTRY_TYPE_DIR;
+                        break;
+                }
             }
             walker->current = walker->first;
             closedir(dir);
