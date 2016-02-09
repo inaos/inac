@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -479,15 +479,14 @@ INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars)
     return str;   
 }
 
-INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
+static int __ina_str_substr_internal(const ina_str_t str, int start, int end, ina_str_hdr_t **hdrptr, size_t *newlenptr)
 {
     ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
-    size_t newlen, len = hdr->len;
-
-    INA_ASSERT_NOTNULL(str);
+    size_t len = hdr->len;
+    size_t newlen = 0;
 
     if (len == 0) {
-        return str;
+        return 0;
     }
     if (start < 0) {
         start = len+start;
@@ -520,6 +519,40 @@ INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
     } else {
         start = 0;
     }
+    *newlenptr = newlen;
+    *hdrptr = hdr;
+    return 1;
+}
+
+INA_API(ina_str_t) ina_str_substr_using_pool(const ina_str_t str, int start, int end, ina_mempool_t *pool)
+{
+    ina_str_hdr_t *hdr;
+    size_t newlen;
+    int ret;
+
+    INA_ASSERT_NOTNULL(str);
+
+    ret = __ina_str_substr_internal(str, start, end, &hdr, &newlen);
+    if (ret == 0) {
+        return str;
+    }
+
+    return ina_str_new_fromblk_using_pool(hdr->data+start, newlen, pool);
+}
+
+INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
+{
+    ina_str_hdr_t *hdr;
+    size_t newlen;
+    int ret;
+
+    INA_ASSERT_NOTNULL(str);
+
+    ret = __ina_str_substr_internal(str, start, end, &hdr, &newlen);
+    if (ret == 0) {
+        return str;
+    }
+    
     return ina_str_new_fromblk(hdr->data+start, newlen);
 }
 
