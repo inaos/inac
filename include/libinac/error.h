@@ -190,6 +190,8 @@ extern "C" {
 #define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
 /* Check retuen code if successful or handled */
 #define INA_SUCCEED(rc) (INA_SUCCESS == (rc))
+/* Checkpoint must succeed */
+#define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(!INA_SUCCEED(rc))) abort()
 
 
 /* Error-Module errors */
