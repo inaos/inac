@@ -99,6 +99,7 @@
 #include <libinac/template.h>
 #include <libinac/cpu.h>
 #include <libinac/compression.h>
+#include <libinac/dir.h>
 #include <libinac/file.h>
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
