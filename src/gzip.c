@@ -335,9 +335,9 @@ read_again:
     }
     gzf->bufpos = gzf->bufpos+consumed;
 
-    if (*read > 0 && *read < requested) {
+    /*if (*read > 0 && *read < requested) {
     	goto read_again;
-    }
+    }*/
     /*printf("requested: %ld\n", requested);
     printf("read: %ld\n", *read);
     printf("consumed: %ld\n", consumed);*/
