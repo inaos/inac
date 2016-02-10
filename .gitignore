@@ -25,6 +25,7 @@ tests/ilt
 tools/iml
 tools/imem
 tools/icpu
+tools/ipcap
 contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/sqlite/libsqlite3.so
