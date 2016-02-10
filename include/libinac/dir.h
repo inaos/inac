@@ -65,7 +65,7 @@ typedef struct ina_dir_entry_s {
     ina_str_t name;
     ina_dir_entry_type_t type;
     size_t size;
-} INA_ALIGNED64 ina_dir_entry_t;
+} INA_ALIGNED16 ina_dir_entry_t;
 
 /*
  * Create a new directory walker.
