@@ -132,7 +132,7 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
 
     if (mode == INA_PCAP_OPEN_MODE_AUTO) {
         if (compression == INA_PCAP_FILE_COMPRESSION_NONE) {
-            mode = INA_PCAP_OPEN_MODE_MMAP;
+            mode = INA_PCAP_OPEN_MODE_FIO;
         } else {
             mode = INA_PCAP_OPEN_MODE_FIO;
         }

@@ -59,9 +59,9 @@ int main(int argc,  char** argv)
     ina_pcap_get_file_compression(pcap, &file_compression);
 
     printf("File %s\n", ina_str_cstr(in_filepath));
-    printf(" Open mode   : %s",
+    printf(" Open mode   : %s\n",
            (open_mode==INA_PCAP_OPEN_MODE_FIO?"File":"MMAP"));
-    printf(" Compression : %s",
+    printf(" Compression : %s\n",
            (file_compression==INA_PCAP_FILE_COMPRESSION_GZIP?"GZip":"None"));
     ina_pcap_close(&pcap);
     return EXIT_SUCCESS;
