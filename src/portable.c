@@ -137,8 +137,6 @@ int closedir(DIR *dir)
 
 struct dirent* readdir(DIR *dir)
 {
-
-
     struct dirent *result = 0;
 
     if (dir && dir->handle != -1) {
