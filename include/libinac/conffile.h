@@ -307,7 +307,7 @@ __VA_ARGS__
  *      named or unnamed section to the configuration file.
  */
 #define INA_CONFFILE(cf, fp, ...)                         \
-while(0)                                                  \
+do                                                        \
 {                                                         \
     ina_conffile_t *__cf = NULL;                          \
     ina_conffile_section_t *__cs = NULL;                  \
@@ -324,7 +324,7 @@ while(0)                                                  \
     } else {                                              \
         ina_conffile_destroy(&__cf);                      \
     }                                                     \
-}                                                         \
+} while(0)
 
 #ifdef __cplusplus
 }
