@@ -31,7 +31,7 @@
 #ifndef INA_OS_WIN32
 #include <dirent.h>
 #include <sys/stat.h>
-#include <sys/statfs.h>
+#include <sys/statvfs.h>
 #include <unistd.h>
 #endif
 
@@ -56,6 +56,8 @@ struct ina_dir_stat_s {
     ULARGE_INTEGER total_number_of_bytes;
     ULARGE_INTEGER total_numof_free_bytes;
 #else
+    uint64_t free_bytes;
+    uint64_t total_bytes;
 #endif
 };
 
@@ -294,6 +296,12 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
             return INA_FAILURE;
     }
 #else
+    struct statvfs sfs;
+    if (statvfs(dir, &sfs) != 0) {
+        return INA_FAILURE;
+    }
+    (*stat)->free_bytes = sfs.f_bsize * sfs.f_bavail;
+    (*stat)->total_bytes = sfs.f_blocks * sfs.f_bsize;
 #endif
     return INA_SUCCESS;
 }
@@ -304,6 +312,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat, uint64_t *ca
 #ifdef INA_OS_WIN32
     *capacity_bytes = stat->total_number_of_bytes.QuadPart;
 #else
+    *capacity_bytes = stat->total_bytes;
 #endif
     return INA_SUCCESS;
 }
@@ -313,6 +322,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat, uint64_t *free_b
 #ifdef INA_OS_WIN32
     *free_bytes = stat->free_bytes_available.QuadPart;
 #else
+    *free_bytes = stat->free_bytes;
 #endif
     return INA_SUCCESS;
 }
@@ -344,3 +354,4 @@ INA_API(ina_rc_t) ina_dir_stat_free(ina_dir_stat_t **stat)
     *stat = NULL;
     return INA_SUCCESS;
 }
+
