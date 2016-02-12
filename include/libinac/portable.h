@@ -1211,6 +1211,7 @@ typedef struct DIR DIR;
 
 struct dirent {
 	char *d_name;
+    int d_type;
 };
 
 DIR *opendir(const char *name);
