@@ -31,6 +31,7 @@
 #ifndef INA_OS_WIN32
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/statfs.h>
 #include <unistd.h>
 #endif
 
@@ -46,6 +47,16 @@ struct ina_dir_walker_s {
     ina_dir_sort_attrib_t sort_attrib;
     int recursive;
     int (*sort_cb)(const void*,const void*);
+};
+
+struct ina_dir_stat_s {
+    ina_str_t dir;
+#ifdef INA_OS_WIN32
+    ULARGE_INTEGER free_bytes_available;
+    ULARGE_INTEGER total_number_of_bytes;
+    ULARGE_INTEGER total_numof_free_bytes;
+#else
+#endif
 };
 
 static int __ina_dir_walker_cmp_name_ascend(const void* a, const void* b)
@@ -272,5 +283,64 @@ INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker) {
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
+{
+    *stat = (ina_dir_stat_t*)ina_mem_alloc(sizeof(ina_dir_stat_t));
+    (*stat)->dir = ina_str_new_fromcstr(dir);
+#ifdef INA_OS_WIN32
+    if (GetDiskFreeSpaceEx(dir, &(*stat)->free_bytes_available, 
+        &(*stat)->total_number_of_bytes, 
+        &(*stat)->total_numof_free_bytes) == 0) {
+            return INA_FAILURE;
+    }
+#else
+#endif
+    return INA_SUCCESS;
+}
 
+INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat, uint64_t *capacity_bytes)
+{
+    INA_ASSERT_NOTNULL(stat);
+#ifdef INA_OS_WIN32
+    *capacity_bytes = stat->total_number_of_bytes.QuadPart;
+#else
+#endif
+    return INA_SUCCESS;
+}
 
+INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat, uint64_t *free_bytes)
+{
+#ifdef INA_OS_WIN32
+    *free_bytes = stat->free_bytes_available.QuadPart;
+#else
+#endif
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used)
+{
+    uint64_t b_total;
+    uint64_t b_free;
+    double free_pct;
+    double used_pct;
+    INA_ASSERT_NOTNULL(stat);
+    INA_ASSERT_SUCCEED(ina_dir_stat_bytes_capacity(stat, &b_total));
+    INA_ASSERT_SUCCEED(ina_dir_stat_bytes_free(stat, &b_free));
+    free_pct = (((double)(b_free/1024/1024))*100.0)/((double)(b_total/1024/1024));
+    used_pct = 100-free_pct;
+    *pct_used = (int)used_pct;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_dir_stat_free(ina_dir_stat_t **stat)
+{
+    if (*stat == NULL) {
+        return INA_SUCCESS;
+    }
+    if ((*stat)->dir != NULL) {
+        ina_str_free((*stat)->dir);
+    }
+    ina_mem_free(*stat);
+    *stat = NULL;
+    return INA_SUCCESS;
+}

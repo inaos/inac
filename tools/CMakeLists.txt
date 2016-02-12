@@ -67,3 +67,6 @@ target_link_libraries(imem ${PLATFORM_LIBS} ${LIBS})
 
 add_executable(ipcap ipcap.c)
 target_link_libraries(ipcap ${PLATFORM_LIBS} ${LIBS})
+
+add_executable(istat istat.c)
+target_link_libraries(istat ${PLATFORM_LIBS} ${LIBS})

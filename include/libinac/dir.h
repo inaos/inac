@@ -38,6 +38,9 @@ extern "C" {
 /* Opaque directory walker handle */
 typedef struct ina_dir_walker_s ina_dir_walker_t;
 
+/* Opaque directory stat handle */
+typedef struct ina_dir_stat_s ina_dir_stat_t;
+
 
 /* Directory sort order */
 typedef enum ina_dir_sort_order_e {
@@ -127,6 +130,30 @@ INA_API(ina_rc_t) ina_dir_walker_reload(ina_dir_walker_t *walker);
  */
 INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker);
 
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat, uint64_t *capacity_bytes);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat, uint64_t *free_bytes);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_dir_stat_free(ina_dir_stat_t **stat);
 
 
 #ifdef __cplusplus
