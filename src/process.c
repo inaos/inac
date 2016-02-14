@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,11 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifdef INA_OS_WIN32
+#include <tlhelp32.h>
+#include <Psapi.h>
+#endif
+
 struct ina_process_ctx_s {
     ina_cron_ctx_t *cron_ctx;
     ina_time_t *systime;
@@ -51,10 +56,23 @@ struct ina_process_s {
     UT_hash_handle hh;
 };
 
+struct ina_process_stat_s {
+    ina_str_t binary;
+    int available;
+    ina_str_t cmd;
+    uint64_t mem_bytes;
+    int num_threads;
+};
+
 static void __ina_process_is_running(ina_process_t *, int*);
 static void __ina_process_start(ina_process_t*);
 static void __ina_process_stop(ina_process_t*);
 static void __ina_process_reset(ina_process_t*);
+static ina_rc_t __ina_process_query(const char *binary, 
+                                    int *available,
+                                    ina_str_t *cmd, 
+                                    uint64_t *mem, 
+                                    int *num_threads);
 
 static void __ina_process_fsm_event_start(void*);
 static void __ina_process_fsm_event_stop(void*);
@@ -549,6 +567,70 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
     return INA_FAILURE;
 }
 
+INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *binary)
+{
+    *stat = (ina_process_stat_t*)ina_mem_alloc(sizeof(ina_process_stat_t));
+    (*stat)->binary = ina_str_new_fromcstr(binary);
+    (*stat)->available = 0;
+    (*stat)->cmd = NULL;
+    (*stat)->mem_bytes = 0;
+    (*stat)->num_threads = 0;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_process_stat_query(ina_process_stat_t *stat)
+{
+    if (stat->cmd != NULL) {
+        ina_str_free(stat->cmd);
+    }
+    stat->available = 0;
+    stat->cmd = NULL;
+    stat->mem_bytes = 0;
+    stat->num_threads = 0;
+
+    return __ina_process_query(ina_str_cstr(stat->binary), 
+        &stat->available, &stat->cmd, &stat->mem_bytes, &stat->num_threads);
+}
+
+INA_API(ina_rc_t) ina_process_stat_alive(ina_process_stat_t *stat, int *alive)
+{
+    *alive = stat->available;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_process_stat_get_cmd(ina_process_stat_t *stat, const char **cmd)
+{
+    *cmd = ina_str_cstr(stat->cmd);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_process_stat_get_memory(ina_process_stat_t *stat, uint64_t *memory)
+{
+    *memory = stat->mem_bytes;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat, int *num_threads)
+{
+    *num_threads = stat->num_threads;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_process_stat_free(ina_process_stat_t **stat)
+{
+    if (*stat == NULL) {
+        return INA_SUCCESS;
+    }
+    if ((*stat)->cmd != NULL) {
+        ina_str_free((*stat)->cmd);
+    }
+    if ((*stat)->binary != NULL) {
+        ina_str_free((*stat)->binary);
+    }
+    ina_mem_free(*stat);
+    *stat = NULL;
+    return INA_SUCCESS;
+}
 
 #ifdef INA_OS_WIN32
 static void __ina_process_is_running(ina_process_t *process, 
@@ -637,6 +719,49 @@ static void __ina_process_reset(ina_process_t *process)
     CloseHandle(process->pi.hProcess);
     CloseHandle(process->pi.hThread);
 }
+static ina_rc_t __ina_process_query(const char *binary, 
+                                    int *available,
+                                    ina_str_t *cmd, 
+                                    uint64_t *mem, 
+                                    int *num_threads)
+{
+    PROCESSENTRY32 p_entry;
+    DWORD th32procid = 0;
+    HANDLE snapshot;
+    p_entry.dwSize = sizeof(PROCESSENTRY32);
+
+    *available = 0;
+
+    snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, th32procid);
+    if (Process32First(snapshot, &p_entry) == TRUE) {
+        while (Process32Next(snapshot, &p_entry) == TRUE) {
+            if (_stricmp(p_entry.szExeFile, binary) == 0) {
+                HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, p_entry.th32ProcessID);
+                PROCESS_MEMORY_COUNTERS mem_info;
+                char fullpath[4096];
+                DWORD path_size = 4096;
+                memset(&mem_info, 0, sizeof(PROCESS_MEMORY_COUNTERS));
+                GetProcessMemoryInfo(hProcess, &mem_info, sizeof(PROCESS_MEMORY_COUNTERS));
+                QueryFullProcessImageName(hProcess, 0, fullpath, &path_size);
+                *num_threads = p_entry.cntThreads;
+                *cmd = ina_str_new_fromcstr(fullpath);
+                *mem = mem_info.WorkingSetSize;
+                *available = 1;
+                CloseHandle(hProcess);
+                break;
+            }
+        }
+    }
+    CloseHandle(snapshot);
+
+    if (!*available) {
+        *cmd = NULL;
+        *mem = 0;
+        *num_threads = 0;
+    }
+
+    return INA_SUCCESS;
+}
 
 #else
 static void __ina_process_is_running(ina_process_t *process, 
@@ -717,6 +842,55 @@ static void __ina_process_stop(ina_process_t *process)
 static void __ina_process_reset(ina_process_t *process)
 {
     process->pid = 0;
+}
+
+static ina_rc_t __ina_process_query(const char *binary, 
+                                    int *available,
+                                    ina_str_t *cmd, 
+                                    uint64_t *mem, 
+                                    int *num_threads)
+{
+    ina_ljit_ctx_t *ctx;
+
+    if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
+        return INA_ERR_PUSH_LAST;
+    }
+
+    if (!INA_SUCCEED(ina_ljit_dostring(ctx, "pq = require(\"lprocqry\")"))) {
+        return INA_ERR_PUSH_LAST;
+    }
+    
+    lua_pushstring(ctx->lstate, binary);
+    lua_pcall(ctx->lstate, 1, 1, 0);
+    if (lua_istable(ctx->lstate, -1)) {
+        /* get_cmd */
+        lua_pushstring(ctx->lstate, "get_cmd");
+        lua_gettable(ctx->lstate, -2);
+        *cmd = ina_str_new_fromcstr(lua_tostring(ctx->lstate, -1));
+        lua_pop(ctx->lstate, 1);
+        /* get_used_mem */
+        lua_pushstring(ctx->lstate, "get_used_mem");
+        lua_gettable(ctx->lstate, -2);
+        *mem = (uint64_t)lua_tonumber(ctx->lstate, -1);
+        lua_pop(ctx->lstate, 1);
+        /* get_num_threads */
+        lua_pushstring(ctx->lstate, "get_num_threads");
+        lua_gettable(ctx->lstate, -2);
+        *num_threads = (int)lua_tonumber(ctx->lstate, -1);
+        lua_pop(ctx->lstate, 1);
+        /* pop the table */
+        lua_pop(ctx->lstate, 1);
+    }
+    else {
+        *available = 0;
+        *cmd = NULL;
+        *mem = 0;
+        *num_threads = 0;
+    }
+
+    ina_ljit_destroy(&ctx);
+
+    return INA_SUCCESS;
 }
 
 #endif
