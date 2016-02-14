@@ -26,33 +26,20 @@
 -- OF SUCH DAMAGE.
 --
 
+local jit = require("jit")
 local popen = io.popen
 
 local proc_parse = {}
-
-local meta_proc_info = {
-  __index = {
-    get_cmd = function(i)
-      return i._cmd
-    end,
-    get_used_mem = function(i)
-      return i._rss
-    end,
-    get_num_threads = function(i)
-      return i._threads
-    end,
-  }
-}
 
 local function _query_process(needle)
   local f = assert(popen("ls /proc"))
   for line in f:lines() do
     if tonumber(line) then
-      local bail = false
       local cmd_p = "cat /proc/"..line.."/cmdline"
       local status_p = "cat /proc/"..line.."/status"
       local cmd_f = assert(popen(cmd_p))
       local cmd = cmd_f:read("*a")
+      cmd_f:close()
       if cmd:find(needle) then
         local info = {}
         info._cmd = cmd
@@ -67,27 +54,21 @@ local function _query_process(needle)
             info._threads = threads
           end
         end
-        bail = true
         status_f:close()
-      end
-      cmd_f:close()
-      if bail then
         f:close()
-        return true
+        return info
       end
     end
   end
   f:close()
-  return false
+  return nil
 end
 
 proc_parse.query = function(needle)
-  if jit.os() ~= "Linux" then
+  if jit.os ~= "Linux" then
     return nil
   end
-  local i = _query_process(needle)
-  setmetatable(i, meta_proc_info)
-  return i
+  return _query_process(needle)
 end
 
 return proc_parse

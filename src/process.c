@@ -856,25 +856,27 @@ static ina_rc_t __ina_process_query(const char *binary,
         return INA_ERR_PUSH_LAST;
     }
 
-    if (!INA_SUCCEED(ina_ljit_dostring(ctx, "pq = require(\"lprocqry\")"))) {
+    if (!INA_SUCCEED(ina_ljit_dostring(ctx, "local pq = require(\"lprocqry\");pqf=pq.query"))) {
         return INA_ERR_PUSH_LAST;
     }
-    
+   
+    lua_getglobal(ctx->lstate, "pqf");
     lua_pushstring(ctx->lstate, binary);
     lua_pcall(ctx->lstate, 1, 1, 0);
     if (lua_istable(ctx->lstate, -1)) {
+        *available = 1;
         /* get_cmd */
-        lua_pushstring(ctx->lstate, "get_cmd");
+        lua_pushstring(ctx->lstate, "_cmd");
         lua_gettable(ctx->lstate, -2);
         *cmd = ina_str_new_fromcstr(lua_tostring(ctx->lstate, -1));
         lua_pop(ctx->lstate, 1);
         /* get_used_mem */
-        lua_pushstring(ctx->lstate, "get_used_mem");
+        lua_pushstring(ctx->lstate, "_rss");
         lua_gettable(ctx->lstate, -2);
         *mem = (uint64_t)lua_tonumber(ctx->lstate, -1);
         lua_pop(ctx->lstate, 1);
         /* get_num_threads */
-        lua_pushstring(ctx->lstate, "get_num_threads");
+        lua_pushstring(ctx->lstate, "_threads");
         lua_gettable(ctx->lstate, -2);
         *num_threads = (int)lua_tonumber(ctx->lstate, -1);
         lua_pop(ctx->lstate, 1);

@@ -253,9 +253,13 @@ INA_TEST(process, stat)
     int alive = 0;
     uint64_t mem = 0;
     int num_threads = 0;
-    ina_str_t cmd;
+    const char *cmd = NULL;
 
+#ifdef INA_OS_WIN32
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "test.exe"));
+#else
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "test"));
+#endif
     INA_TEST_ASSERT_NOT_NULL(ps);
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_query(ps));
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_alive(ps, &alive));
@@ -273,7 +277,11 @@ INA_TEST(process, stat)
     num_threads = 0;
     cmd = NULL;
 
+#ifdef INA_OS_WIN32
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo.exe"));
+#else
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo"));
+#endif
     INA_TEST_ASSERT_NOT_NULL(ps);
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_query(ps));
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_alive(ps, &alive));
