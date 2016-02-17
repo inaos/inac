@@ -199,9 +199,7 @@ INA_TEST_SKIP(process, should_be_running)
 {
     ina_process_ctx_t *ctx;
     ina_process_t *process;
-    int should_be_running;
     ina_process_descriptor_t pd;
-
     
     INA_TEST_ASSERT_SUCCEED(ina_process_init(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
