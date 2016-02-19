@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -681,4 +681,111 @@ INA_TEST(string, simple_allocation_without_pool)
     INA_TEST_ASSERT_NOT_NULL(str2);
     ina_str_free(str1);
     ina_str_free(str2);
+}
+
+INA_TEST(string, ina_str_wildcard_match)
+{
+    ina_str_t ts;
+
+#define _INA_TEST_STRING_WILDCARD_TEST_OK(teme, wildcard)                  \
+    ts = ina_str_new_fromcstr(teme);                                       \
+    INA_TEST_ASSERT_SUCCEED(ina_str_wildcard_match(ts, wildcard));         \
+    ina_str_free(ts);
+
+#define _INA_TEST_STRING_WILDCARD_TEST_NOK(teme, wildcard)                 \
+    ts = ina_str_new_fromcstr(teme);                                       \
+    INA_TEST_ASSERT_NOTSUCCEED(ina_str_wildcard_match(ts, wildcard));      \
+    ina_str_free(ts);
+
+    /* Cases with repeating character sequences. */
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abcccd", "*ccd");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("mississipissippi", "*issip*ss*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("xxxx*zzzzzzzzy*f", "xxxx*zzy*fffff");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("xxxx*zzzzzzzzy*f", "xxx*zzy*f");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("xxxxzzzzzzzzyf", "xxxx*zzy*fffff");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("xxxxzzzzzzzzyf", "xxxx*zzy*f");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("xyxyxyzyxyz", "xy*z*xyz");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("mississippi", "*sip*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("xyxyxyxyz", "xy*xyz");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("mississippi", "mi*sip*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("ababac", "*abac*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("ababac", "*abac*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("aaazz", "a*zz*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("a12b12", "*12*23");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("a12b12", "a12b");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("a12b12", "*12*12*");
+
+    /* Additional cases where the '*' char appears in the tame string. */
+    _INA_TEST_STRING_WILDCARD_TEST_OK("*", "*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("a*abab", "a*b");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("a*r", "a*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("a*ar", "a*aar");
+
+    /* More double wildcard scenarios. */
+    _INA_TEST_STRING_WILDCARD_TEST_OK("XYXYXYZYXYz", "XY*Z*XYz");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("missisSIPpi", "*SIP*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("mississipPI", "*issip*PI");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("xyxyxyxyz", "xy*xyz");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("miSsissippi", "mi*sip*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("miSsissippi", "mi*Sip*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abAbac", "*Abac*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abAbac", "*Abac*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("aAazz", "a*zz*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("A12b12", "*12*23");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("a12B12", "*12*12*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("oWn", "*oWn*");
+
+    /* Completely tame (no wildcards) cases. */
+    _INA_TEST_STRING_WILDCARD_TEST_OK("bLah", "bLah");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("bLah", "bLaH");
+
+    /* Simple mixed wildcard tests suggested by IBMer Marlin Deckert. */
+    _INA_TEST_STRING_WILDCARD_TEST_OK("a", "*?");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("ab", "*?");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abc", "*?");
+
+    /* More mixed wildcard tests including coverage for false positives. */
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("a", "??");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("ab", "?*?");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("ab", "*?*?*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abc", "?**?*?");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("abc", "?**?*&?");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abcd", "?b*??");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("abcd", "?a*??");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abcd", "?**?c?");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("abcd", "?**?d?");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abcde", "?*b*?*d*?");
+
+    /* Single-character-match cases. */
+    _INA_TEST_STRING_WILDCARD_TEST_OK("bLah", "bL?h");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("bLaaa", "bLa?");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("bLah", "bLa?");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("bLaH", "?Lah");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("bLaH", "?LaH");
+
+    /* Many-wildcard scenarios. */
+    _INA_TEST_STRING_WILDCARD_TEST_OK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "a*a*a*a*a*a*aa*aaa*a*a*b");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abababababababababababababababababababaacacacacaca\
+    cacadaeafagahaiajakalaaaaaaaaaaaaaaaaaffafagaagggagaaaaaaaab", "*a*b*ba*ca*a*aa*aaa*fa*ga*b*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("abababababababababababababababababababaacacacacaca\
+    cacadaeafagahaiajakalaaaaaaaaaaaaaaaaaffafagaagggagaaaaaaaab", "*a*b*ba*ca*a*x*aaa*fa*ga*b*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("abababababababababababababababababababaacacacacaca\
+    cacadaeafagahaiajakalaaaaaaaaaaaaaaaaaffafagaagggagaaaaaaaab", "*a*b*ba*ca*aaaa*fa*ga*gggg*b*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abababababababababababababababababababaacacacacaca\
+    cacadaeafagahaiajakalaaaaaaaaaaaaaaaaaffafagaagggagaaaaaaaab", "*a*b*ba*ca*aaaa*fa*ga*ggg*b*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("aaabbaabbaab", "*aabbaa*a*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*", "a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("aaaaaaaaaaaaaaaaa", "*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("aaaaaaaaaaaaaaaa", "*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("abc*abcd*abcde*abcdef*abcdefg*abcdefgh*abcdefghi*a\
+    bcdefghij*abcdefghijk*abcdefghijkl*abcdefghijklm*abcdefghijklmn", 
+    "abc*abc*abc*abc*abc*abc*abc*abc*abc*abc*abc*abc*abc*abc*abc*abc*a\
+                bc*");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("abc*abcd*abcd*abc*abcd", "abc*abc*abc*abc*abc");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abc*abcd*abcd*abc*abcd*abcd*abc*abcd*abc*abc*abcd", "abc*abc*abc*abc*abc*abc*abc*abc*abc*abc*abcd");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("abc", "********a********b********c********");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("********a********b********c********", "abc");
+    _INA_TEST_STRING_WILDCARD_TEST_NOK("abc", "********a********b********b********");
+    _INA_TEST_STRING_WILDCARD_TEST_OK("*abc*", "***a*b*c***");
 }
