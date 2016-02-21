@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ static ina_rc_t __ina_percentile_heap_new(__ina_percentile_heap_t **h, ina_mempo
     
     *h = (__ina_percentile_heap_t*)ina_mempool_dalloc(pool, sizeof(__ina_percentile_heap_t));
     (*h)->count = 0;
-    (*h)->capacity = initial_size;
+    (*h)->capacity = initial_size+1;
     (*h)->mem = pool;
     (*h)->data = (uint16_t*)ina_mempool_dalloc(pool, base_size);
     if (max_heap) {
@@ -87,10 +87,12 @@ static ina_rc_t __ina_percentile_heap_push(__ina_percentile_heap_t *h, uint16_t 
 
     /* grow if necessary */
     if (h->count == h->capacity) {
+        size_t new_size = 0;
         size_t old_size = h->capacity*sizeof(uint16_t);
-        size_t new_size = old_size*2;
-        h->data = ina_mempool_ralloc(h->mem, h->data, old_size, new_size);
         h->capacity = h->capacity * 2;
+		new_size = h->capacity*sizeof(uint16_t);
+        h->data = ina_mempool_ralloc(h->mem, h->data, old_size, new_size);
+        INA_ASSERT_NOTNULL(h->data);
     }
 
     for (i = h->count++; i; i = parent) {
