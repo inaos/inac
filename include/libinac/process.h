@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,9 @@ typedef struct ina_process_descriptor_s {
     uint32_t start_flags;
     uint32_t c_ref;
 } ina_process_descriptor_t;
+
+/* opaque process stat */
+typedef struct ina_process_stat_s ina_process_stat_t;
 
 INA_FSM_STATES(process_fsm, 
     INA_FSM_STATE(INA_PROCESS_STARTABLE),
@@ -165,6 +168,40 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
 INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process, 
                                             int *exit_code);
 
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *binary);
+
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_stat_alive(ina_process_stat_t *stat, int *alive);
+
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_stat_query(ina_process_stat_t *stat);
+
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_stat_get_cmd(ina_process_stat_t *stat, const char **cmd);
+
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_stat_get_memory(ina_process_stat_t *stat, uint64_t *memory);
+
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat, int *num_threads);
+
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_process_stat_free(ina_process_stat_t **stat);
 
 #ifdef __cplusplus
 }

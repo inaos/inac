@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ INA_TEST(percentile, test_percentile_90)
     INA_TEST_ASSERT_SUCCEED(ina_percentile_free(&p));
 }
 
-INA_TEST_SKIP(percentile, test_percentile_50)
+INA_TEST(percentile, test_percentile_50)
 {
     size_t test_size = sizeof(__test_percentile_input)/sizeof(int);
     ina_percentile_t *p;
@@ -64,5 +64,22 @@ INA_TEST_SKIP(percentile, test_percentile_50)
     INA_TEST_ASSERT_EQUAL_INTEGER(77, actual_percentile);
     INA_TEST_ASSERT_SUCCEED(ina_percentile_free(&p));
 }
+
+INA_TEST(percentile, test_grow_heaps)
+{
+    ina_percentile_t *p;
+    size_t initial_size = 10;
+    size_t i;
+    uint16_t actual_percentile = 0;
+
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_new(&p, 0.5, 10));
+    for (i = 0; i < 100; i++) {
+        INA_TEST_ASSERT_SUCCEED(ina_percentile_add(p, i+1));
+    }
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_get(p, &actual_percentile));
+    INA_TEST_ASSERT_EQUAL_INTEGER(51, actual_percentile);
+    INA_TEST_ASSERT_SUCCEED(ina_percentile_free(&p));
+}
+
 
 

@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) 2016, INAOS GmbH
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the INAOS GmbH nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software 
+ *       without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ */
+#include <stdio.h>
+#include <libinac/lib.h>
+
+static ina_dir_stat_t *__ds = NULL;
+
+static void ina_cleanup_handler(int error, int *exitcode)
+{
+    if (__ds != NULL) {
+        ina_dir_stat_free(&__ds);
+    }
+}
+
+int main(int argc,  char** argv) 
+{
+    ina_str_t dir;
+    int hr = 0;
+
+    INA_OPTS(opt,
+        INA_OPT_STRING("d", "dir", NULL, "Directory to stat"),
+        INA_OPT_FLAG("h", "human-readable", "Display the human readable stat")
+    );
+
+    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
+        return EXIT_FAILURE;
+    }
+    ina_set_cleanup_handler(ina_cleanup_handler);
+    
+    ina_opt_get_string("d", &dir);
+    if (INA_SUCCEED(ina_opt_isset("h"))) {
+        hr = 1;
+    }
+
+    if (INA_SUCCEED(ina_dir_stat_new(&__ds, ina_str_cstr(dir)))) {
+        uint64_t b_total;
+        uint64_t b_free;
+        ina_dir_stat_bytes_capacity(__ds, &b_total);
+        ina_dir_stat_bytes_free(__ds, &b_free);
+        if (hr) {
+            double mb_total;
+            double mb_free;
+            double gb_total;
+            double gb_free;
+            double d_total;
+            double d_free;
+            int used;
+            char hdu[3];
+            mb_total = (double)b_total/1024/1024;
+            gb_total = mb_total/1024;
+            mb_free = (double)b_free/1024/1024;
+            gb_free = mb_free/1024;
+            d_total = (double)b_total/1024;
+            strcpy(hdu, "KB");
+            if (b_total > 1024*1024) {
+                d_total = mb_total;
+                strcpy(hdu, "MB");
+            }
+            if (b_total > 1024UL*1024UL*1024UL) {
+                d_total = gb_total;
+                strcpy(hdu, "GB");
+            }
+            d_free = (double)b_free/1024;
+            if (b_free > 1024*1024) {
+                d_free = mb_free;
+            }
+            if (b_free > 1024UL*1024UL*1024UL) {
+                d_free = gb_free;
+            }
+            ina_dir_stat_pct_used(__ds, &used);
+            printf("Total: %.2f %s, Free: %.2f %s - Percentage used: %d%%\n", d_total, hdu, d_free, hdu, used);
+        }
+        else {
+            printf("Total Kbytes: %.2f, Free Kbytes: %.2f\n", ((double)b_total/1024.0), ((double)b_free/1024.0));
+        }
+    }
+
+    return EXIT_SUCCESS;
+}

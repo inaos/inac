@@ -776,6 +776,91 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     return l;    
 }
 
+INA_API(ina_rc_t) ina_str_wildcard_match(const ina_str_t tame, const char *wildcard)
+{
+    /* From Dr.Dobbs -> By Kirk J. Krauss, October 07, 2014 */
+
+    const char *pTameBookmark = (char*)0;
+    const char *pWildBookmark = (char*)0;
+    const char *pTameText = ina_str_cstr(tame);
+    const char *pWildText = wildcard;
+ 
+    /* Walk the text strings one character at a time. */
+    while (1) {
+        /* How do you match a unique text string? */
+        if (*pWildText == '*') {
+            // Easy: unique up on it!
+            while (*(++pWildText) == '*') {
+                /* "xy" matches "x**y" */
+            }
+ 
+            if (!*pWildText) {
+                /* "x" matches "*" */
+                return INA_SUCCESS;
+            }
+ 
+            if (*pWildText != '?') {
+                /* Fast-forward to next possible match. */
+                while (*pTameText != *pWildText) {
+                    if (!(*(++pTameText))) {
+                        /* "x" doesn't match "*y*" */
+                        return INA_FAILURE;
+                    }
+                }
+            }
+ 
+            pWildBookmark = pWildText;
+            pTameBookmark = pTameText;
+        }
+        else if (*pTameText != *pWildText && *pWildText != '?') {
+            /* Got a non-match.  If we've set our bookmarks, back up to one 
+               or both of them and retry.
+            */
+            if (pWildBookmark) {
+                if (pWildText != pWildBookmark) {
+                    pWildText = pWildBookmark;
+                    if (*pTameText != *pWildText) {
+                        /* Don't go this far back again. */
+                        pTameText = ++pTameBookmark;
+                        /* "xy" matches "*y" */
+                        continue;
+                    }
+                    else {
+                        pWildText++;
+                    }
+                }
+ 
+                if (*pTameText) {
+                    pTameText++;
+                    /* "mississippi" matches "*sip*" */
+                    continue;
+                }
+            }
+            /* "xy" doesn't match "x" */
+            return INA_FAILURE;
+        }
+ 
+        pTameText++;
+        pWildText++;
+ 
+        /* How do you match a tame text string? */
+        if (!*pTameText) {
+            /* The tame way: unique up on it! */
+            while (*pWildText == '*') {
+                /* "x" matches "x*" */
+                pWildText++;
+            }
+ 
+            if (!*pWildText) {
+                /* "x" matches "x" */
+                return INA_SUCCESS;
+            }
+            /* "x" doesn't match "xy" */
+            return INA_FAILURE;
+        }
+    }
+}
+
 static ina_str_hdr_t* 
 __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
 {
