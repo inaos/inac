@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<version>5.0 for US Messages</version>
+<revisions>
+    <revision type="Draft" version="5.0" author="Hans Muster" date="07/16/2008">revision data 1</revision>
+    <revision type="Draft" version="5.0b ($Rev: $)" author="Hans Muster" date="07/20/2008">revision data 2</revision>
+    <revision type="Draft" version="5.0c" author="John Doe" date="10/21/2008"/>
+    <revision type="Release" version="5.0d" author="Hans Muster" date="10/30/2008"/>
+    <revision type="Release" version="5.0e" author="Hans Muster" date="11/3/2008"/>
+    <revision type="Release" version="5.0f" author="John Doe" date="12/01/2008"/>
+    <revision type="Release" version="5.0g" author="John Doe" date="12/08/2008"/>
+    <revision type="Release" version="5.0h" author="John Doe" date="12/17/2008"/>
+    <revision type="Release" version="5.0i" author="John Doe" date="01/09/2009"/>
+    <revision type="Release" version="5.0j" author="John Doe" date="05/04/2009"/>
+    <revision type="Release" version="5.0k" author="John Doe" date="06/22/2009"/>
+    <revision type="Beta" version="5.0l" author="Hans Muster" date="02/15/2010"/>
+    <revision type="Beta" version="5.0m" author="Hans Muster" date="02/25/2010"/>
+    <revision type="Beta" version="5.0n" author="Hans Muster" date="03/25/2010"/>
+    <revision type="Beta" version="5.0o" author="Hans Muster" date="04/14/2010"/>
+</revisions>

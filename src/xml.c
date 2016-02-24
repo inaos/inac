@@ -43,9 +43,11 @@ struct ina_xml_elem_s {
 } ina_xml_elem_s;
 
 struct ina_xml_parser_s {
+    ina_file_ctx_t *fctx;
 	rapidxml_doc_t *doc;
 	ina_xml_elem_t root;
     ina_mempool_t *elem_pool;
+    ina_mempool_t *parse_pool;
 	struct ina_xml_parser_s *next;
 	struct ina_xml_parser_s *prev;
 } ina_xml_parser_s;
@@ -83,6 +85,12 @@ INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size)
         if (!INA_SUCCEED(ina_mempool_create(&p->elem_pool, 1024, INA_MEM_DYNAMIC, NULL))) {
             return INA_ERR_PUSH_LAST;
         }
+        if (!INA_SUCCEED(ina_mempool_create(&p->parse_pool, 4*1024, INA_MEM_DYNAMIC, NULL))) {
+            return INA_ERR_PUSH_LAST;
+        }
+        if (!INA_SUCCEED(ina_file_init(&p->fctx, S_IRUSR))) {
+            return INA_ERR_PUSH_LAST;
+        }
 		DL_APPEND((*ctx)->parsers, p);
 	}
 	
@@ -103,7 +111,11 @@ INA_API(ina_rc_t) ina_xml_init_using_pool(ina_xml_ctx_t **ctx,
 	for (i = 0; i < parser_pool_size; i++) {
         ina_xml_parser_t *p = (ina_xml_parser_t*)ina_mempool_dalloc(pool, sizeof(ina_xml_parser_t));
 		rapidxml_parser_init(&p->doc, 0, NULL, pool, __rapidxml_alloc_func_mp, __rapidxml_free_func_mp);
+        if (!INA_SUCCEED(ina_file_init(&p->fctx, S_IRUSR))) {
+            return INA_ERR_PUSH_LAST;
+        }
         p->elem_pool = pool;
+        p->parse_pool = pool;
 		DL_APPEND((*ctx)->parsers, p);
 	}
 
@@ -120,8 +132,12 @@ INA_API(ina_rc_t) ina_xml_destroy(ina_xml_ctx_t **ctx)
 
     DL_FOREACH_SAFE(c->parsers, p, ptmp) {
         rapidxml_parser_destroy(&p->doc);
+        if (p->fctx != NULL) {
+            ina_file_destroy(&p->fctx);
+        }
         if (!(*ctx)->mp) {
             ina_mempool_release(p->elem_pool, INA_YES);
+            ina_mempool_release(p->parse_pool, INA_YES);
         }
         DL_DELETE(c->parsers, p);
         if (!(*ctx)->mp) {
@@ -161,6 +177,7 @@ INA_API(ina_rc_t) ina_xml_parser_borrow(ina_xml_ctx_t *ctx, ina_xml_parser_t **p
 
     if (!ctx->mp) {
         ina_mempool_release((*p)->elem_pool, INA_NO);
+        ina_mempool_release((*p)->parse_pool, INA_NO);
     }
 
     return INA_SUCCESS;
@@ -199,6 +216,68 @@ INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, 
 	*root = &p->root;
 	
 	return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_xml_parser_execute_from_file(ina_xml_parser_t *p, 
+                                                   const char *input_file, 
+                                                   ina_xml_elem_t **root)
+{
+    ina_rc_t ret = INA_SUCCESS;
+    ina_str_t source;
+    ina_file_t *file;
+    ina_file_stat_t *file_stat;
+    uint64_t in_size = 0;
+    size_t out_size = 0;
+    int64_t total_size = 0;
+    ina_file_cursor_t *fcur;
+    const char *buffer = NULL;
+    
+    INA_ASSERT_NOTNULL(p);
+
+    if (!INA_SUCCEED(ina_file_new(p->fctx, input_file, 
+        INA_FILE_ACCESS_MODE_READ, 
+        INA_FILE_CREATE_MODE_OPEN, 
+        INA_FILE_SHARE_MODE_READ, 0, &file))) {
+            ret = INA_ERR_PUSH_LAST;
+            goto free;
+    }
+    if (!INA_SUCCEED(ina_file_stat_new(file, &file_stat))) {
+        ret = INA_ERR_PUSH_LAST;
+        goto free;
+    }
+
+    ina_file_stat_file_size(file_stat, &in_size);
+    if (!INA_SUCCEED(ina_file_cursor_new_using_pool(file, 
+        INA_FILE_CURSOR_TYPE_FILEIO, 
+        INA_FILE_CURSOR_MODE_READWRITE_TEXT_CHUNK, 
+        in_size, &fcur, NULL, p->parse_pool))) {
+            ret = INA_ERR_PUSH_LAST;
+            goto free;
+    }
+    while (1) {
+        ina_file_cursor_text_read_chunk(fcur, (size_t)in_size, &out_size, &buffer);
+        total_size += out_size;
+        if (out_size < in_size) {
+            break;
+        } 
+    }
+    source = ina_str_new_fromblk_using_pool(buffer, strlen(buffer), p->parse_pool);
+    ina_file_cursor_free(&fcur);
+
+    if (!INA_SUCCEED(ina_xml_parser_execute(p, source, root))) {
+        ret = INA_ERR_PUSH_LAST;
+        goto free;
+    }
+
+free:
+    if (file_stat != NULL) {
+        ina_file_stat_free(file, &file_stat);
+    }
+    if (file != NULL) {
+        ina_file_free(p->fctx, &file);
+    }
+
+    return ret;
 }
 
 INA_API(ina_rc_t) ina_xml_elem_first(ina_xml_elem_t *elem, ina_xml_elem_t **first)
