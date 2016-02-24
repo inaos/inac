@@ -35,11 +35,17 @@ set(INAC_TESTLIB_NAME "testinac")
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
 	SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DINA_LIB -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED -DINA_LOG_LEVEL=3)	
+	add_definitions(-DINA_LIB -DINA_LOG_ENABLED -DINA_LOG_LEVEL=3)
 else()
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DDEBUG -DTRACE_ENABLED -DINA_LIB -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED -DINA_LOG_LEVEL=4)
+	add_definitions(-DDEBUG -DTRACE_ENABLED -DINA_LIB -DINA_LOG_ENABLED -DINA_LOG_LEVEL=4)
 endif()
+
+if(WIN32)
+	add_definitions(-DINA_OS_WIN32)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
+endif(WIN32)
 
 # BEGIN dependencies
 
@@ -101,9 +107,9 @@ set (LZ4_SRC     ${LZ4_SRC_DIR}/lz4.c ${LZ4_SRC_DIR}/lz4hc.c)
 add_library(${LZ4_LIB_NAME} ${LZ4_SRC})
 
 # Intel cpu-topology
-set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
-set (ICT_SRC     ${ICT_SRC_DIR}/cpu_topo.c ${ICT_SRC_DIR}/util_os.c)
-add_library(${ICT_LIB_NAME} ${ICT_SRC})
+#set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
+#set (ICT_SRC     ${ICT_SRC_DIR}/cpu_topo.c ${ICT_SRC_DIR}/util_os.c)
+#add_library(${ICT_LIB_NAME} ${ICT_SRC})
 
 # Timerwheel
 set (TIMER_WHEEL_SRC_DIR ${DEPS_DIR}/timerwheel)
