@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 
 #include <contribs/hdr-histogram/hdr_histogram.h>
 #include <contribs/hdr-histogram/hdr_histogram_log.h>
+#include <contribs/hdr-histogram/hdr_encoding.h>
 
 #define __INA_HISTOGRAM_ULLC_VERSION    1
 #define __INA_HISTOGRAM_ULLC_SOLTS     16
@@ -59,6 +60,168 @@ struct ina_histogram_serializer_s {
 struct ina_histogram_reporter_s {
     struct hdr_log_reader reader;
 };
+
+#define FAIL_AND_CLEANUP(label, error_name, error) \
+    do                      \
+    {                       \
+        error_name = error; \
+        goto label;         \
+    }                       \
+    while (0)
+
+static int realloc_buffer(
+    void** buffer, size_t nmemb, ssize_t size)
+{
+    size_t len = nmemb * size;
+    if (NULL == *buffer)
+    {
+        *buffer = malloc(len);
+    }
+    else
+    {
+        *buffer = realloc(*buffer, len);
+    }
+
+    if (NULL == *buffer)
+    {
+        return ENOMEM;
+    }
+    else
+    {
+        memset(*buffer, 0, len);
+        return 0;
+    }
+}
+
+static void update_timespec(hdr_timespec* ts, int time_s, int time_ms)
+{
+    if (NULL == ts)
+    {
+        return;
+    }
+
+    ts->tv_sec = time_s;
+    ts->tv_nsec = time_ms * 1000000;
+}
+
+int __hdr_log_read_str(
+    struct hdr_log_reader* reader, ina_str_t str_line, struct hdr_histogram** histogram,
+    struct timespec* timestamp, struct timespec* interval)
+{
+    const char* format = "%d.%d,%d.%d,%d.%d,%s";
+    char* base64_histogram = NULL;
+    uint8_t* compressed_histogram = NULL;
+    int result = 0;
+
+    int begin_s = 0;
+    int begin_ms = 0;
+    int end_s = 0;
+    int end_ms = 0;
+    int interval_max_s = 0;
+    int interval_max_ms = 0;
+    size_t base64_len;
+    size_t compressed_len;
+    int r;
+    int num_tokens;
+
+    ssize_t read = ina_str_len(str_line);
+
+    r = realloc_buffer(
+        (void**)&base64_histogram, sizeof(char), read);
+    if (r != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, ENOMEM);
+    }
+
+    r = realloc_buffer(
+        (void**)&compressed_histogram, sizeof(uint8_t), read);
+    if (r != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, ENOMEM);
+    }
+
+    num_tokens = sscanf(
+        ina_str_cstr(str_line), format, &begin_s, &begin_ms, &end_s, &end_ms,
+        &interval_max_s, &interval_max_ms, base64_histogram);
+
+    if (num_tokens != 7)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, EINVAL);
+    }
+
+    base64_len = strlen(base64_histogram);
+    compressed_len = hdr_base64_decoded_len(base64_len);
+
+    r = hdr_base64_decode(
+        base64_histogram, base64_len, compressed_histogram, compressed_len);
+
+    if (r != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, r);
+    }
+
+    r = hdr_decode_compressed(compressed_histogram, compressed_len, histogram);
+    if (r != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, r);
+    }
+
+    update_timespec(timestamp, begin_s, begin_ms);
+    update_timespec(interval, end_s, end_ms);
+
+cleanup:
+    free(base64_histogram);
+    free(compressed_histogram);
+
+    return result;
+}
+
+static int __hdr_log_write_str(struct hdr_log_writer* writer,
+    ina_str_t *str,
+    const struct timespec* start_timestamp,
+    const struct timespec* end_timestamp,
+    struct hdr_histogram* histogram)
+{
+    uint8_t* compressed_histogram = NULL;
+    size_t compressed_len = 0;
+    char* encoded_histogram = NULL;
+    int rc = 0;
+    int result = 0;
+    size_t encoded_len;
+
+    rc = hdr_encode_compressed(histogram, &compressed_histogram, &compressed_len);
+    if (rc != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, rc);
+    }
+
+    encoded_len = hdr_base64_encoded_len(compressed_len);
+    encoded_histogram = (char*)calloc(encoded_len + 1, sizeof(char));
+
+    rc = hdr_base64_encode(
+        compressed_histogram, compressed_len, encoded_histogram, encoded_len);
+    if (rc != 0)
+    {
+        FAIL_AND_CLEANUP(cleanup, result, rc);
+    }
+
+    *str = ina_str_new(encoded_len+256);
+    if (ina_str_snprintf(&(*str), encoded_len+256,
+        "%d.%d,%d.%d,%"PRIu64".0,%s\n",
+        (int) start_timestamp->tv_sec, (int) (start_timestamp->tv_nsec / 1000000),
+        (int) end_timestamp->tv_sec, (int) (end_timestamp->tv_nsec / 1000000),
+        hdr_max(histogram),
+        encoded_histogram) < 0)
+    {
+        result = EIO;
+    }
+
+cleanup:
+    free(compressed_histogram);
+    free(encoded_histogram);
+
+    return result;
+}
 
 INA_API(ina_rc_t) ina_histogram_recorder_new(ina_histogram_recorder_t **recorder,
                                              ina_str_t id,
@@ -248,7 +411,7 @@ INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t 
         et.tv_sec = (time_t)r->end_ts_ns/1000;
         et.tv_nsec = r->end_ts_ns % 1000;
     
-        hdr_log_write_str(&serializer->writer, record, &st, &et, h);
+        __hdr_log_write_str(&serializer->writer, record, &st, &et, h);
     
         strcpy(meta->free_text1, r->free_text1);
         strcpy(meta->free_text2, r->free_text2);
@@ -285,7 +448,7 @@ INA_API(ina_rc_t) ina_histogram_reporter_print_percentile(ina_histogram_reporter
     struct hdr_histogram *h;
     struct timespec ts, interval;
 
-    hdr_log_read_str(&reporter->reader, record, &h, &ts, &interval);
+    __hdr_log_read_str(&reporter->reader, record, &h, &ts, &interval);
     hdr_percentiles_print(h, stream, ticks_per_half_distance, value_scale, CLASSIC);
 
     return INA_SUCCESS;

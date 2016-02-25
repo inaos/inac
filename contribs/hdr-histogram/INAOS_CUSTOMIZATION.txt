@@ -1,0 +1,20 @@
+1) We replaced zlib with miniz
+
+   - Remove zlib include from hdr_histogram_log.c
+   - Add miniz header: #include <contribs/miniz/miniz.h> 
+
+2) Export utility functions in hdr_histogram_log.h
+
+Add the followings lines at the end of the hdr_histogram_log.h header
+
+/* private */
+int hdr_encode_compressed(
+    struct hdr_histogram* h,
+    uint8_t** compressed_histogram,
+    size_t* compressed_len);
+
+int hdr_decode_compressed(
+    uint8_t* buffer, size_t length, struct hdr_histogram** histogram);   
+
+Make sure to maintain this file when upgrading hdr-histogram!
+
