@@ -22,8 +22,13 @@
 #define HDR_ENCODED_INPUT_TOO_LONG -29990
 
 #include <stdint.h>
-#include <stdbool.h>
 #include <stdio.h>
+
+#ifdef WIN32
+#include "c89_compat.h"
+#else
+#include <stdbool.h>
+#endif
 
 #include "hdr_time.h"
 #include "hdr_histogram.h"

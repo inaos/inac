@@ -20,6 +20,9 @@ static double s_clockPeriod = 1.0;
 void hdr_gettime(hdr_timespec* t)
 {
     LARGE_INTEGER num;
+    double seconds;
+    double integral;
+    double remainder;
     /* if this is distasteful, we can add in an hdr_time_init() */
     if (!s_clockPeriodSet)
     {
@@ -29,9 +32,9 @@ void hdr_gettime(hdr_timespec* t)
     }
 
     QueryPerformanceCounter(&num);
-    double seconds = num.QuadPart * s_clockPeriod;
-    double integral;
-    double remainder = modf(seconds, &integral);
+    seconds = num.QuadPart * s_clockPeriod;
+    integral;
+    remainder = modf(seconds, &integral);
 
     t->tv_sec  = (long) integral;
     t->tv_nsec = (long) (remainder * 1000000000);

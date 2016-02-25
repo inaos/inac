@@ -6,14 +6,19 @@
 #include <stddef.h>
 #include <math.h>
 
+#ifdef WIN32
+#pragma warning(disable: 4146)
+#endif
+
 #include "hdr_encoding.h"
 
 int zig_zag_encode_i64(uint8_t* buffer, int64_t signed_value)
 {
     int64_t value = signed_value;
+    int bytesWritten;
 
     value = (value << 1) ^ (value >> 63);
-    int bytesWritten = 0;
+    bytesWritten = 0;
     if (value >> 7 == 0)
     {
         buffer[0] = (uint8_t) value;
@@ -255,19 +260,21 @@ void hdr_base64_encode_block(const uint8_t* input, char* output)
 int hdr_base64_encode(
     const uint8_t* input, size_t input_len, char* output, size_t output_len)
 {
+    size_t i = 0;
+    size_t j = 0;
+    size_t remaining;
+
     if (hdr_base64_encoded_len(input_len) != output_len)
     {
         return EINVAL;
     }
 
-    size_t i = 0;
-    size_t j = 0;
     for (; input_len - i >= 3 && j < output_len; i += 3, j += 4)
     {
         hdr_base64_encode_block(&input[i], &output[j]);
     }
 
-    size_t remaining = input_len - i;
+    remaining = input_len - i;
 
     hdr_base64_encode_block_pad(&input[i], &output[j], remaining);
 

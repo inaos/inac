@@ -11,8 +11,13 @@
 #define HDR_HISTOGRAM_H 1
 
 #include <stdint.h>
-#include <stdbool.h>
 #include <stdio.h>
+
+#ifdef WIN32
+#include "c89_compat.h"
+#else
+#include <stdbool.h>
+#endif
 
 struct hdr_histogram
 {

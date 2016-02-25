@@ -31,6 +31,7 @@
 #include <contribs/hdr-histogram/hdr_histogram.h>
 #include <contribs/hdr-histogram/hdr_histogram_log.h>
 #include <contribs/hdr-histogram/hdr_encoding.h>
+#include <contribs/hdr-histogram/hdr_time.h>
 
 #define __INA_HISTOGRAM_ULLC_VERSION    1
 #define __INA_HISTOGRAM_ULLC_SOLTS     16
@@ -69,6 +70,10 @@ struct ina_histogram_reporter_s {
     }                       \
     while (0)
 
+#ifdef INA_OS_WIN32
+typedef SSIZE_T ssize_t;
+#endif
+
 static int realloc_buffer(
     void** buffer, size_t nmemb, ssize_t size)
 {
@@ -106,7 +111,7 @@ static void update_timespec(hdr_timespec* ts, int time_s, int time_ms)
 
 int __hdr_log_read_str(
     struct hdr_log_reader* reader, ina_str_t str_line, struct hdr_histogram** histogram,
-    struct timespec* timestamp, struct timespec* interval)
+    hdr_timespec* timestamp, hdr_timespec* interval)
 {
     const char* format = "%d.%d,%d.%d,%d.%d,%s";
     char* base64_histogram = NULL;
@@ -178,8 +183,8 @@ cleanup:
 
 static int __hdr_log_write_str(struct hdr_log_writer* writer,
     ina_str_t *str,
-    const struct timespec* start_timestamp,
-    const struct timespec* end_timestamp,
+    const hdr_timespec* start_timestamp,
+    const hdr_timespec* end_timestamp,
     struct hdr_histogram* histogram)
 {
     uint8_t* compressed_histogram = NULL;
@@ -207,7 +212,11 @@ static int __hdr_log_write_str(struct hdr_log_writer* writer,
 
     *str = ina_str_new(encoded_len+256);
     if (ina_str_snprintf(&(*str), encoded_len+256,
+#ifdef INA_OS_WIN32
+        "%d.%d,%d.%d,%I64u.0,%s\n",
+#else
         "%d.%d,%d.%d,%"PRIu64".0,%s\n",
+#endif
         (int) start_timestamp->tv_sec, (int) (start_timestamp->tv_nsec / 1000000),
         (int) end_timestamp->tv_sec, (int) (end_timestamp->tv_nsec / 1000000),
         hdr_max(histogram),
@@ -404,11 +413,11 @@ INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t 
     
     if (r != NULL) {
         struct hdr_histogram *h = (struct hdr_histogram*)r->data;
-        struct timespec st, et;
+        hdr_timespec st, et;
 
-        st.tv_sec = (time_t)r->start_ts_ns/1000;
+        st.tv_sec = (long)r->start_ts_ns/1000;
         st.tv_nsec = r->start_ts_ns % 1000;
-        et.tv_sec = (time_t)r->end_ts_ns/1000;
+        et.tv_sec = (long)r->end_ts_ns/1000;
         et.tv_nsec = r->end_ts_ns % 1000;
     
         __hdr_log_write_str(&serializer->writer, record, &st, &et, h);
@@ -446,7 +455,7 @@ INA_API(ina_rc_t) ina_histogram_reporter_print_percentile(ina_histogram_reporter
                                                           double value_scale)
 {
     struct hdr_histogram *h;
-    struct timespec ts, interval;
+    hdr_timespec ts, interval;
 
     __hdr_log_read_str(&reporter->reader, record, &h, &ts, &interval);
     hdr_percentiles_print(h, stream, ticks_per_half_distance, value_scale, CLASSIC);

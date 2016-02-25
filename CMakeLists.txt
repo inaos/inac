@@ -118,7 +118,10 @@ add_library(${TIMER_WHEEL_LIB_NAME} ${TIMER_WHEEL_SRC})
 
 # Hdr Histogram
 set (HDR_HISTOGRAM_SRC_DIR ${DEPS_DIR}/hdr-histogram)
-set (HDR_HISTOGRAM_SRC ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram.c ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram_log.c)
+set (HDR_HISTOGRAM_SRC ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram.c 
+                       ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram_log.c
+					   ${HDR_HISTOGRAM_SRC_DIR}/hdr_encoding.c
+					   ${HDR_HISTOGRAM_SRC_DIR}/hdr_time.c)
 add_library(${HDR_HISTOGRAM_LIB_NAME} ${HDR_HISTOGRAM_SRC})
 
 # xxhash

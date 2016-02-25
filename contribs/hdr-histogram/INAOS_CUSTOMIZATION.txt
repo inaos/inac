@@ -18,3 +18,30 @@ int hdr_decode_compressed(
 
 Make sure to maintain this file when upgrading hdr-histogram!
 
+3) Adding C89 compat header, include with ifdef in:
+- hdr_histogram.h
+- hdr_histogram.c
+- hdr_histogram_log.h
+- hdr_histogram_log.c
+
+4) Exclude <insttypes.h> for Windows with ifdef
+- hdr_histogram.c
+- hdr_histogram_log.c
+
+5) Exchange PRIu64 with %I64u for Windows in the following files:
+- hdr_histogram.c
+- hdr_histogram_log.c
+
+6) Disable Warning in hdr_encoding.c
+
+#ifdef WIN32
+#pragma warning(disable: 4146)
+#endif
+
+NOTE: check if this is still necessary in the next update
+
+7) Remove "#pragma comment(lib, "ws2_32.lib")" from hdr_histogram_log.c since we anyway have that included in all our apps
+
+8) MAKE ALL FILES C89 compliant because Visual Studio will complain if not
+
+WARNING: This is quite a messy and time-consuming excercise, takes ~ 1h

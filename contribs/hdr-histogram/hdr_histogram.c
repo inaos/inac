@@ -5,14 +5,21 @@
  */
 
 #include <stdlib.h>
-#include <stdbool.h>
+
 #include <math.h>
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
+
+#ifdef WIN32
+#include <intrin.h>
+#include "c89_compat.h"
+#else
+#include <stdbool.h>
 #include <inttypes.h>
+#endif
 
 #include "hdr_histogram.h"
 
@@ -26,13 +33,16 @@
 
 static int32_t normalize_index(const struct hdr_histogram* h, int32_t index)
 {
+    int32_t normalized_index;
+    int32_t adjustment;
+
     if (h->normalizing_index_offset == 0)
     {
         return index;
     }
 
-    int32_t normalized_index = index - h->normalizing_index_offset;
-    int32_t adjustment = 0;
+    normalized_index = index - h->normalizing_index_offset;
+    adjustment = 0;
 
     if (normalized_index < 0)
     {
@@ -89,15 +99,27 @@ static int64_t power(int64_t base, int64_t exp)
 }
 
 #if defined(_MSC_VER)
-#pragma intrinsic(_BitScanReverse64)
+__inline int32_t hdr_bsr64(uint64_t x) {
+  unsigned long index;
+  // On 32-bit this needs to be split into two operations
+  char isNonzero = _BitScanReverse(&index, (unsigned long)(x >> 32));
+  if (isNonzero)
+    return index + 32 + 1;
+  else {
+    // Scan the last 32 bits by truncating the 64-bit value
+    isNonzero = _BitScanReverse(&index, (unsigned long)x);
+    if (isNonzero)
+      return index + 1;
+    else
+      return 0;
+  }
+}
 #endif
 
 static int32_t get_bucket_index(const struct hdr_histogram* h, int64_t value)
 {
 #if defined(_MSC_VER)
-    uint32_t leading_zero = 0;
-	_BitScanReverse64(&leading_zero, value | h->sub_bucket_mask);
-	int32_t pow2ceiling = 64 - (63 - leading_zero); // smallest power of 2 containing value
+	int32_t pow2ceiling = hdr_bsr64(value | h->sub_bucket_mask);
 #else
     int32_t pow2ceiling = 64 - __builtin_clzll(value | h->sub_bucket_mask); // smallest power of 2 containing value
 #endif
@@ -262,6 +284,9 @@ int hdr_calculate_bucket_config(
         int significant_figures,
         struct hdr_histogram_bucket_config* cfg)
 {
+    int64_t largest_value_with_single_unit_resolution;
+    int32_t sub_bucket_count_magnitude;
+
     if (lowest_trackable_value < 1 ||
             significant_figures < 1 || 5 < significant_figures)
     {
@@ -276,8 +301,8 @@ int hdr_calculate_bucket_config(
     cfg->significant_figures = significant_figures;
     cfg->highest_trackable_value = highest_trackable_value;
 
-    int64_t largest_value_with_single_unit_resolution = 2 * power(10, significant_figures);
-    int32_t sub_bucket_count_magnitude = (int32_t) ceil(log((double)largest_value_with_single_unit_resolution) / log(2));
+    largest_value_with_single_unit_resolution = 2 * power(10, significant_figures);
+    sub_bucket_count_magnitude = (int32_t) ceil(log((double)largest_value_with_single_unit_resolution) / log(2));
     cfg->sub_bucket_half_count_magnitude = ((sub_bucket_count_magnitude > 1) ? sub_bucket_count_magnitude : 1) - 1;
 
     cfg->unit_magnitude = (int32_t) floor(log((double)lowest_trackable_value) / log(2));
@@ -319,15 +344,16 @@ int hdr_init(
         struct hdr_histogram** result)
 {
     struct hdr_histogram_bucket_config cfg;
-
+    size_t histogram_size;
+    struct hdr_histogram* histogram;
     int r = hdr_calculate_bucket_config(lowest_trackable_value, highest_trackable_value, significant_figures, &cfg);
     if (r)
     {
         return r;
     }
 
-    size_t histogram_size           = sizeof(struct hdr_histogram) + cfg.counts_len * sizeof(int64_t);
-    struct hdr_histogram* histogram = malloc(histogram_size);
+    histogram_size           = sizeof(struct hdr_histogram) + cfg.counts_len * sizeof(int64_t);
+    histogram = malloc(histogram_size);
 
     if (!histogram)
     {
@@ -380,12 +406,14 @@ bool hdr_record_value(struct hdr_histogram* h, int64_t value)
 
 bool hdr_record_values(struct hdr_histogram* h, int64_t value, int64_t count)
 {
+    int32_t counts_index;
+
     if (value < 0)
     {
         return false;
     }
-
-    int32_t counts_index = counts_index_for(h, value);
+    
+    counts_index = counts_index_for(h, value);
 
     if (counts_index < 0 || h->counts_len <= counts_index)
     {
@@ -406,6 +434,8 @@ bool hdr_record_corrected_value(struct hdr_histogram* h, int64_t value, int64_t 
 
 bool hdr_record_corrected_values(struct hdr_histogram* h, int64_t value, int64_t count, int64_t expected_interval)
 {
+    int64_t missing_value;
+
     if (!hdr_record_values(h, value, count))
     {
         return false;
@@ -416,7 +446,7 @@ bool hdr_record_corrected_values(struct hdr_histogram* h, int64_t value, int64_t
         return true;
     }
 
-    int64_t missing_value = value - expected_interval;
+    missing_value = value - expected_interval;
     for (; missing_value >= expected_interval; missing_value -= expected_interval)
     {
         if (!hdr_record_values(h, missing_value, count))
@@ -431,8 +461,8 @@ bool hdr_record_corrected_values(struct hdr_histogram* h, int64_t value, int64_t
 int64_t hdr_add(struct hdr_histogram* h, const struct hdr_histogram* from)
 {
     struct hdr_iter iter;
-    hdr_iter_recorded_init(&iter, from);
     int64_t dropped = 0;
+    hdr_iter_recorded_init(&iter, from);
 
     while (hdr_iter_next(&iter))
     {
@@ -452,8 +482,8 @@ int64_t hdr_add_while_correcting_for_coordinated_omission(
         struct hdr_histogram* h, struct hdr_histogram* from, int64_t expected_interval)
 {
     struct hdr_iter iter;
-    hdr_iter_recorded_init(&iter, from);
     int64_t dropped = 0;
+    hdr_iter_recorded_init(&iter, from);
     
     while (hdr_iter_next(&iter))
     {
@@ -502,14 +532,17 @@ int64_t hdr_min(const struct hdr_histogram* h)
 
 int64_t hdr_value_at_percentile(const struct hdr_histogram* h, double percentile)
 {
+    double requested_percentile;
+    int64_t count_at_percentile;
+    int64_t total;
     struct hdr_iter iter;
     hdr_iter_init(&iter, h);
 
-    double requested_percentile = percentile < 100.0 ? percentile : 100.0;
-    int64_t count_at_percentile =
+    requested_percentile = percentile < 100.0 ? percentile : 100.0;
+    count_at_percentile =
         (int64_t) (((requested_percentile / 100) * h->total_count) + 0.5);
     count_at_percentile = count_at_percentile > 1 ? count_at_percentile : 1;
-    int64_t total = 0;
+    total = 0;
 
     while (hdr_iter_next(&iter))
     {
@@ -725,12 +758,15 @@ static bool _percentile_iter_next(struct hdr_iter* iter)
         if (iter->count != 0 &&
                 percentiles->percentile_to_iterate_to <= current_percentile)
         {
+            int64_t temp;
+            int64_t half_distance;
+            int64_t percentile_reporting_ticks;
             _update_iterated_values(iter, highest_equivalent_value(iter->h, iter->value));
 
             percentiles->percentile = percentiles->percentile_to_iterate_to;
-            int64_t temp = (int64_t)(log(100 / (100.0 - (percentiles->percentile_to_iterate_to))) / log(2)) + 1;
-            int64_t half_distance = (int64_t) pow(2, (double) temp);
-            int64_t percentile_reporting_ticks = percentiles->ticks_per_half_distance * half_distance;
+            temp = (int64_t)(log(100 / (100.0 - (percentiles->percentile_to_iterate_to))) / log(2)) + 1;
+            half_distance = (int64_t) pow(2, (double) temp);
+            percentile_reporting_ticks = percentiles->ticks_per_half_distance * half_distance;
             percentiles->percentile_to_iterate_to += 100.0 / percentile_reporting_ticks;
 
             return true;
@@ -947,21 +983,32 @@ static const char* format_head_string(format_type format)
     }
 }
 
+#ifdef WIN32
+static const char CLASSIC_FOOTER[] =
+    "#[Mean    = %12.3f, StdDeviation   = %12.3f]\n"
+    "#[Max     = %12.3f, Total count    = %12.I64u]\n"
+    "#[Buckets = %12d, SubBuckets     = %12d]\n";
+#else
 static const char CLASSIC_FOOTER[] =
     "#[Mean    = %12.3f, StdDeviation   = %12.3f]\n"
     "#[Max     = %12.3f, Total count    = %12" PRIu64 "]\n"
     "#[Buckets = %12d, SubBuckets     = %12d]\n";
+#endif
 
 int hdr_percentiles_print(
         struct hdr_histogram* h, FILE* stream, int32_t ticks_per_half_distance,
         double value_scale, format_type format)
 {
     char line_format[25];
-    format_line_string(line_format, 25, h->significant_figures, format);
-    const char* head_format = format_head_string(format);
-    int rc = 0;
-
+    const char* head_format;
     struct hdr_iter iter;
+    int rc = 0;
+    struct hdr_iter_percentiles *percentiles;
+
+    format_line_string(line_format, 25, h->significant_figures, format);
+    head_format = format_head_string(format);
+    
+    
     hdr_iter_percentile_init(&iter, h, ticks_per_half_distance);
 
     if (fprintf(
@@ -972,7 +1019,7 @@ int hdr_percentiles_print(
         goto cleanup;
     }
 
-    struct hdr_iter_percentiles * percentiles = &iter.specifics.percentiles;
+    percentiles = &iter.specifics.percentiles;
     while (hdr_iter_next(&iter))
     {
         double  value               = iter.highest_equivalent_value / value_scale;
