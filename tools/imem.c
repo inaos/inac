@@ -104,8 +104,10 @@ int main(int argc,  char** argv)
 {
     size_t test_array_size;
     int test_iter;
+    int core;
 
     INA_OPTS(opt,
+        INA_OPT_INT("c", "cpu", 0, "CPU id to pin"),
         INA_OPT_FLAG("b", "bandwidth", "Test memory bandwidth"),
         INA_OPT_INT("s", "size", 1, "Test-Array size in Mbyte"),
         INA_OPT_INT("i", "iterations", 10, "Number of test iterations"),
@@ -123,6 +125,10 @@ int main(int argc,  char** argv)
 
     ina_opt_get_int("s", (int*)&test_array_size);
     ina_opt_get_int("i", &test_iter);
+    ina_opt_get_int("c", &core);
+
+    printf("Pinning process to core: %d\n", core);
+    ina_cpu_pin_to_core(core);
 
     if (INA_SUCCEED(ina_opt_isset("b"))) {
         if (!INA_SUCCEED(__run_memcpy_test(test_iter, test_array_size))) {
