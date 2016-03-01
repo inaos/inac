@@ -107,9 +107,11 @@ set (LZ4_SRC     ${LZ4_SRC_DIR}/lz4.c ${LZ4_SRC_DIR}/lz4hc.c)
 add_library(${LZ4_LIB_NAME} ${LZ4_SRC})
 
 # Intel cpu-topology
-#set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
-#set (ICT_SRC     ${ICT_SRC_DIR}/cpu_topo.c ${ICT_SRC_DIR}/util_os.c)
-#add_library(${ICT_LIB_NAME} ${ICT_SRC})
+if(WIN32)
+set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
+set (ICT_SRC     ${ICT_SRC_DIR}/cpu_topo.c ${ICT_SRC_DIR}/util_os.c)
+add_library(${ICT_LIB_NAME} ${ICT_SRC})
+endif(WIN32)
 
 # Timerwheel
 set (TIMER_WHEEL_SRC_DIR ${DEPS_DIR}/timerwheel)
