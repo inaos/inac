@@ -40,9 +40,11 @@
 #include <unistd.h>
 #include <ifaddrs.h>
 #include <net/if.h>
-#include <net/if_dl.h>
 #endif
 
+#ifdef INA_OS_OSX
+#include <net/if_dl.h>
+#endif
 
 #include <contribs/anet/anet.h>
 
