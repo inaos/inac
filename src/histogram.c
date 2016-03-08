@@ -240,7 +240,7 @@ INA_API(ina_rc_t) ina_histogram_recorder_new(ina_histogram_recorder_t **recorder
 {
     *recorder = (ina_histogram_recorder_t*)ina_mem_alloc(sizeof(ina_histogram_recorder_t));
 
-    ina_str_cpy((*recorder)->id, id);
+    (*recorder)->id = ina_str_dup(id);
     
     if (!INA_SUCCEED(ina_timer_init(&(*recorder)->timer))) {
         return INA_ERR_PUSH_LAST;
@@ -259,7 +259,8 @@ INA_API(ina_rc_t) ina_histogram_recorder_new(ina_histogram_recorder_t **recorder
     }
 
     if (hdr_init(1, highest_trackable_value, significant_figures, &(*recorder)->hist) != 0) {
-        /* FIXME: return error */
+        /* FIXME: return proper error */
+        return INA_FAILURE;
     }
 
     (*recorder)->phase = ina_timer_create_event((*recorder)->timer, sample_interval_ms);
@@ -343,11 +344,19 @@ INA_API(ina_rc_t) ina_histogram_recorder_process(ina_histogram_recorder_t *recor
     /* phase change */
     if (e && e->id == recorder->phase->id) {
         ina_histogram_record_t *r = INA_ULLC_CLAIM(ina_histogram_record_t, recorder->producer);
-        ina_mem_cpy(r->data, recorder->hist, sizeof(recorder->hist));
-        strcpy(r->free_text1, ina_str_cstr(recorder->free_text1));
-        strcpy(r->free_text2, ina_str_cstr(recorder->free_text2));
-        strcpy(r->free_text3, ina_str_cstr(recorder->free_text3));
-        strcpy(r->free_text4, ina_str_cstr(recorder->free_text4));
+        ina_mem_cpy(r->data, recorder->hist, sizeof(struct hdr_histogram));
+        if (recorder->free_text1 != NULL) {
+            strcpy(r->free_text1, ina_str_cstr(recorder->free_text1));
+        }
+        if (recorder->free_text2 != NULL) {
+            strcpy(r->free_text2, ina_str_cstr(recorder->free_text2));
+        }
+        if (recorder->free_text3 != NULL) {
+            strcpy(r->free_text3, ina_str_cstr(recorder->free_text3));
+        }
+        if (recorder->free_text4 != NULL) {
+            strcpy(r->free_text4, ina_str_cstr(recorder->free_text4));
+        }
         r->start_ts_ns = recorder->start_ns;
         r->end_ts_ns = time_ns;
         INA_ULLC_COMMIT(recorder->producer);
@@ -365,7 +374,7 @@ INA_API(ina_rc_t) ina_histogram_serializer_new(ina_histogram_serializer_t **seri
 {
     *serializer = (ina_histogram_serializer_t*)ina_mem_alloc(sizeof(ina_histogram_serializer_t));
 
-    ina_str_cpy((*serializer)->id, id);
+    (*serializer)->id = ina_str_dup(id);
 
     if (!INA_SUCCEED(INA_ULLC_PRODUCER_CREATE(
         ina_histogram_record_t,
@@ -410,7 +419,8 @@ INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t 
                                                      ina_histogram_meta_t *meta)
 {
     ina_histogram_record_t *r = INA_ULLC_GET(ina_histogram_record_t, serializer->consumer);
-    
+    *record = NULL;
+
     if (r != NULL) {
         struct hdr_histogram *h = (struct hdr_histogram*)r->data;
         hdr_timespec st, et;
@@ -426,8 +436,11 @@ INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t 
         strcpy(meta->free_text2, r->free_text2);
         strcpy(meta->free_text3, r->free_text3);
         strcpy(meta->free_text4, r->free_text4);
+
+        return INA_SUCCESS;
     }
-    return INA_SUCCESS;
+
+    return INA_EAGAIN;
 }
 
 
