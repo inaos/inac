@@ -30,25 +30,27 @@
 static const char* __dir_entries[] = {
         ".",
         "..",
-        ".git",
-        ".gitignore",
-        ".idea",
-        "CMakeLists.txt",
-        "contribs",
-        "contribs-bin",
-        "COPYING",
-        "doc",
-        "etc",
-        "include",
-        "INSTALL",
-        "make.bat",
+        "anet",
+        "axtls",
+        "bstring",
+        "cpu-topology",
+        "falkhash",
+        "hdr-histogram",
+        "http-parser",
+        "luajit",
+        "luatest",
+        "lz4",
         "Makefile",
-        "NEWS",
-        "README.md",
-        "script",
-        "src",
-        "tests",
-        "tools"
+        "memhash",
+        "miniz",
+        "patches",
+        "rapidxml",
+        "sds",
+        "skiplist",
+        "sqlite",
+        "timerwheel",
+        "xxhash",
+        "yajl"
 };
 
 
@@ -89,7 +91,11 @@ INA_TEST(dir, test_sorted_by_name)
     const ina_dir_entry_t *e;
     size_t i = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("../", &w));
+#ifdef INA_OS_WIN32
+    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("../../contribs", &w));
+#else
+    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("../contribs", &w));
+#endif
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_set_sort_order(w, INA_DIR_SORT_ORDER_ASCEND));
     while (INA_SUCCEED(ina_dir_walker_get_next_entry(w, &e)) && i < sizeof(__dir_entries)/sizeof(char*)) {
@@ -152,7 +158,11 @@ INA_TEST(dir, test_reload)
     ina_dir_walker_t *w = NULL;
     const ina_dir_entry_t *e;
 
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("../", &w));
+#ifdef INA_OS_WIN32
+    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("../../contribs", &w));
+#else
+    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("../contribs", &w));
+#endif
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_set_sort_order(w, INA_DIR_SORT_ORDER_ASCEND));
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_get_next_entry(w, &e));
@@ -161,7 +171,7 @@ INA_TEST(dir, test_reload)
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_reload(w));
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_set_sort_order(w, INA_DIR_SORT_ORDER_DESCEND));
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_get_next_entry(w, &e));
-    INA_TEST_ASSERT_EQUAL_STR("tools", e->name);
+    INA_TEST_ASSERT_EQUAL_STR("yajl", e->name);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_free(&w));
     INA_TEST_ASSERT_NULL(w);
 }
