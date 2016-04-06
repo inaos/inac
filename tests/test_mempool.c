@@ -163,8 +163,6 @@ INA_TEST(mempool, nalloc_fixed)
 INA_TEST(mempool, dalloc)
 {
     ina_mempool_t *pool;
-    ina_mempool_info_t info;
-
     char *buf;
 
     ina_err_reset();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2013,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,6 +100,26 @@ INA_TEST(xml_init, parser_borrow) {
     INA_TEST_ASSERT_NULL(ctx);
 }
 
+INA_TEST(xml_file, parse_file)
+{
+    ina_xml_ctx_t *ctx = NULL;
+    ina_xml_parser_t *p;
+    ina_xml_elem_t *root = NULL;
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_init(&ctx, 1));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_borrow(ctx, &p));
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute_from_file(p, "test_xml.xml", &root));
+
+    INA_TEST_ASSERT_NOT_NULL(root);
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_release(ctx, &p));
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
+}
+
 INA_TEST_DATA(xml) {
     ina_xml_ctx_t *ctx;
     ina_xml_parser_t *parser;
@@ -175,6 +195,7 @@ INA_TEST_FIXTURE(xml, elem_next)
     INA_TEST_ASSERT_NULL(value);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, len);
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_first(data->itr, &data->itr));
+    c++;
     while (INA_SUCCEED(ina_xml_elem_next(data->itr, &data->itr))) {
         c++;
     }
@@ -263,6 +284,7 @@ INA_TEST_FIXTURE(xml, attr_next)
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_first(data->itr, &data->itr));
     INA_TEST_ASSERT_SUCCEED(ina_xml_elem_attr_first(data->itr, &attr));
     INA_TEST_ASSERT_NOT_NULL(attr);
+    c++;
     while (INA_SUCCEED(ina_xml_attr_next(attr, &attr))) {
         c++;
     }

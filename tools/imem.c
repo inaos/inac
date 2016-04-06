@@ -28,15 +28,15 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-static long *__test_array_a = NULL;
-static long *__test_array_b = NULL;
+static size_t *__test_array_a = NULL;
+static size_t *__test_array_b = NULL;
 
-static ina_rc_t __allocate_test_array(long **test_array, size_t test_array_size)
+static ina_rc_t __allocate_test_array(size_t **test_array, size_t test_array_size)
 {
     size_t i;
-    size_t array_size = 1024*1024/sizeof(long)*test_array_size;
-
-    *test_array = (long*)calloc(array_size, sizeof(long));
+    size_t array_size = 1024*1024/sizeof(size_t)*test_array_size;
+    printf("array_size=%ld  ", array_size);
+    *test_array = (size_t*)calloc(array_size, sizeof(size_t));
 
     if (*test_array == NULL) {
         return INA_FAILURE;
@@ -52,8 +52,8 @@ static ina_rc_t __allocate_test_array(long **test_array, size_t test_array_size)
 static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
 {
     ina_stopwatch_t *w = NULL;
-    size_t array_size = 1024*1024/sizeof(long)*test_array_size;
-    size_t array_bytes = array_size * sizeof(long);
+    size_t array_size = 1024*1024/sizeof(size_t)*test_array_size;
+    size_t array_bytes = array_size * sizeof(size_t);
     double elapsed_total = 0;
     double mib = test_array_size;
     int i;
@@ -102,10 +102,13 @@ static void ina_cleanup_handler(int error, int *exitcode)
 
 int main(int argc,  char** argv) 
 {
+    int size;
     size_t test_array_size;
     int test_iter;
+    int core;
 
     INA_OPTS(opt,
+        INA_OPT_INT("c", "cpu", -1, "CPU id to pin"),
         INA_OPT_FLAG("b", "bandwidth", "Test memory bandwidth"),
         INA_OPT_INT("s", "size", 1, "Test-Array size in Mbyte"),
         INA_OPT_INT("i", "iterations", 10, "Number of test iterations"),
@@ -121,11 +124,19 @@ int main(int argc,  char** argv)
         ina_time_tsc_enable_rdtsc();
     }
 
-    ina_opt_get_int("s", (int*)&test_array_size);
+    ina_opt_get_int("s", &size);
     ina_opt_get_int("i", &test_iter);
+    ina_opt_get_int("c", &core);
+
+    test_array_size = (size_t)size;
+
+    if (core >= 0) {
+        printf("Pinning process to core: %d\n", core);
+        ina_cpu_pin_to_core(core);
+    }
 
     if (INA_SUCCEED(ina_opt_isset("b"))) {
-        if (!INA_SUCCEED(__run_memcpy_test(test_iter, test_array_size))) {
+        if (!INA_SUCCEED(__run_memcpy_test(test_iter, (size_t)test_array_size))) {
             return ina_err_peek();
         }
     }

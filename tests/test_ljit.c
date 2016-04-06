@@ -30,12 +30,12 @@
 #define __INA_TCP_ADDR "127.0.0.1"
 #define __INA_TCP_PORT  8033
 
-INA_TEST_DATA(ljit) {
+INA_TEST_DATA(ljit_ex) {
     ina_test_hid_t echo_hid;
     ina_test_hid_t debug_hid;
 };
 
-INA_TEST_SETUP(ljit) {
+INA_TEST_SETUP(ljit_ex) {
     INA_TEST_HELPER_INVOKE(&data->echo_hid, ljit, lua_echo_server, 
         __INA_TCP_ADDR, 
          INA_NUM2STR(__INA_TCP_PORT),
@@ -43,12 +43,12 @@ INA_TEST_SETUP(ljit) {
     INA_TEST_HELPER_INVOKE(&data->debug_hid, ljit, lua_debug_server, NULL);
 }
 
-INA_TEST_TEARDOWN(ljit) {
+INA_TEST_TEARDOWN(ljit_ex) {
     INA_TEST_HELPER_TERMINATE(&data->echo_hid);
     INA_TEST_HELPER_TERMINATE(&data->debug_hid);
 }
 
-INA_TEST_FIXTURE(ljit, lsocket_echo_client)
+INA_TEST_FIXTURE(ljit_ex, lsocket_echo_client)
 {
     ina_ljit_ctx_t *ctx = NULL;
     int r = 0;
@@ -69,7 +69,7 @@ INA_TEST_FIXTURE(ljit, lsocket_echo_client)
     INA_TEST_ASSERT_NULL(ctx);
 }
 
-INA_TEST_FIXTURE_SKIP(ljit, debug)
+INA_TEST_FIXTURE_SKIP(ljit_ex, debug)
 {
     ina_ljit_ctx_t *ctx = NULL;
 

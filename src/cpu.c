@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, INAOS GmbH
+ * Copyright (c) 2014-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ struct ina_cpu_ctx_s {
     int core_count;
     int thread_count;
     int logical_count;
+    int running_on_vm;
     uint8_t family;
     uint8_t model;
     uint8_t stepping;
@@ -58,6 +59,7 @@ INA_API(ina_rc_t) ina_cpu_init()
     uint8_t stepping, model, family, extmodel, extfam;
     char brandstr[49];
     char cpubrand[49];
+    char hyper_vendor_id[13];
     ina_cpu_feature_t cpufeatures = 0;
     CPUIDinfo info;
 #endif
@@ -71,6 +73,23 @@ INA_API(ina_rc_t) ina_cpu_init()
 #ifdef INA_OS_OSX
     return INA_SUCCESS;
 #else
+    /* check hypervisor */
+    get_cpuid_info(&info, 1, 0);
+    if (info.ECX & (1U << 31)) {
+        get_cpuid_info(&info, 0x40000000, 0);
+        memcpy(hyper_vendor_id + 0, &info.EBX, 4);
+        memcpy(hyper_vendor_id + 4, &info.ECX, 4);
+        memcpy(hyper_vendor_id + 8, &info.EDX, 4);
+        hyper_vendor_id[12] = '\0';
+        if (!strcmp(hyper_vendor_id, "VMwareVMware")) {
+            __ina_cpu_ctx->running_on_vm = 1;
+        }
+    }
+    if (__ina_cpu_ctx->running_on_vm) {
+        /* FIXME: proper error handling */
+        return INA_SUCCESS;
+    }
+
 	/* cpus physical layout */
 	get_cpu_hw_info(&packages, &cores, &threads, &logical);
     __ina_cpu_ctx->package_count = packages;
@@ -443,6 +462,10 @@ INA_API(ina_rc_t) ina_cpu_get_features(ina_cpu_feature_t *features)
 INA_API(ina_rc_t) ina_cpu_get_brand_string(ina_str_t *brand)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    if (__ina_cpu_ctx->running_on_vm) {
+        *brand = NULL;
+        return INA_SUCCESS;
+    }
     *brand = ina_str_dup(__ina_cpu_ctx->brand);
     return INA_SUCCESS;
 }
@@ -453,6 +476,10 @@ INA_API(ina_rc_t) ina_cpu_is_supported(int *supported)
 #ifdef INA_OS_OSX
     *supported = 0;
 #else
+    if (__ina_cpu_ctx->running_on_vm) {
+        *supported = 0;
+        return INA_SUCCESS;
+    }
     if (strcmp(INA_CPU_SUPPORTED_VENDOR, ina_str_cstr(__ina_cpu_ctx->vendor)) == 0) {
         *supported = 1;
     }

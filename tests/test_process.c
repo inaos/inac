@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -199,9 +199,7 @@ INA_TEST_SKIP(process, should_be_running)
 {
     ina_process_ctx_t *ctx;
     ina_process_t *process;
-    int should_be_running;
     ina_process_descriptor_t pd;
-
     
     INA_TEST_ASSERT_SUCCEED(ina_process_init(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -245,4 +243,52 @@ INA_TEST(process, get_exit_code)
     INA_TEST_ASSERT_SUCCEED(ina_process_get_exit_code(process, &exit_code));
     INA_TEST_ASSERT_EQUAL_INTEGER(123, exit_code);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
+}
+
+INA_TEST(process, stat)
+{
+    ina_process_stat_t *ps = NULL;
+    int alive = 0;
+    uint64_t mem = 0;
+    int num_threads = 0;
+    const char *cmd = NULL;
+
+#ifdef INA_OS_WIN32
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "test.exe"));
+#else
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "test"));
+#endif
+    INA_TEST_ASSERT_NOT_NULL(ps);
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_query(ps));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_alive(ps, &alive));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_get_memory(ps, &mem));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_get_cmd(ps, &cmd));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_get_num_threads(ps, &num_threads));
+    INA_TEST_ASSERT_TRUE(alive);
+    INA_TEST_ASSERT_TRUE(mem > 0);
+    INA_TEST_ASSERT_TRUE(num_threads > 0);
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_free(&ps));
+    INA_TEST_ASSERT_NULL(ps);
+
+    alive = 0;
+    mem = 0;
+    num_threads = 0;
+    cmd = NULL;
+
+#ifdef INA_OS_WIN32
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo.exe"));
+#else
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo"));
+#endif
+    INA_TEST_ASSERT_NOT_NULL(ps);
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_query(ps));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_alive(ps, &alive));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_get_memory(ps, &mem));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_get_cmd(ps, &cmd));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_get_num_threads(ps, &num_threads));
+    INA_TEST_ASSERT_FALSE(alive);
+    INA_TEST_ASSERT_TRUE(mem == 0);
+    INA_TEST_ASSERT_TRUE(num_threads == 0);
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_free(&ps));
+    INA_TEST_ASSERT_NULL(ps);
 }

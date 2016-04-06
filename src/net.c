@@ -25,7 +25,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifdef WIN32
+#ifdef INA_OS_WIN32
 #include <contribs/anet/redis_win_compat.h>
 #else
 #include <sys/types.h>
@@ -42,11 +42,20 @@
 #include <net/if.h>
 #endif
 
+#ifdef INA_OS_OSX
+#include <net/if_dl.h>
+#endif
+
 #include <contribs/anet/anet.h>
 
 #include <libinac/lib.h>
 
 #include "net_hw.h"
+
+static const char __ina_net_hw_backend_str[][32] = {
+        "SOLARFLARE - OPENONLOAD",
+        "MELLANOX - VMA"
+};
 
 struct ina_net_udp_receiver_s {
     ina_str_t ip;
@@ -416,35 +425,80 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     }
     return INA_SUCCESS;
 }
+#elif INA_OS_OSX
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
+{
+    struct ifaddrs *iflist, *cur;
+
+    int found = INA_NO;
+    if (getifaddrs(&iflist) == 0) {
+        const char *ifa_name = NULL;
+        for (cur = iflist; cur; cur = cur->ifa_next) {
+            struct sockaddr_in *sin = (struct sockaddr_in*)cur->ifa_addr;
+            if ((cur->ifa_addr->sa_family == AF_INET) &&
+                (strcmp(inet_ntoa(sin->sin_addr), ip) == 0) &&
+                cur->ifa_addr) {
+                ifa_name = cur->ifa_name;
+                break;
+            }
+        }
+
+        if (ifa_name) {
+            for (cur = iflist; cur; cur = cur->ifa_next) {
+                if ((cur->ifa_addr->sa_family == AF_LINK) &&
+                    (strcmp(cur->ifa_name, ifa_name) == 0) &&
+                    cur->ifa_addr) {
+                    struct sockaddr_dl* sdl = (struct sockaddr_dl*)cur->ifa_addr;
+                    memcpy(mac, LLADDR(sdl), sdl->sdl_alen);
+                    found = INA_YES;
+                    break;
+                }
+            }
+
+        }
+        freeifaddrs(iflist);
+    }
+    if (found) {
+        return INA_SUCCESS;
+    }
+    return INA_FAILURE;
+}
 #else
 INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
 {
     struct ifaddrs *ifaddr, *ifa;
     struct ifreq ifr;
     int fd;
-    int found = 0;
+    int found = INA_NO;
 
     if (getifaddrs(&ifaddr) == -1) {
         return INA_FAILURE;
     }
+
     for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr->sa_family == AF_INET) {
             struct sockaddr_in *sin = (struct sockaddr_in*)ifa->ifa_addr;
             const char *qip = inet_ntoa(sin->sin_addr);
             if (strcmp(qip, ip) == 0) {
-                found = 1;
+                found = INA_YES;
                 break;
             }
         }
     }
+
     if (!found) {
         freeifaddrs(ifaddr);
         return INA_FAILURE;
     }
+
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     ifr.ifr_addr.sa_family = AF_INET;
     strncpy(ifr.ifr_name, ifa->ifa_name, IFNAMSIZ-1);
-    ioctl(fd, SIOCGIFHWADDR, &ifr);
+    if (ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
+        close(fd);
+        freeifaddrs(ifaddr);
+        return INA_FAILURE;
+    }
     close(fd);
     memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
     freeifaddrs(ifaddr);
@@ -476,21 +530,21 @@ INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int
     return INA_SUCCESS;
 }
 
-INA_API(int) ina_net_hw_support_present_on_os()
+INA_API(ina_rc_t) ina_net_hw_support_present_on_os(void)
 {
 #ifdef INA_OS_LINUX
-    return 1;
+    return INA_SUCCESS;
 #else
-    return 0;
+    return INA_FAILURE;
 #endif
 }
 
 INA_API(ina_rc_t) ina_net_hw_init(ina_net_hw_ctx_t **ctx, ina_net_hw_backend_t backend)
 {
-    const char *name = ina_net_hw_backend_str[backend];
-    
+    INA_ASSERT_NOTNULL(ctx);
+
     *ctx = (ina_net_hw_ctx_t*)ina_mem_alloc(sizeof(ina_net_hw_ctx_t));
-    (*ctx)->name = ina_str_new_fromcstr(name);
+    (*ctx)->name = __ina_net_hw_backend_str[backend];
 
     switch (backend) {
         case INA_NET_HW_BACKEND_SOLARFLARE_ONLOAD:
@@ -504,6 +558,7 @@ INA_API(ina_rc_t) ina_net_hw_init(ina_net_hw_ctx_t **ctx, ina_net_hw_backend_t b
     }
 
     if (!INA_SUCCEED((*ctx)->funcs.enabled_fp(*ctx))) {
+        ina_net_hw_destroy(ctx);
         return INA_ERR_PUSH_LAST;
     }
 
@@ -512,34 +567,41 @@ INA_API(ina_rc_t) ina_net_hw_init(ina_net_hw_ctx_t **ctx, ina_net_hw_backend_t b
 
 INA_API(ina_rc_t) ina_net_hw_destroy(ina_net_hw_ctx_t **ctx)
 {
-    ina_str_free((*ctx)->name);
-    ina_mem_free(*ctx);
+    INA_ASSERT_NOTNULL(ctx);
+    if (*ctx != NULL) {
+        ina_mem_free(*ctx);
+        *ctx =  NULL;
+    }
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_net_hw_set_user_data(ina_net_hw_ctx_t *ctx, void *data)
 {
+    INA_ASSERT_NOTNULL(ctx);
     ctx->data = data;
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_hw_backend_name(ina_net_hw_ctx_t *ctx, ina_str_t *name)
+INA_API(const char*) ina_net_hw_backend_name(const ina_net_hw_ctx_t *ctx)
 {
-    *name = ctx->name;
-    return INA_SUCCESS;
+    INA_ASSERT_NOTNULL(ctx);
+    return ctx->name;
 }
 
 INA_API(ina_rc_t) ina_net_hw_enabled(ina_net_hw_ctx_t *ctx)
 {
+    INA_ASSERT_NOTNULL(ctx);
     return ctx->funcs.enabled_fp(ctx);
 }
 
 INA_API(ina_rc_t) ina_net_hw_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature)
 {
+    INA_ASSERT_NOTNULL(ctx);
     return ctx->funcs.feature_check_fp(ctx, feature);
 }
 
 INA_API(ina_rc_t) ina_net_hw_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias)
 {
+    INA_ASSERT_NOTNULL(ctx);
     return ctx->funcs.accelerate_loopback_fp(ctx, fd, alias);
 }

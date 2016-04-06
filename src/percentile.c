@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ typedef int (*__ina_percentile_heap_cmp_fn)(uint16_t, uint16_t);
 
 typedef struct __ina_percentile_heap_s {
     size_t count;
+    size_t capacity;
     uint16_t *data;
     ina_mempool_t *mem;
     __ina_percentile_heap_cmp_fn cmp;
@@ -61,6 +62,7 @@ static ina_rc_t __ina_percentile_heap_new(__ina_percentile_heap_t **h, ina_mempo
     
     *h = (__ina_percentile_heap_t*)ina_mempool_dalloc(pool, sizeof(__ina_percentile_heap_t));
     (*h)->count = 0;
+    (*h)->capacity = initial_size+1;
     (*h)->mem = pool;
     (*h)->data = (uint16_t*)ina_mempool_dalloc(pool, base_size);
     if (max_heap) {
@@ -82,6 +84,16 @@ static ina_rc_t __ina_percentile_heap_free(__ina_percentile_heap_t **h)
 static ina_rc_t __ina_percentile_heap_push(__ina_percentile_heap_t *h, uint16_t value)
 {
     size_t i, parent;
+
+    /* grow if necessary */
+    if (h->count == h->capacity) {
+        size_t new_size = 0;
+        size_t old_size = h->capacity*sizeof(uint16_t);
+        h->capacity = h->capacity * 2;
+		new_size = h->capacity*sizeof(uint16_t);
+        h->data = ina_mempool_ralloc(h->mem, h->data, old_size, new_size);
+        INA_ASSERT_NOTNULL(h->data);
+    }
 
     for (i = h->count++; i; i = parent) {
         parent = (i - 1) >> 1;
@@ -131,7 +143,7 @@ static ina_rc_t __ina_percentile_heap_front(__ina_percentile_heap_t *h, uint16_t
 
 INA_API(ina_rc_t) ina_percentile_new(ina_percentile_t **p, double percentile, size_t size)
 {
-    size_t lower_size = (size_t)ceil(size * percentile);
+    size_t lower_size = (size_t)floor(size * percentile);
     size_t upper_size = size - lower_size;
  
     *p = (ina_percentile_t*)ina_mem_alloc(sizeof(ina_percentile_t));
@@ -169,23 +181,24 @@ INA_API(ina_rc_t) ina_percentile_add(ina_percentile_t *p, uint16_t value)
         __ina_percentile_heap_push(p->upper, value);
     }
 
-    count_lower = (size_t)ceil((p->lower->count + p->upper->count) * p->percentile);
+    count_lower = (size_t)((p->lower->count + p->upper->count) * p->percentile)+1;
     if (p->lower->count > count_lower) {
         /* lower to upper */
+        __ina_percentile_heap_push(p->upper, *p->lower->data); 
         __ina_percentile_heap_pop(p->lower);
-        __ina_percentile_heap_push(p->upper, value); 
     }
     else if (p->lower->count < count_lower) {
         /* upper to lower */
+        __ina_percentile_heap_push(p->lower, *p->upper->data);
         __ina_percentile_heap_pop(p->upper);
-        __ina_percentile_heap_push(p->lower, value);
     }
+    
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_percentile_get(ina_percentile_t *p, uint16_t *value)
 {
-    __ina_percentile_heap_front(p->upper, value);
+    __ina_percentile_heap_front(p->lower, value);
     return INA_SUCCESS;
 }
 

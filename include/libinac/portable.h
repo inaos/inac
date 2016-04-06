@@ -1195,9 +1195,33 @@ typedef int mode_t;
 #define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
 
 #define INA_MS_MODE_MASK 0x0000ffff  /* low word */
-#endif
+
+
+#define	DT_UNKNOWN   0
+#define	DT_FIFO      1
+#define	DT_CHR       2
+#define	DT_DIR       4
+#define	DT_BLK       6
+#define	DT_REG       8
+#define	DT_LNK      10
+#define	DT_SOCK     12
+#define	DT_WHT      14
+
+typedef struct DIR DIR;
+
+struct dirent {
+	char *d_name;
+    int d_type;
+};
+
+DIR *opendir(const char *name);
+int  closedir(DIR *dir);
+struct dirent *readdir(DIR *dir);
+void  rewinddir(DIR *dir);
 
 #endif
+#endif
+
 
  #ifdef _DEBUG
  #ifndef DEBUG

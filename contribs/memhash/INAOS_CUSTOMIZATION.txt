@@ -1,0 +1,14 @@
+1) We modified the original Makefile
+
+- Added following line: OS := $(shell uname -s)
+- Replace @gcc -g -c gas/x86_64/memhash.s -o memhash.o with following 4 lines
+
+    ifeq ($(OS), Darwin)
+        @gcc -g -c llvm/x86_64/memhash.s -o memhash.o
+    else
+        @gcc -g -c gas/x86_64/memhash.s -o memhash.o
+    endif
+
+
+Make sure to maintain this file when upgrading memhash!
+

@@ -38,6 +38,19 @@ extern "C" {
 /*
  * DESIGN:
  * -------
+ *
+ * Following the creation flags:
+ * - INA_HASHTBL_STATIC:          fixed size hashtable, no growing no shrinking 
+ * - INA_HASHTBL_GROWABLE:        enable growing
+ * - INA_HASHTBL_SHRINKABLE:      enable shrinking
+ * - INA_HASHTBL_PROBE_LINEAR:    when growing use linar growth strategy
+ * - INA_HASHTBL_PROBE_QUADRATIC: when growing use quadratic probing strategy 
+ * - INA_HASHTBL_DOUBLE_HASHING:  use double hashing as growth strategy
+ * Note: INA_HASHTBL_STATIC can NOT be combined with GROWABLE or SHRINKABLE
+ *
+ *
+ *
+ * ------- 
  * 
  * Libraries to consider with regard to features or design:
  * - tommyds (https://github.com/amadvance/tommyds)
@@ -69,12 +82,15 @@ extern "C" {
  *   hashscan utility where the memory of the process is scanned by a different process, this 
  *   process looks for uthash structures and reads its content to analyze stats? can we do this 
  *   efficiently without impacting the running process?
+ *   Another idea would be to use mmap backed memory-pools instead of shared-memory 
+ *   this would simmplify the operational handling.
  *
  * + Maybe we could also record the collisions or is that the dup%?
  *
  * Thoughs about refactoring:
  * - Currently in some places we do double hashing by first hashing the string with sdbm and then adding it to uthash 
  *   which involves a lookup3 hash
+ * - Insert compiler error into uthash
  *
  * TODO:
  * -----
@@ -82,9 +98,20 @@ extern "C" {
  * 1. Investigate open questions:
  *    - Should we use chaining or open addressing? or both by choice and use-case?
  *      Here a post which contains some input in that regard: http://preshing.com/20110603/hash-table-performance-tests/
+ *    - https://en.wikipedia.org/wiki/Hopscotch_hashing?
  *    - What should be a macro and what can be typed c-code?
  *    - We should probably have some fixed size variants and dynamic ones.. if dynamic how to grow:
- *      Quadratic probing, linear probing etc.
+ *      Quadratic probing, double hashing, linear probing etc. is it a concern at all if we use our mempools wisely?
+ *      Or we could support all sorts of different grwoth strategies via different functors and then analyse with 
+ *      which strategy is the best for the given use-case.
+ *    - Should we allow shrikning, in terms of memory? maybe as a special case when space is more 
+ *      critical then performance
+ *    - How to use the inac mempools? one big pool, one pool per bucket
+ *    - How to support shrinking? ina_mempool_realloc?
+ *    - How to support perfect hashing for lookup-tables and such
+ *      -> http://burtleburtle.net/bob/hash/perfect.html
+ *      -> http://www.theiling.de/projects/lookuptable.html
+ *      -> https://github.com/rurban/Perfect-Hash
  *
  * 2. How to benchmark
  *    - must be simple because the real benchmark is alwayls the application
@@ -93,6 +120,21 @@ extern "C" {
  *
  *
  */
+
+/* opaque hash table */
+typedef ina_hashtbl_s ina_hash_tbl_t;
+
+INA_API(ina_rc_t) ina_hashtbl_new();
+
+INA_API(ina_rc_t) ina_hashtbl_free();
+
+INA_API(ina_rc_t) ina_hashtbl_put();
+
+INA_API(ina_rc_t) ina_hashtbl_get();
+
+INA_API(ina_rc_t) ina_hashtbl_del();
+
+INA_API(ina_rc_t) ina_hashtbl_iter();
 
 #ifdef __cplusplus
 }

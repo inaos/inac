@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,12 +42,19 @@ typedef struct ina_xml_attr_s ina_xml_attr_t;
 typedef struct ina_xml_ctx_s {
 	int parser_pool_size;
 	ina_xml_parser_t *parsers;
+    int mp;
 } ina_xml_ctx_t;
 
 /*
  * 
  */
 INA_API(ina_rc_t) ina_xml_init(ina_xml_ctx_t **ctx, int parser_pool_size);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_xml_init_using_pool(ina_xml_ctx_t **ctx, 
+                                          int parser_pool_size, 
+                                          ina_mempool_t *pool);
 /*
  * 
  */
@@ -64,6 +71,10 @@ INA_API(ina_rc_t) ina_xml_parser_release(ina_xml_ctx_t *ctx, ina_xml_parser_t **
  * 
  */
 INA_API(ina_rc_t) ina_xml_parser_execute(ina_xml_parser_t *p, ina_str_t source, ina_xml_elem_t **root);
+/*
+ * 
+ */
+INA_API(ina_rc_t) ina_xml_parser_execute_from_file(ina_xml_parser_t *p, const char *file, ina_xml_elem_t **root);
 /*
  * 
  */

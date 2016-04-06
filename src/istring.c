@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -479,15 +479,14 @@ INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars)
     return str;   
 }
 
-INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
+static int __ina_str_substr_internal(const ina_str_t str, int start, int end, ina_str_hdr_t **hdrptr, size_t *newlenptr)
 {
     ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
-    size_t newlen, len = hdr->len;
-
-    INA_ASSERT_NOTNULL(str);
+    size_t len = hdr->len;
+    size_t newlen = 0;
 
     if (len == 0) {
-        return str;
+        return 0;
     }
     if (start < 0) {
         start = len+start;
@@ -520,6 +519,40 @@ INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
     } else {
         start = 0;
     }
+    *newlenptr = newlen;
+    *hdrptr = hdr;
+    return 1;
+}
+
+INA_API(ina_str_t) ina_str_substr_using_pool(const ina_str_t str, int start, int end, ina_mempool_t *pool)
+{
+    ina_str_hdr_t *hdr;
+    size_t newlen;
+    int ret;
+
+    INA_ASSERT_NOTNULL(str);
+
+    ret = __ina_str_substr_internal(str, start, end, &hdr, &newlen);
+    if (ret == 0) {
+        return str;
+    }
+
+    return ina_str_new_fromblk_using_pool(hdr->data+start, newlen, pool);
+}
+
+INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end)
+{
+    ina_str_hdr_t *hdr;
+    size_t newlen;
+    int ret;
+
+    INA_ASSERT_NOTNULL(str);
+
+    ret = __ina_str_substr_internal(str, start, end, &hdr, &newlen);
+    if (ret == 0) {
+        return str;
+    }
+    
     return ina_str_new_fromblk(hdr->data+start, newlen);
 }
 
@@ -741,6 +774,91 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     }
     va_end(args_copy);
     return l;    
+}
+
+INA_API(ina_rc_t) ina_str_wildcard_match(const ina_str_t tame, const char *wildcard)
+{
+    /* From Dr.Dobbs -> By Kirk J. Krauss, October 07, 2014 */
+
+    const char *pTameBookmark = (char*)0;
+    const char *pWildBookmark = (char*)0;
+    const char *pTameText = ina_str_cstr(tame);
+    const char *pWildText = wildcard;
+ 
+    /* Walk the text strings one character at a time. */
+    while (1) {
+        /* How do you match a unique text string? */
+        if (*pWildText == '*') {
+            // Easy: unique up on it!
+            while (*(++pWildText) == '*') {
+                /* "xy" matches "x**y" */
+            }
+ 
+            if (!*pWildText) {
+                /* "x" matches "*" */
+                return INA_SUCCESS;
+            }
+ 
+            if (*pWildText != '?') {
+                /* Fast-forward to next possible match. */
+                while (*pTameText != *pWildText) {
+                    if (!(*(++pTameText))) {
+                        /* "x" doesn't match "*y*" */
+                        return INA_FAILURE;
+                    }
+                }
+            }
+ 
+            pWildBookmark = pWildText;
+            pTameBookmark = pTameText;
+        }
+        else if (*pTameText != *pWildText && *pWildText != '?') {
+            /* Got a non-match.  If we've set our bookmarks, back up to one 
+               or both of them and retry.
+            */
+            if (pWildBookmark) {
+                if (pWildText != pWildBookmark) {
+                    pWildText = pWildBookmark;
+                    if (*pTameText != *pWildText) {
+                        /* Don't go this far back again. */
+                        pTameText = ++pTameBookmark;
+                        /* "xy" matches "*y" */
+                        continue;
+                    }
+                    else {
+                        pWildText++;
+                    }
+                }
+ 
+                if (*pTameText) {
+                    pTameText++;
+                    /* "mississippi" matches "*sip*" */
+                    continue;
+                }
+            }
+            /* "xy" doesn't match "x" */
+            return INA_FAILURE;
+        }
+ 
+        pTameText++;
+        pWildText++;
+ 
+        /* How do you match a tame text string? */
+        if (!*pTameText) {
+            /* The tame way: unique up on it! */
+            while (*pWildText == '*') {
+                /* "x" matches "x*" */
+                pWildText++;
+            }
+ 
+            if (!*pWildText) {
+                /* "x" matches "x" */
+                return INA_SUCCESS;
+            }
+            /* "x" doesn't match "xy" */
+            return INA_FAILURE;
+        }
+    }
 }
 
 static ina_str_hdr_t* 
