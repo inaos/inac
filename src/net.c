@@ -448,8 +448,8 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
                 if ((cur->ifa_addr->sa_family == AF_LINK) &&
                     (strcmp(cur->ifa_name, ifa_name) == 0) &&
                     cur->ifa_addr) {
-                    struct sockaddr_dl* sdl = (struct sockaddr_dl*)cur->ifa_addr;
-                    memcpy(mac, LLADDR(sdl), sdl->sdl_alen);
+                    /*struct sockaddr_dl* sdl = (struct sockaddr_dl*)cur->ifa_addr;
+                    memcpy(mac, LLADDR(sdl), sdl->sdl_alen);*/
                     found = INA_YES;
                     break;
                 }
