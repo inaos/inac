@@ -418,6 +418,43 @@ typedef struct ina_test_testcase_s {
     void INA_TEST_FNAME(sname, hname)(int *retval, int argc, char **argv)
 
 /* Define test case */
+#ifdef INA_OS_WIN32
+#define INA_TEST_WIN32(sname, tname) INA_TEST(sname, tname)
+#define INA_TEST_SKIP_WIN32(sname, tname) INA_TEST_SKIP(sname, tname) INA_TEST_DECL(sname, tname, 1)
+#define INA_TEST_FIXTURE_WIN32(sname, tname) INA_TEST_FIXTURE(sname, tname)
+#define INA_TEST_FIXTURE_SKIP_WIN32(sname, tname) INA_TEST_FIXTURE_SKIP(sname, tname)
+#else
+#define INA_TEST_WIN32(sname, tname) void x__ina_test_win32_##sname##_##tname(void)
+#define INA_TEST_SKIP_WIN32(sname, tname) INA_TEST_WIN32(sname, tname)
+#define INA_TEST_FIXTURE_WIN32(sname, tname) INA_TEST_WIN32(sname, tname)
+#define INA_TEST_FIXTURE_SKIP_WIN32(sname, tname) INA_TEST_WIN32(sname, tname)
+#endif
+
+#ifdef INA_OS_OSX
+#define INA_TEST_OSX(sname, tname) INA_TEST(sname, tname)
+#define INA_TEST_SKIP_OSX(sname, tname) INA_TEST_SKIP(sname, tname) INA_TEST_DECL(sname, tname, 1)
+#define INA_TEST_FIXTURE_OSX(sname, tname) INA_TEST_FIXTURE(sname, tname)
+#define INA_TEST_FIXTURE_SKIP_OSX(sname, tname) INA_TEST_FIXTURE_SKIP(sname, tname)
+#else
+#define INA_TEST_OSX(sname, tname) void x__ina_test_osx_##sname_##tname(void)
+#define INA_TEST_SKIP_OSX(sname, tname) INA_TEST_OSX(sname, tname)
+#define INA_TEST_FIXTURE_OSX(sname, tname) INA_TEST_OSX(sname, tname)
+#define INA_TEST_FIXTURE_SKIP_OSX(sname, tname) INA_TEST_OSX(sname, tname)
+#endif
+
+#ifdef INA_OS_LINUX
+#define INA_TEST_LINUX(sname, tname) INA_TEST(sname, tname)
+#define INA_TEST_SKIP_LINUX(sname, tname) INA_TEST_SKIP(sname, tname) INA_TEST_DECL(sname, tname, 1)
+#define INA_TEST_FIXTURE_LINUX(sname, tname) INA_TEST_FIXTURE(sname, tname)
+#define INA_TEST_FIXTURE_SKIP_LINUX(sname, tname) INA_TEST_FIXTURE_SKIP(sname, tname)
+#else
+#define INA_TEST_LINUX(sname, tname) void x__ina_test_linux_##sname##_##tname(void)
+#define INA_TEST_SKIP_LINUX(sname, tname) INA_TEST_LINUX(sname, tname)
+#define INA_TEST_FIXTURE_LINUX(sname, tname) INA_TEST_LINUX(sname, tname)
+#define INA_TEST_FIXTURE_SKIP_LINUX(sname, tname) INA_TEST_LINUX(sname, tname)
+
+#endif
+
 #define INA_TEST(sname, tname) INA_TEST_DECL(sname, tname, 0)
 /* Skip a test case */
 #define INA_TEST_SKIP(sname, tname) INA_TEST_DECL(sname, tname, 1)
