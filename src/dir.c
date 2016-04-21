@@ -309,6 +309,7 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
 INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat, uint64_t *capacity_bytes)
 {
     INA_ASSERT_NOTNULL(stat);
+    INA_ASSERT_NOTNULL(capacity_bytes);
 #ifdef INA_OS_WIN32
     *capacity_bytes = stat->total_number_of_bytes.QuadPart;
 #else
@@ -319,6 +320,8 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat, uint64_t *ca
 
 INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat, uint64_t *free_bytes)
 {
+    INA_ASSERT_NOTNULL(stat);
+    INA_ASSERT_NOTNULL(free_bytes);
 #ifdef INA_OS_WIN32
     *free_bytes = stat->free_bytes_available.QuadPart;
 #else
@@ -329,13 +332,13 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat, uint64_t *free_b
 
 INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used)
 {
-    uint64_t b_total;
-    uint64_t b_free;
+    uint64_t b_total = 0;
+    uint64_t b_free = 0;
     double free_pct;
     double used_pct;
     INA_ASSERT_NOTNULL(stat);
-    INA_ASSERT_SUCCEED(ina_dir_stat_bytes_capacity(stat, &b_total));
-    INA_ASSERT_SUCCEED(ina_dir_stat_bytes_free(stat, &b_free));
+    ina_dir_stat_bytes_capacity(stat, &b_total);
+    ina_dir_stat_bytes_free(stat, &b_free);
     free_pct = (((double)(b_free/1024/1024))*100.0)/((double)(b_total/1024/1024));
     used_pct = 100-free_pct;
     *pct_used = (int)used_pct;
