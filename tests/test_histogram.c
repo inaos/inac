@@ -57,9 +57,9 @@ static int64_t __test_histogram_samples[200] = {
 
 INA_TEST_SKIP(histogram, roundtrip_remote_system) {
     int i;
-    ina_histogram_recorder_t *recorder;
-    ina_histogram_serializer_t *serializer;
-    ina_histogram_reporter_t *reporter;
+    ina_histogram_recorder_t *recorder = NULL;
+    ina_histogram_serializer_t *serializer = NULL;
+    ina_histogram_reporter_t *reporter = NULL;
     time_t now = time(NULL);
     int64_t now_ns = now*INT64_C(1000*1000*1000);
     int64_t one_sec = INT64_C(1*1100*1000*1000);

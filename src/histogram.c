@@ -456,7 +456,12 @@ INA_API(ina_rc_t) ina_histogram_reporter_new(ina_histogram_reporter_t **reporter
 
 INA_API(ina_rc_t) ina_histogram_reporter_free(ina_histogram_reporter_t **reporter)
 {
+    INA_ASSERT_NOTNULL(reporter);
+    if (*reporter == NULL) {
+        return INA_SUCCESS;
+    }
     ina_mem_free(*reporter);
+    *reporter = NULL;
     return INA_SUCCESS;
 }
 
