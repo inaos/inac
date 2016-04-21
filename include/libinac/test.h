@@ -436,7 +436,7 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_FIXTURE_OSX(sname, tname) INA_TEST_FIXTURE(sname, tname)
 #define INA_TEST_FIXTURE_SKIP_OSX(sname, tname) INA_TEST_FIXTURE_SKIP(sname, tname)
 #else
-#define INA_TEST_OSX(sname, tname) void x__ina_test_osx_##sname_##tname(void)
+#define INA_TEST_OSX(sname, tname) void x__ina_test_osx_##sname##_##tname(void)
 #define INA_TEST_SKIP_OSX(sname, tname) INA_TEST_OSX(sname, tname)
 #define INA_TEST_FIXTURE_OSX(sname, tname) INA_TEST_OSX(sname, tname)
 #define INA_TEST_FIXTURE_SKIP_OSX(sname, tname) INA_TEST_OSX(sname, tname)
