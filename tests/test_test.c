@@ -134,6 +134,14 @@ INA_TEST_DATA(test_os_fixture) {
     int skip;
 };
 
+INA_TEST_SETUP(test_os_fixture) {
+    data->x += 1;
+}
+
+INA_TEST_TEARDOWN(test_os_fixture) {
+    data->x -= 1;
+}
+
 #ifdef INA_OS_WIN32
 INA_TEST_FIXTURE_WIN32(test_os_fixture, win32) {
     INA_TEST_ASSERT_TRUE(1);
