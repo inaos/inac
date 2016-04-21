@@ -280,7 +280,7 @@ INA_API(ina_rc_t) ina_compression_new(ina_compression_state_t **state, ina_compr
 INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state, ina_compression_type_t type,
                                                  ina_compression_mode_t mode, ina_mempool_t *pool)
 {
-    size_t sstate;
+    size_t sstate = 0;
 
     if (pool != NULL) {
         *state = (ina_compression_state_t*)ina_mempool_dalloc(pool, sizeof(struct ina_compression_state_s));
