@@ -225,7 +225,7 @@ INA_API(ina_rc_t) ina_xml_parser_execute_from_file(ina_xml_parser_t *p,
     ina_rc_t ret = INA_SUCCESS;
     ina_str_t source;
     ina_file_t *file;
-    ina_file_stat_t *file_stat;
+    ina_file_stat_t *file_stat = NULL;
     uint64_t in_size = 0;
     size_t out_size = 0;
     int64_t total_size = 0;
