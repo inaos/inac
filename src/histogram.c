@@ -467,10 +467,13 @@ INA_API(ina_rc_t) ina_histogram_reporter_print_percentile(ina_histogram_reporter
                                                           int32_t ticks_per_half_distance,
                                                           double value_scale)
 {
-    struct hdr_histogram *h;
+    struct hdr_histogram *h = NULL;
     hdr_timespec ts, interval;
+    INA_ASSERT_NOTNULL(reporter);
+    INA_ASSERT_NOTNULL(stream);
 
     __hdr_log_read_str(&reporter->reader, record, &h, &ts, &interval);
+    INA_ASSERT_NOTNULL(h);
     hdr_percentiles_print(h, stream, ticks_per_half_distance, value_scale, CLASSIC);
 
     return INA_SUCCESS;
