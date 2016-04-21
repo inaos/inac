@@ -231,15 +231,16 @@ INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
             closedir(dir);
         }
 
-        if (walker->sort_cb != NULL) {
+        if (walker->first != NULL && walker->sort_cb != NULL) {
             qsort(walker->first,
                   (walker->last - walker->first) + 1,
                   sizeof(ina_dir_entry_t),
                   walker->sort_cb);
         }
         walker->current = walker->first;
-        *entry = walker->current;
-        return INA_SUCCESS;
+        if (walker->current == NULL) {
+            return INA_FAILURE;
+        }
     } else if (walker->current == NULL) {
         walker->current = walker->first;
     } else if (walker->current == walker->last) {
