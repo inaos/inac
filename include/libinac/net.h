@@ -127,6 +127,15 @@ struct iovec {
     void  *iov_base;    /* Starting address */
     size_t iov_len;     /* Number of bytes to transfer */
 };
+struct msghdr {
+    void         *msg_name;       /* optional address */
+    int           msg_namelen;    /* size of address */
+    struct iovec *msg_iov;        /* scatter/gather array */
+    size_t        msg_iovlen;     /* # elements in msg_iov */
+    void         *msg_control;    /* ancillary data, see below */
+    size_t        msg_controllen; /* ancillary data buffer len */
+    int           msg_flags;      /* flags on received message */
+};
 #endif
 
 /* opaque UDP receiver */
@@ -181,6 +190,11 @@ INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int
  *
  */
 INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, int *nb_write);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, int *nb_send);
 
 /*
  *

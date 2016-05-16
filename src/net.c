@@ -309,6 +309,53 @@ INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, in
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, int *nb_send)
+{
+    INA_ASSERT_TRUE(fd > 0);
+    INA_ASSERT_NOTNULL(msg);
+    INA_ASSERT_NOTNULL(nb_send);
+
+#ifdef INA_OS_WIN32
+    {
+        WSAMSG wmsg;
+        DWORD send = 0;
+        int i;
+        memset(&wmsg, 0, sizeof(WSAMSG));
+        wmsg.Control.buf = (CHAR*)msg->msg_control;
+        wmsg.Control.len = msg->msg_controllen;
+        wmsg.dwFlags = msg->msg_flags;
+        wmsg.dwBufferCount = msg->msg_iovlen;
+        /* FIXME: having allocation and copy in TX path is bad - this is just for compatibility */
+        wmsg.lpBuffers = (LPWSABUF)calloc(msg->msg_iovlen, sizeof(WSABUF));
+        for (i = 0; i < msg->msg_iovlen; i++) {
+            wmsg.lpBuffers[i].buf = (CHAR*)msg->msg_iov[i].iov_base;
+            wmsg.lpBuffers[i].len = msg->msg_iov[i].iov_len;
+        }
+        if (WSASendMsg(fd, &wmsg, flags, &send, NULL, NULL) != 0) {
+            int ec = WSAGetLastError();
+            /* this is ok we have a non-blocking socket */	
+            if (ec != WSAEWOULDBLOCK) {
+                /* FIXME : Stay in line with the coding standards */
+                /*         define Error message in error.h */
+                return INA_NET_ERROR("Error writing");
+            }
+        }
+        *nb_send = send;
+    }
+#else
+    *nb_send = sendmsg(fd, msg, flags);
+    if (*nb_send == -1) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error sending");
+        }
+    }
+#endif
+
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_net_close(int fd)
 {
     INA_ASSERT_TRUE(fd > 0);
