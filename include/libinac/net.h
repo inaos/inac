@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ extern "C" {
 #ifdef INA_OS_LINUX
 #include <netinet/in.h>
 #include <poll.h>
+#include <sys/uio.h>
 #elif INA_OS_OSX
 #include <netinet/in.h>
 #include <poll.h>
@@ -121,6 +122,11 @@ typedef struct ina_net_udp_hdr_s {
 
 #ifdef INA_OS_WIN32
 typedef ULONG nfds_t;
+/* POSIX Vectored I/O for Windows */
+struct iovec {
+    void  *iov_base;    /* Starting address */
+    size_t iov_len;     /* Number of bytes to transfer */
+};
 #endif
 
 /* opaque UDP receiver */
@@ -159,12 +165,22 @@ INA_API(ina_rc_t) ina_net_tcp_connect(int *fd, const char *addr, int port, int t
 /*
  *
  */
-INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read);
+INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int *nb_read);
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* nb_write);
+INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int *nb_write);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int *nb_read);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, int *nb_write);
 
 /*
  *

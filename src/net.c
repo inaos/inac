@@ -234,6 +234,81 @@ INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* n
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int *nb_read)
+{
+    INA_ASSERT_TRUE(fd > 0);
+    INA_ASSERT_NOTNULL(iov);
+    INA_ASSERT_TRUE(iovcnt > 0);
+    INA_ASSERT_NOTNULL(nb_read);
+
+#ifdef INA_OS_WIN32
+    {
+        WSABUF buf;
+        DWORD sread = 0;
+        buf.buf = (CHAR*)iov->iov_base;
+        buf.len = iov->iov_len;
+        if (WSARecv(fd, &buf, iovcnt, &sread, NULL, NULL, NULL) != 0) {
+            int ec = WSAGetLastError();
+            /* this is ok we have a non-blocking socket */	
+            if (ec != WSAEWOULDBLOCK) {
+                /* FIXME : Stay in line with the coding standards */
+                /*         define Error message in error.h */
+                return INA_NET_ERROR("Error reading");
+            }
+        }
+        *nb_read = sread;
+    }
+#else
+    *nb_read = readv(fd, iov, iovcnt);
+    if (*nb_read == -1) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error reading");
+        }
+    }
+#endif
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, int *nb_write)
+{
+    INA_ASSERT_TRUE(fd > 0);
+    INA_ASSERT_NOTNULL(iov);
+    INA_ASSERT_TRUE(iovcnt > 0);
+    INA_ASSERT_NOTNULL(nb_write);
+
+#ifdef INA_OS_WIN32
+    {
+        WSABUF buf;
+        DWORD swrite = 0;
+        buf.buf = (CHAR*)iov->iov_base;
+        buf.len = iov->iov_len;
+        if (WSASend(fd, &buf, iovcnt, &swrite, 0, NULL, NULL) != 0) {
+            int ec = WSAGetLastError();
+            /* this is ok we have a non-blocking socket */	
+            if (ec != WSAEWOULDBLOCK) {
+                /* FIXME : Stay in line with the coding standards */
+                /*         define Error message in error.h */
+                return INA_NET_ERROR("Error writing");
+            }
+        }
+        *nb_write = swrite;
+    }
+#else
+    *nb_write = writev(fd, iov, iovcnt);
+    if (*nb_write == -1) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error writing");
+        }
+    }
+#endif
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_net_close(int fd)
 {
     INA_ASSERT_TRUE(fd > 0);
