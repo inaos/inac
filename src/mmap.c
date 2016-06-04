@@ -189,7 +189,11 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     		pflags |= MAP_FILE;
     		break;
     	case INA_MMAP_MAP_TYPE_MEMORY:
+#ifdef INA_OS_OSX
+            pflags |= MAP_ANON;
+#else
     		pflags |= MAP_ANONYMOUS;
+#endif
     		break;
     }
     
