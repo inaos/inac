@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, INAOS GmbH
+# Copyright (c) 2013-2016, INAOS GmbH
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ all:
 	$(MAKE) -C yajl
 ifneq ($(OS), Darwin)
 	$(MAKE) -C cpu-topology
+	$(MAKE) -C coredumper
 endif
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
