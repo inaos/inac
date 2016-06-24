@@ -100,6 +100,26 @@ INA_TEST(xml_init, parser_borrow) {
     INA_TEST_ASSERT_NULL(ctx);
 }
 
+INA_TEST(xml_file, parse_file)
+{
+    ina_xml_ctx_t *ctx = NULL;
+    ina_xml_parser_t *p;
+    ina_xml_elem_t *root = NULL;
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_init(&ctx, 1));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_borrow(ctx, &p));
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_execute_from_file(p, "test_xml.xml", &root));
+
+    INA_TEST_ASSERT_NOT_NULL(root);
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_parser_release(ctx, &p));
+
+    INA_TEST_ASSERT_SUCCEED(ina_xml_destroy(&ctx));
+    INA_TEST_ASSERT_NULL(ctx);
+}
+
 INA_TEST_DATA(xml) {
     ina_xml_ctx_t *ctx;
     ina_xml_parser_t *parser;

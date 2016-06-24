@@ -48,6 +48,7 @@ INA_LJIT_IMPORT(inac,ldebug);
 INA_LJIT_IMPORT(inac,lcsv);
 INA_LJIT_IMPORT(inac,ldate);
 INA_LJIT_IMPORT(inac,ltest);
+INA_LJIT_IMPORT(inac,lprocqry);
 
 INA_LJIT_PACKAGE(ljit);
 INA_LJIT_IMPORT(ljit, bc);

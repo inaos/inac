@@ -132,7 +132,7 @@ static ina_rc_t __ina_gzip_process_header(ina_gzip_file_t *file)
 	
 	hdr = &file->hdr;
 	
-	if (hdr->id1 != _INA_GZIP_HEADER_ID1 || hdr->id2 != _INA_GZIP_HEADER_ID2) {
+	if (hdr->id1 != _INA_GZIP_HEADER_ID1 ||  hdr->id2 != _INA_GZIP_HEADER_ID2) {
 	    /* FIMXE: not a gzip file */
 	    return INA_FAILURE;
 	}
@@ -277,14 +277,14 @@ INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file, size_t buffer_size, ina_g
     /* read gzip header */
     if (!INA_SUCCEED(ina_file_cursor_binary_read_chunk((*gzf)->fcur, sizeof(_ina_gzip_header_t), 
         &(*gzf)->nbread, (const unsigned char**)&(*gzf)->buffer))) {
-            return INA_ERR_PUSH_LAST;
+            return INA_FAILURE;
     }
 
     ina_mem_cpy(&(*gzf)->hdr, (*gzf)->buffer, (*gzf)->nbread);
 
     /* validate and process header, read until data starts */
     if (!INA_SUCCEED(__ina_gzip_process_header(*gzf))) {
-        return INA_ERR_PUSH_LAST;
+        return INA_FAILURE;
     }
     if (!INA_SUCCEED(ina_compression_new(&(*gzf)->gzip_cstate, INA_COMPRESSION_TYPE_DEFLATE_RAW, INA_COMPRESSION_MODE_TRUSTED_FAST))) {
         return INA_ERR_PUSH_LAST;
@@ -335,9 +335,9 @@ read_again:
     }
     gzf->bufpos = gzf->bufpos+consumed;
 
-    if (*read > 0 && *read < requested) {
+    /*if (*read > 0 && *read < requested) {
     	goto read_again;
-    }
+    }*/
     /*printf("requested: %ld\n", requested);
     printf("read: %ld\n", *read);
     printf("consumed: %ld\n", consumed);*/

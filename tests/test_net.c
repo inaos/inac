@@ -33,7 +33,7 @@
 
 #include <libinac/lib.h>
 
-#ifdef INA_OS_LINUX
+#ifndef INA_OS_WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <ifaddrs.h>
@@ -136,7 +136,7 @@ INA_TEST_FIXTURE(net, tcp_write_read_1000_times) {
     }
 }
 #ifdef INA_OS_WIN32
-INA_TEST(net, mac_addr)
+INA_TEST(net_local, mac_addr)
 {
     char *mac = (char*)malloc(sizeof(6));
     char *test_ip;
@@ -209,12 +209,13 @@ INA_TEST(net, mac_addr)
     free(test_ip);
 }
 #else
-INA_TEST(net, mac_addr)
+INA_TEST(net_local, mac_addr)
 {
     struct ifaddrs *ifaddr, *ifa;
     char host[NI_MAXHOST];
     char *ip = NULL;
-    char *mac = (char*)malloc(sizeof(6));
+    unsigned char *mac = (char*)malloc(6);
+    int found = INA_NO;
 
     INA_TEST_ASSERT_FALSE(getifaddrs(&ifaddr) == -1);
 
@@ -223,15 +224,30 @@ INA_TEST(net, mac_addr)
             continue;
         }
         getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-        if (strcmp(ifa->ifa_name, "eth0") == 0) {
+        if (strcmp(ifa->ifa_name, "eth0") == 0 || strcmp(ifa->ifa_name, "en0") == 0) {
             ip = strdup(host);
+            found = INA_YES;
             break;
         }
     }
 
-    INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(ip, mac));
-    
-    free(ip);
+    if (found) {
+        INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(ip, mac));
+        INA_TEST_MSG("MAC address for %s is %02X:%02X:%02X:%02X:%02X:%02X", ip,
+                     mac[0],
+                     mac[1],
+                     mac[2],
+                     mac[3],
+                     mac[4],
+                     mac[5]);
+    } else {
+        INA_TEST_MSG("%s", "No interface eth0 found!");
+    }
+
+    if (ip != NULL) {
+        free(ip);
+    }
+    free(mac);
     freeifaddrs(ifaddr);
 }
 #endif

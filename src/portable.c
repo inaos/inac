@@ -137,16 +137,19 @@ int closedir(DIR *dir)
 
 struct dirent* readdir(DIR *dir)
 {
-
-
     struct dirent *result = 0;
 
     if (dir && dir->handle != -1) {
         if (!dir->result.d_name || _findnext(dir->handle, &dir->info) != -1) {
             result = &dir->result;
             result->d_name = dir->info.name;
+            result->d_type = DT_REG;
+            if (dir->info.attrib&_A_SUBDIR) {
+                result->d_type = DT_DIR;
+            }
         }
-    } else {
+    } 
+    else {
         errno = EBADF;
     }
     return result;

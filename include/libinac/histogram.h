@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@
  * controlling dynamic range, and numberOfSignificantValueDigits controlling resolution.
  * ----
  * 
- * We have three component:
+ * We have three components:
  * - Recorder
  * - Serializer
  * - Reporter
@@ -83,7 +83,7 @@ typedef struct ina_histogram_reporter_s ina_histogram_reporter_t;
 typedef struct ina_histogram_record_s {
     int64_t start_ts_ns;
     int64_t end_ts_ns;
-    char data[104]; /* size of the hdr_histogram */
+    char data[128]; /* size of the hdr_histogram = 96, but rounding-up */
     char free_text1[128];
     char free_text2[128];
     char free_text3[128];

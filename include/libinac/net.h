@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,22 @@
 
 #include <libinac/lib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef INA_OS_LINUX
+#include <netinet/in.h>
+#include <poll.h>
+#include <sys/uio.h>
+#elif INA_OS_OSX
 #include <netinet/in.h>
 #include <poll.h>
 #elif INA_OS_WIN32
 #include <winsock.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 typedef struct ina_net_hw_ctx_s ina_net_hw_ctx_t;
 
@@ -52,10 +58,7 @@ typedef enum ina_net_hw_backend_e {
     INA_NET_HW_BACKEND_MELLANOX_VMA,
 } ina_net_hw_backend_t;
 
-static const char ina_net_hw_backend_str[][32] = {
-    "SOLARFLARE - OPENONLOAD",
-    "MELLANOX - VMA"
-};
+
 
 typedef enum ina_net_hw_feature_s {
     INA_NET_HW_FEATURE_ZERO_COPY_UDP_RECEIVE,
@@ -119,6 +122,20 @@ typedef struct ina_net_udp_hdr_s {
 
 #ifdef INA_OS_WIN32
 typedef ULONG nfds_t;
+/* POSIX Vectored I/O for Windows */
+struct iovec {
+    void  *iov_base;    /* Starting address */
+    size_t iov_len;     /* Number of bytes to transfer */
+};
+struct msghdr {
+    void         *msg_name;       /* optional address */
+    int           msg_namelen;    /* size of address */
+    struct iovec *msg_iov;        /* scatter/gather array */
+    size_t        msg_iovlen;     /* # elements in msg_iov */
+    void         *msg_control;    /* ancillary data, see below */
+    size_t        msg_controllen; /* ancillary data buffer len */
+    int           msg_flags;      /* flags on received message */
+};
 #endif
 
 /* opaque UDP receiver */
@@ -157,12 +174,27 @@ INA_API(ina_rc_t) ina_net_tcp_connect(int *fd, const char *addr, int port, int t
 /*
  *
  */
-INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read);
+INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int *nb_read);
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* nb_write);
+INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int *nb_write);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int *nb_read);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, int *nb_write);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, int *nb_send);
 
 /*
  *
@@ -225,6 +257,11 @@ INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *so
 INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *source);
 
 /*
+ * Get the IP address
+ */
+INA_API(ina_rc_t) ina_net_get_ip_from_ifname(const char *ifname, char* ip);
+
+/*
  *
  */
 INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac);
@@ -240,7 +277,7 @@ INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int
 /*
  *
  */
-INA_API(int) ina_net_hw_support_present_on_os();
+INA_API(ina_rc_t) ina_net_hw_support_present_on_os(void);
 
 /*
  *
@@ -260,7 +297,7 @@ INA_API(ina_rc_t) ina_net_hw_set_user_data(ina_net_hw_ctx_t *ctx, void *data);
 /*
  *
  */
-INA_API(ina_rc_t) ina_net_hw_backend_name(ina_net_hw_ctx_t *ctx, ina_str_t *name);
+INA_API(const char*) ina_net_hw_backend_name(const ina_net_hw_ctx_t *ctx);
 
 /*
  *

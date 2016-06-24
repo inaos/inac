@@ -81,7 +81,7 @@ static ina_rc_t __ina_pcap_read_chunk_cursor(ina_pcap_ctx_t *ctx, size_t how_muc
 
 static ina_rc_t __ina_pcap_read_chunk_gzip(ina_pcap_ctx_t *ctx, size_t how_much, size_t *read, const unsigned char **chunk)
 {
-    ina_rc_t rc;
+    ina_rc_t rc = INA_FAILURE;
     unsigned char *orig = ctx->gzip_buffer;
     size_t tot_read = 0;
     *read = 0;
@@ -99,8 +99,23 @@ static ina_rc_t __ina_pcap_read_chunk_gzip(ina_pcap_ctx_t *ctx, size_t how_much,
     return rc;
 }
 
-INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode, size_t buffer_size, 
-                                ina_pcap_file_compression_t compression, ina_pcap_ctx_t **ctx)
+static void __ina_pcap_detect_compression(const char *pcap_file,
+                                          ina_pcap_file_compression_t *compression)
+{
+    ina_gzip_file_t *f;
+
+    *compression = INA_PCAP_FILE_COMPRESSION_NONE;
+
+    if (INA_SUCCEED(ina_gzip_open(pcap_file, 4096, &f))) {
+        *compression = INA_PCAP_FILE_COMPRESSION_GZIP;
+    }
+    ina_gzip_close(&f);
+}
+
+INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode,
+                                size_t buffer_size,
+                                ina_pcap_file_compression_t compression,
+                                ina_pcap_ctx_t **ctx)
 {
     size_t read = 0;
     const unsigned char *chunk;
@@ -108,9 +123,23 @@ INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode
     ina_file_stat_t *fstat;
     uint64_t real_buffer = 0;
 
-    if (mode == INA_PCAP_OPEN_MODE_MMAP && compression != INA_PCAP_FILE_COMPRESSION_NONE) {
-        /* MMAP only makes sense here if the file is not compressed */
-        /* FIXME: proper error handling */
+    INA_ASSERT_NOTNULL(pcap_file);
+    INA_ASSERT_TRUE(strlen(pcap_file));
+
+    if (compression == INA_PCAP_FILE_COMPRESSION_DETECT) {
+        __ina_pcap_detect_compression(pcap_file, &compression);
+    }
+
+    if (mode == INA_PCAP_OPEN_MODE_AUTO) {
+        if (compression == INA_PCAP_FILE_COMPRESSION_NONE) {
+            mode = INA_PCAP_OPEN_MODE_FIO;
+        } else {
+            mode = INA_PCAP_OPEN_MODE_FIO;
+        }
+    }
+
+    if (compression == INA_PCAP_FILE_COMPRESSION_NONE &&
+            mode == INA_PCAP_OPEN_MODE_MMAP) {
         return INA_FAILURE;
     }
 
@@ -271,6 +300,33 @@ INA_API(ina_rc_t) ina_pcap_close(ina_pcap_ctx_t **ctx)
         ina_file_destroy(&(*ctx)->file_ctx);
     }
     ina_mem_free(*ctx);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_pcap_get_open_mode(ina_pcap_ctx_t *pcap,
+                                         ina_pcap_open_mode_t *open_mode)
+{
+    INA_ASSERT_NOTNULL(pcap);
+    INA_ASSERT_NOTNULL(open_mode);
+    if (pcap->mmap_ctx != NULL) {
+        *open_mode = INA_PCAP_OPEN_MODE_MMAP;
+    } else {
+        *open_mode = INA_PCAP_OPEN_MODE_FIO;
+    }
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_pcap_get_file_compression(ina_pcap_ctx_t *pcap,
+                                           ina_pcap_file_compression_t *file_compression)
+{
+    INA_ASSERT_NOTNULL(pcap);
+    INA_ASSERT_NOTNULL(file_compression);
+    if (pcap->gzip_ctx != NULL) {
+        *file_compression = INA_PCAP_FILE_COMPRESSION_GZIP;
+    } else {
+        *file_compression = INA_PCAP_FILE_COMPRESSION_NONE;
+    }
     return INA_SUCCESS;
 }
 

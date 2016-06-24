@@ -279,6 +279,13 @@ INA_API(int) ina_str_snprintf(ina_str_t *str, size_t len, const char* fmt, ...);
 INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,  
                                va_list args);
 
+/*
+ * Tests the tame string if it matches the given wildcard. Supported wildcard characters:
+ * - ? = matches a single character
+ * - * = matches any number of characters
+ * Note: This does not support regular expressions
+ */
+INA_API(ina_rc_t) ina_str_wildcard_match(const ina_str_t tame, const char *wildcard);
 
 #ifdef __cplusplus
 }

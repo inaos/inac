@@ -35,11 +35,17 @@ set(INAC_TESTLIB_NAME "testinac")
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
 	SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DINA_LIB -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED -DINA_LOG_LEVEL=3)	
+	add_definitions(-DINA_LIB -DINA_LOG_ENABLED -DINA_LOG_LEVEL=3)
 else()
 	#Preprocessor
-	add_definitions(-DINA_OS_WIN32 -DDEBUG -DTRACE_ENABLED -DINA_LIB -D_CRT_SECURE_NO_WARNINGS -DINA_LOG_ENABLED -DINA_LOG_LEVEL=4)
+	add_definitions(-DDEBUG -DTRACE_ENABLED -DINA_LIB -DINA_LOG_ENABLED -DINA_LOG_LEVEL=4)
 endif()
+
+if(WIN32)
+	add_definitions(-DINA_OS_WIN32)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
+endif(WIN32)
 
 # BEGIN dependencies
 
@@ -101,9 +107,11 @@ set (LZ4_SRC     ${LZ4_SRC_DIR}/lz4.c ${LZ4_SRC_DIR}/lz4hc.c)
 add_library(${LZ4_LIB_NAME} ${LZ4_SRC})
 
 # Intel cpu-topology
+if(WIN32)
 set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
 set (ICT_SRC     ${ICT_SRC_DIR}/cpu_topo.c ${ICT_SRC_DIR}/util_os.c)
 add_library(${ICT_LIB_NAME} ${ICT_SRC})
+endif(WIN32)
 
 # Timerwheel
 set (TIMER_WHEEL_SRC_DIR ${DEPS_DIR}/timerwheel)
@@ -112,7 +120,10 @@ add_library(${TIMER_WHEEL_LIB_NAME} ${TIMER_WHEEL_SRC})
 
 # Hdr Histogram
 set (HDR_HISTOGRAM_SRC_DIR ${DEPS_DIR}/hdr-histogram)
-set (HDR_HISTOGRAM_SRC ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram.c ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram_log.c)
+set (HDR_HISTOGRAM_SRC ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram.c 
+                       ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram_log.c
+					   ${HDR_HISTOGRAM_SRC_DIR}/hdr_encoding.c
+					   ${HDR_HISTOGRAM_SRC_DIR}/hdr_time.c)
 add_library(${HDR_HISTOGRAM_LIB_NAME} ${HDR_HISTOGRAM_SRC})
 
 # xxhash
@@ -155,7 +166,7 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c
 				 ${SRC_DIR}/histogram.c ${SRC_DIR}/pcap.c ${SRC_DIR}/gzip.c 
 				 ${SRC_DIR}/net_hw_openonload.c ${SRC_DIR}/net_hw_vma.c ${SRC_DIR}/percentile.c 
-				 ${SRC_DIR}/hash.c)
+				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 

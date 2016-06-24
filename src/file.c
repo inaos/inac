@@ -172,9 +172,11 @@ static void __ina_file_posix_map_flags(ina_file_access_mode_t access,
 #endif
             break;
     }
+#ifndef INA_OS_OSX
     if (flags & INA_FILE_FLAG_POSIX_DIRECT) {
         *posix_flags |= O_DIRECT;
     }
+#endif
 }
 #endif
 
@@ -242,12 +244,14 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
         printf("%d", errno);
         return INA_FAILURE;
     }
+#ifndef INA_OS_OSX
     if (flags & INA_FILE_FLAG_RANDOM_ACCESS) {
 		posix_fadvise(fhandle, 0, 0, POSIX_FADV_RANDOM);
 	}
 	else if (flags & INA_FILE_FLAG_SEQUENTIAL_ACCESS) {
 		posix_fadvise(fhandle, 0, 0, POSIX_FADV_SEQUENTIAL);
 	}
+#endif
 #endif
 
     *file = (ina_file_t*)ina_mem_alloc(sizeof(ina_file_t));

@@ -43,7 +43,7 @@ typedef struct __ina_net_hw_func_s {
 } __ina_net_hw_func_t;
 
 struct ina_net_hw_ctx_s {
-    ina_str_t name;
+    const char *name;
     __ina_net_hw_func_t funcs;
     void *data;
 };
