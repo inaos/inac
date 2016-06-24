@@ -225,6 +225,123 @@ INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* n
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int *nb_read)
+{
+    INA_ASSERT_TRUE(fd > 0);
+    INA_ASSERT_NOTNULL(iov);
+    INA_ASSERT_TRUE(iovcnt > 0);
+    INA_ASSERT_NOTNULL(nb_read);
+
+#ifdef INA_OS_WIN32
+    {
+        WSABUF buf;
+        DWORD sread = 0;
+        buf.buf = (CHAR*)iov->iov_base;
+        buf.len = iov->iov_len;
+        if (WSARecv(fd, &buf, iovcnt, &sread, NULL, NULL, NULL) != 0) {
+            int ec = WSAGetLastError();
+            /* this is ok we have a non-blocking socket */	
+            if (ec != WSAEWOULDBLOCK) {
+                /* FIXME : Stay in line with the coding standards */
+                /*         define Error message in error.h */
+                return INA_NET_ERROR("Error reading");
+            }
+        }
+        *nb_read = sread;
+    }
+#else
+    *nb_read = readv(fd, iov, iovcnt);
+    if (*nb_read == -1) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error reading");
+        }
+    }
+#endif
+
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, int *nb_write)
+{
+    INA_ASSERT_TRUE(fd > 0);
+    INA_ASSERT_NOTNULL(iov);
+    INA_ASSERT_TRUE(iovcnt > 0);
+    INA_ASSERT_NOTNULL(nb_write);
+
+#ifdef INA_OS_WIN32
+    {
+        WSABUF buf;
+        DWORD swrite = 0;
+        buf.buf = (CHAR*)iov->iov_base;
+        buf.len = iov->iov_len;
+        if (WSASend(fd, &buf, iovcnt, &swrite, 0, NULL, NULL) != 0) {
+            int ec = WSAGetLastError();
+            /* this is ok we have a non-blocking socket */	
+            if (ec != WSAEWOULDBLOCK) {
+                /* FIXME : Stay in line with the coding standards */
+                /*         define Error message in error.h */
+                return INA_NET_ERROR("Error writing");
+            }
+        }
+        *nb_write = swrite;
+    }
+#else
+    *nb_write = writev(fd, iov, iovcnt);
+    if (*nb_write == -1) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error writing");
+        }
+    }
+#endif
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, int *nb_send)
+{
+    INA_ASSERT_TRUE(fd > 0);
+    INA_ASSERT_NOTNULL(msg);
+    INA_ASSERT_NOTNULL(nb_send);
+
+#ifdef INA_OS_WIN32
+    {
+        WSABUF bufs[8];
+        DWORD send = 0;
+        size_t i;
+        memset(&bufs, 0, sizeof(WSABUF)*8);
+        INA_ASSERT_TRUE(msg->msg_iovlen < 8);
+        for (i = 0; i < msg->msg_iovlen; i++) {
+            bufs[i].buf = (CHAR*)msg->msg_iov[i].iov_base;
+            bufs[i].len = msg->msg_iov[i].iov_len;
+        }
+        if (WSASend(fd, bufs, msg->msg_iovlen, &send, flags, NULL, NULL) != 0) {
+            int ec = WSAGetLastError();
+            /* this is ok we have a non-blocking socket */	
+            if (ec != WSAEWOULDBLOCK) {
+                /* FIXME : Stay in line with the coding standards */
+                /*         define Error message in error.h */
+                return INA_NET_ERROR("Error writing");
+            }
+        }
+        *nb_send = send;
+    }
+#else
+    *nb_send = sendmsg(fd, msg, flags);
+    if (*nb_send == -1) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error sending");
+        }
+    }
+#endif
+
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_net_close(int fd)
 {
     INA_ASSERT_TRUE(fd > 0);
