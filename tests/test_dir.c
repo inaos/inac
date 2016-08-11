@@ -33,6 +33,7 @@ static const char* __dir_entries[] = {
         "anet",
         "axtls",
         "bstring",
+        "coredumper",
         "cpu-topology",
         "falkhash",
         "hdr-histogram",
