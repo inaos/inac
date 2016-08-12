@@ -31,6 +31,7 @@ You can contact the author at :
 - xxHash source repository : https://github.com/Cyan4973/xxHash
 */
 
+#include <libinac/lib.h>
 
 /**************************************
 *  Tuning parameters
@@ -146,7 +147,10 @@ static U64 XXH_read64(const void* memPtr) { return *(const U64*) memPtr; }
 
 /* __pack instructions are safer, but compiler specific, hence potentially problematic for some compilers */
 /* currently only defined for gcc and icc */
-typedef union { U32 u32; U64 u64; } __attribute__((packed)) unalign;
+
+INA_VS_BEGIN_PACK
+typedef union { U32 u32; U64 u64; } INA_PACKED unalign;
+INA_VS_END_PACK
 
 static U32 XXH_read32(const void* ptr) { return ((const unalign*)ptr)->u32; }
 static U64 XXH_read64(const void* ptr) { return ((const unalign*)ptr)->u64; }
