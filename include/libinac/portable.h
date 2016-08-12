@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ extern "C" {
 #  define INA_COMPILER_IBM 1
 #endif
 
-#if defined _MSC_VER
+#if defined _MSC_VER && !defined(INA_COMPILER_INTEL)
 #  define INA_COMPILER_STRING "Microsoft Visual C++"
 #  define INA_COMPILER_MSVC 1
 #endif
@@ -374,13 +374,13 @@ extern "C" {
    defined to `inline', otherwise empty. In C++, the inline is always
    supported. */
 #ifdef __cplusplus
-#  ifdef INA_COMPILER_MSVC
+#  ifdef INA_OS_WIN32
 #    define INA_INLINE __inline
 #  else
 #   define INA_INLINE static inline
 #  endif
 #else
-#  ifdef INA_COMPILER_MSVC
+#  ifdef INA_OS_WIN32
 #    define INA_INLINE __inline
 #  else
 #    define INA_INLINE static inline
@@ -1029,48 +1029,54 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #define INA_UINT64_T_FMT PRINTF_INT64_MODIFIER "u"
 
 /* Pack */
-#ifdef INA_COMPILER_GCC
-#define INA_ALIGNED(x) __attribute__((aligned(x)))
-#define INA_ALIGNED128 INA_ALIGNED(128)
-#define INA_ALIGNED64 INA_ALIGNED(64)
-#define INA_ALIGNED32 INA_ALIGNED(32)
-#define INA_ALIGNED16 INA_ALIGNED(16)
-#define INA_ALIGNED8 INA_ALIGNED(8)
-#define INA_ALIGNED4 INA_ALIGNED(4)
-#define INA_ALIGNED2 INA_ALIGNED(2)
-#define INA_VSALIGNED128
-#define INA_VSALIGNED64
-#define INA_VSALIGNED32
-#define INA_VSALIGNED16
-#define INA_VSALIGNED8
-#define INA_VSALIGNED4
-#define INA_VSALIGNED2
-#ifndef INA_PACKED
-#define INA_PACKED __attribute__ ((__packed__))
-#endif
-#define INA_VS_BEGIN_PACK
-#define INA_VS_END_PACK
-#elif defined(INA_COMPILER_MSVC)
-#define INA_ALIGNED(x) __declspec(align(x))
-#define INA_VSALIGNED128 INA_ALIGNED(128)
-#define INA_VSALIGNED64 INA_ALIGNED(64)
-#define INA_VSALIGNED32 INA_ALIGNED(32)
-#define INA_VSALIGNED16 INA_ALIGNED(16)
-#define INA_VSALIGNED8 INA_ALIGNED(8)
-#define INA_VSALIGNED4 INA_ALIGNED(4)
-#define INA_VSALIGNED2 INA_ALIGNED(2)
-#define INA_ALIGNED128
-#define INA_ALIGNED64
-#define INA_ALIGNED32
-#define INA_ALIGNED16
-#define INA_ALIGNED8
-#define INA_ALIGNED4
-#define INA_ALIGNED2
-#define INA_PACKED
-#define INA_VS_BEGIN_PACK __pragma(pack(1))
-#define INA_VS_END_PACK __pragma(pack())
+#ifdef INA_OS_WIN32
+    #if defined(INA_COMPILER_MSVC) || defined(INA_COMPILER_INTEL)
+    #define INA_ALIGNED(x) __declspec(align(x))
+    #define INA_VSALIGNED128 INA_ALIGNED(128)
+    #define INA_VSALIGNED64 INA_ALIGNED(64)
+    #define INA_VSALIGNED32 INA_ALIGNED(32)
+    #define INA_VSALIGNED16 INA_ALIGNED(16)
+    #define INA_VSALIGNED8 INA_ALIGNED(8)
+    #define INA_VSALIGNED4 INA_ALIGNED(4)
+    #define INA_VSALIGNED2 INA_ALIGNED(2)
+    #define INA_ALIGNED128
+    #define INA_ALIGNED64
+    #define INA_ALIGNED32
+    #define INA_ALIGNED16
+    #define INA_ALIGNED8
+    #define INA_ALIGNED4
+    #define INA_ALIGNED2
+    #define INA_PACKED
+    #define INA_VS_BEGIN_PACK __pragma(pack(1))
+    #define INA_VS_END_PACK __pragma(pack())
+    #else
+    #error UNSUPPORTED COMPILER
+    #endif
 #else
-#error UNSUPPORTED COMPILER
+    #if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
+    #define INA_ALIGNED(x) __attribute__((aligned(x)))
+    #define INA_ALIGNED128 INA_ALIGNED(128)
+    #define INA_ALIGNED64 INA_ALIGNED(64)
+    #define INA_ALIGNED32 INA_ALIGNED(32)
+    #define INA_ALIGNED16 INA_ALIGNED(16)
+    #define INA_ALIGNED8 INA_ALIGNED(8)
+    #define INA_ALIGNED4 INA_ALIGNED(4)
+    #define INA_ALIGNED2 INA_ALIGNED(2)
+    #define INA_VSALIGNED128
+    #define INA_VSALIGNED64
+    #define INA_VSALIGNED32
+    #define INA_VSALIGNED16
+    #define INA_VSALIGNED8
+    #define INA_VSALIGNED4
+    #define INA_VSALIGNED2
+    #ifndef INA_PACKED
+    #define INA_PACKED __attribute__ ((__packed__))
+    #endif
+    #define INA_VS_BEGIN_PACK
+    #define INA_VS_END_PACK
+    #else
+    #error UNSUPPORTED COMPILER
+    #endif
 #endif
 
 #if !defined(GCC_VERSION) || GCC_VERSION <= 30406
