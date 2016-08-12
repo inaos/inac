@@ -35,6 +35,24 @@ Building on Windows requires some programs to be present on your system.
 * Navigate to the INAC root folder
 * Type: make.bat all debug
 
+### Using the Intel Compiler
+
+* Limitations:
+  * When using it with Visual Studio the Intel Compiler requires the necessary plug-ins from Microsoft
+    however the Visual Studio Express Edition that we currently use does not provide such plugin-ins for licensing reason
+	Therfore it would be required to buy a Visual Studio Standard Edition in order to leverage the Intel Compiler for all 
+	build types.
+
+* Impact on the INAC build with the Intel Compiler
+  * Only 32bit INAC build
+  * Only library can be built, because the tests and tools require a Visual Studio build and do not work with NMake
+  
+#### Steps to build
+
+* Open a Visual Studio command prompt for the Intel Compiler, more specifically "IA-32 Visual Studio 20XX environment"
+* Navigate to the INAC root folder
+* Type: make.bat all debug
+
 ## Building on Linux or OS X
 
 To build the library, simply type `sudo make`. To select the debug build, 

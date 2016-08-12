@@ -36,11 +36,16 @@ SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
 SET INAC_ARCH=x86
 SET INAC_VC_VAR_ARG=x86
-if defined CommandPromptType (
-       if "%CommandPromptType%" == "Cross" (
-               SET INAC_ARCH=x64
-               SET INAC_VC_VAR_ARG=x86_amd64
-       )
+SET INAC_COMPILER=MSVC
+if "%WIN_TITLE:~0,14%" == "Intel Compiler" (
+	SET INAC_COMPILER=ICC
+) else (
+	if defined CommandPromptType (
+		if "%CommandPromptType%" == "Cross" (
+			SET INAC_ARCH=x64
+			SET INAC_VC_VAR_ARG=x86_amd64
+		)
+    )
 )
 
 if not defined INCLUDE (
@@ -202,9 +207,17 @@ REM reset the main environment variables because they might have been deleted by
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
-if "%INAC_ARCH%" == "x64" (
-	echo FIXME: In Windows 64bit mode we currently do not build tests and tools due to an bug
-) else (
+if "%INAC_COMPILER%" == "ICC" (
+ 	echo FIXME: In Windows when using the Intel Compiler e currently do not build tests and tools due to Visual Studio Express
+	goto exit
+)
+
+if "%INAC_ARCH%" == "x64" ( 
+	if not "%INAC_COMPILER%" == "ICC" (
+		echo FIXME: In Windows 64bit mode we currently do not build tests and tools due to an bug
+		goto exit
+	)
+)
 
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.
@@ -225,8 +238,6 @@ SET INAC_WIN32_C_SOURCE_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
 
 call %INAC_BUILD_SCRIPT% %1 %2
-
-)
 
 goto exit
 
@@ -260,5 +271,6 @@ SET INAC_BUILD_SCRIPT=
 
 SET INAC_ARCH=
 SET INAC_VC_VAR_ARG=
+SET INAC_COMPILER=
 
 goto:eof
