@@ -52,7 +52,7 @@ typedef enum ina_service_status_e {
   INA_SERVICE_STATUS_INIT          /* Before before initialization */
 } ina_service_status_t;
 
-typedef ina_rc_t (*ina_service_fn_t)(const ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data);
+typedef ina_rc_t (*ina_service_fn_t)(ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data);
 
 typedef enum ina_service_mode_e {
     INA_SERVICE_MODE_SERVICE,
@@ -194,12 +194,12 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
  *      It stores the servicescript in a section in the binary and 
  *      copy it to /etc/init.d upon install
  */
-INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx);
+INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx);
 
 /*
  * 
  */
-INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx);
+INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx);
 
 /*
  * 

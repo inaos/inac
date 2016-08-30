@@ -27,7 +27,7 @@
  */
 #include <libinac/lib.h>
 
-static ina_rc_t __ina_service_fn(const ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data)
+static ina_rc_t __ina_service_fn(ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data)
 {    
     switch (status) {
         case INA_SERVICE_STATUS_INIT:
