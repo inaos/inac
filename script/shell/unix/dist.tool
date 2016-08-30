@@ -26,9 +26,14 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 #
+TAR=tar
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  TAR=gtar
+fi 
+echo $TAR
 
 if [ "$INAC_BUILD_STAGE" == "clean" ]; then
 	rm -f $INAC_BUILD_PROJECT_DIR/*.tar.gz
 else
-        tar czfv "$INAC_BUILD_NAME-$INAC_BUILD_VERSION".tar.gz --files-from $INAC_BUILD_FILE_LIST
+        $TAR czfv "$INAC_BUILD_NAME-$INAC_BUILD_VERSION".tar.gz --files-from=$INAC_BUILD_FILE_LIST
 fi
