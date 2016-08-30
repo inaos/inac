@@ -68,7 +68,6 @@ INA_TEST(percentile, test_percentile_50)
 INA_TEST(percentile, test_grow_heaps)
 {
     ina_percentile_t *p;
-    size_t initial_size = 10;
     size_t i;
     uint16_t actual_percentile = 0;
 
