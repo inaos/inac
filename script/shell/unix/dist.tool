@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2013-2015, INAOS GmbH
+# Copyright (c) 2013-2016, INAOS GmbH
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ TAR=tar
 if [[ "$OSTYPE" == "darwin"* ]]; then
   TAR=gtar
 fi 
-echo $TAR
 
 if [ "$INAC_BUILD_STAGE" == "clean" ]; then
 	rm -f $INAC_BUILD_PROJECT_DIR/*.tar.gz
