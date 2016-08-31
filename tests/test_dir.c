@@ -47,7 +47,6 @@ static const char* __dir_entries[] = {
         "patches",
         "rapidxml",
         "sds",
-        "skiplist",
         "sqlite",
         "timerwheel",
         "xxhash",

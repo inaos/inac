@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2015, INAOS GmbH
+# Copyright (c) 2013-2016, INAOS GmbH
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ ifeq ($(OS), Linux)
 INAC_LINUX_LIBS=$(INAC_CONTRIBS_DIR)/cpu-topology/cpu-topology.a
 endif
 INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
-	$(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a $(INAC_CONTRIBS_DIR)/skiplist/skiplist.a \
+	$(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a  \
 	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
 	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.a $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
         $(INAC_CONTRIBS_DIR)/yajl/yajl.a $(INAC_CONTRIBS_DIR)/miniz/miniz.a \
@@ -122,21 +122,8 @@ endif
 ifeq (os, $(INAC_TIME_BACKEND))
 	CFLAGS+=-DINA_OSTIME_ENABLED=1
 endif
-# ****************************************************************************
-# Timer implementation
-# ****************************************************************************
-ifeq (,$(INAC_TIMER_BACKEND))
-        INAC_TIMER_BACKEND=wheel
-endif
-ifeq (wheel, $(INAC_TIMER_BACKEND))
-        CFLAGS+=-DINA_TIMER_BACKEND_WHEEL_ENABLED=1
-endif
-ifeq (skiplist, $(INAC_TIMER_BACKEND))
-        CFLAGS+=-DINA_TIMER_SKIPLIST_ENABLED=1
-endif
 CFLAGS+=-DINA_STRING_DEFINED=1
 CFLAGS+=-DINA_TIME_DEFINED=1
-CFLAGS+=-DINA_TIMER_BACKEND_DEFINED=1
 export CFLAGS
 export LDFLAGS
 export INAC_LIB
