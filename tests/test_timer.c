@@ -85,6 +85,9 @@ INA_TEST(timer, stress_test)
     for (c = 0; c < 1000000; c++) {
         ina_time_event_t *ne;
         ne = ina_timer_next_event(t);
+        if (ne != NULL) {
+            INA_TEST_ASSERT_SAME(e, ne);
+        }
     }
     ina_timer_delete_event(t, e);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -195,6 +195,12 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
     GetSystemInfo(&si);
     *size = (size_t)si.dwPageSize;
 #endif
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_mem_get_aliged_size(size_t query, size_t *aligned)
+{
+    *aligned = __INA_MEM_ALIGN(query);
     return INA_SUCCESS;
 }
 

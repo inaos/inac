@@ -1,6 +1,6 @@
 SRC = $(wildcard *.c)
 OBJS = $(SRC:%.c=%.o) $(DIRS:%=%.o)
-THIS_LIB = skiplist.a
+THIS_LIB = coredumper.a
 
 
 all: $(OBJS)

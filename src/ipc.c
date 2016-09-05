@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014,2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 
 /* IPC flag */
 struct ina_ipc_flags_s {
+    ina_timer_t *timer;
     ina_mempool_t *m;
     ina_ipc_flags_data_t *data;   
 };
@@ -85,6 +86,9 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
         ina_ipc_flags_free(flags);
         return INA_ERR_PUSH_LAST;
     }
+    if (!INA_SUCCEED(ina_timer_init(&(*flags)->timer))) {
+        return INA_ERR_PUSH_LAST;
+    }
     strncpy((*flags)->data->name, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
     if (initial != INA_IPC_FLAGS_IGNORE) {
         return ina_ipc_flags_set(*flags, (uint64_t)initial);
@@ -112,6 +116,9 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
     }
+    if (!INA_SUCCEED(ina_timer_init(&(*flags)->timer))) {
+        return INA_ERR_PUSH_LAST;
+    }
     return INA_SUCCESS;
 }
 
@@ -121,6 +128,9 @@ INA_API(ina_rc_t) ina_ipc_flags_free(ina_ipc_flags_t **flags)
 
     if (*flags == NULL) {
         return INA_SUCCESS;
+    }
+    if ((*flags)->timer != NULL) {
+        ina_timer_destroy(&(*flags)->timer);
     }
     if ((*flags)->m != NULL) {
         ina_mempool_release((*flags)->m, INA_YES);
@@ -222,29 +232,23 @@ INA_API(ina_rc_t) ina_ipc_flags_clear(ina_ipc_flags_t *flags, uint64_t value)
 
 INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait_for, time_t msec_timeout)
 {
-    ina_timer_t *timer;
     ina_time_event_t *event;
     int timeout = INA_NO;
 
     INA_ASSERT_NOTNULL(flags);
-
-    if (!INA_SUCCEED(ina_timer_init(&timer))) {
-        return INA_ERR_PUSH_LAST;
-    }
     
-    event = ina_timer_create_event(timer, msec_timeout);
+    event = ina_timer_create_event(flags->timer, msec_timeout);
     if (event == NULL) {
-        ina_timer_destroy(&timer);
         return INA_ERR_PUSH_LAST;
     }
   
     while (!INA_SUCCEED(ina_ipc_flags_is_set(flags, wait_for))) {
-        if (ina_timer_next_event(timer) != NULL) {
+        if (ina_timer_next_event(flags->timer) != NULL) {
             timeout = INA_YES;
             break;
         }
     }
-    ina_timer_destroy(&timer);
+    ina_timer_delete_event(flags->timer, event);
 
     if (timeout == INA_YES) {
         return INA_FAILURE;

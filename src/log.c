@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -150,10 +150,17 @@ __ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, ina_str_t msg) {
     static const char *c = ".-*#";
     static char buf[64];
     static struct tm *lt;
+#ifdef INA_OS_LINUX
+    static struct tm rtm;
+#endif
 
     time_t now = time(NULL);
 
+#ifdef INA_OS_LINUX
+    lt = localtime_r(&now, &rtm);
+#else
     lt = localtime(&now);
+#endif
     INA_ASSERT_NOTNULL(lt);
     
     strftime(buf,sizeof(buf),"%d %b %H:%M:%S", lt);

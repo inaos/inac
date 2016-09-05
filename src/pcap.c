@@ -81,7 +81,7 @@ static ina_rc_t __ina_pcap_read_chunk_cursor(ina_pcap_ctx_t *ctx, size_t how_muc
 
 static ina_rc_t __ina_pcap_read_chunk_gzip(ina_pcap_ctx_t *ctx, size_t how_much, size_t *read, const unsigned char **chunk)
 {
-    ina_rc_t rc;
+    ina_rc_t rc = INA_FAILURE;
     unsigned char *orig = ctx->gzip_buffer;
     size_t tot_read = 0;
     *read = 0;

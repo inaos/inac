@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,6 @@
 /* Define time code/library to use */
 #ifndef INA_TIME_DEFINED
 #define INA_OSTIME_ENABLED 1
-#endif
-
-/* Define timer backend to use */
-#ifndef INA_TIMER_BACKEND_DEFINED
-#define INA_TIMER_SKIPLIST_ENABLED 1
 #endif
 
 /* Define default sys mem pool size */

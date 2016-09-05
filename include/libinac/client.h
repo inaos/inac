@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2015, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,9 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_TIMER_BACKEND_H_
-#define _LIBINAC_TIMER_BACKEND_H_
+ 
+#ifndef _LIBINAC_CLIENT_H_
+#define _LIBINAC_CLIENT_H_
 
 #include <libinac/lib.h>
 
@@ -34,43 +35,53 @@
 extern "C" {
 #endif
 
-typedef struct ina_timer_backend_s ina_timer_backend_t;
-typedef struct ina_timer_backend_event_s ina_timer_backend_event_t;
+/*
+ * DESIGN considerations:
+ * + network client
+ * + budget oriented
+ * + Using poll to dispatch file and network I/O
+ * + If high-throughput or low-latency is required we need a
+ *   HW accelerated component that dispatches via shared-memory
+ * + Use timer for time based tasks
+ * + Everything should be mempool based
+ * + Pull API to make it ljit friendly
+ * + Should provide a simple HTTP(S)-Client  
+ *
+ */
+
+/* opaque client context */
+typedef struct ina_client_ctx_s ina_client_ctx_t;
+
+typedef struct ina_client_descriptor_s {
+    uint8_t timer_use_rdtsc;
+    uint8_t hw_acceleration;
+    ina_net_hw_backend_t hw_backend;
+    size_t max_memory_utilization;
+} ina_client_descriptor_t;
 
 /*
- * Initialize timer backend
+ *
  */
-INA_API(ina_rc_t) ina_timer_backend_init(ina_timer_backend_t **backend);
+INA_API(ina_rc_t) ina_client_tcp_new(ina_client_ctx_t **ctx);
 
 /*
- * Destroy timer backend
+ *
  */
-INA_API(ina_rc_t) ina_timer_backend_destroy(ina_timer_backend_t **backend);
+INA_API(ina_rc_t) ina_client_tcp_free(ina_client_ctx_t **ctx);
 
 /*
- * Create a new backend event for a timer
+ *
  */
-INA_API(ina_time_event_t*) ina_timer_backend_create_event(ina_timer_backend_t *backend, 
-                                                          ina_time_event_t *e,
-                                                          time_t n_msec,
-                                                          time_t e_msec);
-/*
- * Delete a backend event from a timer
- */
-INA_API(ina_rc_t) ina_timer_backend_delete_event(ina_timer_backend_t *backend, ina_time_event_t *e);
+INA_API(ina_rc_t) ina_client_udp_new(ina_client_ctx_t **ctx);
 
 /*
- * Get the next elapsed time event by providing the milli-seconds since epoch
+ *
  */
-INA_API(ina_time_event_t*) ina_timer_backend_next_event_with_time(ina_timer_backend_t *backend, time_t now_millis);
-
-/*
- *  Calculate time in msec until the next time event will elapse.
- */
-INA_API(ina_rc_t) ina_timer_backend_time_to_next_event(ina_timer_backend_t *backend, time_t now_millis, time_t *how_long_msec);
+INA_API(ina_rc_t) ina_client_udp_free(ina_client_ctx_t **ctx);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+

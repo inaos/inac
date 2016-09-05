@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 INAOS GmbH
+ * Copyright (c) 2012-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,18 @@ typedef void (*ina_free_t)(void *);
  * INA_SUCCESS if no error occurred.
  */                                 
 INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
+/*
+ * The function calculates the size of a memory segment after
+ * proper alignment
+ *
+ * Parameters:
+ * query     Input size in bytes
+ * aligned   The size after alignment
+ *
+ * Return Value
+ * INA_SUCCESS if no error occurred.
+ */                                 
+INA_API(ina_rc_t) ina_mem_get_aliged_size(size_t query, size_t *aligned);
 /*
  * Allocate memory block. Allocates a block of size bytes of memory, returning
  * a pointer to the beginning of the block.
@@ -240,7 +252,6 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
  * none
  */
 INA_API(void) ina_mem_free(void *ptr);
-
 INA_API(void) ina_mem_free_aligned(void *ptr);
 
 #ifdef __cplusplus

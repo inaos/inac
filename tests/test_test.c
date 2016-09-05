@@ -128,3 +128,81 @@ INA_TEST(test_assert, assert_false) {
     INA_TEST_ASSERT_FALSE(0);
     INA_TEST_ASSERT_FALSE(2!=2);
 }
+
+INA_TEST_DATA(test_os_fixture) {
+    int x;
+    int skip;
+};
+
+INA_TEST_SETUP(test_os_fixture) {
+    data->x += 1;
+}
+
+INA_TEST_TEARDOWN(test_os_fixture) {
+    data->x -= 1;
+}
+
+#ifdef INA_OS_WIN32
+INA_TEST_FIXTURE_WIN32(test_os_fixture, win32) {
+    INA_TEST_ASSERT_TRUE(1);
+}
+INA_TEST_FIXTURE_OSX(test_os_fixture, osx) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_FIXTURE_LINUX(test_os_fixture, linux) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_WIN32(test_os, win32) {
+    INA_TEST_ASSERT_TRUE(1);
+}
+INA_TEST_OSX(test_os, osx) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_LINUX(test_os, linux) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+#endif
+
+#ifdef INA_OS_OSX
+INA_TEST_FIXTURE_WIN32(test_os_fixture, win32) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_FIXTURE_OSX(test_os_fixture, osx) {
+    INA_TEST_ASSERT_TRUE(1);
+}
+INA_TEST_FIXTURE_LINUX(test_os_fixture, linux) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_WIN32(test_os, win32) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_OSX(test_os, osx) {
+    INA_TEST_ASSERT_TRUE(1);
+}
+INA_TEST_LINUX(test_os, linux) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+#endif
+
+#ifdef INA_OS_LINUX
+INA_TEST_FIXTURE_WIN32(test_os_fixture, win32) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_FIXTURE_OSX(test_os_fixture, osx) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_FIXTURE_LINUX(test_os_fixture, linux) {
+    INA_TEST_ASSERT_TRUE(1);
+}
+INA_TEST_WIN32(test_os, win32) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_OSX(test_os, osx) {
+    INA_TEST_ASSERT_TRUE(0);
+}
+INA_TEST_LINUX(test_os, linux) {
+    INA_TEST_ASSERT_TRUE(1);
+}
+#endif
+
+

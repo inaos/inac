@@ -1,7 +1,7 @@
 @echo off
 
 REM
-REM Copyright (c) 2013-2015, INAOS GmbH
+REM Copyright (c) 2013-2016, INAOS GmbH
 REM All rights reserved.
 REM
 REM Redistribution and use in source and binary forms, with or without
@@ -226,7 +226,11 @@ if defined INAC_WIN32_C_SOURCE_DIR (
 		if not exist %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR% mkdir %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
+			if "%INAC_COMPILER%" == "ICC" (
+				call cmake -DCMAKE_CXX_COMPILER="%CMPLR_PATH:\=/%/icl.exe" -DCMAKE_C_COMPILER="%CMPLR_PATH:\=/%/icl.exe" -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
+			) else (
+				call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
+			)
 			if ERRORLEVEL 1 goto exit_fail
 			call nmake
 			if ERRORLEVEL 1 goto exit_fail

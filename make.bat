@@ -36,11 +36,16 @@ SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
 SET INAC_ARCH=x86
 SET INAC_VC_VAR_ARG=x86
-if defined CommandPromptType (
-       if "%CommandPromptType%" == "Cross" (
-               SET INAC_ARCH=x64
-               SET INAC_VC_VAR_ARG=x86_amd64
-       )
+SET INAC_COMPILER=MSVC
+if "%WIN_TITLE:~0,14%" == "Intel Compiler" (
+	SET INAC_COMPILER=ICC
+) else (
+	if defined CommandPromptType (
+		if "%CommandPromptType%" == "Cross" (
+			SET INAC_ARCH=x64
+			SET INAC_VC_VAR_ARG=x86_amd64
+		)
+    )
 )
 
 if not defined INCLUDE (
@@ -162,7 +167,7 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if "%INAC_BUILD_TYPE%" == "debug" (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
@@ -170,7 +175,7 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 				%INAC_HOME%\buildall\falkhash.lib %INAC_HOME%\buildall\hdr-histogram.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
@@ -180,7 +185,7 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	) else (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
@@ -188,7 +193,7 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 				%INAC_HOME%\buildall\falkhash.lib %INAC_HOME%\buildall\hdr-histogram.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
@@ -202,9 +207,17 @@ REM reset the main environment variables because they might have been deleted by
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
 
-if "%INAC_ARCH%" == "x64" (
-	echo FIXME: In Windows 64bit mode we currently do not build tests and tools due to an bug
-) else (
+if "%INAC_COMPILER%" == "ICC" (
+ 	echo FIXME: In Windows when using the Intel Compiler e currently do not build tests and tools due to Visual Studio Express
+	goto exit
+)
+
+if "%INAC_ARCH%" == "x64" ( 
+	if not "%INAC_COMPILER%" == "ICC" (
+		echo FIXME: In Windows 64bit mode we currently do not build tests and tools due to an bug
+		goto exit
+	)
+)
 
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.
@@ -225,8 +238,6 @@ SET INAC_WIN32_C_SOURCE_DIR=.
 SET INAC_WIN32_C_BUILD_TOOL=cmake-vs
 
 call %INAC_BUILD_SCRIPT% %1 %2
-
-)
 
 goto exit
 
@@ -260,5 +271,6 @@ SET INAC_BUILD_SCRIPT=
 
 SET INAC_ARCH=
 SET INAC_VC_VAR_ARG=
+SET INAC_COMPILER=
 
 goto:eof

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -266,9 +266,16 @@ INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen,
     struct tm *mtm;
     time_t secs;
     long micros;
+#ifdef INA_OS_LINUX
+    static struct tm rtm;
+#endif
 
     ina_time_sys_seconds_micros(time, &secs, &micros);
+#ifdef INA_OS_LINUX
+    mtm = localtime_r(&secs, &rtm);
+#else
     mtm = localtime(&secs);
+#endif
     INA_ASSERT_NOTNULL(mtm);
     nw = strftime(b, buflen, fmt, mtm);
 
