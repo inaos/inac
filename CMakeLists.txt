@@ -166,7 +166,7 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c
 				 ${SRC_DIR}/histogram.c ${SRC_DIR}/pcap.c ${SRC_DIR}/gzip.c 
 				 ${SRC_DIR}/net_hw_openonload.c ${SRC_DIR}/net_hw_vma.c ${SRC_DIR}/percentile.c 
-				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c)
+				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c ${SRC_DIR}/rdb.c ${SRC_DIR}/rdb_sqlite.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
 
