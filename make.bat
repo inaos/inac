@@ -167,7 +167,7 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	if "%INAC_BUILD_TYPE%" == "debug" (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
@@ -175,7 +175,7 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 				%INAC_HOME%\buildall\falkhash.lib %INAC_HOME%\buildall\hdr-histogram.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
@@ -185,7 +185,7 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 	) else (
 		if "%INAC_ARCH%" == "x64" (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
      			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^
@@ -193,7 +193,7 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 				%INAC_HOME%\buildall\falkhash.lib %INAC_HOME%\buildall\hdr-histogram.lib /MACHINE:X64
 		) else (
 			LIB.EXE /OUT:%INAC_HOME%\buildall\libinac.lib %INAC_HOME%\buildall\libinac_c.lib %INAC_HOME%\buildall\libinac_lua.lib ^
-				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\skiplist.lib %INAC_HOME%\buildall\http_parser.lib ^
+				%INAC_HOME%\buildall\anet.lib %INAC_HOME%\buildall\http_parser.lib ^
 				%INAC_HOME%\buildall\rapidxml.lib %INAC_HOME%\buildall\sqlite.lib %INAC_HOME%\buildall\axtls.lib ^
 				%INAC_HOME%\buildall\yajl.lib %INAC_HOME%\buildall\cpu-topology.lib %INAC_HOME%\contribs\cpu-topology\intel-cpu-topo.lib ^
     			%INAC_HOME%\buildall\lz4.lib %INAC_HOME%\buildall\miniz.lib %INAC_HOME%\buildall\luatest.lib %INAC_HOME%\buildall\timerwheel.lib ^

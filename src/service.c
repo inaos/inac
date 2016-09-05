@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright (c) 2013-2015, INAOS GmbH
  * All rights reserved.
@@ -902,7 +900,7 @@ INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx,
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
+INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx)
 {
     ina_service_descriptor_t *ds = NULL;
     
@@ -951,7 +949,7 @@ INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx)
     return INA_ERR_PUSH_LAST; 
 }
 
-INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx)
+INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 

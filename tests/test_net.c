@@ -214,7 +214,7 @@ INA_TEST(net_local, mac_addr)
     struct ifaddrs *ifaddr, *ifa;
     char host[NI_MAXHOST];
     char *ip = NULL;
-    unsigned char *mac = (char*)malloc(6);
+    char *mac = (char*)malloc(6);
     int found = INA_NO;
 
     INA_TEST_ASSERT_FALSE(getifaddrs(&ifaddr) == -1);

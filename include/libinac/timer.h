@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 #define _LIBINAC_TIMER_H_
 
 #include <libinac/lib.h>
+#include <contribs/timerwheel/timeout.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,7 +41,7 @@ typedef struct ina_timer_s ina_timer_t;
 /* Time event */
 typedef struct ina_time_event_s {
     uint64_t id;
-    void *data;
+    struct timeout *t;
 } ina_time_event_t;
 
 /*
