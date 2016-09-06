@@ -101,7 +101,7 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf);
  * Return
  *  INA_SUCCESS if section was created successfully.
  */
-INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, const char *name
+INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, const char *name,
                                            int required, int named,
                                            ina_conffile_section_cb_t cb,
                                            ina_conffile_section_t **section);

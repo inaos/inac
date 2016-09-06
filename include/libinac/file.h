@@ -75,7 +75,7 @@ extern "C" {
 
 /* File access mode */
 typedef enum ina_file_access_mode_e {
-    NA_FILE_ACCESS_MODE_READ,
+    INA_FILE_ACCESS_MODE_READ,
     INA_FILE_ACCESS_MODE_READWRITE
 } ina_file_access_mode_t;
 
