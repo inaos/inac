@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,47 @@
 extern "C" {
 #endif
 
-/* opaque service context */
+/* opaque DNS context */
 typedef struct ina_dns_ctx_s ina_dns_ctx_t;
 
 /*
- * 
+ * Create and initialize a new DNS context.
+ *
+ * Parameters
+ *  ctx  Where to store the newly created context
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dns_init(ina_dns_ctx_t **ctx);
+
 /*
- * 
+ * Destroy a DNS context.
+ *
+ * Parameters
+ *  ctx  Context to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dns_destroy(ina_dns_ctx_t **ctx);
+
 /*
+ * Retrieve IPv4 addresses for a given hostname.
  *
+ * Parameters
+ *  ctx            DNS context
+ *  hostname       Hostname to query
+ *  address_count  Where to store address count
+ *  addresses      Where to store ip addresses
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx, const char *hostname, 
-                                        short *address_count, ina_str_t **addresses);
+INA_API(ina_rc_t) ina_dns_system_lookup(ina_dns_ctx_t *ctx,
+                                        const char *hostname,
+                                        short *address_count,
+                                        ina_str_t **addresses);
 
 #ifdef __cplusplus
 }

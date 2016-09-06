@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,19 +116,20 @@ extern "C" {
  * Push an error to the error state.
  *
  * Parameters
- * m    Module identifier (optional)
- * f    OS function identifier (if needed)
- * r    Reason of failure
- * s    Error message
+ *  m  Module identifier (optional)
+ *  f  OS function identifier (if needed)
+ *  r  Reason of failure
+ *  s  Error message
  */
 #define INA_ERR_PUSH(r,m,f,s) ina_err_push(m,f,r, __FILE__, __LINE__, s)
 
-/* * Push an error to the error state by passing only basic informations like
+/*
+ * Push an error to the error state by passing only basic information like
  * reason of failure and message
  *
  * Parameters
- * r    Reason of failure
- * s    Error message
+ *  r  Reason of failure
+ *  s  Error message
  */
 #define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,               \
                                           INA_OSFN_NONE,                    \
@@ -139,21 +140,23 @@ extern "C" {
 
 /*
  * Push an error to the error state by passing  basic informations like
- * reason of failure, os function indentifier and message
+ * reason of failure, os function identifier and message
  *
  * Parameters
- * r    Reason of failure
- * f    OS function identifier
- * s    Error message
+ * r  Reason of failure
+ * f  OS function identifier
+ * s  Error message
  */
 #define INA_ERR_PUSH_OSFN(r,f,s) ina_err_push(INA_MOD_UNKNOWN,              \
                                           f,r,                              \
                                           __FILE__,                         \
                                           __LINE__ ,                        \
 
-
 /*
  * Re-push a previously pushed error
+ *
+ * Parameters
+ *  rc  Error
  */
 #define INA_ERR_REPUSH(rc) ina_err_repush(rc, __FILE__, __LINE__)
 
@@ -166,10 +169,10 @@ extern "C" {
  * Pack an RC.
  *
  * Parameters
- * m    Module identifier (optional)
- * f    OS function identifier (if needed)
- * r    Reason of failure
- * i    Error identifier
+ *  m  Module identifier (optional)
+ *  f  OS function identifier (if needed)
+ *  r  Reason of failure
+ *  i  Error identifier
  */
 #define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)i) << 22U|   \
                               ((ina_rc_t)m) << 16U|   \
@@ -229,7 +232,7 @@ extern "C" {
 #define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
 #define INA_NET_ERROR2(r, s) INA_ERR_PUSH(r, INA_MOD_NET, INA_OSFN_NONE, s)
 #define INA_NET_ETIMEOUT INA_NET_ERROR2(INA_ETIMEOUT, "Net timeout")
-#define INA_NET_ENETINIT INA_NET_ERROR2(INA_EINIT, "Net initalization failed")
+#define INA_NET_ENETINIT INA_NET_ERROR2(INA_EINIT, "Net initialization failed")
 
 /* ISCP errors */
 #define INA_ISCP_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ISCP, INA_OSFN_NONE, s)
@@ -238,7 +241,7 @@ extern "C" {
 #define INA_ISCP_ERETNCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set retn callback")
 #define INA_ISCP_EOPENCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set open callback")
 #define INA_ISCP_ECLSECB INA_ISCP_ERROR(INA_EINVAL, "Failed to set clse callback")
-#define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registred")
+#define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registered")
 #define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed")
 #define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed")
 #define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed")
@@ -327,15 +330,15 @@ typedef struct ina_error_s {
  * Push an error to the error state.
  *
  * Parameters
- * mod      Module identifier
- * osfn     OS function intentifier
- * reason   Reason of failure
- * file     filename
- * line     line
- * msg      Error message
+ *  mod      Module identifier
+ *  osfn     OS function identifier
+ *  reason   Reason of failure
+ *  file     filename
+ *  line     line
+ *  msg      Error message
  *
- * Return Value
- * RC
+ * Return
+ *  RC
  */
 INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, const char *file,
                                int line,
@@ -345,29 +348,39 @@ INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, const char *file,
  * Re-push an error to the error state
  *
  * Parameters
- * rc   RC to re-push
- * file     filename
- * line     line
+ *  rc    RC to re-push
+ *  file  filename
+ *  line  line
  *
- * Return Value
- * RC
+ * Return
+ *  RC
  */
 INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line);
 
+/*
+ * Query if succeed.
+ *
+ * Parameters
+ *  rc  RC
+ *
+ * Return
+ *  INA_YES if succeed otherwise INA_NO
+ */
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc);
+
 /*
  * Peek the first pushed error from the error state.
  *
- * Return Value
- * RC of first pushed error or INA_SUCCESS if error state is clean
+ * Return
+ *  RC of first pushed error or INA_SUCCESS if error state is clean
  */
 INA_API(ina_rc_t) ina_err_peek_last(void);
 
 /*
  * Peek the first unhandled error from the error state.
  *
- * Return Value
- * RC of first unhandled error or INA_SUCCESS  if error state is clean
+ * Return
+ *  RC of first unhandled error or INA_SUCCESS  if error state is clean
  */
 INA_API(ina_rc_t) ina_err_peek(void);
 
@@ -375,10 +388,10 @@ INA_API(ina_rc_t) ina_err_peek(void);
  * Peek the next (handled or unhandled) error from the error state.
  *
  * Parameters
- * rc   Previous RC
+ *  rc  Previous RC
  *
- * Return Value
- * RC or INA_SUCCESS if no more errors found.
+ * Return
+ *  RC or INA_SUCCESS if no more errors found.
  */
 INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc);
 
@@ -387,45 +400,45 @@ INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc);
  * from the state.
  *
  * Parameters
- * rc   Valid RC to mark as handled. If a error was already maked as handled
+ *  rc  Valid RC to mark as handled. If a error was already maked as handled
  *      no error occurs.
  *
- * Return Value
- * Returns INA_SUCCESS when the complete error state was cleared successfully
- * otherwise returns INA_FAILURE. A marked
+ * Return
+ *  Returns INA_SUCCESS when the complete error state was cleared successfully
+ *  otherwise returns INA_FAILURE. A marked
  */
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
 
 /*
  * Mark an error as handled.
  *
- * Return Value
- * Returns INA_SUCCESS when the complete error state was cleared successfully
- * otherwise returns INA_FAILURE
+ * Return
+ *  Returns INA_SUCCESS when the complete error state was cleared successfully
+ *  otherwise returns INA_FAILURE
  */
 INA_API(ina_rc_t) ina_err_reset(void);
 
 /*
  * Makes a trace to the stderr of the current error state.
  *
- * Return Value
- * INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_err_trace(void);
 
 /*
  * Makes a backrace to the stderr of the current error state.
  *
- * Return Value
- * INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_err_backtrace(void *data);
 
 /*
- * Create a coredump
+ * Create a core dump
  *
- * Return Value
- * INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_err_coredump(void *data);
 
@@ -433,31 +446,34 @@ INA_API(ina_rc_t) ina_err_coredump(void *data);
  * Format the error message for a given RC.
  *
  * Parameters
- * rc   Valid RC
- * str  String buffer to hold the message
- * len  Max length of the string buffer str
+ *  rc   Valid RC
+ *  str  String buffer to hold the message
+ *  len  Max length of the string buffer str
  *
- * Return Value
- * INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
+ * Return
+ *  INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
  */
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
+
 /*
  * Return the raw error message for the last pushed error.
  * 
  * Return
- * Error message or NULL if no errors are on the stack. Char pointer is valid
- * as long an eror is on the error stack.
+ *  Error message or NULL if no errors are on the stack. Char pointer is valid
+ *  as long an error is on the error stack.
  */
+
 INA_API(const char*) ina_err_get_last_errmsg(void);
+
 /*
  * Return the raw error message for an pushed error rc.
  * 
  * Parameters
- * rc   Valid RC
+ *  rc  Valid RC
  *
  * Return
- * Error message or NULL if rc is invalid. Char pointer is valid as long an 
- * eror is on the error stack.
+ *  Error message or NULL if rc is invalid. Char pointer is valid as long an
+ *  error is on the error stack.
  */
 INA_API(const char*) ina_err_get_errmsg(ina_rc_t rc);
 
