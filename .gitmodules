@@ -1,3 +1,0 @@
-[submodule "contribs/rdb"]
-	path = contribs/rdb
-	url = git@github.com:inaos/inac-rdb.git
