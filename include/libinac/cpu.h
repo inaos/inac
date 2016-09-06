@@ -108,49 +108,128 @@ typedef uint64_t ina_cpu_feature_t;
 typedef struct ina_cpu_ctx_s ina_cpu_ctx_t;
 
 /*
- * PRIVATE: One should never call this function - its only called internally during initialization
+ * PRIVATE: One should never call this function - its only called internally
+ * during initialization.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_cpu_init();
+INA_API(ina_rc_t) ina_cpu_init(void);
+
 /*
- * PRIVATE: One should never call this function - its only called internally during shutdown
+ * PRIVATE: One should never call this function - its only called internally
+ * during shutdown.
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_cpu_destroy();
+INA_API(ina_rc_t) ina_cpu_destroy(void);
+
 /*
- * 
+ * Get package count.
+ *
+ * Parameters
+ *  package_count  Where to store package count
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count);
+
 /*
- * 
+ * Get core count.
+ *
+ * Parameters
+ *  core_count  Where to store core count
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_cpu_get_core_count(int *core_count);
+
 /*
- * 
+ * Get thread count.
+ *
+ * Parameters
+ *  thread_count  Where to store thread count
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_cpu_get_thread_count(int *thread_count);
+
 /*
- * 
+ * Get count of logical processors in the system.
+ *
+ * Parameters
+ *  logical_count  Where to store number of logical processors or 0 if number
+ *                 can not be calculated.
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_cpu_get_total_logical_count(int *logical_count);
+
 /*
- * 
+ * Get cpu features.
+ *
+ * Parameters
+ *  features  Where to store cpu features
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_cpu_get_features(ina_cpu_feature_t *features);
+
 /*
+ * Get cpu brand string.
  *
+ * Parameters
+ *  brand  Where to store the brand string
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_cpu_get_brand_string(ina_str_t *brand);
+
 /*
+ * Query if module is suppoerted.
  *
+ * Parameters
+ *  supported  Where to store the result
+ *
+ * Return
+ *  INA_SUCCESS
+ *
+ * TODO: Use function return to indicate if supported or not
  */
 INA_API(ina_rc_t) ina_cpu_is_supported(int *supported);
+
 /*
+ * Schedule current thread to a specific core.
  *
+ * Parameters
+ *  core  Core number
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_cpu_pin_to_core(int core);
+
 /*
+ * Retrieve cpu signature , such aa family, model and stepping
  *
+ * Parameters
+ *  family    Where to store cpu family id
+ *  model     Where to sture cpu model id
+ *  stepping  Where to store cpu stepping
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family, uint8_t *model, uint8_t *stepping);
+INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family,
+                                        uint8_t *model,
+                                        uint8_t *stepping);
 
 #ifdef __cplusplus
 }

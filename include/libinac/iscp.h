@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,55 +148,59 @@ typedef struct ina_iscp_net_data_s {
 } ina_iscp_net_data_t;
 
 /*
- * Create a generic ISCP context
+ * Create a generic ISCP context.
  *
  * Parameters
- * ctx          Pointer to a context pointer to create
- * backend      Specifies the type of backend to use
+ *  ctx      Pointer to a context pointer to create
+ *  backend  Specifies the type of backend to use
  *
- * Return Value
- * INA_SUCCESS if no error occurred
+ * Return
+ *  INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backend);
+INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx,
+                                  ina_iscp_backend_t backend);
 
 /*
- * Create a TCP ISCP context
+ * Create a TCP ISCP context.
  *
  * Parameters
- * ctx          Pointer to a context pointer to create
+ *  ctx  Pointer to a context pointer to create
  *
- * Return Value
- * INA_SUCCESS if no error occurred
+ * Return
+ *  INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx, const char* addr, int port);
+INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx,
+                                      const char* addr,
+                                      int port);
 
 #ifndef INA_OS_WIN32
 /*
- * Create a Unix domain socket ISCP context
+ * Create a Unix domain socket ISCP context.
  *
  * Parameters
- * ctx          Pointer to a context pointer to create
+ *  ctx  Pointer to a context pointer to create
  *
- * Return Value
- * INA_SUCCESS if no error occurred
+ * Return
+ *  INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_create_uxds(ina_iscp_ctx_t **ctx, const char* socket_path);
+INA_API(ina_rc_t) ina_iscp_create_uxds(ina_iscp_ctx_t **ctx,
+                                       const char* socket_path);
 #endif
 
 /*
  * Set the send and receive callbacks.
  *
  * Parameters
- * ctx          Valid ISCP context
- * open_cb      Open channel callback
- * clse_cb      Close channel callback
- * send_cb      Send callback function
- * recv_cb      Receive callback
- * retn_cb      Return callback
+ *  ctx      Valid ISCP context
+ *  open_cb  Open channel callback
+ *  clse_cb  Close channel callback
+ *  send_cb  Send callback function
+ *  recv_cb  Receive callback
+ *  retn_cb  Return callback
  *
- * Return Value
- * INA_SUCCESS if no error occurred
- * EINVAL      if any of the paramaters is invalid
+ * Return
+ *  INA_SUCCESS if no error occurred
+ *  EINVAL      if any of the parameters is invalid
  */
 INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_ctx_t *ctx,
                                          ina_iscp_open_cb open_cb,
@@ -208,10 +212,10 @@ INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_ctx_t *ctx,
  * Reset ISCP status and remove all registred commands.
  *
  * Parameters
- * ctx          Pointer to a context pointer to create
+ *  ctx  Pointer to a context pointer to create
  *
- * Return Value:
- * INA_SUCCESS if successfully cleared.
+ * Return
+ *  INA_SUCCESS if successfully cleared.
  */
 INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx);
 
@@ -219,18 +223,21 @@ INA_API(ina_rc_t) ina_iscp_destroy(ina_iscp_ctx_t **ctx);
  * Register a ISCP command.
  *
  * Parameters
- * ctx          Valid ISCP context
- * cmd_id       Command identifier
- * p_count      Number of parameters to send or to receive
- * r_count      Number of return values to send back 
- * handler      Command handler function called when the command is 
- *              received.
+ *  ctx      Valid ISCP context
+ *  cmd_id   Command identifier
+ *  p_count  Number of parameters to send or to receive
+ *  r_count  Number of return values to send back
+ *  handler  Command handler function called when the command is
+ *           received.
  *
  * Return Value
  * INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx, int cmd_id,int p_count, 
-                                      int r_count, ina_iscp_handler_t handler);
+INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx,
+                                    int cmd_id,
+                                    int p_count,
+                                    int r_count,
+                                    ina_iscp_handler_t handler);
 
 /*
  * Register one or more ISCP commands at once. Use INA_ISCP_CMDS, 
@@ -238,11 +245,11 @@ INA_API(ina_rc_t) ina_iscp_register(ina_iscp_ctx_t *ctx, int cmd_id,int p_count,
  * command array
  *
  * Parameters
- * ctx          Valid ISCP context
- * cmds         Command pointer array
+ *  ctx   Valid ISCP context
+ *  cmds  Command pointer array
  *
- * Return Value
- * INA_SUCCESS if no error occurred
+ * Return
+ *  INA_SUCCESS if no error occurred
  */                                      
 INA_API(ina_rc_t) ina_iscp_register_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds);
 
@@ -256,13 +263,13 @@ INA_API(ina_rc_t) ina_iscp_register_ex(ina_iscp_ctx_t *ctx, ina_iscp_cmd_t *cmds
  *                   INA_ISCP_TYPE_INT, 3);
  *
  * Parameters
- * ctx       Valid ISCP context
- * cmd_id   Commmand identifier
- * ...      Command parameter list
+ *  ctx     Valid ISCP context
+ *  cmd_id  Command identifier
+ *  ...     Command parameter list
  *
- * Return Value
- * INA SUCCESS if command was successfully sent to the server and 
- *             executed by the receiver w/o error.
+ * Return
+ *  INA SUCCESS if command was successfully sent to the server and
+ *              executed by the receiver w/o error.
  */
 INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
 
@@ -278,14 +285,17 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...);
   *    INA_ISCP_TYPE_INT, 3);
   *
   * Parameters
-  * count Number of values
-  * retvals Return values handle
-  * ... Return values list
+  *  count   Number of values
+  *  retvals Return values handle
+  *  ...     Return values list
   *
-  * Return Value
-  * INA SUCCESS
+  * Return
+  *  INA SUCCESS
   */
-INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t *values, int count, ...);
+INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t *values,
+                                             int count,
+                                             ...);
+
 /*
  * Get return values from the last ISCP call.
  *
@@ -299,12 +309,12 @@ INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t *values, int count
  * INA_ISCP_TYPE_DBL, &d);
  *
  * Parameters
- * ctx Valid ISCP context
- * retvals Return values handle
- * ... Return values list
+ *  ctx      Valid ISCP context
+ *  retvals  Return values handle
+ *  ...      Return values list
  *
- * Return Value
- * INA SUCCESS
+ * Return
+ *  INA SUCCESS
  */
 INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...);
 
@@ -314,12 +324,12 @@ INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...
  * synchronously.
  *
  * Parameters
- * ctx   Valid ISCP context
- * nc    Num of loops.
- * wait  Number of milliseconds to wait for next try
+ *  ctx   Valid ISCP context
+ *  nc    Num of loops.
+ *  wait  Number of milliseconds to wait for next try
  *
- * Return Value:
- * INA_SUCCESS if no error occurred.
+ * Return
+ *  INA_SUCCESS if no error occurred.
  */
 INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec);
 

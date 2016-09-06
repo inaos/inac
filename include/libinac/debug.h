@@ -41,7 +41,6 @@ extern "C" {
 
 /*
  * Trace macros
- *
  */
 #ifdef DEBUG
 #define INA_TRACE(fmt, ...)     \

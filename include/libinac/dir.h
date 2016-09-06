@@ -72,86 +72,195 @@ typedef struct ina_dir_entry_s {
 
 /*
  * Create a new directory walker.
+ *
+ * Parameters
+ *  basedir  Base directory for newly created walker
+ *  walker   Where to store the newly created walker
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_dir_walker_new(const char *basedir, ina_dir_walker_t **walker);
 
 /*
  * Enable recursive directory walking.
+ *
+ * Parameters
+ *  walker  Directory walker
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_enable_recursive(ina_dir_walker_t *walker);
 
 /*
  * Disable recursive directory walking.
+ *
+ * Parameters
+ *  walker  Directory walker
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_disable_recursive(ina_dir_walker_t *walker);
 
 /*
  * Get current sort order for walker.
+ *
+ * Parameters
+ *  walker      Directory walker
+ *  sort_order  Where to store current sort order
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_get_sort_order(const ina_dir_walker_t *walker,
                                                 ina_dir_sort_order_t *sort_order);
 
 /*
  * Set directory sort order for walker.
+ *
+ * Parameters
+ *  walker      Directory walker
+ *  sort_order  Sort order to set
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_set_sort_order(ina_dir_walker_t *walker,
                                                 ina_dir_sort_order_t sort_order);
 
 /*
- * Get current directory sort attrib for walker.
+ * Get current directory sort attribute for walker.
+ *
+ * Parameters
+ *  walker      Directory walker
+ *  sort_attrib Where to store the current sort attribute
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_get_sort_attrib(const ina_dir_walker_t *walker,
                                                  ina_dir_sort_attrib_t *sort_attrib);
 
 /*
- * Set directory sort attrib for walker.
+ * Set directory sort attribute for walker.
+ *
+ * Parameters
+ *  walker       Director walker
+ *  sort_attrib  Sort attribute to set
+ *
+ * Return
+ * INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_set_sort_attrib(ina_dir_walker_t *walker,
                                                  ina_dir_sort_attrib_t sort_attrib);
 
 /*
  * Get next directory entry of walker.
+ *
+ * Parameters
+ *  walker  Directory walker
+ *  entry   Where to store the directory entry. Is NULL at end of list.
+ *
+ * Return
+ *  INA_SUCCESS if all went well, INA_FAILURE on end of list.
  */
 INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
                                                  const ina_dir_entry_t **entry);
 
 /*
- * Reset walker. Does not reflect FS changes, sort order and sort attrib.
+ * Reset walker. Does not reflect FS changes, sort order and sort attribute
+ *
+ * Parameters
+ *  walker  Directory walker to reset.
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_reset(ina_dir_walker_t *walker);
 
 /*
  * Reload walker. Reflect FS changes, sort order and sort attrib.
+ *
+ * Parameters
+ *  walker  Directory walker to reload
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_reload(ina_dir_walker_t *walker);
 
 /*
  * Free directory walker.
+ *
+ * Parameter
+ *  walker  Directory walker to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker);
 
 /*
+ * Create and initialize directory attributes for a give directory.
  *
+ * Parameters
+ *  stat  Where to store the directory attributes
+ *  dir   Directory
+ *
+ * FIXME: Swap the argument position
  */
 INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir);
 
 /*
+ * Get total capacity in bytes for a directory.
  *
+ * Parameters
+ *  stats           Directory attributes
+ *  capacity_bytes  Where to store directory capacity in bytes
+ *
+ * Return
+ *  INA_SUCCESS
+ *
+ * FIXME: Use const keyword for stat
  */
-INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat, uint64_t *capacity_bytes);
+INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat,
+                                              uint64_t *capacity_bytes);
 
 /*
+ * Get free capacity in bytes for a directory.
  *
+ * Parameters
+ *  stat        Directory attributes
+ *  free_bytes  Where too store the free capacity in bytes
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat, uint64_t *free_bytes);
+INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat,
+                                          uint64_t *free_bytes);
 
 /*
+ * Calculate used capacity of a directory in percent.
  *
+ * Parameters
+ *  stats     Directory attributes
+ *  pct_used  Where to store used capacity in percent
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used);
 
 /*
+ *  Destroy directory attributes.
  *
+ * Parameters
+ *  stats  Directory attributes to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_stat_free(ina_dir_stat_t **stat);
 

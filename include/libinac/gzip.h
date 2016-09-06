@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,17 +39,45 @@ extern "C" {
 typedef struct ina_gzip_file_s ina_gzip_file_t;
 
 /*
+ * Open a compressed file.
  *
+ * Parameters
+ *  gzip_file      Full path to the file
+ *  buffer_size    Read buffer size, use 0 for autodetect
+ *  gfz            Where to store the gzip file handle
+ *
+ * Return
+ *  INA_SUCCESS if all went well.
  */
-INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file, size_t buffer_size, ina_gzip_file_t **gzf);
+INA_API(ina_rc_t) ina_gzip_open(const char *gzip_file,
+                                size_t buffer_size,
+                                ina_gzip_file_t **gzf);
 
 /*
+ * Read and decompress the next block.
  *
+ * Parameters
+ *  gzf        File handle
+ *  requested  Minimum requested size in bytes
+ *  read       Where to store the number of bytes read
+ *  chunk      Where to store the uncompressed data.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf, size_t requested, size_t *read, unsigned char **chunk);
+INA_API(ina_rc_t) ina_gzip_read_next_block(ina_gzip_file_t *gzf,
+                                           size_t requested,
+                                           size_t *read,
+                                           unsigned char **chunk);
 
 /*
+ * Close a gzip file.
  *
+ * Parameters
+ *  gzf  Gzip file handle
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_gzip_close(ina_gzip_file_t **gzf);
 

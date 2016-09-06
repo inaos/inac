@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,25 +98,62 @@ typedef struct ina_log_cfg_s {
 } ina_log_cfg_t;
 
 /*
- * Open a log context for based on a log configuration
- */                          
-INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target, 
-                               ina_log_level_t level, const char *logfile);
-
-/*
- * Log a message to current targets and level.
+ * Open a log context  based on a log configuration.
+ *
+ * Parameters
+ *  cfg      Where to store the newly created log context
+ *  target   Defines log targets
+ *  level    Defines log level
+ *  logfile  Path to log file, relevant if target INA_LOG_FILE is requested
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, 
-                          const char* fmt, ...);
+INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg,
+                               int32_t target,
+                               ina_log_level_t level,
+                               const char *logfile);
 
 /*
- * Log a message to current targets and level.
+ * Log a  message to current targets and level.
+ *
+ * Parameters
+ *  cfg    Log context
+ *  level  Level for message
+ *  fmt    Format of log message
+ *  ...    Argument for log message
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg,
+                          ina_log_level_t level,
+                          const char* fmt,
+                          ...);
+
+/*
+ * Log a message to current targets and level. Variable list version.
+ *
+ * Parameters
+ *  cfg    Log context
+ *  level  Level for message
+ *  fmt    Format of log message
+ *  ap     Variable argument list
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level, 
                             const char* fmt, va_list ap);
 
 /*
- * Close a log context
+ * Close a log context.
+ *
+ * Parameters
+ *  cfg  Log context to close.
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg);
 
