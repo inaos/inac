@@ -205,12 +205,6 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mem_get_aliged_size(size_t query, size_t *aligned)
-{
-    *aligned = __INA_MEM_ALIGN(query);
-    return INA_SUCCESS;
-}
-
 INA_API(ina_rc_t) ina_mempool_init(size_t size)
 {
     if (__pools) {
