@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,19 +125,19 @@ INA_API(ina_rc_t) ina_server_dispatch_action(ina_server_ctx_t *ctx, ina_server_a
 /*
  *
  */
-INA_API(ina_rc_t) ina_server_register_tcp_server(ina_server_ctx_t *ctx, const char *interface, int port, 
+INA_API(ina_rc_t) ina_server_register_tcp_server(ina_server_ctx_t *ctx, const char *eth, int port, 
                                                  uint32_t clients, int *fd, ina_server_resource_requirements_t **rq);
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_server_register_tcp_client(ina_server_ctx_t *ctx, const char *host, int port,
+INA_API(ina_rc_t) ina_server_register_tcp_client(ina_server_ctx_t *ctx, const char *eth, int port,
                                                  int *fd, ina_server_resource_requirements_t **rq);
 
 /*
  *
  */
-INA_API(ina_rc_t) ina_server_register_udp_listener(ina_server_ctx_t *ctx, const char *interface, int port,
+INA_API(ina_rc_t) ina_server_register_udp_listener(ina_server_ctx_t *ctx, const char *eth, int port,
                                                    int *fd, ina_server_resource_requirements_t **rq);
 
 /*

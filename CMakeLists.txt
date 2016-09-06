@@ -158,4 +158,3 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
-

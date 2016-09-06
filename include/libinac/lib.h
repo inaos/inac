@@ -108,6 +108,8 @@
 #include <libinac/pcap.h>
 #include <libinac/gzip.h>
 #include <libinac/percentile.h>
+#include <libinac/client.h>
+#include <libinac/server.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
