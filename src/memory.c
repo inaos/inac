@@ -103,6 +103,13 @@ INA_API(void *) ina_mem_alloc(size_t size)
     return p;
 }
 
+INA_API(ina_rc_t) ina_mem_get_aligned_size(size_t query, size_t *aligned)
+{
+    INA_ASSERT_NOTNULL(aligned);
+    *aligned =  ((query+(INA_MEM_ALIGN_SIZE-1)) & (~(INA_MEM_ALIGN_SIZE-1)));
+    return INA_SUCCESS;
+}
+
 INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
 {     
     /* Allocate necessary memory area
@@ -195,12 +202,6 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
     GetSystemInfo(&si);
     *size = (size_t)si.dwPageSize;
 #endif
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_mem_get_aliged_size(size_t query, size_t *aligned)
-{
-    *aligned = __INA_MEM_ALIGN(query);
     return INA_SUCCESS;
 }
 
