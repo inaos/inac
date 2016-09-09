@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@
 #define PCAP_MAGIC_SWAPPED_BO       0xd4c3b2a1
 #define PCAP_MAGIC_NSP_SAME_BO      0xa1b23c4d
 #define PCAP_MAGIC_NSP_SWAPPED_BO   0x4d3cb2a1 
- 
+
+#define PCAP_VLAN_TAGGING_MAGIC     0x8100
+
 typedef struct __ina_pcap_hdr_s {
 	uint32_t magic_number;   /* magic number */
 	uint16_t version_major;  /* major version number */
@@ -327,6 +329,20 @@ INA_API(ina_rc_t) ina_pcap_get_file_compression(ina_pcap_ctx_t *pcap,
     } else {
         *file_compression = INA_PCAP_FILE_COMPRESSION_NONE;
     }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_pcap_strip_vlan(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **raw_packet)
+{
+    unsigned char *packet = *raw_packet;
+
+    /* VLAN tagged ethernet frame (https://en.wikipedia.org/wiki/IEEE_802.1Q) */
+    if (packet[12] == 8 && packet[13] == 0) {
+        memmove(&packet[12], &packet[16], *packet_len - 16);
+    }
+    *raw_packet = packet;
+    *packet_len = *packet_len - 4;
+
     return INA_SUCCESS;
 }
 

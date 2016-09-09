@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,6 +91,11 @@ INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, 
  */
 INA_API(ina_rc_t) ina_pcap_read_headers(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *packet, 
                                         ina_net_ip_t **ip_hdr, ina_net_udp_hdr_t **udp_hdr);
+
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_pcap_strip_vlan(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **raw_packet);
 
 #ifdef __cplusplus
 }
