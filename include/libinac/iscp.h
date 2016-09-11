@@ -96,13 +96,13 @@ typedef struct ina_iscp_msg_s {
     uint32_t cmd_uid;   /* UID for sent commands */
     uint16_t cmd_id;    /* identify the command */
     uint16_t p_count;   /* parameter count */
-    uint16_t r_count;   /* retuen value count */
+    uint16_t r_count;   /* return value count */
     ina_rc_t rc;        /* return code */
     /* Parameters 
      * [1 byte, parameter type][parameter]
      * 
      * [INA_ISCP_TYPE_INT64][b1][b2][b3][b4]
-     * [INA_ISPP_TYPE_STR][string lenght b1][b2 str lenght][b1][b2][bxx...]
+     * [INA_ISCP_TYPE_STR][string length b1][b2 str length][b1][b2][bxx...]
      * [INA_ISCP_TYPE_DBL][b1][b2][b3][b4][b5][b6][b7][b8]
      *
      * [CRC32] 
@@ -137,28 +137,6 @@ typedef struct ina_iscp_ctx_s {
     void *user_data;
 } ina_iscp_ctx_t;
 
-/* ISCP context for NET backends */
-typedef struct ina_iscp_net_data_s {
-    ina_str_t addr;     /* IP */
-    int       port;     /* Port */
-    ina_str_t sockpath; /* Socket path */
-    int       fd;       /* File descriptor */
-    int       lfd;      /* File descriptor for listener */
-    int       timeout_sec; /* Timeout for TCP connect  default 10 seconds */
-} ina_iscp_net_data_t;
-
-/*
- * Create a generic ISCP context.
- *
- * Parameters
- *  ctx      Pointer to a context pointer to create
- *  backend  Specifies the type of backend to use
- *
- * Return
- *  INA_SUCCESS if no error occurred
- */
-INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx,
-                                  ina_iscp_backend_t backend);
 
 /*
  * Create a TCP ISCP context.
@@ -172,6 +150,9 @@ INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx,
 INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx,
                                       const char* addr,
                                       int port);
+
+INA_API(ina_rc_t) ina_iscp_create_ipc(ina_iscp_ctx_t **ctx,
+                                      const char* endpoint)
 
 #ifndef INA_OS_WIN32
 /*
@@ -209,7 +190,7 @@ INA_API(ina_rc_t) ina_iscp_set_callbacks(ina_iscp_ctx_t *ctx,
                                          ina_iscp_recv_cb recv_cb,
                                          ina_iscp_retn_cb retn_cb);
 /*
- * Reset ISCP status and remove all registred commands.
+ * Reset ISCP status and remove all registered commands.
  *
  * Parameters
  *  ctx  Pointer to a context pointer to create
@@ -319,7 +300,7 @@ INA_API(ina_rc_t) ina_iscp_set_return_values(ina_iscp_param_t *values,
 INA_API(ina_rc_t) ina_iscp_get_last_return_values(const ina_iscp_ctx_t *ctx, ...);
 
 /*
- * Check and receive a previously regsisterd command. If a
+ * Check and receive a previously registered command. If a
  * command was received the command handler will be invoked
  * synchronously.
  *
