@@ -44,10 +44,10 @@ typedef struct ina_iscp_net_data_s {
 
 typedef struct ina_iscp_ipc_data_s {
     ina_str_t endpoint;
-    ina_mempool_t qp;
+    ina_mempool_t *qp;
     ina_iscp_param_t *queue;
-    ina_iscp_param_t *top
-};
+    ina_iscp_param_t *top;
+} na_iscp_ipc_data_t;
 
 /*
  * Net callback to open an ISCP channel.

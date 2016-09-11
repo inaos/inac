@@ -152,7 +152,7 @@ INA_API(ina_rc_t) ina_iscp_create_tcp(ina_iscp_ctx_t **ctx,
                                       int port);
 
 INA_API(ina_rc_t) ina_iscp_create_ipc(ina_iscp_ctx_t **ctx,
-                                      const char* endpoint)
+                                      const char* endpoint);
 
 #ifndef INA_OS_WIN32
 /*

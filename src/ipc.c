@@ -374,12 +374,12 @@ INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter, uint64_t value
     uint64_t v = counter->data->c;
     INA_ASSERT_NOTNULL(counter);
 
-    if (v == counter->data->) {
+    if (v == counter->data->c) {
         return INA_SUCCESS;
     }
 
     INA_ATOMIC_SWAP(&counter->data->c, v, value);
-    if (v ==counter->data->c) {
+    if (v == counter->data->c) {
         return INA_FAILURE;
     }
     return INA_SUCCESS;
