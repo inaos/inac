@@ -328,10 +328,8 @@ INA_API(ina_rc_t) ina_ipc_counter_get(const ina_ipc_counter_t *counter,
  *
  * Return
  *  INA_SUCCESS
- *
- * FIXME: should at least return INA_FAULIRE if atomic operation failed
  */
-INA_API(ina_rc_t) ina_ipc_counter_increment(ina_ipc_counter_t *counter,
+INA_API(uint64_t) ina_ipc_counter_increment(ina_ipc_counter_t *counter,
                                             uint64_t value);
 
 /*
@@ -343,10 +341,8 @@ INA_API(ina_rc_t) ina_ipc_counter_increment(ina_ipc_counter_t *counter,
  *
  * Return
  *  INA_SUCCESS
- *
- * FIXME: should at least return INA_FAULIRE if atomic operation failed
  */
-INA_API(ina_rc_t) ina_ipc_counter_decrement(ina_ipc_counter_t *counter,
+INA_API(uint64_t) ina_ipc_counter_decrement(ina_ipc_counter_t *counter,
                                             uint64_t value);
 
 /*
@@ -358,8 +354,6 @@ INA_API(ina_rc_t) ina_ipc_counter_decrement(ina_ipc_counter_t *counter,
  *
  * Return
  *  INA_SUCCESS
- *
- * FIXME: should at least return INA_FAULIRE if atomic operation failed
  */
 INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter,
                                       uint64_t value);
