@@ -319,7 +319,7 @@ INA_API(ina_str_t) ina_str_ncatcstr(ina_str_t dest, const char *src, size_t n);
 INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest,
                                                const char *src,
                                                size_t n,
-                                               s2ina_mempool_t *pool);
+                                               ina_mempool_t *pool);
 
 
 /*
