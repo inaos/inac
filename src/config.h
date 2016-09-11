@@ -53,6 +53,11 @@
 #define INA_MEMPOOL_SIZE  8*1024*1024
 #endif
 
+/* Define break message on assert for windows plattform */
+#ifndef INA_DGBMSG_ASSERT
+#define INA_DGBMSG_ASSERT 1
+#endif
+
 /* Define memory functions */
 #ifndef INA_MEM_MALLOC
 #define INA_MEM_MALLOC malloc
