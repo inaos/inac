@@ -362,9 +362,6 @@ INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file);
  *
  * Return
  *  INA_SUCCESS if all went well
- *
- * FIXME: INA_FILE_SEEK_MODE_CUR works only for incremental offsets and not
- *        decremental offsets since 'offset' is an unsigned integer. #481
  */
 INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file,
                                    uint64_t offset,
