@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 INAOS GmbH
+ * Copyright (c) 2012-2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,8 @@ typedef struct ina_mempool_event_info_s {
     ina_mempool_info_t info;
 } ina_mempool_event_info_t;
 
-typedef ina_rc_t (*ina_mempool_event_handler_t)(const ina_mempool_event_info_t*, size_t*);
+typedef ina_rc_t (*ina_mempool_event_handler_t)
+        (const ina_mempool_event_info_t*, size_t*);
 
 /*
  * Set custom allocator function to use with memory pools.
@@ -91,115 +92,186 @@ typedef ina_rc_t (*ina_mempool_event_handler_t)(const ina_mempool_event_info_t*,
  * ina_libinit() or ina_appinit().
  *
  * Parameters:
- * malloc_fn     Pointer to the custom malloc() function
- * free_fn       Pointer to the custom free() function
- * realloc_fn    Pointer to the custom realloc() function
+ *  malloc_fn    Pointer to the custom malloc() function
+ *  free_fn      Pointer to the custom free() function
+ *  realloc_fn   Pointer to the custom realloc() function
  *
- * Return Value
- * INA_SUCCESS if no error occured.
+ * Return
+ *  INA_SUCCESS if no error occurred.
  */
 INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
                                  ina_free_t free_fn,
                                  ina_realloc_t realloc_fn);
 
 /* 
- * Initalize internal structures an allocate the internal memory pool. This
+ * Initialize internal structures an allocate the internal memory pool. This
  * system pool will automatically increase his size if needed.
- * Parameters
- * size     Initial size in bytes
  *
- * Return Value
- * INA_SUCCESS when the system memory pool was succefully allocated.
- * INA_FAILURE if an error occured
+ * Parameters
+ *  size  Initial size in bytes
+ *
+ * Return
+ *  INA_SUCCESS when the system memory pool was successfully allocated.
+ *  INA_FAILURE if an error  occurred
  */
 INA_API(ina_rc_t) ina_mempool_init(size_t size);
 
 /*
- * Destory all memory pools.
+ * Destroy all memory pools.
  *
  * Release and destroy all memory pools and internal structures. Once called, 
  * ina_mempool_init() must be called to reuse memory pools.
  *
- * Return Value
- * INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_mempool_destroy(void);
 
 /* 
- * Get runtime imformations about a memory pool,.
+ * Get runtime imformations about a memory pool.
  *
- * pool     Pointer to a memory pool, pass NULL to query system memory pool.
- * info     Pointer to pool information structure.
+ * Parameters
+ *  pool  Pointer to a memory pool, pass NULL to query system memory pool.
+ *  info   Pointer to pool information structure.
  *
- * Return Value
- * INA_SUCCESS if no error occured.
+ * Return
+ *  INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info);
+INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool,
+                                      ina_mempool_info_t *info);
 
 /* 
  * Get a memory pool by label.
  *
  * Parameters
- * label    Pool label.
- * pool     Pointer to a memory pool pointer. Hold the memory pool.
+ *  label    Pool label.
+ *  pool     Pointer to a memory pool pointer. Hold the memory pool.
  *
- * Return Value
- * INA_SUCCESS if pool was found otherwise INA_FAILURE
+ * Return
+ *  INA_SUCCESS if pool was found otherwise INA_FAILURE
  */
-INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool);
+INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label,
+                                         ina_mempool_t **pool);
 
 /* 
  * Get a memory pool by pointer.
  *
  * Parameters
- * ptr      Pointer to find.
- * pool     Pointer to a memory pool pointer. Hold the memory pool.
+ *  ptr   Pointer to find.
+ *  pool  Pointer to a memory pool pointer. Hold the memory pool.
  *
- * Return Value
- * INA_SUCCESS if pool was found otherwise INA_FAILURE
+ * Return
+ *  INA_SUCCESS if pool was found otherwise INA_FAILURE
  */
-INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr, ina_mempool_t **pool);
+INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr,
+                                           ina_mempool_t **pool);
 
 /* 
- * Create a memory pool.
+ * Creates a memory pool.
  *
  * Parameters
- * pool     Pointer to a memory pool pointer
- * size     Size of memory pool in bytes.
- * cf       Creation flags
- * label    Pool label. Optional for non shared memory pools.
+ *  pool     Pointer to a memory pool pointer
+ *  size     Size of memory pool in bytes.
+ *  cf       Creation flags
+ *  label    Pool label. Optional for non shared memory pools.
  *
- * Return Value
- * INA_SUCCESS if pool was craeted successfully.
+ * Return
+ *  INA_SUCCESS if pool was craeted successfully.
  */
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, const char* label);
+INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool,
+                                     size_t size,
+                                     uint32_t cf,
+                                     const char* label);
 
 /* 
- * Release memory pool.
+ * Releases a memory pool.
+ *
+ * Parameters
+ *  pool     Memory pool to release
+ *  destroy  INA_YES to destroy an deallocate memory or IN_NO to reset the
+ *           pool to the original size
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy);
+
 /*
- * Shrink a memory pool. 
+ * Shrink a memory pool.
+ *
+ * Parameters
+ *  pool    Memory too to shrink
+ *  chunks  Number of chunk
+ *  info    Optional. Where to store pool information after shrink
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool, size_t chunks, ina_mempool_info_t *info);
+INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool,
+                                     size_t chunks,
+                                     ina_mempool_info_t *info);
+
 /*
  * Reset a memory pool.
+ *
+ * Parameters
+ *  pool  Memory pool to reset.
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
+
 /*
- * Allocate reallocable memory from a pool 
+ * Allocate reallocable memory from a pool.
+ *
+ * Parameters
+ *  pool  Memory pool
+ *  size  Number of bytes to allocate. Effective size may vary because memory
+ *        will be allocated aligned.
+ *
+ * Return
+ *   Pointer to the allocated memory that is suitably aligned for any
+ *   kind of variable
  */
 INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
+
 /*
- * Free reallocable memory from a pool
+ * Free reallocable memory from a pool.
+ *
+ * Parameters
+ *  pool  Memory pool
+ *  ptr   Pointer to the previously allocated memory.
+ *  size  size
  */
 INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool, void *ptr, size_t size);
-/* 
- * Allocate not reallocable memory from a pool
+
+/*
+ * Allocate not reallocable memory from a pool.
+ *
+ * Parameters
+ *  pool  Memory pool
+ *  size  Number of bytes to allocate. Effective size may vary because memory
+ *        will be allocated aligned.
+ *
+ * Return
+ *   Pointer to the allocated memory that is suitably aligned for any
+ *   kind of variable
  */
 INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
-/* 
- * Reallocate memory from a pool 
+
+/*
+ * Reallocate memory from a pool
+ *
+ * Parameters
+ *  pool      Memory pool
+ *  old       Old pointer
+ *  old_size  Old size in bytes
+ *  new_size  New size in bytes
+ *
+ * Return
+ *   Pointer to the allocated memory that is suitably aligned for any
+ *   kind of variable
  */
 INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size);
 

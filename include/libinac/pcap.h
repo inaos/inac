@@ -40,62 +40,129 @@ extern "C" {
 #endif
 
 typedef enum ina_pcap_open_mode_e {
-	INA_PCAP_OPEN_MODE_AUTO,
-	INA_PCAP_OPEN_MODE_FIO,
-	INA_PCAP_OPEN_MODE_MMAP
+    INA_PCAP_OPEN_MODE_AUTO,
+    INA_PCAP_OPEN_MODE_FIO,
+    INA_PCAP_OPEN_MODE_MMAP
 } ina_pcap_open_mode_t;
 
 typedef enum ina_pcap_file_compression_e {
-	INA_PCAP_FILE_COMPRESSION_DETECT,
-	INA_PCAP_FILE_COMPRESSION_NONE,
-	INA_PCAP_FILE_COMPRESSION_GZIP
+    INA_PCAP_FILE_COMPRESSION_DETECT,
+    INA_PCAP_FILE_COMPRESSION_NONE,
+    INA_PCAP_FILE_COMPRESSION_GZIP
 } ina_pcap_file_compression_t;
 
-/* opaque */
+/* opaque pcap file context */
 typedef struct ina_pcap_ctx_s ina_pcap_ctx_t;
 
 /*
+ * Open a pcap file for reading.
  *
+ * Parameters
+ *  pcap_file    File path
+ *  open_mode    Defines the open mode, mmap, file or auto.
+ *  buffer_size  Defines the internal read buffer size
+ *  compression  Define file compression: none, gzip or autodetect.
+ *  ctx          Where to store the newly created context.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file, ina_pcap_open_mode_t mode,
+INA_API(ina_rc_t) ina_pcap_open(const char *pcap_file,
+                                ina_pcap_open_mode_t open_mode,
                                 size_t buffer_size,
                                 ina_pcap_file_compression_t compression,
                                 ina_pcap_ctx_t **ctx);
 
 /*
+ * Get open mode of a pcap file.
  *
+ * Parameters
+ *  ctx      pcap file context
+ *  open_mode Where to store the current open mode.
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_pcap_get_open_mode(ina_pcap_ctx_t *pcap,
+INA_API(ina_rc_t) ina_pcap_get_open_mode(ina_pcap_ctx_t *ctx,
                                          ina_pcap_open_mode_t *open_mode);
 
 /*
+ * Get compression type of a pcap file
  *
+ * Parameters
+ *  pcap_ctx          pcap file context
+ *  file_compression  Where to store the current file compression type
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_pcap_get_file_compression(ina_pcap_ctx_t *pcap,
-                                           ina_pcap_file_compression_t *file_compression);
+INA_API(ina_rc_t) ina_pcap_get_file_compression(
+                                 ina_pcap_ctx_t *ctx,
+                                 ina_pcap_file_compression_t *file_compression);
+
 
 
 /*
+ * Closes a pcap file
  *
+ * Parameters
+ *  ctx  context of pcap file to close
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_pcap_close(ina_pcap_ctx_t **ctx);
 
 /*
+ * Read the next packet from the file.
  *
+ * Parameters
+ *  ctx         pcap context
+ *  packet_len  Where to store the packet length. 0 when EOF
+ *  packet      Where to store the raw packet data. NULL when EOF
+ *  ts_micros   Where to store the packet timestamp in microseconds
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **packet,
+INA_API(ina_rc_t) ina_pcap_packet_next(ina_pcap_ctx_t *ctx,
+                                       size_t *packet_len,
+                                       unsigned char **packet,
                                        uint64_t *ts_micros);
 
 /*
+ * Read pcap headers of a packet
  *
+ * Parameters
+ *  ctx          pcap context
+ *  packet_len   Packet length in bytes
+ *  packet       Raw packet data
+ *  ip_hdr       Where to store IP header
+ *  ipd_hdr      Where to store the UDP header
+ *
+ * Return
+ *  INA_SUCCESS if all went well.
  */
-INA_API(ina_rc_t) ina_pcap_read_headers(ina_pcap_ctx_t *ctx, size_t packet_len, unsigned char *packet, 
-                                        ina_net_ip_t **ip_hdr, ina_net_udp_hdr_t **udp_hdr);
+INA_API(ina_rc_t) ina_pcap_read_headers(ina_pcap_ctx_t *ctx,
+                                        size_t packet_len,
+                                        unsigned char *packet,
+                                        ina_net_ip_t **ip_hdr,
+                                        ina_net_udp_hdr_t **udp_hdr);
 
 /*
+ * Strip VLAN tag from a ethernet frame.
  *
+ * Parameters
+ *  ctx         pcap context
+ *  packet_len  Where to store the new packet length in bytes
+ *  raw_packet  Raw packet data
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_pcap_strip_vlan(ina_pcap_ctx_t *ctx, size_t *packet_len, unsigned char **raw_packet);
+INA_API(ina_rc_t) ina_pcap_strip_vlan(ina_pcap_ctx_t *ctx,
+                                      size_t *packet_len,
+                                      unsigned char **raw_packet);
 
 #ifdef __cplusplus
 }

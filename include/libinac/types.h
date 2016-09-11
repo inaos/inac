@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,32 +45,54 @@ INA_VS_END_PACK
 
 /*
  * Copy a decimal.
+ *
+ * Parameters
+ *  src  Input decimal
+ *  dst  Destination decimal
  */
 INA_INLINE void ina_cpy_decimal(const ina_decimal_t *src, ina_decimal_t *dst)
 {
     dst->exponent = src->exponent;
     dst->mantissa = src->mantissa;
 }
+
 /*
- * Compare decimal values:
- * - returns 0 if the decimals are equal
- * - returns > 0 if the lhs is bigger then rhs
- * - return < 0 if the lhs is smaller then rhs
+ * Compare decimal values
+ *
+ * Parameters
+ *  lhs,rhs  decimals to compare
+ *
+ * Return
+ *  0 if the decimals are equal
+ *  > 0 if the lhs is bigger then rhs
+ *  < 0 if the lhs is smaller then rhs
  */
 INA_INLINE int ina_cmp_decimal(const ina_decimal_t *lhs, const ina_decimal_t *rhs)
 {
     return memcmp(lhs, rhs, sizeof(ina_decimal_t));
 }
+
 /*
  * Convert a double to a decimal type.
+ *
+ * Parameters
+ *  dbl  Input double to convert
+ *  dec  Destination decimal
  */
 INA_INLINE void ina_dbl_to_decimal(double dbl, ina_decimal_t *dec)
 {
     double tmp = frexp(dbl, &dec->exponent);
     dec->mantissa = (int64_t)(tmp * (double)pow((double)FLT_RADIX, DBL_MANT_DIG));
 }
+
 /*
  * Convert decimal to a double type.
+ *
+ * Parameters
+ *  dec  Input decimal to convert
+ *
+ * Return
+ *  Converted double
  */
 INA_INLINE double ina_dbl_from_decimal(const ina_decimal_t *dec)
 {
