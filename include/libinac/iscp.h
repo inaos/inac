@@ -138,6 +138,9 @@ typedef struct ina_iscp_ctx_s {
 } ina_iscp_ctx_t;
 
 
+INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx,
+                                  ina_iscp_backend_t backend);
+
 /*
  * Create a TCP ISCP context.
  *
