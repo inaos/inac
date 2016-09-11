@@ -54,6 +54,7 @@ struct ina_file_s {
 #else
 	int fh;
 #endif
+    FILE *stream;
 	int cursors;
 	ina_file_access_mode_t access;
 	ina_file_create_mode_t create;
@@ -183,7 +184,7 @@ static void __ina_file_posix_map_flags(ina_file_access_mode_t access,
 INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode)
 {
     /*
-	 * - keep track of all the open files
+     * - keep track of all the open files
 	 */
 	INA_ASSERT_NOTNULL(ctx);
 	*ctx = (ina_file_ctx_t*)ina_mem_alloc(sizeof(ina_file_ctx_t));
@@ -425,6 +426,19 @@ INA_API(void*) ina_file_os_handle(ina_file_t *file)
     return file->fh;
 #else
     return &file->fh;
+#endif
+}
+
+INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
+{
+    if (file->stream != NULL) {
+        return file->stream;
+    }
+
+#ifdef INA_OS_WIN32
+#else
+    file->stream = fdopen(file->fh, "+r");
+    return file->stream;
 #endif
 }
 

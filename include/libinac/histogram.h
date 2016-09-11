@@ -305,7 +305,7 @@ INA_API(ina_rc_t) ina_histogram_reporter_free(ina_histogram_reporter_t **reporte
 INA_API(ina_rc_t) ina_histogram_reporter_print_percentile(
                                             ina_histogram_reporter_t *reporter,
                                             const ina_str_t record,
-                                            FILE *stream,
+                                            ina_file_t *file,
                                             int32_t ticks_per_half_distance,
                                             double value_scale);
 

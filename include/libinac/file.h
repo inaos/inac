@@ -296,6 +296,17 @@ INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat,
 INA_API(void*) ina_file_os_handle(ina_file_t *file);
 
 /*
+ * Return the underlying C stream of a INAC file handle
+ *
+ * Parameters
+ *  file   INAC file handle
+ *
+ * Return
+ *  On successful completion return a FILE pointer. Otherwise, NULL is returned.
+ */
+INA_API(FILE*) ina_file_get_stream(ina_file_t *file);
+
+/*
  * Read 'len' bytes from a file into buf.
  *
  * Parameters
