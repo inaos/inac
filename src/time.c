@@ -431,7 +431,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
         return INA_FAILURE;
     }
 
-    /* Get the timesstamp depending in stamp index */
+    /* Get the timestamp depending in stamp index */
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
     } else if (*stamp_index >= stopwatch->tv->next_stamp) {
