@@ -133,10 +133,12 @@ extern "C" {
  * Version
  */
 #define INA_MAJOR_VERSION 0
-#define INA_MINOR_VERSION 2
+#define INA_MINOR_VERSION 3
 #define INA_MICRO_VERSION 0
 
-#define INA_VERSION       "0.2.0"
+#define INA_VERSION       INA_NUM2STR(INA_MAJOR_VERSION)"." \
+                          INA_NUM2STR(INA_MINOR_VERSION)"." \
+                          INA_NUM2STR(INA_MICRO_VERSION)
 
 /* Version as a 3-byte hex number, e.g. 0x010201 == 1.2.1. Use this
  * for numeric comparisons, e.g. #if INA_VERSION_HEX >= ... */
