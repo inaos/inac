@@ -162,7 +162,7 @@ release: INAC_BUILD_TYPE = release
 	export INAC_BUILD_TYPE
 release: all
 
-debug: CFLAGS +=  -g -DDEBUG -msse4.2 -maes -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 
+debug: CFLAGS +=  -g -DDEBUG -msse4.2 -maes -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 -DINA_DGBMSG_ASSERT=0
 	export CFLAGS
 debug: INAC_BUILD_TYPE = debug
 	export INAC_BUILD_TYPE
