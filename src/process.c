@@ -260,17 +260,14 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
                               ina_process_descriptor_t **descriptor,
                               const char *full_path,
                               const char *working_dir,
+                              const char *startup_args,
                               ina_process_lifecycle_type_t lifecycle,
                               ina_process_managed_type_t managed_type,
                               const char *scheduled_start_pattern, 
                               const char *scheduled_stop_pattern,
                               time_t stop_wait_time_ms,
-                              uint32_t start_flags,
-                              ...)
+                              uint32_t start_flags)
 {
-    va_list ap;
-    const char *arg;
-
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(full_path);
     INA_ASSERT_TRUE(strlen(full_path));
@@ -282,6 +279,10 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
     if (working_dir) {
         (*descriptor)->working_dir = ina_str_new_fromcstr(working_dir);
     }
+    if (startup_args) {
+        (*descriptor)->startup_args = ina_str_new_fromcstr(startup_args);
+    }
+
     (*descriptor)->lifecycle = lifecycle;
     (*descriptor)->managed_type = managed_type;
     if (scheduled_start_pattern) {
@@ -294,20 +295,6 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
     }
     (*descriptor)->stop_wait_time_ms = stop_wait_time_ms;
     (*descriptor)->start_flags = start_flags;
-
-    va_start(ap, start_flags);
-    while ((arg = va_arg(ap, const char *))) {
-        if ((*descriptor)->startup_args == NULL) {
-            (*descriptor)->startup_args = ina_str_new(128);
-        }
-        (*descriptor)->startup_args = ina_str_catcstr(
-                                            (*descriptor)->startup_args,
-                                            arg);
-        (*descriptor)->startup_args = ina_str_catcstr(
-                                            (*descriptor)->startup_args,
-                                            " ");
-    }
-    va_end(ap);
     return INA_SUCCESS;
 }
 
@@ -325,6 +312,9 @@ INA_API(ina_rc_t) ina_process_descriptor_free(ina_process_descriptor_t **descrip
         }
         if ((*descriptor)->working_dir != NULL) {
             ina_str_free((*descriptor)->working_dir);
+        }
+        if ((*descriptor)->startup_args != NULL) {
+            ina_str_free((*descriptor)->startup_args);
         }
         if ((*descriptor)->scheduled_stop_pattern != NULL) {
             ina_str_free((*descriptor)->scheduled_stop_pattern);

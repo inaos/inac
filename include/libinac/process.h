@@ -129,13 +129,13 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
  *  descriptor               Where to store the newly created descriptor
  *  full_path                Full path of executable
  *  working_dir              Working directory
+ *  startup_args             Command arguments
  *  lifecycle                Defines process lifecycle
  *  managed_type             Defines type of managed process
  *  scheduled_start_pattern  Cron start pattern
  *  schedules_stop_pattern   Cron stop pattern
  *  stop_wait_time_ms
  *  start_flag
- *  ...                      Command arguments
  *
  * Return
  *  INA_SUCCESS
@@ -145,13 +145,14 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
                               ina_process_descriptor_t **descriptor,
                               const char *full_path,
                               const char *working_dir,
+                              const char *startup_args,
                               ina_process_lifecycle_type_t lifecycle,
                               ina_process_managed_type_t managed_type,
                               const char *scheduled_start_pattern, 
                               const char *scheduled_stop_pattern,
                               time_t stop_wait_time_ms,
-                              uint32_t start_flags,
-                              ...);
+                              uint32_t start_flags);
+
 /*
  * Destroy a process descriptor.
  *

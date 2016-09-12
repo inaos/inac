@@ -92,10 +92,10 @@
 #include <libinac/hash.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
-#include <libinac/cron.h>
 #include <libinac/fsm.h>
-#include <libinac/service.h>
 #include <libinac/process.h>
+#include <libinac/cron.h>
+#include <libinac/service.h>
 #include <libinac/ipc.h>
 #include <libinac/template.h>
 #include <libinac/cpu.h>

@@ -56,6 +56,7 @@ typedef ina_rc_t (*ina_cron_func_cb)(struct ina_cron_ctx_s *ctx,
 
 /* cron context */
 typedef struct ina_cron_ctx_s {
+    ina_process_ctx_t *process_ctx;
     ina_cron_load_cb load_cb;     /* load callback */
     ina_cron_save_cb save_cb;     /* save callback */
     void *data;                   /* user data attached per context */
@@ -186,15 +187,12 @@ INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx,
  *
  * Parameters
  *  task     Task to check
- *  running  Where to store the running state
  *
  * Return
- *  INA_SUCCESS
- *
- * FIXME: Should return INA_FAILURE if a tast is not runnung. Eliminate the
- *        running function parameter.
+ *  INA_SUCCESS  Running
+ *  INA_FAILURE  Not running
  */
-INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task, int *running);
+INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task);
 
 /*
  * Get the current crontab pattern for a task.
