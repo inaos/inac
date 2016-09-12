@@ -30,7 +30,6 @@
 
 struct ina_timer_s {
     ina_time_tsc_t *stamp;
-    int use_rdtsc;
     struct timeouts *timeouts;
     uint64_t next_event_id;
 } ina_timer_s;
@@ -53,7 +52,6 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
     t = *timer;
     t->timeouts = timeouts_open(0, &err, ina_mem_alloc, ina_mem_free);
     t->next_event_id = 0;
-    t->use_rdtsc = INA_NO;
     ina_time_tsc_new(&(*timer)->stamp);
 
     return INA_SUCCESS;
@@ -73,19 +71,6 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
     ina_mem_free(*timer);
     *timer = NULL;
 
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno)
-{
-    INA_ASSERT_NOTNULL(timer);
-
-    if (yesno == INA_YES && timer->use_rdtsc == INA_NO) {
-        ina_time_tsc_enable_rdtsc();
-    }
-    else if (yesno == INA_NO && timer->use_rdtsc == INA_YES) {
-        ina_time_tsc_disable_rdtsc();
-    }
     return INA_SUCCESS;
 }
 

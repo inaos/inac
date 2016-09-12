@@ -115,7 +115,7 @@ INA_TEST(timer, event_rdtsc)
     #endif
     INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_use_rdtsc(t, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());
     ina_time_sleep(100);
     e1 = ina_timer_create_event(t, 900);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());

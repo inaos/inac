@@ -48,7 +48,8 @@ typedef struct ina_cron_task_itr_s ina_cron_task_itr_t;
 typedef ina_rc_t (*ina_cron_load_cb)(struct ina_cron_ctx_s *ctx);
 /* cron save callback */
 typedef ina_rc_t (*ina_cron_save_cb)(struct ina_cron_ctx_s *ctx,
-                                     ina_cron_task_t *task);
+                                     ina_cron_task_t *task,
+                                     int removed);
 /* cron execution callback */
 typedef ina_rc_t (*ina_cron_func_cb)(struct ina_cron_ctx_s *ctx,
                                      void *user_data);
@@ -136,20 +137,19 @@ INA_API(ina_rc_t) ina_cron_task_next(ina_cron_task_itr_t *iter,
  *  ctx          Context where to add a new task
  *  id           Unique task ID
  *  pattern      Crontab pattern for task execution/reccurance
+ *  persistent   Defines whenever save  callback should be called
  *  cmd          Shell command
  *  working_dir  Where to run the shell command
  *
  * Return
  *  INA_SUCCESS if all went well
- *
- * FIXME: Use const char* for cmd and working_dir
  */
 INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx,
                                     const char *id,
                                     const char *pattern,
                                     int persistent,
-                                    ina_str_t cmd,
-                                    ina_str_t working_dir);
+                                    const char* cmd,
+                                    const char* working_dir);
 
 /*
  * Retrieve a task by his ID.
@@ -157,7 +157,7 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx,
  * Parameters
  *  ctx   Context
  *  id    Unique task ID
- *  task  WHere to store the task, contains NULL if task was not found
+ *  task  Where to store the task, contains NULL if task was not found
  *
  * Return
  *  INA_SUCCESS
@@ -166,6 +166,19 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx,
  */
 INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx,
                                       const char *id,
+                                      ina_cron_task_t **task);
+
+/*
+ * Remove a task.
+ *
+ * Parameters
+ *  ctx   Cron context
+ *  task  Task to remove
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx,
                                       ina_cron_task_t **task);
 
 /*
@@ -258,10 +271,9 @@ INA_API(ina_rc_t) ina_cron_unregister_function(ina_cron_ctx_t *ctx,
  * Return
  *  INA_SUCCESS if all went well
  *
- * FIXME: Use cons char* instead of ina_str_t for argument pattern.
  */
 INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx,
-                                             ina_str_t pattern,
+                                             const char *pattern,
                                              time_t now,
                                              time_t *last_exec_time);
 
