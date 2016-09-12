@@ -459,6 +459,7 @@ INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr, ina_mempool_t **pool
     __ina_mplist_t *next;
 
     INA_ASSERT_NOTNULL(ptr);
+    INA_ASSERT_NOTNULL(pool);
 
      if (__pools == NULL) {
          return INA_FAILURE;
@@ -467,7 +468,7 @@ INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr, ina_mempool_t **pool
      next = __pools->next;
      while (next != NULL) {
          if (next->active == 1) {
-             if (next->pool->m >= (unsigned char*)ptr || (next->pool->m + next->pool->end) < (unsigned char*)ptr) {
+             if (next->pool->m >= (unsigned char*)ptr || (next->pool->m + next->pool->end) > (unsigned char*)ptr) {
                  *pool = next->pool;
                  return INA_SUCCESS;
              }
