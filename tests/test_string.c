@@ -258,6 +258,37 @@ INA_TEST(string, ina_str_cat)
     ina_str_free(str);
 }
 
+INA_TEST_FIXTURE(string_mempool, ina_str_cat)
+{
+    ina_str_t str = ina_str_new_using_pool(128, data->pool);
+    ina_str_t part1 = ina_str_new_fromcstr_using_pool("part1", data->pool);
+    ina_str_t part2 = ina_str_new_fromcstr_using_pool("part2", data->pool);
+    ina_str_t part3 = ina_str_new_fromcstr_using_pool("part3", data->pool);
+    str = ina_str_cat_using_pool(str, part1, data->pool);
+    str = ina_str_cat_using_pool(str, part2, data->pool);
+    str = ina_str_cat_using_pool(str, part3, data->pool);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+
+    str = ina_str_new_using_pool(0, data->pool);
+    part1 = ina_str_new_fromcstr_using_pool("part1", data->pool);
+    part2 = ina_str_new_fromcstr_using_pool("part2", data->pool);
+    part3 = ina_str_new_fromcstr_using_pool("part3", data->pool);
+    str = ina_str_cat_using_pool(str, part1, data->pool);
+    str = ina_str_cat_using_pool(str, part2, data->pool);
+    str = ina_str_cat_using_pool(str, part3, data->pool);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+
+    str = ina_str_new_using_pool(0, data->pool);
+    str = ina_str_cat_using_pool(str, ina_str_cat_using_pool(str, ina_str_cat_using_pool(str, ina_str_new_fromcstr_using_pool("test", data->pool), data->pool), data->pool), data->pool);
+    INA_TEST_ASSERT_EQUAL_STR("testtesttesttest", ina_str_cstr(str));
+
+    str = ina_str_cat_using_pool(ina_str_new_using_pool(0, data->pool), ina_str_new_using_pool(0, data->pool), data->pool);
+    INA_TEST_ASSERT_EQUAL_STR(str, ina_str_cstr(""));
+
+    str = ina_str_cat_using_pool(ina_str_new_using_pool(0, data->pool), NULL, data->pool);
+    INA_TEST_ASSERT_EQUAL_STR(str, ina_str_cstr(""));
+}
+
 INA_TEST(string, ina_str_catcstr)
 {
     ina_str_t ref_str = NULL;
@@ -271,6 +302,20 @@ INA_TEST(string, ina_str_catcstr)
     INA_TEST_ASSERT_SAME(ref_str, str);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
     ina_str_free(str);
+}
+
+INA_TEST_FIXTURE(string_mempool, ina_str_catcstr)
+{
+    ina_str_t ref_str = NULL;
+    ina_str_t str = ina_str_new_using_pool(128, data->pool);
+    ref_str = str;
+    str = ina_str_catcstr_using_pool(str, "part1", data->pool);
+    INA_TEST_ASSERT_SAME(ref_str, str);
+    str = ina_str_catcstr_using_pool(str, "part2", data->pool);
+    INA_TEST_ASSERT_SAME(ref_str, str);
+    str = ina_str_catcstr_using_pool(str, "part3", data->pool);
+    INA_TEST_ASSERT_SAME(ref_str, str);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
 }
 
 INA_TEST(string, ina_str_ncat)
@@ -296,6 +341,25 @@ INA_TEST(string, ina_str_ncat)
     ina_str_free(part3);
 }
 
+INA_TEST_FIXTURE(string_mempool, ina_str_ncat)
+{
+    ina_str_t ref_str = NULL;
+    ina_str_t str = ina_str_new_using_pool(128, data->pool);
+    ina_str_t part1 = ina_str_new_fromcstr_using_pool("part1x", data->pool);
+    ina_str_t part2;
+    ina_str_t part3;
+    ref_str = str;
+    INA_TEST_ASSERT_SAME(ref_str, str);
+    part2 = ina_str_new_fromcstr_using_pool("part2x", data->pool);
+    INA_TEST_ASSERT_SAME(ref_str, str);
+    part3 = ina_str_new_fromcstr_using_pool("part3x", data->pool);
+    INA_TEST_ASSERT_SAME(ref_str, str);
+    str = ina_str_ncat_using_pool(str, part1, 5, data->pool);
+    str = ina_str_ncat_using_pool(str, part2, 5, data->pool);
+    str = ina_str_ncat_using_pool(str, part3, 5, data->pool);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+}
+
 INA_TEST(string, ina_str_ncatcstr)
 {
     ina_str_t str = ina_str_new(128);
@@ -304,6 +368,15 @@ INA_TEST(string, ina_str_ncatcstr)
     str = ina_str_ncat(str, "part3x", 5);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
     ina_str_free(str);
+}
+
+INA_TEST_FIXTURE(string_mempool, ina_str_ncatcstr)
+{
+    ina_str_t str = ina_str_new_using_pool(128, data->pool);
+    str = ina_str_ncat_using_pool(str, "part1x", 5, data->pool);
+    str = ina_str_ncat_using_pool(str, "part2x", 5, data->pool);
+    str = ina_str_ncat_using_pool(str, "part3x", 5, data->pool);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
 }
 
 INA_TEST(string, ina_str_len)
@@ -549,7 +622,7 @@ INA_TEST(string, ina_str_split)
     count = 0;
     tokens = ina_str_split("a b c d e", " ", &count);
     INA_TEST_ASSERT_NOT_NULL(tokens);
-    /*INA_TEST_ASSERT_EQUAL_INTEGER(5, count);*/
+    INA_TEST_ASSERT_EQUAL_INTEGER(5, count);
     while (count--) {
         INA_TEST_ASSERT_EQUAL_STR(test[count], ina_str_cstr(tokens[count]));
     }
@@ -617,6 +690,16 @@ INA_TEST(string, ina_str_substr)
     INA_TEST_ASSERT_EQUAL_STR("substring", substr);
     ina_str_free(str);
     ina_str_free(substr);
+}
+
+INA_TEST_FIXTURE(string_mempool, ina_str_substr)
+{
+    ina_str_t substr = NULL;
+    ina_str_t str = ina_str_new_fromcstr_using_pool("exctrat a substring from a string", data->pool);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    substr = ina_str_substr_using_pool(str, 10, 18, data->pool);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("substring", substr);
 }
 
 INA_TEST(string, ina_str_sprintf)
