@@ -53,7 +53,7 @@ INA_TEST_SETUP(dir) {
     struct stat st = {0};
     char dir[128];
 #ifdef INA_OS_WIN32
-    strcpy(data->tmp_dir, getenv("TMPDIR"));
+    strcpy(data->tmp_dir, getenv("TEMP"));
     strcat(data->tmp_dir, "/inac_test_dir");
 #else
     strcpy(data->tmp_dir, "/tmp/inac_test_dir");
