@@ -59,10 +59,15 @@ INA_TEST_SETUP(dir) {
     strcpy(data->tmp_dir, "/tmp/inac_test_dir");
 #endif
 
+
     strcpy(dir, data->tmp_dir);
-    strcat(dir, "/test1");
     if (stat(data->tmp_dir, &st) == -1) {
         mkdir(data->tmp_dir, 0777);
+    }
+    strcpy(dir, data->tmp_dir);
+    strcat(dir, "/test1");
+    if (stat(dir, &st) == -1) {
+        mkdir(dir, 0777);
     }
     strcpy(dir, data->tmp_dir);
     strcat(dir, "/test2");
