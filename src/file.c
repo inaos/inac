@@ -450,11 +450,18 @@ INA_API(void*) ina_file_os_handle(ina_file_t *file)
 
 INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
 {
+#ifdef INA_OS_WIN32
+#include <fcntl.h>
+    int fd;
+#endif
     if (file->stream != NULL) {
         return file->stream;
     }
 
 #ifdef INA_OS_WIN32
+    fd = _open_osfhandle((intptr_t)file->fh, _O_APPEND | _O_RDONLY);
+    file->stream = _fdopen(fd, "r+");
+    return file->stream;
 #else
     file->stream = fdopen(file->fh, "+r");
     return file->stream;
