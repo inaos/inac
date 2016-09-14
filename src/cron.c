@@ -448,9 +448,9 @@ static void __free_task(ina_cron_task_t **task)
     if (t->pattern != NULL) {
         ina_str_free(t->pattern);
     }
-    if (t->process != NULL) {
+    /*if (t->process != NULL) {
         ina_process_free(&t->process);
-    }
+    }*/
     ina_mem_free(*task);
 }
 
@@ -503,9 +503,9 @@ INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
         ina_mem_free(f);
     }
 
-    if ((*ctx)->process_ctx != NULL) {
+    /*if ((*ctx)->process_ctx != NULL) {
         ina_process_destroy(&(*ctx)->process_ctx);
-    }
+    }*/
 	ina_mem_free(*ctx);
 
     *ctx = NULL;
@@ -601,7 +601,7 @@ INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx, ina_cron_task_t **ta
     INA_ASSERT_NOTNULL(task);
     INA_ASSERT_NOTNULL(*task);
 
-    if (INA_SUCCEED(ina_cron_task_is_running(*task))) {
+    if (!INA_SUCCEED(ina_cron_task_is_running(*task))) {
         HASH_DEL(ctx->task_head, *task);
         if (ctx->save_cb && (*task)->persistent) {
             ctx->save_cb(ctx, *task, INA_YES);
