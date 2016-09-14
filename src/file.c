@@ -215,7 +215,7 @@ INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx)
      * close files that are still open
      */
     HASH_ITER(hh, (*ctx)->files, fe, fetmp) {
-        INA_MUST_SUCCEED(ina_file_free(*ctx, fe->file));
+        INA_MUST_SUCCEED(ina_file_free(*ctx, &fe->file));
     }
     HASH_CLEAR(hh, (*ctx)->files);
 
@@ -278,7 +278,7 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
     (*file)->fh = fhandle;
     (*file)->file_path = ina_str_new_fromcstr(file_fqn);
     fe = (ina_file_entry_t*)ina_mem_alloc(sizeof(ina_file_entry_t));
-    fe->file = file;
+    fe->file = *file;
     HASH_ADD_PTR(ctx->files, file, fe);
     return INA_SUCCESS;
 }
