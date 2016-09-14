@@ -117,11 +117,7 @@ INA_TEST_FIXTURE(dir, test_sorted_by_name)
     const ina_dir_entry_t *e;
     size_t i = 0;
 
-#ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("../../contribs", &w));
-#else
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new(data->tmp_dir, &w));
-#endif
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_set_sort_order(w, INA_DIR_SORT_ORDER_ASCEND));
     while (INA_SUCCEED(ina_dir_walker_get_next_entry(w, &e)) && i < sizeof(__dir_entries)/sizeof(char*)) {
@@ -187,11 +183,7 @@ INA_TEST_FIXTURE(dir, test_reload)
     ina_dir_walker_t *w = NULL;
     const ina_dir_entry_t *e;
 
-#ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("../../contribs", &w));
-#else
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new(data->tmp_dir, &w));
-#endif
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_set_sort_order(w, INA_DIR_SORT_ORDER_ASCEND));
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_get_next_entry(w, &e));
