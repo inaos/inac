@@ -454,7 +454,10 @@ static void __free_task(ina_cron_task_t **task)
     ina_mem_free(*task);
 }
 
-INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx, ina_cron_load_cb load_cb, ina_cron_save_cb save_cb)
+INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
+                                    ina_cron_load_cb load_cb,
+                                    ina_cron_save_cb save_cb,
+                                    ina_process_ctx_t *process_ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
 
@@ -474,7 +477,11 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx, ina_cron_load_cb load_cb, 
 	(*ctx)->t1 = time(NULL);
 	(*ctx)->t2 = 0;
 	(*ctx)->stime = 60;
-    INA_MUST_SUCCEED(ina_process_init(&(*ctx)->process_ctx));
+    if (process_ctx == NULL) {
+        INA_MUST_SUCCEED(ina_process_init(&(*ctx)->process_ctx));
+    } else {
+        (*ctx)->process_ctx = process_ctx;
+    }
 	return INA_SUCCESS;
 }
 

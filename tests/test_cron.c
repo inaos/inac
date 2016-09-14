@@ -36,7 +36,7 @@ INA_TEST(cron, add_tasks_non_persistent_and_utils)
     ina_cron_task_t *task;
     int found = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL, NULL));
 
     cmd = ina_str_new_fromcstr("dir.exe .");
     wd = ina_str_new_fromcstr("c:\\windows");
@@ -81,7 +81,8 @@ INA_TEST(cron, add_task_and_exec)
     int suggested_sleep_time;
     time_t now;
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL, NULL
+    ));
 
     cmd = ina_str_new_fromcstr("pwd.exe");
     wd = ina_str_new_fromcstr("c:\\windows");

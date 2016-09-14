@@ -81,7 +81,8 @@ typedef struct ina_cron_ctx_s {
  */
 INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
                                 ina_cron_load_cb load_cb,
-                                ina_cron_save_cb save_cb);
+                                ina_cron_save_cb save_cb,
+                                ina_process_ctx_t *process_ctx);
 
 /*
  * Free a cron context. Destroy all registred cron task and cron function.

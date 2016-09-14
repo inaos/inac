@@ -173,15 +173,11 @@ INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx)
     
     ina_time_sys_new(&(*ctx)->systime);
  
-    if (!INA_SUCCEED(ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL))) {
-        return INA_ERR_PUSH_LAST;
-    }
-    if (!INA_SUCCEED(ina_mempool_create(&(*ctx)->mempool, 
+    INA_MUST_SUCCEED(ina_mempool_create(&(*ctx)->mempool,
                                         4096, 
                                         INA_MEM_DYNAMIC, 
-                                        NULL))) {
-        return INA_ERR_PUSH_LAST;
-    }
+                                        NULL));
+    INA_MUST_SUCCEED(ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL, *ctx));
     return INA_SUCCESS;
 }
 
@@ -411,7 +407,6 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     (*process)->ctx = ctx;
 
     INA_FSM_SET_STATE(process_fsm, (*process)->state, INA_PROCESS_STARTABLE);
-    INA_FSM_SET_EVENT(process_fsm, (*process)->state, INA_PROCESS_START);
     
     if (descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_MANAGED) {
         if (descriptor->managed_type == INA_PROCESS_MANAGED_TYPE_SCHEDULED_START
@@ -787,13 +782,13 @@ static void __ina_process_start(ina_process_t *process)
         char* args[16]; /* FIXME */
         size_t n = 0;
         size_t c = 0;
-        
+
         if (process->descriptor->working_dir != NULL) {
             if (chdir(process->descriptor->working_dir) != 0) {
                 return;
             }
         }
-        
+
         c = 0;
         args[n++] = (char*)ina_str_cstr(process->descriptor->full_path);
         tokens = ina_str_split(process->descriptor->startup_args, " ", &c);
@@ -803,6 +798,7 @@ static void __ina_process_start(ina_process_t *process)
         }
         args[n++] = NULL;
         execv(args[0], args);
+
         perror("execv()");
         _exit(127);
     } else {
