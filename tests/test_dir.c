@@ -27,7 +27,12 @@
  */
 #include <libinac/lib.h>
 #include <sys/stat.h>
+#ifndef INA_OS_WIN32
 #include <unistd.h>
+#else
+#include <direct.h>
+#define mkdir(path, permission) _mkdir(path)
+#endif
 
 
 static const char* __dir_entries[] = {
