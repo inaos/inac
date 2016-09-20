@@ -285,18 +285,24 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
 
 INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file)
 {
+    ina_file_entry_t *fe;
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(file);
     if (*file == NULL) {
         return INA_SUCCESS;
     }
+    HASH_FIND_PTR(ctx->files, file, fe);
+    INA_ASSERT_NOTNULL(fe);
+    HASH_DEL(ctx->files, fe);
 
 #ifdef INA_OS_WIN32
     CloseHandle((*file)->fh);
 #else
     close((*file)->fh);
 #endif
-    ina_str_free((*file)->file_path);
+    if ((*file)->file_path != NULL) {
+       ina_str_free((*file)->file_path);
+    }
     ina_mem_free(*file);
     *file = NULL;
     return INA_SUCCESS;
