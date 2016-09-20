@@ -244,6 +244,7 @@ INA_TEST(ipc_counter, inc_get)
 {
     ina_ipc_counter_t *c;
     uint64_t cval = 0;
+    uint64_t rval = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_new("test", 0, &c));
     INA_TEST_ASSERT_NOT_NULL(c);
@@ -251,12 +252,14 @@ INA_TEST(ipc_counter, inc_get)
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_set(c, 1LL));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
     INA_TEST_ASSERT_EQUAL_INTEGER(1, cval);
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_increment(c, 1));
+    rval = ina_ipc_counter_increment(c, 1);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
-    INA_TEST_ASSERT_EQUAL_INTEGER(2, cval);
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_increment(c, 3));
+    INA_TEST_ASSERT_EQUAL_INTEGER(rval, cval);
+    INA_TEST_ASSERT_EQUAL_INTEGER(2, rval);
+    rval = ina_ipc_counter_increment(c, 3);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
-    INA_TEST_ASSERT_EQUAL_INTEGER(5, cval);
+    INA_TEST_ASSERT_EQUAL_INTEGER(rval, cval);
+    INA_TEST_ASSERT_EQUAL_INTEGER(5, rval);
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_free(&c));
     INA_TEST_ASSERT_NULL(c);
@@ -266,6 +269,7 @@ INA_TEST(ipc_counter, dec_get)
 {
     ina_ipc_counter_t *c;
     uint64_t cval = 0;
+    uint64_t rval = 0;
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_new("test", 0, &c));
     INA_TEST_ASSERT_NOT_NULL(c);
@@ -273,12 +277,14 @@ INA_TEST(ipc_counter, dec_get)
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_set(c, 8LL));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
     INA_TEST_ASSERT_EQUAL_INTEGER(8, cval);
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_decrement(c, 1));
+    rval = ina_ipc_counter_decrement(c, 1);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
-    INA_TEST_ASSERT_EQUAL_INTEGER(7, cval);
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_decrement(c, 3));
+    INA_TEST_ASSERT_EQUAL_INTEGER(rval, cval);
+    INA_TEST_ASSERT_EQUAL_INTEGER(7, rval);
+    rval = ina_ipc_counter_decrement(c, 3);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
-    INA_TEST_ASSERT_EQUAL_INTEGER(4, cval);
+    INA_TEST_ASSERT_EQUAL_INTEGER(rval, cval);
+    INA_TEST_ASSERT_EQUAL_INTEGER(4, rval);
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_free(&c));
     INA_TEST_ASSERT_NULL(c);

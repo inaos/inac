@@ -374,7 +374,7 @@ INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter, uint64_t value
     uint64_t v = counter->data->c;
     INA_ASSERT_NOTNULL(counter);
 
-    if (v == counter->data->c) {
+    if (v == value) {
         return INA_SUCCESS;
     }
 
