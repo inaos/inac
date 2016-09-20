@@ -440,7 +440,7 @@ INA_TEST(mempool, bad_dalloc)
     INA_TEST_ASSERT_EQUAL_FLOATING(INA_EALLOC , INA_RC_REASON(ina_err_peek()));
 }
 
-INA_TEST(mempool, getbypointer)
+INA_TEST_SKIP(mempool, getbypointer)
 {
     ina_mempool_t *pool, *ref_pool = NULL;
     unsigned char *buffer;
