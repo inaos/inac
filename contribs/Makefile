@@ -40,7 +40,7 @@ all:
 	$(MAKE) -C yajl
 ifneq ($(OS), Darwin)
 	$(MAKE) -C cpu-topology
-	$(MAKE) -C coredumper
+	$(MAKE) -C coredumper CFLAGS=-D_GNU_SOURCE
 endif
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
