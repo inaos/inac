@@ -31,7 +31,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+ 
+/* Align to 2x word size (as GNU libc does). */
+#define INA_MEM_ALIGN_SIZE (2 * sizeof(void*))
+
+/* Round up 'n' to a multiple of ALIGN_SIZE. */
+#define INA_MEM_ALIGN(n) ((n+(INA_MEM_ALIGN_SIZE-1)) & (~(INA_MEM_ALIGN_SIZE-1)))
+
+#define INA_MEM_IS_ALIGNED(ptr, alignment) \
+    (((uintptr_t)(const void *)(ptr)) % (alignment) == 0)
+
 /* Function pointer with malloc()‘s signature */
 typedef void *(*ina_malloc_t)(size_t);
 /* Function pointer with realloc()‘s signature */
@@ -49,56 +58,30 @@ typedef void *(*ina_memset_t)(void *, int , size_t);
 /* Function pointer with free()‘s signature */
 typedef void (*ina_free_t)(void *);
 
+/*
+ * The function returns the number of bytes in a memory page, where "page" is 
+ * a fixed-length block, the unit for memory allocation and file mapping.
+ *
+ * Parameters
+ *  size Size in bytes
+ *
+ * Return
+ *  INA_SUCCESS if no error occurred.
+ */                                 
+INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
+/*
+ * The function calculates the size of a memory segment after
+ * proper alignment.
+ *
+ * Parameters:
+ *  query    Input size in bytes
+ *  aligned  The size after alignment
+ *
+ * Return
+ *  INA_SUCCESS if no error occurred.
+ */                                 
+INA_API(ina_rc_t) ina_mem_get_aligned_size(size_t query, size_t *aligned);
 
-#define INA_MEM_DFT_POOL_SIZE (8*1024*1204)
-/* Minimal allowed pool size */
-#define INA_MEM_MIN_POOL_SIZE (1024)
-/* Single Pool, fixed size */
-#define INA_MEM_BASIC           (0)
-/* Dynamic chunk allocation */
-#define INA_MEM_DYNAMIC         (1)
-/* Autosized chunk */
-#define INA_MEM_AUTOSIZE        (2)
-/* Fill chunks */
-#define INA_MEM_BESTFIT         (4)
-/* Child pool */
-#define INA_MEM_CHILD           (8)
-/* Use shared memory */
-#define INA_MEM_SHARED          (32)
-/* Open or create shared memory */
-#define INA_MEM_SHARED_CREATE   (64)
-/* Open shared memory exclusive */
-#define INA_MEM_SHARED_EXCL    (256)
-
-/* Memory pool handle */
-typedef struct ina_mempool_s  {
-    ina_handle_t shm_handle;
-    uint32_t cf;
-    size_t size;
-    size_t pos;
-    size_t end;
-    unsigned char *m;
-    ina_str_t label;
-    ina_malloc_t memalloc;
-    ina_free_t  memfree;
-    struct ina_mempool_s *current;
-    struct ina_mempool_s *parent;
-    struct ina_mempool_s *child;
-} ina_mempool_t;
-
-/* struct to hold pool information */
-typedef struct ina_mempool_info_s {
-    size_t size;
-    size_t used;
-    size_t children; /* number of  pool */
-} ina_mempool_info_t;
-
-
-typedef struct ina_mempool_event_s {
-    ina_mempool_t *pool;
-} ina_mempool_event_t;
-
-typedef ina_rc_t (*ina_mempool_event_handler)(ina_mempool_event_t*);
 /*
  * Allocate memory block. Allocates a block of size bytes of memory, returning
  * a pointer to the beginning of the block.
@@ -110,25 +93,62 @@ typedef ina_rc_t (*ina_mempool_event_handler)(ina_mempool_event_t*);
  * pointer shall not be used to dereference an object in any case.
  *
  * Parameters
- * size   Size of the memory block, in bytes. size_t is an unsigned integral 
- *        type.
+ * size  Size of the memory block, in bytes. size_t is an unsigned integral
+ *       type.
  * 
- * Return Value
- * On success, a pointer to the memory block allocated by the function.
- * The type of this pointer is always void*, which can be cast to the desired
- * type of data pointer in order to be dereferenceable.
- * If the function failed to allocate the requested block of memory, 
- * a null pointer is returned.
+ * Return
+ *  On success, a pointer to the memory block allocated by the function.
+ *  The type of this pointer is always void*, which can be cast to the desired
+ *  type of data pointer in order to be dereferenceable.
+ *  If the function failed to allocate the requested block of memory,
+ *  a null pointer is returned.
  */
 INA_API(void *) ina_mem_alloc(size_t size);
 
 /*
- * TODO: documentation
+ * Allocate aligned memory block. Allocates a block of size bytes of memory,
+ * returning a pointer to the beginning of the block.
+ *
+ * The content of the newly allocated block of memory is not initialized,
+ * remaining with indeterminate values.
+ *
+ * If size is zero, it returns a null pointer. But the returned
+ * pointer shall not be used to dereference an object in any case.
+ *
+ * Parameters
+ * alignment  Memory alignment in bytes
+ * size       Size of the memory block, in bytes. size_t is an unsigned integral
+ *            type.
+ *
+ * Return
+ *  On success, a pointer to the memory block allocated by the function.
+ *  The type of this pointer is always void*, which can be cast to the desired
+ *  type of data pointer in order to be dereferenceable.
+ *  If the function failed to allocate the requested block of memory,
+ *  a null pointer is returned.
+ */
+INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size);
+
+/*
+ * Attempts to resize the memory block pointed to by ptr that was previously
+ * allocated with a call to ina_mem_alloc.
+ *
+ * Parameters
+ *  ptr  This is the pointer to a memory block previously allocated with
+ *       ina_mem_alloc(). If this is NULL, a new block is allocated and a
+ *       pointer to it is returned by the function.
+ *  nb   This is the new size for the memory block, in bytes. If it is 0 and ptr
+ *       points to an existing block of memory, the memory block pointed by0 ptr
+ *       is deallocated and a NULL pointer is returned.
+ *
+ * Return
+ *  This function returns a pointer to the newly allocated memory, or NULL if
+ *  the request fails.
  */
 INA_API(void *) ina_mem_realloc(void *ptr, size_t nb);
 
 /*
- * Move a memoy block.
+ * Move a memory block.
  *
  * Copies the values of nb bytes from the location pointed by source to the 
  * memory block pointed by destination. Copying takes place as if an 
@@ -144,17 +164,18 @@ INA_API(void *) ina_mem_realloc(void *ptr, size_t nb);
  * and source parameters, shall be at least nb bytes.
  *
  * Parameters
- * dest     Pointer to the destination array where the content is to be copied, 
- *          type-casted to a pointer of type void*
+ *  dest  Pointer to the destination array where the content is to be copied,
+ *        type-casted to a pointer of type void*
  * 
- * src      Pointer to the source of data to be copied, type-casted to a pointer 
- *          of type const void*.
- * nb       Number of bytes to copy. size_t is an unsigned integral type.
+ *  src   Pointer to the source of data to be copied, type-casted to a pointer
+ *        of type const void*.
+ *  nb    Number of bytes to copy. size_t is an unsigned integral type.
  *
- * Return Value
- * dest is returned
+ * Return
+ *  dest is returned
  */
 INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb);
+
 /* 
  * Copy block of memory
  *
@@ -173,14 +194,14 @@ INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb);
  * (for overlapping memory blocks, memmove is a safer approach).
  *
  * Parameters
- * dest     Pointer to the destination array where the content is to be 
+ *  dest    Pointer to the destination array where the content is to be
  *          copied, type-casted to a pointer of type void*.
- * source   Pointer to the source of data to be copied, type-casted to a 
+ *  source  Pointer to the source of data to be copied, type-casted to a
  *          pointer of type const void*.
- * nb       Number of bytes to copy. size_t is an unsigned integral type.
+ *  nb      Number of bytes to copy. size_t is an unsigned integral type.
  *
- * Return Value
- * dest is returned.
+ * Return
+ *  dest is returned.
  */ 
 INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb);
 
@@ -195,18 +216,18 @@ INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb);
  * finding a null character.
  *
  * Parameters
- * lhs      Pointer to block of memory.
- * rhs      Pointer to block of memory.
- * nb       Number of bytes to compare.
+ *  lhs  Pointer to block of memory.
+ *  rhs  Pointer to block of memory.
+ *  nb   Number of bytes to compare.
  *
- * Return Value
- * Returns an integral value indicating the relationship between the content 
- * of the memory blocks:
- * A zero value indicates that the contents of both memory blocks are equal.
- * A value greater than zero indicates that the first byte that does not 
- * match in both memory blocks has a greater value in lhs than in rhs as if 
- * evaluated as unsigned char values; And a value less than zero indicates 
- * the opposite.
+ * Return
+ *  Returns an integral value indicating the relationship between the content
+ *  of the memory blocks:
+ *  A zero value indicates that the contents of both memory blocks are equal.
+ *  A value greater than zero indicates that the first byte that does not
+ *  match in both memory blocks has a greater value in lhs than in rhs as if
+ *  evaluated as unsigned char values; And a value less than zero indicates
+ *  the opposite.
  */
 INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb);
 /*
@@ -220,18 +241,18 @@ INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb);
  * interpreted as unsigned char for the comparison.
  *
  * Parameters
- * dest     Pointer to the block of memory where the search is performed.
- * value    Value to be located. The value is passed as an int, but the 
- *          function performs a byte per byte search using the unsigned char
- *          conversion of this value.
- * nb       Number of bytes to be analyzed.
+ *  dest   Pointer to the block of memory where the search is performed.
+ *  value  Value to be located. The value is passed as an int, but the
+ *         function performs a byte per byte search using the unsigned char
+ *         conversion of this value.
+ *  nb     Number of bytes to be analyzed.
  *
- * Return Value
- * A pointer to the first occurrence of value in the block of memory pointed 
- * by dest.
- * If the value is not found, the function returns a null pointer.
+ * Return
+ *  A pointer to the first occurrence of value in the block of memory pointed
+ *  by des. If the value is not found, the function returns a null pointer.
  */
 INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb);
+
 /*
  * Fill block of memory
  *
@@ -239,20 +260,20 @@ INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb);
  * specified value (interpreted as an unsigned char).
  * 
  * Parameters
- * dest     Pointer to the block of memory to fill.
- * value    Value to be set. The value is passed as an int, but the function 
- *          fills the block of memory using the unsigned char conversion of 
- *          this value.
- * nb       Number of bytes to be set to the value.
+ *  dest   Pointer to the block of memory to fill.
+ *  value  Value to be set. The value is passed as an int, but the function
+ *         fills the block of memory using the unsigned char conversion of
+ *         this value.
+ *  nb     Number of bytes to be set to the value.
  *
- * Return Value
- * dest is returned.
+ * Return
+ *  dest is returned.
  */
 INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
 
 /* 
  * Deallocate space in memory. A block of memory previously allocated using a 
- * call to malloc, calloc or realloc is deallocated, making it available again
+ * call to ine_mem_alloc() making it available again
  * for further allocations.
  *
  * If ptr does not point to a block of memory allocated with the above 
@@ -265,145 +286,26 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
  *
  * Parameters
  * ptr   pointer to a memory block prevously allocated with ina_mem_alloc()
- *
- * Return Value
- * none
  */
+
 INA_API(void) ina_mem_free(void *ptr);
-
 /*
- * The function returns the number of bytes in a memory page, where "page" is 
- * a fixed-length block, the unit for memory allocation and file mapping.
+ * Deallocate space in memory. A block of memory previously allocated using a
+ * call to ina_mem_alloc_aligned() making it available again
+ * for further allocations.
  *
- * Parameters:
- * size     Size in bytes
+ * If ptr does not point to a block of memory allocated with the above
+ * functions, the behavior is undefined.
  *
- * Return Value
- * INA_SUCCESS if no error occurred.
- */                                 
-INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
-
-/*
- * The function calculates the size of a memory segment after
- * proper alignment
+ * If ptr is a null pointer, the function does nothing.
  *
- * Parameters:
- * query     Input size in bytes
- * aligned   The size after alignment
- *
- * Return Value
- * INA_SUCCESS if no error occurred.
- */                                 
-INA_API(ina_rc_t) ina_mem_get_aliged_size(size_t query, size_t *aligned);
-
-/*
- * Set custom allocator function to use with memory pools.
- * If NULL is given standard memmory handler will be used.
- *
- * This function should be called once and as soon as possible after 
- * ina_libinit() or ina_appinit().
- *
- * Parameters:
- * malloc_fn     Pointer to the custom malloc() function
- * free_fn       Pointer to the custom free() function
- * realloc_fn    Pointer to the custom realloc() function
- *
- * Return Value
- * INA_SUCCESS if no error occured.
- */
-INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
-                                 ina_free_t free_fn,
-                                 ina_realloc_t realloc_fn);
-
-/* 
- * Initalize internal structures an allocate the internal memory pool. This
- * system pool will automatically increase his size if needed.
- * Parameters
- * size     Initial size in bytes
- *
- * Return Value
- * INA_SUCCESS when the system memory pool was succefully allocated.
- * INA_FAILURE if an error occured
- */
-INA_API(ina_rc_t) ina_mempool_init(size_t size);
-
-/*
- * Destory all memory pools.
- *
- * Release and destroy all memory pools and internal structures. Once called, 
- * ina_mempool_init() must be called to reuse memory pools.
- *
- * Return Value
- * INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_mempool_destroy(void);
-
-/* 
- * Get runtime imformations about a memory pool,.
- *
- * pool     Pointer to a memory pool, pass NULL to query system memory pool.
- * info     Pointer to pool information structure.
- *
- * Return Value
- * INA_SUCCESS if no error occured.
- */
-INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info);
-
-/* 
- * Get a memory pool by label.
+ * Notice that this function does not change the value of ptr itself, hence it
+ * still points to the same (now invalid) location.
  *
  * Parameters
- * label    Pool label.
- * pool     Pointer to a memory pool pointer. Hold the memory pool.
- *
- * Return Value
- * INA_SUCCESS if pool was found otherwise INA_FAILURE
+ *  ptr   pointer to a memory block prevously allocated with ina_mem_alloc()
  */
-INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool);
-
-/* 
- * Get a memory pool by pointer.
- *
- * Parameters
- * ptr      Pointer to find.
- * pool     Pointer to a memory pool pointer. Hold the memory pool.
- *
- * Return Value
- * INA_SUCCESS if pool was found otherwise INA_FAILURE
- */
-INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr, ina_mempool_t **pool);
-
-/* 
- * Create a memory pool.
- *
- * Parameters
- * pool     Pointer to a memory pool pointer
- * size     Size of memory pool in bytes.
- * cf       Creation flags
- * label    Pool label. Optional for non shared memory pools.
- *
- * Return Value
- * INA_SUCCESS if pool was craeted successfully.
- */
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool, size_t size, uint32_t cf, const char *label);
-
-/* 
- * Release pool memory.
- */
-INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy);
-
-/*
- * Allocate reallocable memory from a pool 
- */
-INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
-/* 
- * Allocate not reallocable memory from a pool
- */
-INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
-/* 
- * Reallocate memory from a pool 
- */
-INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size);
+INA_API(void) ina_mem_free_aligned(void *ptr);
 
 #ifdef __cplusplus
 }

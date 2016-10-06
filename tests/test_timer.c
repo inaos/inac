@@ -85,6 +85,9 @@ INA_TEST(timer, stress_test)
     for (c = 0; c < 1000000; c++) {
         ina_time_event_t *ne;
         ne = ina_timer_next_event(t);
+        if (ne != NULL) {
+            INA_TEST_ASSERT_SAME(e, ne);
+        }
     }
     ina_timer_delete_event(t, e);
 }
@@ -112,7 +115,7 @@ INA_TEST(timer, event_rdtsc)
     #endif
     INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_use_rdtsc(t, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());
     ina_time_sleep(100);
     e1 = ina_timer_create_event(t, 900);
     INA_TEST_ASSERT_SUCCEED(ina_err_peek());

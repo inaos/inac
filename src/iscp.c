@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,23 @@
 #ifndef INA_OS_WIN32
 #include <sys/un.h>
 #endif
+
+/* ISCP context for NET backend */
+typedef struct ina_iscp_net_data_s {
+    ina_str_t addr;     /* IP */
+    int       port;     /* Port */
+    ina_str_t sockpath; /* Socket path */
+    int       fd;       /* File descriptor */
+    int       lfd;      /* File descriptor for listener */
+    int       timeout_sec; /* Timeout for TCP connect  default 10 seconds */
+} ina_iscp_net_data_t;
+
+typedef struct ina_iscp_ipc_data_s {
+    ina_str_t endpoint;
+    ina_mempool_t *qp;
+    ina_iscp_param_t *queue;
+    ina_iscp_param_t *top;
+} na_iscp_ipc_data_t;
 
 /*
  * Net callback to open an ISCP channel.
@@ -68,6 +85,7 @@ static ina_rc_t __ina_uds_open_cb(void*, int);
  */
 static ina_rc_t __ina_uds_clse_cb(void*, int);
 #endif
+
 
 INA_API(ina_rc_t) ina_iscp_create(ina_iscp_ctx_t **ctx, ina_iscp_backend_t backend)
 {

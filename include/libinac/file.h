@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, INAOS GmbH
+ * Copyright (c) 2014-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,133 +73,320 @@ extern "C" {
 #define INA_FILE_FLAG_POSIX_DIRECT         0x00000016
 #endif
 
+/* File access mode */
 typedef enum ina_file_access_mode_e {
-	INA_FILE_ACCESS_MODE_READ,
-	INA_FILE_ACCESS_MODE_READWRITE
+    INA_FILE_ACCESS_MODE_READ,
+    INA_FILE_ACCESS_MODE_READWRITE
 } ina_file_access_mode_t;
 
+/* File open mode */
 typedef enum ina_file_create_mode_e {
-	INA_FILE_CREATE_MODE_OPEN,
-	INA_FILE_CREATE_MODE_CREATE,
-	INA_FILE_CREATE_MODE_APPEND
+    INA_FILE_CREATE_MODE_OPEN,
+    INA_FILE_CREATE_MODE_CREATE,
+    INA_FILE_CREATE_MODE_APPEND
 } ina_file_create_mode_t;
 
+/* File share mode */
 typedef enum ina_file_share_mode_e {
-	INA_FILE_SHARE_MODE_EXCLUSIVE,
-	INA_FILE_SHARE_MODE_READ,
-	INA_FILE_SHARE_MODE_WRITE
+    INA_FILE_SHARE_MODE_EXCLUSIVE,
+    INA_FILE_SHARE_MODE_READ,
+    INA_FILE_SHARE_MODE_WRITE
 } ina_file_share_mode_t;
 
+/* File seek mode */
 typedef enum ina_file_seek_mode_e {
-	INA_FILE_SEEK_MODE_SET,
-	INA_FILE_SEEK_MODE_CUR
+    INA_FILE_SEEK_MODE_SET,  /* Seek from start */
+    INA_FILE_SEEK_MODE_CUR   /* Seek from current file position */
 } ina_file_seek_mode_t;
 
-/* opaque file types */
+/* Opaque file context */
 typedef struct ina_file_ctx_s ina_file_ctx_t;
+/* Opaque file handle */
 typedef struct ina_file_s ina_file_t;
+/* Opaque file attributes handle */
 typedef struct ina_file_stat_s ina_file_stat_t;
 
 /*
+ * Create and initialize a new file context.
  *
+ * Parameters
+ *  ctx           Where to store the newly created file context
+ *  default_mode  Default permissions
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode);
 
 /*
+ * Free a file context.
  *
+ * Parameters
+ *  ctx  Context to free
+ *
+ * Return
+ *  INA_SUCCESS
+ *
+ * FIXME: See #479
  */
 INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx);
 
 /*
+ * Create a new file handle.
  *
+ * Parameters
+ *  ctx       File context
+ *  file_fqn  Fully qualified name of file
+ *  access    Access mode
+ *  create    Creation mode
+ *  share     Share mode
+ *  flags     Combination on INA_FILE_FLAG_*
+ *  file      Where to store the newly created file handle
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
-                                ina_file_access_mode_t access, ina_file_create_mode_t create, 
-								ina_file_share_mode_t share, int flags, ina_file_t **file);
+INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx,
+                               const char *file_fqn,
+                               ina_file_access_mode_t access,
+                               ina_file_create_mode_t create,
+                               ina_file_share_mode_t share,
+                               int flags,
+                               ina_file_t **file);
 
 /*
+ * Free a file handle
  *
+ * Parameters
+ *  ctx   File context
+ *  file  File to free
+ *
+ * Return
+ *  INA_SUCCESS
+ *
+ * FIXME: Why we have context and file as argument
  */
 INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file);
 
 /*
+ * Create and initialize file attributes.
  *
+ * Parameters
+ *  file  File
+ *  stat  Where to store the file attributes
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat);
 
 /*
+ * Destroy file attributes.
  *
+ * Parameters
+ *  file  File
+ *  stat  File attributes to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_file_stat_free(ina_file_t *file, ina_file_stat_t **stat);
 
 
 /*
+ * Get the filepath of a file
  *
+ * Parameters
+ *  file      File handle
+ *  filepath  Where to store the filepath
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_get_filepath(const ina_file_t *file, ina_str_t *filepath);
+INA_API(ina_rc_t) ina_file_get_filepath(const ina_file_t *file,
+                                        ina_str_t *filepath);
 
 /*
+ * Get current file permissions.
  *
+ * Parameters
+ *  file  File handle
+ *  mode  WHere to store current file permissions
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_file_get_mode(const ina_file_t *file, mode_t *mode);
 
 /*
+ * Set file permissions
  *
+ * Parameters
+ *  file  File handle
+ *  mode  File permissions
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_file_set_mode(const ina_file_t *file, mode_t mode);
 
 /*
+ * Query if file is a directory.
  *
+ * Parameters
+ *  file  File handle
+ *  dir   Where to store the result. 1 for a regular directory otherwise 0.
+ *
+ * Return
+ * INA_SUCCESS
+ *
+ * FIXME: Remove argument dir and use RC to indicate whenever file is a
+ *        directory or not.
  */
 INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat, int *dir);
 
 /*
+ * Get current file size in bytes.
  *
+ * Parameters
+ *  stat        File attributes handle
+ *  file_size   Where to store the file size in bytes
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, uint64_t *file_size);
+INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat,
+                                          uint64_t *file_size);
 
 /*
+ * Get last access time of a file.
  *
+ * Parameters
+ *  stat         File attributes handle
+ *  last_access  Where to store te last access time.
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_stat_atime(ina_file_stat_t *stat, time_t *last_access);
+INA_API(ina_rc_t) ina_file_stat_atime(ina_file_stat_t *stat,
+                                      time_t *last_access);
 
 /*
+ * Get last modification timestamp of a file.
  *
+ * Parameters
+ *  stat  File attributes handle
+ *  last_modification  Where to store time of last modification
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat, time_t *last_modification);
+INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat,
+                                      time_t *last_modification);
 
 /*
+ * Return the underlying native os handle of a INAC file handle
  *
+ * Parameters
+ *  file   INAC file handle
+ *
+ * Return
+ *  Void pointer to the Native file handle
  */
 INA_API(void*) ina_file_os_handle(ina_file_t *file);
 
 /*
+ * Return the underlying C stream of a INAC file handle
  *
+ * Parameters
+ *  file   INAC file handle
+ *
+ * Return
+ *  On successful completion return a FILE pointer. Otherwise, NULL is returned.
  */
-INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, int64_t len, int64_t *read);
+INA_API(FILE*) ina_file_get_stream(ina_file_t *file);
 
 /*
+ * Read 'len' bytes from a file into buf.
  *
+ * Parameters
+ *  file  File handle
+ *  buf   Read buffer, must be bigger than 'len' bytes
+ *  len   Number of bytes intended to read from file
+ *  read  Where to store the number of bytes read
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, int64_t len, int64_t *wrote); 
+INA_API(ina_rc_t) ina_file_read(ina_file_t *file,
+                                unsigned char *buf,
+                                int64_t len,
+                                int64_t *read);
 
 /*
+ * Write 'len' bytes to a file.
  *
+ * Parameters
+ *  file   File handle
+ *  buf    Data to write to the file
+ *  len    Number of bytes to write
+ *  wrote  Where to store the number of bytes written
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_file_write(ina_file_t *file,
+                                 unsigned char *buf,
+                                 int64_t len,
+                                 int64_t *wrote);
+
+/*
+ * Set file pointer to the beginning.
+ *
+ * Parameters
+ *  file  File handle
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file);
 
 /*
+ * Set file pointer to a specific position.
  *
+ * Parameters
+ *  file    File handle
+ *  offset  Offset for increment
+ *  mode    Seek mode. INA_FILE_SEEK_MODE_SET for absolute positioning or
+ *          INA_FILE_SEEK_MODE_CUR for relative positioning
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_seek_mode_t mode);
+INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file,
+                                   uint64_t offset,
+                                   ina_file_seek_mode_t mode);
 
 /*
+ * Get the current value of the position indicator of the file.
  *
+ * Parameters
+ *  file    File handle
+ *  offset  Where to store the value of the current file position
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset);
 
 /*
+ * Set file pointer to the end of file.
  *
+ * Parameters
+ *  file  File handle
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_file_set_eof(ina_file_t *file);
 

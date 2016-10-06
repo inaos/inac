@@ -34,14 +34,13 @@ all:
 	$(MAKE) -C sqlite
 	$(MAKE) -C bstring
 	$(MAKE) -C anet
-	$(MAKE) -C skiplist
 	$(MAKE) library -C http-parser
 	$(MAKE) -C rapidxml
 	$(MAKE) -C axtls
 	$(MAKE) -C yajl
 ifneq ($(OS), Darwin)
 	$(MAKE) -C cpu-topology
-	$(MAKE) -C coredumper
+	$(MAKE) -C coredumper CFLAGS=-D_GNU_SOURCE
 endif
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
@@ -67,7 +66,6 @@ clean:
 	@echo cleaning contribs...
 	$(MAKE) clean -C luajit
 	$(MAKE) clean -C bstring
-	$(MAKE) clean -C skiplist
 	$(MAKE) clean -C anet
 	$(MAKE) clean -C sds
 	$(MAKE) clean -C sqlite

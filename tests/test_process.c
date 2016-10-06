@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 
 #ifndef INA_OS_WIN32
-#define __INA_TEST_EXE "test"
+#define __INA_TEST_EXE "./test"
 #else
 #define __INA_TEST_EXE "test.exe"
 #endif
@@ -63,17 +63,13 @@ INA_TEST_SKIP(process, descriptor_new_free)
     INA_TEST_ASSERT_SUCCEED(ina_process_descriptor_new(ctx, &pd,
         "full_path",
         "working_dir",
+        "1 2 3 4",
         INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
         INA_PROCESS_MANAGED_TYPE_SCHEDULED_START,
         "scheduled_start_pattern",
         "scheduled_stop_pattern",
         100,
-        0,
-        "1",
-        "2",
-        "3",
-        "4",
-        NULL));
+        0));
     INA_TEST_ASSERT_NOT_NULL(pd);
     INA_TEST_ASSERT_EQUAL_STR("full_path", pd->full_path);
     INA_TEST_ASSERT_EQUAL_STR("working_dir", pd->working_dir);

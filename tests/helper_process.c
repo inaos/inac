@@ -30,6 +30,7 @@
 
 INA_TEST_HELPER(process, spawn_and_wait) {
 	ina_rc_t rc = INA_TEST_HELPER_IARG(0);
+	printf("HELPER STARTED");
 	ina_time_sleep(2000);
 	INA_TEST_HELPER_SET_RC(rc);
 }

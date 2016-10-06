@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 #define _LIBINAC_TIMER_H_
 
 #include <libinac/lib.h>
+#include <contribs/timerwheel/timeout.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,52 +38,113 @@ extern "C" {
 /* Timer */
 typedef struct ina_timer_s ina_timer_t;
 
+/* FIXME: make it opaque */
 /* Time event */
 typedef struct ina_time_event_s {
     uint64_t id;
-    void *data;
+    struct timeout *t;
 } ina_time_event_t;
 
 /*
- * Create an new timer 
+ * Creates a new timer.
+ *
+ * Parameters
+ *  timer  Where to store the timer
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer);
+
 /*
- * Destroty a timer
+ * Destroy a timer.
+ *
+ * Parameters
+ *  timer  Timer to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer);
+
+
 /*
- * Enable RDTSC, make sure you understand the caveats 
- * -> check time.h
- * -> Only use on modern processors with Invariant TSC
- * -> Processes must be pinned to CPU
- * Per default RDTSC is disabled
+ * Creates a new time event for a timer
+ *
+ * Parameters
+ *  timer  Timer
+ *  msec   Event interval in milliseconds
+ *
+ * Return
+ *  Pointer to timer event or NULL if an error occurred.
  */
-INA_API(ina_rc_t) ina_timer_use_rdtsc(ina_timer_t *timer, int yesno);
+INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer,
+                                                  time_t msec);
+
 /*
- * Create a new time event for a timer
+ * Create a new time event for a timer while providing current time.
+ *
+ * Parameters
+ *  timer   Timer
+ *  n_msec  Current time in millisecond since epoch
+ *  e_msec  Event interval in milliseconds
+ *
+ * Return
+ *  Pointer to timer event or NULL if an error occurred.
  */
-INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec);
+INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer,
+                                                            time_t n_msec,
+                                                            time_t e_msec);
 /*
- * Create a new time event for a timer while providing current time
+ * Delete a time event from a timer.
+ *
+ * Parameter
+ *  timer  Timer
+ *  e      Timer event to delete from timer.
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer, time_t n_msec, time_t e_msec);
+INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer,
+                                         ina_time_event_t *e);
+
+
 /*
- * Delete a time event from a timer
- */
-INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e);
-/*
- * Get the next elapsed time event
+ * Get the next elapsed time event.
+ *
+ * Parameters
+ *  timer  Timer to query
+ *
+ * Return
+ *  Next elapsed time event or NULL if no events elapsed.
  */
 INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer);
+
 /*
- * Get the next elapsed time event by providing the milli-seconds since epoch
+ * Get the next elapsed time event by providing the milliseconds since epoch.
+ *
+ * Parameters
+ *  timer      Timer to query
+ *  now_millis Time since epoch
+ *
+ * Return
+ *  Next elapsed time event or NULL if no events elapsed.
  */
-INA_API(ina_time_event_t*) ina_timer_next_event_with_time(ina_timer_t *timer, time_t now_millis);
+INA_API(ina_time_event_t*) ina_timer_next_event_with_time(ina_timer_t *timer,
+                                                          time_t now_millis);
+
 /*
- *  Calculate time in msec until the next time event will elapse.
+ * Calculate time in milliseconds until the next time event will elapse.
+ *
+ * Parameters
+ *  timer          Timer to query
+ *  how_long_msec  Where to store milliseconds when the next event will elapse.
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_timer_time_to_next_event(ina_timer_t *timer, time_t *how_long_msec);
+INA_API(ina_rc_t) ina_timer_time_to_next_event(ina_timer_t *timer,
+                                               time_t *how_long_msec);
 
 #ifdef __cplusplus
 }

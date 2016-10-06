@@ -1,7 +1,5 @@
-
-
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,13 +50,15 @@ typedef enum ina_service_status_e {
   INA_SERVICE_STATUS_INIT          /* Before before initialization */
 } ina_service_status_t;
 
-typedef ina_rc_t (*ina_service_fn_t)(const ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data);
+typedef ina_rc_t (*ina_service_fn_t)(ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data);
 
+/* Running mode */
 typedef enum ina_service_mode_e {
     INA_SERVICE_MODE_SERVICE,
     INA_SERVICE_MODE_CONSOLE
 } ina_service_mode_t;
 
+/* Startup type */
 typedef enum ina_service_startup_type_e {
     INA_SERVICE_STARTUP_TYPE_AUTO,
     INA_SERVICE_STARTUP_TYPE_MANUAL,
@@ -150,95 +150,223 @@ INA_SERVICE_SECTION_PUSH ina_service_descriptor_t __ina_service_section INA_SERV
     INA_NO)
 
 /*
+ * Creates an service context.
  *
+ * Parameters
+ *  ctx  Where to store the newly created service context.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_service_init(ina_service_ctx_t **ctx);
 
 /*
- * 
+ * Destroy a service context.
+ *
+ * Parameters
+ *  ctx  Where to store the service context.
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_service_destroy(ina_service_ctx_t **ctx);
 
 /*
+ * Dispatch service function. May install, uninstall or run service.
  *
+ * Parameters
+ *  ctx        Service context
+ *  user_data  Optional. Pointer to user data. This pointer is passed
+ *             to the service state callback.
+ *
+ * Return
+ *  INA_SUCCES if all went well
  */
-INA_API(ina_rc_t) ina_service_dispatch(ina_service_ctx_t *ctx, const void *user_data);
+INA_API(ina_rc_t) ina_service_dispatch(ina_service_ctx_t *ctx,
+                                       const void *user_data);
 
 /*
+ * Enable service stop. Enabled by default.
  *
+ * Parameters
+ *  ctx  Service context
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_service_enable_stop(ina_service_ctx_t *ctx);
+
 /*
+ * Disable service stop. Service callback function will not be called
+ * for INA_SERVICE_STATUS_STOP on pressing CTRL-C and the process will not
+ * terminate.
  *
+ * Parameters
+ *  ctx   Service context
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_service_disable_stop(ina_service_ctx_t *ctx);
 
 /*
+ * Get the user data associated to a service context.
  *
+ * Parameters
+ *  ctx        Service context
+ *  user_data  Where to store the user data
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_service_get_data(const ina_service_ctx_t *ctx, const void **user_data);
+INA_API(ina_rc_t) ina_service_get_data(const ina_service_ctx_t *ctx,
+                                       const void **user_data);
 
 /*
+ * Set user data for a service context.
  *
+ * Parameters
+ *  ctx        Service context
+ *  user_data  Pointer to the user data
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_service_set_data(ina_service_ctx_t *ctx, const void *user_data);
+INA_API(ina_rc_t) ina_service_set_data(ina_service_ctx_t *ctx,
+                                       const void *user_data);
 
 /*
+ * Get the service descriptor for a service context.
  *
+ * Parameters
+ *  ctx   Service context
+ *  descriptor  Where to store the service descriptor.
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_service_get_descriptor(const ina_service_ctx_t *ctx, 
                                     ina_service_descriptor_t **descriptor);
 /*
  * WIN: Installs the app as a service via the Service API
- * UNX: Installs the app as a deamon and enable service <app> commands.
+ * UNX: Installs the app as a daemon and enable service <app> commands.
  *      It stores the servicescript in a section in the binary and 
  *      copy it to /etc/init.d upon install
+ *
+ * Parameters
+ *  ctx  Service context
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_service_install(const ina_service_ctx_t *ctx);
+INA_API(ina_rc_t) ina_service_install(ina_service_ctx_t *ctx);
 
 /*
- * 
+ * Uninstall service.
+ *
+ * Parameters
+ *  ctx  Service context
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_service_uninstall(const ina_service_ctx_t *ctx);
+INA_API(ina_rc_t) ina_service_uninstall(ina_service_ctx_t *ctx);
 
 /*
- * 
+ * Invoke service function.
+ *
+ * Parameters
+ *  ctx      Service context
+ *  console  Define whenever the process should start as soncole or as daemon.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx, int console, const void *user_data);
+INA_API(ina_rc_t) ina_service_run_service(ina_service_ctx_t *ctx,
+                                          int console,
+                                          const void *user_data);
 
 /*
- * 
+ * Get current running mode.
+ *
+ * Parameters
+ *  ctx   Service context
+ *  mode  Where to store the current running mode
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_service_get_mode(const ina_service_ctx_t *ctx, 
                                        ina_service_mode_t *mode);
 
 /*
+ * Checks if current process is runnig as daemon.
  *
+ * Parameters
+ *  ctx  Service context
+ *
+ * Return
+ *  INA_SUCCESS  Running as daemon
+ *  INA_FAILURE  Running in console mode
  */
 INA_API(ina_rc_t) ina_service_is_deamon(const ina_service_ctx_t *ctx);
 
 /*
+ * Service management: Start a service
  *
+ * Parameters
+ *  name  Name of service to start
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_service_mgnt_start(const char *name);
 
 /*
+ * Service management: Stop a service
  *
+ * Parameters
+ *  name  Name of service to stop
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_service_mgnt_stop(const char *name);
 
 /*
+ * Service management: Query service status
  *
+ * Parameters
+ *  name    Name of service to query
+ *  status  Where to store the current service status
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_service_mgnt_status(const char *name, ina_service_status_t *status);
+INA_API(ina_rc_t) ina_service_mgnt_status(const char *name,
+                                          ina_service_status_t *status);
 
 /*
+ * Service management: Install a service
  *
+ * Parameters
+ *  bin_path      Full path to the service executable
+ *  startup_args  Service startup_args
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_service_mgnt_install(const char *bin_path, const char *startup_args);
+INA_API(ina_rc_t) ina_service_mgnt_install(const char *bin_path,
+                                           const char *startup_args);
 
 /*
+ * Service management: Uninstall a service
  *
+ * Parameters
+ *  bin_path  Full path to service executable to uninstall
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_service_mgnt_uninstall(const char *bin_path);
 

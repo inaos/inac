@@ -108,7 +108,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
 {
     
 #ifdef INA_OS_WIN32
-    _set_abort_behavior(0, _WRITE_ABORT_MSG);
+    _set_abort_behavior(INA_DGBMSG_ASSERT, _WRITE_ABORT_MSG);
     __main_thread = GetCurrentThread();
 #endif
     

@@ -36,29 +36,45 @@ INA_TEST(cron, add_tasks_non_persistent_and_utils)
     ina_cron_task_t *task;
     int found = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL, NULL));
 
+#ifdef INA_OS_WIN32
     cmd = ina_str_new_fromcstr("dir.exe .");
     wd = ina_str_new_fromcstr("c:\\windows");
-    INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "dir", "0 * * * *", 0, cmd, wd));
+#else
+    cmd = ina_str_new_fromcstr("uname");
+    wd = ina_str_new_fromcstr("./");
+#endif
+    INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "t1", "0 * * * *", 0, cmd, wd));
     ina_str_free(cmd);
-    ina_str_free(wd);
 
+#ifdef INA_OS_WIN32
     cmd = ina_str_new_fromcstr("pwd.exe .");
-    wd = ina_str_new_fromcstr("c:\\windows");
-    INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "pwd", "0 23 * * *", 0, cmd, wd));
+#else
+    cmd = ina_str_new_fromcstr("pwd");
+#endif
+    INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "t2", "0 23 * * *", 0, cmd, wd));
+    ina_str_free(cmd);
+
+#ifdef INA_OS_WIN32
+    cmd = ina_str_new_fromcstr("mkdir.exe .");
+#else
+    cmd = ina_str_new_fromcstr("mkdir");
+#endif
+    INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "t3", "0 23 * * *", 0, cmd, wd));
     ina_str_free(cmd);
     ina_str_free(wd);
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_task_by_id(ctx, "pwd", &task));
+    task = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_cron_task_by_id(ctx, "t2", &task));
     INA_TEST_ASSERT_NOT_NULL(task);
+
+    INA_TEST_ASSERT_SUCCEED(ina_cron_task_remove(ctx, &task));
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_new_iter(ctx, &itr));
     while (task != NULL) {
-        int running = 0;
         ina_str_t patt;
-        INA_TEST_ASSERT_SUCCEED(ina_cron_task_is_running(task, &running));
-        INA_TEST_ASSERT_EQUAL_INTEGER(0, running);
+        INA_TEST_ASSERT_NOTSUCCEED(ina_cron_task_is_running(task));
         INA_TEST_ASSERT_SUCCEED(ina_cron_task_get_pattern(task, &patt));
         INA_TEST_ASSERT_NOT_NULL(patt);
         found++;
@@ -77,10 +93,15 @@ INA_TEST(cron, add_task_and_exec)
     int suggested_sleep_time;
     time_t now;
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL, NULL));
 
+#ifdef INA_OS_WIN32
     cmd = ina_str_new_fromcstr("pwd.exe");
     wd = ina_str_new_fromcstr("c:\\windows");
+#else
+    cmd = ina_str_new_fromcstr("pwd");
+    wd = ina_str_new_fromcstr("./");
+#endif
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_add(ctx, "pwd", "* * * * *", 0, cmd, wd));
     ina_str_free(cmd);
     ina_str_free(wd);

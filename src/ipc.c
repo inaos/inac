@@ -355,29 +355,32 @@ INA_API(ina_rc_t) ina_ipc_counter_get(const ina_ipc_counter_t *counter, uint64_t
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ipc_counter_increment(ina_ipc_counter_t *counter, uint64_t value)
+INA_API(uint64_t) ina_ipc_counter_increment(ina_ipc_counter_t *counter, uint64_t value)
 {
     INA_ASSERT_NOTNULL(counter);
-
     INA_ATOMIC_SWAP(&counter->data->c, counter->data->c, counter->data->c + value);
-
-    return INA_SUCCESS;
+    return counter->data->c;
 }
 
-INA_API(ina_rc_t) ina_ipc_counter_decrement(ina_ipc_counter_t *counter, uint64_t value)
+INA_API(uint64_t) ina_ipc_counter_decrement(ina_ipc_counter_t *counter, uint64_t value)
 {
     INA_ASSERT_NOTNULL(counter);
-
     INA_ATOMIC_SWAP(&counter->data->c, counter->data->c, counter->data->c - value);
-
-    return INA_SUCCESS;
+    return counter->data->c;
 }
 
 INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter, uint64_t value)
 {
+    uint64_t v = counter->data->c;
     INA_ASSERT_NOTNULL(counter);
 
-    INA_ATOMIC_SWAP(&counter->data->c, counter->data->c, value);
+    if (v == value) {
+        return INA_SUCCESS;
+    }
 
+    INA_ATOMIC_SWAP(&counter->data->c, v, value);
+    if (v == counter->data->c) {
+        return INA_FAILURE;
+    }
     return INA_SUCCESS;
 }

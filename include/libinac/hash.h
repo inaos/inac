@@ -72,7 +72,7 @@ typedef uint64_t (*ina_hash_int64_func_64_t)(uint64_t key);
  * Parameters
  *  key8   8-bit integer key
  *
- * Return Value
+ * Return
  *  Hash
  */
 uint32_t INA_INLINE ina_hash_32_wang_int8(uint8_t key8)
@@ -94,7 +94,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int8(uint8_t key8)
  * Parameters
  *  key16   16-bit integer key
  *
- * Return Value
+ * Return
  *  Hash
  */
 uint32_t INA_INLINE ina_hash_32_wang_int16(uint16_t key16)
@@ -116,7 +116,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int16(uint16_t key16)
  * Parameters
  *  key   32-bit integer key
  *
- * Return Value
+ * Return
  *  Hash
  */
 uint32_t INA_INLINE ina_hash_32_wang_int32(uint32_t key)
@@ -137,7 +137,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int32(uint32_t key)
  * Parameters
  *  key   32-bit integer key
  *
- * Return Value
+ * Return
  *  Hash
  */
 uint32_t INA_INLINE ina_hash_32_jenkins_int32(uint32_t key)
@@ -159,7 +159,7 @@ uint32_t INA_INLINE ina_hash_32_jenkins_int32(uint32_t key)
  * Parameters
  *  key   64-bit integer key
  *
- * Return Value
+ * Return
  *  Hash
  */
 uint64_t INA_INLINE ina_hash_64_wang_int64(uint64_t key)
@@ -183,7 +183,7 @@ uint64_t INA_INLINE ina_hash_64_wang_int64(uint64_t key)
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_lookup3(uint32_t hash, const void *data, size_t size);
@@ -197,7 +197,7 @@ INA_API(uint32_t) ina_hash_32_lookup3(uint32_t hash, const void *data, size_t si
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t size);
@@ -211,7 +211,7 @@ INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t si
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_djb(uint32_t hash, const void *data, size_t size);
@@ -225,12 +225,12 @@ INA_API(uint32_t) ina_hash_32_djb(uint32_t hash, const void *data, size_t size);
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_jenkins_ooat(uint32_t hash, const void *data, size_t size);
 /*
- * Calculate 32bit FNV (Fowler–Noll–Vo) hash
+ * Calculate 32bit FNV (Fowlerï¿½Nollï¿½Vo) hash
  *
  * Source: Wikipedia
  *
@@ -239,12 +239,12 @@ INA_API(uint32_t) ina_hash_32_jenkins_ooat(uint32_t hash, const void *data, size
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_fnv(uint32_t hash, const void *data, size_t size);
 /*
- * Calculate 64bit FNV (Fowler–Noll–Vo) hash
+ * Calculate 64bit FNV (Fowlerï¿½Nollï¿½Vo) hash
  *
  * Source: Wikipedia
  *
@@ -253,7 +253,7 @@ INA_API(uint32_t) ina_hash_32_fnv(uint32_t hash, const void *data, size_t size);
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_fnv(uint64_t hash, const void *data, size_t size);
@@ -267,7 +267,7 @@ INA_API(uint64_t) ina_hash_64_fnv(uint64_t hash, const void *data, size_t size);
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_superfast(uint32_t hash, const void *data, size_t size);
@@ -281,7 +281,7 @@ INA_API(uint32_t) ina_hash_32_superfast(uint32_t hash, const void *data, size_t 
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_sdbm(uint32_t hash, const void *data, size_t size);
@@ -295,7 +295,7 @@ INA_API(uint32_t) ina_hash_32_sdbm(uint32_t hash, const void *data, size_t size)
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, size_t size);
@@ -309,7 +309,7 @@ INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, si
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_murmur3(uint32_t hash, const void *data, size_t size);
@@ -323,7 +323,7 @@ INA_API(uint32_t) ina_hash_32_murmur3(uint32_t hash, const void *data, size_t si
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_spooky(uint32_t hash, const void *data, size_t size);
@@ -337,7 +337,7 @@ INA_API(uint32_t) ina_hash_32_spooky(uint32_t hash, const void *data, size_t siz
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_spooky(uint64_t hash, const void *data, size_t size);
@@ -351,7 +351,7 @@ INA_API(uint64_t) ina_hash_64_spooky(uint64_t hash, const void *data, size_t siz
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_xxhash(uint32_t hash, const void *data, size_t size);
@@ -365,7 +365,7 @@ INA_API(uint32_t) ina_hash_32_xxhash(uint32_t hash, const void *data, size_t siz
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t size);
@@ -379,7 +379,7 @@ INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t siz
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t size);
@@ -393,7 +393,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t size);
@@ -407,7 +407,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t size);
@@ -421,7 +421,7 @@ INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t si
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t size);
@@ -435,7 +435,7 @@ INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t si
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t size);
@@ -449,7 +449,7 @@ INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t s
  *  data   data to hash
  *  size   size of buffer to hash
  *
- * Return Value
+ * Return
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_falkhash(uint64_t hash, const void *data, size_t size);

@@ -31,26 +31,30 @@
 /*
  * http://en.wikipedia.org/wiki/Histogram
  * 
- * Some applications process millions of events per second, meaning that millions of 
- * measurements will be taken every second. You might be asking yourself: is it possible to 
- * store millions of measurements efficiently without incurring in significant memory 
- * and CPU overhead? Yes, it is possible, thanks to the HdrHistogram developed by Gil Tene, 
- * and it is backing our Histogram implementation.
+ * Some applications process millions of events per second, meaning that millions
+ * of measurements will be taken every second. You might be asking yourself: is
+ * it possible to store millions of measurements efficiently without incurring
+ * in significant memory and CPU overhead? Yes, it is possible, thanks to the
+ * HdrHistogram developed by Gil Tene, and it is backing our Histogram
+ * implementation.
  * 
- * The HdrHistogram mixes linear and exponential bucket systems to produce a unique data 
- * structure capable of recording measurements with configurable precision and with fixed 
- * memory and cpu costs, regardless of the number of measurements recorded.
+ * The HdrHistogram mixes linear and exponential bucket systems to produce a
+ * unique data structure capable of recording measurements with configurable
+ * precision and with fixed memory and cpu costs, regardless of the number of
+ * measurements recorded.
  *
  * ---- From the HdrHistogram documentation ----
  * Internally, data in HdrHistogram variants is maintained using a concept 
- * somewhat similar to that of floating point number representation: Using an exponent 
- * a (non-normalized) mantissa to support a wide dynamic range at a high but varying 
- * (by exponent value) resolution. AbstractHistogram uses exponentially increasing bucket 
- * value ranges (the parallel of the exponent portion of a floating point number) with each 
- * bucket containing a fixed number (per bucket) set of linear sub-buckets 
- * (the parallel of a non-normalized mantissa portion of a floating point number). 
- * Both dynamic range and resolution are configurable, with highestTrackableValue 
- * controlling dynamic range, and numberOfSignificantValueDigits controlling resolution.
+ * somewhat similar to that of floating point number representation: Using an
+ * exponent a (non-normalized) mantissa to support a wide dynamic range at a
+ * high but varying (by exponent value) resolution. AbstractHistogram uses
+ * exponentially increasing bucket value ranges (the parallel of the exponent
+ * portion of a floating point number) with each bucket containing a fixed
+ * number (per bucket) set of linear sub-buckets (the parallel of a
+ * non-normalized mantissa portion of a floating point number).
+ * Both dynamic range and resolution are configurable, with
+ * highestTrackableValue controlling dynamic range, and
+ * numberOfSignificantValueDigits controlling resolution.
  * ----
  * 
  * We have three components:
@@ -58,9 +62,10 @@
  * - Serializer
  * - Reporter
  *
- * Our implementation uses the ULLC rings to transfer the samples from the recorder to the serializer component.
- * The recorder is a producer and the serializer is dummy producer because it has to be created first and a consumer 
- * to consume and serialize the samples.
+ * Our implementation uses the ULLC rings to transfer the samples from the
+ * recorder to the serializer component. The recorder is a producer and the
+ * serializer is dummy producer because it has to be created first and a
+ * consumer to consume and serialize the samples.
  *
  */
 
@@ -98,7 +103,19 @@ typedef struct ina_histogram_meta_s {
 } ina_histogram_meta_t;
 
 /*
+ * Create an new histogram recoder.
  *
+ * Parameters
+ *  recorder                 Where to store the newly created recorder
+ *  id                       Recorder id
+ *  highest_trackable_value  Configure dynamic range by defining highest
+ *                           trackable value
+ *  significant_figures      Configure the resolution by defining the number
+ *                           of significant figures
+ *  sample_interval_ms       Define interval of sample recording in milliseconds
+ *
+ * Return
+ * INA_SUCCESS if all went well.
  */
 INA_API(ina_rc_t) ina_histogram_recorder_new(ina_histogram_recorder_t **recorder,
                                              ina_str_t id,
@@ -107,78 +124,190 @@ INA_API(ina_rc_t) ina_histogram_recorder_new(ina_histogram_recorder_t **recorder
                                              int sample_interval_ms);
 
 /*
+ * Destroy a histogram recorder.
  *
+ * Parameters
+ *  recorder  Recorder to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_histogram_recorder_free(ina_histogram_recorder_t **recorder);
 
 /*
+ * Set a free text 1
  *
+ * Parameters
+ *  recorder  Histogram recorder
+ *  text      Free text 1
+ *
+ * Return
+ * INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_histogram_recorder_set_free_text1(ina_histogram_recorder_t *recorder, const char *text);
+INA_API(ina_rc_t) ina_histogram_recorder_set_free_text1(
+                                            ina_histogram_recorder_t *recorder,
+                                            const char *text);
 
 /*
+ * Set a free text 2
  *
+ * Parameters
+ *  recorder  Histogram recorder
+ *  text      Free text 2
+ *
+ * Return
+ * INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_histogram_recorder_set_free_text2(ina_histogram_recorder_t *recorder, const char *text);
+INA_API(ina_rc_t) ina_histogram_recorder_set_free_text2(
+                                            ina_histogram_recorder_t *recorder,
+                                            const char *text);
 
 /*
+ * Set a free text 3
  *
+ * Parameters
+ *  recorder  Histogram recorder
+ *  text      Free text 3
+ *
+ * Return
+ * INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_histogram_recorder_set_free_text3(ina_histogram_recorder_t *recorder, const char *text);
+INA_API(ina_rc_t) ina_histogram_recorder_set_free_text3(
+                                            ina_histogram_recorder_t *recorder,
+                                            const char *text);
 
 /*
+ * Set a free text 4
  *
+ * Parameters
+ *  recorder  Histogram recorder
+ *  text      Free text 4
+ *
+ * Return
+ * INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_histogram_recorder_set_free_text4(ina_histogram_recorder_t *recorder, const char *text);
+INA_API(ina_rc_t) ina_histogram_recorder_set_free_text4(
+                                            ina_histogram_recorder_t *recorder,
+                                            const char *text);
 
 /*
+ * Record a histogram value.
  *
+ * Parameters
+ *  recorder  Histogram recorder
+ *  value     Value to record
+ *
+ * Return
+ * INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_histogram_recorder_record(ina_histogram_recorder_t *recorder, int64_t value);
+INA_API(ina_rc_t) ina_histogram_recorder_record(
+                                            ina_histogram_recorder_t *recorder,
+                                            int64_t value);
 
 /*
+ * Process the recorded data by copying into a ring buffer for serialization.
  *
+ * Parameters
+ *  recorder  Histogram recorder
+ *  time_ns   Time in nanoseconds to be elapsed before write to the ring.
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_histogram_recorder_process(ina_histogram_recorder_t *recorder, int64_t time_ns);
+INA_API(ina_rc_t) ina_histogram_recorder_process(
+                                            ina_histogram_recorder_t *recorder,
+                                            int64_t time_ns);
 
 /*
+ * Create a new histogram serializer.
  *
+ * Parameters
+ *  serializer               Where to store the newly created serializer
+ *  id                       Serializer identifier
+ *  highest_trackable_value  Configure dynamic range by defining highest
+ *                           trackable value
+ *  significant_figures      Configure the resolution by defining the number
+ *                           of significant figures
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_histogram_serializer_new(ina_histogram_serializer_t **serializer,
-                                               ina_str_t id,
-                                               int64_t highest_trackable_value,
-                                               int significant_figures);
+INA_API(ina_rc_t) ina_histogram_serializer_new(
+                                        ina_histogram_serializer_t **serializer,
+                                        ina_str_t id,
+                                        int64_t highest_trackable_value,
+                                        int significant_figures);
 
 /*
+ * Destroy a histogram serializer.
  *
+ * Parameters
+ *  serializer  Histogram serializer to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_histogram_serializer_free(ina_histogram_serializer_t **serializer);
+INA_API(ina_rc_t) ina_histogram_serializer_free(
+                                        ina_histogram_serializer_t **serializer);
 
 /*
+ * Serialize histogram data previously recorded.
  *
+ * Parameters
+ *  serializer   Histogram serializer
+ *  record       Histogram data
+ *  meta         Histogram meta data
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ *  INA_EAGAIN  if no data is currently available.
  */
-INA_API(ina_rc_t) ina_histogram_serializer_serialize(ina_histogram_serializer_t *serializer, 
-                                                     ina_str_t *record,
-                                                     ina_histogram_meta_t *meta);
+INA_API(ina_rc_t) ina_histogram_serializer_serialize(
+                                        ina_histogram_serializer_t *serializer,
+                                        ina_str_t *record,
+                                        ina_histogram_meta_t *meta);
 
 /*
+ * Create a new histogram reporter.
  *
+ * Parameters
+ *  reporter  Where to store the newly created reporter
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_histogram_reporter_new(ina_histogram_reporter_t **reporter);
 
 /*
+ * Destroy a histogram reporter.
  *
+ * Parameters
+ *  reporter  Histogram reporter to destroy
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_histogram_reporter_free(ina_histogram_reporter_t **reporter);
 
 /*
+ * Print percentile to a file stream.
  *
+ * Parameters
+ *  reporter                 Histogram reporter
+ *  record                   Histogram data
+ *  stream                   File to write to
+ *  ticks_per_half_distance  Granularity of printed values
+ *  value_scale              Multiplier for results
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_histogram_reporter_print_percentile(ina_histogram_reporter_t *reporter, 
-                                                          const ina_str_t record,
-                                                          FILE *stream,
-                                                          int32_t ticks_per_half_distance,
-                                                          double value_scale);
+INA_API(ina_rc_t) ina_histogram_reporter_print_percentile(
+                                            ina_histogram_reporter_t *reporter,
+                                            const ina_str_t record,
+                                            ina_file_t *file,
+                                            int32_t ticks_per_half_distance,
+                                            double value_scale);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,10 +56,10 @@ struct ina_test_hid_s {
  * helper could non be started or returns an error an assertion will fail.    
  *
  * Parameters
- * hid   Pointer to a helper handle 
- * sname Test suite name
- * hname Helper name
- * ...   Arguments to pass to the helper. All arguments must be of type char*
+ *  hid   Pointer to a helper handle
+ *  sname Test suite name
+ *  hname Helper name
+ *  ...   Arguments to pass to the helper. All arguments must be of type char*
  */
 #define INA_TEST_HELPER_INVOKE(hid, sname, hname, ...)                      \
     INA_TEST_MSG("starting helper %s", #hname);                             \
@@ -71,10 +71,10 @@ struct ina_test_hid_s {
  * returns an error an assertion will fail.
  *
  * Parameters
- * hid   Pointer to a helper handle 
- * sname Test suite name
- * hname Helper name
- * ...   Arguments to pass to the helper. All arguments must be of type char*
+ *  hid   Pointer to a helper handle
+ *  sname Test suite name
+ *  hname Helper name
+ *  ...   Arguments to pass to the helper. All arguments must be of type char*
  */
 #define INA_TEST_HELPER_INVOKE_WAIT(hid, sname, hname, msec, ...)           \
     INA_TEST_MSG("starting helper %s", #hname);                             \
@@ -85,9 +85,9 @@ struct ina_test_hid_s {
  * If helper could non be started or returns an error an assertion will fail.
  *
  * Parameters
- * hid   Pointer to a helper handle 
- * cmd   Absolute path to the executable/command
- * ...   Arguments to pass to the command. All arguments must be of type char*
+ *  hid   Pointer to a helper handle
+ *  cmd   Absolute path to the executable/command
+ *  ...   Arguments to pass to the command. All arguments must be of type char*
  */
 #define INA_TEST_HELPER_CMD(hid, cmd, ...)                                  \
     INA_TEST_HELPER_INVOKE(hid, NULL, cmd, ...)
@@ -97,9 +97,9 @@ struct ina_test_hid_s {
  * or returns an error an assertion will fail.    
  *
  * Parameters
- * hid   Pointer to a helper handle 
- * cmd   Absolute path to the executable/command
- * ...   Arguments to pass to the command. All arguments must be of type char*
+ *  hid   Pointer to a helper handle
+ *  cmd   Absolute path to the executable/command
+ *  ...   Arguments to pass to the command. All arguments must be of type char*
  */
 #define INA_TEST_HELPER_CMD_WAIT(hid, cmd, ...)                             \
     INA_TEST_HELPER_INVOKE_WAIT(hid, NULL, cmd, msec...)
@@ -107,7 +107,7 @@ struct ina_test_hid_s {
 /* Stops/Kill helper process.
  * 
  * Parameters
- * hid  Pointer to a valid helper handle
+ *  hid  Pointer to a valid helper handle
  */         
 #define INA_TEST_HELPER_TERMINATE(hid)                                      \
     ina_test_helper_terminate(hid)
@@ -127,25 +127,25 @@ struct ina_test_hid_s {
 /* Get char* argument at n position */ 
 #define INA_TEST_HELPER_CARG(n) argv[4+n]
 
-/* Get int argument at n poistion */
+/* Get int argument at n position */
 #define INA_TEST_HELPER_IARG(n) atoi(argv[4+n])
         
 /*
- * Spawn a helper child process. Helper can be an defined as in-situ helper 
+ * Spawn a helper child process. Helper can be an defined as in-site helper
  * defined with INA_TEST_HELPER or an external executable/command.
  *
- * Parameters:
- * hid         Pointer to a helper handle.
- * suite_name  Name od test stuite in which the helper is defined. Pass NULL
- *             for external helpers.
- * helper_name Defined helper name or absolute/relative path to external
- *             helper.
- * wait_msec   Milliseconds to wait the child process before killing it. After 
- *             wait_msec process will be killed. Pass 0 to not wait or pass
- *             -1 to wait until process terminate. 
+ * Parameters
+ *  hid         Pointer to a helper handle.
+ *  suite_name  Name od test suite in which the helper is defined. Pass NULL
+ *              for external helpers.
+ *  helper_name Defined helper name or absolute/relative path to external
+ *              helper.
+ *  wait_msec   Milliseconds to wait the child process before killing it. After
+ *              wait_msec process will be killed. Pass 0 to not wait or pass
+ *              -1 to wait until process terminate.
  * 
- * Return Value
- * INA_SUCCESS  no error occured
+ * Return
+ *  INA_SUCCESS  if no error occurred
  *
  */
 INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid, 
@@ -156,20 +156,27 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
  * Terminate a helper child process.
  *
  * Parameters
- * hid      Pointer to a valid helper handle
+ *  hid  Pointer to a valid helper handle
  *
- * Return Value
- * Always INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_test_helper_terminate(ina_test_hid_t *hid);
 
 /*
+ * Invoke test helper.
  *
+ * Parameters
+ *  argc  Number of arguments
+ *  argv  Array of arguments
+ *
+ * Return
+ *  Exit code
  */
 INA_API(int) ina_test_helper_run(int argc, char *argv[]);
 
 /* 
- * ASSERTIONS 
+ * ASSERTION MACROS
  */
 
 #define INA_TEST_ASSERT(expr)                                               \
@@ -217,102 +224,191 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
  * Assert a string to be equal.
  *
  * Parameters
- * exp      Expected string
- * real     Real string
- * caller   Caller function name calling this assert
- * line     Caller line number
+ *  exp      Expected string
+ *  real     Real string
+ *  caller   Caller function name calling this assert
+ *  line     Caller line number
  */
-INA_API(void) ina_test_assert_equal_str(const char *exp, const char *real, 
-                                  const char *caller, int line);
-                                  
+INA_API(void) ina_test_assert_equal_str(const char *exp,
+                                        const char *real,
+                                        const char *caller,
+                                        int line);
+
 /*
  * Assert a string not to be equal.
  *
  * Parameters
- * exp      Not expected string
- * real     Real string
- * caller   Caller function name calling this assert
- * line     Caller line number
+ *  exp      Not expected string
+ *  real     Real string
+ *  caller   Caller function name calling this assert
+ *  line     Caller line number
  */
-INA_API(void) ina_test_assert_not_equal_str(const char *nexp, const char *real, 
-                                  const char *caller, int line);
+INA_API(void) ina_test_assert_not_equal_str(const char *nexp,
+                                            const char *real,
+                                            const char *caller,
+                                            int line);
 
 /*
  * Assert data chunk to be equal.
  *
- * Parameters:
- * exp       Pointer to expected data
- * real      Pointer to real data
- * exp_size  Expected size in bytes
- * real_size Real size in bytes
- * caller    Caller function name calling this assert
- * line      Caller line number
+ * Parameters
+ *  exp        Pointer to expected data
+ *  real       Pointer to real data
+ *  exp_size   Expected size in bytes
+ *  real_size  Real size in bytes
+ *  caller     Caller function name calling this assert
+ *  line       Caller line number
  */
-INA_API(void) ina_test_assert_data(const unsigned char* exp, size_t exp_size,
-                                   const unsigned char* real, size_t real_size,
-                                   const char *caller, int line);
-/*
- * 
- */
-INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, 
-                                    const char *caller, int line);
-/*
- *
- */
-INA_API(void) ina_test_assert_equal_floating(double exp, double real, 
-                                    const char *caller, int line);
-/*
- *
- */
-INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, 
-                                        const char *caller, int line);
-/*
- *
- */
-INA_API(void) ina_test_assert_not_equal_floating(double exp, double real, 
-                                        const char *caller, int line);
-
-/*
- *
- */
-INA_API(void) ina_test_assert_null(const void *real, const char *caller, 
+INA_API(void) ina_test_assert_data(const unsigned char* exp,
+                                   size_t exp_size,
+                                   const unsigned char* real,
+                                   size_t real_size,
+                                   const char *caller,
                                    int line);
 
 /*
+ * Assert integer value to be equal.
  *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
  */
-INA_API(void) ina_test_assert_not_null(const void *real, const char *caller, 
+INA_API(void) ina_test_assert_equal_integer(int64_t exp,
+                                            int64_t real,
+                                            const char *caller,
+                                            int line);
+
+/*
+ * Assert floating value to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_equal_floating(double exp,
+                                             double real,
+                                             const char *caller,
+                                             int line);
+
+/*
+ * Assert integer value not to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_not_equal_integer(int64_t exp,
+                                                int64_t real,
+                                                const char *caller,
+                                                int line);
+
+/*
+ * Assert floating value not to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_not_equal_floating(double exp,
+                                                 double real,
+                                                 const char *caller,
+                                                 int line);
+
+/*
+ * Assert a pointer to be NULL.
+ *
+ * Parameters
+ *  real    Real pointer
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_null(const void *real,
+                                   const char *caller,
+                                   int line);
+
+/*
+ * Assert pointer not to be NULL.
+ *
+ * Parameters
+ *  real    Real pointer
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_not_null(const void *real,
+                                       const char *caller,
                                        int line);
 
 /*
+ * Assert two pointer ar the same (same address).
  *
+ * Parameters
+ *  exp     Expected pointer
+ *  real    Real pointer
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
  */
-INA_API(void) ina_test_assert_same(const void *exp,  const void *real, 
+INA_API(void) ina_test_assert_same(const void *exp,
+                                   const void *real,
                                    const char *caller, int line);
 
 /*
+ * Assert two pointer are not the same (same address).
  *
+ * Parameters
+ *  exp     Expected pointer
+ *  real    Real pointer
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
  */
-INA_API(void) ina_test_assert_not_same(const void *exp,  const void *real, 
-                                       const char *caller, int line);
+INA_API(void) ina_test_assert_not_same(const void *exp,
+                                       const void *real,
+                                       const char *caller,
+                                       int line);
 
 /*
+ * Assert true expression
  *
+ * Parameters
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
  */
 INA_API(void) ina_test_assert_true(int real, const char *caller, int line);
 
 /*
+ * Assert false expression
  *
+ * Parameters
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
  */
 INA_API(void) ina_test_assert_false(int real, const char *caller, int line);
 
 /*
+ * Assert
  *
+ * Parameters
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
  */
 INA_API(void) ina_test_assert_fail(const char *caller, int line);
 
 /*
+ * Assert signal
  *
+ * Parameters
+ *  sig     Signal
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
  */
 INA_API(void) ina_test_assert_signal(int sig, const char *caller, int line);
 
@@ -476,7 +572,15 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_ERR(fmt, ...) ina_test_msg(INA_YES, fmt, __VA_ARGS__)
 
 /*
- * Run tests
+ * Run test suites.
+ *
+ * Parameters
+ *  argc  Argument count
+ *  argv  Array of arguments
+ *  ctx   LuaJIT context. Optional. only needed if lua test are included
+ *
+ * Return
+ *  Exit code
  */
 int ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx);
 
@@ -484,12 +588,12 @@ int ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx);
  * Printout a message.
  *
  * Parameters
- * is_error     INA_YES to print a error message
- * fmt          Message format
- * ...          Message arguments
+ *  is_error  INA_YES to print a error message
+ *  fmt       Message format
+ *  ...       Message arguments
  *
- * Return Value
- * INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...);
 

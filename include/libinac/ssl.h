@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,40 +53,41 @@ typedef struct ina_ssl_cn_s  ina_ssl_cn_t;
 /*
  * Initialize a SSL context. 
  *
- * Parameters:
- * ctx          Pointer to a context pointer to hold the newly created context.
- * num_sessions Allow number of sessions
- * options      Context options.
+ * Parameters
+ *  ctx           Pointer to a context pointer to hold the newly created context.
+ *  num_sessions  Allow number of sessions
+ *  options       Context options.
  *
- * Return:
- * INA_SUCCESS  if no error occured.
- * RC INA_EINIT if initializiation was failed.
+ * Return
+ *  INA_SUCCESS   if no error occurred.
+ *  RC INA_EINIT  if initialization was failed.
  */
 INA_API(ina_rc_t) ina_ssl_init(ina_ssl_ctx_t **ctx, 
                                int32_t num_sessions, 
                                uint32_t options);
+
 /*
  * Destroy a SSL context.
  *
- * Parameters:
- * ctx      Context to destroy. ctx is NULL afer call.
+ * Parameters
+ *  ctx  Context to destroy. ctx is NULL after call.
  *
- * Return:
- * INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_ssl_destroy(ina_ssl_ctx_t **ctx);
 
 /*
  * Initialize a new SSL client-side connection.
  *
- * Paramaters:
- * ctx      SSL context.
- * cn       Pointer to a connection pointer to hold the newly created client-
- *          side connection.
- * fd       Socket file descriptor.
+ * Parameters
+ *  ctx  SSL context.
+ *  cn   Pointer to a connection pointer to hold the newly created client-
+ *       side connection.
+ *  fd   Socket file descriptor.
  *
  * Return:
- * INA_SUCCESS if no error occurred.
+ *  INA_SUCCESS if no error occurred.
  */
 INA_API(ina_rc_t) ina_ssl_client_new(ina_ssl_ctx_t *ctx, 
                                      ina_ssl_cn_t **cn, 
@@ -94,26 +95,26 @@ INA_API(ina_rc_t) ina_ssl_client_new(ina_ssl_ctx_t *ctx,
 /*
  * Free a SSL client-side connection.
  *
- * Parameters:
- * ctx      SSL context.
- * cn       SSL client connection to free. cn is NULL after on return.
+ * Parameters
+ *  ctx  SSL context.
+ *  cn   SSL client connection to free. cn is NULL after on return.
  *
- * Return:
- * INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_ssl_client_free(ina_ssl_ctx_t *ctx, ina_ssl_cn_t **cn);
 
 /*
- * Accepet a new SSL server-side connection.
+ * Accept a new SSL server-side connection.
  * 
- * Parameters:
- * ctx          SSL context.
- * cn           Pointer to an SSL server-side connection pointer to hold the 
- *              newly create server-side connection.
- * client_fd    Client socket file descriptor.
+ * Parameters
+ *  ctx        SSL context.
+ *  cn         Pointer to an SSL server-side connection pointer to hold the
+ *             newly create server-side connection.
+ *  client_fd  Client socket file descriptor.
  * 
- * Return:
- * INA_SUCCES if no error occurred.
+ * Return
+ *  INA_SUCCESS if no error occurred.
  */
 INA_API(ina_rc_t) ina_ssl_server_new(ina_ssl_ctx_t *ctx, 
                                      ina_ssl_cn_t **cn, 
@@ -121,72 +122,74 @@ INA_API(ina_rc_t) ina_ssl_server_new(ina_ssl_ctx_t *ctx,
 /*
  * Free a SSL server-side connection.
  *
- * Parameters:
- * ctx      SSL context.
- * cn       SSL server-side connection to free. cn is NULL after on return.
+ * Parameters
+ *  ctx  SSL context.
+ *  cn   SSL server-side connection to free. cn is NULL after on return.
  *
- * Return:
- * INA_SUCCESS
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_ssl_server_free(ina_ssl_ctx_t *ctx, ina_ssl_cn_t **cn);
 
 /*
  * Read SSL encrypted data.
  *
- * Parameters:
- * cn           SSL connection.
- * buf          Pointer to a buffer.
- * bytes_read   Contains number of bytes read on return.
+ * Parameters
+ *  cn          SSL connection.
+ *  buf         Pointer to a buffer.
+ *  bytes_read  Contains number of bytes read on return.
  * 
- * Return:
- * INA_SUCCESS if no error occured.
- * RC INA_EAGAIN on non blocking read.
+ * Return
+ *  INA_SUCCESS if no error occurred.
+ *  RC INA_EAGAIN on non blocking read.
  */
 INA_API(ina_rc_t) ina_ssl_read(ina_ssl_cn_t *cn, 
                                unsigned char **buf, 
                                size_t *bytes_read);
+
 /*
  * Write data with SSL encryption.
  * 
- * Parameters:
- * cn           SSL connection.
- * buf          Pointer to a buffer.
- * buf_len      Buffer size in bytes.
- * bytes_read   Contains number of written on return
+ * Parameters
+ *  cn          SSL connection.
+ *  buf         Pointer to a buffer.
+ *  buf_len     Buffer size in bytes.
+ *  bytes_read  Contains number of written on return
  * 
- * Return:
- * INA_SUCCESS if no error occured.
+ * Return
+ *  INA_SUCCESS if no error occurred.
  */
 INA_API(ina_rc_t) ina_ssl_write(ina_ssl_cn_t *cn,
                                 const unsigned char *buf, 
                                 size_t buf_len, 
                                 size_t *bytes_written);
+
 /*
- * Force the client to perform its handshake again.For a client this involves 
+ * Force the client to perform its handshake again. For a client this involves
  * sending another "client hello" message. For the server is means sending 
  * a "hello request" message. This is a blocking call on the client 
  * (until the handshake completes).
  *
- * Parameters:
- * cn       SSL connection
+ * Parameters
+ *  cn  SSL connection
  *
- * Return:
- * INA_SUCCESS if the handshake is complete and ok.
+ * Return
+ *  INA_SUCCESS if the handshake is complete and ok.
  */
 INA_API(ina_rc_t) ina_ssl_handshake(ina_ssl_cn_t *cn);
 
 /*
  * Query the status of the handshake.
  *
- * Parameters:
- * cn       SSL connection
+ * Parameters
+ *  cn  SSL connection
  *
- * Return:
- * INA_SUCCESS if the handshake is complete and ok.
- * RC INA_EGAIN if handshake is still in progress.
+ * Return
+ *  INA_SUCCESS if the handshake is complete and ok.
+ *  RC INA_EGAIN if handshake is still in progress.
  */
 INA_API(ina_rc_t) ina_ssl_handshake_status(ina_ssl_cn_t *cn);
-			
+
 #ifdef __cplusplus
 }
 #endif

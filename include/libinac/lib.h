@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,7 @@
 #include <libinac/types.h>
 #include <libinac/uthash.h>
 #include <libinac/memory.h>
+#include <libinac/mempool.h>
 #include <libinac/string.h>
 #include <libinac/log.h>
 #include <libinac/error.h>
@@ -91,10 +92,10 @@
 #include <libinac/hash.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
-#include <libinac/cron.h>
 #include <libinac/fsm.h>
-#include <libinac/service.h>
 #include <libinac/process.h>
+#include <libinac/cron.h>
+#include <libinac/service.h>
 #include <libinac/ipc.h>
 #include <libinac/template.h>
 #include <libinac/cpu.h>
@@ -107,6 +108,8 @@
 #include <libinac/pcap.h>
 #include <libinac/gzip.h>
 #include <libinac/percentile.h>
+#include <libinac/client.h>
+#include <libinac/server.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
@@ -130,10 +133,12 @@ extern "C" {
  * Version
  */
 #define INA_MAJOR_VERSION 0
-#define INA_MINOR_VERSION 2
+#define INA_MINOR_VERSION 3
 #define INA_MICRO_VERSION 0
 
-#define INA_VERSION       "0.2.0"
+#define INA_VERSION       INA_NUM2STR(INA_MAJOR_VERSION)"." \
+                          INA_NUM2STR(INA_MINOR_VERSION)"." \
+                          INA_NUM2STR(INA_MICRO_VERSION)
 
 /* Version as a 3-byte hex number, e.g. 0x010201 == 1.2.1. Use this
  * for numeric comparisons, e.g. #if INA_VERSION_HEX >= ... */
@@ -224,72 +229,78 @@ INA_API(const char*) ina_app_get_path(void);
  * platform-specific quirks. This must be the first function called for any
  * program.
  *
- * Parameters:
- *  argc      -  argc of main() function
- *  argv      -  Pointer to the argv of main() function
- *  pool_size - Initial size of internal memory pool. if 0 passed a pool
- *              with size INA_MEM_DFT_POOL_SIZE will be created.
- *  opt         Array of options to parse
+ * Parameters
+ *  argc       argc of main() function
+ *  argv       Pointer to the argv of main() function
+ *  pool_size  Initial size of internal memory pool. if 0 passed a pool
+ *             with size INA_MEM_DFT_POOL_SIZE will be created.
+ *  opt        Array of options to parse
  *
- * Return:
- * INA_SUCCESS  if no error occured
+ * Return
+ *  INA_SUCCESS  if no error occurred
  */
-INA_API(ina_rc_t) ina_app_init(const int argc,  char **argv, size_t pool_size, ina_opt_t *opt);
+INA_API(ina_rc_t) ina_app_init(const int argc,
+                               char **argv,
+                               size_t pool_size,
+                               ina_opt_t *opt);
 
 /*
  * Get the string key and value of an option at index.
  *
- * Parameters:
- *  index   options index starting by 0
- *  key     long name of option
- *  value   option value as string
+ * Parameters
+ *  index  options index starting by 0
+ *  key    long name of option
+ *  value  option value as string
  *
- * Return Value
- * INA_SUCCESS if option is available otherwise INA_FAILURE
+ * Return
+ *  INA_SUCCESS if option is available otherwise INA_FAILURE
  */
-INA_API(ina_rc_t) ina_opt_get_key_value(int index, ina_str_t *key, ina_str_t *value);
+INA_API(ina_rc_t) ina_opt_get_key_value(int index,
+                                        ina_str_t *key,
+                                        ina_str_t *value);
+
 /*
  * Check whenever an option is available.
  *
- * Parameters:
+ * Parameters
  *  opt   name of option
  *
- * Return Value
- * INA_SUCCESS if option is available
+ * Return
+ *  INA_SUCCESS if option is available
  */
 INA_API(ina_rc_t) ina_opt_isset(const char *opt);
 /*
  * Get the string value of an option.
  *
- * Parameters:
- *  opt     name of option
- *  value
+ * Parameters
+ *  opt    name of option
+ *  value  Where to store the value
  *
- * Return Value
- * INA_SUCCESS if option is available
+ * Return
+ *  INA_SUCCESS if option is available
  */
 INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value);
 /*
  * Get the integer value of an option.
  *
- * Parameters:
- *  opt     name of option
- *  value
+ * Parameters
+ *  opt    name of option
+ *  value  Where to store the value
  *
- * Return Value
- * INA_SUCCESS if option is available
+ * Return
+ *  INA_SUCCESS if option is available
  */
 INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value);
 
 /*
  * Get the float value of an option.
  *
- * Parameters:
- *  opt     name of option
- *  value
+ * Parameters
+ *  opt   name of option
+ *  value  Where to store the value
  *
- * Return Value
- * INA_SUCCESS if option is available
+ * Return
+ *  INA_SUCCESS if option is available
  */
 INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value);
 
@@ -297,37 +308,49 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value);
  * Initialize all internal data structures. This must be the first function 
  * called for any library.
  *
- * Parameters:
- *  pool_size - Initial size of internal memory pool. if 0 passed a pool
- *              with size INA_MEM_DFT_POOL_SIZE will be created.
- * Return:
- * INA_SUCCESS  if no error occured
+ * Parameters
+ *  pool_size  Initial size of internal memory pool. if 0 passed a pool
+ *             with size INA_MEM_DFT_POOL_SIZE will be created.
+ * Return
+ *  INA_SUCCESS  if no error occurred
  */
 INA_API(ina_rc_t) ina_init(size_t pool_size);
 
 /*
  * Set a custom termination routine to call in case of an 
- * a terminiation signal. The purpose of such a routine is to give consumers
+ * a termination signal. The purpose of such a routine is to give consumers
  * a last chance to cleanup before the program exits.
  *
  * Parameters
- * handler  Cleanup routine. A cleanup should return EXIT_SUCCESS or 
- *          EXIT_FAILURE depending on type of signal. On a programm error
- *          the return of cleanup routines will be ignored. 
+ *  handler  Cleanup routine. A cleanup should return EXIT_SUCCESS or
+ *           EXIT_FAILURE depending on type of signal. On a program error
+ *           the return of cleanup routines will be ignored.
  *
- * Return Value
- * Previously defined handler
+ * Return
+ *  Previously defined handler
  */
 INA_API(ina_cleanup_handler_t) ina_set_cleanup_handler(
                                         ina_cleanup_handler_t handler);
 
 
-INA_API(ina_signal_handler_t) ina_register_signal_handler(ina_signal_t, 
+/*
+ * Register a custom signal handler for sig.
+ *
+ * Parameters
+ *  sig     Signal identifier
+ *  handler Signal handler
+ *
+ * Return
+ *  Previously register handler
+ */
+INA_API(ina_signal_handler_t) ina_register_signal_handler(ina_signal_t sig,
                                                 ina_signal_handler_t handler);
 
 /*
- * Relase and cleanup all internal data structures. This function must be
- * called once before the application terminate.
+ * Release and cleanup all internal data structures. This function is called
+ * automatically once before the application terminate.
+ *
+ * FIXME: make it private
  */
 INA_API(void) ina_exit(void);
 

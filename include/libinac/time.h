@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -170,33 +170,82 @@ typedef struct ina_time_sys_info_s {
 } ina_time_sys_info_t;
 
 /*
- * System Time backend information
+ * Get system time backend information.
+ *
+ * Parameters
+ *  info  Where to store the backend information.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info);
+
 /*
- * TSC Time backend information
+ * Get TSC Time backend information.
+ *
+ * Parameters
+ *  info  Where to store the backend information.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info);
+
 /*
- * Sleep for X milli seconds
+ * Sleep for X milliseconds.
+ *
+ * Parameters
+ *  msec  Number of milliseconds to sleep
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_time_sleep(time_t msec);
+
 /*
- * Allocate TSC time in the default mempool
+ * Allocate TSC time structure.
+ *
+ * Parameters
+ *  time  Where to store tsc time
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time);
+
 /*
- * Free TSC time from the default mempool
+ * Free TSC time
+ *
+ * Parameters
+ *  time  TSC time to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time);
+
 /*
- * Allocate System time in the default mempool
+ * Allocate system time.
+ *
+ * Parameters
+ *  time  Where to store the sys time
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time);
+
 /*
- * Free System time from the default mempool
+ * Free system time.
+ *
+ * Parameters
+ *  time  System time to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
+
 /*
  * RDTSC is required if you do not want the process to 
  * go back and forth to the kernel all the time, this is 
@@ -211,35 +260,98 @@ INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
  *
  * Enabling RDTSC is on process scope
  *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc(void);
-/*
- *
- */
-INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc(void);
-/*
- * Read the Time Stamp Counter
- */
-INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time);
-/*
- * Read the System-Clock
- */
-INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time);
-/*
- * Read the second and nano-second part of the TSC
- */
-INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(const ina_time_tsc_t* time, time_t *secs, long *nanos);
-/*
- * Convert the ina_time_t to a UNIX timestamp and micro-seconds
- */
-INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *secs, long *micros);
-/*
- * Basically strftime
- */
-INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen, size_t *written, const char *fmt, ina_time_t* time);
 
 /*
- * Basically strftime but using TSC
+ * Disable RDTSC.
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc(void);
+
+/*
+ * Read the Time Stamp Counter.
+ *
+ * Parameters
+ *  time  Where to store the TSC.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time);
+
+/*
+ * Read the System-Clock.
+ *
+ * Parameters
+ *  time  Were to store the system time
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time);
+
+/*
+ * Read the second and nanosecond part of the TSC.
+ *
+ * Parameters
+ *  time   Input TSC
+ *  secs   Where to store the seconds
+ *  nanos  Where to store the nanoseconds
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(const ina_time_tsc_t* time,
+                                             time_t *secs,
+                                             long *nanos);
+
+/*
+ * Convert the ina_time_t to a UNIX timestamp and microseconds.
+ *
+ * Parameters
+ *  time    Input time
+ *  secs    Where to store the seconds
+ *  micros  Where to store the microseconds
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time,
+                                              time_t *secs,
+                                              long *micros);
+
+/*
+ * Basically strftime.
+ *
+ * Parameters
+ *  buf      Output buffer
+ *  buflen   Size of output buffer
+ *  written  Number of bytes written
+ *  fmt      String format
+ *  time     Time
+ *
+ * Return
+ *  INA_SUCCESS if all wen well
+ */
+INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf,
+                                    size_t buflen,
+                                    size_t *written,
+                                    const char *fmt,
+                                    ina_time_t* time);
+
+/*
+ * Basically strftime but using TSC.
+ *
+ * Parameters
+ *  buf         Output buffer
+ *  fmt         String format
+ *  time        Time
+ *  show_nanos  Defines whenever append nanos to the output
  */
 INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf, 
                                         const char *fmt, 
@@ -247,46 +359,128 @@ INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
                                         int show_nanos);
 
 /*
- * Convert the ina_time_tsc_t to a milli-second timestamp since epoch
+ * Convert the ina_time_tsc_t to a millisecond timestamp since epoch.
+ *
+ * Parameters
+ *  tsc         Input TSC
+ *  now_millis  Where to store milliseconds since epoch.
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_time_tsc_millis(ina_time_tsc_t *tsc, time_t *now_millis);
 
 /*
- * Create a new stopwatch
+ * Creates a new stopwatch.
+ *
+ * Parameters
+ *  stopwatch   Where to store the created stopwatch
+ *  id          Unique identifier for the stopwatch
+ *  max_stamps  Defines max number of stamps
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch, int id, int max_stamps);
+INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch,
+                                            int id,
+                                            int max_stamps);
+
 /*
- * Open an existing stopwatch
+ * Open an existing stopwatch.
+ *
+ * Parameters
+ *  stopwatch  Where to store the stopwatch
+ *  id         Identifier of the stopwatch to open
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id);
+
 /*
  * Read a timestamp from a stopwatch
+ *
+ * Parameters
+ *  stopwatch  Stopwatch
+ *  index      Stamp index to read
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t *stopwatch, int64_t *index);
+INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t *stopwatch,
+                                                int64_t *index);
+
 /*
- * Create a new stopwatch
+ * Destroy a stopwatch.
+ *
+ * Parameters
+ *  stopwatch  Stopwatch to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch);
 
 /*
  * Check if stopwatch started.
+ *
+ * Parameters
+ *  stopwatch  Stopwatch to verify
+ *
+ * Return
+ *  INA_SUCCESS  stopwatch is started
+ *  INA_FAILURE  stopwatch is stoppen
  */
 INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch);
+
+
 /*
- * Check if stopwatch has valid values
+ * Check if stopwatch has valid values.
+ *
+ * Parameters
+ *  stopwatch  Stopwatch to verify
+ *
+ * Return
+ *  INA_SUCCESS  valid
+ *  INA_FAILURE  invalid
  */
 INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch);
 
 /*
- * Start a stop watch
- */
-INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, ina_time_tsc_t *start);
-/*
+ * Start a stopwatch.
  *
+ * Parameters
+ *  stopwatch  Stopwatch to start
+ *  start      Start time, NULL for current time.
+ *
+ * Return
+ *  INA_SUCCESS if all went well.
  */
-INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, const char* user_data1, const char* user_data2);
+INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch,
+                                           ina_time_tsc_t *start);
+
 /*
- * Stop a stop watch 
+ * Make a stamp.
+ *
+ * Parameters
+ *  stopwatch   Stopwatch to stamp
+ *  user_data1  User data to link
+ *  user_data2  User data to link
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch,
+                                           const char* user_data1,
+                                           const char* user_data2);
+/*
+ * Stop a stopwatch.
+ *
+ * Parameters
+ *  stopwatch  Stopwatch to stop.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch);
 

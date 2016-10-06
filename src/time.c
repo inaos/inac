@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2014,2016 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -266,9 +266,16 @@ INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen,
     struct tm *mtm;
     time_t secs;
     long micros;
+#ifdef INA_OS_LINUX
+    static struct tm rtm;
+#endif
 
     ina_time_sys_seconds_micros(time, &secs, &micros);
+#ifdef INA_OS_LINUX
+    mtm = localtime_r(&secs, &rtm);
+#else
     mtm = localtime(&secs);
+#endif
     INA_ASSERT_NOTNULL(mtm);
     nw = strftime(b, buflen, fmt, mtm);
 
@@ -424,7 +431,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
         return INA_FAILURE;
     }
 
-    /* Get the timesstamp depending in stamp index */
+    /* Get the timestamp depending in stamp index */
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
     } else if (*stamp_index >= stopwatch->tv->next_stamp) {
@@ -435,7 +442,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
     if (stopwatch->ts == NULL) {
         stopwatch->ts = (&(stopwatch->tv->stamps))+(*stamp_index);
     }
-
+ 
     /* Calculate duration if not yet done */
     if (stopwatch->ts->sec_duration == 0) {
 #ifdef INA_OS_WIN32
@@ -451,14 +458,14 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
         stopwatch->ts->sec_duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
 #elif defined(INA_OS_OSX)
         if (*stamp_index == 0) {
-            stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
-			    stopwatch->tv->start.tp);
+            /*stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
+			    stopwatch->tv->start.tp);*/
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp - 
 				    stopwatch->tv->start.tp) / 10000000.0);
         } else {
-            ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index-1);
-            stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
-			    ts->stamp.tp);
+            ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index)-1;
+            /*stopwatch->ts->sec_duration = (stopwatch->ts->stamp.tp - 
+			    ts->stamp.tp);*/
             stopwatch->ts->sec_duration += ((stopwatch->ts->stamp.tp - 
 				    ts->stamp.tp) / 10000000.0);         
         } 
@@ -522,7 +529,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch,
     }
 
     ts = (&(stopwatch->tv->stamps))+si;
-
+ 
     ina_time_read_tsc_clock(&ts->stamp);
 
     if (user_data1 != NULL) {

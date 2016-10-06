@@ -15,7 +15,6 @@ include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${CMA
 
 set(BSTRING_LIB_NAME "bstring")
 set(ANET_LIB_NAME "anet")
-set(SKIPLIST_LIB_NAME "skiplist")
 set(HTTP_LIB_NAME "http_parser")
 set(SQLITE_LIB_NAME "sqlite")
 set(RAPIDXML_LIB_NAME "rapidxml")
@@ -58,11 +57,6 @@ add_library(${BSTRING_LIB_NAME} ${BSTRING_SRC})
 set (ANET_SRC_DIR ${DEPS_DIR}/anet)
 set (ANET_SRC ${ANET_SRC_DIR}/anet.c)
 add_library(${ANET_LIB_NAME} ${ANET_SRC})
-
-# SKIPLIST
-set (SKIPLIST_SRC_DIR ${DEPS_DIR}/skiplist)
-set (SKIPLIST_SRC ${SKIPLIST_SRC_DIR}/skiplist.c)
-add_library(${SKIPLIST_LIB_NAME} ${SKIPLIST_SRC})
 
 # SQLITE
 set (SQLITE_SRC_DIR ${DEPS_DIR}/sqlite)
@@ -147,11 +141,6 @@ if ($ENV{INAC_TIME_BACKEND} STREQUAL "time-meinberg")
 endif()
 MESSAGE(STATUS "Time-Backend: $ENV{INAC_TIME_BACKEND}")
 
-if ($ENV{INAC_TIMER_BACKEND} STREQUAL "timer-wheel")
-	add_definitions(-DINA_TIMER_BACKEND_WHEEL_ENABLED -DINA_TIMER_BACKEND_DEFINED)
-endif()
-MESSAGE(STATUS "Timer-Backend: $ENV{INAC_TIMER_BACKEND}")
-
 # END backend configuration
 
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
@@ -163,10 +152,9 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
 				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c ${SRC_DIR}/json.c ${SRC_DIR}/service.c
 				 ${SRC_DIR}/process.c ${SRC_DIR}/dns.c ${SRC_DIR}/template.c ${SRC_DIR}/ipc.c
 				 ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c 
-				 ${SRC_DIR}/file_cursor.c ${SRC_DIR}/timer_skiplist.c ${SRC_DIR}/timer_wheel.c
+				 ${SRC_DIR}/file_cursor.c
 				 ${SRC_DIR}/histogram.c ${SRC_DIR}/pcap.c ${SRC_DIR}/gzip.c 
 				 ${SRC_DIR}/net_hw_openonload.c ${SRC_DIR}/net_hw_vma.c ${SRC_DIR}/percentile.c 
 				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
-

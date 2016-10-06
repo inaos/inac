@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,11 +43,6 @@
 #define INA_OSTIME_ENABLED 1
 #endif
 
-/* Define timer backend to use */
-#ifndef INA_TIMER_BACKEND_DEFINED
-#define INA_TIMER_SKIPLIST_ENABLED 1
-#endif
-
 /* Define default sys mem pool size */
 #ifndef INA_SYSMEMPOOL_SIZE
 #define INA_SYSMEMPOOL_SIZE  8*1024*1024
@@ -56,6 +51,11 @@
 /* Define default mem pool size */
 #ifndef INA_MEMPOOL_SIZE
 #define INA_MEMPOOL_SIZE  8*1024*1024
+#endif
+
+/* Define break message on assert for windows plattform */
+#ifndef INA_DGBMSG_ASSERT
+#define INA_DGBMSG_ASSERT 1
 #endif
 
 /* Define memory functions */

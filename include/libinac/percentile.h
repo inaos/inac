@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,21 +38,51 @@ extern "C" {
 typedef struct ina_percentile_s ina_percentile_t;
 
 /*
+ * Creates a new percentile container.
  *
+ * Parameters
+ *  p            Where to store the newly created percentile container
+ *  percentile
+ *  size
+ *
+ * Return
+ *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_percentile_new(ina_percentile_t **p, double percentile, size_t size);
+INA_API(ina_rc_t) ina_percentile_new(ina_percentile_t **p,
+                                     double percentile,
+                                     size_t size);
 /*
+ * Destroy a percentile container
  *
+ * Parameters
+ *  p  Percentile container to free
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_percentile_free(ina_percentile_t **p);
+
 /*
- * adds a number in O(log(N))
+ * Adds a number in O(log(N))
  *
+ * Parameters
+ *  p   Percentile
+ *  value   Number to add
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_percentile_add(ina_percentile_t *p, uint16_t value);
+
 /*
- * access the percentile in O(1)
+ * Access the percentile in O(1)
  *
+ * Parameters
+ *  p     Percentile
+ *  value
+ *
+ * Return
+ *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_percentile_get(ina_percentile_t *p, uint16_t *value);
 

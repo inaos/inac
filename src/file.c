@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, INAOS GmbH
+ * Copyright (c) 2014-2016, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,6 @@
 #include <unistd.h>
 #endif
 
-struct ina_file_ctx_s {
-	int files;
-    mode_t default_mode;
-};
-
-struct ina_file_stat_s {
-	uint64_t file_size;
-	time_t atime;
-	time_t mtime;
-	int is_dir;
-    mode_t mode;
-};
 
 struct ina_file_s {
     ina_str_t file_path;
@@ -54,10 +42,29 @@ struct ina_file_s {
 #else
 	int fh;
 #endif
+    FILE *stream;
 	int cursors;
 	ina_file_access_mode_t access;
 	ina_file_create_mode_t create;
 	ina_file_share_mode_t share;
+};
+
+typedef struct ina_file_entry_s {
+    ina_file_t *file;
+    UT_hash_handle hh;
+} ina_file_entry_t;
+
+struct ina_file_ctx_s {
+    mode_t default_mode;
+    ina_file_entry_t *files;
+};
+
+struct ina_file_stat_s {
+    uint64_t file_size;
+    time_t atime;
+    time_t mtime;
+    int is_dir;
+    mode_t mode;
 };
 
 #ifdef INA_OS_WIN32
@@ -183,7 +190,7 @@ static void __ina_file_posix_map_flags(ina_file_access_mode_t access,
 INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode)
 {
     /*
-	 * - keep track of all the open files
+     * - keep track of all the open files
 	 */
 	INA_ASSERT_NOTNULL(ctx);
 	*ctx = (ina_file_ctx_t*)ina_mem_alloc(sizeof(ina_file_ctx_t));
@@ -197,13 +204,21 @@ INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode)
 
 INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx)
 {
-    /*
-	 * close files that are still open
-	 */
+    ina_file_entry_t *fe, *fetmp;
+
     INA_ASSERT_NOTNULL(ctx);
     if (*ctx == NULL) {
         return INA_SUCCESS;
     }
+
+    /*
+     * close files that are still open
+     */
+    HASH_ITER(hh, (*ctx)->files, fe, fetmp) {
+        INA_MUST_SUCCEED(ina_file_free(*ctx, &fe->file));
+    }
+    HASH_CLEAR(hh, (*ctx)->files);
+
     ina_mem_free(*ctx);
     *ctx = NULL;
     return INA_SUCCESS;
@@ -213,6 +228,8 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
                                ina_file_access_mode_t access, ina_file_create_mode_t create, 
                                ina_file_share_mode_t share, int flags, ina_file_t **file)
 {
+    ina_file_entry_t *fe;
+
     #ifdef INA_OS_WIN32
 	DWORD dwDesiredAccess;
 	DWORD dwShareMode;
@@ -260,23 +277,32 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
     (*file)->share = share;
     (*file)->fh = fhandle;
     (*file)->file_path = ina_str_new_fromcstr(file_fqn);
-
+    fe = (ina_file_entry_t*)ina_mem_alloc(sizeof(ina_file_entry_t));
+    fe->file = *file;
+    HASH_ADD_PTR(ctx->files, file, fe);
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file)
 {
+    ina_file_entry_t *fe;
+    INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(file);
     if (*file == NULL) {
         return INA_SUCCESS;
     }
+    HASH_FIND_PTR(ctx->files, file, fe);
+    INA_ASSERT_NOTNULL(fe);
+    HASH_DEL(ctx->files, fe);
 
 #ifdef INA_OS_WIN32
     CloseHandle((*file)->fh);
 #else
     close((*file)->fh);
 #endif
-    ina_str_free((*file)->file_path);
+    if ((*file)->file_path != NULL) {
+       ina_str_free((*file)->file_path);
+    }
     ina_mem_free(*file);
     *file = NULL;
     return INA_SUCCESS;
@@ -425,6 +451,26 @@ INA_API(void*) ina_file_os_handle(ina_file_t *file)
     return file->fh;
 #else
     return &file->fh;
+#endif
+}
+
+INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
+{
+#ifdef INA_OS_WIN32
+#include <fcntl.h>
+    int fd;
+#endif
+    if (file->stream != NULL) {
+        return file->stream;
+    }
+
+#ifdef INA_OS_WIN32
+    fd = _open_osfhandle((intptr_t)file->fh, _O_APPEND | _O_RDONLY);
+    file->stream = _fdopen(fd, "r+");
+    return file->stream;
+#else
+    file->stream = fdopen(file->fh, "+r");
+    return file->stream;
 #endif
 }
 

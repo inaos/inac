@@ -77,7 +77,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     info->num_producers_alive = 0;
     info->num_consumers = rb->num_consumers;
     info->num_consumers_alive = 0;
-    info->mem_size = m->size;
+    /*info->mem_size = m->size;*/
     info->slot_size = rb->size;
     info->num_slots = rb->slots;
     info->current_slot = rb->cursor;
