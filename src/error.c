@@ -352,7 +352,7 @@ INA_API(ina_rc_t) ina_err_backtrace(void *data)
 		
 		for (i = 0; i < frames; i++) {
 			SymFromAddr(process, stack[i], 0, symbol);
-			printf("%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address);
+			printf("%i: %s - 0x%I64X\n", frames - i - 1, symbol->Name, symbol->Address);
 		}
 		
 		free(symbol);

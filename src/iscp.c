@@ -373,7 +373,7 @@ INA_API(ina_rc_t) ina_iscp_send(ina_iscp_ctx_t *ctx, int cmd_id, ...)
     va_end(params);
 
     /* Fill up header fields */
-    msg.length = n + INA_ISCP_HDR_SIZE + sizeof(uint32_t);
+    msg.length = (uint16_t)(n + INA_ISCP_HDR_SIZE + sizeof(uint32_t));
     msg.cmd_id = cmd->cmd_id;
     msg.cmd_uid = 1; /* FIMXE: UID Generator */
     msg.p_count = cmd->p_count;
@@ -592,7 +592,7 @@ INA_API(ina_rc_t) ina_iscp_recv(ina_iscp_ctx_t *ctx, int nc, int wait_msec)
                     param++;
                 }
             }
-            msg.length = n + INA_ISCP_HDR_SIZE + sizeof(uint32_t);
+            msg.length = (uint16_t)(n + INA_ISCP_HDR_SIZE + sizeof(uint32_t));
             return ctx->retn_cb(ctx->user_data, &msg);
         }
 

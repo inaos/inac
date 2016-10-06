@@ -938,7 +938,7 @@ static void __ina_hash_spooky_hash128
 	remainder = (length - ((const uint8_t *)endp-(const uint8_t *)message));
 	memcpy(buf, endp, remainder);
 	memset(((uint8_t *)buf)+remainder, 0, __INA_HASH_SPOOKY_SC_BLOCKSIZE-remainder);
-	((uint8_t *)buf)[__INA_HASH_SPOOKY_SC_BLOCKSIZE-1] = remainder;
+	((uint8_t *)buf)[__INA_HASH_SPOOKY_SC_BLOCKSIZE-1] = (uint8_t)remainder;
 	__ina_hash_spooky_mix(buf, &h0 , &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
 
 	/* do some final mixing */

@@ -1085,7 +1085,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #define INA_PACK(x,y) INA_PACKED y
 #endif
 
-#ifdef INA_COMPILER_MSVC
+#if defined(INA_COMPILER_MSVC) && !defined(va_copy)
 #define va_copy(dest, src) (dest = src)
 #endif
 

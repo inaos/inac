@@ -241,9 +241,9 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned
                     if ((len += 3) > max_out) {
                         return INA_FAILURE; /* buffer overflow */
                     }
-                    *out++ = buf >> 16;
-                    *out++ = buf >> 8;
-                    *out++ = buf;
+                    *out++ = (unsigned char)(buf >> 16);
+                    *out++ = (unsigned char)(buf >> 8);
+                    *out++ = (unsigned char)buf;
                     buf = 1;
                 }   
         }
@@ -253,14 +253,14 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned
         if ((len += 2) > max_out) {
             return INA_FAILURE; /* buffer overflow */
         }
-        *out++ = buf >> 10;
-        *out++ = buf >> 2;
+        *out++ = (unsigned char)(buf >> 10);
+        *out++ = (unsigned char)(buf >> 2);
     }
     else if (buf & 0x1000) {
         if (++len > max_out) {
             return INA_FAILURE; /* buffer overflow */
         }
-        *out++ = buf >> 4;
+        *out++ = (unsigned char)(buf >> 4);
     }
  
     *out_len = len; /* modify to reflect the actual output size */

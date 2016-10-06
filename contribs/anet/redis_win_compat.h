@@ -1,6 +1,8 @@
 #ifndef __REDIS_WIN_COMPAT_H__
 #define __REDIS_WIN_COMPAT_H__
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include <winsock2.h>
 #include <windows.h>
 #include <time.h>
