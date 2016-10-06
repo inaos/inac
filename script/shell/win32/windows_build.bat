@@ -51,6 +51,7 @@ REM * INAC_WIN32_CODE_GEN_SCRIPT: Lua script that will be invoked before compila
 REM * INAC_WIN32_CODE_GEN_ARGS: Arguments for the code-generator - Optional
 REM * INAC_WIN32_DIST_PACKAGE_NAME: Full name of the zip package to be created (e.g. my-app-1.0.zip)
 REM * INAC_WIN32_DIST_CONFIG: Fully qualified path to distribution config file.
+REM * INAC_WIN32_VISUAL_STUDIO_STRING: Full CMake generator string for Visual Studio
 REM
 REM Environment variable rules
 REM --------------------------
@@ -110,6 +111,10 @@ if not "%2" == "" (
 	SET INAC_BUILD_TYPE=%2
 	CALL :LoCase INAC_BUILD_TYPE
 )
+
+REM check visual studio string
+if not defined VisualStudioVersion goto fail_vs_cmake_string
+SET INAC_WIN32_VISUAL_STUDIO_STRING="Visual Studio %VisualStudioVersion:~0,2%"
 
 REM check build-stage
 SET INAC_BUILD_STAGE_VALID=
@@ -236,7 +241,7 @@ if defined INAC_WIN32_C_SOURCE_DIR (
 			if ERRORLEVEL 1 goto exit_fail
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_SOURCE_DIR%
+			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G%INAC_WIN32_VISUAL_STUDIO_STRING% ..\%INAC_WIN32_C_SOURCE_DIR%
 			if ERRORLEVEL 1 goto exit_fail
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
@@ -269,7 +274,7 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
 			cd
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"Visual Studio 11" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G%INAC_WIN32_VISUAL_STUDIO_STRING% ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
 			rem if ERRORLEVEL 1 goto exit_fail
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
@@ -408,6 +413,9 @@ goto exit
 echo Error: dist failed, because package-name not present
 goto exit
 
+:fail_vs_cmake_string
+echo Error: CMake generator string for visual studio missing
+
 :usage
 echo Usage: "windows_build.bat <build-stage> <build-type>"
 goto exit
@@ -440,6 +448,7 @@ if defined INAC_W32_CODE_GEN_FULL_PATH SET INAC_W32_CODE_GEN_FULL_PATH=
 if defined INAC_WIN32_OLD_DIR SET INAC_WIN32_OLD_DIR=
 if defined INAC_WIN32_SLN_FILE SET INAC_WIN32_SLN_FILE=
 if defined INAC_WIN32_TEST_GEN_1 SET INAC_WIN32_TEST_GEN_1=
+if defined INAC_WIN32_VISUAL_STUDIO_STRING SET INAC_WIN32_VISUAL_STUDIO_STRING=
 
 if defined INAC_WIN32_BUILD_NAME SET INAC_WIN32_BUILD_NAME=
 if defined INAC_WIN32_PROJECT_DIR SET INAC_WIN32_PROJECT_DIR=
