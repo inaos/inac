@@ -37,12 +37,14 @@ if(WIN32)
 endif(WIN32)
 
 # This is required because the meinberg lib has been compiled with an old version of VS
-if (CMAKE_GENERATOR STREQUAL "Visual Studio 11")
+if (CMAKE_GENERATOR STREQUAL "Visual Studio 11" OR CMAKE_GENERATOR STREQUAL "Visual Studio 14 2015")
 	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 endif()
 
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
 set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
+
+cmake_policy(SET CMP0037 OLD)
 
 file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c" "test.def")
 add_executable(test ${TEST_SRC})

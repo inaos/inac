@@ -37,7 +37,7 @@ if(WIN32)
 endif(WIN32)
 
 # This is required because the meinberg lib has been compiled with an old version of VS
-if (CMAKE_GENERATOR STREQUAL "Visual Studio 11")
+if (CMAKE_GENERATOR STREQUAL "Visual Studio 11" OR CMAKE_GENERATOR STREQUAL "Visual Studio 14 2015")
 	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 endif()
 
