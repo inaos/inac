@@ -44,7 +44,10 @@ endif()
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
 set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
 
-cmake_policy(SET CMP0037 OLD)
+
+if (${CMAKE_MAJOR_VERSION} GREATER 2)
+	cmake_policy(SET CMP0037 OLD)
+endif()
 
 file(GLOB TEST_SRC "test_*.c" "helper_*.c" "main.c" "test.def")
 add_executable(test ${TEST_SRC})

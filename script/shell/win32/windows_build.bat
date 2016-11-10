@@ -113,8 +113,15 @@ if not "%2" == "" (
 )
 
 REM check visual studio string
-if not defined VisualStudioVersion goto fail_vs_cmake_string
-SET INAC_WIN32_VISUAL_STUDIO_STRING="Visual Studio %VisualStudioVersion:~0,2%"
+if not defined VisualStudioVersion (
+	if defined VS110COMNTOOLS (
+		SET INAC_WIN32_VISUAL_STUDIO_STRING="Visual Studio 11"
+	) else (
+		goto fail_vs_cmake_string
+	)
+) else (
+	SET INAC_WIN32_VISUAL_STUDIO_STRING="Visual Studio %VisualStudioVersion:~0,2%"
+)
 
 REM check build-stage
 SET INAC_BUILD_STAGE_VALID=
