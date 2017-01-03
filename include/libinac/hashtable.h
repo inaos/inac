@@ -112,6 +112,8 @@ extern "C" {
  *      -> http://burtleburtle.net/bob/hash/perfect.html
  *      -> http://www.theiling.de/projects/lookuptable.html
  *      -> https://github.com/rurban/Perfect-Hash
+ *    - Do we need to store data in our nodes or do we store it externally? in other words do we need handles in 
+        hash nodes. What are the pros and cons?
  *
  * 2. How to benchmark
  *    - must be simple because the real benchmark is alwayls the application
