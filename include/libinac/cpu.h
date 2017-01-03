@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2016, INAOS GmbH
+* Copyright (c) 2014-2017, INAOS GmbH
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -232,6 +232,17 @@ INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family,
                                         uint8_t *stepping);
 
 /*
+ * Get CPU frequency from operating system
+ *
+ * Parameters
+ *  mHz    Where to store the frequency in MHz
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_cpu_get_frequency_os(int *mHz);
+
+/*
  * Retrieve instructions per cycle for double-precision
  *
  * Parameters
@@ -276,6 +287,39 @@ INA_API(ina_rc_t) ina_cpu_get_gflops_dp(double *gflops);
  *
  */
 INA_API(ina_rc_t) ina_cpu_get_gflops_sp(double *gflops);
+
+/*
+ * Retrieve CPU cache size for its L1 cache
+ *
+ * Parameters
+ *  bytes    Where to store the number of bytes
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_cpu_get_l1_cache_size(size_t *bytes);
+
+/*
+ * Retrieve CPU cache size for its L2 cache
+ *
+ * Parameters
+ *  bytes    Where to store the number of bytes
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_cpu_get_l2_cache_size(size_t *bytes);
+
+/*
+ * Retrieve CPU cache size for its L3 cache
+ *
+ * Parameters
+ *  bytes    Where to store the number of bytes
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_cpu_get_l3_cache_size(size_t *bytes);
 
 #ifdef __cplusplus
 }

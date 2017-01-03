@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016, INAOS GmbH
+ * Copyright (c) 2014-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,79 @@ struct ina_cpu_ctx_s {
     ina_cpu_feature_t features;
     ina_str_t brand;
     ina_str_t vendor;
+    size_t l1_data_bytes;
+    size_t l2_bytes;
+    size_t l3_bytes;
+    int ipc_sp;
+    int ipc_dp;
+    int frequency_os;
 };
 
 static ina_cpu_ctx_t *__ina_cpu_ctx = NULL;
+
+#ifdef INA_OS_WIN32
+static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
+{
+	HKEY key;
+	DWORD result;
+	DWORD size = 4;
+	
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), 0, KEY_READ, &key) != ERROR_SUCCESS)
+        return INA_FAILURE;
+	
+	if (RegQueryValueEx(key, TEXT("~MHz"), NULL, NULL, (LPBYTE) &result, (LPDWORD) &size) != ERROR_SUCCESS) {
+		RegCloseKey(key);
+        return INA_FAILURE;
+	}
+	RegCloseKey(key);
+	
+	*result_mhz = (int)result;
+    return INA_SUCCESS;
+}
+#else
+#ifdef INA_OS_OSX
+#include <sys/types.h>
+#include <sys/sysctl.h>
+/* Assuming Mac OS X with hw.cpufrequency sysctl */
+static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
+{
+	long long result = -1;
+	size_t size = sizeof(result);
+	if (sysctlbyname("hw.cpufrequency", &result, &size, NULL, 0)) {
+		return INA_FAILURE;
+    }
+	*result_mhz = (int) (result / (long long) 1000000);
+    return INA_SUCCESS;
+}
+#else
+/* Assuming Linux with /proc/cpuinfo */
+static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
+{
+	FILE *f;
+	char line[1024], *s;
+	int result;
+	
+	f = fopen("/proc/cpuinfo", "rt");
+	if (!f) {
+        return INA_FAILURE;
+    }
+	
+	while (fgets(line, sizeof(line), f)) {
+		if (!strncmp(line, "cpu MHz", 7)) {
+			s = strchr(line, ':');
+			if (s && 1 == sscanf(s, ":%d.", &result)) {
+				fclose(f);
+                *result_mhz = result;
+				return INA_SUCCESS;
+			}
+		}
+	}
+	fclose(f);
+
+	return INA_FAILURE;
+}
+#endif
+#endif
 
 INA_API(ina_rc_t) ina_cpu_init()
 {
@@ -406,6 +476,51 @@ INA_API(ina_rc_t) ina_cpu_init()
 	}
     __ina_cpu_ctx->features = cpufeatures;
 
+    /* Retrieve CPU cache info */
+    get_cache_info(&__ina_cpu_ctx->l1_data_bytes, 
+        &__ina_cpu_ctx->l2_bytes, 
+        &__ina_cpu_ctx->l3_bytes
+    );
+
+    /* CPU instructions per cycle: 
+     * ---------------------------
+     *
+     * Core         = 4,8
+     * Nehalem      = 4,8
+     * Sandy-Bridge = 8,16
+     * Haswell      = 16,32
+     * Skylake      = 16,32
+     *
+     */
+    switch (__ina_cpu_ctx->model) {
+        case 0x0F: /* Merom, Core */
+        case 0x17: /* Penryn, Core */
+        case 0x2E: /* Nehalem */
+        case 0x1A: /* Nehalem */
+        case 0x1E: /* Nehalem */
+            __ina_cpu_ctx->ipc_dp = 4;
+            __ina_cpu_ctx->ipc_sp = 8;
+            break;
+        case 0x2F: /* Westmere, Sandy-Bridge */
+        case 0x2C: /* Westmere, Sandy-Bridge */
+        case 0x25: /* Westmere, Sandy-Bridge */
+        case 0x2D: /* Sandy-Bridge */
+        case 0x2A: /* Sandy-Bridge */
+        case 0x3A: /* Ivy Bridge, Sandy-Bridge */
+            __ina_cpu_ctx->ipc_dp = 8;
+            __ina_cpu_ctx->ipc_sp = 16; 
+            break;
+        case 0x3C: /* Haswell */
+        case 0x3D: /* Broadwell, Haswell */
+        case 0x5E: /* Skylake */
+            __ina_cpu_ctx->ipc_dp = 16;
+            __ina_cpu_ctx->ipc_sp = 32;
+            break;
+    }
+
+    /* CPU frequency */
+    INA_MUST_SUCCEED(__ina_cpu_clock_by_os(&__ina_cpu_ctx->frequency_os));
+
     return INA_SUCCESS;
 #endif
 }
@@ -523,103 +638,68 @@ INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family, uint8_t *model, uint8_t
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_cpu_get_ipc_sp(int *ipc)
+{
+    *ipc = __ina_cpu_ctx->ipc_sp;
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_cpu_get_ipc_dp(int *ipc)
 {
-    uint8_t fam, mod, step;
-    int sp = 0, dp = 0;
-    
-    /*
-     * Core         = 4,8
-     * Nehalem      = 4,8
-     * Sandy-Bridge = 8,16
-     * Haswell      = 16,32
-     */
-    
-    ina_cpu_get_signature(&fam, &mod, &step);
-    
-    switch (mod) {
-        case 0x0F: /* Merom, Core */
-        case 0x17: /* Penryn, Core */
-        case 0x2E: /* Nehalem */
-        case 0x1A: /* Nehalem */
-        case 0x1E: /* Nehalem */
-            dp = 4;
-            sp = 8;
-            break;
-        case 0x2F: /* Westmere, Sandy-Bridge */
-        case 0x2C: /* Westmere, Sandy-Bridge */
-        case 0x25: /* Westmere, Sandy-Bridge */
-        case 0x2D: /* Sandy-Bridge */
-        case 0x2A: /* Sandy-Bridge */
-        case 0x3A: /* Ivy Bridge, Sandy-Bridge */
-            dp = 8;
-            sp = 16; 
-            break;
-        case 0x3C: /* Haswell */
-        case 0x3D: /* Broadwell, Haswell */
-        case 0x5E: /* Skylake */
-            dp = 16;
-            sp = 32;
-            break;
-    }
+    *ipc = __ina_cpu_ctx->ipc_dp;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_get_l1_cache_size(size_t *bytes)
+{
+    *bytes = __ina_cpu_ctx->l1_data_bytes;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_get_l2_cache_size(size_t *bytes)
+{
+    *bytes = __ina_cpu_ctx->l2_bytes;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_get_l3_cache_size(size_t *bytes)
+{
+    *bytes = __ina_cpu_ctx->l3_bytes;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_get_frequency_os(int *mHz)
+{
+    *mHz = __ina_cpu_ctx->frequency_os;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_get_gflops_dp(double *gflops)
+{
+    int mHz = 0;
+    int cores = 0;
+    int ipc = 0;
+
+    INA_MUST_SUCCEED(ina_cpu_get_frequency_os(&mHz));
+    INA_MUST_SUCCEED(ina_cpu_get_core_count(&cores));
+    INA_MUST_SUCCEED(ina_cpu_get_ipc_dp(&ipc));
+
+    *gflops = (mHz/1024)*cores*ipc;
 
     return INA_SUCCESS;
 }
 
-#ifdef _WIN32
-int cpu_clock_by_os(void)
+INA_API(ina_rc_t) ina_cpu_get_gflops_sp(double *gflops)
 {
-	HKEY key;
-	DWORD result;
-	DWORD size = 4;
-	
-	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), 0, KEY_READ, &key) != ERROR_SUCCESS)
-		return -1;
-	
-	if (RegQueryValueEx(key, TEXT("~MHz"), NULL, NULL, (LPBYTE) &result, (LPDWORD) &size) != ERROR_SUCCESS) {
-		RegCloseKey(key);
-		return -1;
-	}
-	RegCloseKey(key);
-	
-	return (int)result;
-}
-#else
-#ifdef __APPLE__
-#include <sys/types.h>
-#include <sys/sysctl.h>
-/* Assuming Mac OS X with hw.cpufrequency sysctl */
-int cpu_clock_by_os(void)
-{
-	long long result = -1;
-	size_t size = sizeof(result);
-	if (sysctlbyname("hw.cpufrequency", &result, &size, NULL, 0))
-		return -1;
-	return (int) (result / (long long) 1000000);
-}
-#else
-/* Assuming Linux with /proc/cpuinfo */
-int cpu_clock_by_os(void)
-{
-	FILE *f;
-	char line[1024], *s;
-	int result;
-	
-	f = fopen("/proc/cpuinfo", "rt");
-	if (!f) return -1;
-	
-	while (fgets(line, sizeof(line), f)) {
-		if (!strncmp(line, "cpu MHz", 7)) {
-			s = strchr(line, ':');
-			if (s && 1 == sscanf(s, ":%d.", &result)) {
-				fclose(f);
-				return result;
-			}
-		}
-	}
-	fclose(f);
-	return -1;
-}
-#endif /* __APPLE__ */
-#endif /* _WIN32 */
+    int mHz = 0;
+    int cores = 0;
+    int ipc = 0;
 
+    INA_MUST_SUCCEED(ina_cpu_get_frequency_os(&mHz));
+    INA_MUST_SUCCEED(ina_cpu_get_core_count(&cores));
+    INA_MUST_SUCCEED(ina_cpu_get_ipc_dp(&ipc));
+
+    *gflops = (mHz/1024)*cores*ipc;
+
+    return INA_SUCCESS;
+}
