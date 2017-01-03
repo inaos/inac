@@ -41,6 +41,13 @@ if (CMAKE_GENERATOR STREQUAL "Visual Studio 11" OR CMAKE_GENERATOR STREQUAL "Vis
 	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 endif()
 
+# For some tools we require OpenMP
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
 set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
 
@@ -64,6 +71,9 @@ target_link_libraries(icpu ${PLATFORM_LIBS} ${LIBS})
 
 add_executable(imem imem.c)
 target_link_libraries(imem ${PLATFORM_LIBS} ${LIBS})
+
+add_executable(imem_stream imem_stream.c)
+target_link_libraries(imem_stream ${PLATFORM_LIBS} ${LIBS})
 
 add_executable(ipcap ipcap.c)
 target_link_libraries(ipcap ${PLATFORM_LIBS} ${LIBS})
