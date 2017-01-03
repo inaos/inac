@@ -1855,4 +1855,21 @@ unsigned  GetCoreCountPerEachCache(unsigned  subleaf, unsigned  cache_ordinal)
 	return glbl_ptr->perEachCache_detectedThreadCount.data[cache_ordinal*MAX_CACHE_SUBLEAFS+subleaf];
 }
 
+void get_cache_info(unsigned long *l1, unsigned long *l2, unsigned long *l3)
+{
+    int i;
+    if (!glbl_ptr) InitCpuTopology();
+
+    for (i = 0; i < MAX_CACHE_SUBLEAFS; i++) {
+        if (glbl_ptr->cacheDetail[i].level == 1 && glbl_ptr->cacheDetail[i].type == 1) {
+            *l1 = glbl_ptr->cacheDetail[i].sizeKB*1024;
+        }
+        else if (glbl_ptr->cacheDetail[i].level == 2) {
+            *l2 = glbl_ptr->cacheDetail[i].sizeKB*1024;
+        }
+        else if (glbl_ptr->cacheDetail[i].level == 3) {
+            *l3 = glbl_ptr->cacheDetail[i].sizeKB*1024;
+        }
+    }
+}
 

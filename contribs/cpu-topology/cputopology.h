@@ -276,6 +276,9 @@ unsigned  GetMaxCPUSupportedByOS();
 void get_cpu_hw_info(int *packages, int *cores, int *threads, int *logical);
 
 void get_cpuid_info(CPUIDinfo * info, const unsigned int func, const unsigned int subfunc);
+
+/* return cache sizes in bytes */
+void get_cache_info(unsigned long *l1, unsigned long *l2, unsigned long *l3);
 	
 #endif
 
