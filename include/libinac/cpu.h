@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2015, INAOS GmbH
+* Copyright (c) 2014-2016, INAOS GmbH
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -230,6 +230,52 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int core);
 INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family,
                                         uint8_t *model,
                                         uint8_t *stepping);
+
+/*
+ * Retrieve instructions per cycle for double-precision
+ *
+ * Parameters
+ *  ipc    Where to store the number of instructions value
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_cpu_get_ipc_dp(int *ipc);
+
+/*
+ * Retrieve instructions per cycle for single-precision
+ *
+ * Parameters
+ *  ipc    Where to store the number of instructions value
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_cpu_get_ipc_sp(int *ipc);
+
+/*
+ * CPU performance in GFlops = 
+ * (CPU speed in GHz) x (number of CPU cores) x (CPU instruction per cycle)
+ *
+ * Double precision
+ *
+ * Parameters
+ *  gflops    Where to store the number of GFlops
+ *
+ */
+INA_API(ina_rc_t) ina_cpu_get_gflops_dp(double *gflops);
+
+/*
+ * CPU performance in GFlops =
+ * (CPU speed in GHz) x (number of CPU cores) x (CPU instruction per cycle)
+ *
+ * Single precision
+ *
+ * Parameters
+ *  gflops    Where to store the number of GFlops
+ *
+ */
+INA_API(ina_rc_t) ina_cpu_get_gflops_sp(double *gflops);
 
 #ifdef __cplusplus
 }

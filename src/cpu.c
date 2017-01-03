@@ -523,3 +523,103 @@ INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family, uint8_t *model, uint8_t
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_cpu_get_ipc_dp(int *ipc)
+{
+    uint8_t fam, mod, step;
+    int sp = 0, dp = 0;
+    
+    /*
+     * Core         = 4,8
+     * Nehalem      = 4,8
+     * Sandy-Bridge = 8,16
+     * Haswell      = 16,32
+     */
+    
+    ina_cpu_get_signature(&fam, &mod, &step);
+    
+    switch (mod) {
+        case 0x0F: /* Merom, Core */
+        case 0x17: /* Penryn, Core */
+        case 0x2E: /* Nehalem */
+        case 0x1A: /* Nehalem */
+        case 0x1E: /* Nehalem */
+            dp = 4;
+            sp = 8;
+            break;
+        case 0x2F: /* Westmere, Sandy-Bridge */
+        case 0x2C: /* Westmere, Sandy-Bridge */
+        case 0x25: /* Westmere, Sandy-Bridge */
+        case 0x2D: /* Sandy-Bridge */
+        case 0x2A: /* Sandy-Bridge */
+        case 0x3A: /* Ivy Bridge, Sandy-Bridge */
+            dp = 8;
+            sp = 16; 
+            break;
+        case 0x3C: /* Haswell */
+        case 0x3D: /* Broadwell, Haswell */
+        case 0x5E: /* Skylake */
+            dp = 16;
+            sp = 32;
+            break;
+    }
+
+    return INA_SUCCESS;
+}
+
+#ifdef _WIN32
+int cpu_clock_by_os(void)
+{
+	HKEY key;
+	DWORD result;
+	DWORD size = 4;
+	
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), 0, KEY_READ, &key) != ERROR_SUCCESS)
+		return -1;
+	
+	if (RegQueryValueEx(key, TEXT("~MHz"), NULL, NULL, (LPBYTE) &result, (LPDWORD) &size) != ERROR_SUCCESS) {
+		RegCloseKey(key);
+		return -1;
+	}
+	RegCloseKey(key);
+	
+	return (int)result;
+}
+#else
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/sysctl.h>
+/* Assuming Mac OS X with hw.cpufrequency sysctl */
+int cpu_clock_by_os(void)
+{
+	long long result = -1;
+	size_t size = sizeof(result);
+	if (sysctlbyname("hw.cpufrequency", &result, &size, NULL, 0))
+		return -1;
+	return (int) (result / (long long) 1000000);
+}
+#else
+/* Assuming Linux with /proc/cpuinfo */
+int cpu_clock_by_os(void)
+{
+	FILE *f;
+	char line[1024], *s;
+	int result;
+	
+	f = fopen("/proc/cpuinfo", "rt");
+	if (!f) return -1;
+	
+	while (fgets(line, sizeof(line), f)) {
+		if (!strncmp(line, "cpu MHz", 7)) {
+			s = strchr(line, ':');
+			if (s && 1 == sscanf(s, ":%d.", &result)) {
+				fclose(f);
+				return result;
+			}
+		}
+	}
+	fclose(f);
+	return -1;
+}
+#endif /* __APPLE__ */
+#endif /* _WIN32 */
+
