@@ -62,6 +62,9 @@ target_link_libraries(bench_timer ${PLATFORM_LIBS} ${LIBS})
 add_executable(bench_intersect bench_intersect.c)
 target_link_libraries(bench_intersect ${PLATFORM_LIBS} ${LIBS})
 
+add_executable(bench_mph_vs_htab bench_mph_vs_htab.c)
+target_link_libraries(bench_mph_vs_htab ${PLATFORM_LIBS} ${LIBS})
+
 if(WIN32) 
    add_custom_command(TARGET test POST_BUILD          
      COMMAND ${CMAKE_COMMAND} -E copy_if_different  
