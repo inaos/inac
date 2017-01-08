@@ -292,6 +292,7 @@ static ina_str_t           benchmark = NULL;
 static struct sockaddr_in *headers = NULL;
 static size_t              emdi_counter = 0;
 static size_t              rdi_counter = 0;
+static size_t              packet_counter = 0;
 
 static __inafx_fast_filter_entry_t *__mph_filter = NULL;
 static __inafx_fast_filter_entry_t *__tab_filter = NULL;
@@ -523,6 +524,7 @@ static void _run_hash(int num_headers, size_t iterations)
         if (f != NULL) {
             INA_MUST_SUCCEED(f->process_cb(h));
         }
+        packet_counter++;
     }
 }
 
@@ -535,6 +537,7 @@ static void _run_fast(int num_headers, size_t iterations)
         struct sockaddr_in *h = &headers[hi];
         INA_MUST_SUCCEED(__inafx_fast_eurex_filter_apply(h, &f));
         INA_MUST_SUCCEED(f->process_cb(h));
+        packet_counter++;
     }
 }
 
@@ -549,8 +552,20 @@ static void _cleanup_handler(int sig, int *error)
             stopwatch->tv->sec_duration);
 
         printf("Processed %u RDI packets\n", rdi_counter);
+        printf("Processed %.2f packets per micro-second\n", 
+            (packet_counter/stopwatch->tv->usec_duration));
         
         ina_time_stopwatch_destroy(&stopwatch);
+    }
+    if (__tab_filter != NULL) {
+        __inafx_fast_filter_entry_t *f, *tf;
+        HASH_ITER(hh, __tab_filter, f, tf) {
+            HASH_DELETE(hh, __tab_filter, f);
+            ina_mem_free(f);
+        }
+    }
+    if (__mph_filter != NULL) {
+        ina_mem_free(__mph_filter);
     }
     if (headers != NULL) {
         ina_mem_free(headers);
