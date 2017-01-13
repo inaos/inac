@@ -738,6 +738,18 @@ INA_API(ina_rc_t) ina_cpu_process_promote()
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_cpu_process_query_core(int *core)
+{
+#ifndef INA_OS_OSX
+#ifdef INA_OS_WIN32
+    *core = GetCurrentProcessorNumber();
+#else
+    *core = sched_getcpu();
+#endif
+#endif
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_cpu_hyperthreading_enabled(int *enabled)
 {
     if (__ina_cpu_ctx->package_count*__ina_cpu_ctx->core_count 
