@@ -217,6 +217,27 @@ INA_API(ina_rc_t) ina_cpu_is_supported(int *supported);
 INA_API(ina_rc_t) ina_cpu_pin_to_core(int core);
 
 /*
+ * Promotes the the process to real-time priority.
+ *
+ * It is designed to work with single-threaded processes
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_cpu_process_promote();
+
+/*
+ * Is hyperthrading enabled
+ *
+ * Parameters
+ *  enabled  Here we store the boolean value
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_cpu_hyperthreading_enabled(int *enabled);
+
+/*
  * Retrieve cpu signature , such aa family, model and stepping
  *
  * Parameters

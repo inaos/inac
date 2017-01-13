@@ -703,3 +703,49 @@ INA_API(ina_rc_t) ina_cpu_get_gflops_sp(double *gflops)
 
     return INA_SUCCESS;
 }
+
+INA_API(ina_rc_t) ina_cpu_process_promote()
+{
+#ifndef INA_OS_OSX
+#ifdef INA_OS_WIN32
+    HANDLE pid = GetCurrentProcess();
+
+    /* Set Priority */
+	if(!SetPriorityClass(pid, HIGH_PRIORITY_CLASS)) {
+		return INA_FAILURE;
+	}
+	if(!SetThreadPriority(GetCurrentThread(), HIGH_PRIORITY_CLASS)) {
+		return INA_FAILURE;
+	}
+#else
+    pid_t pid = getpid();
+    struct sched_param param;
+    int max_prio = sched_get_priority_max(SCHED_FIFO);
+    if (max_prio == -1) {
+        return INA_FAILURE;
+    }
+    param.sched_priority = max_prio;
+    int ret = sched_setscheduler(pid, SCHED_FIFO, &param);
+    if (ret != 0) {
+        return INA_FAILURE;
+    }
+    ret = mlockall(MCL_CURRENT | MCL_FUTURE);
+    if (ret != 0) {
+        return INA_FAILURE;
+    }
+#endif
+#endif
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_hyperthreading_enabled(int *enabled)
+{
+    if (__ina_cpu_ctx->package_count*__ina_cpu_ctx->core_count 
+        != __ina_cpu_ctx->logical_count) {
+            *enabled = 1;
+    }
+    else {
+        *enabled = 0;
+    }
+    return INA_SUCCESS;
+}
