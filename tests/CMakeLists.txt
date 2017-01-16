@@ -104,4 +104,8 @@ if(WIN32)
      COMMAND ${CMAKE_COMMAND} -E copy_if_different  
         "${PROJECT_SOURCE_DIR}/test_xml.xml"         
         $<TARGET_FILE_DIR:test>)
+   add_custom_command(TARGET test POST_BUILD          
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${PROJECT_SOURCE_DIR}/aar_test.iar"         
+        $<TARGET_FILE_DIR:test>)
  endif()

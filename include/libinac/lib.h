@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
+ * Copyright (c) 2012-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,6 +110,7 @@
 #include <libinac/percentile.h>
 #include <libinac/client.h>
 #include <libinac/server.h>
+#include <libinac/aar.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
