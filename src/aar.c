@@ -83,11 +83,11 @@ INA_API(ina_rc_t) ina_aar_app_new(ina_aar_ctx_t *ctx, const char *id, ina_aar_ap
 
 #ifdef INA_OS_WIN32
     if (_mkdir(ina_str_cstr((*app)->path)) == -1) {
-        return INA_FAILURE;
+        return INA_EEXISTS;
     }
 #else
     if (!mkdir(ina_str_cstr((*app)->path), S_IWRITE)) {
-        return INA_FAILURE;
+        return INA_EEXISTS;
     }
 #endif
 
