@@ -269,9 +269,15 @@ INA_API(ina_rc_t) ina_aar_app_free(ina_aar_ctx_t *ctx, ina_aar_app_t **app)
 
 INA_API(ina_rc_t) ina_aar_destroy(ina_aar_ctx_t **ctx)
 {
-    ina_json_parser_release((*ctx)->jctx, &(*ctx)->p);
-    ina_json_destroy(&(*ctx)->jctx);
-    ina_dir_stat_free(&(*ctx)->ds);
+    if ((*ctx)->p != NULL) {
+        ina_json_parser_release((*ctx)->jctx, &(*ctx)->p);
+    }
+    if ((*ctx)->jctx != NULL) {
+        ina_json_destroy(&(*ctx)->jctx);
+    }
+    if ((*ctx)->ds != NULL) {
+        ina_dir_stat_free(&(*ctx)->ds);
+    }
     ina_str_free((*ctx)->wd);
     ina_mem_free(*ctx);
     *ctx = NULL;

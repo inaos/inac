@@ -294,12 +294,12 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
     if (GetDiskFreeSpaceEx(dir, &(*stat)->free_bytes_available, 
         &(*stat)->total_number_of_bytes, 
         &(*stat)->total_numof_free_bytes) == 0) {
-            return INA_FAILURE;
+            return INA_DIR_ESTAT;
     }
 #else
     struct statvfs sfs;
     if (statvfs(dir, &sfs) != 0) {
-        return INA_FAILURE;
+        return INA_DIR_ESTAT;
     }
     (*stat)->free_bytes = sfs.f_bsize * sfs.f_bavail;
     (*stat)->total_bytes = sfs.f_blocks * sfs.f_bsize;

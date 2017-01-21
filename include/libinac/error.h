@@ -65,6 +65,7 @@ extern "C" {
 #define INA_MOD_DNS      17
 #define INA_MOD_CIO      18
 #define INA_MOD_AAR      19
+#define INA_MOD_DIR      20
 #define INA_MOD_USER     32
 
 /* OS function identifiers */
@@ -314,6 +315,10 @@ extern "C" {
 /* CIO errors */
 #define INA_CIO_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CIO, INA_OSFN_NONE, s)
 #define INA_CIO_ENOTTY INA_CIO_ERROR(INA_EREAD, "No terminal");
+
+/* DIR errors */
+#define INA_DIR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DIR, INA_OSFN_NONE, s)
+#define INA_DIR_ESTAT INA_DIR_ERROR(INA_EFS, "Can not stat directory");
 
 /* AAR errors */
 #define INA_AAR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_AAR, INA_OSFN_NONE, s)
