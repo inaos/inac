@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
+ * Copyright (c) 2012-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@ extern "C" {
 #define INA_MOD_SERVICE  16
 #define INA_MOD_DNS      17
 #define INA_MOD_CIO      18
+#define INA_MOD_AAR      19
 #define INA_MOD_USER     32
 
 /* OS function identifiers */
@@ -103,6 +104,7 @@ extern "C" {
 #define INA_ENYI     28
 #define INA_ENOTFND  29
 #define INA_ESTATE   30
+#define INA_EFS      31
 
 /* Mark an handled error (bit 10 of RC) */
 #define INA_ERR_FLAG_HANDLED 0x200
@@ -195,7 +197,6 @@ extern "C" {
 #define INA_SUCCEED(rc) (INA_SUCCESS == (rc))
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(!INA_SUCCEED(rc))) abort()
-
 
 
 /* Error-Module errors */
@@ -306,7 +307,6 @@ extern "C" {
 #define INA_SERVICE_ELCO INA_SERVICE_ERROR(INA_EINVAL, "Can not create/open lock-file");
 #define INA_SERVICE_ELOCK INA_SERVICE_ERROR(INA_ELIMIT, "Can not lock, service is already running");
 
-
 /* DNS errors */
 #define INA_DNS_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DNS, INA_OSFN_NONE, s)
 #define INA_DNS_ELOOKUP INA_SERVICE_ERROR(INA_ENET, "DNS lookup failed");
@@ -315,7 +315,12 @@ extern "C" {
 #define INA_CIO_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CIO, INA_OSFN_NONE, s)
 #define INA_CIO_ENOTTY INA_CIO_ERROR(INA_EREAD, "No terminal");
 
-
+/* AAR errors */
+#define INA_AAR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_AAR, INA_OSFN_NONE, s)
+#define INA_AAR_EMKDR INA_AAR_ERROR(INA_EFS, "Failed to create directory");
+#define INA_AAR_ERMDR INA_AAR_ERROR(INA_EFS, "Failed to remove directory");
+#define INA_AAR_EZIP  INA_AAR_ERROR(INA_ESTATE, "Failed operate on archive");
+#define INA_AAR_EMETA INA_AAR_ERROR(INA_ENOTFND, "Meta value not found");
 
 /* Error information */
 typedef struct ina_error_s {

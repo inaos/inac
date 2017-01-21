@@ -83,11 +83,11 @@ INA_API(ina_rc_t) ina_aar_app_new(ina_aar_ctx_t *ctx, const char *id, ina_aar_ap
 
 #ifdef INA_OS_WIN32
     if (_mkdir(ina_str_cstr((*app)->path)) == -1) {
-        return INA_EEXISTS;
+        return INA_AAR_EMKDR;
     }
 #else
     if (!mkdir(ina_str_cstr((*app)->path), S_IWRITE)) {
-        return INA_EEXISTS;
+        return INA_AAR_EMKDR;
     }
 #endif
 
@@ -101,26 +101,25 @@ INA_API(ina_rc_t) ina_aar_app_archive_load(ina_aar_app_t *app, const char *full_
 
     status = mz_zip_reader_init_file(&app->zar, full_path, 0);
     if (!status) {
-        /* FIXME: proper error handling */
-        return INA_FAILURE;
+        return INA_AAR_EZIP;
     }
 
     for (i = 0; i < (int)mz_zip_reader_get_num_files(&app->zar); i++) {
         mz_zip_archive_file_stat file_stat;
         if (!mz_zip_reader_file_stat(&app->zar, i, &file_stat)) {
             mz_zip_reader_end(&app->zar);
-            return INA_FAILURE;
+            return INA_AAR_EZIP;
         }
         
         if (mz_zip_reader_is_file_a_directory(&app->zar, i)) {
             ina_str_t path = ina_str_sprintf("%s/%s", ina_str_cstr(app->path), file_stat.m_filename);
 #ifdef INA_OS_WIN32
             if (_mkdir(ina_str_cstr(path)) == -1) {
-                return INA_EEXISTS;
+                return INA_AAR_EMKDR;
             }
 #else
             if (!mkdir(ina_str_cstr(path), S_IWRITE)) {
-                return INA_EEXISTS;
+                return INA_AAR_EMKDR;
             }
 #endif
             ina_str_free(path);
@@ -132,7 +131,7 @@ INA_API(ina_rc_t) ina_aar_app_archive_load(ina_aar_app_t *app, const char *full_
             if (!mz_zip_reader_extract_to_mem(&app->zar, file_stat.m_file_index, buf, buf_size, 0)) {
                 free(buf);
                 mz_zip_reader_end(&app->zar);
-                return INA_FAILURE;
+                return INA_AAR_EZIP;
             }
             rc = ina_json_parser_execute(app->ctx->p, buf, buf_size, INA_YES);
             if (rc == INA_SUCCESS) {
@@ -158,7 +157,7 @@ INA_API(ina_rc_t) ina_aar_app_archive_load(ina_aar_app_t *app, const char *full_
             free(buf);
             if (rc != INA_SUCCESS) {
                 mz_zip_reader_end(&app->zar);
-                return INA_FAILURE;
+                return INA_AAR_EZIP;
             }
         }
         else {
@@ -179,7 +178,7 @@ INA_API(ina_rc_t) ina_aar_app_meta_str_get(ina_aar_app_t *app, const char *key, 
     HASH_FIND_STR(app->meta, key, e);
     if (e == NULL) {
         *value = NULL;
-        return INA_EEXISTS;
+        return INA_AAR_EMETA;
     }
     *value = e->value;
     return INA_SUCCESS;
@@ -202,11 +201,11 @@ static ina_rc_t __ina_aar_app_remove_dir(ina_str_t dir_path)
             __ina_aar_app_remove_dir(path);
 #ifdef INA_OS_WIN32
             if (rmdir(ina_str_cstr(path)) == -1) {
-                return INA_EEXISTS;
+                return INA_AAR_ERMDR;
             }
 #else
             if (!rmdir(ina_str_cstr(path))) {
-                return INA_EEXISTS;
+                return INA_AAR_ERMDR;
             }
 #endif
             ina_str_free(path);
@@ -237,11 +236,11 @@ INA_API(ina_rc_t) ina_aar_app_free(ina_aar_ctx_t *ctx, ina_aar_app_t **app)
             __ina_aar_app_remove_dir(path);
 #ifdef INA_OS_WIN32
             if (rmdir(ina_str_cstr(path)) == -1) {
-                return INA_EEXISTS;
+                return INA_AAR_ERMDR;
             }
 #else
             if (!rmdir(ina_str_cstr(path))) {
-                return INA_EEXISTS;
+                return INA_AAR_ERMDR;
             }
 #endif
             ina_str_free(path);
@@ -254,11 +253,11 @@ INA_API(ina_rc_t) ina_aar_app_free(ina_aar_ctx_t *ctx, ina_aar_app_t **app)
     }
 #ifdef INA_OS_WIN32
     if (rmdir(ina_str_cstr((*app)->path)) == -1) {
-        return INA_FAILURE;
+        return INA_AAR_ERMDR;
     }
 #else
     if (!rmdir(ina_str_cstr((*app)->path))) {
-        return INA_FAILURE;
+        return INA_AAR_ERMDR;
     }
 #endif
     INA_MUST_SUCCEED(ina_dir_walker_free(&w));
