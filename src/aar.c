@@ -116,11 +116,11 @@ INA_API(ina_rc_t) ina_aar_app_archive_load(ina_aar_app_t *app, const char *full_
             ina_str_t path = ina_str_sprintf("%s/%s", ina_str_cstr(app->path), file_stat.m_filename);
 #ifdef INA_OS_WIN32
             if (_mkdir(ina_str_cstr(path)) == -1) {
-                return INA_FAILURE;
+                return INA_EEXISTS;
             }
 #else
             if (!mkdir(ina_str_cstr(path), S_IWRITE)) {
-                return INA_FAILURE;
+                return INA_EEXISTS;
             }
 #endif
             ina_str_free(path);
@@ -202,11 +202,11 @@ static ina_rc_t __ina_aar_app_remove_dir(ina_str_t dir_path)
             __ina_aar_app_remove_dir(path);
 #ifdef INA_OS_WIN32
             if (rmdir(ina_str_cstr(path)) == -1) {
-                return INA_FAILURE;
+                return INA_EEXISTS;
             }
 #else
             if (!rmdir(ina_str_cstr(path))) {
-                return INA_FAILURE;
+                return INA_EEXISTS;
             }
 #endif
             ina_str_free(path);
@@ -237,11 +237,11 @@ INA_API(ina_rc_t) ina_aar_app_free(ina_aar_ctx_t *ctx, ina_aar_app_t **app)
             __ina_aar_app_remove_dir(path);
 #ifdef INA_OS_WIN32
             if (rmdir(ina_str_cstr(path)) == -1) {
-                return INA_FAILURE;
+                return INA_EEXISTS;
             }
 #else
             if (!rmdir(ina_str_cstr(path))) {
-                return INA_FAILURE;
+                return INA_EEXISTS;
             }
 #endif
             ina_str_free(path);
