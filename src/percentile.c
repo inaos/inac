@@ -75,11 +75,12 @@ static ina_rc_t __ina_percentile_heap_new(__ina_percentile_heap_t **h, ina_mempo
     return INA_SUCCESS;
 }
 
+/* not required since its part of the parent pool
 static ina_rc_t __ina_percentile_heap_free(__ina_percentile_heap_t **h)
 {
-    /* not required since its part of the parent pool */
     return INA_SUCCESS;
 }
+*/
 
 static ina_rc_t __ina_percentile_heap_push(__ina_percentile_heap_t *h, uint16_t value)
 {

@@ -147,9 +147,9 @@ typedef SSIZE_T ssize_t;
  *          will override the default size of 10M with a new size of 100M elements
  *          per array.
  */
- /* NOTE: we will determine the Total of all CPU caches from an inac module
-
-/*  2) STREAM runs each kernel "NTIMES" times and reports the *best* result
+ /* NOTE: we will determine the Total of all CPU caches from an inac module */
+/*
+ *  2) STREAM runs each kernel "NTIMES" times and reports the *best* result
  *         for any iteration after the first, therefore the minimum value
  *         for NTIMES is 2.
  *      There are no rules on maximum allowable values for NTIMES, but
