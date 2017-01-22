@@ -31,6 +31,8 @@
 
 #ifdef INA_OS_WIN32
 #include <direct.h>  
+#else
+#include <sys/stat.h>
 #endif
 
 #define __INA_AAR_APP_META_KEY_MAX 255
@@ -150,6 +152,8 @@ INA_API(ina_rc_t) ina_aar_app_archive_load(ina_aar_app_t *app, const char *full_
                             strncpy(e->key, key, __INA_AAR_APP_META_KEY_MAX);
                             e->value = ina_str_new_fromblk(data->value.s, data->size);
                             HASH_ADD_STR(app->meta, key, e);
+                            break;
+                        default:
                             break;
                     }
                 }
