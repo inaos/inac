@@ -88,7 +88,7 @@ INA_API(ina_rc_t) ina_aar_app_new(ina_aar_ctx_t *ctx, const char *id, ina_aar_ap
         return INA_AAR_EMKDR;
     }
 #else
-    if (!mkdir(ina_str_cstr((*app)->path), S_IWRITE)) {
+    if (mkdir(ina_str_cstr((*app)->path), 0777) != 0) {
         return INA_AAR_EMKDR;
     }
 #endif
@@ -120,7 +120,7 @@ INA_API(ina_rc_t) ina_aar_app_archive_load(ina_aar_app_t *app, const char *full_
                 return INA_AAR_EMKDR;
             }
 #else
-            if (!mkdir(ina_str_cstr(path), S_IWRITE)) {
+            if (mkdir(ina_str_cstr(path), 0777) != 0) {
                 return INA_AAR_EMKDR;
             }
 #endif
@@ -208,7 +208,7 @@ static ina_rc_t __ina_aar_app_remove_dir(ina_str_t dir_path)
                 return INA_AAR_ERMDR;
             }
 #else
-            if (!rmdir(ina_str_cstr(path))) {
+            if (rmdir(ina_str_cstr(path)) != 0) {
                 return INA_AAR_ERMDR;
             }
 #endif
@@ -243,7 +243,7 @@ INA_API(ina_rc_t) ina_aar_app_free(ina_aar_ctx_t *ctx, ina_aar_app_t **app)
                 return INA_AAR_ERMDR;
             }
 #else
-            if (!rmdir(ina_str_cstr(path))) {
+            if (rmdir(ina_str_cstr(path)) != 0) {
                 return INA_AAR_ERMDR;
             }
 #endif
@@ -260,7 +260,7 @@ INA_API(ina_rc_t) ina_aar_app_free(ina_aar_ctx_t *ctx, ina_aar_app_t **app)
         return INA_AAR_ERMDR;
     }
 #else
-    if (!rmdir(ina_str_cstr((*app)->path))) {
+    if (rmdir(ina_str_cstr((*app)->path)) != 0) {
         return INA_AAR_ERMDR;
     }
 #endif
