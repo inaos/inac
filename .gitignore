@@ -20,6 +20,7 @@ tests/test
 tools/ullc_monitor
 tools/service_mgr
 tools/iz
+tools/imem_stream
 tests/bench_timer
 tests/bench_file
 tests/ilt

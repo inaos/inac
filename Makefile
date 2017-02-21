@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016, INAOS GmbH
+# Copyright (c) 2012-2017, INAOS GmbH
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ export LUA_PATH
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
          -I$(INAC_CONTRIBS_DIR) -I$(INAC_CONTRIBSBIN_DIR)
 CFLAGS += -DINA_LIB=1
+CFLAGS += -fopenmp
 ifeq ($(OS), Linux)
 CFLAGS += -freorder-blocks-and-partition
 endif

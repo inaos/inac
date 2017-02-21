@@ -31,6 +31,8 @@
 
 #ifdef INA_OS_WIN32
 #include <direct.h>  
+#else
+#include <sys/stat.h>
 #endif
 
 #define __INA_AAR_APP_META_KEY_MAX 255
@@ -86,7 +88,7 @@ INA_API(ina_rc_t) ina_aar_app_new(ina_aar_ctx_t *ctx, const char *id, ina_aar_ap
         return INA_AAR_EMKDR;
     }
 #else
-    if (!mkdir(ina_str_cstr((*app)->path), S_IWRITE)) {
+    if (mkdir(ina_str_cstr((*app)->path), 0777) != 0) {
         return INA_AAR_EMKDR;
     }
 #endif
@@ -118,7 +120,7 @@ INA_API(ina_rc_t) ina_aar_app_archive_load(ina_aar_app_t *app, const char *full_
                 return INA_AAR_EMKDR;
             }
 #else
-            if (!mkdir(ina_str_cstr(path), S_IWRITE)) {
+            if (mkdir(ina_str_cstr(path), 0777) != 0) {
                 return INA_AAR_EMKDR;
             }
 #endif
@@ -150,6 +152,8 @@ INA_API(ina_rc_t) ina_aar_app_archive_load(ina_aar_app_t *app, const char *full_
                             strncpy(e->key, key, __INA_AAR_APP_META_KEY_MAX);
                             e->value = ina_str_new_fromblk(data->value.s, data->size);
                             HASH_ADD_STR(app->meta, key, e);
+                            break;
+                        default:
                             break;
                     }
                 }
@@ -204,7 +208,7 @@ static ina_rc_t __ina_aar_app_remove_dir(ina_str_t dir_path)
                 return INA_AAR_ERMDR;
             }
 #else
-            if (!rmdir(ina_str_cstr(path))) {
+            if (rmdir(ina_str_cstr(path)) != 0) {
                 return INA_AAR_ERMDR;
             }
 #endif
@@ -239,7 +243,7 @@ INA_API(ina_rc_t) ina_aar_app_free(ina_aar_ctx_t *ctx, ina_aar_app_t **app)
                 return INA_AAR_ERMDR;
             }
 #else
-            if (!rmdir(ina_str_cstr(path))) {
+            if (rmdir(ina_str_cstr(path)) != 0) {
                 return INA_AAR_ERMDR;
             }
 #endif
@@ -256,7 +260,7 @@ INA_API(ina_rc_t) ina_aar_app_free(ina_aar_ctx_t *ctx, ina_aar_app_t **app)
         return INA_AAR_ERMDR;
     }
 #else
-    if (!rmdir(ina_str_cstr((*app)->path))) {
+    if (rmdir(ina_str_cstr((*app)->path)) != 0) {
         return INA_AAR_ERMDR;
     }
 #endif

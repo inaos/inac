@@ -44,7 +44,6 @@ INA_API(ina_rc_t) __ina_net_hw_vma_enabled(ina_net_hw_ctx_t *ctx)
 
 INA_API(ina_rc_t) __ina_net_hw_vma_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature)
 {
-    int fd = 0;
     switch (feature) {
         case INA_NET_HW_FEATURE_ZERO_COPY_UDP_RECEIVE:
             return INA_SUCCESS;

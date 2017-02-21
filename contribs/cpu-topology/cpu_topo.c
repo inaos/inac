@@ -303,9 +303,9 @@ void SetGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned  cpu)
 	if (cpu < (pAffinityMap->maxByteLength << 3)  ) { 
 		pAffinityMap->AffinityMask[ cpu >> 3  ] |=  1 << (cpu % 8);
 	} else {
-		printf("Error: Wanted cpu %u but mask only supports up to %u cpus at %s %d. Bye\n", 
+		printf("CPU topology: Error: Wanted cpu %u but mask only supports up to %u cpus at %s %d. Bye\n", 
 			cpu, (pAffinityMap->maxByteLength << 3), __FILE__, __LINE__);
-		exit(2);
+		return 1;
 	}
 }
 
@@ -832,9 +832,9 @@ void  InitStructuredLeafBuffers()
 	glbl_ptr->cpuid_values[0].subleaf_max = 1; 
 
 	if(maxCPUID >= MAX_LEAFS) {
-		printf("got maxCPUID= 0x%x but the array only handles up to 0x%x. Bye at %s %d\n",
+		printf("CPU topology: got maxCPUID= 0x%x but the array only handles up to 0x%x. Bye at %s %d\n",
 							maxCPUID, MAX_LEAFS, __FILE__, __LINE__);
-		exit(2);
+		return;
 	}
 
 	for(j=1; j <= maxCPUID; j++) {
@@ -861,8 +861,8 @@ void  InitStructuredLeafBuffers()
 				glbl_ptr->cpuid_values[j].subleaf_max = subleaf;
 			}
 			if(subleaf == MAX_CACHE_SUBLEAFS) {
-							printf("Need bigger MAX_CACHE_SUBLEAFS(%d) at %s %d\n", MAX_CACHE_SUBLEAFS, __FILE__, __LINE__);
-							exit(2);
+							printf("CPU topology: Need bigger MAX_CACHE_SUBLEAFS(%d) at %s %d\n", MAX_CACHE_SUBLEAFS, __FILE__, __LINE__);
+							return;
 			}
 		}
 	}
@@ -1196,9 +1196,9 @@ static int AnalyzeCPUHierarchy(unsigned  numMappings)
 
 	if(numMappings >= glbl_ptr->perCore_detectedThreadsCount.dim[0]) {
 		// consistency check on the dimensions of allocated buffer 
-		printf("got too large 1st dimension %d which is bigger than %d at %s %d. Bye\n",
+		printf("CPU topology: got too large 1st dimension %d which is bigger than %d at %s %d. Bye\n",
 			(unsigned ) numMappings, glbl_ptr->perCore_detectedThreadsCount.dim[0], __FILE__, __LINE__);
-		exit(2);
+		return 1;
 	}
 	// iterate throught each logical processor in the system.
 	// mark up each unique physical package with a zero-based numbering scheme
@@ -1224,9 +1224,9 @@ static int AnalyzeCPUHierarchy(unsigned  numMappings)
 
 				if(glbl_ptr->perPkg_detectedCoresCount.data[h] >= glbl_ptr->perCore_detectedThreadsCount.dim[1]) {
 					// just a sanity check on the dimensions
-					printf("got too large 2nd dimension %d which is bigger than %d at %s %d. Bye\n",
+					printf("CPU topology: got too large 2nd dimension %d which is bigger than %d at %s %d. Bye\n",
 						glbl_ptr->perPkg_detectedCoresCount.data[h], glbl_ptr->perCore_detectedThreadsCount.dim[1], __FILE__, __LINE__);
-					exit(2);
+					return 1;
 				}
 
 				// look for core in marked packages
@@ -1246,9 +1246,9 @@ static int AnalyzeCPUHierarchy(unsigned  numMappings)
 				{	// mark up the Core_ID of an unmarked core in a marked package
 					unsigned  core = glbl_ptr->perPkg_detectedCoresCount.data[h];
 					if( h* numMappings + core >= ckDim) {
-						printf("got error. h* numMappings + core = %d and ckDim= %d at %s %d\n", 
+						printf("CPU topology: got error. h* numMappings + core = %d and ckDim= %d at %s %d\n", 
 							h* numMappings + core, ckDim, __FILE__, __LINE__);
-						exit(2);
+						return 1;
 					}
 					pDetectCoreIDsperPkg[h* numMappings + core] = coreID;
 					// keep track of respective hierarchical counts
@@ -1267,16 +1267,16 @@ static int AnalyzeCPUHierarchy(unsigned  numMappings)
 		{	// mark up the pkg_ID and Core_ID of an unmarked package
 			pDetectedPkgIDs[maxPackageDetetcted] = packageID;
 			if( maxPackageDetetcted* numMappings + 0 >= ckDim) {
-				printf("got error. maxPackageDetetcted= %d numMappings= %d maxPackageDetetcted* numMappings + 0 = %d and ckDim= %d at %s %d\n", 
+				printf("CPU topology: got error. maxPackageDetetcted= %d numMappings= %d maxPackageDetetcted* numMappings + 0 = %d and ckDim= %d at %s %d\n", 
 					maxPackageDetetcted, numMappings, maxPackageDetetcted* numMappings + 0, ckDim, __FILE__, __LINE__);
-				exit(2);
+				return 1;
 			}
 			pDetectCoreIDsperPkg[maxPackageDetetcted* numMappings + 0] = coreID;
 			// keep track of respective hierarchical counts
 			if( maxPackageDetetcted >= glbl_ptr->perPkg_detectedCoresCount.dim[0]) {
-				printf("got error. maxPackageDetetcted(%d) >= glbl_ptr->perPkg_detectedCoresCount.dim[0](%d) at %s %d. Bye\n", 
+				printf("CPU topology: got error. maxPackageDetetcted(%d) >= glbl_ptr->perPkg_detectedCoresCount.dim[0](%d) at %s %d. Bye\n", 
 					maxPackageDetetcted, glbl_ptr->perPkg_detectedCoresCount.dim[0], __FILE__, __LINE__);
-				exit(2);
+				return 1;
 			}
 			glbl_ptr->perPkg_detectedCoresCount.data[maxPackageDetetcted] = 1;
 			glbl_ptr->perCore_detectedThreadsCount.data[maxPackageDetetcted*MAX_CORES+0] = 1;
@@ -1381,9 +1381,9 @@ static int AnalyzeEachCHierarchy(unsigned subleaf, unsigned  numMappings)
 
 	// check 2nd dim
 	if(subleaf >= glbl_ptr->perEachCache_detectedThreadCount.dim[1]) {
-		printf("Error: Got subleaf(%d) >= glbl_ptr->perEachCache_detectedThreadCount.dim[1](%d) at %s %d. Bye\n",
+		printf("CPU topology: Error: Got subleaf(%d) >= glbl_ptr->perEachCache_detectedThreadCount.dim[1](%d) at %s %d. Bye\n",
 			subleaf, glbl_ptr->perEachCache_detectedThreadCount.dim[1], __FILE__, __LINE__);
-		exit(2);
+		return 1;
 	}
 
 	for (i=0; i < numMappings;i++) {
@@ -1395,9 +1395,9 @@ static int AnalyzeEachCHierarchy(unsigned subleaf, unsigned  numMappings)
 		threadID = glbl_ptr->pApicAffOrdMapping[i].EaCacheSMTIDAPIC[subleaf] ;
 
 		if(maxCacheDetected >= glbl_ptr->perEachCache_detectedThreadCount.dim[0]) {
-			printf("Error: Got maxCacheDetected(%d) >= glbl_ptr->perEachCache_detectedThreadCount.dim[0](%d) at %s %d. Bye\n",
+			printf("CPU topology: Error: Got maxCacheDetected(%d) >= glbl_ptr->perEachCache_detectedThreadCount.dim[0](%d) at %s %d. Bye\n",
 				maxCacheDetected, glbl_ptr->perEachCache_detectedThreadCount.dim[0], __FILE__, __LINE__);
-			exit(2);
+			return 1;
 		}
 
 		CacheMarked = FALSE;
