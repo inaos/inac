@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, INAOS GmbH
+ * Copyright (c) 2016-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ extern "C" {
  * 
  * Libraries to consider with regard to features or design:
  * - tommyds (https://github.com/amadvance/tommyds)
+ * - https://probablydance.com/2017/02/26/i-wrote-the-fastest-hashtable/#more-6655
  * - khash (https://github.com/attractivechaos/klib/blob/master/khash.h)
  * - gcc hashtable libiberty (https://gcc.gnu.org/svn/gcc/trunk/libiberty/hashtab.c)
  * - judy ?
@@ -102,7 +103,7 @@ extern "C" {
  *    - What should be a macro and what can be typed c-code?
  *    - We should probably have some fixed size variants and dynamic ones.. if dynamic how to grow:
  *      Quadratic probing, double hashing, linear probing etc. is it a concern at all if we use our mempools wisely?
- *      Or we could support all sorts of different grwoth strategies via different functors and then analyse with 
+ *      Or we could support all sorts of different growth strategies via different functors and then analyse with 
  *      which strategy is the best for the given use-case.
  *    - Should we allow shrikning, in terms of memory? maybe as a special case when space is more 
  *      critical then performance
@@ -110,8 +111,15 @@ extern "C" {
  *    - How to support shrinking? ina_mempool_realloc?
  *    - How to support perfect hashing for lookup-tables and such
  *      -> http://burtleburtle.net/bob/hash/perfect.html
+ *      -> https://gist.github.com/alnsn/68f599bc9358fcee122d6175392d779f
+ *   	-> https://github.com/alnsn/rgph (looks interesting because its seems to generate the hashtable at runtime)
  *      -> http://www.theiling.de/projects/lookuptable.html
  *      -> https://github.com/rurban/Perfect-Hash
+ *      -> https://github.com/inaos/inac/blob/8bd27379b3f9a737de07c0499ac4555680134afc/contribs/luajit/src/host/buildvm_fold.c
+ *      -> https://gist.github.com/alnsn/68f599bc9358fcee122d6175392d779f
+ *      -> https://github.com/alnsn/rgph
+ *      -> http://zola.di.unipi.it/rossano/wp-content/papercite-data/pdf/dcc14.pdf
+ *      -> http://cmph.sourceforge.net/bdz.html
  *    - Do we need to store data in our nodes or do we store it externally? in other words do we need handles in 
         hash nodes. What are the pros and cons?
  *
