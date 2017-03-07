@@ -47,6 +47,7 @@ struct ina_cpu_ctx_s {
     size_t l1_data_bytes;
     size_t l2_bytes;
     size_t l3_bytes;
+    size_t cache_line;
     int ipc_sp;
     int ipc_dp;
     int frequency_os;
@@ -73,10 +74,41 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	*result_mhz = (int)result;
     return INA_SUCCESS;
 }
+static ina_rc_t __ina_cpu_cache_line_size(size_t *bytes)
+{
+    size_t lineSize = 0;
+	DWORD bufferSize = 0;
+	DWORD i = 0;
+	SYSTEM_LOGICAL_PROCESSOR_INFORMATION * buffer = 0;
+
+	GetLogicalProcessorInformation(0, &bufferSize);
+	buffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)ina_mem_alloc(bufferSize);
+	GetLogicalProcessorInformation(&buffer[0], &bufferSize);
+
+	for (i = 0; i != bufferSize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); ++i) {
+		if (buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == 1) {
+			lineSize = buffer[i].Cache.LineSize;
+			break;
+		}
+	}
+
+	ina_mem_free(buffer);
+    *bytes = lineSize;
+
+	return INA_SUCCESS;
+}
 #else
 #ifdef INA_OS_OSX
 #include <sys/types.h>
 #include <sys/sysctl.h>
+static ina_rc_t __ina_cpu_cache_line_size(size_t *bytes)
+{
+    size_t lineSize = 0;
+	size_t sizeOfLineSize = sizeof(lineSize);
+	sysctlbyname("hw.cachelinesize", &lineSize, &sizeOfLineSize, 0, 0);
+    *bytes = lineSize;
+	return INA_SUCCESS;
+}
 /* Assuming Mac OS X with hw.cpufrequency sysctl */
 static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 {
@@ -89,6 +121,18 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
     return INA_SUCCESS;
 }
 #else
+static ina_rc_t __ina_cpu_cache_line_size(size_t *bytes)
+{
+    FILE *p = 0;
+	p = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
+	unsigned int lineSize = 0;
+	if (p) {
+		fscanf(p, "%d", &lineSize);
+		fclose(p);
+	}
+	*bytes = lineSize;
+    return INA_SUCCESS;
+}
 /* Assuming Linux with /proc/cpuinfo */
 static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 {
@@ -482,6 +526,8 @@ INA_API(ina_rc_t) ina_cpu_init()
         &__ina_cpu_ctx->l3_bytes
     );
 
+    __ina_cpu_cache_line_size(&__ina_cpu_ctx->cache_line);
+
     /* CPU instructions per cycle: 
      * ---------------------------
      *
@@ -759,5 +805,11 @@ INA_API(ina_rc_t) ina_cpu_hyperthreading_enabled(int *enabled)
     else {
         *enabled = 0;
     }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_cpu_get_cache_line_size(size_t *bytes)
+{
+    *bytes = __ina_cpu_ctx->cache_line;
     return INA_SUCCESS;
 }

@@ -305,7 +305,7 @@ void SetGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned  cpu)
 	} else {
 		printf("CPU topology: Error: Wanted cpu %u but mask only supports up to %u cpus at %s %d. Bye\n", 
 			cpu, (pAffinityMap->maxByteLength << 3), __FILE__, __LINE__);
-		return 1;
+		return;
 	}
 }
 
