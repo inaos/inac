@@ -31,7 +31,31 @@
 static ina_stopwatch_t   *stopwatch = NULL;
 static ina_str_t          benchmark = NULL;
 
+size_t j = 0, p = 0, temp = 0;
 
+static void quicksort(double *input, size_t *position, size_t k, size_t m)
+{
+    for (j = p = 0; j < m; j++) {
+        if (input[position[j]] < input[position[m]]) {
+            continue;
+        }
+        temp = position[p];
+        position[p] = position[j];
+        position[j] = temp;
+        p++;
+    }
+
+    temp = position[m];
+    position[m] = position[p];
+    position[p] = temp;
+
+    if (p > k) {
+        quicksort(input, position, k, p-1);
+    }
+    else if (p < k) {
+        quicksort(input, position+p+1, k-p-1, m-p-1);
+    }
+}
 
 static void its_cleanup_handler(int sig, int *error)
 {
@@ -53,6 +77,7 @@ static void its_cleanup_handler(int sig, int *error)
 int main(int argc, char **argv)
 {
     size_t len;
+    size_t k;
 
     INA_OPTS(opt,
         INA_OPT_INT("i", "size", 1e6, "Number of elements in the input array"),
@@ -71,13 +96,13 @@ int main(int argc, char **argv)
     }
 
     ina_opt_get_int("i", (int*)&len);
+    ina_opt_get_int("k", (int*)&k);
     
     if (INA_SUCCEED(ina_opt_isset("q"))) {
         benchmark = ina_str_new_fromcstr("simple quicksort");
         INA_TIME_STOPWATCH_START(stopwatch);
     }
-    else if (INA_SUCCEED(ina_opt_isset("l"))) {
-        char *A, *B, *C;
+    else if (INA_SUCCEED(ina_opt_isset("s"))) {
         benchmark = ina_str_new_fromcstr("SMID(AVX2) quicksort");
         INA_TIME_STOPWATCH_START(stopwatch);
     }
