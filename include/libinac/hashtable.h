@@ -120,6 +120,7 @@ extern "C" {
  *      -> https://github.com/alnsn/rgph
  *      -> http://zola.di.unipi.it/rossano/wp-content/papercite-data/pdf/dcc14.pdf
  *      -> http://cmph.sourceforge.net/bdz.html
+ *      -> https://www.snellman.net/blog/archive/2017-03-19-parallel-hashing-with-avx2/
  *    - Do we need to store data in our nodes or do we store it externally? in other words do we need handles in 
         hash nodes. What are the pros and cons?
  *
