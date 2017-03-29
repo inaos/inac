@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, INAOS GmbH
+ * Copyright (c) 2016-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,13 @@
 
 
 static const char* __dir_entries[] = {
-        ".",
-        "..",
-        "test1",
-        "test2",
-        "test3",
-        "test1.txt",
-        "test2.txt"
+    ".",
+    "..",
+    "test1",
+    "test2",
+    "test3",
+    "test1.txt",
+    "test2.txt"
 };
 
 INA_TEST_DATA(dir) {
