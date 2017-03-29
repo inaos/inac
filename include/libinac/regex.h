@@ -34,6 +34,12 @@
 extern "C" {
 #endif
 
+/*
+ * Links with ideas:
+ * - Russ Cox on regex: https://swtch.com/~rsc/regexp/
+ *
+ */
+
 /* Opaque regexp handle */
 typedef struct ina_regex_s ina_regex_t;
 
