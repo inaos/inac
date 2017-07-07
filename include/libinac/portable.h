@@ -54,7 +54,7 @@ extern "C" {
 #  define INA_COMPILER_HPCC 1 
 #endif
 
-#if defined __GNUC__
+#if defined __GNUC__ && !defined(INA_COMPILER_INTEL)
 #  define INA_COMPILER_STRING "Gnu GCC"
 #  define INA_COMPILER_GCC 1
 #endif
