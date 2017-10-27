@@ -26,6 +26,7 @@
 #include <stddef.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <limits.h>
 
@@ -126,6 +127,9 @@ do {                                                                 \
 #define KEEP_ALIVE "keep-alive"
 #define CLOSE "close"
 
+#define ASSERT_WITH_MESSAGE(condition, message) do { \
+if (!(condition)) { printf((message)); } \
+assert ((condition)); } while(0)
 
 static const char *method_strings[] =
   {
@@ -1323,7 +1327,7 @@ size_t http_parser_execute (http_parser *parser,
               break;
 
             default:
-              assert(0 && "Unknown header_state");
+              ASSERT_WITH_MESSAGE(0, "Unknown header_state");
               break;
           }
           break;
@@ -1441,7 +1445,7 @@ size_t http_parser_execute (http_parser *parser,
 
           case h_connection:
           case h_transfer_encoding:
-            assert(0 && "Shouldn't get here.");
+            ASSERT_WITH_MESSAGE(0, "Shouldn't get here.");
             break;
 
           case h_content_length:
@@ -1808,7 +1812,7 @@ size_t http_parser_execute (http_parser *parser,
         break;
 
       default:
-        assert(0 && "unhandled state");
+        ASSERT_WITH_MESSAGE(0, "unhandled state");
         SET_ERRNO(HPE_INVALID_INTERNAL_STATE);
         goto error;
     }
@@ -2110,7 +2114,7 @@ http_parser_parse_url(const char *buf, size_t buflen, int is_connect,
         break;
 
       default:
-        assert(!"Unexpected state");
+        ASSERT_WITH_MESSAGE(0, "Unexpected state");
         return 1;
     }
 
@@ -2165,7 +2169,7 @@ http_parser_pause(http_parser *parser, int paused) {
       HTTP_PARSER_ERRNO(parser) == HPE_PAUSED) {
     SET_ERRNO((paused) ? HPE_PAUSED : HPE_OK);
   } else {
-    assert(0 && "Attempting to pause parser in error state");
+    ASSERT_WITH_MESSAGE(0, "Attempting to pause parser in error state");
   }
 }
 
