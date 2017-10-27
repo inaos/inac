@@ -1,7 +1,7 @@
 @echo off
 
 REM
-REM Copyright (c) 2013-2016, INAOS GmbH
+REM Copyright (c) 2013-2017, INAOS GmbH
 REM All rights reserved.
 REM
 REM Redistribution and use in source and binary forms, with or without
@@ -120,8 +120,18 @@ if not defined VisualStudioVersion (
 		goto fail_vs_cmake_string
 	)
 ) else (
-	SET INAC_WIN32_VISUAL_STUDIO_STRING="Visual Studio %VisualStudioVersion:~0,2%"
+	if defined INAC_ARCH (
+		if "%INAC_ARCH%" == "x64" (
+			SET INAC_WIN32_VISUAL_STUDIO_STRING="Visual Studio %VisualStudioVersion:~0,2% Win64"
+		) else (
+			SET INAC_WIN32_VISUAL_STUDIO_STRING="Visual Studio %VisualStudioVersion:~0,2%"
+		)
+	)
 )
+if "%INAC_COMPILER%" == "ICC" (
+	SET INAC_WIN32_VISUAL_STUDIO_PLATFORM="Intel C++ Compiler %WIN_TITLE:~15,4%"
+)
+
 
 REM check build-stage
 SET INAC_BUILD_STAGE_VALID=
@@ -239,7 +249,7 @@ if defined INAC_WIN32_C_SOURCE_DIR (
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILD_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
 			if "%INAC_COMPILER%" == "ICC" (
-				call cmake -DCMAKE_CXX_COMPILER="%CMPLR_PATH:\=/%/icl.exe" -DCMAKE_C_COMPILER="%CMPLR_PATH:\=/%/icl.exe" -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
+				call cmake -DCMAKE_CXX_COMPILER=icl.exe -DCMAKE_C_COMPILER=icl.exe -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
 			) else (
 				call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_SOURCE_DIR%
 			)
@@ -248,7 +258,11 @@ if defined INAC_WIN32_C_SOURCE_DIR (
 			if ERRORLEVEL 1 goto exit_fail
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G%INAC_WIN32_VISUAL_STUDIO_STRING% ..\%INAC_WIN32_C_SOURCE_DIR%
+			if "%INAC_COMPILER%" == "ICC" (
+				call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G%INAC_WIN32_VISUAL_STUDIO_STRING% -T %INAC_WIN32_VISUAL_STUDIO_PLATFORM% ..\%INAC_WIN32_C_SOURCE_DIR%
+			) else (
+				call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G%INAC_WIN32_VISUAL_STUDIO_STRING% ..\%INAC_WIN32_C_SOURCE_DIR%
+			)
 			if ERRORLEVEL 1 goto exit_fail
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
@@ -274,14 +288,21 @@ if defined INAC_WIN32_C_TEST_SOURCE_DIR (
 		echo  %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		cd %INAC_WIN32_PROJECT_DIR%\%INAC_W32_BUILDTEST_DIR%
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-nmake" (
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			if "%INAC_COMPILER%" == "ICC" (
+				call cmake -DCMAKE_CXX_COMPILER=icl.exe -DCMAKE_C_COMPILER=icl.exe -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			) else (
+				call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G"NMake Makefiles" ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			)
 			if ERRORLEVEL 1 goto exit_fail
 			call nmake
 			if ERRORLEVEL 1 goto exit_fail
 		)
 		if "%INAC_WIN32_C_BUILD_TOOL%" == "cmake-vs" (
-			cd
-			call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G%INAC_WIN32_VISUAL_STUDIO_STRING% ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			if "%INAC_COMPILER%" == "ICC" (
+				call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G%INAC_WIN32_VISUAL_STUDIO_STRING% -T %INAC_WIN32_VISUAL_STUDIO_PLATFORM% ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			) else (
+				call cmake -DCMAKE_BUILD_TYPE=%INAC_BUILD_TYPE% -G%INAC_WIN32_VISUAL_STUDIO_STRING% ..\%INAC_WIN32_C_TEST_SOURCE_DIR%
+			)
 			rem if ERRORLEVEL 1 goto exit_fail
 			for %%F in (*.sln) do (
 				SET INAC_WIN32_SLN_FILE=%%F
