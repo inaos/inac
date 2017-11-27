@@ -107,20 +107,28 @@ static DWORD WINAPI ServiceControlHandlerEx(DWORD controlCode, DWORD  eventType,
 				if (IsEqualGUID(&s->PowerSetting, &GUID_MONITOR_POWER_ON)) {
 					DWORD monitor_state = (DWORD)s->Data;
 					if (monitor_state == 0) { /* Monitor is turned off */
-						__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_MONITOR_OFF, __ctx->usr_ev_data);
+						if (__ctx->usr_ev_fn != NULL) {
+							__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_MONITOR_OFF, __ctx->usr_ev_data);
+						}
 					}
 					else { /* Monitor is turned on */
-						__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_MONITOR_ON, __ctx->usr_ev_data);
+						if (__ctx->usr_ev_fn != NULL) {
+							__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_MONITOR_ON, __ctx->usr_ev_data);
+						}
 					}
 				}
 			}
 			break;
 		case SERVICE_CONTROL_SESSIONCHANGE:
 			if (eventType == WTS_SESSION_LOCK) {
-				__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_LOCK, __ctx->usr_ev_data);
+				if (__ctx->usr_ev_fn != NULL) {
+					__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_LOCK, __ctx->usr_ev_data);
+				}
 			}
 			else if (eventType == WTS_SESSION_UNLOCK) {
-				__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_UNLOCK, __ctx->usr_ev_data);
+				if (__ctx->usr_ev_fn != NULL) {
+					__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_UNLOCK, __ctx->usr_ev_data);
+				}
 			}
 			break;
         default:
@@ -139,7 +147,7 @@ static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
     /* initialise service status */
     __ctx->status.dwServiceType = SERVICE_WIN32;
     __ctx->status.dwCurrentState = SERVICE_STOPPED;
-    __ctx->status.dwControlsAccepted = 0;
+    __ctx->status.dwControlsAccepted = (SERVICE_ACCEPT_SESSIONCHANGE | SERVICE_ACCEPT_POWEREVENT);
     __ctx->status.dwWin32ExitCode = NO_ERROR;
     __ctx->status.dwServiceSpecificExitCode = NO_ERROR;
     __ctx->status.dwCheckPoint = 0;
