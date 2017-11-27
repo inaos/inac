@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, INAOS GmbH
+ * Copyright (c) 2013-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ typedef struct ina_service_ctx_s ina_service_ctx_t;
 
 /* service status */
 typedef enum ina_service_status_e {
-  INA_SERVICE_STATUS_STOP = 0,    /* After shutdown terninated */
+  INA_SERVICE_STATUS_STOP = 0,     /* After shutdown terminated */
   INA_SERVICE_STATUS_START,        /* Starting */
   INA_SERVICE_STATUS_RUN,          /* Running */
   INA_SERVICE_STATUS_SHUTDOWN,     /* Service should shutdown */
@@ -51,6 +51,15 @@ typedef enum ina_service_status_e {
 } ina_service_status_t;
 
 typedef ina_rc_t (*ina_service_fn_t)(ina_service_ctx_t *ctx, ina_service_status_t status, void *user_data);
+
+typedef enum ina_service_user_event_e {
+	INA_SERVICE_USER_EVENT_MONITOR_ON,
+	INA_SERVICE_USER_EVENT_MONITOR_OFF,
+	INA_SERVICE_USER_EVENT_LOCK,
+	INA_SERVICE_USER_EVENT_UNLOCK,
+} ina_service_user_event_t;
+
+typedef ina_rc_t(*ina_service_usr_ev_fn_t)(ina_service_ctx_t *ctx, ina_service_user_event_t status, void *user_data);
 
 /* Running mode */
 typedef enum ina_service_mode_e {
@@ -369,6 +378,12 @@ INA_API(ina_rc_t) ina_service_mgnt_install(const char *bin_path,
  *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_service_mgnt_uninstall(const char *bin_path);
+
+INA_API(ina_rc_t) ina_service_register_user_event_cb(ina_service_ctx_t *ctx, 
+	                                                 ina_service_usr_ev_fn_t callback, 
+	                                                 void *user_data);
+
+INA_API(ina_rc_t) ina_service_unregister_user_event_cb(ina_service_ctx_t *ctx);
 
 #ifdef __cplusplus
 }
