@@ -71,6 +71,9 @@ target_link_libraries(bench_mph_vs_switch ${PLATFORM_LIBS} ${LIBS})
 add_executable(bench_sort bench_sort.c)
 target_link_libraries(bench_sort ${PLATFORM_LIBS} ${LIBS})
 
+add_executable(bench_search bench_search.c)
+target_link_libraries(bench_search ${PLATFORM_LIBS} ${LIBS})
+
 if(WIN32) 
    add_custom_command(TARGET test POST_BUILD          
      COMMAND ${CMAKE_COMMAND} -E copy_if_different  
