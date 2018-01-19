@@ -287,6 +287,20 @@ INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen,
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_time_strptime(ina_str_t input,
+                                    const char *fmt,
+                                    ina_time_t* time)
+{
+#ifdef INA_OS_WIN32
+    /* http://stackoverflow.com/questions/321849/strptime-equivalent-on-windows
+       sscanf variant .. how to make it generic ?
+    */
+#else
+    /* strptime, that should be simple */
+#endif
+    return INA_NYI;
+}
+
 INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf, 
                                         const char *fmt, 
                                         const ina_time_tsc_t* time, 
