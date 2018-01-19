@@ -104,14 +104,14 @@ static DWORD WINAPI ServiceControlHandlerEx(DWORD controlCode, DWORD  eventType,
 		case SERVICE_CONTROL_POWEREVENT:
 			if (eventType == PBT_POWERSETTINGCHANGE) {
 				POWERBROADCAST_SETTING *s = (POWERBROADCAST_SETTING*)lpEventData;
-				if (IsEqualGUID(&s->PowerSetting, &GUID_MONITOR_POWER_ON)) {
+				if (IsEqualGUID(&s->PowerSetting, &GUID_CONSOLE_DISPLAY_STATE)) {
 					DWORD monitor_state = (DWORD)s->Data;
 					if (monitor_state == 0) { /* Monitor is turned off */
 						if (__ctx->usr_ev_fn != NULL) {
 							__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_MONITOR_OFF, __ctx->usr_ev_data);
 						}
 					}
-					else { /* Monitor is turned on */
+					else if (monitor_state == 1) { /* Monitor is turned on */
 						if (__ctx->usr_ev_fn != NULL) {
 							__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_MONITOR_ON, __ctx->usr_ev_data);
 						}
