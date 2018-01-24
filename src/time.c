@@ -298,7 +298,7 @@ INA_API(ina_rc_t) ina_time_strptime(ina_str_t input,
 #else
     /* strptime, that should be simple */
 #endif
-    return INA_NYI;
+    return INA_ENYI;
 }
 
 INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf, 
