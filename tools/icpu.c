@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,127 @@ static void __ina_interrrupt(ina_signal_t s, ina_signal_behavior_t *b, int *e)
 {
     __shutdown = 1;
     *e = EXIT_SUCCESS;
+}
+
+static void __show_cpu_flags()
+{
+	ina_str_t sflags;
+	ina_cpu_feature_t flags;
+	ina_cpu_get_features(&flags);
+
+	/* FIXME: create macro to reduce duplication */
+
+	sflags = ina_str_new(1024);
+	if (flags & INA_CPU_FEATURE_FPU) {
+		sflags = ina_str_catcstr(sflags, "FPU: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "FPU: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_TSC) {
+		sflags = ina_str_catcstr(sflags, "TSC: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "TSC: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_CX8) {
+		sflags = ina_str_catcstr(sflags, "CX8: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "CX8: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_CMOV) {
+		sflags = ina_str_catcstr(sflags, "CMOV: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "CMOV: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_MMX) {
+		sflags = ina_str_catcstr(sflags, "MMX: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "MMX: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_SSE) {
+		sflags = ina_str_catcstr(sflags, "SSE: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "SSE: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_SSE3) {
+		sflags = ina_str_catcstr(sflags, "SSE3: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "SSE3: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_SSSE3) {
+		sflags = ina_str_catcstr(sflags, "SSSE3: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "SSSE3: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_HTT) {
+		sflags = ina_str_catcstr(sflags, "HTT: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "HTT: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_EST) {
+		sflags = ina_str_catcstr(sflags, "EST: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "EST: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_FMA) {
+		sflags = ina_str_catcstr(sflags, "FMA: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "FMA: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_DCA) {
+		sflags = ina_str_catcstr(sflags, "DCA: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "DCA: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_SSE41) {
+		sflags = ina_str_catcstr(sflags, "SSE41: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "SSE41: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_SSE42) {
+		sflags = ina_str_catcstr(sflags, "SSE42: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "SSE42: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_AVX) {
+		sflags = ina_str_catcstr(sflags, "AVX: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "AVX: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_AES) {
+		sflags = ina_str_catcstr(sflags, "AES: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "AES: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_RDRND) {
+		sflags = ina_str_catcstr(sflags, "RDRND: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "RDRND: NO\n");
+	}
+	if (flags & INA_CPU_FEATURE_POPCNT) {
+		sflags = ina_str_catcstr(sflags, "POPCNT: YES\n");
+	}
+	else {
+		sflags = ina_str_catcstr(sflags, "POPCNT: NO\n");
+	}
+	printf("%s", ina_str_cstr(sflags));
+	ina_str_free(sflags);
 }
 
 static void __ina_measure_freq()
@@ -97,6 +218,8 @@ int main(int argc,  char** argv)
     else {
         __ina_measure_freq();
     }
+
+	__show_cpu_flags();
 
     return EXIT_SUCCESS;
 }
