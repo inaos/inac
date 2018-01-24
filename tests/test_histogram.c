@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 INAOS GmbH
+ * Copyright (c) 2016-2017 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,38 @@
 #include <libinac/lib.h>
 
 static int64_t __test_histogram_samples[200] = {
-  	270919,291812,278014,344222,303965,263408,328418,758164,
-	293400,261438,276039,487205,292468,268941,309731,290728,
-	272495,385159,302925,268589,284899,336305,313902,288263,
-	317853,268829,288691,276141,311811,288089,287207,267362,
-	333445,355059,320249,261990,272730,291386,313317,269409,
-	279987,255697,483655,618533,287671,267270,362711,264866,
-	294784,284082,308582,308437,276707,287734,271856,272858,
-	286571,340023,501338,273194,285953,870960,342777,482570,
-	1507240,401264,354430,294495,273148,258347,276013,260629,
-	276336,627073,354531,259990,285908,1043509,968356,250967,
-	298714,310196,287334,265627,290655,280329,287576,285775,
-	292190,301599,304254,273842,330485,330266,484109,435444,
-	363542,284190,288732,313206,283362,1274899,283601,270792,
-	286783,285412,318426,264900,298408,272237,294909,1413854,
-	1993843,1213858,297172,273579,305633,310359,271169,273758,
-	430661,614023,294362,261202,291101,264220,287524,274138,
-	321801,272527,292836,258325,289942,258040,289663,1462132,
-	290728,285350,688629,264657,381524,313542,454162,1051379,
-	287519,296564,302740,291228,312370,910589,321491,274529,
-	306307,258245,303081,257884,366780,1034799,352741,266791,
-	274581,289501,280638,326654,315804,270056,282051,271361,
-	303637,309921,775853,280767,313582,305971,287146,286304,
-	290649,270637,298135,254138,281250,291806,282220,271832,
-	287993,532174,268451,1084772,305206,308922,334738,353142,
-	297288,288795,334404,266854,305081,300544,401103,401103
+  	22220,21924,22117,22313,21970,22315,27235,
+    24301,22148,21938,22391,128511,22771,24856,
+    22339,22214,21936,22099,22013,23445,22333,
+    25448,22176,22312,22007,26503,22105,22131,
+    22428,22627,21991,23628,22069,22842,22083,
+    23075,21966,22771,22060,22320,22713,22066,
+    22204,22195,22219,24509,22241,21922,25240,
+    23569,22016,22362,22907,21860,24221,23531,
+    22314,25964,22083,22753,21991,22864,22876,
+    22400,22638,23046,22065,26561,22064,22160,
+    22012,106464,22130,22136,22521,22723,22053,
+    22138,21959,22266,22042,22589,22068,23685,
+    22016,22363,32323,21943,33482,23898,22427,
+    23290,22984,22237,22291,22464,22051,22355,
+    27171,22815,22188,22232,22362,21878,22048,
+    21975,23136,22804,22731,22387,52520,22666,
+    22360,22459,22706,22452,21974,21992,22421,
+    23352,22038,22905,22441,22187,22022,22517,
+    22759,23805,22406,22524,22181,22112,22131,
+    22684,21922,22201,22018,22272,22459,22011,
+    22786,21925,22085,23033,22014,21961,22134,
+    23839,22381,24390,22667,21877,22104,22620,
+    22114,22402,22344,22090,22149,22086,23529,
+    22345,22669,22062,22713,22635,22760,25581,
+    22669,22331,22632,22008,22349,22117,23557,
+    22409,21977,22936,22051,22283,22044,26639,
+    22158,22608,22081,22453,22656,21998,23159,
+    22162,22028,22212,22433,22057,26686,22164,
+    22038,21986,22275
 };
 
-INA_TEST_SKIP(histogram, roundtrip_remote_system) {
+INA_TEST(histogram, roundtrip_remote_system) {
     int i;
     ina_histogram_recorder_t *recorder = NULL;
     ina_histogram_serializer_t *serializer = NULL;
@@ -66,40 +70,24 @@ INA_TEST_SKIP(histogram, roundtrip_remote_system) {
     ina_str_t record = NULL;
     ina_histogram_meta_t meta;
     ina_str_t id = ina_str_new_fromcstr("ina_test_recorder");
+    FILE *f = fopen("test_histogram.txt", "w");
     
     ina_mem_set(&meta, 0, sizeof(ina_histogram_meta_t));
 
-    /*INA_TEST_ASSERT_SUCCEED(ina_histogram_reporter_new(&reporter));
+    INA_TEST_ASSERT_SUCCEED(ina_histogram_reporter_new(&reporter));
     INA_TEST_ASSERT_SUCCEED(ina_histogram_serializer_new(&serializer, 
         id, 
-        INT64_C(1*1000*1000*1000),
-        5));*/
+        INT64_C(24) * 60 * 60 * 1000000,
+        3));
     INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_new(&recorder,
         id,
-        INT64_C(1*1000*1000*1000),
-        //INT64_MAX,
+        INT64_C(24) * 60 * 60 * 1000000,
         3,
         1000));
 
-    for (i = 0; i < 5; i++) {
-        INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_record(recorder, __test_histogram_samples[i]));
-    }
-    now_ns += one_sec;
-    INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_process(recorder, now_ns));
-
-    for (i = 5; i < 15; i++) {
-        INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_record(recorder, __test_histogram_samples[i]));
-    }
-    now_ns += one_sec;
-    INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_process(recorder, now_ns));
-
-    for (i = 15; i < 35; i++) {
-        INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_record(recorder, __test_histogram_samples[i]));
-    }
-    now_ns += one_sec;
-    INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_process(recorder, now_ns));
-
-    for (i = 35; i < 50; i++) {
+    ina_histogram_reporter_write_header(reporter, f, now_ns);
+    ina_histogram_recorder_start(recorder, now_ns);
+    for (i = 0; i < 50; i++) {
         INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_record(recorder, __test_histogram_samples[i]));
     }
     now_ns += one_sec;
@@ -141,9 +129,12 @@ INA_TEST_SKIP(histogram, roundtrip_remote_system) {
     now_ns += one_sec;
     INA_TEST_ASSERT_SUCCEED(ina_histogram_recorder_process(recorder, now_ns));
 
+    fprintf(stdout, "\n");
     ina_histogram_serializer_serialize(serializer, &record, &meta);
     INA_TEST_ASSERT_NOT_NULL(record);
     while (record != NULL) {
+        //ina_histogram_reporter_print_percentile(reporter, record, stdout, 5, 1.0);
+        ina_histogram_reporter_write(reporter, f, record);
         ina_histogram_serializer_serialize(serializer, &record, &meta);
     }
 
@@ -151,5 +142,7 @@ INA_TEST_SKIP(histogram, roundtrip_remote_system) {
     INA_TEST_ASSERT_SUCCEED(ina_histogram_serializer_free(&serializer));
     INA_TEST_ASSERT_SUCCEED(ina_histogram_reporter_free(&reporter));
     ina_str_free(id);
+
+    fclose(f);
 }
 

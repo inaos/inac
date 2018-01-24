@@ -1,4 +1,31 @@
-/*		Copyright 2008-2009 Intel Corporation 
+/*		Copyright 2008-2016 Intel Corporation 
+All rights reserved.
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+    Redistributions of source code must retain the above copyright notice, 
+    this list of conditions and the following disclaimer.
+    Redistributions in binary form must reproduce the above copyright notice, 
+    this list of conditions and the following disclaimer in the documentation 
+    and/or other materials provided with the distribution.
+    Neither the name of the Intel Corp. nor the names of its contributors 
+    may be used to endorse or promote products derived from this software 
+    without specific prior written permission. 
+
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY 
+WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/*
  *	util_os.c 
  *  This is the auxilary source file that contain wrapper routines of 
  *  OS-specific services called by functions in the file cpu_topo.c
@@ -123,7 +150,7 @@ static char scratch[BLOCKSIZE_4K];  // scratch space large enough for OS to writ
 	unsigned int cpu_beg = 0, cnt , cpu_cnt, j;
 	SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX    *pSystem_rel_info = NULL;
 	GROUP_AFFINITY	grp_affinity, prev_grp_affinity;
-	HMODULE  hLib = LoadLibrary("kernel32.dll");
+	HANDLE  hLib = LoadLibrary("kernel32.dll");
 	FARPROC lpFnThrGrpAff,  lpFnLpInfoEx;
 	if( cpu >= MAX_WIN7_LOG_CPU || !hLib) return ret;
 
@@ -196,7 +223,8 @@ static char scratch[BLOCKSIZE_4K];  // scratch space large enough for OS to writ
  * Return:        a non-zero value
  */
 unsigned  int GetMaxCPUSupportedByOS()
-{unsigned  int lcl_OSProcessorCount = 0;
+{
+	unsigned  int lcl_OSProcessorCount = 0;
 #ifdef __linux__
 
 	lcl_OSProcessorCount = sysconf(_SC_NPROCESSORS_CONF); //This will tell us how many CPUs are currently enabled.	
@@ -204,17 +232,35 @@ unsigned  int GetMaxCPUSupportedByOS()
 #else
 	SYSTEM_INFO si;
 #if  ( _WIN32_WINNT >= 0x0601 )
-	HMODULE  hLib = LoadLibrary("kernel32.dll");
+	unsigned short grpCnt;
+	HANDLE  hLib = LoadLibrary("kernel32.dll");
 	FARPROC lpFnMaxProcCnt;
-	if(!hLib) {
-		DWORD err = GetLastError();
-		return lcl_OSProcessorCount;
-	} 
+	FARPROC lpFnActProcGrpCnt, lpFnLpInfoEx;
+	unsigned int cnt , i ;
+	SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX    *pSystem_rel_info = NULL;
+
+	if(!hLib) return lcl_OSProcessorCount;
 	lpFnMaxProcCnt = GetProcAddress(hLib, "GetMaximumProcessorCount");
+	lpFnLpInfoEx = GetProcAddress(hLib, "GetLogicalProcessorInformationEx");
+	lpFnActProcGrpCnt = GetProcAddress(hLib, "GetActiveProcessorGroupCount");
 	// runtime check if os version is greater than 0601h
-	if( lpFnMaxProcCnt )
-	{	
-		lcl_OSProcessorCount = GetMaximumProcessorCount(ALL_PROCESSOR_GROUPS);
+
+	if( lpFnLpInfoEx && lpFnActProcGrpCnt )
+	{	lcl_OSProcessorCount = 0;
+		// if Windows version support processor groups
+		// tally actually populated logical processors in each group
+		grpCnt = (WORD) lpFnActProcGrpCnt();
+		cnt = BLOCKSIZE_4K;
+		memset(&scratch[0], 0, cnt);
+		pSystem_rel_info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *) &scratch[0];
+
+		if (!lpFnLpInfoEx (RelationGroup, pSystem_rel_info, &cnt) ) 
+		{	glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS; return 0;  
+		}
+		if( pSystem_rel_info->Relationship != RelationGroup) 
+		{	glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS; return 0;  
+		}
+		for (i = 0; i < grpCnt; i ++) 		lcl_OSProcessorCount += pSystem_rel_info->Group.GroupInfo[i].ActiveProcessorCount;
 	}
 	else
 	{
@@ -264,13 +310,14 @@ void  SetChkProcessAffinityConsistency(unsigned  int lcl_OSProcessorCount)
 	DWORD_PTR processAffinity;
 	DWORD_PTR systemAffinity;
 	unsigned short grpCnt, grpAffinity[MAX_THREAD_GROUPS_WIN7];
-	int ret;
+	
 
 #if  ( _WIN32_WINNT >= 0x0601 )
-	HMODULE  hLib = LoadLibrary("kernel32.dll");
+	HANDLE  hLib = LoadLibrary("kernel32.dll");
 	FARPROC lpFnProcessGrpAff, lpFnActProcGrpCnt, lpGFnThrGrpAff, lpSFnThrGrpAff, lpFnLpInfoEx;
 	GROUP_AFFINITY	grp_affinity, prev_grp_affinity;
 	unsigned int cnt , cpu_cnt ;
+	//WORD	grp_cnt;
 	SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX    *pSystem_rel_info = NULL;
 	if(!hLib) 
 	{	glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS; return ;  
@@ -302,8 +349,8 @@ void  SetChkProcessAffinityConsistency(unsigned  int lcl_OSProcessorCount)
 		for (i = 0; i < grpCnt; i ++)
 		{  	cnt = grpCnt;
 			//GetProcessGroupAffinity(GetCurrentProcess(), &grpCnt, &grpAffinity[0]);
-			ret = lpFnProcessGrpAff(GetCurrentProcess(), &cnt, &grpAffinity[0]);
-			if( !ret )
+			//ret = (int) lpFnProcessGrpAff(GetCurrentProcess(), &cnt, &grpAffinity[0]);
+			if( ! lpFnProcessGrpAff(GetCurrentProcess(), &cnt, &grpAffinity[0]) )
 			{ 	//throw some exception here, no full affinity for the process
 		  		glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS;
 				break;

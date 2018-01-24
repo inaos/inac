@@ -1,4 +1,31 @@
-/*		Copyright 2005-2009 Intel Corporation 
+/*		Copyright 2005-2016 Intel Corporation 
+All rights reserved.
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+    Redistributions of source code must retain the above copyright notice, 
+    this list of conditions and the following disclaimer.
+    Redistributions in binary form must reproduce the above copyright notice, 
+    this list of conditions and the following disclaimer in the documentation 
+    and/or other materials provided with the distribution.
+    Neither the name of the Intel Corp. nor the names of its contributors 
+    may be used to endorse or promote products derived from this software 
+    without specific prior written permission. 
+
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY 
+WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/*
  *	cpu_topo.c 
  *  This is the main source file to demonstrate processor topology enumeration 
  *	algorithm in Intel(R) 64 and IA-32 platforms with hardware multi-threading capability.
@@ -41,7 +68,7 @@
  *  Two shell script files are provided to assist compiling the source files in Linux OS
  *
  *	Written by Patrick Fay, Ronen Zohar and Shihjong Kuo
- */
+*/
 
 #include "cputopology.h"
 
@@ -184,7 +211,7 @@ unsigned char myBitScanReverse(unsigned  * index, unsigned long mask)
 
 	for(i=(8*sizeof(unsigned long)); i > 0; i--) {
 		if((mask & (LNX_MY1CON << (i-1))) != 0) {
-			*index = (unsigned) (i-1);
+			*index = (unsigned long) (i-1);
 			break;
 		}
 	}
@@ -416,14 +443,14 @@ unsigned char TestGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned
  * returns the number of bytes in the string
  *         
  */
-int CompressHexMask( char *str)
-{
-	int i, j, k, m;
+unsigned CompressHexMask( char *str)
+{   int slen;
+	int i, k, m;
 	
 	// now drop the leading zeroes... find the 1st nonzero, then start moving it over
-	j = strlen(str);
+	slen = (int) strlen(str);
 	k=0;
-	for(i = 0; i < j; i++) {
+	for(i = 0; i < (int) slen; i++) {
 		if(str[i] != '0') {
 			k = i;
 			break;
@@ -431,14 +458,14 @@ int CompressHexMask( char *str)
 	}
 	if(k > 0) {
 		m = 0;
-		for(i = k; i <= j; i++) {
+		for(i = k; i <= (int)slen; i++) {
 			str[m++] = str[i];
 		}
 	}
 	// now look for trailing zeroes.. Count how many we havethen start moving it over
 	k=0;
-	j = strlen(str);
-	for(i = j-1; i >= 0; i--) {
+	slen = (int) strlen(str);
+	for(i = (int)slen-1; i >= 0; i--) {
 		if(str[i] != '0') {
 			break;
 		} else {
@@ -449,13 +476,13 @@ int CompressHexMask( char *str)
 		char tstr[32];
 		int tlen;
 		sprintf(tstr, "z%d", k);
-		tlen = strlen(tstr);
+		tlen = (int) strlen(tstr);
 		if(k > tlen) {
-			strcpy(str+(j-k), tstr);
-			j = strlen(str);
+			strcpy(str+( (int) slen-k), tstr);
+			slen = (int) strlen(str);
 		}
 	}
-	return j;
+	return slen;
 }
 
 
@@ -475,15 +502,15 @@ int CompressHexMask( char *str)
  * returns -1 if the string is too short to hold the output, otherwise returns the number of bytes in the string
  *         
  */
-int FormatHexMask(char *str, unsigned int fmt)
-{
-	int i, j, k, m;
+unsigned FormatHexMask(char *str, unsigned int fmt)
+{   int j;
+	int i, k, m;
 	
 
 	// now drop the leading zeroes... find the 1st nonzero, then start moving it over
-		j = strlen(str);
+		j = (int) strlen(str);
 		k=0;
-		for(i = 0; i < j; i++) {
+		for(i = 0; i < (int) j; i++) {
 			if(str[i] != '0') {
 				k = i;
 				break;
@@ -492,16 +519,16 @@ int FormatHexMask(char *str, unsigned int fmt)
 	if( (fmt & MASK_FMT_KEEP_LEADING_ZEROES) == 0) {
 		if(k > 0) {
 			m = 0;
-			for(i = k; i <= j; i++) {
+			for(i = k; i <=  j; i++) {
 				str[m++] = str[i];
 			}
 		}
 	}
 	// now look for trailing zeroes.. Count how many we havethen start moving it over
-	j = strlen(str);
+	j = (int) strlen(str);
 	if( (fmt & MASK_FMT_KEEP_TRAILING_ZEROES) == 0) {
 		k=0;
-		for(i = j-1; i >= 0; i--) {
+		for(i = (int) j-1; i >= 0; i--) {
 			if(str[i] != '0') {
 				break;
 			} else {
@@ -512,16 +539,15 @@ int FormatHexMask(char *str, unsigned int fmt)
 			char tstr[32];
 			int tlen;
 			sprintf(tstr, "z%d", k);
-			tlen = strlen(tstr);
+			tlen = (int) strlen(tstr);
 			if(k > tlen) {
-				strcpy(str+(j-k), tstr);
-				j = strlen(str);
+				strcpy(str+( (int) j-k), tstr);
+				j = (int) strlen(str);
 			}
 		}
 	}
 	return j;
-}
-	
+}	
 	
 /* FormatSingleBitMask
  *  prints the generic affinity mask in hex (print 2 hex bytes per 1 byte of affinity mask.
@@ -557,7 +583,7 @@ int FormatSingleBitMask(unsigned cpu, unsigned  len, char *str)
 	} else {
 		sprintf(tstr, "%x", (1 << mod_8));
 	}
-	i = strlen(tstr);
+	i = (int)strlen(tstr);
 	if(i < len) {
 		strcpy(str, tstr);
 	} else {
@@ -820,7 +846,7 @@ int FindEachCacheIndex(DWORD maxCPUID, unsigned cache_subleaf)
  */
 void  InitStructuredLeafBuffers()
 {
-	unsigned j;
+	unsigned j, kk, qeidmsk;
 	unsigned maxCPUID;
 	CPUIDinfo info;
 
@@ -843,7 +869,29 @@ void  InitStructuredLeafBuffers()
 		memcpy(glbl_ptr->cpuid_values[j].subleaf[0], &info, 4*sizeof(unsigned int));
 		glbl_ptr->cpuid_values[j].subleaf_max = 1;
 
-		if( (j == 0x4 || j == 0xb)) {
+		if( j == 0xd ) {
+			int subleaf=2;
+			glbl_ptr->cpuid_values[j].subleaf_max = 1;
+			_CPUID(&info, j, subleaf);
+			while (info.EAX && subleaf < MAX_CACHE_SUBLEAFS) {
+				glbl_ptr->cpuid_values[j].subleaf_max = subleaf;
+				subleaf++;
+				_CPUID(&info, j, subleaf);
+			}
+		}
+		else if( j == 0x10 || j == 0xf ) {
+			int subleaf=1;
+			_CPUID(&info, j, subleaf);
+			if(j == 0xf) qeidmsk = info.EDX;  // sub-leaf value are derived from valid resource id's 
+			else qeidmsk = info.EBX; 
+			kk = 1;
+			while (  kk < 32)  {
+				_CPUID(&info, j, kk);
+				if( (qeidmsk  & (1 << kk) ) != 0 ) glbl_ptr->cpuid_values[j].subleaf_max = kk;			
+				kk ++;
+			}
+		}
+		else if( (j == 0x4 || j == 0xb)) {
 			int subleaf=1;
 			unsigned int type=1;
 			while (type && subleaf < MAX_CACHE_SUBLEAFS) {
@@ -851,7 +899,7 @@ void  InitStructuredLeafBuffers()
 				if(j == 0x4) {
 								type = getBitsFromDWORD(info.EAX,0,4);
 				} else {
-								type = info.EBX;
+								type = 0xffff & info.EBX;
 				} 
 				glbl_ptr->cpuid_values[j].subleaf[subleaf] = (CPUIDinfo *)malloc( sizeof(CPUIDinfo) );
 				memcpy(glbl_ptr->cpuid_values[j].subleaf[subleaf], &info, 4*sizeof(unsigned int));

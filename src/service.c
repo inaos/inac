@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, INAOS GmbH
+ * Copyright (c) 2013-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,8 @@ struct ina_service_ctx_s {
     SERVICE_STATUS status;
     SERVICE_STATUS_HANDLE status_handle;
     HANDLE stop_service_event;  
+	ina_service_usr_ev_fn_t usr_ev_fn;
+	void *usr_ev_data;
 #else
     int lock_fp;
     int pid_fp;
@@ -83,7 +85,8 @@ static DWORD __stdcall __ina_service_start_wrapper(LPVOID data)
     }
     return __ctx->descriptor->service_fn(__ctx, INA_SERVICE_STATUS_RUN, __ctx->user_data);
 }
-static void WINAPI ServiceControlHandler( DWORD controlCode )
+static DWORD WINAPI ServiceControlHandlerEx(DWORD controlCode, DWORD  eventType,
+	LPVOID lpEventData, LPVOID lpContext)
 {
     switch (controlCode) {
         case SERVICE_CONTROL_INTERROGATE:
@@ -93,11 +96,41 @@ static void WINAPI ServiceControlHandler( DWORD controlCode )
             __ctx->status.dwCurrentState = SERVICE_STOP_PENDING;
             SetServiceStatus(__ctx->status_handle, &__ctx->status);
             SetEvent(__ctx->stop_service_event);
-            return;
+            return NO_ERROR;
         case SERVICE_CONTROL_PAUSE:
             break;
         case SERVICE_CONTROL_CONTINUE:
             break;
+		case SERVICE_CONTROL_POWEREVENT:
+			if (eventType == PBT_POWERSETTINGCHANGE) {
+				POWERBROADCAST_SETTING *s = (POWERBROADCAST_SETTING*)lpEventData;
+				if (IsEqualGUID(&s->PowerSetting, &GUID_CONSOLE_DISPLAY_STATE)) {
+					DWORD monitor_state = (DWORD)s->Data;
+					if (monitor_state == 0) { /* Monitor is turned off */
+						if (__ctx->usr_ev_fn != NULL) {
+							__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_MONITOR_OFF, __ctx->usr_ev_data);
+						}
+					}
+					else if (monitor_state == 1) { /* Monitor is turned on */
+						if (__ctx->usr_ev_fn != NULL) {
+							__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_MONITOR_ON, __ctx->usr_ev_data);
+						}
+					}
+				}
+			}
+			break;
+		case SERVICE_CONTROL_SESSIONCHANGE:
+			if (eventType == WTS_SESSION_LOCK) {
+				if (__ctx->usr_ev_fn != NULL) {
+					__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_LOCK, __ctx->usr_ev_data);
+				}
+			}
+			else if (eventType == WTS_SESSION_UNLOCK) {
+				if (__ctx->usr_ev_fn != NULL) {
+					__ctx->usr_ev_fn(__ctx, INA_SERVICE_USER_EVENT_UNLOCK, __ctx->usr_ev_data);
+				}
+			}
+			break;
         default:
             if (controlCode >= 128 && controlCode <= 255)
                 /* user defined control code */
@@ -107,21 +140,22 @@ static void WINAPI ServiceControlHandler( DWORD controlCode )
                 break;
     }
     SetServiceStatus(__ctx->status_handle, &__ctx->status);
+	return NO_ERROR;
 }
 static void WINAPI ServiceMain(DWORD argc, TCHAR* argv[])
 {
     /* initialise service status */
     __ctx->status.dwServiceType = SERVICE_WIN32;
     __ctx->status.dwCurrentState = SERVICE_STOPPED;
-    __ctx->status.dwControlsAccepted = 0;
+    __ctx->status.dwControlsAccepted = (SERVICE_ACCEPT_SESSIONCHANGE | SERVICE_ACCEPT_POWEREVENT);
     __ctx->status.dwWin32ExitCode = NO_ERROR;
     __ctx->status.dwServiceSpecificExitCode = NO_ERROR;
     __ctx->status.dwCheckPoint = 0;
     __ctx->status.dwWaitHint = 0;
 
-    __ctx->status_handle = RegisterServiceCtrlHandler(
+    __ctx->status_handle = RegisterServiceCtrlHandlerEx(
                     ina_str_cstr(__ctx->descriptor->name), 
-                    ServiceControlHandler);
+                    ServiceControlHandlerEx, NULL);
 
     if (__ctx->status_handle) {
         HANDLE thread_handle = INVALID_HANDLE_VALUE;
@@ -1087,4 +1121,30 @@ INA_API(ina_rc_t) ina_service_mgnt_uninstall(const char *bin_path)
         return INA_FAILURE;
     }
     return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_service_register_user_event_cb(ina_service_ctx_t *ctx,
+	                                                 ina_service_usr_ev_fn_t callback,
+	                                                 void *user_data)
+{
+	INA_ASSERT_NOTNULL(ctx);
+#ifndef INA_OS_WIN32
+	return INA_FAILURE;
+#else
+	ctx->usr_ev_fn = callback;
+	ctx->usr_ev_data = user_data;
+	return INA_SUCCESS;
+#endif
+}
+
+INA_API(ina_rc_t) ina_service_unregister_user_event_cb(ina_service_ctx_t *ctx)
+{
+	INA_ASSERT_NOTNULL(ctx);
+#ifndef INA_OS_WIN32
+	return INA_FAILURE;
+#else
+	ctx->usr_ev_fn = NULL;
+	ctx->usr_ev_data = NULL;
+	return INA_SUCCESS;
+#endif
 }
