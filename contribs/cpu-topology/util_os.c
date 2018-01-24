@@ -223,7 +223,8 @@ static char scratch[BLOCKSIZE_4K];  // scratch space large enough for OS to writ
  * Return:        a non-zero value
  */
 unsigned  int GetMaxCPUSupportedByOS()
-{unsigned  int lcl_OSProcessorCount = 0;
+{
+	unsigned  int lcl_OSProcessorCount = 0;
 #ifdef __linux__
 
 	lcl_OSProcessorCount = sysconf(_SC_NPROCESSORS_CONF); //This will tell us how many CPUs are currently enabled.	
@@ -234,8 +235,8 @@ unsigned  int GetMaxCPUSupportedByOS()
 	unsigned short grpCnt;
 	HANDLE  hLib = LoadLibrary("kernel32.dll");
 	FARPROC lpFnMaxProcCnt;
-	FARPROC lpFnProcessGrpAff, lpFnActProcGrpCnt, lpGFnThrGrpAff, lpSFnThrGrpAff, lpFnLpInfoEx;
-	unsigned int cnt , cpu_cnt, i ;
+	FARPROC lpFnActProcGrpCnt, lpFnLpInfoEx;
+	unsigned int cnt , i ;
 	SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX    *pSystem_rel_info = NULL;
 
 	if(!hLib) return lcl_OSProcessorCount;
@@ -254,10 +255,10 @@ unsigned  int GetMaxCPUSupportedByOS()
 		pSystem_rel_info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *) &scratch[0];
 
 		if (!lpFnLpInfoEx (RelationGroup, pSystem_rel_info, &cnt) ) 
-		{	glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS; return ;  
+		{	glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS; return 0;  
 		}
 		if( pSystem_rel_info->Relationship != RelationGroup) 
-		{	glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS; return ;  
+		{	glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS; return 0;  
 		}
 		for (i = 0; i < grpCnt; i ++) 		lcl_OSProcessorCount += pSystem_rel_info->Group.GroupInfo[i].ActiveProcessorCount;
 	}
