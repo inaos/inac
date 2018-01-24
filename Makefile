@@ -36,10 +36,8 @@ OS := $(shell uname -s)
 # ****************************************************************************
 INAC_HOME_DIR=$(CURDIR)
 INAC_CONTRIBS_DIR=$(INAC_HOME_DIR)/contribs
-INAC_CONTRIBSBIN_DIR=$(INAC_HOME_DIR)/contribs-bin
 export INAC_HOME_DIR
 export INAC_CONTRIBS_DIR
-export INAC_CONTRIBSBIN_DIR
 
 # ****************************************************************************
 # LuaJIT variables
@@ -56,7 +54,7 @@ export LUA_PATH
 # Compiler setting
 # ****************************************************************************
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
-         -I$(INAC_CONTRIBS_DIR) -I$(INAC_CONTRIBSBIN_DIR)
+         -I$(INAC_CONTRIBS_DIR)
 CFLAGS += -DINA_LIB=1
 CFLAGS += -fopenmp
 ifeq ($(OS), Linux)
@@ -66,7 +64,7 @@ endif
 # ****************************************************************************
 # Subdirectories
 # ****************************************************************************
-DIRS = contribs contribs-bin doc include src tests tools
+DIRS = contribs doc include src tests tools
 # ****************************************************************************
 # Libraries
 # ****************************************************************************
@@ -76,53 +74,18 @@ INAC_LINUX_LIBS=$(INAC_CONTRIBS_DIR)/cpu-topology/cpu-topology.a
 endif
 INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a  \
-	$(INAC_CONTRIBS_DIR)/sqlite/sqlite.a $(INAC_CONTRIBS_DIR)/rapidxml/rapidxml.a \
-	$(INAC_CONTRIBS_DIR)/http-parser/libhttp_parser.a $(INAC_CONTRIBS_DIR)/axtls/axtls.a \
-        $(INAC_CONTRIBS_DIR)/yajl/yajl.a $(INAC_CONTRIBS_DIR)/miniz/miniz.a \
+	$(INAC_CONTRIBS_DIR)/miniz/miniz.a $(INAC_CONTRIBS_DIR)/xxhash/xxhash.a \
 	$(INAC_CONTRIBS_DIR)/lz4/lz4.a $(INAC_CONTRIBS_DIR)/timerwheel/timerwheel.a \
-	$(INAC_CONTRIBS_DIR)/hdr-histogram/hdr-histogram.a $(INAC_CONTRIBS_DIR)/xxhash/xxhash.a \
 	$(INAC_CONTRIBS_DIR)/falkhash/falkhash.a $(INAC_CONTRIBS_DIR)/memhash/memhash.a \
 	$(INAC_LINUX_LIBS)
 # ****************************************************************************
 #  String implementation
 # ****************************************************************************
-ifndef INAC_STRING_LIB
-	INAC_STRING_LIB = istring
-endif
-ifeq (cstring,$(INAC_STRING_LIB))
-	CFLAGS+=-DINA_CSTRING_ENABLED=1
-endif
-ifeq (istring,$(INAC_STRING_LIB))
-	CFLAGS+=-DINA_ISTRING_ENABLED=1
-endif
-ifeq (bstring,$(INAC_STRING_LIB))
-	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/bstring/bstring.a
-	CFLAGS+=-DINA_BSTRING_ENABLED=1
-endif
-ifeq (sds,$(INAC_STRING_LIB))
-  	INAC_LIBS+=$(INAC_CONTRIBS_DIR)/sds/sds.a
-	CFLAGS+=-DINA_SSTRING_ENABLED=1
-endif
-# ****************************************************************************
-# Hardware accelarated networking
-# ****************************************************************************
-INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/solarflare/lib64/libonload_ext.a
-CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/solarflare/include
-CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/mellanox/include
+CFLAGS+=-DINA_ISTRING_ENABLED=1
 # ****************************************************************************
 # Time implementation
 # ****************************************************************************
-ifeq (,$(INAC_TIME_BACKEND))
-	INAC_TIME_BACKEND=os
-endif
-ifeq (meinberg, $(INAC_TIME_BACKEND))
-	INAC_LIBS+=$(INAC_CONTRIBSBIN_DIR)/meinberg/lib64/mbgdevio.a
-	CFLAGS+=-I$(INAC_CONTRIBSBIN_DIR)/meinberg
-	CFLAGS+=-DINA_MBTIME_ENABLED=1
-endif
-ifeq (os, $(INAC_TIME_BACKEND))
-	CFLAGS+=-DINA_OSTIME_ENABLED=1
-endif
+CFLAGS+=-DINA_OSTIME_ENABLED=1
 # ****************************************************************************
 # Intel Compiler detection
 # ****************************************************************************

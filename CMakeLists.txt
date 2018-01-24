@@ -2,29 +2,16 @@ cmake_minimum_required (VERSION 2.6)
 project (inac)
 
 set (DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
-set (BIN_DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs-bin")
 set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
-# Includes where we do not own the source
-set (MEINBERG_INCLUDE_DIR "${BIN_DEPS_DIR}/meinberg")
-
-set (BIN_INCLUDES "${MEINBERG_INCLUDE_DIR}")
-
 include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}"
-					"${DEPS_DIR}" "${BIN_INCLUDES}")
+					"${DEPS_DIR}")
 
-set(BSTRING_LIB_NAME "bstring")
 set(ANET_LIB_NAME "anet")
-set(HTTP_LIB_NAME "http_parser")
-set(SQLITE_LIB_NAME "sqlite")
-set(RAPIDXML_LIB_NAME "rapidxml")
-set(AXTLS_LIB_NAME "axtls")
-set(YAJL_LIB_NAME "yajl")
 set(LZ4_LIB_NAME "lz4")
 set(MINIZ_LIB_NAME "miniz")
 set(ICT_LIB_NAME "cpu-topology")
 set(TIMER_WHEEL_LIB_NAME "timerwheel")
-set(HDR_HISTOGRAM_LIB_NAME "hdr-histogram")
 set(XXHASH_LIB_NAME "xxhash")
 set(FALKHASH_LIB_NAME "falkhash")
 set(INAC_LIB_NAME "libinac_c")
@@ -48,47 +35,10 @@ endif(WIN32)
 
 # BEGIN dependencies
 
-# BSTRING
-set (BSTRING_SRC_DIR ${DEPS_DIR}/bstring)
-set (BSTRING_SRC ${BSTRING_SRC_DIR}/bsafe.c ${BSTRING_SRC_DIR}/bstraux.c ${BSTRING_SRC_DIR}/bstrlib.c)
-add_library(${BSTRING_LIB_NAME} ${BSTRING_SRC})
-
 # ANET
 set (ANET_SRC_DIR ${DEPS_DIR}/anet)
 set (ANET_SRC ${ANET_SRC_DIR}/anet.c)
 add_library(${ANET_LIB_NAME} ${ANET_SRC})
-
-# SQLITE
-set (SQLITE_SRC_DIR ${DEPS_DIR}/sqlite)
-set (SQLITE_SRC ${SQLITE_SRC_DIR}/sqlite3.c)
-add_library(${SQLITE_LIB_NAME} ${SQLITE_SRC})
-
-# HTTP-PARSER
-set (HTTP_SRC_DIR ${DEPS_DIR}/http-parser)
-set (HTTP_SRC ${HTTP_SRC_DIR}/http_parser.c)
-add_library(${HTTP_LIB_NAME} ${HTTP_SRC})
-
-# RAPIDXML
-set (RAPIDXML_SRC_DIR ${DEPS_DIR}/rapidxml)
-set (RAPIDXML_SRC ${RAPIDXML_SRC_DIR}/rapidxml.c)
-add_library(${RAPIDXML_LIB_NAME} ${RAPIDXML_SRC})
-
-# AxTLS
-set (AXTLS_SRC_DIR ${DEPS_DIR}/axtls)
-set (AXTLS_SRC     ${AXTLS_SRC_DIR}/aes.c ${AXTLS_SRC_DIR}/bigint.c ${AXTLS_SRC_DIR}/crypto_misc.c
-				   ${AXTLS_SRC_DIR}/hmac.c  ${AXTLS_SRC_DIR}/md5.c ${AXTLS_SRC_DIR}/sha256.c
-				   ${AXTLS_SRC_DIR}/rc4.c ${AXTLS_SRC_DIR}/rsa.c ${AXTLS_SRC_DIR}/sha1.c 
-				   ${AXTLS_SRC_DIR}/os_port.c ${AXTLS_SRC_DIR}/asn1.c ${AXTLS_SRC_DIR}/gen_cert.c
-				   ${AXTLS_SRC_DIR}/loader.c ${AXTLS_SRC_DIR}/p12.c ${AXTLS_SRC_DIR}/tls1.c
-				   ${AXTLS_SRC_DIR}/tls1_clnt.c ${AXTLS_SRC_DIR}/tls1_svr.c ${AXTLS_SRC_DIR}/x509.c)
-add_library(${AXTLS_LIB_NAME} ${AXTLS_SRC})
-
-# YAJL
-set (YAJL_SRC_DIR ${DEPS_DIR}/yajl)
-set (YAJL_SRC     ${YAJL_SRC_DIR}/yajl.c ${YAJL_SRC_DIR}/yajl_alloc.c ${YAJL_SRC_DIR}/yajl_buf.c
-                  ${YAJL_SRC_DIR}/yajl_encode.c ${YAJL_SRC_DIR}/yajl_gen.c ${YAJL_SRC_DIR}/yajl_lex.c
-				  ${YAJL_SRC_DIR}/yajl_parser.c ${YAJL_SRC_DIR}/yajl_tree.c ${YAJL_SRC_DIR}/yajl_version.c)
-add_library(${YAJL_LIB_NAME} ${YAJL_SRC})
 
 # Miniz
 set (MINIZ_SRC_DIR ${DEPS_DIR}/miniz)
@@ -111,14 +61,6 @@ endif(WIN32)
 set (TIMER_WHEEL_SRC_DIR ${DEPS_DIR}/timerwheel)
 set (TIMER_WHEEL_SRC ${TIMER_WHEEL_SRC_DIR}/timeout.c)
 add_library(${TIMER_WHEEL_LIB_NAME} ${TIMER_WHEEL_SRC})
-
-# Hdr Histogram
-set (HDR_HISTOGRAM_SRC_DIR ${DEPS_DIR}/hdr-histogram)
-set (HDR_HISTOGRAM_SRC ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram.c 
-                       ${HDR_HISTOGRAM_SRC_DIR}/hdr_histogram_log.c
-					   ${HDR_HISTOGRAM_SRC_DIR}/hdr_encoding.c
-					   ${HDR_HISTOGRAM_SRC_DIR}/hdr_time.c)
-add_library(${HDR_HISTOGRAM_LIB_NAME} ${HDR_HISTOGRAM_SRC})
 
 # xxhash
 set (XXHASH_SRC_DIR ${DEPS_DIR}/xxhash)
@@ -144,17 +86,11 @@ MESSAGE(STATUS "Time-Backend: $ENV{INAC_TIME_BACKEND}")
 # END backend configuration
 
 set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
-                 ${SRC_DIR}/cstring.c ${SRC_DIR}/istring.c ${SRC_DIR}/util.c
-                 ${SRC_DIR}/iscp.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c ${SRC_DIR}/time.c
-				 ${SRC_DIR}/time_os.c ${SRC_DIR}/time_meinberg.c
-				 ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c ${SRC_DIR}/http.c ${SRC_DIR}/ljit.c 
-				 ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/test.c  ${SRC_DIR}/xml.c 
-				 ${SRC_DIR}/cron.c ${SRC_DIR}/ssl.c ${SRC_DIR}/json.c ${SRC_DIR}/service.c
-				 ${SRC_DIR}/process.c ${SRC_DIR}/dns.c ${SRC_DIR}/template.c ${SRC_DIR}/ipc.c
-				 ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c 
-				 ${SRC_DIR}/file_cursor.c
-				 ${SRC_DIR}/histogram.c ${SRC_DIR}/pcap.c ${SRC_DIR}/gzip.c 
-				 ${SRC_DIR}/net_hw_openonload.c ${SRC_DIR}/net_hw_vma.c ${SRC_DIR}/percentile.c 
-				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c ${SRC_DIR}/aar.c)
+                 ${SRC_DIR}/istring.c ${SRC_DIR}/util.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c
+                 ${SRC_DIR}/time.c ${SRC_DIR}/time_os.c ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c 
+				 ${SRC_DIR}/ljit.c ${SRC_DIR}/portable.c ${SRC_DIR}/test.c ${SRC_DIR}/process.c 
+				 ${SRC_DIR}/dns.c ${SRC_DIR}/ipc.c ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c 
+				 ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c ${SRC_DIR}/file_cursor.c
+				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c)
 
 add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})

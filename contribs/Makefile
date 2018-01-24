@@ -31,13 +31,7 @@ OS := $(shell uname -s)
 all: 
 	@echo building contribs...
 	$(MAKE) -C luajit amalg
-	$(MAKE) -C sqlite
-	$(MAKE) -C bstring
 	$(MAKE) -C anet
-	$(MAKE) library -C http-parser
-	$(MAKE) -C rapidxml
-	$(MAKE) -C axtls
-	$(MAKE) -C yajl
 ifneq ($(OS), Darwin)
 	$(MAKE) -C cpu-topology
 	$(MAKE) -C coredumper CFLAGS=-D_GNU_SOURCE
@@ -45,7 +39,6 @@ endif
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
 	$(MAKE) -C timerwheel
-	$(MAKE) -C hdr-histogram
 	$(MAKE) -C xxhash
 	$(MAKE) -C falkhash
 	$(MAKE) -C memhash
@@ -65,21 +58,14 @@ debug: all
 clean:
 	@echo cleaning contribs...
 	$(MAKE) clean -C luajit
-	$(MAKE) clean -C bstring
 	$(MAKE) clean -C anet
-	$(MAKE) clean -C sds
-	$(MAKE) clean -C sqlite
-	$(MAKE) clean -C http-parser
-	$(MAKE) clean -C rapidxml
-	$(MAKE) clean -C axtls
-	$(MAKE) clean -C yajl
 ifneq ($(OS), Darwin)
 	$(MAKE) clean -C cpu-topology
+	$(MAKE) clean -C coredumper
 endif
 	$(MAKE) clean -C lz4
 	$(MAKE) clean -C miniz
 	$(MAKE) clean -C timerwheel
-	$(MAKE) clean -C hdr-histogram
 	$(MAKE) clean -C xxhash
 	$(MAKE) clean -C falkhash
 	$(MAKE) clean -C memhash

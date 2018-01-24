@@ -28,21 +28,12 @@ endif()
 
 set(INAC_LIB "libinac.lib")
 
-set(MEINBERG_LIBS "${BIN_DEPS_DIR}/meinberg/lib/mbgdevio.lib")
-
-set(COMMERCIAL_LIBS ${MEINBERG_LIBS})
-
 if(WIN32)
 	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib DbgHelp.lib)
 endif(WIN32)
 
-# This is required because the meinberg lib has been compiled with an old version of VS
-if (CMAKE_GENERATOR STREQUAL "Visual Studio 11" OR CMAKE_GENERATOR STREQUAL "Visual Studio 14 2015")
-	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-endif()
-
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
-set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
+set (LIBS ${LIB_DIR}/${INAC_LIB})
 
 
 if (${CMAKE_MAJOR_VERSION} GREATER 2)
@@ -101,17 +92,5 @@ if(WIN32)
    add_custom_command(TARGET test POST_BUILD          
      COMMAND ${CMAKE_COMMAND} -E copy_if_different  
         "${PROJECT_SOURCE_DIR}/test_lsocket.lua"         
-        $<TARGET_FILE_DIR:test>)
-   add_custom_command(TARGET test POST_BUILD          
-     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        "${PROJECT_SOURCE_DIR}/test_gzip.gz"         
-        $<TARGET_FILE_DIR:test>)
-   add_custom_command(TARGET test POST_BUILD          
-     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        "${PROJECT_SOURCE_DIR}/test_xml.xml"         
-        $<TARGET_FILE_DIR:test>)
-   add_custom_command(TARGET test POST_BUILD          
-     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        "${PROJECT_SOURCE_DIR}/aar_test.iar"         
         $<TARGET_FILE_DIR:test>)
  endif()

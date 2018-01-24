@@ -81,36 +81,20 @@
 #include <libinac/timer.h>
 #include <libinac/ullc.h>
 #include <libinac/net.h>
-#include <libinac/iscp.h>
 #include <libinac/ljit.h>
 #include <libinac/conffile.h>
-#include <libinac/http.h>
 #include <libinac/dns.h>
-#include <libinac/ssl.h>
-#include <libinac/xml.h>
-#include <libinac/json.h>
 #include <libinac/hash.h>
 #include <libinac/util.h>
-#include <libinac/cio.h>
 #include <libinac/fsm.h>
 #include <libinac/process.h>
-#include <libinac/cron.h>
-#include <libinac/service.h>
 #include <libinac/ipc.h>
-#include <libinac/template.h>
 #include <libinac/cpu.h>
 #include <libinac/compression.h>
 #include <libinac/dir.h>
 #include <libinac/file.h>
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
-#include <libinac/histogram.h>
-#include <libinac/pcap.h>
-#include <libinac/gzip.h>
-#include <libinac/percentile.h>
-#include <libinac/client.h>
-#include <libinac/server.h>
-#include <libinac/aar.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
@@ -119,10 +103,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#if defined(INA_MBTIME_ENABLED) && defined(INA_OS_OSX)
-#error "Meinberg time backend not supported."
 #endif
 
 #define INA_YES (1)

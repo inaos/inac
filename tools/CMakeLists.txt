@@ -28,18 +28,9 @@ endif()
 
 set(INAC_LIB "libinac.lib")
 
-set(MEINBERG_LIBS "${BIN_DEPS_DIR}/meinberg/lib/mbgdevio.lib")
-
-set(COMMERCIAL_LIBS ${MEINBERG_LIBS})
-
 if(WIN32)
 	set (PLATFORM_LIBS Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib DbgHelp.lib)
 endif(WIN32)
-
-# This is required because the meinberg lib has been compiled with an old version of VS
-if (CMAKE_GENERATOR STREQUAL "Visual Studio 11" OR CMAKE_GENERATOR STREQUAL "Visual Studio 14 2015")
-	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-endif()
 
 # For some tools we require OpenMP
 if (${CMAKE_MAJOR_VERSION} GREATER 2)
@@ -52,22 +43,13 @@ if (OPENMP_FOUND)
 endif()
 
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/../buildall")
-set (LIBS ${LIB_DIR}/${INAC_LIB} ${COMMERCIAL_LIBS})
-
-add_executable(isqlite ${DEPS_DIR}/sqlite/shell.c)
-target_link_libraries(isqlite ${PLATFORM_LIBS} ${LIBS})
+set (LIBS ${LIB_DIR}/${INAC_LIB})
 
 add_executable(ullc_monitor ullc_monitor.c)
 target_link_libraries(ullc_monitor ${PLATFORM_LIBS} ${LIBS})
 
-add_executable(service_mgr service_mgr.c)
-target_link_libraries(service_mgr ${PLATFORM_LIBS} ${LIBS})
-
 add_executable(iml iml.c)
 target_link_libraries(iml ${PLATFORM_LIBS} ${LIBS})
-
-add_executable(iz iz.c)
-target_link_libraries(iz ${PLATFORM_LIBS} ${LIBS})
 
 add_executable(icpu icpu.c)
 target_link_libraries(icpu ${PLATFORM_LIBS} ${LIBS})
@@ -77,9 +59,6 @@ target_link_libraries(imem ${PLATFORM_LIBS} ${LIBS})
 
 add_executable(imem_stream imem_stream.c)
 target_link_libraries(imem_stream ${PLATFORM_LIBS} ${LIBS})
-
-add_executable(ipcap ipcap.c)
-target_link_libraries(ipcap ${PLATFORM_LIBS} ${LIBS})
 
 add_executable(istat istat.c)
 target_link_libraries(istat ${PLATFORM_LIBS} ${LIBS})
