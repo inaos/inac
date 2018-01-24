@@ -260,7 +260,6 @@ unsigned  int GetMaxCPUSupportedByOS()
 		{	glbl_ptr->error |= _MSGTYP_UNKNOWNERR_OS; return ;  
 		}
 		for (i = 0; i < grpCnt; i ++) 		lcl_OSProcessorCount += pSystem_rel_info->Group.GroupInfo[i].ActiveProcessorCount;
-		printf("lcl_OSProcessorCount: %d\n", lcl_OSProcessorCount );
 	}
 	else
 	{
