@@ -341,10 +341,11 @@ int hdr_init(
         int64_t lowest_trackable_value,
         int64_t highest_trackable_value,
         int significant_figures,
+        void *hdr_mem_region,
         struct hdr_histogram** result)
 {
     struct hdr_histogram_bucket_config cfg;
-    size_t histogram_size;
+    /*size_t histogram_size;*/
     struct hdr_histogram* histogram;
     int r = hdr_calculate_bucket_config(lowest_trackable_value, highest_trackable_value, significant_figures, &cfg);
     if (r)
@@ -352,8 +353,8 @@ int hdr_init(
         return r;
     }
 
-    histogram_size           = sizeof(struct hdr_histogram) + cfg.counts_len * sizeof(int64_t);
-    histogram = malloc(histogram_size);
+    
+    histogram = (struct hdr_histogram*)hdr_mem_region;
 
     if (!histogram)
     {
@@ -361,7 +362,7 @@ int hdr_init(
     }
 
     // memset will ensure that all of the function pointers are null.
-    memset((void*) histogram, 0, histogram_size);
+    //memset((void*) histogram, 0, histogram_size);
 
     hdr_init_preallocated(histogram, &cfg);
     *result = histogram;
@@ -370,14 +371,15 @@ int hdr_init(
 }
 
 
-int hdr_alloc(int64_t highest_trackable_value, int significant_figures, struct hdr_histogram** result)
+/*int hdr_alloc(int64_t highest_trackable_value, int significant_figures, struct hdr_histogram** result)
 {
     return hdr_init(1, highest_trackable_value, significant_figures, result);
-}
+}*/
 
 // reset a histogram to zero.
 void hdr_reset(struct hdr_histogram *h)
 {
+     
      h->total_count=0;
      h->min_value = INT64_MAX;
      h->max_value = 0;
@@ -385,9 +387,16 @@ void hdr_reset(struct hdr_histogram *h)
      return;
 }
 
-size_t hdr_get_memory_size(struct hdr_histogram *h)
+size_t hdr_get_memory_size(int64_t lowest_trackable_value,
+                           int64_t highest_trackable_value,
+                           int significant_figures)
 {
-    return sizeof(struct hdr_histogram) + h->counts_len * sizeof(int64_t);
+    struct hdr_histogram_bucket_config cfg;
+    int r = hdr_calculate_bucket_config(lowest_trackable_value, highest_trackable_value, significant_figures, &cfg);
+    if (r) {
+        return 0;
+    }
+    return sizeof(struct hdr_histogram) + cfg.counts_len * sizeof(int64_t);
 }
 
 // ##     ## ########  ########     ###    ######## ########  ######

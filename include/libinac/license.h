@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
  *
  * - Client: A server/host at a customers site, 1 file per customer
  * - Registry: SQLITE Database storing all customers and its license details
+ * - Demo purpose: Possibility to have a file-less check for a hard-coded date for expiry
  * - Security:
  *   + PKI based: Client(the software has private key statically linked into program-code.
  *     Public-Key is shipped togehter with the license-request.
@@ -58,7 +59,16 @@
  *   + The API will open the file, start reading the authenticator (Poly-1305) and verify the file integrity
  *   + For this it requires the public-key from the registry which is embedded into the license-file
  *   + Then the client will generate its HOST-ID and iterate through the license to check if there is an entry for this host
- *   + If yes it will read the licensed features, otherwise will return an error
+ *   + If yes it will read the licensed features and return a signed/encoded (Poly-1305) result value. The idea would be to make sure 
+ *     the protected verification routing has actually been called. And the private key for the signing is hard-coded in the protected 
+ *     verification routine.
+ *   + Without protecting the assembly code for the verifycation routine it would be rather simple to bypass this mechanism
+ *     therefore we'll have to "virtualize" at least the verification method.
+ *     We could use this: http://tigress.cs.arizona.edu/transformPage/docs/virtualize/index.html
+ *     Commercial solution: http://www.oreans.com/codevirtualizer.php, http://vmpsoft.com/products/matrix/
+ *
+ * - Hard-coded expiry (without license file) for demo-build
+ *   + Same protection as for the verification method
  *
  * - Request-File features:
  *   + Public-Key of software itself
@@ -88,6 +98,7 @@ typedef struct ina_license_request_s ina_license_request_t;
 typedef struct ina_license_features_s ina_license_features_t;
 typedef struct ina_license_feature_s ina_license_feature_t;
 typedef struct ina_license_registry_s ina_license_registry_t;
+typedef struct ina_license_registry_s ina_license_verify_result_t;
 
 typedef enum ina_license_feature_type_e {
 	INA_LICENSE_FEATURE_TYPE_INT,
@@ -101,7 +112,7 @@ INA_API(ina_rc_t) ina_license_client_init(ina_license_client_t **c, char *privat
 /*
  *
  */
-INA_API(ina_rc_t) ina_license_client_verify(ina_license_client_t *c, ina_license_file_t *lf);
+INA_API(ina_rc_t) ina_license_client_verify(ina_license_client_t *c, ina_license_file_t *lf, ina_license_verify_result_t *result);
 /*
  *
  */
@@ -110,6 +121,10 @@ INA_API(ina_rc_t) ina_license_client_get_public_key(ina_license_client_t *c, cha
  *
  */
 INA_API(ina_rc_t) ina_license_client_destory(ina_license_client_t **c);
+/*
+ *
+ */
+INA_API(ina_rc_t) ina_license_demo_expiry(time_t epoch_expiry_timestamp, ina_license_verify_result_t *result);
 /*
  *
  */

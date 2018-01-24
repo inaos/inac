@@ -123,8 +123,24 @@ endif
 ifeq (os, $(INAC_TIME_BACKEND))
 	CFLAGS+=-DINA_OSTIME_ENABLED=1
 endif
+# ****************************************************************************
+# Intel Compiler detection
+# ****************************************************************************
+INAC_INTEL_COMPILER = $(shell which icc >/dev/null; echo $$?)
+ifeq "$(INAC_INTEL_COMPILER)" "0"
+        CC = icc
+	CXX = ipcp
+	LDFLAGS += -parallel
+        INAC_CC_DEBUG_FLAGS = -g -DDEBUG -march=core-avx2
+        INAC_CC_RELEASE_FLAGS = -O3 -march=core-avx2
+else
+        INAC_CC_DEBUG_FLAGS = -g -DDEBUG -msse4.2 -maes
+        INAC_CC_RELEASE_FLAGS = -O3 -flto -march=native -DINA_LOG_LEVEL=1
+endif
 CFLAGS+=-DINA_STRING_DEFINED=1
 CFLAGS+=-DINA_TIME_DEFINED=1
+export CC
+export CXX
 export CFLAGS
 export LDFLAGS
 export INAC_LIB
@@ -157,13 +173,13 @@ all:
 
 
 
-release: CFLAGS += -O3 -flto -march=native -DINA_LOG_LEVEL=1
+release: CFLAGS += $(INAC_CC_RELEASE_FLAGS)
 	export CFLAGS
 release: INAC_BUILD_TYPE = release
 	export INAC_BUILD_TYPE
 release: all
 
-debug: CFLAGS +=  -g -DDEBUG -msse4.2 -maes -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 -DINA_DGBMSG_ASSERT=0
+debug: CFLAGS += $(INAC_CC_DEBUG_FLAGS) -DINA_TRACE_ENABLED=1 -DINA_TRACE_LEVEL=1 -DINA_LOG_LEVEL=4 -DINA_DGBMSG_ASSERT=0
 	export CFLAGS
 debug: INAC_BUILD_TYPE = debug
 	export INAC_BUILD_TYPE

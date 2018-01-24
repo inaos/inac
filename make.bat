@@ -1,7 +1,7 @@
 @echo off
 
 REM
-REM Copyright (c) 2013-2016, INAOS GmbH
+REM Copyright (c) 2013-2017, INAOS GmbH
 REM All rights reserved.
 REM
 REM Redistribution and use in source and binary forms, with or without
@@ -39,13 +39,18 @@ SET INAC_VC_VAR_ARG=x86
 SET INAC_COMPILER=MSVC
 if "%WIN_TITLE:~0,14%" == "Intel Compiler" (
 	SET INAC_COMPILER=ICC
-) else (
-	if defined CommandPromptType (
-		if "%CommandPromptType%" == "Cross" (
-			SET INAC_ARCH=x64
-			SET INAC_VC_VAR_ARG=x86_amd64
-		)
-    )
+)
+REM Deprecated this is for Visual Studio < 2015
+if defined CommandPromptType (
+	if "%CommandPromptType%" == "Cross" (
+		SET INAC_ARCH=x64
+		SET INAC_VC_VAR_ARG=x86_amd64
+	)
+)
+if defined VSCMD_ARG_TGT_ARCH (
+	if "%VSCMD_ARG_TGT_ARCH%" == "x64" (
+		SET INAC_ARCH=x64
+	)
 )
 
 if not defined INCLUDE (
@@ -206,18 +211,6 @@ if not "%INAC_W32_BUILD_STAGE%" == "clean" (
 REM reset the main environment variables because they might have been deleted by the previous build
 SET INAC_HOME=%CD%
 SET INAC_BUILD_SCRIPT=%INAC_HOME%\script\shell\win32\windows_build.bat
-
-if "%INAC_COMPILER%" == "ICC" (
- 	echo FIXME: In Windows when using the Intel Compiler e currently do not build tests and tools due to Visual Studio Express
-	goto exit
-)
-
-if "%INAC_ARCH%" == "x64" ( 
-	if not "%INAC_COMPILER%" == "ICC" (
-		echo FIXME: In Windows 64bit mode we currently do not build tests and tools due to an bug
-		goto exit
-	)
-)
 
 SET INAC_WIN32_BUILD_NAME=inac
 SET INAC_WIN32_PROJECT_DIR=.

@@ -345,6 +345,23 @@ INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf,
                                     ina_time_t* time);
 
 /*
+ * Basically POSIX strptime, with a workaround for windows.
+ *
+ * Parameters
+ *  buf      Output buffer
+ *  buflen   Size of output buffer
+ *  written  Number of bytes written
+ *  fmt      String format
+ *  time     Time
+ *
+ * Return
+ *  INA_SUCCESS if all wen well
+ */
+INA_API(ina_rc_t) ina_time_strptime(ina_str_t input,
+                                    const char *fmt,
+                                    ina_time_t* time);
+
+/*
  * Basically strftime but using TSC.
  *
  * Parameters
