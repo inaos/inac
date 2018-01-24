@@ -57,7 +57,10 @@ extern "C" {
  *   if the server is written in Lua, the callbacks should rather be 
  *   Lua functions and therefore we need a flexible model.
  * + Examples for dispatching should be given in the tests C and Lua
- *   
+ * 
+ * Links:
+ * + Good explanation of Level vs. Edge Triggered I/O
+ *   https://medium.com/@copyconstruct/nonblocking-i-o-99948ad7c957  
  *
  */
 
