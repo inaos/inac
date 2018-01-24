@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016, INAOS GmbH
+ * Copyright (c) 2015-2017, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,11 +88,11 @@ typedef struct ina_histogram_reporter_s ina_histogram_reporter_t;
 typedef struct ina_histogram_record_s {
     int64_t start_ts_ns;
     int64_t end_ts_ns;
-    char data[128]; /* size of the hdr_histogram = 96, but rounding-up */
     char free_text1[128];
     char free_text2[128];
     char free_text3[128];
     char free_text4[128];
+    unsigned char start_histogram;
 } ina_histogram_record_t;
 
 typedef struct ina_histogram_meta_s {
@@ -217,6 +217,9 @@ INA_API(ina_rc_t) ina_histogram_recorder_record(
 INA_API(ina_rc_t) ina_histogram_recorder_process(
                                             ina_histogram_recorder_t *recorder,
                                             int64_t time_ns);
+INA_API(ina_rc_t) ina_histogram_recorder_start(
+                                            ina_histogram_recorder_t *recorder,
+                                            int64_t time_ns);
 
 /*
  * Create a new histogram serializer.
@@ -232,11 +235,10 @@ INA_API(ina_rc_t) ina_histogram_recorder_process(
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_histogram_serializer_new(
-                                        ina_histogram_serializer_t **serializer,
-                                        ina_str_t id,
-                                        int64_t highest_trackable_value,
-                                        int significant_figures);
+INA_API(ina_rc_t) ina_histogram_serializer_new(ina_histogram_serializer_t **serializer,
+                                               ina_str_t id,
+                                               int64_t highest_trackable_value,
+                                               int significant_figures);
 
 /*
  * Destroy a histogram serializer.
@@ -295,7 +297,7 @@ INA_API(ina_rc_t) ina_histogram_reporter_free(ina_histogram_reporter_t **reporte
  * Parameters
  *  reporter                 Histogram reporter
  *  record                   Histogram data
- *  stream                   File to write to
+ *  stream                   Stream to write to
  *  ticks_per_half_distance  Granularity of printed values
  *  value_scale              Multiplier for results
  *
@@ -305,9 +307,17 @@ INA_API(ina_rc_t) ina_histogram_reporter_free(ina_histogram_reporter_t **reporte
 INA_API(ina_rc_t) ina_histogram_reporter_print_percentile(
                                             ina_histogram_reporter_t *reporter,
                                             const ina_str_t record,
-                                            ina_file_t *file,
+                                            FILE *file,
                                             int32_t ticks_per_half_distance,
                                             double value_scale);
+
+INA_API(ina_rc_t) ina_histogram_reporter_write_header(ina_histogram_reporter_t *reporter,
+                                                      FILE *stream, 
+                                                      int64_t time_ns);
+
+INA_API(ina_rc_t) ina_histogram_reporter_write(ina_histogram_reporter_t *reporter,
+                                               FILE *stream,
+                                               const ina_str_t record);
 
 #ifdef __cplusplus
 }

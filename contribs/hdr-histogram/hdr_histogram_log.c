@@ -23,8 +23,6 @@
 #include <inttypes.h>
 #endif
 
-#include <contribs/miniz/miniz.h>
-
 #include "hdr_encoding.h"
 #include "hdr_histogram.h"
 #include "hdr_histogram_log.h"
@@ -37,6 +35,9 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include "hdr_endian.h"
+
+#include <libinac/portable.h>
+#include <contribs/miniz/miniz.h>
 
 // Private prototypes useful for the logger
 int32_t counts_index_for(const struct hdr_histogram* h, int64_t value);
@@ -187,8 +188,8 @@ static uint64_t double_to_int64_bits(double d)
     return x.l;
 }
 
-#pragma pack(push, 1)
-typedef struct /*__attribute__((__packed__))*/
+INA_VS_BEGIN_PACK
+typedef struct INA_PACKED
 {
     int32_t cookie;
     int32_t significant_figures;
@@ -197,8 +198,10 @@ typedef struct /*__attribute__((__packed__))*/
     int64_t total_count;
     int64_t counts[0];
 } _encoding_flyweight_v0;
+INA_VS_END_PACK
 
-typedef struct /*__attribute__((__packed__))*/
+INA_VS_BEGIN_PACK
+typedef struct INA_PACKED
 {
     int32_t cookie;
     int32_t payload_len;
@@ -209,14 +212,16 @@ typedef struct /*__attribute__((__packed__))*/
     uint64_t conversion_ratio_bits;
     uint8_t counts[0];
 } _encoding_flyweight_v1;
+INA_VS_END_PACK
 
-typedef struct /*__attribute__((__packed__))*/
+INA_VS_BEGIN_PACK
+typedef struct INA_PACKED
 {
     int32_t cookie;
     int32_t length;
     uint8_t data[0];
 } _compression_flyweight;
-#pragma pack(pop)
+INA_VS_END_PACK
 
 int hdr_encode_compressed(
     struct hdr_histogram* h,
@@ -428,6 +433,8 @@ static int hdr_decode_compressed_v0(
     int64_t highest_trackable_value;
     int32_t significant_figures;
     int32_t encoding_cookie;
+    size_t histogram_size;
+    void *histogram_mem;
 
     strm_init(&strm);
     if (inflateInit(&strm) != Z_OK)
@@ -463,10 +470,14 @@ static int hdr_decode_compressed_v0(
     highest_trackable_value = be64toh(encoding_flyweight.highest_trackable_value);
     significant_figures = be32toh(encoding_flyweight.significant_figures);
 
+    histogram_size = hdr_get_memory_size(lowest_trackable_value, highest_trackable_value, significant_figures);
+    histogram_mem = malloc(histogram_size);
+
     if (hdr_init(
         lowest_trackable_value,
         highest_trackable_value,
         significant_figures,
+        histogram_mem,
         &h) != 0)
     {
         FAIL_AND_CLEANUP(cleanup, result, ENOMEM);
@@ -531,6 +542,8 @@ static int hdr_decode_compressed_v1(
     int64_t highest_trackable_value;
     int32_t significant_figures;
     int32_t counts_array_len;
+    size_t histogram_size;
+    void *histogram_mem;
 
     strm_init(&strm);
     if (inflateInit(&strm) != Z_OK)
@@ -567,10 +580,14 @@ static int hdr_decode_compressed_v1(
     highest_trackable_value = be64toh(encoding_flyweight.highest_trackable_value);
     significant_figures = be32toh(encoding_flyweight.significant_figures);
 
+    histogram_size = hdr_get_memory_size(lowest_trackable_value, highest_trackable_value, significant_figures);
+    histogram_mem = malloc(histogram_size);
+
     if (hdr_init(
         lowest_trackable_value,
         highest_trackable_value,
         significant_figures,
+        histogram_mem,
         &h) != 0)
     {
         FAIL_AND_CLEANUP(cleanup, result, ENOMEM);
@@ -635,6 +652,8 @@ static int hdr_decode_compressed_v2(
     int64_t highest_trackable_value;
     int32_t significant_figures;
     int32_t encoding_cookie;
+    size_t histogram_size;
+    void *histogram_mem;
     int r;
 
     strm_init(&strm);
@@ -671,10 +690,14 @@ static int hdr_decode_compressed_v2(
     highest_trackable_value = be64toh(encoding_flyweight.highest_trackable_value);
     significant_figures = be32toh(encoding_flyweight.significant_figures);
 
+    histogram_size = hdr_get_memory_size(lowest_trackable_value, highest_trackable_value, significant_figures);
+    histogram_mem = malloc(histogram_size);
+
     if (hdr_init(
         lowest_trackable_value,
         highest_trackable_value,
         significant_figures,
+        histogram_mem,
         &h) != 0)
     {
         FAIL_AND_CLEANUP(cleanup, result, ENOMEM);
