@@ -86,8 +86,10 @@
 #include <libinac/dns.h>
 #include <libinac/hash.h>
 #include <libinac/util.h>
+#include <libinac/cio.h>
 #include <libinac/fsm.h>
 #include <libinac/process.h>
+#include <libinac/cron.h>
 #include <libinac/ipc.h>
 #include <libinac/cpu.h>
 #include <libinac/compression.h>

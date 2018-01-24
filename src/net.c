@@ -50,13 +50,6 @@
 
 #include <libinac/lib.h>
 
-#include "net_hw.h"
-
-static const char __ina_net_hw_backend_str[][32] = {
-        "SOLARFLARE - OPENONLOAD",
-        "MELLANOX - VMA"
-};
-
 struct ina_net_udp_receiver_s {
     ina_str_t ip;
     int port;
@@ -647,78 +640,3 @@ INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_hw_support_present_on_os(void)
-{
-#ifdef INA_OS_LINUX
-    return INA_SUCCESS;
-#else
-    return INA_FAILURE;
-#endif
-}
-
-INA_API(ina_rc_t) ina_net_hw_init(ina_net_hw_ctx_t **ctx, ina_net_hw_backend_t backend)
-{
-    INA_ASSERT_NOTNULL(ctx);
-
-    *ctx = (ina_net_hw_ctx_t*)ina_mem_alloc(sizeof(ina_net_hw_ctx_t));
-    (*ctx)->name = __ina_net_hw_backend_str[backend];
-
-    switch (backend) {
-        case INA_NET_HW_BACKEND_SOLARFLARE_ONLOAD:
-            __ina_net_hw_onload_select(&(*ctx)->funcs);
-            break;
-        case INA_NET_HW_BACKEND_MELLANOX_VMA:
-            __ina_net_hw_vma_select(&(*ctx)->funcs); 
-            break;
-        default:
-            INA_ASSERT_TRUE(0); 
-    }
-
-    if (!INA_SUCCEED((*ctx)->funcs.enabled_fp(*ctx))) {
-        ina_net_hw_destroy(ctx);
-        return INA_ERR_PUSH_LAST;
-    }
-
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_net_hw_destroy(ina_net_hw_ctx_t **ctx)
-{
-    INA_ASSERT_NOTNULL(ctx);
-    if (*ctx != NULL) {
-        ina_mem_free(*ctx);
-        *ctx =  NULL;
-    }
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_net_hw_set_user_data(ina_net_hw_ctx_t *ctx, void *data)
-{
-    INA_ASSERT_NOTNULL(ctx);
-    ctx->data = data;
-    return INA_SUCCESS;
-}
-
-INA_API(const char*) ina_net_hw_backend_name(const ina_net_hw_ctx_t *ctx)
-{
-    INA_ASSERT_NOTNULL(ctx);
-    return ctx->name;
-}
-
-INA_API(ina_rc_t) ina_net_hw_enabled(ina_net_hw_ctx_t *ctx)
-{
-    INA_ASSERT_NOTNULL(ctx);
-    return ctx->funcs.enabled_fp(ctx);
-}
-
-INA_API(ina_rc_t) ina_net_hw_feature_check(ina_net_hw_ctx_t *ctx, ina_net_hw_feature_t feature)
-{
-    INA_ASSERT_NOTNULL(ctx);
-    return ctx->funcs.feature_check_fp(ctx, feature);
-}
-
-INA_API(ina_rc_t) ina_net_hw_accelerate_loopback(ina_net_hw_ctx_t *ctx, int fd, const char *alias)
-{
-    INA_ASSERT_NOTNULL(ctx);
-    return ctx->funcs.accelerate_loopback_fp(ctx, fd, alias);
-}
