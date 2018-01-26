@@ -56,7 +56,9 @@ export LUA_PATH
 CFLAGS = -Wall -I$(INAC_HOME_DIR) -I$(INAC_HOME_DIR)/include \
          -I$(INAC_CONTRIBS_DIR)
 CFLAGS += -DINA_LIB=1
+ifneq (Darwin,$(shell uname -s))
 CFLAGS += -fopenmp
+endif
 ifeq ($(OS), Linux)
 CFLAGS += -freorder-blocks-and-partition
 endif
