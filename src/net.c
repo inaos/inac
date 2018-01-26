@@ -56,6 +56,47 @@ struct ina_net_udp_receiver_s {
     struct sockaddr_in addr;
 };
 
+INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_count, ina_str_t **addresses)
+{
+    short i, cnt;
+    struct hostent *remote_host;
+    ina_str_t *addresses_ptr;
+    
+    INA_ASSERT_NOTNULL(hostname);
+    INA_ASSERT_NOTNULL(address_count);
+    INA_ASSERT_NOTNULL(addresses);
+
+    remote_host = gethostbyname(hostname);
+    if (remote_host == NULL || remote_host->h_addrtype != AF_INET) {
+        return INA_DNS_ELOOKUP;
+    }
+
+    /* count how many addresses we have */
+    cnt = 0;
+    while (remote_host->h_addr_list[cnt] != 0) {
+        cnt++;
+    }
+    if (cnt == 0) {
+        return INA_DNS_ELOOKUP;
+    }
+
+    *addresses = (ina_str_t*)ina_mem_alloc(sizeof(char)*15*cnt);
+    if (addresses == NULL) {
+        return INA_ERR_PUSH_LAST;
+    }
+    addresses_ptr = *addresses;
+
+    for (i = 0; i < cnt; i++) {
+        struct in_addr addr;
+        addr.s_addr = *(u_long *)remote_host->h_addr_list[i];
+        addresses_ptr[i] = ina_str_new_fromcstr(inet_ntoa(addr));
+    }
+
+    *address_count = cnt;
+
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
     INA_ASSERT_NOTNULL(host);

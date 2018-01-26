@@ -143,6 +143,20 @@ struct msghdr {
 typedef struct ina_net_udp_receiver_s ina_net_udp_receiver_t;
 
 /*
+ * Retrieve IPv4 addresses for a given hostname.
+ *
+ * Parameters
+ *  ctx            DNS context
+ *  hostname       Hostname to query
+ *  address_count  Where to store address count
+ *  addresses      Where to store ip addresses
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_count, ina_str_t **addresses);
+
+/*
  * Resolve an host name into to a ip address
  * 
  * Parameters

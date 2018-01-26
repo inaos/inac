@@ -251,3 +251,7 @@ INA_TEST(net_local, mac_addr)
     freeifaddrs(ifaddr);
 }
 #endif
+INA_TEST_SKIP(net_local, system_lookup)
+{
+
+}

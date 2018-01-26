@@ -83,7 +83,6 @@
 #include <libinac/net.h>
 #include <libinac/ljit.h>
 #include <libinac/conffile.h>
-#include <libinac/dns.h>
 #include <libinac/hash.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
