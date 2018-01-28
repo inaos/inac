@@ -89,7 +89,7 @@ set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_D
                  ${SRC_DIR}/istring.c ${SRC_DIR}/util.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c
                  ${SRC_DIR}/time.c ${SRC_DIR}/time_os.c ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c 
 				 ${SRC_DIR}/ljit.c ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/cron.c 
-				 ${SRC_DIR}/dns.c ${SRC_DIR}/ipc.c ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c 
+				 ${SRC_DIR}/ipc.c ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c 
 				 ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c ${SRC_DIR}/file_cursor.c ${SRC_DIR}/process.c 
 				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c ${SRC_DIR}/test.c)
 
