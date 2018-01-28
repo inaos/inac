@@ -32,8 +32,7 @@ tools/istat
 contribs/rapidxml/build*
 contribs/sqlite/buildall/*
 contribs/sqlite/libsqlite3.so
-contribs/luajit/src/luajit.exp
-contribs/luajit/src/luajitd.exp
+contribs/luajit/src/*.exp
 contribs/luajit/src/host/buildvm
 contribs/luajit/src/host/minilua
 contribs/luajit/src/host/buildvm_arch.h
