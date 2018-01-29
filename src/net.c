@@ -67,6 +67,17 @@
 #ifdef INA_OS_WIN32
 #define __INA_CLOSE(socket) closesocket(socket)
 #define __INA_STRERROR() strerror(WSAGetLastError())
+static int inet_aton(const char *address, struct in_addr *sock)
+{
+
+	int s;
+	s = inet_addr(address);
+	if (s == INADDR_NONE) {
+		return(0);
+	}
+	sock->s_addr = s;
+	return(1);
+}
 #else
 #define __INA_CLOSE(socket) close(socket)
 #define __INA_STRERROR() strerror(errno)
@@ -94,7 +105,7 @@ static int __ina_create_socket(char* err, int domain, int type)
     SOCKET s;
     BOOL yes = TRUE;
 
-    if (type == _INA_SOCKET_TYPE_TCP) {
+    if (type == __INA_SOCKET_TYPE_TCP) {
         s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
     }
     else if (type == __INA_SOCKET_TYPE_UDP) {
@@ -105,7 +116,7 @@ static int __ina_create_socket(char* err, int domain, int type)
     }
     if (s == INVALID_SOCKET) {
         __ina_set_error(err, "creating socket: %s", strerror(WSAGetLastError()));
-        return ANT_ERR;
+        return __INA_ERR;
     }
 
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(BOOL)) == SOCKET_ERROR) {
@@ -139,8 +150,8 @@ static int __ina_create_socket(char* err, int domain, int type)
         return __INA_ERR;
     }
     return s;
-}
 #endif
+}
 
 #define __INA_CONNECT_NONE 0
 #define __INA_CONNECT_NONBLOCK 1
@@ -149,8 +160,9 @@ static int __ina_tcp_generic_connect(char *err, char *addr, int port, int flags)
     int s;
     struct sockaddr_in sa;
 
-    if ((s = __ina_create_socket(err, AF_INET, __INA_SOCKET_TYPE_TCP)) == __INA_ERR)
-        return __INA_ERR;
+	if ((s = __ina_create_socket(err, AF_INET, __INA_SOCKET_TYPE_TCP)) == __INA_ERR) {
+		return __INA_ERR;
+	}
 
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
@@ -420,33 +432,33 @@ INA_API(ina_rc_t) ina_net_nonblock(int fd)
 
 INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read)
 {
-    INA_ASSERT_TRUE(fd > 0);
-    INA_ASSERT_NOTNULL(buf);
-    INA_ASSERT_TRUE(nb > 0);
-    INA_ASSERT_NOTNULL(nb_read);
+	INA_ASSERT_TRUE(fd > 0);
+	INA_ASSERT_NOTNULL(buf);
+	INA_ASSERT_TRUE(nb > 0);
+	INA_ASSERT_NOTNULL(nb_read);
 
 #ifdef INA_OS_WIN32
-    *nb_read = recv(fd, buf, count, 0);
+	*nb_read = recv(fd, buf, nb, 0);
 #else
-    *nb_read = read(fd, buf, nb);
-    if (*nb_read == __INA_ERR) {
+	*nb_read = read(fd, buf, nb);
+	if (*nb_read == __INA_ERR) {
 #endif
 #ifdef INA_OS_WIN32
-        int ec = WSAGetLastError();
-        /* this is ok we have a non-blocking socket */ 
-        if (ec != WSAEWOULDBLOCK) {
-            /* FIXME : Stay in line with the coding standards */
-            /*         define Error message in error.h */
-            return INA_NET_ERROR("Error reading");
-        }
+		int ec = WSAGetLastError();
+		/* this is ok we have a non-blocking socket */
+		if (ec != WSAEWOULDBLOCK) {
+			/* FIXME : Stay in line with the coding standards */
+			/*         define Error message in error.h */
+			return INA_NET_ERROR("Error reading");
+		}
 #else
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            /* FIXME : Stay in line with the coding standards */
-            /*         define Error message in error.h */
-            return INA_NET_ERROR("Error reading");
-        }
+		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+			/* FIXME : Stay in line with the coding standards */
+			/*         define Error message in error.h */
+			return INA_NET_ERROR("Error reading");
+		}
+	}
 #endif
-    }
     return INA_SUCCESS;
 }
 
@@ -698,7 +710,7 @@ INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *s
 #if INA_OS_WIN32
     if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
         __ina_set_error(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(WSAGetLastError()));
-        return INA_NET_ERROR(s);
+        return INA_NET_ERROR(err);
     }
 #else
     if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
