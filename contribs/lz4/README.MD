@@ -1,49 +1,73 @@
-LZ4 - Extremely fast compression
+LZ4 - Library Files
 ================================
 
-LZ4 is lossless compression algorithm, providing compression speed at 400 MB/s per core, scalable with multi-cores CPU. It also features an extremely fast decoder, with speed in multiple GB/s per core, typically reaching RAM speed limits on multi-core systems.
-A high compression derivative, called LZ4_HC, is also provided. It trades CPU time for compression ratio.
+The `/lib` directory contains many files, but depending on project's objectives,
+not all of them are necessary.
 
-This is an official mirror of LZ4 project, [hosted on Google Code](http://code.google.com/p/lz4/).
-The intention is to offer github's capabilities to lz4 users, such as cloning, branch, or source download.
+#### Minimal LZ4 build
 
-The "master" branch will reflect, the status of lz4 at its official homepage. Other branches will also exist, typically to fix some open issues or new requirements, and be available for testing before merge into master.
+The minimum required is **`lz4.c`** and **`lz4.h`**,
+which provides the fast compression and decompression algorithm.
+They generate and decode data using [LZ4 block format].
 
 
-Benchmarks
--------------------------
+#### High Compression variant
 
-The benchmark uses the [Open-Source Benchmark program by m^2 (v0.14.2)](http://encode.ru/threads/1371-Filesystem-benchmark?p=33548&viewfull=1#post33548) compiled with GCC v4.6.1 on Linux Ubuntu 64-bits v11.10,
-The reference system uses a Core i5-3340M @2.7GHz.
-Benchmark evaluates the compression of reference [Silesia Corpus](http://sun.aei.polsl.pl/~sdeor/index.php?page=silesia) in single-thread mode.
+For more compression ratio at the cost of compression speed,
+the High Compression variant called **lz4hc** is available.
+Add files **`lz4hc.c`**, **`lz4hc.h`** and **`lz4opt.h`**.
+The variant still depends on regular `lib/lz4.*` source files.
 
-<table>
-  <tr>
-    <th>Compressor</th><th>Ratio</th><th>Compression</th><th>Decompression</th>
-  </tr>
-  <tr>
-    <th>LZ4 (r101)</th><th>2.084</th><th>422 MB/s</th><th>1820 MB/s</th>
-  </tr>
-  <tr>
-    <th>LZO 2.06</th><th>2.106</th><th>414 MB/s</th><th>600 MB/s</th>
-  </tr>
-  <tr>
-    <th>QuickLZ 1.5.1b6</th><th>2.237</th><th>373 MB/s</th><th>420 MB/s</th>
-  </tr>
-  <tr>
-    <th>Snappy 1.1.0</th><th>2.091</th><th>323 MB/s</th><th>1070 MB/s</th>
-  </tr>
-  <tr>
-    <th>LZF</th><th>2.077</th><th>270 MB/s</th><th>570 MB/s</th>
-  </tr>
-  <tr>
-    <th>zlib 1.2.8 -1</th><th>2.730</th><th>65 MB/s</th><th>280 MB/s</th>
-  </tr>
-  <tr>
-    <th>LZ4 HC (r101)</th><th>2.720</th><th>25 MB/s</th><th>2080 MB/s</th>
-  </tr>
-  <tr>
-    <th>zlib 1.2.8 -6</th><th>3.099</th><th>21 MB/s</th><th>300 MB/s</th>
-  </tr>
-</table>
 
+#### Frame variant, for interoperability
+
+In order to produce compressed data compatible with `lz4` command line utility,
+it's necessary to encode lz4-compressed blocks using the [official interoperable frame format].
+This format is generated and decoded automatically by the **lz4frame** library.
+Its public API is described in `lib/lz4frame.h`.
+In order to work properly, lz4frame needs all other modules present in `/lib`,
+including, lz4 and lz4hc, and also **xxhash**.
+So it's necessary to include all `*.c` and `*.h` files present in `/lib`.
+
+
+#### Advanced / Experimental API
+
+A complex API defined in `lz4frame_static.h` contains definitions
+which are not guaranteed to remain stable in future versions.
+As a consequence, it must be used with static linking ***only***.
+
+
+#### Windows : using MinGW+MSYS to create DLL
+
+DLL can be created using MinGW+MSYS with the `make liblz4` command.
+This command creates `dll\liblz4.dll` and the import library `dll\liblz4.lib`.
+The import library is only required with Visual C++.
+The header files `lz4.h`, `lz4hc.h`, `lz4frame.h` and the dynamic library
+`dll\liblz4.dll` are required to compile a project using gcc/MinGW.
+The dynamic library has to be added to linking options.
+It means that if a project that uses LZ4 consists of a single `test-dll.c`
+file it should be linked with `dll\liblz4.dll`. For example:
+```
+    gcc $(CFLAGS) -Iinclude/ test-dll.c -o test-dll dll\liblz4.dll
+```
+The compiled executable will require LZ4 DLL which is available at `dll\liblz4.dll`.
+
+
+#### Miscellaneous
+
+Other files present in the directory are not source code. There are :
+
+ - `LICENSE` : contains the BSD license text
+ - `Makefile` : `make` script to compile and install lz4 library (static and dynamic)
+ - `liblz4.pc.in` : for `pkg-config` (used in `make install`)
+ - `README.md` : this file
+
+[official interoperable frame format]: ../doc/lz4_Frame_format.md
+[LZ4 block format]: ../doc/lz4_Block_format.md
+
+
+#### License
+
+All source material within __lib__ directory are BSD 2-Clause licensed.
+See [LICENSE](LICENSE) for details.
+The license is also reminded at the top of each source file.

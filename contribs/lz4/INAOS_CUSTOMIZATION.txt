@@ -1,0 +1,12 @@
+Currently we use the version LZ4 v1.8.1.2 found on www.lz4.org
+
+Over time lz4 has added a lot of examples and commandline utilities in the official github repos.
+
+Here in this folder we only place the content of thel lib directory (BSD licensed).
+
+1. We remove all the files we do not need
+2. We keep our custom build (so we do not need the makefile)
+3. Apart from the sources and headers we really use we also keep:
+   - LICENSE
+   - README.md
+   
