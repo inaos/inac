@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,17 +104,7 @@ unsigned long ina_ljit_hash_sbdm(const char *str)
     return INA_HASH_CSTR_TO_SDBM(str);
 }
 
-void ina_ljit_dbl_to_decimal(double dbl, ina_decimal_t *dec)
-{   
-    INA_ASSERT_NOTNULL(dec);
-    ina_dbl_to_decimal(dbl, dec);
-}
 
-double ina_ljit_dbl_from_decimal(const ina_decimal_t *dec)
-{
-    INA_ASSERT_NOTNULL(dec);
-    return(ina_dbl_from_decimal(dec));
-}
 
 INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const char *sig, ...)
 {

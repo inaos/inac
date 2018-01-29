@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -180,25 +180,7 @@ INA_API(const void*) ina_ljit_checkcdata(ina_ljit_ctx_t *ctx, int narg);
  */
 INA_API(unsigned long) ina_ljit_hash_sbdm(const char *str);
 
-/*
- * Convert a double to a decimal.
- *
- * Parameters
- *  dbl  Double to convert
- *  dec  Where to store the decimal
- */
-INA_API(void) ina_ljit_dbl_to_decimal(double dbl, ina_decimal_t *dec);
-    
-/*
- * Convert a decimal to a double.
- *
- * Parameters
- *  dec  Decimal to convert
- *
- * Return
- *  Converted double
- */
-INA_API(double) ina_ljit_dbl_from_decimal(const ina_decimal_t *dec);
+
 
 #ifdef __cplusplus
 }
