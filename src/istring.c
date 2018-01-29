@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014,2016, INAOS GmbH
+ * Copyright (c) 2013-2018 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,6 @@
  */
 #include <libinac/lib.h>
 #include "config.h"
-
-#ifdef INA_ISTRING_ENABLED
 
 #ifdef INA_OS_WIN32
 INA_INLINE int __ina_vsnprintf(char *str, size_t size, const char *format, va_list args)
@@ -895,4 +893,3 @@ __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
     return hdr;
 }
 
-#endif

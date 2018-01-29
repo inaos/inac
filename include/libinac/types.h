@@ -100,24 +100,6 @@ INA_INLINE double ina_dbl_from_decimal(const ina_decimal_t *dec)
     return ldexp(tmp, dec->exponent);
 }
 
-#ifdef INA_BSTRING_ENABLED
-#include <bstring/bstrlib.h>
-#define ina_str_t bstring
-#ifdef INA_STRING_ENABLED
-#error String library already defined.
-#endif
-#define INA_STRING_DEFINED 1
-#else
-typedef char * ina_str_t;
-#endif
-
-#ifdef INA_OS_WIN32
-typedef HANDLE ina_handle_t;
-typedef char ina_semkey_t[MAX_PATH];
-#else
-typedef int ina_handle_t;
-typedef int ina_semkey_t;
-#endif
 
 #ifdef __cplusplus
 }

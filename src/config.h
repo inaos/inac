@@ -33,11 +33,6 @@
 #define INA_LOG_ENABLED 1
 #endif
 
-/* Define string code/library to use */
-#ifndef INA_STRING_DEFINED
-#define INA_CSTRING_ENABLED 1
-#endif
-
 /* Define time code/library to use */
 #ifndef INA_TIME_DEFINED
 #define INA_OSTIME_ENABLED 1

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2012-2017, INAOS GmbH
+# Copyright (c) 2012-2018, INAOS GmbH
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -81,10 +81,6 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/anet/anet.a \
 	$(INAC_CONTRIBS_DIR)/falkhash/falkhash.a $(INAC_CONTRIBS_DIR)/memhash/memhash.a \
 	$(INAC_LINUX_LIBS)
 # ****************************************************************************
-#  String implementation
-# ****************************************************************************
-CFLAGS+=-DINA_ISTRING_ENABLED=1
-# ****************************************************************************
 # Time implementation
 # ****************************************************************************
 CFLAGS+=-DINA_OSTIME_ENABLED=1
@@ -102,7 +98,6 @@ else
         INAC_CC_DEBUG_FLAGS = -g -DDEBUG -msse4.2 -maes
         INAC_CC_RELEASE_FLAGS = -O3 -flto -march=native -DINA_LOG_LEVEL=1
 endif
-CFLAGS+=-DINA_STRING_DEFINED=1
 CFLAGS+=-DINA_TIME_DEFINED=1
 export CC
 export CXX
@@ -110,7 +105,6 @@ export CFLAGS
 export LDFLAGS
 export INAC_LIB
 export INAC_LIBS
-export INA_STRING_DEFINED
 export INA_TIME_DEFINED
 export INA_TIMER_BACKEND_DEFINED
 

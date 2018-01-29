@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014,2016, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,10 @@
 extern "C" {
 #endif
 
+/*
+ * String type
+ */
+typedef char * ina_str_t;
 
 /*
  * Creates a empty ina_str_t with as preallocated length len.

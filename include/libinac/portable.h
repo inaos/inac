@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1156,6 +1156,14 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #define INA_BSWAP_64 __builtin_bswap64
 #else
 #error Compiler not supported yet for INAC!
+#endif
+
+#ifdef INA_OS_WIN32
+typedef HANDLE ina_handle_t;
+typedef char ina_semkey_t[MAX_PATH];
+#else
+typedef int ina_handle_t;
+typedef int ina_semkey_t;
 #endif
 
 #ifdef __cplusplus

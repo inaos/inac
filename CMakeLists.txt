@@ -68,8 +68,6 @@ add_library(${FALKHASH_LIB_NAME} ${FALKHASH_SRC})
 
 # END dependencies
 
-add_definitions(-DINA_ISTRING_ENABLED -DINA_STRING_DEFINED)
-
 # BEGIN backend configuration
 
 if ($ENV{INAC_TIME_BACKEND} STREQUAL "time-meinberg")
