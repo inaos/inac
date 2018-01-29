@@ -503,6 +503,7 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
         ++info->children;
         pm = pm->child;
     }
+    --info->children;
     return INA_SUCCESS;
 }
 
