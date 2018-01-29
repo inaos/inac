@@ -7,7 +7,6 @@ set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}"
 					"${DEPS_DIR}")
 
-set(ANET_LIB_NAME "anet")
 set(LZ4_LIB_NAME "lz4")
 set(MINIZ_LIB_NAME "miniz")
 set(ICT_LIB_NAME "cpu-topology")
@@ -34,11 +33,6 @@ if(WIN32)
 endif(WIN32)
 
 # BEGIN dependencies
-
-# ANET
-set (ANET_SRC_DIR ${DEPS_DIR}/anet)
-set (ANET_SRC ${ANET_SRC_DIR}/anet.c)
-add_library(${ANET_LIB_NAME} ${ANET_SRC})
 
 # Miniz
 set (MINIZ_SRC_DIR ${DEPS_DIR}/miniz)

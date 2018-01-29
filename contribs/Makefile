@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016, INAOS GmbH
+# Copyright (c) 2013-2018, INAOS GmbH
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@ OS := $(shell uname -s)
 all: 
 	@echo building contribs...
 	$(MAKE) -C luajit amalg
-	$(MAKE) -C anet
 ifneq ($(OS), Darwin)
 	$(MAKE) -C cpu-topology
 	$(MAKE) -C coredumper CFLAGS=-D_GNU_SOURCE
@@ -58,7 +57,6 @@ debug: all
 clean:
 	@echo cleaning contribs...
 	$(MAKE) clean -C luajit
-	$(MAKE) clean -C anet
 ifneq ($(OS), Darwin)
 	$(MAKE) clean -C cpu-topology
 	$(MAKE) clean -C coredumper
