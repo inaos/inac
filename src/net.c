@@ -459,6 +459,7 @@ INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read)
             /*         define Error message in error.h */
             return INA_NET_ERROR("Error reading");
         }
+    }
 #endif
     return INA_SUCCESS;
 }
