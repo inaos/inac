@@ -121,17 +121,17 @@ INA_TEST(ullc, multiproducer)
         v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc1);
         v->d1 += c;
         v->d2 -= c;
-        v->i3 = (int32_t)abs(v->d1*v->d2);
+        v->i3 = (int32_t)fabs(v->d1*v->d2);
         INA_ULLC_COMMIT(ullc1);
         v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc2);
         v->d1 += c;
         v->d2 -= c;
-        v->i3 = (int32_t)abs(v->d1*v->d2);
+        v->i3 = (int32_t)fabs(v->d1*v->d2);
         INA_ULLC_COMMIT(ullc2);
         v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc3);
         v->d1 += c;
         v->d2 -= c;
-        v->i3 = (int32_t)abs(v->d1*v->d2);
+        v->i3 = (int32_t)fabs(v->d1*v->d2);
         INA_ULLC_COMMIT(ullc3);
         ina_time_sleep(1);
     }
@@ -194,7 +194,7 @@ INA_TEST(ullc, consumer_get_set_pos)
         v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
         v->d1 += c;
         v->d2 -= c;
-        v->i3 = abs(v->d1*v->d2);
+        v->i3 = fabs(v->d1*v->d2);
         INA_ULLC_COMMIT(producer);
     }
 
@@ -222,7 +222,7 @@ INA_TEST(ullc, consumer_get_set_pos)
     v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
     v->d1 = 9999;
     v->d2 = 1111;
-    v->i3 = abs(v->d1*v->d2);
+    v->i3 = fabs(v->d1*v->d2);
     INA_ULLC_COMMIT(producer); 
     v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
     INA_TEST_ASSERT_NOT_NULL(v);
