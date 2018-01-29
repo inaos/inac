@@ -194,7 +194,7 @@ INA_TEST(ullc, consumer_get_set_pos)
         v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
         v->d1 += c;
         v->d2 -= c;
-        v->i3 = fabs(v->d1*v->d2);
+        v->i3 = (int32_t )fabs(v->d1*v->d2);
         INA_ULLC_COMMIT(producer);
     }
 
@@ -222,7 +222,7 @@ INA_TEST(ullc, consumer_get_set_pos)
     v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
     v->d1 = 9999;
     v->d2 = 1111;
-    v->i3 = fabs(v->d1*v->d2);
+    v->i3 = (int32_t )fabs(v->d1*v->d2);
     INA_ULLC_COMMIT(producer); 
     v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
     INA_TEST_ASSERT_NOT_NULL(v);
