@@ -68,47 +68,6 @@ struct msghdr {
 };
 #endif
 
-/*
- * Definitions for internet protocol version 4.
- * Per RFC 791, September 1981.
- */
-
-/*
- * Structure of an internet header, naked of options.
- *
- * We declare ip_len and ip_off to be short, rather than u_short
- * pragmatically since otherwise unsigned comparisons can result
- * against negative integers quite easily, and fail in subtle ways.
- */
-typedef struct ina_net_ip_s {
-#ifdef INA_LITTLE_ENDIAN
-    u_char	ip_hl:4,        /* header length */
-            ip_v:4;	            /* version */
-#elif INA_BIG_ENDIAN
-    u_char	ip_v:4,			/* version */
-        ip_hl:4;    		/* header length */
-#endif
-    u_char  ip_tos;         /* type of service */
-    short   ip_len;         /* total length */
-    u_short ip_id;          /* identification */
-    short   ip_off;         /* fragment offset field */
-#define	IP_DF 0x4000        /* dont fragment flag */
-#define	IP_MF 0x2000        /* more fragments flag */
-    u_char  ip_ttl;         /* time to live */
-    u_char  ip_p;           /* protocol */
-    u_short ip_sum;         /* checksum */
-    struct  in_addr ip_src,ip_dst;  /* source and dest address */
-} ina_net_ip_t;
-
-/*
- * Per RFC 768, September, 1981.
- */
-typedef struct ina_net_udp_hdr_s {
-    u_short uh_sport;       /* source port */
-    u_short uh_dport;       /* destination port */
-    u_short uh_ulen;        /* datagram length */
-    u_short uh_sum;	        /* datagram checksum */
-} ina_net_udp_hdr_t;
 
 /* opaque UDP receiver */
 typedef struct ina_net_udp_receiver_s ina_net_udp_receiver_t;
