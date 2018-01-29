@@ -996,7 +996,7 @@ INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t siz
 #define __INA_HASH_CRC_ALIGN_MASK      (__INA_HASH_CRC_ALIGN_SIZE - 1)
 #define __INA_HASH_CRC_CALC_CRC(op, crc, type, buf, len) do {                          \
     for (; (len) >= sizeof (type); (len) -= sizeof(type), buf += sizeof (type)) {      \
-      (crc) = op((crc), *(type *) (buf));                                              \
+      /*(crc) = op((crc), *(type *) (buf)); */                                             \
     }                                                                                  \
 } while(0)
 
@@ -1010,7 +1010,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
 
     /* Align the input to the word boundary */
     for (; (size > 0) && ((size_t)buf & __INA_HASH_CRC_ALIGN_MASK); size--, buf++) {
-        crc = _mm_crc32_u8(crc, *buf);
+        /*crc = _mm_crc32_u8(crc, *buf);*/
     }
 
     /* Blast off the CRC32 calculation */
@@ -1019,7 +1019,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
 #endif
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, buf, size);
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8,  crc, uint8_t, buf, size);
 
     // Post-process the crc
     return (crc ^ 0xFFFFFFFF);
@@ -1032,7 +1032,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 
     /* Align the input to the word boundary */
     for (; (size > 0) && ((size_t)buf & __INA_HASH_CRC_ALIGN_MASK); size--, buf++) {
-        crc = _mm_crc32_u8((unsigned int)crc, *buf);
+        /*crc = _mm_crc32_u8((unsigned int)crc, *buf);*/
     }
 
     /* Blast off the CRC32 calculation */

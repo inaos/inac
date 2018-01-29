@@ -69,14 +69,13 @@
 #define __INA_STRERROR() strerror(WSAGetLastError())
 static int inet_aton(const char *address, struct in_addr *sock)
 {
-
-	int s;
-	s = inet_addr(address);
-	if (s == INADDR_NONE) {
-		return(0);
-	}
-	sock->s_addr = s;
-	return(1);
+    int s;
+    s = inet_addr(address);
+    if (s == INADDR_NONE) {
+        return(0);
+    }
+    sock->s_addr = s;
+    return(1);
 }
 #else
 #define __INA_CLOSE(socket) close(socket)
@@ -299,12 +298,11 @@ INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr)
 {
     char err[INA_ERR_MSGLEN];
+    struct sockaddr_in sa;
 
     INA_ASSERT_NOTNULL(fd);
     INA_ASSERT_NOTNULL(bindaddr);
     INA_ASSERT_TRUE(port > 0);
-
-    struct sockaddr_in sa;
 
     if ((*fd = __ina_create_socket(err, AF_INET, __INA_SOCKET_TYPE_TCP)) == __INA_ERR) {
         return INA_NET_ERROR(err);
@@ -408,10 +406,12 @@ INA_API(ina_rc_t) ina_net_nonblock(int fd)
 
     INA_ASSERT_TRUE(fd > 0);
 #ifdef INA_OS_WIN32
-    unsigned long enable = 1;
-    if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
-        __ina_set_error(err, "ioctlsocket(FIONBIO)");
-        return INA_NET_ERROR(err);
+    {
+        unsigned long enable = 1;
+        if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
+            __ina_set_error(err, "ioctlsocket(FIONBIO)");
+            return INA_NET_ERROR(err);
+        }
     }
 #else
     int flags;
@@ -438,26 +438,28 @@ INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read)
 	INA_ASSERT_NOTNULL(nb_read);
 
 #ifdef INA_OS_WIN32
-	*nb_read = recv(fd, buf, nb, 0);
+    *nb_read = recv(fd, buf, nb, 0);
 #else
 	*nb_read = read(fd, buf, nb);
 	if (*nb_read == __INA_ERR) {
 #endif
 #ifdef INA_OS_WIN32
-		int ec = WSAGetLastError();
-		/* this is ok we have a non-blocking socket */
-		if (ec != WSAEWOULDBLOCK) {
-			/* FIXME : Stay in line with the coding standards */
-			/*         define Error message in error.h */
-			return INA_NET_ERROR("Error reading");
-		}
+    {
+        int ec = WSAGetLastError();
+        /* this is ok we have a non-blocking socket */
+        if (ec != WSAEWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error reading");
+        }
+    }
 #else
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			/* FIXME : Stay in line with the coding standards */
-			/*         define Error message in error.h */
-			return INA_NET_ERROR("Error reading");
-		}
-	}
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            /* FIXME : Stay in line with the coding standards */
+            /*         define Error message in error.h */
+            return INA_NET_ERROR("Error reading");
+        }
+    }
 #endif
     return INA_SUCCESS;
 }
