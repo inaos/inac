@@ -37,6 +37,15 @@
 #include <stdlib.h>
 #include <libinac/lib.h>
 
+/*
+ * Per RFC 768, September, 1981.
+ */
+typedef struct ina_net_udp_hdr_s {
+    u_short uh_sport;       /* source port */
+    u_short uh_dport;       /* destination port */
+    u_short uh_ulen;        /* datagram length */
+    u_short uh_sum;	        /* datagram checksum */
+} ina_net_udp_hdr_t;
 /* 
  * This benchmark stems from the practical application 
  * of parsing pcap files with UDP multicast traffic, 
