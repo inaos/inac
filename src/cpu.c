@@ -202,7 +202,7 @@ INA_API(ina_rc_t) ina_cpu_init()
     }
 
 	/* only if hypervisor bit is not set */
-	if (__ina_cpu_ctx->running_on_vm) {
+	if (!__ina_cpu_ctx->running_on_vm) {
 		/* Retrieve CPU physical layout */
 		get_cpu_hw_info(&packages, &cores, &threads, &logical);
 		__ina_cpu_ctx->package_count = packages;
@@ -217,7 +217,7 @@ INA_API(ina_rc_t) ina_cpu_init()
 		);
 	}
 	else {
-		/* FIXME: we should at least get the logical CPU count */
+		__ina_cpu_ctx->logical_count = GetMaxCPUSupportedByOS();
 	}
 	
 	get_cpuid_info(&info, 0, 0);
@@ -591,6 +591,11 @@ INA_API(ina_rc_t) ina_cpu_destroy()
 INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+	if (__ina_cpu_ctx->running_on_vm) {
+		/* FIXME: proper error handling */
+		*package_count = 0;
+		return INA_FAILURE;
+	}
     *package_count = __ina_cpu_ctx->package_count;
     return INA_SUCCESS;
 }
@@ -598,6 +603,11 @@ INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count)
 INA_API(ina_rc_t) ina_cpu_get_core_count(int *core_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+	if (__ina_cpu_ctx->running_on_vm) {
+		/* FIXME: proper error handling */
+		*core_count = 0;
+		return INA_FAILURE;
+	}
     *core_count = __ina_cpu_ctx->core_count;
     return INA_SUCCESS;
 }
@@ -605,6 +615,11 @@ INA_API(ina_rc_t) ina_cpu_get_core_count(int *core_count)
 INA_API(ina_rc_t) ina_cpu_get_thread_count(int *thread_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+	if (__ina_cpu_ctx->running_on_vm) {
+		/* FIXME: proper error handling */
+		*thread_count = 0;
+		return INA_FAILURE;
+	}
     *thread_count = __ina_cpu_ctx->thread_count;
     return INA_SUCCESS;
 }
@@ -626,10 +641,6 @@ INA_API(ina_rc_t) ina_cpu_get_features(ina_cpu_feature_t *features)
 INA_API(ina_rc_t) ina_cpu_get_brand_string(ina_str_t *brand)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
-    if (__ina_cpu_ctx->running_on_vm) {
-        *brand = NULL;
-        return INA_SUCCESS;
-    }
     *brand = ina_str_dup(__ina_cpu_ctx->brand);
     return INA_SUCCESS;
 }
