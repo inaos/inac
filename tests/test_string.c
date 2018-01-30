@@ -732,11 +732,6 @@ INA_TEST(string, ina_str_snprintf)
     ina_str_free(str1);
 }
 
-INA_TEST_SKIP(string, ina_str_vsnprintf)
-{
-
-}
-
 INA_TEST(string, simple_allocation_with_pool)
 {
     ina_str_t str1;
