@@ -683,13 +683,41 @@ INA_TEST(string, ina_str_adjust_len)
 INA_TEST(string, ina_str_substr)
 {
     ina_str_t substr = NULL;
-    ina_str_t str = ina_str_new_fromcstr("exctrat a substring from a string");
+    ina_str_t str = ina_str_new_fromcstr("extract a substring from a string");
     INA_TEST_ASSERT_NOT_NULL(str);
     substr = ina_str_substr(str, 10, 18);
     INA_TEST_ASSERT_NOT_NULL(substr);
     INA_TEST_ASSERT_EQUAL_STR("substring", substr);
-    ina_str_free(str);
     ina_str_free(substr);
+
+    substr = ina_str_substr(str, 0, -1);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("extract a substring from a string", substr);
+    ina_str_free(substr);
+
+    substr = ina_str_substr(str, 10, -1);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("substring from a string", substr);
+    ina_str_free(substr);
+
+    substr = ina_str_substr(str, 4, 2);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("", substr);
+    ina_str_free(substr);
+
+    substr = ina_str_substr(str, 0, 0);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("e", substr);
+    ina_str_free(substr);
+
+    str = ina_str_new_fromcstr("");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    substr = ina_str_substr(str, 10, 18);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("", substr);
+    ina_str_free(substr);
+    ina_str_free(str);
+
 }
 
 INA_TEST_FIXTURE(string_mempool, ina_str_substr)

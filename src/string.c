@@ -477,21 +477,14 @@ INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars)
     return str;   
 }
 
-static int __ina_str_substr_internal(ina_cstr_t str, int start, int end, ina_str_hdr_t **hdrptr, size_t *newlenptr)
+static size_t __ina_str_substr_internal(ina_cstr_t str, size_t start, int end, size_t len)
 {
-    ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
-    size_t len = hdr->len;
     size_t newlen = 0;
 
     if (len == 0) {
         return 0;
     }
-    if (start < 0) {
-        start = len+start;
-        if (start < 0) {
-            start = 0;
-        }
-    }
+
     if (end < 0) {
         end = len+end;
         if (end < 0) {
@@ -504,9 +497,9 @@ static int __ina_str_substr_internal(ina_cstr_t str, int start, int end, ina_str
         newlen = (end-start)+1;
     }
     if (newlen != 0) {
-        if (start >= (signed)len) {
+        if (start >= len) {
             newlen = 0;
-        } else if (end >= (signed)len) {
+        } else if (end >= len) {
             end = len-1;
             if (start > end) {
                 newlen = 0;
@@ -514,44 +507,27 @@ static int __ina_str_substr_internal(ina_cstr_t str, int start, int end, ina_str
                 newlen = (end-start)+1;
             }
         }
-    } else {
-        start = 0;
     }
-    *newlenptr = newlen;
-    *hdrptr = hdr;
-    return 1;
+    return newlen;
 }
 
-INA_API(ina_str_t) ina_str_substr_using_pool(ina_cstr_t str, int start, int end, ina_mempool_t *pool)
+INA_API(ina_str_t) ina_str_substr_using_pool(ina_cstr_t str, size_t start, int end, ina_mempool_t *pool)
 {
-    ina_str_hdr_t *hdr;
     size_t newlen;
-    int ret;
+    INA_ASSERT_NOTNULL(str);
+
+    newlen = __ina_str_substr_internal(str, start, end, ina_str_len(str));
+    return ina_str_new_fromblk_using_pool((__INA_HDR_OFFSET(str))->data+start, newlen, pool);
+}
+
+INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, size_t start, int end)
+{
+    size_t newlen;
 
     INA_ASSERT_NOTNULL(str);
 
-    ret = __ina_str_substr_internal(str, start, end, &hdr, &newlen);
-    if (ret == 0) {
-        return (ina_str_t )str;
-    }
-
-    return ina_str_new_fromblk_using_pool(hdr->data+start, newlen, pool);
-}
-
-INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, int start, int end)
-{
-    ina_str_hdr_t *hdr;
-    size_t newlen;
-    int ret;
-
-    INA_ASSERT_NOTNULL(str);
-
-    ret = __ina_str_substr_internal(str, start, end, &hdr, &newlen);
-    if (ret == 0) {
-        return (ina_str_t )str;
-    }
-    
-    return ina_str_new_fromblk(hdr->data+start, newlen);
+    newlen = __ina_str_substr_internal(str, start, end, ina_str_len(str));
+    return ina_str_new_fromblk((__INA_HDR_OFFSET(str))->data+start, newlen);
 }
 
 INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *count)

@@ -527,7 +527,7 @@ INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars);
  * Return
  *  Substring or NULL if an error occurred
  */
-INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, int start, int end);
+INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, size_t start, int end);
 
 /*
  * Extract the substring starting at start until end. A new string will be
@@ -543,7 +543,7 @@ INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, int start, int end);
  *  Substring or NULL if an error occurred
  */
 INA_API(ina_str_t) ina_str_substr_using_pool(ina_cstr_t str,
-                                             int start,
+                                             size_t start,
                                              int end,
                                              ina_mempool_t *pool);
 
