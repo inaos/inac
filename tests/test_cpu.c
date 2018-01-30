@@ -64,7 +64,7 @@ INA_TEST(cpu, test_package_count)
 		INA_TEST_MSG("CPU package-count: %d\n", package_count);
 	}
 	else {
-		INA_TEST_MSG("CPU not supported or hypervisor bit set\n");
+		INA_TEST_MSG("%s\n", "CPU not supported or hypervisor bit set");
 	}
 }
 
@@ -82,7 +82,7 @@ INA_TEST(cpu, test_core_count)
 		INA_TEST_MSG("CPU core-count: %d\n", core_count);
 	}
 	else {
-		INA_TEST_MSG("CPU not supported or hypervisor bit set\n");
+		INA_TEST_MSG("%s/n","CPU not supported or hypervisor bit set");
 	}
 }
 
@@ -100,7 +100,7 @@ INA_TEST(cpu, test_thread_count)
 		INA_TEST_MSG("CPU thread-count: %d\n", thread_count);
 	}
 	else {
-		INA_TEST_MSG("CPU not supported or hypervisor bit set\n");
+		INA_TEST_MSG("%s\n", "CPU not supported or hypervisor bit set");
 	}
 }
 
