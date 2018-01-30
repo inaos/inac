@@ -187,7 +187,7 @@ INA_API(ina_rc_t) ina_cpu_init()
 #ifdef INA_OS_OSX
     return INA_SUCCESS;
 #else
-    /* check hypervisor */
+    /* check hypervisor bit - test if hypervisor is present */
     get_cpuid_info(&info, 1, 0);
     if (info.ECX & (1U << 31)) {
         get_cpuid_info(&info, 0x40000000, 0);
@@ -196,20 +196,29 @@ INA_API(ina_rc_t) ina_cpu_init()
         memcpy(hyper_vendor_id + 8, &info.EDX, 4);
         hyper_vendor_id[12] = '\0';
         if (!strcmp(hyper_vendor_id, "VMwareVMware")) {
-            __ina_cpu_ctx->running_on_vm = 1;
+            /* FIXME: save hypervisor info */
         }
-    }
-    if (__ina_cpu_ctx->running_on_vm) {
-        /* FIXME: proper error handling */
-        return INA_SUCCESS;
+		__ina_cpu_ctx->running_on_vm = 1; 
     }
 
-	/* cpus physical layout */
-	get_cpu_hw_info(&packages, &cores, &threads, &logical);
-    __ina_cpu_ctx->package_count = packages;
-    __ina_cpu_ctx->core_count = cores;
-    __ina_cpu_ctx->thread_count = threads;
-    __ina_cpu_ctx->logical_count = logical;
+	/* only if hypervisor bit is not set */
+	if (__ina_cpu_ctx->running_on_vm) {
+		/* Retrieve CPU physical layout */
+		get_cpu_hw_info(&packages, &cores, &threads, &logical);
+		__ina_cpu_ctx->package_count = packages;
+		__ina_cpu_ctx->core_count = cores;
+		__ina_cpu_ctx->thread_count = threads;
+		__ina_cpu_ctx->logical_count = logical;
+
+		/* Retrieve CPU cache info */
+		get_cache_info(&__ina_cpu_ctx->l1_data_bytes,
+			&__ina_cpu_ctx->l2_bytes,
+			&__ina_cpu_ctx->l3_bytes
+		);
+	}
+	else {
+		/* FIXME: we should at least get the logical CPU count */
+	}
 	
 	get_cpuid_info(&info, 0, 0);
 	memcpy(vendor + 0, &info.EBX, 4);
@@ -519,12 +528,6 @@ INA_API(ina_rc_t) ina_cpu_init()
 		} 
 	}
     __ina_cpu_ctx->features = cpufeatures;
-
-    /* Retrieve CPU cache info */
-    get_cache_info(&__ina_cpu_ctx->l1_data_bytes, 
-        &__ina_cpu_ctx->l2_bytes, 
-        &__ina_cpu_ctx->l3_bytes
-    );
 
     __ina_cpu_cache_line_size(&__ina_cpu_ctx->cache_line);
 
