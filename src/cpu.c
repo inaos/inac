@@ -204,7 +204,9 @@ INA_API(ina_rc_t) ina_cpu_init()
 	/* only if hypervisor bit is not set */
 	if (!__ina_cpu_ctx->running_on_vm) {
 		/* Retrieve CPU physical layout */
-		get_cpu_hw_info(&packages, &cores, &threads, &logical);
+		if (get_cpu_hw_info(&packages, &cores, &threads, &logical) > 0) {
+			/* FIXME: error handling get_last_error_cputopo() */
+		}
 		__ina_cpu_ctx->package_count = packages;
 		__ina_cpu_ctx->core_count = cores;
 		__ina_cpu_ctx->thread_count = threads;
