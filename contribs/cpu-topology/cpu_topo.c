@@ -121,6 +121,7 @@ WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
 
 #include <stdio.h>
 
+static char __last_error_cputopo[1024];
 
 int MaskToHexStringGenericAffinityMask(GenericAffinityMask *pAffinityMap, unsigned int len, char *str, unsigned int fmt);
 
@@ -279,7 +280,7 @@ int AllocateGenericAffinityMask(GenericAffinityMask *pAffinityMap, unsigned  max
 	bytes = (maxcpu >> 3) + 1;
 	pAffinityMap->AffinityMask = (unsigned char *)malloc(bytes*sizeof(unsigned char));
 	if(pAffinityMap->AffinityMask == NULL) {
-		printf("Error: AllocateGenericAffinityMask 2nd malloc failed at %s %d. Bye\n", __FILE__, __LINE__);
+		sprintf(__last_error_cputopo, "Error: AllocateGenericAffinityMask 2nd malloc failed at %s %d. Bye\n", __FILE__, __LINE__);
 		return -1;
 	}
 	pAffinityMap->maxByteLength = bytes;
@@ -325,15 +326,16 @@ void ClearGenericAffinityMask(GenericAffinityMask *pAffinityMap)
  *  cpu			: an ordinal number that reference a logical processor visible to the OS
  *	return none, abort if error occured
  */
-void SetGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned  cpu)
+int SetGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned  cpu)
 {
 	if (cpu < (pAffinityMap->maxByteLength << 3)  ) { 
 		pAffinityMap->AffinityMask[ cpu >> 3  ] |=  1 << (cpu % 8);
 	} else {
-		printf("CPU topology: Error: Wanted cpu %u but mask only supports up to %u cpus at %s %d. Bye\n", 
+		sprintf(__last_error_cputopo, "CPU topology: Error: Wanted cpu %u but mask only supports up to %u cpus at %s %d. Bye\n", 
 			cpu, (pAffinityMap->maxByteLength << 3), __FILE__, __LINE__);
-		return;
+		return 1;
 	}
+	return 0;
 }
 
 /* CompareEqualGenericAffinity
@@ -398,7 +400,7 @@ int ClearGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned  cpu)
 		pAffinityMap->AffinityMask[ cpu >> 3  ] ^=  1 << (cpu % 8);
 		return 0;
 	} else {
-		printf("Error: Wanted cpu %d but mask only supports up to %d cpus at %s %d. Bye\n", 
+		sprintf(__last_error_cputopo, "Error: Wanted cpu %d but mask only supports up to %d cpus at %s %d. Bye\n", 
 			cpu, (pAffinityMap->maxByteLength << 3), __FILE__, __LINE__);
 		return -1;
 	}
@@ -425,7 +427,7 @@ unsigned char TestGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned
 			return 0;
 		}
 	} else {
-		printf("Error: Wanted cpu %d but mask only supports up to %d cpus at %s %d. Bye\n", 
+		sprintf(__last_error_cputopo, "Error: Wanted cpu %d but mask only supports up to %d cpus at %s %d. Bye\n", 
 			cpu, (pAffinityMap->maxByteLength << 3), __FILE__, __LINE__);
 		return 0xff;
 	}
@@ -844,7 +846,7 @@ int FindEachCacheIndex(DWORD maxCPUID, unsigned cache_subleaf)
  * Return:        none
  *
  */
-void  InitStructuredLeafBuffers()
+int  InitStructuredLeafBuffers()
 {
 	unsigned j, kk, qeidmsk;
 	unsigned maxCPUID;
@@ -858,9 +860,9 @@ void  InitStructuredLeafBuffers()
 	glbl_ptr->cpuid_values[0].subleaf_max = 1; 
 
 	if(maxCPUID >= MAX_LEAFS) {
-		printf("CPU topology: got maxCPUID= 0x%x but the array only handles up to 0x%x. Bye at %s %d\n",
+		sprintf(__last_error_cputopo, "CPU topology: got maxCPUID= 0x%x but the array only handles up to 0x%x. Bye at %s %d\n",
 							maxCPUID, MAX_LEAFS, __FILE__, __LINE__);
-		return;
+		return 1;
 	}
 
 	for(j=1; j <= maxCPUID; j++) {
@@ -909,12 +911,12 @@ void  InitStructuredLeafBuffers()
 				glbl_ptr->cpuid_values[j].subleaf_max = subleaf;
 			}
 			if(subleaf == MAX_CACHE_SUBLEAFS) {
-							printf("CPU topology: Need bigger MAX_CACHE_SUBLEAFS(%d) at %s %d\n", MAX_CACHE_SUBLEAFS, __FILE__, __LINE__);
-							return;
+							sprintf(__last_error_cputopo, "CPU topology: Need bigger MAX_CACHE_SUBLEAFS(%d) at %s %d\n", MAX_CACHE_SUBLEAFS, __FILE__, __LINE__);
+							return 1;
 			}
 		}
 	}
-
+	return 0;
 }
 
 /*
@@ -1244,7 +1246,7 @@ static int AnalyzeCPUHierarchy(unsigned  numMappings)
 
 	if(numMappings >= glbl_ptr->perCore_detectedThreadsCount.dim[0]) {
 		// consistency check on the dimensions of allocated buffer 
-		printf("CPU topology: got too large 1st dimension %d which is bigger than %d at %s %d. Bye\n",
+		sprintf(__last_error_cputopo, "CPU topology: got too large 1st dimension %d which is bigger than %d at %s %d. Bye\n",
 			(unsigned ) numMappings, glbl_ptr->perCore_detectedThreadsCount.dim[0], __FILE__, __LINE__);
 		return 1;
 	}
@@ -1272,7 +1274,7 @@ static int AnalyzeCPUHierarchy(unsigned  numMappings)
 
 				if(glbl_ptr->perPkg_detectedCoresCount.data[h] >= glbl_ptr->perCore_detectedThreadsCount.dim[1]) {
 					// just a sanity check on the dimensions
-					printf("CPU topology: got too large 2nd dimension %d which is bigger than %d at %s %d. Bye\n",
+					sprintf(__last_error_cputopo, "CPU topology: got too large 2nd dimension %d which is bigger than %d at %s %d. Bye\n",
 						glbl_ptr->perPkg_detectedCoresCount.data[h], glbl_ptr->perCore_detectedThreadsCount.dim[1], __FILE__, __LINE__);
 					return 1;
 				}
@@ -1294,7 +1296,7 @@ static int AnalyzeCPUHierarchy(unsigned  numMappings)
 				{	// mark up the Core_ID of an unmarked core in a marked package
 					unsigned  core = glbl_ptr->perPkg_detectedCoresCount.data[h];
 					if( h* numMappings + core >= ckDim) {
-						printf("CPU topology: got error. h* numMappings + core = %d and ckDim= %d at %s %d\n", 
+						sprintf(__last_error_cputopo, "CPU topology: got error. h* numMappings + core = %d and ckDim= %d at %s %d\n", 
 							h* numMappings + core, ckDim, __FILE__, __LINE__);
 						return 1;
 					}
@@ -1315,14 +1317,14 @@ static int AnalyzeCPUHierarchy(unsigned  numMappings)
 		{	// mark up the pkg_ID and Core_ID of an unmarked package
 			pDetectedPkgIDs[maxPackageDetetcted] = packageID;
 			if( maxPackageDetetcted* numMappings + 0 >= ckDim) {
-				printf("CPU topology: got error. maxPackageDetetcted= %d numMappings= %d maxPackageDetetcted* numMappings + 0 = %d and ckDim= %d at %s %d\n", 
+				sprintf(__last_error_cputopo, "CPU topology: got error. maxPackageDetetcted= %d numMappings= %d maxPackageDetetcted* numMappings + 0 = %d and ckDim= %d at %s %d\n", 
 					maxPackageDetetcted, numMappings, maxPackageDetetcted* numMappings + 0, ckDim, __FILE__, __LINE__);
 				return 1;
 			}
 			pDetectCoreIDsperPkg[maxPackageDetetcted* numMappings + 0] = coreID;
 			// keep track of respective hierarchical counts
 			if( maxPackageDetetcted >= glbl_ptr->perPkg_detectedCoresCount.dim[0]) {
-				printf("CPU topology: got error. maxPackageDetetcted(%d) >= glbl_ptr->perPkg_detectedCoresCount.dim[0](%d) at %s %d. Bye\n", 
+				sprintf(__last_error_cputopo, "CPU topology: got error. maxPackageDetetcted(%d) >= glbl_ptr->perPkg_detectedCoresCount.dim[0](%d) at %s %d. Bye\n", 
 					maxPackageDetetcted, glbl_ptr->perPkg_detectedCoresCount.dim[0], __FILE__, __LINE__);
 				return 1;
 			}
@@ -1429,7 +1431,7 @@ static int AnalyzeEachCHierarchy(unsigned subleaf, unsigned  numMappings)
 
 	// check 2nd dim
 	if(subleaf >= glbl_ptr->perEachCache_detectedThreadCount.dim[1]) {
-		printf("CPU topology: Error: Got subleaf(%d) >= glbl_ptr->perEachCache_detectedThreadCount.dim[1](%d) at %s %d. Bye\n",
+		sprintf(__last_error_cputopo, "CPU topology: Error: Got subleaf(%d) >= glbl_ptr->perEachCache_detectedThreadCount.dim[1](%d) at %s %d. Bye\n",
 			subleaf, glbl_ptr->perEachCache_detectedThreadCount.dim[1], __FILE__, __LINE__);
 		return 1;
 	}
@@ -1443,7 +1445,7 @@ static int AnalyzeEachCHierarchy(unsigned subleaf, unsigned  numMappings)
 		threadID = glbl_ptr->pApicAffOrdMapping[i].EaCacheSMTIDAPIC[subleaf] ;
 
 		if(maxCacheDetected >= glbl_ptr->perEachCache_detectedThreadCount.dim[0]) {
-			printf("CPU topology: Error: Got maxCacheDetected(%d) >= glbl_ptr->perEachCache_detectedThreadCount.dim[0](%d) at %s %d. Bye\n",
+			sprintf(__last_error_cputopo, "CPU topology: Error: Got maxCacheDetected(%d) >= glbl_ptr->perEachCache_detectedThreadCount.dim[0](%d) at %s %d. Bye\n",
 				maxCacheDetected, glbl_ptr->perEachCache_detectedThreadCount.dim[0], __FILE__, __LINE__);
 			return 1;
 		}
@@ -1511,7 +1513,7 @@ static int AnalyzeEachCHierarchy(unsigned subleaf, unsigned  numMappings)
  * Arguments:     None
  * Return:        None, sets glbl_ptr->error if tables or values can not be calculated.
  */
-static void		BuildSystemTopologyTables()
+static int		BuildSystemTopologyTables()
 {	unsigned  lcl_OSProcessorCount, subleaf;
 	int 		numMappings = 0 ;
 	// call OS-specific service to find out how many logical processors 
@@ -1522,12 +1524,12 @@ static void		BuildSystemTopologyTables()
 	AllocArrays(lcl_OSProcessorCount);
 
 	// Gather all the system-wide constant parameters needed to derive topology information
-	if (CPUTopologyParams() ) return ;
-	if (CacheTopologyParams() ) return ;
+	if (CPUTopologyParams() ) return 1;
+	if (CacheTopologyParams() ) return 1;
 
 	// For each logical processor, collect APIC ID and parse sub IDs for each APIC ID
 	numMappings = QueryParseSubIDs();
-	if ( numMappings < 0 ) return ;
+	if ( numMappings < 0 ) return 1;
 	// Derived separate numbering schemes for each level of the cpu topology
 	if( AnalyzeCPUHierarchy(numMappings) < 0 ) {
 		glbl_ptr->error |= _MSGTYP_TOPOLOGY_NOTANALYZED;
@@ -1543,6 +1545,10 @@ static void		BuildSystemTopologyTables()
 			}
 		}
 	}
+	if (glbl_ptr->error) {
+		return 1;
+	}
+	return 0;
 }
 
 /*
@@ -1692,14 +1698,16 @@ int GetHWMTConfig(unsigned  pkg)
  *
  * Return:        None
  */
-void InitCpuTopology() 
+int InitCpuTopology() 
 {
 	if(glbl_ptr == NULL) {
 		glbl_ptr = (GLKTSN_T *)malloc(sizeof(GLKTSN_T));
 	}
 	memset(glbl_ptr, 0, sizeof(GLKTSN_T));
-	if (!glbl_ptr->EnumeratedPkgCount)
-		BuildSystemTopologyTables();
+	if (!glbl_ptr->EnumeratedPkgCount) {
+		return BuildSystemTopologyTables();
+	}
+	return 0;
 }
 
 
@@ -1873,16 +1881,18 @@ unsigned  GetSysProcessorPackageCount()
 	return glbl_ptr->EnumeratedPkgCount;
 }
 
-void get_cpu_hw_info(int *packages, int *cores, int *threads, int *logical)
+int get_cpu_hw_info(int *packages, int *cores, int *threads, int *logical)
 {
+	int ret = 0;
 	if (!glbl_ptr || !glbl_ptr->EnumeratedPkgCount)
 	{
-		InitCpuTopology();
+		ret = InitCpuTopology();
 	}
 	*packages = glbl_ptr->EnumeratedPkgCount;
 	*cores = glbl_ptr->EnumeratedCoreCount;
 	*threads = glbl_ptr->EnumeratedThreadCount;
     *logical = GetMaxCPUSupportedByOS();
+	return ret;
 }
 
 /*
@@ -1921,3 +1931,7 @@ void get_cache_info(unsigned long *l1, unsigned long *l2, unsigned long *l3)
     }
 }
 
+void get_last_error_cputopo(char *buf, int len)
+{
+	strncpy(buf, __last_error_cputopo, len);
+}

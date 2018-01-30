@@ -187,7 +187,7 @@ INA_API(ina_rc_t) ina_cpu_init()
 #ifdef INA_OS_OSX
     return INA_SUCCESS;
 #else
-    /* check hypervisor */
+    /* check hypervisor bit - test if hypervisor is present */
     get_cpuid_info(&info, 1, 0);
     if (info.ECX & (1U << 31)) {
         get_cpuid_info(&info, 0x40000000, 0);
@@ -196,20 +196,31 @@ INA_API(ina_rc_t) ina_cpu_init()
         memcpy(hyper_vendor_id + 8, &info.EDX, 4);
         hyper_vendor_id[12] = '\0';
         if (!strcmp(hyper_vendor_id, "VMwareVMware")) {
-            __ina_cpu_ctx->running_on_vm = 1;
+            /* FIXME: save hypervisor info */
         }
-    }
-    if (__ina_cpu_ctx->running_on_vm) {
-        /* FIXME: proper error handling */
-        return INA_SUCCESS;
+		__ina_cpu_ctx->running_on_vm = 1; 
     }
 
-	/* cpus physical layout */
-	get_cpu_hw_info(&packages, &cores, &threads, &logical);
-    __ina_cpu_ctx->package_count = packages;
-    __ina_cpu_ctx->core_count = cores;
-    __ina_cpu_ctx->thread_count = threads;
-    __ina_cpu_ctx->logical_count = logical;
+	/* only if hypervisor bit is not set */
+	if (!__ina_cpu_ctx->running_on_vm) {
+		/* Retrieve CPU physical layout */
+		if (get_cpu_hw_info(&packages, &cores, &threads, &logical) > 0) {
+			/* FIXME: error handling get_last_error_cputopo() */
+		}
+		__ina_cpu_ctx->package_count = packages;
+		__ina_cpu_ctx->core_count = cores;
+		__ina_cpu_ctx->thread_count = threads;
+		__ina_cpu_ctx->logical_count = logical;
+
+		/* Retrieve CPU cache info */
+		get_cache_info(&__ina_cpu_ctx->l1_data_bytes,
+			&__ina_cpu_ctx->l2_bytes,
+			&__ina_cpu_ctx->l3_bytes
+		);
+	}
+	else {
+		__ina_cpu_ctx->logical_count = GetMaxCPUSupportedByOS();
+	}
 	
 	get_cpuid_info(&info, 0, 0);
 	memcpy(vendor + 0, &info.EBX, 4);
@@ -520,12 +531,6 @@ INA_API(ina_rc_t) ina_cpu_init()
 	}
     __ina_cpu_ctx->features = cpufeatures;
 
-    /* Retrieve CPU cache info */
-    get_cache_info(&__ina_cpu_ctx->l1_data_bytes, 
-        &__ina_cpu_ctx->l2_bytes, 
-        &__ina_cpu_ctx->l3_bytes
-    );
-
     __ina_cpu_cache_line_size(&__ina_cpu_ctx->cache_line);
 
     /* CPU instructions per cycle: 
@@ -588,6 +593,11 @@ INA_API(ina_rc_t) ina_cpu_destroy()
 INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+	if (__ina_cpu_ctx->running_on_vm) {
+		/* FIXME: proper error handling */
+		*package_count = 0;
+		return INA_FAILURE;
+	}
     *package_count = __ina_cpu_ctx->package_count;
     return INA_SUCCESS;
 }
@@ -595,6 +605,11 @@ INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count)
 INA_API(ina_rc_t) ina_cpu_get_core_count(int *core_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+	if (__ina_cpu_ctx->running_on_vm) {
+		/* FIXME: proper error handling */
+		*core_count = 0;
+		return INA_FAILURE;
+	}
     *core_count = __ina_cpu_ctx->core_count;
     return INA_SUCCESS;
 }
@@ -602,6 +617,11 @@ INA_API(ina_rc_t) ina_cpu_get_core_count(int *core_count)
 INA_API(ina_rc_t) ina_cpu_get_thread_count(int *thread_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+	if (__ina_cpu_ctx->running_on_vm) {
+		/* FIXME: proper error handling */
+		*thread_count = 0;
+		return INA_FAILURE;
+	}
     *thread_count = __ina_cpu_ctx->thread_count;
     return INA_SUCCESS;
 }
@@ -623,10 +643,6 @@ INA_API(ina_rc_t) ina_cpu_get_features(ina_cpu_feature_t *features)
 INA_API(ina_rc_t) ina_cpu_get_brand_string(ina_str_t *brand)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
-    if (__ina_cpu_ctx->running_on_vm) {
-        *brand = NULL;
-        return INA_SUCCESS;
-    }
     *brand = ina_str_dup(__ina_cpu_ctx->brand);
     return INA_SUCCESS;
 }

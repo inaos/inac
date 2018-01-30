@@ -41,6 +41,7 @@ endif
 	$(MAKE) -C xxhash
 	$(MAKE) -C falkhash
 	$(MAKE) -C memhash
+	$(MAKE) -C t1ha
 
 test: all
 

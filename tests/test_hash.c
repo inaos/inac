@@ -55,8 +55,8 @@ typedef struct __ina_hash_test_call_wrapper_s {
 } __ina_hash_test_call_wrapper_t;
 
 static __ina_hash_rand_t __ina_hash_test_rand;
-static __ina_test_hash32_info_t __hash32_all[13];
-static __ina_test_hash64_info_t __hash64_all[7];
+static __ina_test_hash32_info_t __hash32_all[15];
+static __ina_test_hash64_info_t __hash64_all[9];
 
 static void __ina_hash_test_mix()
 {
@@ -332,6 +332,16 @@ static void __ina_hash_test_init32(int has_aes_support)
         __hash32_all[12].test1_expected = 1;
         __hash32_all[12].test2_expected = 1;
     }
+
+	__hash32_all[13].hash = ina_hash_32_t1ha1;
+	__hash32_all[13].name = ina_str_new_fromcstr("t1ha1");
+	__hash32_all[13].test1_expected = 1;
+	__hash32_all[13].test2_expected = 1;
+
+	__hash32_all[14].hash = ina_hash_32_t1ha0;
+	__hash32_all[14].name = ina_str_new_fromcstr("t1ha0");
+	__hash32_all[14].test1_expected = 1;
+	__hash32_all[14].test2_expected = 1;
 }
 
 INA_TEST(hash, all_32_bit) {
@@ -388,6 +398,12 @@ static void __ina_hash_test_init64(int has_aes_support)
         __hash64_all[6].hash = ina_hash_64_falkhash;
         __hash64_all[6].name = ina_str_new_fromcstr("falkhash");
     }
+
+	__hash64_all[7].hash = ina_hash_64_t1ha1;
+	__hash64_all[7].name = ina_str_new_fromcstr("t1ha1");
+
+	__hash64_all[8].hash = ina_hash_64_t1ha0;
+	__hash64_all[8].name = ina_str_new_fromcstr("t1ha0");
 }
                             
 INA_TEST(hash, all_64_bit)

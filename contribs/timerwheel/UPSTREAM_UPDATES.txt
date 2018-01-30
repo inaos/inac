@@ -1,0 +1,9 @@
+Purpose of this file is to track the changes/bugfixes of the upstream repos:
+-> https://github.com/wahern/timeout
+
+Due to the many changes we have applied and the API changes in upstream, it has become impossible 
+to overwrite the latest version. What we do instead is check for bugfixes or improvement in the core routines.
+
+Currently we have checked all commits up to:
+
+671d204671ca66bc0b34c4a6338a02d837061595 - 12 May 2016
