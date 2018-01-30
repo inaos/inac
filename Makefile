@@ -78,6 +78,7 @@ INAC_LIBS=$(INAC_CONTRIBS_DIR)/luajit/src/libluajit.a  \
 	$(INAC_CONTRIBS_DIR)/miniz/miniz.a $(INAC_CONTRIBS_DIR)/xxhash/xxhash.a \
 	$(INAC_CONTRIBS_DIR)/lz4/lz4.a $(INAC_CONTRIBS_DIR)/timerwheel/timerwheel.a \
 	$(INAC_CONTRIBS_DIR)/falkhash/falkhash.a $(INAC_CONTRIBS_DIR)/memhash/memhash.a \
+	$(INAC_CONTRIBS_DIR)/t1ha/t1ha.a \
 	$(INAC_LINUX_LIBS)
 # ****************************************************************************
 # Time implementation
