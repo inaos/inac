@@ -1,7 +1,7 @@
 /* ==========================================================================
  * timeout.c - Tickless hierarchical timing wheel.
  * --------------------------------------------------------------------------
- * Copyright (c) 2013, 2014  William Ahern
+ * Copyright (c) 2013, 2014, 2016  William Ahern
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -389,18 +389,13 @@ static void timeouts_readd(struct timeouts *T, struct timeout *to) {
 	to->expires += to->interval;
 
 	if (to->expires <= T->curtime) {
-		if (to->expires < T->curtime) {
-			timeout_t n = T->curtime - to->expires;
-			timeout_t q = n / to->interval;
-			timeout_t r = n % to->interval;
-
-			if (r)
-				to->expires += (to->interval * q) + (to->interval - r);
-			else
-				to->expires += (to->interval * q);
-		} else {
-			to->expires += to->interval;
-		}
+	    /* If we've missed the next firing of this timeout, reschedule
+ 	     * it to occur at the next multiple of its interval after
+ 	     * the last time that it fired.
+ 	     */
+ 	    timeout_t n = T->curtime - to->expires;
+ 	    timeout_t r = n % to->interval;
+ 	    to->expires = T->curtime + (to->interval - r);
 	}
 
 	timeouts_sched(T, to, to->expires);
