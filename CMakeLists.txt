@@ -13,6 +13,7 @@ set(ICT_LIB_NAME "cpu-topology")
 set(TIMER_WHEEL_LIB_NAME "timerwheel")
 set(XXHASH_LIB_NAME "xxhash")
 set(FALKHASH_LIB_NAME "falkhash")
+set(T1HA_LIB_NAME "t1ha")
 set(INAC_LIB_NAME "libinac_c")
 set(INAC_TESTLIB_NAME "testinac")
 
@@ -65,6 +66,13 @@ add_library(${XXHASH_LIB_NAME} ${XXHASH_SRC})
 set (FALKHASH_SRC_DIR ${DEPS_DIR}/falkhash)
 set (FALKHASH_SRC ${FALKHASH_SRC_DIR}/falkhash.c)
 add_library(${FALKHASH_LIB_NAME} ${FALKHASH_SRC})
+
+# t1ha
+set (T1HA_SRC_DIR ${DEPS_DIR}/t1ha/src)
+set (T1HA_SRC ${T1HA_SRC_DIR}/t1ha0.c ${T1HA_SRC_DIR}/t1ha0_ia32aes_avx.c 
+              ${T1HA_SRC_DIR}/t1ha0_ia32aes_avx2.c ${T1HA_SRC_DIR}/t1ha1.c
+			  ${T1HA_SRC_DIR}/t1ha0_ia32aes_noavx.c)
+add_library(${T1HA_LIB_NAME} ${T1HA_SRC})
 
 # END dependencies
 

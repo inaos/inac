@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-201, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -484,6 +484,63 @@ INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t s
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_falkhash(uint64_t hash, const void *data, size_t size);
+/*
+ * Calculate 32bit t1ha - 0, fast version, not portable
+ *
+ * Source: https://github.com/leo-yuriev/t1ha
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return
+ *  Hash
+ */
+INA_API(uint32_t) ina_hash_32_t1ha0(uint32_t hash, const void *data, size_t size);
+/*
+ * Calculate 32bit t1ha - 1, portable/stable
+ *
+ * Source: https://github.com/leo-yuriev/t1ha
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return
+ *  Hash
+ */
+INA_API(uint32_t) ina_hash_32_t1ha1(uint32_t hash, const void *data, size_t size);
+/*
+ * Calculate 64bit t1ha - 0, fast version, not portable
+ *
+ * Source: https://github.com/leo-yuriev/t1ha
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return
+ *  Hash
+ */
+INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size);
+/*
+ * Calculate 64bit t1ha - 1, portable/stable
+ *
+ * Source: https://github.com/leo-yuriev/t1ha
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return
+ *  Hash
+ */
+INA_API(uint64_t) ina_hash_64_t1ha1(uint64_t hash, const void *data, size_t size);
+
 
 #ifdef __cplusplus
 }

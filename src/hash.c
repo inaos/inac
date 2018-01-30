@@ -31,6 +31,7 @@
 #include <contribs/xxhash/xxhash.h>
 #include <contribs/falkhash/falkhash.h>
 #include <contribs/memhash/memhash.h>
+#include <contribs/t1ha/t1ha.h>
 
 /* intrinsics */
 #ifdef INA_OS_WIN32
@@ -1065,7 +1066,7 @@ INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t siz
 #define __INA_HASH_CRC_ALIGN_MASK      (__INA_HASH_CRC_ALIGN_SIZE - 1)
 #define __INA_HASH_CRC_CALC_CRC(op, crc, type, buf, len) do {                          \
     for (; (len) >= sizeof (type); (len) -= sizeof(type), buf += sizeof (type)) {      \
-      /*(crc) = op((crc), *(type *) (buf)); */                                             \
+      (crc) = op((crc), *(type *) (buf));                                              \
     }                                                                                  \
 } while(0)
 
@@ -1144,4 +1145,26 @@ INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t s
 INA_API(uint64_t) ina_hash_64_falkhash(uint64_t hash, const void *data, size_t size)
 {
     return falkhash64(data, size, hash);
+}
+
+INA_API(uint32_t) ina_hash_32_t1ha0(uint32_t hash, const void *data, size_t size)
+{
+	uint64_t h = ina_hash_64_t1ha0(hash, data, size);
+	return (uint32_t)h;
+}
+
+INA_API(uint32_t) ina_hash_32_t1ha1(uint32_t hash, const void *data, size_t size)
+{
+	uint64_t h = ina_hash_64_t1ha1(hash, data, size);
+	return (uint32_t)h;
+}
+
+INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size)
+{
+	return t1ha0(data, size, hash);
+}
+
+INA_API(uint64_t) ina_hash_64_t1ha1(uint64_t hash, const void *data, size_t size)
+{
+	return t1ha(data, size, hash);
 }
