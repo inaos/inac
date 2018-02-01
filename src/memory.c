@@ -495,7 +495,7 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
 
     info->size = 0;
     info->used = 0;
-    info->children = -1;
+    info->children = 0;
     info->cf = pm->cf;
     while (pm != NULL) {
         info->size += pm->size;
@@ -503,6 +503,7 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *i
         ++info->children;
         pm = pm->child;
     }
+    --info->children;
     return INA_SUCCESS;
 }
 

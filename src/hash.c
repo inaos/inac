@@ -1080,7 +1080,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
 
     /* Align the input to the word boundary */
     for (; (size > 0) && ((size_t)buf & __INA_HASH_CRC_ALIGN_MASK); size--, buf++) {
-        /*crc = _mm_crc32_u8(crc, *buf);*/
+        crc = _mm_crc32_u8(crc, *buf);
     }
 
     /* Blast off the CRC32 calculation */
@@ -1102,7 +1102,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 
     /* Align the input to the word boundary */
     for (; (size > 0) && ((size_t)buf & __INA_HASH_CRC_ALIGN_MASK); size--, buf++) {
-        /*crc = _mm_crc32_u8((unsigned int)crc, *buf);*/
+        crc = _mm_crc32_u8((unsigned int)crc, *buf);
     }
 
     /* Blast off the CRC32 calculation */

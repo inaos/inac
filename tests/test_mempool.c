@@ -440,25 +440,32 @@ INA_TEST(mempool, bad_dalloc)
     INA_TEST_ASSERT_EQUAL_FLOATING(INA_EALLOC , INA_RC_REASON(ina_err_peek()));
 }
 
-INA_TEST_SKIP(mempool, getbypointer)
+INA_TEST(mempool, getbypointer)
 {
-    ina_mempool_t *pool, *ref_pool = NULL;
-    unsigned char *buffer;
-
+    ina_mempool_t *pool1, *pool2, *ref_pool = NULL;
+    unsigned char *buffer1, *buffer2;
+ 
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
     INA_TEST_ASSERT_SUCCESS(ina_err_peek());
 
     /* Allocate pool with initial site 2KB dynamic + auto size */
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
-    buffer = ina_mempool_dalloc(pool, 1024);
-    INA_TEST_ASSERT_NOT_NULL(buffer);
-    buffer = ina_mempool_dalloc(pool, 32);
-    INA_TEST_ASSERT_NOT_NULL(buffer);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_getbypointer(buffer, &ref_pool));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool1, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
+    buffer1 = ina_mempool_dalloc(pool1, 1024);
+    INA_TEST_ASSERT_NOT_NULL(buffer1);
+    buffer1 = ina_mempool_dalloc(pool1, 32);
+    INA_TEST_ASSERT_NOT_NULL(buffer1);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getbypointer(buffer1, &ref_pool));
     INA_TEST_ASSERT_NOT_NULL(ref_pool);
-    INA_TEST_MSG("%p pool, %p ref_pool", pool, ref_pool);
-    INA_TEST_ASSERT_SAME(pool, ref_pool);
+    INA_TEST_MSG("%p pool, %p ref_pool", pool1, ref_pool);
+    INA_TEST_ASSERT_SAME(pool1, ref_pool);
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool2, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
+    buffer2 = ina_mempool_dalloc(pool2, 1024);
+    INA_TEST_ASSERT_NOT_NULL(buffer2);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getbypointer(buffer2, &ref_pool));
+    INA_TEST_ASSERT_NOT_NULL(ref_pool);
+    INA_TEST_ASSERT_SAME(pool2, ref_pool);
 }
 
 INA_TEST(mempool, destroy_syspool_1000_times)
