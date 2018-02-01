@@ -590,7 +590,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp - stopwatch->tv->stop.tp) / 1000000000;
 #else
-    IN_VERIFY_NOT_NULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     
     stopwatch->tv->stop.ref = stopwatch->tv->start.ref;
