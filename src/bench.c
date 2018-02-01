@@ -212,6 +212,7 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
         }
         if (filter(bench)) {
             if (!bench->skip) {
+                int ic;
 #ifdef INA_OS_OSX
                 INA_MUST_SUCCEED(__ina_find_symbols(bench));
 #endif
@@ -237,7 +238,7 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
 
                 bench->setup(bench->data);
                 bench->series_setup(bench->data);
-                for (int ic = 0; ic < bench->iterations; ++ic) {
+                for (ic = 0; ic < bench->iterations; ++ic) {
                     __current_iteration = ic;
                     bench->scale(bench->data);
                     bench->run(bench->data);
