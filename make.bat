@@ -54,9 +54,9 @@ if defined VSCMD_ARG_TGT_ARCH (
 )
 
 if not defined INCLUDE (
-	if not defined VS110COMNTOOLS goto fail_vs_2012
-	if not exist "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" goto fail_vs_2012
-	call "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" %INAC_VC_VAR_ARG%
+	rem if not defined VS110COMNTOOLS goto fail_vs_2012
+	rem if not exist "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" goto fail_vs_2012
+	call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat" %INAC_VC_VAR_ARG%
 )
 
 if not exist %INAC_BUILD_SCRIPT% goto fail_no_build_script
