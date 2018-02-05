@@ -35,9 +35,38 @@
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
 
-/* global error state */
-static ina_error_t __state;
+/* Error information */
+typedef struct __ina_error_s {
+    ina_rc_t rc;
+    char location[512];
+    char msg[INA_ERR_MSGLEN];
+} __ina_error_t;
 
+
+/* global error state */
+static __ina_error_t __state;
+
+INA_API(ina_rc_t) ina_err_set_rc(ina_rc_t rc, const char* location)
+{
+
+    __state.rc = rc;
+    strncpy(__state.location, location, 512);
+    __state.msg[0] = 0;
+    return rc;
+}
+
+
+INA_API(ina_rc_t) ina_err_set_rc_msg(ina_rc_t rc, const char* location, const char* fmt, ...)
+{
+    rc = ina_err_set_rc(rc, location);
+    if (rc != INA_SUCCESS) {
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(__state.msg, INA_ERR_MSGLEN, fmt, args);
+        va_end(args);
+    }
+    return rc;
+}
 
 
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
@@ -51,64 +80,51 @@ INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
 
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
-    __state.rc = INA_SUCCESS;
+
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_err_reset(void)
 {
-    __state.rc = 0;
+    __state.rc = INA_SUCCESS;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
 {
-    struct tm *tm;
-    ina_error_t *error;
-    char tmc[30];
     char outstr[2048];
 
     INA_ASSERT_NOTNULL(str);
     INA_ASSERT(len > 0);
 
-    error = &__state;
-
-    if (len < (strlen(error->msg) +
-               strlen(error->file) +
+    if (len < (strlen(__state.msg) +
+               strlen(__state.location) +
                __INA_ERR_MESSAGE_EXTRALEN)) {
-        return INA_ERROR(INA_EMSGLEN);
+        return INA_ERR(INA_EMSGLEN);
     }
 
-    tm = localtime(&error->ts);
+    sprintf(outstr, "%s - %s (r:%u,f:%u,h:%u)",
+                                __state.location,
+                                __state.msg,
+                                INA_RC_REASON(__state.rc),
+                                INA_RC_OSFN(__state.rc),
+                                INA_RC_HANDLED(__state.rc));
 
-    if (tm && strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
-        sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,h:%u)",
-                                    tmc,
-                                    error->file,
-                                    error->line,
-                                    error->msg,
-                                    INA_RC_REASON(error->rc),
-                                    INA_RC_OSFN(error->rc),
-                                    INA_RC_HANDLED(error->rc));
-
-        strncpy(str, outstr, len-1);
-        return INA_SUCCESS;
-    }
-
-    return INA_FAILURE;
+    strncpy(str, outstr, len-1);
+    return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_get_last_error(void)
+INA_API(ina_rc_t) ina_err_get_last_rc(void)
 {
     return __state.rc;
 }
 
-INA_API(const char*) ina_err_get_last_errormsg(void)
+INA_API(const char*) ina_err_get_last_rc_msg(void)
 {
-    return ina_err_get_errormsg(__state.rc);
+    return ina_err_get_msg(__state.rc);
 }
 
-INA_API(const char*) ina_err_get_errormsg(ina_rc_t rc)
+INA_API(const char*) ina_err_get_msg(ina_rc_t rc)
 {  
     if (rc == INA_SUCCESS) {
         return NULL;

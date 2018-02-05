@@ -99,14 +99,10 @@ extern "C" {
  * Pack an RC.
  *
  * Parameters
- *
- *  m  Module identifier (optional)
  *  f  OS function identifier (if needed)
  *  r  Reason of failure
- *  i  Error identifier
  */
-#define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)f) << 26U|   \
-                              ((ina_rc_t)r) << 24U
+#define INA_RC_PACK(f,r)  ((ina_rc_t)f) << 26U|((ina_rc_t)r) << 24U
 
 /* Unpack the OS function identifier for a given RC */
 #define INA_RC_OSFN(rc)    ((((ina_rc_t)rc)&0xFC000000U)>>26U)
@@ -121,21 +117,14 @@ extern "C" {
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(!INA_SUCCEED(rc))) abort()
 
-#define INA_ERROR(r) ina_err_set_error(r, INA_ERR_AT)
+/* Set error RC */
+#define INA_ERR(r) ina_err_set_rc(r, INA_ERR_AT)
 
-#define INA_ERROR_MSG(r, fmt, ...) ina_err_set_errormsg(r, INA_ERR_AT, fmt, ##__VA_ARGS__)
-
-/* Error information */
-typedef struct ina_error_s {
-    ina_rc_t rc;
-    time_t ts;  /* FIXME: we should use our proper time value */
-    uint32_t line;
-    char file[512];
-    char msg[INA_ERR_MSGLEN];
-} ina_error_t;
+/* Set error RC with a custom message */
+#define INA_ERRMSG(r, fmt, ...) ina_err_set_rc_msg(r, INA_ERR_AT, fmt, ##__VA_ARGS__)
 
 /*
- * Set error
+ * Set RC
  *
  * Parameters
  *   rc         Return code
@@ -144,7 +133,7 @@ typedef struct ina_error_s {
  * Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_set_error(ina_rc_t rc, const char* location);
+INA_API(ina_rc_t) ina_err_set_rc(ina_rc_t rc, const char* location);
 
 /*
  * Set error with message
@@ -156,7 +145,7 @@ INA_API(ina_rc_t) ina_err_set_error(ina_rc_t rc, const char* location);
  * Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_set_errormsg(ina_rc_t rc, const char* location, const char* fmt, ...);
+INA_API(ina_rc_t) ina_err_set_rc_msg(ina_rc_t rc, const char* location, const char* fmt, ...);
 
 /*
  * Query if succeed.
@@ -222,28 +211,29 @@ INA_API(ina_rc_t) ina_err_coredump(void *data);
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
 
 /*
- * Return the raw error message for the last pushed error.
+ * Return the  error message for the last RC.
  * 
  * Return
- *  Error message or NULL if no errors are on the stack. Char pointer is valid
- *  as long an error is on the error stack.
+ *  Error message or NULL if no errors are occurred.
  */
 
-INA_API(const char*) ina_err_get_last_errormsg(void);
-
+INA_API(const char*) ina_err_get_last_msg(void);
 
 /*
  * Return the last RC
+ *
+ * Return
+ *  Las RC or INA_SUCCESS of no error occurred
  */
 INA_API(ina_rc_t) ina_err_get_last_rc(void);
 
 /*
- * Return the last  error.
+ * Return the last error code
  *
  * Return
- *  Error code or 0 if no error occured
+ *  Error code or 0 if no error occurred
  */
-INA_API(ina_rc_t) ina_err_get_last_error(void);
+INA_API(int) ina_err_get_last_error(void);
 
 /*
  * Return the raw error message for an error rc.
@@ -252,10 +242,9 @@ INA_API(ina_rc_t) ina_err_get_last_error(void);
  *  rc  Valid RC
  *
  * Return
- *  Error message or NULL if rc is invalid. Char pointer is valid as long an
- *  error is on the error stack.
+ *  Error message or NULL if rc is invalid.
  */
-INA_API(const char*) ina_err_get_errormsg(ina_rc_t rc);
+INA_API(const char*) ina_err_get_msg(ina_rc_t rc);
 
 #ifdef __cplusplus
 }
