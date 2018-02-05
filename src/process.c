@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014,2016 INAOS GmbH
+ * Copyright (c) 2013-2018 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -205,7 +205,7 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx)
     int suggested_next_time;
 
     if (!INA_SUCCEED(ina_time_read_sys_clock(ctx->systime))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     ina_time_sys_seconds_micros(ctx->systime,
@@ -394,7 +394,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
     *process = ina_mempool_dalloc(ctx->mempool, sizeof(ina_process_t));
     if (*process == NULL) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     /* copy descriptor if not allocated from context pool */
@@ -407,7 +407,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                         sizeof(ina_process_descriptor_t));
         if ((*process)->descriptor == NULL) {
             *process = NULL;
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
         (*process)->descriptor->full_path = ina_str_dup_using_pool(
                                                     descriptor->full_path,
@@ -455,7 +455,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                     __ina_process_cron_start_cb))) {
                     ina_str_free(id);
                     *process = NULL;
-                    return INA_ERR_PUSH_LAST;
+                    return ina_err_get_last_rc();
                 }
                 ina_str_free(id);
         }
@@ -473,7 +473,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                 __ina_process_cron_stop_cb))) {
                 ina_str_free(id);
                 *process = NULL;
-                return INA_ERR_PUSH_LAST;
+                return ina_err_get_last_rc();
             }
             ina_str_free(id);
         }
@@ -548,11 +548,11 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
     INA_ASSERT_NOTNULL(should_be_running);
 
     if (!INA_SUCCEED(ina_time_read_sys_clock(process->ctx->systime))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     if (!INA_SUCCEED(ina_time_sys_seconds_micros(process->ctx->systime,
         &curr_time_sec, &curr_time_micros))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_MANAGED) {
@@ -871,11 +871,11 @@ static ina_rc_t __ina_process_query(const char *binary,
     ina_ljit_ctx_t *ctx;
 
     if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     if (!INA_SUCCEED(ina_ljit_dostring(ctx, "local pq = require(\"lprocqry\");pqf=pq.query"))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     lua_getglobal(ctx->lstate, "pqf");

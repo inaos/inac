@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,23 +42,23 @@ INA_TEST_HELPER(ljit, lua_echo_server) {
     port = INA_TEST_HELPER_IARG(1);
 
     if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
     }
 
     ret = luaL_dostring(ctx->lstate, "t = require(\"test_lsocket\")\n");
     if (ret != 0) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
     }
     
     if (!INA_SUCCEED(ina_ljit_call(ctx, "t.echo_server", "si<i", addr, port))) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
     }
    
     if (!INA_SUCCEED(ina_ljit_destroy(&ctx))) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
     }
 }
@@ -72,23 +72,23 @@ INA_TEST_HELPER(ljit, lua_debug_server) {
     int ret;
 
     if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
     }
 
     ret = luaL_dostring(ctx->lstate, "t = require(\"test_ldebug\")\n");
     if (ret != 0) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
     }
     
     if (!INA_SUCCEED(ina_ljit_call(ctx, "t.debug_server", "<"))) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
     }
    
     if (!INA_SUCCEED(ina_ljit_destroy(&ctx))) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
     }
 }

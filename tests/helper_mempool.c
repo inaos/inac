@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, INAOS GmbH
+/* Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
 
     if (!INA_SUCCEED(ina_mempool_create(&mp, size, 
         INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, ina_str_new_fromcstr(label)))) {
-            INA_TEST_HELPER_SET_RC(ina_err_peek());
+            INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
             return;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -712,7 +712,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 if (buf == NULL) {
                     ina_mem_free(*nb_buf);
                     *nb_buf = NULL;
-                    return INA_ERR_PUSH_LAST;
+                    return ina_err_get_last_rc();
                 }
                 *nb_buf = buf;
             }

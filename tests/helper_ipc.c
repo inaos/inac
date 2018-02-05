@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,16 +49,16 @@ INA_TEST_HELPER(ipc, set_unset_flag) {
 
   
     if (!INA_SUCCEED(ina_ipc_flags_open(name, &flags))) {
-        INA_TEST_HELPER_EXIT(INA_ERR_PUSH_LAST);
+        INA_TEST_HELPER_EXIT(ina_err_get_last_rc());
     }
     if (!INA_SUCCEED(ina_ipc_flags_set(flags, INA_IPC_FLAGS_13))) {
-        INA_TEST_HELPER_EXIT(INA_ERR_PUSH_LAST);
+        INA_TEST_HELPER_EXIT(ina_err_get_last_rc());
     }
 
     ina_time_sleep(2000);
 
     if (!INA_SUCCEED(ina_ipc_flags_unset(flags, INA_IPC_FLAGS_13))) {
-        INA_TEST_HELPER_EXIT(INA_ERR_PUSH_LAST);
+        INA_TEST_HELPER_EXIT(ina_err_get_last_rc());
     }
 
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);

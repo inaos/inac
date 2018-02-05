@@ -42,6 +42,9 @@ extern "C" {
 /* Indicate generic failure */
 #define INA_FAILURE  1
 
+#define INA_ERR_AT __FILE__ ":" INA_NUM2STR(__LINE__)
+
+
 /* Error message length */
 #define INA_ERR_MSGLEN  512
 
@@ -91,58 +94,6 @@ extern "C" {
 #define INA_ERR_FLAG_FATAL   0x2000000
 /* User defined errors base */
 #define INA_ERR_USER          (128)
-/*
- * Push an error to the error state.
- *
- * Parameters
- *  m  Module identifier (optional)
- *  f  OS function identifier (if needed)
- *  r  Reason of failure
- *  s  Error message
- */
-#define INA_ERR_PUSH(r,m,f,s) ina_err_push(m,f,r, __FILE__, __LINE__, s)
-
-/*
- * Push an error to the error state by passing only basic information like
- * reason of failure and message
- *
- * Parameters
- *  r  Reason of failure
- *  s  Error message
- */
-#define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,               \
-                                          INA_OSFN_NONE,                    \
-                                          r,                                \
-                                          __FILE__,                         \
-                                          __LINE__ ,                        \
-                                          s)
-
-/*
- * Push an error to the error state by passing  basic informations like
- * reason of failure, os function identifier and message
- *
- * Parameters
- * r  Reason of failure
- * f  OS function identifier
- * s  Error message
- */
-#define INA_ERR_PUSH_OSFN(r,f,s) ina_err_push(INA_MOD_UNKNOWN,              \
-                                          f,r,                              \
-                                          __FILE__,                         \
-                                          __LINE__ ,                        \
-
-/*
- * Re-push a previously pushed error
- *
- * Parameters
- *  rc  Error
- */
-#define INA_ERR_REPUSH(rc) ina_err_repush(rc, __FILE__, __LINE__)
-
-/*
- * Re-push last pushed error
- */
-#define INA_ERR_PUSH_LAST INA_ERR_REPUSH(ina_err_peek())
 
 /*
  * Pack an RC.
@@ -170,9 +121,9 @@ extern "C" {
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(!INA_SUCCEED(rc))) abort()
 
-#define INA_ERROR(r) ina_err_set_error(r, INA_AT)
+#define INA_ERROR(r) ina_err_set_error(r, INA_ERR_AT)
 
-#define INA_ERROR_MSG(r, fmt, args) ina_err_set_errormsg(r, INA_AT, fmt, args)
+#define INA_ERROR_MSG(r, fmt, ...) ina_err_set_errormsg(r, INA_ERR_AT, fmt, ##__VA_ARGS__)
 
 /* Error information */
 typedef struct ina_error_s {
@@ -205,7 +156,7 @@ INA_API(ina_rc_t) ina_err_set_error(ina_rc_t rc, const char* location);
  * Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_set_errormsg(ina_rc_t rc, const char* location, const char* fmt, args...);
+INA_API(ina_rc_t) ina_err_set_errormsg(ina_rc_t rc, const char* location, const char* fmt, ...);
 
 /*
  * Query if succeed.
@@ -280,13 +231,18 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
 
 INA_API(const char*) ina_err_get_last_errormsg(void);
 
+
+/*
+ * Return the last RC
+ */
+INA_API(ina_rc_t) ina_err_get_last_rc(void);
+
 /*
  * Return the last  error.
  *
  * Return
  *  Error code or 0 if no error occured
  */
-
 INA_API(ina_rc_t) ina_err_get_last_error(void);
 
 /*

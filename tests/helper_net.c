@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,13 +52,13 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
     ina_mem_set(buffer, 0, 4096);
 
     if (!INA_SUCCEED(ina_net_tcp_server(&fd, port, addr))) {
-        *retval = ina_err_peek();
+        *retval = ina_err_get_last_rc();
         return;
      }
 
      if (!INA_SUCCEED(ina_net_nonblock(fd))) {
          ina_net_close(fd);
-         *retval = ina_err_peek();
+         *retval = ina_err_get_last_rc();
          return;
      }
 

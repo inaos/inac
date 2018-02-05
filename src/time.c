@@ -608,7 +608,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
 
      *stopwatch = (ina_stopwatch_t*)ina_mem_alloc(sizeof(ina_stopwatch_t));
      if (*stopwatch == NULL) {
-         return INA_ERR_PUSH_LAST;
+         return ina_err_get_last_rc();
      }
      ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
 
@@ -623,7 +623,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
              name))) {
          ina_mem_free(*stopwatch);
          *stopwatch = NULL;
-         return INA_ERR_PUSH_LAST;
+         return ina_err_get_last_rc();
      }
 
      (*stopwatch)->tv = (ina_stopwatch_tv_t*)ina_mempool_dalloc(
@@ -634,7 +634,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
          ina_mempool_release((*stopwatch)->shared_mem, 1);
          ina_mem_free(*stopwatch);
          *stopwatch = NULL;
-         return INA_ERR_PUSH_LAST;
+         return ina_err_get_last_rc();
      }
 
      if (create) {

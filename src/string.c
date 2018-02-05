@@ -64,7 +64,6 @@ INA_API(ina_str_t) ina_str_new(size_t len)
     ina_str_hdr_t *hdr;
     hdr = (ina_str_hdr_t*)INA_MEM_MALLOC(len + 1 + sizeof(ina_str_hdr_t));
     if (hdr == NULL) {
-        INA_STR_EALLOC;
         return NULL;
     }
     hdr->size = len+1;
@@ -80,7 +79,6 @@ INA_API(ina_str_t) ina_str_new_using_pool(size_t len, ina_mempool_t *pool)
 
     hdr = (ina_str_hdr_t*)ina_mempool_dalloc(pool,len+1+sizeof(ina_str_hdr_t));
     if (hdr == NULL) {
-        INA_STR_EALLOC;
         return NULL;
     }
     hdr->size = len+1;
@@ -94,13 +92,12 @@ INA_API(ina_str_t) ina_str_new_fromblk(const void* blk, size_t len)
     ina_str_t str;
 
     if (blk == NULL) {
-        INA_STR_EALLOC;
+        INA_ERROR(INA_EINVAL);
         return NULL;
     }
 
     str = ina_str_new(len);
     if (str == NULL)  {
-        INA_ERR_PUSH_LAST;
         return NULL;
     }
     hdr = __INA_HDR_OFFSET(str);
@@ -121,13 +118,12 @@ INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk,
     INA_ASSERT_NOTNULL(pool);
     
     if (blk == NULL) {
-        INA_STR_EALLOC;
+        INA_ERROR(INA_EINVAL);
         return NULL;
     }
 
     str = ina_str_new_using_pool(len, pool);
     if (str == NULL)  {
-        INA_ERR_PUSH_LAST;
         return NULL;
     }
     if (len > 0) {
@@ -149,7 +145,6 @@ INA_API(ina_str_t) ina_str_new_fromcstr(const char* cstr)
     }
     str = ina_str_new(len);
     if (str == NULL) {
-        INA_ERR_PUSH_LAST;
         return NULL;
     }
     INA_MEM_MEMCPY(str, cstr, len);
@@ -173,7 +168,6 @@ INA_API(ina_str_t) ina_str_new_fromcstr_using_pool(const char* cstr,
     }
     str = ina_str_new_using_pool(len, pool);
     if (str == NULL) {
-        INA_ERR_PUSH_LAST;
         return NULL;
     }
     INA_MEM_MEMCPY(str, cstr, len);
@@ -560,7 +554,6 @@ INA_API(ina_str_t*) ina_str_split(const char *str, const char *sep, size_t *coun
 
     tokens = INA_MEM_MALLOC(sizeof(ina_str_t)*slots);
     if (tokens == NULL) {
-        INA_ERR_PUSH_LAST;
         return NULL;
     }
 
@@ -691,7 +684,6 @@ INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
     size = 128;
     str = ina_str_new(size);
     if (str == NULL) {
-        INA_ERR_PUSH_LAST;
         return NULL;
     }
 
@@ -739,7 +731,6 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
             ina_str_free(*str);
             *str = extra_str;
         } else {
-            INA_ERR_PUSH_LAST;
             l = -1;
         }
     }

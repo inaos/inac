@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -317,7 +317,7 @@ INA_TEST(mempool, fill_zero)
 
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
 
     pool = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
@@ -335,7 +335,7 @@ INA_TEST(mempool, min_allowed_size)
 
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
     
     pool = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE-100, 0, NULL));
@@ -354,7 +354,7 @@ INA_TEST(mempool, auto_resize) {
 
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
 
     /* Allocate pool with initial site 2KB dynamic + auto size */
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
@@ -428,7 +428,7 @@ INA_TEST(mempool, bad_dalloc)
 
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
 
     /* create a fixed size pool of 1KB and try to allocate 2KB */
     INA_TEST_ASSERT_SUCCESS(ina_mempool_init(0));
@@ -436,8 +436,8 @@ INA_TEST(mempool, bad_dalloc)
     INA_TEST_ASSERT_NOT_NULL(pool);
     ptr = ina_mempool_dalloc(pool, 2048);
     INA_TEST_ASSERT_NULL(ptr);
-    INA_TEST_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_EALLOC , INA_RC_REASON(ina_err_peek()));
+    INA_TEST_ASSERT_FALSE(INA_SUCCEED(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_FLOATING(INA_EALLOC , INA_RC_REASON(ina_err_get_last_rc()));
 }
 
 INA_TEST(mempool, getbypointer)
@@ -447,7 +447,7 @@ INA_TEST(mempool, getbypointer)
  
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
 
     /* Allocate pool with initial site 2KB dynamic + auto size */
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool1, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
@@ -475,7 +475,7 @@ INA_TEST(mempool, destroy_syspool_1000_times)
 
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
     
     for (i = 0; i < 1000; ++i) {
         INA_TEST_ASSERT_SUCCESS(ina_mempool_destroy());
@@ -490,7 +490,7 @@ INA_TEST(mempool,destroy_syspool_1000_times_and_recreate)
     
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
     
     for (i = 0; i < 1000; ++i) {
         INA_TEST_ASSERT_SUCCESS(ina_mempool_destroy());
@@ -508,7 +508,7 @@ INA_TEST(mempool,syspool)
     
     /* clear error state and assure it's clean */
     INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
 
     /* destroy all pools and recreate internal pool with default size */
     INA_TEST_ASSERT_SUCCESS(ina_mempool_destroy());
@@ -527,7 +527,7 @@ INA_TEST(mempool,syspool)
     /* allocate 2MB */    
     p = ina_mem_alloc(2*1024*1024);
     INA_TEST_ASSERT_NOT_NULL(p);
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
+    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
     INA_TEST_ASSERT_SUCCESS(ina_mempool_getinfo(NULL, &mi));
     INA_TEST_ASSERT_EQUAL_FLOATING(0, mi.children);
     INA_TEST_ASSERT_EQUAL_FLOATING((10*1024*1024), mi.size);

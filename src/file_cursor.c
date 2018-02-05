@@ -106,7 +106,7 @@ static ina_rc_t ina_file_cursor_fileio_set_pos(ina_file_cursor_t *cursor, uint64
 		cursor->ext.f.position = position;
 		return INA_SUCCESS;
 	}
-	return INA_ERR_PUSH_LAST;
+	return ina_err_get_last_rc();
 }
 
 static ina_rc_t ina_file_cursor_fileio_set_eof(ina_file_cursor_t *cursor)
@@ -124,7 +124,7 @@ static ina_rc_t ina_file_cursor_fileio_binary_read_chunk(ina_file_cursor_t *curs
 {
     if (!INA_SUCCEED(ina_file_read(cursor->file, cursor->ext.f.buffer, 
                                     requested, (int64_t*)nread))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     *chunk = cursor->ext.f.buffer;
     cursor->ext.f.position += *nread;
@@ -139,7 +139,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_chunk(ina_file_cursor_t *cursor
 {
     if (!INA_SUCCEED(ina_file_cursor_fileio_binary_read_chunk(cursor, requested, 
             nread, (const unsigned char **)chunk))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     *chunk = (const char*)cursor->ext.f.buffer;
 	return INA_SUCCESS;
@@ -160,7 +160,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor,
         ina_str_free(cursor->ext.f.line);
     }
     if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     if (nread == 0) {
         *begin_line = NULL;
@@ -184,7 +184,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor,
         }
         cursor->ext.f.next_line = ina_str_ncatcstr(cursor->ext.f.next_line, chunk, nread);
         if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
     }
 }
@@ -195,14 +195,14 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *curs
     const char *chunk;
     if (cursor->ext.f.lmp == NULL) {
         if (!INA_SUCCEED(ina_mempool_create(&cursor->ext.f.lmp, 1024, INA_MEM_DYNAMIC, NULL))) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
     }
     else {
         ina_mempool_release(cursor->ext.f.lmp, INA_NO);
     }
     if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     if (nread == 0) {
         *begin_line = NULL;
@@ -225,7 +225,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *curs
         }
         cursor->ext.f.next_line = ina_str_ncatcstr_using_pool(cursor->ext.f.next_line, chunk, nread, cursor->ext.f.lmp);
         if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
     }
 }
@@ -383,7 +383,7 @@ static ina_rc_t ina_file_cursor_init_internal(ina_file_t *file,
 	uint64_t flen = 0;
 
 	if (!INA_SUCCEED(ina_file_stat_new(file, &fstat))) {
-		return INA_ERR_PUSH_LAST;
+		return ina_err_get_last_rc();
 	}
 	ina_file_stat_file_size(fstat, &flen);
 	ina_file_stat_free(file, &fstat);

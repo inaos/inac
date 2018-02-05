@@ -35,14 +35,9 @@
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
 
-/* initialized module, returns always INA_SUCCESS */
-static ina_rc_t __ina_init(void);
-
 /* global error state */
 static ina_error_t __state;
 
-/* initialization flag */
-static int32_t __initialized = 0;
 
 
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
@@ -56,13 +51,6 @@ INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
 
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
-    size_t k;
-    ina_rc_t top;
-    ina_rc_t ret;
-
-    if (INA_RC_ID(rc) == 0) {
-        return INA_SUCCESS;
-    }
     __state.rc = INA_SUCCESS;
     return INA_SUCCESS;
 }
@@ -75,7 +63,6 @@ INA_API(ina_rc_t) ina_err_reset(void)
 
 INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
 {
-    size_t k;
     struct tm *tm;
     ina_error_t *error;
     char tmc[30];
@@ -89,22 +76,20 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
     if (len < (strlen(error->msg) +
                strlen(error->file) +
                __INA_ERR_MESSAGE_EXTRALEN)) {
-        return INA_ERR_EMSGLEN;
+        return INA_ERROR(INA_EMSGLEN);
     }
 
     tm = localtime(&error->ts);
 
     if (tm && strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
-        sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u,i:%d)",
+        sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,h:%u)",
                                     tmc,
                                     error->file,
                                     error->line,
                                     error->msg,
                                     INA_RC_REASON(error->rc),
                                     INA_RC_OSFN(error->rc),
-                                    INA_RC_MOD(error->rc),
-                                    INA_RC_HANDLED(error->rc),
-                                    INA_RC_ID(error->rc));
+                                    INA_RC_HANDLED(error->rc));
 
         strncpy(str, outstr, len-1);
         return INA_SUCCESS;
@@ -125,7 +110,7 @@ INA_API(const char*) ina_err_get_last_errormsg(void)
 
 INA_API(const char*) ina_err_get_errormsg(ina_rc_t rc)
 {  
-    if (rc == INA_SUCCESS || INA_RC_ID(rc) == 0) {
+    if (rc == INA_SUCCESS) {
         return NULL;
     }
     return __state.msg;
@@ -248,14 +233,6 @@ INA_API(ina_rc_t) ina_err_coredump(void *data) {
 
     CloseHandle(hFile);
 #endif
-    return INA_SUCCESS;
-}
-
-static ina_rc_t
-__ina_init(void) 
-{
-    ++__initialized;
-    __state.rc = 0;
     return INA_SUCCESS;
 }
 

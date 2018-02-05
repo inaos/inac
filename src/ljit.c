@@ -68,7 +68,7 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     if ((*ctx)->lstate == NULL) {
         ina_mem_free(*ctx);
         ctx = NULL;
-        return INA_LJIT_ENSTATE;
+        return INA_ERROR_MSG(INA_EALLOC, "failed to create lua state", NULL);
     }
     luaL_openlibs((*ctx)->lstate);
     lua_getglobal((*ctx)->lstate, "package");
@@ -156,7 +156,7 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
                 goto endwhile;
                 break;
             default:
-                return INA_LJIT_EPARAM;
+                return INA_ERROR_MSG(INA_EINVAL, "invalid type %c", *sig);
          }
          narg++;
          luaL_checkstack(ctx->lstate, 1, "too many arguments");
@@ -166,7 +166,9 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
     /* do the call */
     nres = strlen(sig);
     if (lua_pcall(ctx->lstate, narg, nres, 0) != 0) {
-        return INA_LJIT_ELUA(ctx);
+        INA_ERROR_MSG(INA_EEXCALL, lua_tostring(ctx->lstate, -1), NULL);
+        lua_pop(ctx->lstate, 1);
+        return ina_err_get_last_rc();
     }
     
     /* retrieve results */
@@ -175,13 +177,17 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
         switch (*sig++) {
             case 'd':  /* double result */
               if (!lua_isnumber(ctx->lstate, nres)) {
-                  return INA_LJIT_ERESULT;
+                  return INA_ERROR_MSG(INA_EINVAL,
+                                       "invalid result type number expected, got type %d",
+                                       lua_type(ctx->lstate, nres));
               }
               *va_arg(vl, double *) = lua_tonumber(ctx->lstate, nres);
               break;
             case 'i':  /* int result */
               if (!lua_isnumber(ctx->lstate, nres)) {
-                  return INA_LJIT_ERESULT;
+                  return INA_ERROR_MSG(INA_EINVAL,
+                                       "invalid result type number expected, got type %d",
+                                       lua_type(ctx->lstate, nres));
               }
               *va_arg(vl, int *) = (int)lua_tonumber(ctx->lstate, nres);
               break;
@@ -192,18 +198,23 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
               } else if (lua_type(ctx->lstate, nres) == 10) { 
                   *va_arg(vl, const char **) = INA_LJIT_TOCSTRING(ctx, nres);
               } else {
-                  return INA_LJIT_ERESULT;
+                  return INA_ERROR_MSG(INA_EINVAL,
+                                       "invalid result type string expected, got type %d",
+                                       lua_type(ctx->lstate, nres));
               }
               break;
             case 'c': /* void pointer */
               if (lua_type(ctx->lstate, nres) == 10) { 
                   *va_arg(vl, const void **) = INA_LJIT_TOPOINTER(ctx, nres, const void*);
               } else {
-                  return INA_LJIT_ERESULT;
+                  return INA_ERROR_MSG(INA_EINVAL,
+                                       "invalid result type C expected, got type %d",
+                                       lua_type(ctx->lstate, nres));
+
               }
               break;            
             default:
-              return INA_LJIT_EPARAM;
+              return INA_ERROR_MSG(INA_EINVAL, "Wrong argument type", NULL);
         }
         nres++;
     }
@@ -217,7 +228,9 @@ INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(code);
     if (luaL_dostring(ctx->lstate, code) != 0) {
-        return INA_LJIT_ELUA(ctx);
+        INA_ERROR_MSG(INA_EEXCALL, lua_tostring(ctx->lstate, -1), NULL);
+        lua_pop(ctx->lstate, 1);
+        return ina_err_get_last_rc();
     }
     return INA_SUCCESS;
 }

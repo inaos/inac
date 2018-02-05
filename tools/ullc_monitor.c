@@ -74,14 +74,14 @@ static ina_rc_t umon_start_monitor(void)
     ina_ullc_rb_info_t rbi;
     
     if (!INA_SUCCEED(ina_opt_get_string("ring", &ring))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     
     ina_mem_set(&rbi, 0, sizeof(ina_ullc_rb_info_t));
 
     while (ina_ullc_get_ring_info(ina_str_cstr(ring), &rbi)) {
         if (!INA_SUCCEED(umon_draw_monitor(&rbi))) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
     }
     return INA_SUCCESS;
@@ -92,12 +92,12 @@ static ina_rc_t umon_reset(void)
     ina_str_t ring = NULL;
 
     if (!INA_SUCCEED(ina_opt_get_string("name", &ring))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     if (!INA_SUCCEED(ina_ullc_reset_ring(ina_str_cstr(ring)))) {
         printf("Failed to reset ring %s\n", ina_str_cstr(ring)); 
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     printf("Ring %s reset\n", ina_str_cstr(ring));
     return INA_SUCCESS;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,7 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
     if (!INA_SUCCEED(ina_ljit_init(&(*cf)->lctx))) {
         ina_mem_free(*cf);
         *cf = NULL;
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     if (!INA_SUCCEED(ina_mempool_create(&(*cf)->mempool, 
                                         4094, 
@@ -116,7 +116,7 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
         ina_ljit_destroy(&(*cf)->lctx);
         ina_mem_free(*cf);
         *cf = NULL;
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     return INA_SUCCESS;
 }
@@ -149,20 +149,20 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
     INA_ASSERT_NOTNULL(section);
     
     if (cf->prepared == INA_YES) {
-        return INA_CONFFILE_EPREPARED;
+        return INA_ERROR_MSG(INA_EINVAL, "Can't add section %s. Configuration already prepared.", name);
     }
 
     key = INA_HASH_CSTR_TO_SDBM(name);
     HASH_FIND_ULONG(cf->sections, &key, check);
     if (check != NULL) {
-        return INA_CONFFILE_EDUPSEC;
+        return INA_ERROR_MSG(INA_EINVAL, "Duplicate section %s", name);
     }
 
     *section = (ina_conffile_section_t*)ina_mempool_dalloc(cf->mempool, 
                                             sizeof(ina_conffile_section_t));
     sp = *section;
     if (sp == NULL) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     sp->id = key;
@@ -190,14 +190,14 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
 
     HASH_FIND_ULONG(section->keys, &k, key);
     if (key != NULL) {
-        return INA_CONFFILE_EDUPKEY;
+        return  INA_ERROR_MSG(INA_EINVAL, "Duplicate section %s", key);
     }
 
     key = (ina_conffile_section_key_t*)ina_mempool_dalloc(
                                         section->cf->mempool,
                                         sizeof(ina_conffile_section_key_t));
     if (key == NULL) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     key->id = k;
@@ -257,7 +257,7 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf,
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
-            return INA_CONFFILE_ETYPE;
+            return INA_ERROR(INA_ETYPE);
         }
         if (entry->value.s != NULL) {
             *((ina_str_t*)value) = entry->value.s;
@@ -284,7 +284,7 @@ INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
     HASH_FIND_ULONG(entries, &k, entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
-            return INA_CONFFILE_ETYPE;
+            return INA_ERROR(INA_ETYPE);
         }
         if (entry->value.s != NULL) {
             *((ina_str_t*)value) = entry->value.s;
@@ -310,7 +310,7 @@ INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf,
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
-            return INA_CONFFILE_ETYPE;
+            return INA_ERROR(INA_ETYPE);
         }
         *value = entry->value.n;
         return INA_SUCCESS;
@@ -335,7 +335,7 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
     HASH_FIND_ULONG(entries, &k, entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
-            return INA_CONFFILE_ETYPE;
+            return INA_ERROR(INA_ETYPE);
         }
         *value = entry->value.n;
         return INA_SUCCESS;
@@ -357,7 +357,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
     
     if (cf->prepared != INA_YES) {
         if (!INA_SUCCEED(__ina_prepare(cf))) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
     }
 
@@ -383,7 +383,9 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
     if (luaL_dostring(cf->lctx->lstate,
         "local cf = require('lconffile')\n cf.process(sections, conf_file)\n") 
 		    != 0) {
-        return INA_LJIT_ELUA(cf->lctx);
+        INA_ERROR_MSG(INA_EEXCALL, lua_tostring(cf->lctx->lstate, -1), NULL);
+        lua_pop(cf->lctx->lstate, 1);
+        return ina_err_get_last_rc();
     }
 
     /* process section table */
@@ -421,7 +423,7 @@ __ina_prepare(ina_conffile_t *cf)
     INA_ASSERT_NOTNULL(cf);
 
     if (!INA_SUCCEED(ina_ljit_init(&cf->lctx))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     if (cf->prepared == INA_YES) {
         return INA_SUCCESS;

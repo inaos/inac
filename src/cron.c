@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -545,7 +545,7 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
 		
 		task = (ina_cron_task_t*)ina_mem_alloc(sizeof(ina_cron_task_t));
         if (task == NULL) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
         buf = (char*)ina_mem_alloc(slen+2);
         buf = strcpy(buf, pattern);
@@ -563,7 +563,7 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
         sched.task = task;
         if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
 
 		ina_mem_free(buf);
@@ -751,7 +751,7 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
 		
 		func = (ina_cron_func_t*)ina_mem_alloc(sizeof(ina_cron_func_t));
         if (func == NULL) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
         buf = (char*)ina_mem_alloc(slen+2);
         buf = strcpy(buf, pattern);
@@ -767,7 +767,7 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
         sched.func = func;
         if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
-            return ina_err_peek();
+            return ina_err_get_last_rc();
         }
 		
 		ina_mem_free(buf);
@@ -821,7 +821,7 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
     sched.func = &dummy;
     if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
         ina_str_free(buf);
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     ina_str_free(buf);
 
@@ -868,7 +868,7 @@ INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, co
 
 		func = (ina_cron_func_t*)ina_mem_alloc(sizeof(ina_cron_func_t));
         if (func == NULL) {
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
         buf = (char*)ina_mem_alloc(slen+2);
         buf = strcpy(buf, pattern);
@@ -883,7 +883,7 @@ INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, co
         sched.func = func;
         if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
-            return INA_ERR_PUSH_LAST;
+            return ina_err_get_last_rc();
         }
 		ina_mem_free(buf);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,7 +113,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
 #endif
     
     if (!INA_SUCCEED(ina_init(pool_size))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     
     if (argv != NULL) {
@@ -141,7 +141,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             __ina_lopt_t *lo;
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             if (so == NULL) {
-                return INA_ERR_PUSH_LAST;
+                return ina_err_get_last_rc();
             }
             so->opt = ina_str_new_fromcstr(opt->short_opt);
             if (opt->dft != NULL) {
@@ -156,7 +156,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
 
             lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
             if (lo == NULL) {
-                return INA_ERR_PUSH_LAST;
+                return ina_err_get_last_rc();
             }
             lo->opt = ina_str_new_fromcstr(opt->long_opt);
             lo->short_opt = so;
@@ -211,7 +211,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
                     if (so == NULL) {
                         INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
-                        return INA_LIB_EOPT;
+                        return INA_ERROR(INA_EOPT);
                     }
                     /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
@@ -235,7 +235,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             HASH_ITER(hh, __sopt, so, tmp_so) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
                     __ina_opt_usage();
-                    return INA_LIB_EOPT;
+                    return INA_ERROR(INA_EOPT);
                 }
             }
         }
@@ -277,9 +277,11 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
 
+    ina_err_reset();
+
     /* initailized console */
     if (!INA_SUCCEED(ina_cio_init())) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     /* initalize global memory functions for memory pools */
@@ -290,7 +292,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
 
    /* initialize system memory pool and internal structures */
     if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 #ifdef INA_OS_WIN32
     /* Make sure to use high-accuracy multimedia-timers for windows */
@@ -303,7 +305,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
 
     /* initialize CPU module */
     if (!INA_SUCCEED(ina_cpu_init())) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     return INA_SUCCESS;
@@ -357,8 +359,8 @@ INA_API(void) ina_exit(void)
 
     ina_mempool_destroy();
 
-    if (!INA_SUCCEED(ina_err_peek())) {
-        ina_err_trace();
+    if (!INA_SUCCEED(ina_err_get_last_rc())) {
+        fprintf(stderr, "%s\n", ina_err_get_last_errormsg());
     }
     ina_err_reset();
 
@@ -640,7 +642,7 @@ __ina_signal_handler(int sig)
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Program aborted.\n");
-                ina_err_trace();
+                fprintf(stderr, "%s", ina_err_get_last_errormsg());
                 ina_err_reset();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
@@ -653,7 +655,7 @@ __ina_signal_handler(int sig)
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Error: signal %d:\n", sig);
-                ina_err_trace();
+                fprintf(stderr, "%s", ina_err_get_last_errormsg());
                 ina_err_reset();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);

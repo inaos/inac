@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014,2016, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,15 +79,15 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
                      INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, 
                      mname))) {
         ina_ipc_flags_free(flags);
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     (*flags)->data = (ina_ipc_flags_data_t*)ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     if (!INA_SUCCEED(ina_timer_init(&(*flags)->timer))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     strncpy((*flags)->data->name, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
     if (initial != INA_IPC_FLAGS_IGNORE) {
@@ -110,14 +110,14 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
                      INA_MEM_SHARED, 
                      mname))) {
         ina_ipc_flags_free(flags);
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     (*flags)->data = (ina_ipc_flags_data_t*)ina_mempool_dalloc((*flags)->m, sizeof(ina_ipc_flags_data_t));
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
     }
     if (!INA_SUCCEED(ina_timer_init(&(*flags)->timer))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     return INA_SUCCESS;
 }
@@ -239,7 +239,7 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
     
     event = ina_timer_create_event(flags->timer, msec_timeout);
     if (event == NULL) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
   
     while (!INA_SUCCEED(ina_ipc_flags_is_set(flags, wait_for))) {
@@ -293,12 +293,12 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
                      INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, 
                      mname))) {
         ina_ipc_counter_free(counter);
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     (*counter)->data = (ina_ipc_counter_data_t*)ina_mempool_dalloc((*counter)->m, sizeof(ina_ipc_counter_data_t));
     if ((*counter)->data == NULL) {
         ina_ipc_counter_free(counter);
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     (*counter)->data->c = initial;
 
@@ -320,7 +320,7 @@ INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **cou
                      INA_MEM_SHARED, 
                      mname))) {
         ina_ipc_counter_free(counter);
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     (*counter)->data = (ina_ipc_counter_data_t*)ina_mempool_dalloc((*counter)->m, sizeof(ina_ipc_counter_data_t));
     if ((*counter)->data == NULL) {

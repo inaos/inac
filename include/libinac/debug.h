@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@ extern "C" {
 #ifndef INA_TRACE_LEVEL
 #define INA_TRACE_LEVEL 1
 #endif
-
-#define #define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
 
 /*
  * Trace macros
