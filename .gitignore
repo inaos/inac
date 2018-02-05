@@ -61,4 +61,8 @@ tools/buildall/*
 !contribs-bin/meinberg/lib/mbgdevio.lib
 !contribs-bin/meinberg/lib64/mbgdevio.lib
 src/__.SYMDEF SORTED
+contribs/t1ha/t1ha0_ia32aes_avx2.i
+contribs/t1ha/t1ha0_ia32aes_avx2.s
+.scannerwork/
+bw-output/
 
