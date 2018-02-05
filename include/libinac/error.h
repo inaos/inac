@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,28 +45,6 @@ extern "C" {
 /* Error message length */
 #define INA_ERR_MSGLEN  512
 
-/* Module identifiers */
-#define INA_MOD_UNKNOWN  0
-#define INA_MOD_MEMORY   1
-#define INA_MOD_STRING   2
-#define INA_MOD_ERROR    3
-#define INA_MOD_ULLC     4
-#define INA_MOD_ISCP     5
-#define INA_MOD_NET      7
-#define INA_MOD_LOG      8
-#define INA_MOD_TIME     9
-#define INA_MOD_TIMER    10
-#define INA_MOD_LJIT     11
-#define INA_MOD_CONFFILE 12
-#define INA_MOD_LIB      13
-#define INA_MOD_SSL      14
-#define INA_MOD_JSON     15
-#define INA_MOD_SERVICE  16
-#define INA_MOD_DNS      17
-#define INA_MOD_CIO      18
-#define INA_MOD_AAR      19
-#define INA_MOD_DIR      20
-#define INA_MOD_USER     32
 
 /* OS function identifiers */
 #define INA_OSFN_NONE    0
@@ -107,12 +85,10 @@ extern "C" {
 #define INA_ESTATE   30
 #define INA_EFS      31
 
-/* Mark an handled error (bit 10 of RC) */
-#define INA_ERR_FLAG_HANDLED 0x200
-/* Mark a fatal error (bit 11 of RC) */
-#define INA_ERR_FLAG_FATAL   0x300
-/* Used to start an interation  */
-#define INA_ERR_PEEK_FIRST    0
+/* Mark an handled error (bit 25 of RC) */
+#define INA_ERR_FLAG_HANDLED 0x1000000
+/* Mark a fatal error (bit 26 of RC) */
+#define INA_ERR_FLAG_FATAL   0x2000000
 /* User defined errors base */
 #define INA_ERR_USER          (128)
 /*
@@ -172,160 +148,31 @@ extern "C" {
  * Pack an RC.
  *
  * Parameters
+ *
  *  m  Module identifier (optional)
  *  f  OS function identifier (if needed)
  *  r  Reason of failure
  *  i  Error identifier
  */
-#define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)i) << 22U|   \
-                              ((ina_rc_t)m) << 16U|   \
-                              ((ina_rc_t)f) << 11U|   \
-                              ((ina_rc_t)r)
+#define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)f) << 26U|   \
+                              ((ina_rc_t)r) << 24U
 
-/* Unpack the error identifier for a given RC */
-#define INA_RC_ID(rc)     ((((ina_rc_t)rc)&0xFFC00000U)>>22U)
-/* Unpack the module indentifier for a given RC */
-#define INA_RC_MOD(rc)    ((((ina_rc_t)rc)&0x3F0000U)>>16U)
 /* Unpack the OS function identifier for a given RC */
-#define INA_RC_OSFN(rc)    ((((ina_rc_t)rc)&0xF800U)>>11U)
-/* Unpack the reason of failuer for a given RC */
-#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0x1FF))
+#define INA_RC_OSFN(rc)    ((((ina_rc_t)rc)&0xFC000000U)>>26U)
+/* Unpack the reason of failure for a given RC */
+#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0xFFFFFFU))
 /* Verify if error is handled */
 #define INA_RC_HANDLED(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_HANDLED))
 /* Verify if fatal error occurred */
 #define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
-/* Check retuen code if successful or handled */
+/* Check return code if successful or handled */
 #define INA_SUCCEED(rc) (INA_SUCCESS == (rc))
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(!INA_SUCCEED(rc))) abort()
 
+#define INA_ERROR(r) ina_err_set_error(r, INA_AT)
 
-/* Error-Module errors */
-#define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
-#define INA_ERR_EMSGLEN INA_ERR_ERROR(INA_EMSGLEN, "Message size")
-#define INA_ERR_EMSGFMT INA_ERR_ERROR(INA_EMSGFMT, "Message format")
-#define INA_ERR_ENYI INA_ERR_ERROR(INA_ENYI, "Not implemented yet!")
-
-/* String-Module errors */
-#define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
-#define INA_STR_EALLOC INA_STR_ERROR(INA_EALLOC, "Bad string alloc")
-
-/* Memory-Module errors */
-#define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
-#define INA_MEM_EALLOC INA_MEM_ERROR(INA_EALLOC, "Bad memory alloc")
-#define INA_MEM_ERALLOC INA_MEM_ERROR(INA_ERALLOC, "Bad memory realloc")
-#define INA_MEM_ESHMALLOC INA_MEM_ERROR(INA_EALLOC, "Failed shared memory alloc")
-
-/* ULLC-Module errors */
-#define INA_ULLC_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ULLC,INA_OSFN_NONE, s)
-#define INA_ULLC_EVERSION INA_ULLC_ERROR(INA_EVERSION, "Invalid ullc version")
-#define INA_ULLC_EBADALIGN INA_ULLC_ERROR(INA_EBADALIGN, "Bad memory align")
-#define INA_ULLC_ESEMINIT INA_ULLC_ERROR(INA_ESEMINIT, "Semaphore failed")
-#define INA_ULLC_ESEMOP INA_ULLC_ERROR(INA_ESEMOP, "Semaphore op failed")
-#define INA_ULLC_ECLIMIT INA_ULLC_ERROR(INA_ELIMIT, "Consumer limit exeeded")
-#define INA_ULLC_EPLIMIT INA_ULLC_ERROR(INA_ELIMIT, "Producer limit exeeded")
-#define INA_ULLC_EINVERSION INA_ULLC_ERROR(INA_EINVAL, "Invalid argument version")
-#define INA_ULLC_EINSLOTS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument slots")
-#define INA_ULLC_EINSIZE INA_ULLC_ERROR(INA_EINVAL, "Invalid argument size")
-#define INA_ULLC_EINCONSUMERS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument consumers")
-#define INA_ULLC_EINPRODUCERS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument producers")
-
-/* Net-Module errors */
-#define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
-#define INA_NET_ERROR2(r, s) INA_ERR_PUSH(r, INA_MOD_NET, INA_OSFN_NONE, s)
-#define INA_NET_ETIMEOUT INA_NET_ERROR2(INA_ETIMEOUT, "Net timeout")
-#define INA_NET_ENETINIT INA_NET_ERROR2(INA_EINIT, "Net initialization failed")
-
-/* ISCP errors */
-#define INA_ISCP_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ISCP, INA_OSFN_NONE, s)
-#define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set send callback")
-#define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set recv callback")
-#define INA_ISCP_ERETNCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set retn callback")
-#define INA_ISCP_EOPENCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set open callback")
-#define INA_ISCP_ECLSECB INA_ISCP_ERROR(INA_EINVAL, "Failed to set clse callback")
-#define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registered")
-#define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed")
-#define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed")
-#define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed")
-#define INA_ISCP_EWAIT INA_ISCP_ERROR(INA_EWAIT, "waiting for object")
-#define INA_ISCP_ETYPE INA_ISCP_ERROR(INA_EINVAL, "invalid parameter type")
-
-/* LuaJIT errors */
-#define INA_LJIT_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LJIT, INA_OSFN_NONE, s)
-#define INA_LJIT_EALLOC INA_LJIT_ERROR(INA_EALLOC, "Bad memory alloc")
-#define INA_LJIT_ERESULT INA_LJIT_ERROR(INA_EINVAL, "Wong result type")
-#define INA_LJIT_EPARAM INA_LJIT_ERROR(INA_EINVAL, "Wong argument type")
-#define INA_LJIT_ENSTATE INA_LJIT_ERROR(INA_EALLOC, "Failed to create new Lua state")
-#define INA_LJIT_ELUA(ptr_ljit) \
-        INA_LJIT_ERROR(INA_EEXCALL, lua_tostring(ptr_ljit->lstate, -1)); \
-        lua_pop(ptr_ljit->lstate, 1)
-
-/* Configuration file errors */
-#define INA_CONFFILE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CONFFILE, INA_OSFN_NONE, s)
-#define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate section");
-#define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate key");
-#define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(INA_EINVAL, "Already prepared");
-#define INA_CONFFILE_ETYPE INA_CONFFILE_ERROR(INA_ETYPE, "Invalid type");
-
-/* Time errors */
-#define INA_TIME_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_TIME, INA_OSFN_NONE, s)
-#define INA_TIME_EHWDRV INA_TIME_ERROR(INA_EVERSION, "The MBGDEVIO API version which is installed is not compatible");
-#define INA_TIME_ENODEV INA_TIME_ERROR(INA_ELIMIT, "No radio clock found");
-#define INA_TIME_ETMDEV INA_TIME_ERROR(INA_ELIMIT, "Too many radio clocks found");
-#define INA_TIME_EHWERR INA_TIME_ERROR(INA_EPARAM, "Device API call failed");
-#define INA_TIME_EHWMISSF INA_TIME_ERROR(INA_EEXISTS, "Missing HW feature");
-
-/* Core library errors */
-#define INA_LIB_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LIB, INA_OSFN_NONE, s)
-#define INA_LIB_EOPT INA_LIB_ERROR(INA_EOPT, "Command line option parsing failed");
-
-/* SSL errors */
-#define INA_SSL_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_SSL, INA_OSFN_NONE, s)
-#define INA_SSL_EINIT INA_SSL_ERROR(INA_EINIT, "SSL library init failed");
-#define INA_SSL_EAGAIN INA_SSL_ERROR(INA_EAGAIN, "SSL handshake still in progress");
-
-/* JSON errors */
-#define INA_JSON_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_JSON, INA_OSFN_NONE, s)
-#define INA_JSON_EPOOLF INA_JSON_ERROR(INA_ELOGIC, "Pool is missing entry, make sure to always return");
-#define INA_JSON_EPOOLE INA_JSON_ERROR(INA_ECAPAC, "Pool is exhausted");
-#define INA_JSON_ENOBUF INA_JSON_ERROR(INA_EEMPTY, "Buffer empty");
-#define INA_JSON_ENODATA INA_JSON_ERROR(INA_EEMPTY, "No more data. Stack is empty")
-                                              
-/* Service library errors */
-#define INA_SERVICE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_SERVICE, INA_OSFN_NONE, s)
-#define INA_SERVICE_EMAXLEN INA_SERVICE_ERROR(INA_EPARAM, "Service-Descriptor Parameter longer then maximum");
-#define INA_SERVICE_EUST INA_SERVICE_ERROR(INA_EPARAM, "Unknown Startup Type");
-#define INA_SERVICE_ECAPI INA_SERVICE_ERROR(INA_EPARAM, "Error during Service creation API call");
-#define INA_SERVICE_ESCM INA_SERVICE_ERROR(INA_EINIT, "Could not initialize Service-Control Manager");
-#define INA_SERVICE_ESVCNF INA_SERVICE_ERROR(INA_ENOTFND, "Service not found");
-#define INA_SERVICE_EQRYS INA_SERVICE_ERROR(INA_ENOTFND, "Can not query Service-Status");
-#define INA_SERVICE_ERUNNING INA_SERVICE_ERROR(INA_ESTATE, "Service is running");
-#define INA_SERVICE_EEXCL INA_SERVICE_ERROR(INA_ELOGIC, "Process already runnning only 1 process allowed");
-#define INA_SERVICE_EMINIT INA_SERVICE_ERROR(INA_EINIT, "Can not initialize mutex");
-#define INA_SERVICE_ESDIS INA_SERVICE_ERROR(INA_EINIT, "Can not invoke service-dispatcher");
-#define INA_SERVICE_EAID INA_SERVICE_ERROR(INA_EEXISTS, "Process already is a daemon");
-#define INA_SERVICE_EFERR INA_SERVICE_ERROR(INA_EINIT, "Fork error");
-#define INA_SERVICE_ELCO INA_SERVICE_ERROR(INA_EINVAL, "Can not create/open lock-file");
-#define INA_SERVICE_ELOCK INA_SERVICE_ERROR(INA_ELIMIT, "Can not lock, service is already running");
-
-/* DNS errors */
-#define INA_DNS_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DNS, INA_OSFN_NONE, s)
-#define INA_DNS_ELOOKUP INA_SERVICE_ERROR(INA_ENET, "DNS lookup failed");
-
-/* CIO errors */
-#define INA_CIO_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CIO, INA_OSFN_NONE, s)
-#define INA_CIO_ENOTTY INA_CIO_ERROR(INA_EREAD, "No terminal");
-
-/* DIR errors */
-#define INA_DIR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DIR, INA_OSFN_NONE, s)
-#define INA_DIR_ESTAT INA_DIR_ERROR(INA_EFS, "Can not stat directory");
-
-/* AAR errors */
-#define INA_AAR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_AAR, INA_OSFN_NONE, s)
-#define INA_AAR_EMKDR INA_AAR_ERROR(INA_EFS, "Failed to create directory");
-#define INA_AAR_ERMDR INA_AAR_ERROR(INA_EFS, "Failed to remove directory");
-#define INA_AAR_EZIP  INA_AAR_ERROR(INA_ESTATE, "Failed operate on archive");
-#define INA_AAR_EMETA INA_AAR_ERROR(INA_ENOTFND, "Meta value not found");
+#define INA_ERROR_MSG(r, fmt, args) ina_err_set_errormsg(r, INA_AT, fmt, args)
 
 /* Error information */
 typedef struct ina_error_s {
@@ -337,35 +184,28 @@ typedef struct ina_error_s {
 } ina_error_t;
 
 /*
- * Push an error to the error state.
+ * Set error
  *
  * Parameters
- *  mod      Module identifier
- *  osfn     OS function identifier
- *  reason   Reason of failure
- *  file     filename
- *  line     line
- *  msg      Error message
+ *   rc         Return code
+ *   location   source location
  *
  * Return
- *  RC
+ *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, const char *file,
-                               int line,
-                               const char *msg);
+INA_API(ina_rc_t) ina_err_set_error(ina_rc_t rc, const char* location);
 
 /*
- * Re-push an error to the error state
+ * Set error with message
  *
  * Parameters
- *  rc    RC to re-push
- *  file  filename
- *  line  line
+ *   rc         Return code
+ *   location   source location
  *
  * Return
- *  RC
+ *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line);
+INA_API(ina_rc_t) ina_err_set_errormsg(ina_rc_t rc, const char* location, const char* fmt, args...);
 
 /*
  * Query if succeed.
@@ -377,33 +217,6 @@ INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line);
  *  INA_YES if succeed otherwise INA_NO
  */
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc);
-
-/*
- * Peek the first pushed error from the error state.
- *
- * Return
- *  RC of first pushed error or INA_SUCCESS if error state is clean
- */
-INA_API(ina_rc_t) ina_err_peek_last(void);
-
-/*
- * Peek the first unhandled error from the error state.
- *
- * Return
- *  RC of first unhandled error or INA_SUCCESS  if error state is clean
- */
-INA_API(ina_rc_t) ina_err_peek(void);
-
-/*
- * Peek the next (handled or unhandled) error from the error state.
- *
- * Parameters
- *  rc  Previous RC
- *
- * Return
- *  RC or INA_SUCCESS if no more errors found.
- */
-INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc);
 
 /*
  * Mark an error as handled. All errors pushed before this one are removed
@@ -427,14 +240,6 @@ INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
  *  otherwise returns INA_FAILURE
  */
 INA_API(ina_rc_t) ina_err_reset(void);
-
-/*
- * Makes a trace to the stderr of the current error state.
- *
- * Return
- *  INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_err_trace(void);
 
 /*
  * Makes a backrace to the stderr of the current error state.
@@ -469,23 +274,32 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
  * Return the raw error message for the last pushed error.
  * 
  * Return
- *  Error message or NULL if no errors are on the stack. Char pointer is valid
- *  as long an error is on the error stack.
+ *  Error message or NULL if no errors are on the stack. Char pointer is valid
+ *  as long an error is on the error stack.
  */
 
-INA_API(const char*) ina_err_get_last_errmsg(void);
+INA_API(const char*) ina_err_get_last_errormsg(void);
 
 /*
- * Return the raw error message for an pushed error rc.
- * 
+ * Return the last  error.
+ *
+ * Return
+ *  Error code or 0 if no error occured
+ */
+
+INA_API(ina_rc_t) ina_err_get_last_error(void);
+
+/*
+ * Return the raw error message for an error rc.
+ *
  * Parameters
  *  rc  Valid RC
  *
  * Return
- *  Error message or NULL if rc is invalid. Char pointer is valid as long an
+ *  Error message or NULL if rc is invalid. Char pointer is valid as long an
  *  error is on the error stack.
  */
-INA_API(const char*) ina_err_get_errmsg(ina_rc_t rc);
+INA_API(const char*) ina_err_get_errormsg(ina_rc_t rc);
 
 #ifdef __cplusplus
 }

@@ -39,6 +39,8 @@ extern "C" {
 #define INA_TRACE_LEVEL 1
 #endif
 
+#define #define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
+
 /*
  * Trace macros
  */
