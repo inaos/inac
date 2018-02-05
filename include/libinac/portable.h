@@ -1159,6 +1159,10 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 #ifdef INA_OS_WIN32
+int inet_aton(const char *address, struct in_addr *sock)
+#endif
+
+#ifdef INA_OS_WIN32
 typedef HANDLE ina_handle_t;
 typedef char ina_semkey_t[MAX_PATH];
 #else
