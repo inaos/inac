@@ -48,13 +48,11 @@ static __ina_error_t __state;
 
 INA_API(ina_rc_t) ina_err_set_rc(ina_rc_t rc, const char* location)
 {
-
     __state.rc = rc;
     strncpy(__state.location, location, 512);
     __state.msg[0] = 0;
     return rc;
 }
-
 
 INA_API(ina_rc_t) ina_err_set_rc_msg(ina_rc_t rc, const char* location, const char* fmt, ...)
 {
@@ -68,7 +66,6 @@ INA_API(ina_rc_t) ina_err_set_rc_msg(ina_rc_t rc, const char* location, const ch
     return rc;
 }
 
-
 INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
 {
     if (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0) {
@@ -77,10 +74,8 @@ INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
     return INA_NO;
 }
 
-
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
-
     return INA_SUCCESS;
 }
 
@@ -103,12 +98,11 @@ INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
         return INA_ERR(INA_EMSGLEN);
     }
 
-    sprintf(outstr, "%s - %s (r:%u,f:%u,h:%u)",
-                                __state.location,
-                                __state.msg,
-                                INA_RC_REASON(__state.rc),
-                                INA_RC_OSFN(__state.rc),
-                                INA_RC_HANDLED(__state.rc));
+    sprintf(outstr, "%s - %s (r:%u,h:%u)",
+            __state.location,
+            __state.msg,
+            INA_RC_REASON(__state.rc),
+            INA_RC_HANDLED(__state.rc));
 
     strncpy(str, outstr, len-1);
     return INA_SUCCESS;
@@ -119,7 +113,12 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void)
     return __state.rc;
 }
 
-INA_API(const char*) ina_err_get_last_rc_msg(void)
+INA_API(int) ina_err_get_last_error(void)
+{
+    return INA_RC_REASON(__state.rc);
+}
+
+INA_API(const char*) ina_err_get_last_msg(void)
 {
     return ina_err_get_msg(__state.rc);
 }

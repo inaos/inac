@@ -49,13 +49,6 @@ extern "C" {
 #define INA_ERR_MSGLEN  512
 
 
-/* OS function identifiers */
-#define INA_OSFN_NONE    0
-#define INA_OSFN_FOPEN   1
-#define INA_OSFN_FTRUNC  2
-#define INA_OSFN_MMAP    4
-#define INA_OSFN_SEMINIT 5
-
 /* Errors */
 #define INA_EMSGLEN   1
 #define INA_EMSGFMT   2
@@ -88,10 +81,10 @@ extern "C" {
 #define INA_ESTATE   30
 #define INA_EFS      31
 
-/* Mark an handled error (bit 25 of RC) */
-#define INA_ERR_FLAG_HANDLED 0x1000000
-/* Mark a fatal error (bit 26 of RC) */
-#define INA_ERR_FLAG_FATAL   0x2000000
+/* Mark an handled error (bit 31 of RC) */
+#define INA_ERR_FLAG_HANDLED 0x40000000
+/* Mark a fatal error (bit 32 of RC) */
+#define INA_ERR_FLAG_FATAL   0x80000000
 /* User defined errors base */
 #define INA_ERR_USER          (128)
 
@@ -99,29 +92,28 @@ extern "C" {
  * Pack an RC.
  *
  * Parameters
- *  f  OS function identifier (if needed)
  *  r  Reason of failure
  */
-#define INA_RC_PACK(f,r)  ((ina_rc_t)f) << 26U|((ina_rc_t)r) << 24U
+#define INA_RC_PACK(r)  ((ina_rc_t)r)
 
-/* Unpack the OS function identifier for a given RC */
-#define INA_RC_OSFN(rc)    ((((ina_rc_t)rc)&0xFC000000U)>>26U)
 /* Unpack the reason of failure for a given RC */
-#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0xFFFFFFU))
+#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0x3FFFFFFF))
 /* Verify if error is handled */
 #define INA_RC_HANDLED(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_HANDLED))
 /* Verify if fatal error occurred */
 #define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
+
 /* Check return code if successful or handled */
 #define INA_SUCCEED(rc) (INA_SUCCESS == (rc))
+
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(!INA_SUCCEED(rc))) abort()
 
 /* Set error RC */
-#define INA_ERR(r) ina_err_set_rc(r, INA_ERR_AT)
+#define INA_ERR(r) ina_err_set_rc(INA_RC_PACK(r), INA_ERR_AT)
 
 /* Set error RC with a custom message */
-#define INA_ERRMSG(r, fmt, ...) ina_err_set_rc_msg(r, INA_ERR_AT, fmt, ##__VA_ARGS__)
+#define INA_ERRMSG(r, fmt, ...) ina_err_set_rc_msg(INA_RC_PACK(r), INA_ERR_AT, fmt, ##__VA_ARGS__)
 
 /*
  * Set RC
@@ -136,7 +128,7 @@ extern "C" {
 INA_API(ina_rc_t) ina_err_set_rc(ina_rc_t rc, const char* location);
 
 /*
- * Set error with message
+ * Set RC with a custom message
  *
  * Parameters
  *   rc         Return code
@@ -223,7 +215,7 @@ INA_API(const char*) ina_err_get_last_msg(void);
  * Return the last RC
  *
  * Return
- *  Las RC or INA_SUCCESS of no error occurred
+ *  Last RC or INA_SUCCESS of no error occurred
  */
 INA_API(ina_rc_t) ina_err_get_last_rc(void);
 

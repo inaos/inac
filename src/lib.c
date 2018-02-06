@@ -211,7 +211,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
                     if (so == NULL) {
                         INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
-                        return INA_ERROR(INA_EOPT);
+                        return INA_ERR(INA_EOPT);
                     }
                     /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
@@ -235,7 +235,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             HASH_ITER(hh, __sopt, so, tmp_so) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
                     __ina_opt_usage();
-                    return INA_ERROR(INA_EOPT);
+                    return INA_ERR(INA_EOPT);
                 }
             }
         }
@@ -360,7 +360,7 @@ INA_API(void) ina_exit(void)
     ina_mempool_destroy();
 
     if (!INA_SUCCEED(ina_err_get_last_rc())) {
-        fprintf(stderr, "%s\n", ina_err_get_last_errormsg());
+        fprintf(stderr, "%s\n", ina_err_get_last_msg());
     }
     ina_err_reset();
 
@@ -642,7 +642,7 @@ __ina_signal_handler(int sig)
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Program aborted.\n");
-                fprintf(stderr, "%s", ina_err_get_last_errormsg());
+                fprintf(stderr, "%s", ina_err_get_last_msg());
                 ina_err_reset();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
@@ -655,7 +655,7 @@ __ina_signal_handler(int sig)
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 fprintf(stderr, "Error: signal %d:\n", sig);
-                fprintf(stderr, "%s", ina_err_get_last_errormsg());
+                fprintf(stderr, "%s", ina_err_get_last_msg());
                 ina_err_reset();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);

@@ -92,7 +92,7 @@ INA_API(ina_str_t) ina_str_new_fromblk(const void* blk, size_t len)
     ina_str_t str;
 
     if (blk == NULL) {
-        INA_ERROR(INA_EINVAL);
+        INA_ERR(INA_EINVAL);
         return NULL;
     }
 
@@ -118,7 +118,7 @@ INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk,
     INA_ASSERT_NOTNULL(pool);
     
     if (blk == NULL) {
-        INA_ERROR(INA_EINVAL);
+        INA_ERR(INA_EINVAL);
         return NULL;
     }
 

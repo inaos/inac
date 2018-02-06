@@ -299,7 +299,7 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
 #else
     struct statvfs sfs;
     if (statvfs(dir, &sfs) != 0) {
-        return INA_ERROR_MSG(INA_EFS, "can't stat dir '%s", dir);
+        return INA_ERRMSG(INA_EFS, "can't stat dir '%s", dir);
     }
     (*stat)->free_bytes = sfs.f_bsize * sfs.f_bavail;
     (*stat)->total_bytes = sfs.f_blocks * sfs.f_bsize;

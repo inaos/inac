@@ -149,13 +149,13 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
     INA_ASSERT_NOTNULL(section);
     
     if (cf->prepared == INA_YES) {
-        return INA_ERROR_MSG(INA_EINVAL, "Can't add section %s. Configuration already prepared.", name);
+        return INA_ERRMSG(INA_EINVAL, "Can't add section %s. Configuration already prepared.", name);
     }
 
     key = INA_HASH_CSTR_TO_SDBM(name);
     HASH_FIND_ULONG(cf->sections, &key, check);
     if (check != NULL) {
-        return INA_ERROR_MSG(INA_EINVAL, "Duplicate section %s", name);
+        return INA_ERRMSG(INA_EINVAL, "Duplicate section %s", name);
     }
 
     *section = (ina_conffile_section_t*)ina_mempool_dalloc(cf->mempool, 
@@ -190,7 +190,7 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
 
     HASH_FIND_ULONG(section->keys, &k, key);
     if (key != NULL) {
-        return  INA_ERROR_MSG(INA_EINVAL, "Duplicate section %s", key);
+        return  INA_ERRMSG(INA_EINVAL, "Duplicate section %s", key);
     }
 
     key = (ina_conffile_section_key_t*)ina_mempool_dalloc(
@@ -257,7 +257,7 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf,
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
-            return INA_ERROR(INA_ETYPE);
+            return INA_ERR(INA_ETYPE);
         }
         if (entry->value.s != NULL) {
             *((ina_str_t*)value) = entry->value.s;
@@ -284,7 +284,7 @@ INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
     HASH_FIND_ULONG(entries, &k, entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
-            return INA_ERROR(INA_ETYPE);
+            return INA_ERR(INA_ETYPE);
         }
         if (entry->value.s != NULL) {
             *((ina_str_t*)value) = entry->value.s;
@@ -310,7 +310,7 @@ INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf,
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
-            return INA_ERROR(INA_ETYPE);
+            return INA_ERR(INA_ETYPE);
         }
         *value = entry->value.n;
         return INA_SUCCESS;
@@ -335,7 +335,7 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
     HASH_FIND_ULONG(entries, &k, entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
-            return INA_ERROR(INA_ETYPE);
+            return INA_ERR(INA_ETYPE);
         }
         *value = entry->value.n;
         return INA_SUCCESS;
@@ -383,7 +383,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
     if (luaL_dostring(cf->lctx->lstate,
         "local cf = require('lconffile')\n cf.process(sections, conf_file)\n") 
 		    != 0) {
-        INA_ERROR_MSG(INA_EEXCALL, lua_tostring(cf->lctx->lstate, -1), NULL);
+        INA_ERRMSG(INA_EEXCALL, lua_tostring(cf->lctx->lstate, -1), NULL);
         lua_pop(cf->lctx->lstate, 1);
         return ina_err_get_last_rc();
     }

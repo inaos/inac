@@ -109,17 +109,17 @@ static ina_rc_t __ina_create_socket(int domain, int type, int *s)
         *s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
     }
     else {
-        return INA_ERROR_MSG(INA_EINVAL, "unknown socket-type: %d!", type);
+        return INA_ERRMSG(INA_EINVAL, "unknown socket-type: %d!", type);
     }
 
     if (*s == -1) {
-        return INA_ERROR_MSG(INA_ENET, "creating socket: %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "creating socket: %s", __INA_STRERROR);
     }
 
     /* Make sure connection-intensive things like the redis benckmark
  *      * will be able to close/open sockets a zillion of times */
     if (setsockopt(*s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
-        return INA_ERROR_MSG(INA_ENET, "setsockopt SO_REUSEADDR: %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "setsockopt SO_REUSEADDR: %s", __INA_STRERROR);
     }
     return INA_SUCCESS;
 #endif
@@ -144,7 +144,7 @@ static ina_rc_t __ina_tcp_generic_connect(int *s, char *addr, int port, int flag
         he = gethostbyname(addr);
         if (he == NULL) {
             ina_net_close(*s);
-            return INA_ERROR_MSG(INA_ENET, "can't resolve: %s", addr);
+            return INA_ERRMSG(INA_ENET, "can't resolve: %s", addr);
         }
         memcpy(&sa.sin_addr, he->h_addr, sizeof(struct in_addr));
     }
@@ -168,7 +168,7 @@ static ina_rc_t __ina_tcp_generic_connect(int *s, char *addr, int port, int flag
         }
 #endif
         ina_net_close(*s);
-        return INA_ERROR_MSG(INA_ENET, "connect: %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "connect: %s", __INA_STRERROR);
     }
     return INA_SUCCESS;
 }
@@ -176,11 +176,11 @@ static ina_rc_t __ina_tcp_generic_connect(int *s, char *addr, int port, int flag
 static ina_rc_t __ina_listen(int s, struct sockaddr *sa, socklen_t len) {
     if (bind(s,sa,len) == -1) {
         ina_net_close(s);
-        return INA_ERROR_MSG(INA_ENET, "bind: %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "bind: %s", __INA_STRERROR);
     }
     if (listen(s, 511) == -1) { /* the magic 511 constant is from nginx */
         ina_net_close(s);
-        INA_ERROR_MSG(INA_ENET, "listen: %s", __INA_STRERROR);
+        INA_ERRMSG(INA_ENET, "listen: %s", __INA_STRERROR);
     }
     return INA_SUCCESS;
 }
@@ -192,7 +192,7 @@ static ina_rc_t __ina_generic_accept(int s, int *fd, struct sockaddr *sa, sockle
             if (errno == EINTR)
                 continue;
             else {
-                return INA_ERROR_MSG(INA_ENET, "accept: %s", __INA_STRERROR);
+                return INA_ERRMSG(INA_ENET, "accept: %s", __INA_STRERROR);
             }
         }
         break;
@@ -212,7 +212,7 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
 
     remote_host = gethostbyname(hostname);
     if (remote_host == NULL || remote_host->h_addrtype != AF_INET) {
-        return INA_ERROR_MSG(INA_ENET, "DNS lookup failed for '%s'", hostname);
+        return INA_ERRMSG(INA_ENET, "DNS lookup failed for '%s'", hostname);
     }
 
     /* count how many addresses we have */
@@ -221,7 +221,7 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
         cnt++;
     }
     if (cnt == 0) {
-        return INA_ERROR_MSG(INA_ENET, "DNS lookup failed for '%s'", hostname);
+        return INA_ERRMSG(INA_ENET, "DNS lookup failed for '%s'", hostname);
     }
 
     *addresses = (ina_str_t*)ina_mem_alloc(sizeof(char)*15*cnt);
@@ -245,7 +245,7 @@ INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
     INA_ASSERT_NOTNULL(host);
     if (gethostname(host, len) != 0) {
-        return INA_ERROR_MSG(INA_ENET, "gethostname failed with error-code: %d", __INA_ERRNO);
+        return INA_ERRMSG(INA_ENET, "gethostname failed with error-code: %d", __INA_ERRNO);
     }
     return INA_SUCCESS;
 }
@@ -268,7 +268,7 @@ INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr)
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bindaddr && inet_aton(bindaddr, &sa.sin_addr) == 0) {
         ina_net_close(*fd);
-        INA_ERROR_MSG(INA_ENET, "invalid bind address %s:%d", bindaddr, port);
+        INA_ERRMSG(INA_ENET, "invalid bind address %s:%d", bindaddr, port);
     }
     if (!INA_SUCCEED(__ina_listen(*fd,(struct sockaddr*)&sa, sizeof(sa)))) {
         ina_net_close(*fd);
@@ -331,11 +331,11 @@ INA_API(ina_rc_t) ina_net_tcp_connect(int* fd, const char *addr, int port, int t
                     getsockopt(*fd, SOL_SOCKET, SO_ERROR, (void *) (&so_error), &so_len);
                     if (so_error) {
                         ina_net_close(*fd);
-                        return INA_ERROR_MSG(INA_ENET, "Could not connect");
+                        return INA_ERRMSG(INA_ENET, "Could not connect");
                     }
                 } else {
                     ina_net_close(*fd);
-                    return INA_ERROR(INA_ETIMEOUT);
+                    return INA_ERR(INA_ETIMEOUT);
                 }
                 return ina_net_block(*fd);
             }
@@ -355,7 +355,7 @@ INA_API(ina_rc_t) ina_net_nonblock(int fd)
     {
         unsigned long enable = 1;
         if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
-            return INA_ERROR_MSG(INA_ENET, "ioctlsocket(FIONBIO)");
+            return INA_ERRMSG(INA_ENET, "ioctlsocket(FIONBIO)");
         }
     }
 #else
@@ -364,10 +364,10 @@ INA_API(ina_rc_t) ina_net_nonblock(int fd)
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
     if ((flags = fcntl(fd, F_GETFL)) == -1) {
-        return INA_ERROR_MSG(INA_ENET, "fcntl(F_GETFL): %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "fcntl(F_GETFL): %s", __INA_STRERROR);
     }
     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        return INA_ERROR_MSG(INA_ENET, "fcntl(F_SETFL,O_NONBLOCK): %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "fcntl(F_SETFL,O_NONBLOCK): %s", __INA_STRERROR);
     }
 #endif
     return INA_SUCCESS;
@@ -393,14 +393,14 @@ INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read)
         if (ec != WSAEWOULDBLOCK) {
             /* FIXME : Stay in line with the coding standards */
             /*         define Error message in error.h */
-            return INA_ERROR(INA_EREAD);
+            return INA_ERR(INA_EREAD);
         }
     }
 #else
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             /* FIXME : Stay in line with the coding standards */
             /*         define Error message in error.h */
-            return INA_ERROR(INA_EREAD);
+            return INA_ERR(INA_EREAD);
         }
     }
 #endif
@@ -420,7 +420,7 @@ INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf)
 
         he = gethostbyname(host);
         if (he == NULL) {
-            return INA_ERROR_MSG(INA_ENET, "can't resolve: %s", host);
+            return INA_ERRMSG(INA_ENET, "can't resolve: %s", host);
         }
         memcpy(&sa.sin_addr, he->h_addr, sizeof(struct in_addr));
     }
@@ -457,7 +457,7 @@ INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* n
     if (*nb_write == -1) {
         /* FIXME : Stay in line with the coding standards */
         /*         define Error message in error.h */
-        return INA_ERROR(INA_EWRITE);
+        return INA_ERR(INA_EWRITE);
     }
     *nb_write = totlen;
     return INA_SUCCESS;
@@ -482,7 +482,7 @@ INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int
             if (ec != WSAEWOULDBLOCK) {
                 /* FIXME : Stay in line with the coding standards */
                 /*         define Error message in error.h */
-            return INA_ERROR(INA_EREAD);
+            return INA_ERR(INA_EREAD);
             }
         }
         *nb_read = sread;
@@ -493,7 +493,7 @@ INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             /* FIXME : Stay in line with the coding standards */
             /*         define Error message in error.h */
-            return INA_ERROR(INA_EREAD);
+            return INA_ERR(INA_EREAD);
         }
     }
 #endif
@@ -531,7 +531,7 @@ INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, in
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             /* FIXME : Stay in line with the coding standards */
             /*         define Error message in error.h */
-            return INA_ERROR(INA_EWRITE);
+            return INA_ERR(INA_EWRITE);
         }
     }
 #endif
@@ -572,7 +572,7 @@ INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, i
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             /* FIXME : Stay in line with the coding standards */
             /*         define Error message in error.h */
-            return INA_ERROR(INA_EWRITE);
+            return INA_ERR(INA_EWRITE);
         }
     }
 #endif
@@ -606,7 +606,7 @@ INA_API(ina_rc_t) ina_net_udp_bind(int *fd, const char *addr, int port)
 
     if (bind(*fd, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         ina_net_close(*fd);
-        return INA_ERROR_MSG(INA_ENET, "bind: %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "bind: %s", __INA_STRERROR);
     }
     return INA_SUCCESS;
 }
@@ -624,11 +624,11 @@ INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *so
 
 #if INA_OS_WIN32
     if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
-        return INA_ERROR_MSG(INA_ENET, "setsockopt IP_ADD_MEMBERSHIP: %s", __STRERROR);
+        return INA_ERRMSG(INA_ENET, "setsockopt IP_ADD_MEMBERSHIP: %s", __STRERROR);
     }
 #else
     if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
-        return INA_ERROR_MSG(INA_ENET, "setsockopt IP_ADD_MEMBERSHIP: %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "setsockopt IP_ADD_MEMBERSHIP: %s", __INA_STRERROR);
     }
 #endif
     return INA_SUCCESS;
@@ -647,11 +647,11 @@ INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *s
 
 #if INA_OS_WIN32
     if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
-        INA_ERROR_MSG(INA_ENET, "setsockopt IP_DROP_MEMBERSHIP: %s", __INA_STRERROR);
+        INA_ERRMSG(INA_ENET, "setsockopt IP_DROP_MEMBERSHIP: %s", __INA_STRERROR);
     }
 #else
     if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
-        INA_ERROR_MSG(INA_ENET, "setsockopt IP_DROP_MEMBERSHIP: %s", __INA_STRERROR);
+        INA_ERRMSG(INA_ENET, "setsockopt IP_DROP_MEMBERSHIP: %s", __INA_STRERROR);
     }
 #endif
     return INA_SUCCESS;
@@ -694,7 +694,7 @@ INA_API(ina_rc_t) ina_net_udp_send(int fd, ina_net_udp_receiver_t *receiver, uns
     if (*nb_write == -1) {
         /* FIXME : Stay in line with the coding standards */
         /*         define Error message in error.h */
-        return INA_ERROR(INA_EWRITE);
+        return INA_ERR(INA_EWRITE);
     }
     return INA_SUCCESS;
 }
@@ -711,7 +711,7 @@ INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_ne
 
     (*receiver)->addr.sin_family = AF_INET;
     if (address && inet_aton(address, &(*receiver)->addr.sin_addr) == 0) {
-        return INA_ERROR_MSG(INA_ENET, "Invalid IP address %s", address);
+        return INA_ERRMSG(INA_ENET, "Invalid IP address %s", address);
     }
     (*receiver)->addr.sin_port = htons(port);
 
@@ -736,7 +736,7 @@ INA_API(ina_rc_t) ina_net_set_read_timeout(int fd, int msec)
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
                    sizeof(timeout)) < 0) {
-        return INA_ERROR_MSG(INA_ENET, "setsockopt failed");
+        return INA_ERRMSG(INA_ENET, "setsockopt failed");
     }
     return INA_SUCCESS;
 }
@@ -752,7 +752,7 @@ INA_API(ina_rc_t) ina_net_set_write_timeout(int fd, int msec)
 
     if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
                    sizeof(timeout)) < 0) {
-        return INA_ERROR_MSG(INA_ENET, "setsockopt failed");
+        return INA_ERRMSG(INA_ENET, "setsockopt failed");
     }
     return INA_SUCCESS;
 }
@@ -762,7 +762,7 @@ INA_API(ina_rc_t) ina_net_block(int fd)
 {
     unsigned long enable = 0; /* disable non-blocking */
     if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
-        return INA_ERROR_MSG(INA_ENET, "failed to block");
+        return INA_ERRMSG(INA_ENET, "failed to block");
     }
     return INA_SUCCESS;
 }
@@ -774,10 +774,10 @@ INA_API(ina_rc_t) ina_net_block(int fd)
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
     if ((flags = fcntl(fd, F_GETFL)) == -1) {
-        return INA_ERROR_MSG(INA_ENET, "fcntl(F_GETFL)");
+        return INA_ERRMSG(INA_ENET, "fcntl(F_GETFL)");
     }
     if (fcntl(fd, F_SETFL, flags & ~O_NONBLOCK) == -1) {
-        return INA_ERROR_MSG(INA_ENET, "fcntl(F_SETFL,O_NONBLOCK): %s", __INA_STRERROR);
+        return INA_ERRMSG(INA_ENET, "fcntl(F_SETFL,O_NONBLOCK): %s", __INA_STRERROR);
     }
     return INA_SUCCESS;
 }
@@ -891,13 +891,13 @@ INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int
 #ifdef INA_OS_WIN32
     int rc = WSAPoll(fds, nfds, timeout);
     if (rc == SOCKET_ERROR) {
-        return INA_ERROR_MSG(INA_ENET, "poll failed with error-code: %d", __INAERRNO);
+        return INA_ERRMSG(INA_ENET, "poll failed with error-code: %d", __INAERRNO);
     }
     *num_fds_ready = rc;
 #else
     int rc = poll(fds, nfds, timeout);
     if (rc < 0) {
-        return INA_ERROR_MSG(INA_ENET, "poll failed with error-code: %d", __INA_ERRNO);
+        return INA_ERRMSG(INA_ENET, "poll failed with error-code: %d", __INA_ERRNO);
     }
     *num_fds_ready = rc;
 #endif
