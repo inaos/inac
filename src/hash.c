@@ -1161,10 +1161,18 @@ INA_API(uint32_t) ina_hash_32_t1ha1(uint32_t hash, const void *data, size_t size
 
 INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size)
 {
+#ifndef INA_OS_OSX
 	return t1ha0(data, size, hash);
+#else
+    return 0;
+#endif
 }
 
 INA_API(uint64_t) ina_hash_64_t1ha1(uint64_t hash, const void *data, size_t size)
 {
+#ifndef INA_OS_OSX
 	return t1ha(data, size, hash);
+#else
+    return 0;
+#endif
 }
