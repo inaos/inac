@@ -76,7 +76,8 @@ INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
 
 INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
 {
-    return INA_SUCCESS;
+    __state.rc &= ~(INA_ERR_FLAG_HANDLED);
+    return __state.rc;
 }
 
 INA_API(ina_rc_t) ina_err_reset(void)
