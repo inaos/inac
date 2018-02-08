@@ -1237,6 +1237,16 @@ int  closedir(DIR *dir);
 struct dirent *readdir(DIR *dir);
 void  rewinddir(DIR *dir);
 
+/*
+ * thread-local-safe variable
+ */
+#ifndef INA_TLS
+#   if defined(__MINGW32__) || defined(__SUNPRO_C) || defined(__xlc__) || defined(__GNUC__) || defined(__clang__) || defined(__GNUC__) // __INTEL_COMPILER on linux
+#       define INA_TLS(x) __thread x             // MingW, Solaris Studio C/C++, IBM XL C/C++, GNU C, Clang and Intel C++ Compiler (Linux systems)
+#   else
+#       define INA_TLS(x) __declspec(thread) x   // Visual C++, Intel C/C++ (Windows systems), C++Builder and Digital Mars C++
+#   endif
+#endif
 #endif
 #endif
 
