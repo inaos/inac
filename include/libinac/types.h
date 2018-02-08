@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /* Return code */
-typedef uint32_t ina_rc_t;
+typedef int64_t ina_rc_t;
 
 
 #ifdef __cplusplus

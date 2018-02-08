@@ -1237,6 +1237,9 @@ int  closedir(DIR *dir);
 struct dirent *readdir(DIR *dir);
 void  rewinddir(DIR *dir);
 
+#endif
+#endif
+
 /*
  * thread-local-safe variable
  */
@@ -1247,9 +1250,6 @@ void  rewinddir(DIR *dir);
 #       define INA_TLS(x) __declspec(thread) x   // Visual C++, Intel C/C++ (Windows systems), C++Builder and Digital Mars C++
 #   endif
 #endif
-#endif
-#endif
-
 
  #ifdef _DEBUG
  #ifndef DEBUG

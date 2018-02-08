@@ -30,65 +30,45 @@
 
 INA_TEST(error, get_set_rc)
 {
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_RC_PACK(INA_EINVAL),
-                                  ina_err_set_rc(INA_RC_PACK(INA_EINVAL),
-                                                 INA_ERR_AT));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_ERR(INA_EINVAL),
-                                  ina_err_set_rc(INA_RC_PACK(INA_EINVAL),
-                                                 INA_ERR_AT));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_RC_PACK(INA_ERR_FAILED),
+                                  ina_err_set_last_rc(INA_RC_PACK(INA_ERR_FAILED)));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_ERROR(INA_ERR_NOT_INITIALIZED),
+                                  ina_err_set_last_rc(INA_RC_PACK(INA_ERR_NOT_INITIALIZED)));
 }
 
+INA_TEST(error, clear)
+{
+    INA_TEST_ASSERT_FAILED(INA_ERROR(INA_ERR_NOT_INITIALIZED));
+    INA_TEST_ASSERT_FAILED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+
+}
 INA_TEST(error, message_formatting)
 {
-    ina_str_t msg1;
-    ina_str_t msg2;
+    char msg[INA_ERR_MSGLEN];
 
-    msg1 = ina_str_new_fromcstr("Message size error");
-    msg2 = ina_str_new(100);
-
-    INA_TEST_ASSERT_NOT_NULL(msg1);
-    INA_TEST_ASSERT_NOT_NULL(msg2);
-    
-    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_get_last_rc());
-    INA_ERR(INA_EAGAIN);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, ina_err_fmtmsg(ina_err_get_last_rc(), msg2, 100));
-    INA_TEST_MSG("msg2=%s", ina_str_cstr(msg2));
-    ina_str_free(msg1);
-    ina_str_free(msg2);
+    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_ERROR(INA_NN_DEVICE|INA_ERR_IN_USE);
+    INA_TEST_MSG("%s", ina_err_strerror(ina_err_get_last_rc(), msg));
 }
-
-INA_TEST(error, get_errmsg)
-{
-    ina_rc_t rc;
-
-    rc = INA_ERRMSG (10, "This is error 1", NULL);
-    INA_TEST_ASSERT_EQUAL_STR("This is error 1", ina_err_get_msg(rc));
-    INA_TEST_ASSERT_EQUAL_STR("This is error 1", ina_err_get_last_msg());
-}
-
 
 INA_TEST(error, error_pack_rc) 
 {
     ina_rc_t rcc;
     ina_rc_t rc;
 
-    rcc = 2147483652;
+    rcc = 2147483652 ;
     rc = 0;
-    rc = INA_RC_PACK((4|INA_ERR_FLAG_FATAL));
+    rc = INA_RC_PACK(INA_NN_ACCESS|INA_ERR_NOT_ALLOWED);
     
     INA_TRACE3("rc = %u", rc);
-    INA_TRACE3("reason = %u", INA_RC_REASON(rc));
+    INA_TRACE3("reason = %u", INA_RC_A(rc));
     
     INA_TEST_ASSERT_EQUAL_INTEGER(rcc, rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(4 , INA_RC_REASON(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(2147483652, ina_err_set_rc(rc, ""));
-    INA_TEST_ASSERT_EQUAL_INTEGER(4,   ina_err_get_last_error());
-    INA_TEST_ASSERT_TRUE(INA_RC_FATAL(rc));
-    
-    rc = INA_RC_PACK(255);
-    INA_TEST_ASSERT_EQUAL_INTEGER(255, INA_RC_REASON(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(4 , INA_RC_A(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(2147483652, ina_err_set_last_rc(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(4,   ina_err_get_last_rc());
 
-    rc = INA_RC_PACK(511);
-    INA_TEST_ASSERT_EQUAL_INTEGER(511, INA_RC_REASON(rc));
 }

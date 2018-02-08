@@ -183,12 +183,10 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
     INA_TEST_ASSERT_TRUE(expr)
 #define INA_TEST_ASSERT_SUCCESS(expr)                                       \
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, expr)
-#define INA_TEST_ASSERT_FAILURE(expr)                                       \
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_FAILURE, expr)
 #define INA_TEST_ASSERT_SUCCEED(expr)                                       \
     INA_TEST_ASSERT_TRUE(INA_SUCCEED(expr))
-#define INA_TEST_ASSERT_NOTSUCCEED(expr)                                    \
-    INA_TEST_ASSERT_FALSE(INA_SUCCEED(expr))
+#define INA_TEST_ASSERT_FAILED(expr)                                        \
+    INA_TEST_ASSERT_TRUE(INA_FAILED(expr))
 #define INA_TEST_ASSERT_EQUAL_STR(exp, real)                                \
     ina_test_assert_equal_str(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NOT_EQUAL_STR(exp, real)                            \
