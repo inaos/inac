@@ -53,12 +53,6 @@ if defined VSCMD_ARG_TGT_ARCH (
 	)
 )
 
-if not defined INCLUDE (
-	rem if not defined VS110COMNTOOLS goto fail_vs_2012
-	rem if not exist "%VS110COMNTOOLS%\..\..\vc\vcvarsall.bat" goto fail_vs_2012
-	call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat" %INAC_VC_VAR_ARG%
-)
-
 if not exist %INAC_BUILD_SCRIPT% goto fail_no_build_script
 
 REM Determine build-type and build-stage
