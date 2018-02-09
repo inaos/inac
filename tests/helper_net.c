@@ -51,12 +51,12 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
  
     ina_mem_set(buffer, 0, 4096);
 
-    if (!INA_SUCCEED(ina_net_tcp_server(&fd, port, addr))) {
+    if (INA_FAILED(ina_net_tcp_server(&fd, port, addr))) {
         *retval = ina_err_get_last_rc();
         return;
      }
 
-     if (!INA_SUCCEED(ina_net_nonblock(fd))) {
+     if (INA_FAILED(ina_net_nonblock(fd))) {
          ina_net_close(fd);
          *retval = ina_err_get_last_rc();
          return;
@@ -66,7 +66,7 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
         if (cfd == -1) {
             if (INA_SUCCEED(ina_net_tcp_accept(&cfd, fd, NULL, NULL))) {
                 if (cfd != -1) {
-                    if (!INA_SUCCEED(ina_net_nonblock(cfd))) {
+                    if (INA_FAILED(ina_net_nonblock(cfd))) {
                         ina_net_close(cfd);
                         cfd = -1;
                     }
@@ -108,7 +108,7 @@ INA_TEST_HELPER(net, udp_sender) {
     ina_mem_set(buf, 0, 512);
    
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) <  0) {
-        INA_TEST_HELPER_SET_RC(INA_FAILURE);
+        INA_TEST_HELPER_SET_RC(INA_ERR_FAILED);
         return;
     }        
     
@@ -120,7 +120,7 @@ INA_TEST_HELPER(net, udp_sender) {
         while (1) {
             sprintf(buf, "This is packet %d\n", ++i);
             if (sendto(s, buf, 512, 0, (struct sockaddr*)&si_other, slen) == -1) {
-                INA_TEST_HELPER_SET_RC(INA_FAILURE);
+                INA_TEST_HELPER_SET_RC(INA_ERR_FAILED);
             }
         }
     }

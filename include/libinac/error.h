@@ -37,6 +37,10 @@
 extern "C" {
 #endif
 
+/* Return code */
+typedef int64_t ina_rc_t;
+
+
 /* Indicate no errors */
 #define INA_SUCCESS  (0)
 /* Check return code: successful or handled */
@@ -54,6 +58,8 @@ extern "C" {
 #define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL))
 /* Set last RC and capture errno */
 #define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno))
+/* Set last RC and ser user defined errno */
+#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)))
 
 
 /* Pack a RC */
@@ -233,6 +239,10 @@ extern "C" {
 #define INA_ERR_WRITABLE            (150LL << INA_RC_BIT_A)
 #define INA_ERR_WRONG               (151LL << INA_RC_BIT_A)
 #define INA_ERR_END_OF              (152LL << INA_RC_BIT_A)
+#define INA_ERR_RESOLVED            (153LL << INA_RC_BIT_A)
+#define INA_ERR_MATCH               (154LL << INA_RC_BIT_A)
+#define INA_ERR_TRY_AGAIN           (155LL << INA_RC_BIT_A)
+#define INA_ERR_PARSED              (156LL << INA_RC_BIT_A)
 
 /* Error attributes (negate forms) */
 #define INA_ERR_NOT_A               (INA_ERR_NOT | INA_ERR_A )
@@ -387,6 +397,10 @@ extern "C" {
 #define INA_ERR_NOT_WRITABLE        (INA_ERR_NOT | INA_ERR_WRITABLE )
 #define INA_ERR_NOT_WRONG           (INA_ERR_NOT | INA_ERR_WRONG )
 #define INA_ERR_NOT_END_OF          (INA_ERR_NOT | INA_ERR_END_OF)
+#define INA_ERR_NOT_RESOLVED        (INA_ERR_NOT | INA_ERR_RESOLVED)
+#define INA_ERR_NOT_MATCH           (INA_ERR_NOT | INA_ERR_MATCH)
+#define INA_ERR_NOT_TRY_AGAIN       (INA_ERR_NOT | INA_ERR_TRY_AGAIN)
+#define INA_ERR_NOT_PARSED          (INA_ERR_NOT | INA_ERR_PARSED)
 
 /* Attribute aliases */
 #define INA_ERR_UNDEFINED           (INA_ERR_NOT_DEFINED)
@@ -540,7 +554,7 @@ extern "C" {
 #define INA_NN_VECTOR               (147)
 #define INA_NN_VERSION              (148)
 #define INA_NN_DECOMPRESSION        (149)
-#define INA_NM_STATE                (150)
+#define INA_NN_STATE                (150)
 #define INA_NN_DUMP                 (151)
 #define INA_NN_CHAR                 (152)
 #define INA_NN_CONFIGURATION        (153)
@@ -551,38 +565,11 @@ extern "C" {
 #define INA_NN_WRITE                (158)
 #define INA_NN_OPTION               (159)
 #define INA_NN_BUFFER               (160)
-
-/* Errors */
-#define INA_EMSGLEN   1
-#define INA_EMSGFMT   2
-#define INA_EALLOC    3
-#define INA_EPARAM    4
-#define INA_EVERSION  5
-#define INA_EBADALIGN 6
-#define INA_ESEMINIT  7
-#define INA_ENET      8
-#define INA_ERALLOC   9
-#define INA_EINVAL   10
-#define INA_ELIMIT   11
-#define INA_ESEMOP   12
-#define INA_EEXISTS  13
-#define INA_EREAD    14
-#define INA_EWRITE   15
-#define INA_EWAIT    16
-#define INA_EEXCALL  17
-#define INA_ETIMEOUT 18
-#define INA_EOPT     20
-#define INA_ETYPE    21
-#define INA_EAGAIN   22
-#define INA_EINIT    23
-#define INA_ELOGIC   24
-#define INA_ECAPAC   25
-#define INA_EOVRFL   26
-#define INA_EEMPTY   27
-#define INA_ENYI     28
-#define INA_ENOTFND  29
-#define INA_ESTATE   30
-#define INA_EFS      31
+#define INA_NN_ADDRESS              (161)
+#define INA_NN_NAME                 (162)
+#define INA_NN_MAC                  (163)
+#define INA_NN_PROCESS              (164)
+#define INA_NN_PATTERN              (165)
 
 
 /* Error message length */
@@ -622,7 +609,6 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void);
  *  otherwise returns INA_FAILURE. A marked
  */
 INA_API(ina_rc_t) ina_err_clear_last_rc(void);
-
 
 /*
  * Format the error message for a given RC.

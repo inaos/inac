@@ -283,11 +283,10 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
    
     if (pid < 0) {
          perror("fork");
-         return INA_FAILURE;
+         return INA_OS_ERROR(INA_NN_PROCESS||INA_ERR_NOT_CREATED);
     }
      
     if (pid == 0) {
- 
         if (suite_name != NULL) {
             args[n++] = (char*)__binpath;
             args[n++] = "-h";
@@ -596,15 +595,16 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
 
     /* Run Lua unit and specification tests */
     if (ctx == NULL) {
-        if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
-            return INA_FAILURE;
+        if (INA_FAILED(ina_ljit_init(&ctx))) {
+            return ina_err_get_last_rc();
         }
         has_to_destroy_jit = 1;
     }
 
     if (luaL_dostring(ctx->lstate, "t = require(\"ltest\")\nt.run()\n") != 0) {
         printf("%s", luaL_checkstring(ctx->lstate, 1));
-        return INA_FAILURE;
+        INA_ERROR(INA_NN_SCRIPT|INA_ERR_FAILED);
+        return (INA_RC_A(ina_err_get_last_rc()));
     }
 
     if (has_to_destroy_jit) {

@@ -685,7 +685,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         rt = select(1, &fds, NULL, NULL, &tv);
 
         if (!rt && blocking == INA_NO) {
-            rc =  INA_EAGAIN;
+            rc =  INA_ERR_TRY_AGAIN;
             break;
         }
 
@@ -695,7 +695,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         
             if ((r = read(0, &c, sizeof(c))) < 0) {
                 if (blocking == INA_NO) {
-                    rc =  INA_EAGAIN;
+                    rc =  INA_ERR_TRY_AGAIN;
                     break;
                 }
                 ina_time_sleep(50);
@@ -740,7 +740,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             }
 
             if (blocking == INA_NO) {
-                rc = INA_EAGAIN;
+                rc = INA_ERR_TRY_AGAIN;
                 break;
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014,2016 INAOS GmbH
+ * Copyright (c) 2012-2014,2018 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -280,7 +280,7 @@ INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen,
     nw = strftime(b, buflen, fmt, mtm);
 
     if (nw == 0) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_STRING|INA_ERR_NOT_FORMATTED);
     }
 
     *written = nw;
@@ -298,7 +298,7 @@ INA_API(ina_rc_t) ina_time_strptime(ina_str_t input,
 #else
     /* strptime, that should be simple */
 #endif
-    return INA_ENYI;
+    return INA_ERROR(INA_NN_API|INA_ERR_NOT_IMPLEMENTED);
 }
 
 INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf, 
@@ -322,7 +322,7 @@ INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
     nw = strftime(b, ina_str_size(buf), fmt, mtm);
  
     if (nw == 0) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_STRING|INA_ERR_NOT_FORMATTED);
     }
  
     ina_str_adjust_len(buf);
@@ -344,7 +344,7 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
     Sleep((DWORD)msec);
 #else 
     if (INA_UNLIKELY(usleep(msec*1000) == -1)) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #endif
     return INA_SUCCESS;
@@ -372,7 +372,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch)
     if (stopwatch->tv->sec_duration == 0.0) {
         return INA_SUCCESS;
     }
-    return INA_FAILURE;
+    return INA_ERROR(INA_ERR_NOT_RUNNING);
 }
 
 INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
@@ -384,7 +384,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
     }
 #elif defined(INA_OS_OSX)
     if (INA_UNLIKELY(stopwatch->tv->stop.tp < stopwatch->tv->start.tp)) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_ERR_INVALID);
     }
 #else   
     if (INA_UNLIKELY(stopwatch->tv->stop.tp.tv_sec <  stopwatch->tv->start.tp.tv_sec)) {
@@ -442,14 +442,14 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 
     /* Return if there arent any timestamp */
     if (stopwatch->tv->max_stamps == 0) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_ERR_EMPTY);
     }
 
     /* Get the timestamp depending in stamp index */
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
     } else if (*stamp_index >= stopwatch->tv->next_stamp) {
-        return INA_FAILURE;
+        return INA_ERR_END_OF;
     } else if (*stamp_index == -1) {
         *stamp_index = stopwatch->tv->next_stamp;
     }
@@ -532,14 +532,12 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch,
 
     INA_ASSERT_NOTNULL(stopwatch);
     if (INA_UNLIKELY(stopwatch->tv->max_stamps == 0)) {
-        /* TODO: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_STATE|INA_ERR_INVALID);
     }
 
     si = __INA_TIME_INC(&stopwatch->tv->next_stamp);
     if (INA_UNLIKELY(si > stopwatch->tv->max_stamps)) {
-        /* TODO: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_ERR_OVERFLOW);
     }
 
     ts = (&(stopwatch->tv->stamps))+si;
@@ -617,7 +615,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
      }
 
      size = sizeof(ina_stopwatch_t)+(max_stamps*sizeof(ina_stopwatch_ts_t));
-     if (!INA_SUCCEED(ina_mempool_create(&(*stopwatch)->shared_mem, 
+     if (INA_FAILED(ina_mempool_create(&(*stopwatch)->shared_mem,
              size, 
              cf, 
              name))) {

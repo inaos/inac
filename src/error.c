@@ -191,7 +191,7 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_VALUE: return "VALUE";
         case INA_NN_VERSION: return "VERSION";
         case INA_NN_DECOMPRESSION: return "DECOMPRESSION";
-        case INA_NM_STATE: return "STATE";
+        case INA_NN_STATE: return "STATE";
         case INA_NN_DUMP: return "DUMP";
         case INA_NN_CHAR: return "CHAR";
         case INA_NN_CONFIGURATION: return "CONFIGURATION";
@@ -202,6 +202,11 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_WRITE: return "WRITE";
         case INA_NN_OPTION: return "OPTION";
         case INA_NN_BUFFER: return "BUFFER";
+        case INA_NN_ADDRESS: return "ADDRESS";
+        case INA_NN_NAME: return "NAME";
+        case INA_NN_MAC: return "MAC";
+        case INA_NN_PROCESS: return "PROCESS";
+        case INA_NN_PATTERN: return "PATTERN";
     }
 }
 
@@ -348,7 +353,11 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         case INA_ERR_WORKING: adj = "WORKING"; break;
         case INA_ERR_WRITABLE: adj = "WRITABLE"; break;
         case INA_ERR_WRONG: adj = "WRONG"; break;
-        case INA_ERR_END_OF: adj = "END OF";
+        case INA_ERR_END_OF: adj = "END OF"; break;
+        case INA_ERR_RESOLVED: adj = "RESOLVED"; break;
+        case INA_ERR_MATCH: adj = "MATCH"; break;
+        case INA_ERR_TRY_AGAIN: adj = "TRY AGAIN"; break;
+        case INA_ERR_PARSED: adj = "PARSED";
     };
 
     {

@@ -75,7 +75,7 @@ INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
     GetSystemTimeAsFileTime(&time->systime);
 #else
     if (gettimeofday(&time->systime, NULL) == -1) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #endif
     return INA_SUCCESS;

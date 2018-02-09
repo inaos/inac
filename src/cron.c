@@ -326,8 +326,7 @@ static ina_rc_t __parse_cron_pattern(char *pattern_buf, __ina_cron_schedulable_t
 	 * check failure
 	 */
 	if (pattern_buf == NULL) {
-		/* FIXME proper error handling */
-		return INA_FAILURE;
+		return INA_ERROR(INA_NN_PATTERN||INA_ERR_INVALID);
 	}
 
 	/*
@@ -601,7 +600,7 @@ INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx, ina_cron_task_t **ta
     INA_ASSERT_NOTNULL(task);
     INA_ASSERT_NOTNULL(*task);
 
-    if (!INA_SUCCEED(ina_cron_task_is_running(*task))) {
+    if (INA_FAILED(ina_cron_task_is_running(*task))) {
         HASH_DEL(ctx->task_head, *task);
         if (ctx->save_cb && (*task)->persistent) {
             ctx->save_cb(ctx, *task, INA_YES);
@@ -609,7 +608,7 @@ INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx, ina_cron_task_t **ta
         __free_task(task);
         return INA_SUCCESS;
     }
-    return INA_FAILURE;
+    return INA_ERROR(INA_NN_PROCESS|INA_ERR_RUNNING);
 }
 
 INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggested_next_time)
@@ -659,6 +658,7 @@ INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_ctx_t *ctx, ina_cron_task_itr_
     INA_ASSERT_NOTNULL(iter);
 
     *iter = (ina_cron_task_itr_t*)ina_mem_alloc(sizeof(ina_cron_task_itr_t));
+    INA_RETURN_IF(*iter == NULL);
     (*iter)->cursor = ctx->task_head;
     return INA_SUCCESS;
 }
@@ -712,7 +712,7 @@ INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task)
             state == INA_PROCESS_RUNNING) {
         return INA_SUCCESS;
     }
-    return INA_FAILURE;
+    return INA_ERROR(INA_NN_PROCESS|INA_ERR_NOT_RUNNING);
 }
 
 INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pattern)
@@ -828,7 +828,7 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
     for (t = now - now % 60; t > 0; t -= 60) {
         struct tm *tp = localtime(&t);
         if (tp == NULL) {
-            return INA_FAILURE;
+            return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
         }
         if (dummy.mins[tp->tm_min] && dummy.hours[tp->tm_hour] &&
 				(dummy.days[tp->tm_mday] || dummy.dow[tp->tm_wday]) &&

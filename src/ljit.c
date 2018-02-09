@@ -64,14 +64,12 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     INA_ASSERT_NOTNULL(ctx);
 
     *ctx = (ina_ljit_ctx_t*)ina_mem_alloc(sizeof(ina_ljit_ctx_t));
-    if (*ctx == NULL) {
-        return ina_err_clear_last_rc();
-    }
+    INA_RETURN_IF(*ctx == NULL);
     (*ctx)->lstate = luaL_newstate();
     if ((*ctx)->lstate == NULL) {
         ina_mem_free(*ctx);
         ctx = NULL;
-        return INA_ERROR(INA_NM_STATE|INA_ERR_NOT_CREATED);
+        return INA_ERROR(INA_NN_STATE|INA_ERR_NOT_CREATED);
     }
     luaL_openlibs((*ctx)->lstate);
     lua_getglobal((*ctx)->lstate, "package");

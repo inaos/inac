@@ -39,7 +39,7 @@ static ina_rc_t __allocate_test_array(size_t **test_array, size_t test_array_siz
     *test_array = (size_t*)calloc(array_size, sizeof(size_t));
 
     if (*test_array == NULL) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
     }
 
     for(i = 0; i < array_size; i++) {
@@ -65,10 +65,10 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
 
     for (i = 0; i < iterations; i++) {
         
-        if (!INA_SUCCEED(__allocate_test_array(&__test_array_a, test_array_size))) {
+        if (INA_FAILED(__allocate_test_array(&__test_array_a, test_array_size))) {
             return ina_err_get_last_rc();
         }
-        if (!INA_SUCCEED(__allocate_test_array(&__test_array_b, test_array_size))) {
+        if (INA_FAILED(__allocate_test_array(&__test_array_b, test_array_size))) {
             return ina_err_get_last_rc();
         }
 

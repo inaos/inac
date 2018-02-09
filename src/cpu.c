@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,7 +115,7 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	long long result = -1;
 	size_t size = sizeof(result);
 	if (sysctlbyname("hw.cpufrequency", &result, &size, NULL, 0)) {
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 	*result_mhz = (int) (result / (long long) 1000000);
     return INA_SUCCESS;
@@ -178,11 +178,8 @@ INA_API(ina_rc_t) ina_cpu_init()
     CPUIDinfo info;
 #endif
 
-    __ina_cpu_ctx = (ina_cpu_ctx_t*)malloc(sizeof(struct ina_cpu_ctx_s));
-    if (__ina_cpu_ctx == NULL) {
-        return INA_EALLOC;
-    }
-    memset(__ina_cpu_ctx, 0, sizeof(struct ina_cpu_ctx_s));
+    __ina_cpu_ctx = (ina_cpu_ctx_t*)ina_mem_alloc(sizeof(struct ina_cpu_ctx_s));
+    INA_RETURN_IF(__ina_cpu_ctx == NULL);
 
 #ifdef INA_OS_OSX
     return INA_SUCCESS;
@@ -593,10 +590,10 @@ INA_API(ina_rc_t) ina_cpu_destroy()
 INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(package_count);
 	if (__ina_cpu_ctx->running_on_vm) {
-		/* FIXME: proper error handling */
 		*package_count = 0;
-		return INA_FAILURE;
+		return INA_ERROR(INA_NN_STATE|INA_ERR_ILLEGAL);
 	}
     *package_count = __ina_cpu_ctx->package_count;
     return INA_SUCCESS;
@@ -605,10 +602,10 @@ INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count)
 INA_API(ina_rc_t) ina_cpu_get_core_count(int *core_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(core_count);
 	if (__ina_cpu_ctx->running_on_vm) {
-		/* FIXME: proper error handling */
 		*core_count = 0;
-		return INA_FAILURE;
+        return INA_ERROR(INA_NN_STATE|INA_ERR_ILLEGAL);
 	}
     *core_count = __ina_cpu_ctx->core_count;
     return INA_SUCCESS;
@@ -617,10 +614,10 @@ INA_API(ina_rc_t) ina_cpu_get_core_count(int *core_count)
 INA_API(ina_rc_t) ina_cpu_get_thread_count(int *thread_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(thread_count);
 	if (__ina_cpu_ctx->running_on_vm) {
-		/* FIXME: proper error handling */
 		*thread_count = 0;
-		return INA_FAILURE;
+		return INA_ERROR(INA_NN_STATE|INA_ERR_ILLEGAL);
 	}
     *thread_count = __ina_cpu_ctx->thread_count;
     return INA_SUCCESS;
@@ -629,6 +626,7 @@ INA_API(ina_rc_t) ina_cpu_get_thread_count(int *thread_count)
 INA_API(ina_rc_t) ina_cpu_get_total_logical_count(int *logical_count)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(logical_count);
     *logical_count = __ina_cpu_ctx->logical_count;
     return INA_SUCCESS;
 }
@@ -636,6 +634,7 @@ INA_API(ina_rc_t) ina_cpu_get_total_logical_count(int *logical_count)
 INA_API(ina_rc_t) ina_cpu_get_features(ina_cpu_feature_t *features)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(features);
     *features = __ina_cpu_ctx->features;
     return INA_SUCCESS;
 }
@@ -643,6 +642,7 @@ INA_API(ina_rc_t) ina_cpu_get_features(ina_cpu_feature_t *features)
 INA_API(ina_rc_t) ina_cpu_get_brand_string(ina_str_t *brand)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(brand);
     *brand = ina_str_dup(__ina_cpu_ctx->brand);
     return INA_SUCCESS;
 }
@@ -650,6 +650,7 @@ INA_API(ina_rc_t) ina_cpu_get_brand_string(ina_str_t *brand)
 INA_API(ina_rc_t) ina_cpu_is_supported(int *supported)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(supported);
 #ifdef INA_OS_OSX
     *supported = 0;
 #else
@@ -694,6 +695,9 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family, uint8_t *model, uint8_t *stepping)
 {
     INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(family);
+    INA_ASSERT_NOTNULL(model);
+    INA_ASSERT_NOTNULL(stepping);
     *family = __ina_cpu_ctx->family;
     *model = __ina_cpu_ctx->model;
     *stepping = __ina_cpu_ctx->stepping;
@@ -702,36 +706,48 @@ INA_API(ina_rc_t) ina_cpu_get_signature(uint8_t *family, uint8_t *model, uint8_t
 
 INA_API(ina_rc_t) ina_cpu_get_ipc_sp(int *ipc)
 {
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(ipc);
     *ipc = __ina_cpu_ctx->ipc_sp;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cpu_get_ipc_dp(int *ipc)
 {
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(ipc);
     *ipc = __ina_cpu_ctx->ipc_dp;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cpu_get_l1_cache_size(size_t *bytes)
 {
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(bytes);
     *bytes = __ina_cpu_ctx->l1_data_bytes;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cpu_get_l2_cache_size(size_t *bytes)
 {
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(bytes);
     *bytes = __ina_cpu_ctx->l2_bytes;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cpu_get_l3_cache_size(size_t *bytes)
 {
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(bytes);
     *bytes = __ina_cpu_ctx->l3_bytes;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cpu_get_frequency_os(int *mHz)
 {
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(mHz);
     *mHz = __ina_cpu_ctx->frequency_os;
     return INA_SUCCESS;
 }
@@ -741,7 +757,7 @@ INA_API(ina_rc_t) ina_cpu_get_gflops_dp(double *gflops)
     int mHz = 0;
     int cores = 0;
     int ipc = 0;
-
+    INA_ASSERT_NOTNULL(gflops);
     INA_MUST_SUCCEED(ina_cpu_get_frequency_os(&mHz));
     INA_MUST_SUCCEED(ina_cpu_get_core_count(&cores));
     INA_MUST_SUCCEED(ina_cpu_get_ipc_dp(&ipc));
@@ -756,7 +772,7 @@ INA_API(ina_rc_t) ina_cpu_get_gflops_sp(double *gflops)
     int mHz = 0;
     int cores = 0;
     int ipc = 0;
-
+    INA_ASSERT_NOTNULL(gflops);
     INA_MUST_SUCCEED(ina_cpu_get_frequency_os(&mHz));
     INA_MUST_SUCCEED(ina_cpu_get_core_count(&cores));
     INA_MUST_SUCCEED(ina_cpu_get_ipc_dp(&ipc));
@@ -802,6 +818,7 @@ INA_API(ina_rc_t) ina_cpu_process_promote()
 
 INA_API(ina_rc_t) ina_cpu_process_query_core(int *core)
 {
+    INA_ASSERT_NOTNULL(core);
 #ifndef INA_OS_OSX
 #ifdef INA_OS_WIN32
     *core = GetCurrentProcessorNumber();
@@ -814,6 +831,9 @@ INA_API(ina_rc_t) ina_cpu_process_query_core(int *core)
 
 INA_API(ina_rc_t) ina_cpu_hyperthreading_enabled(int *enabled)
 {
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(enabled);
+
     if (__ina_cpu_ctx->package_count*__ina_cpu_ctx->core_count 
         != __ina_cpu_ctx->logical_count) {
             *enabled = 1;
@@ -826,6 +846,8 @@ INA_API(ina_rc_t) ina_cpu_hyperthreading_enabled(int *enabled)
 
 INA_API(ina_rc_t) ina_cpu_get_cache_line_size(size_t *bytes)
 {
+    INA_ASSERT_NOTNULL(__ina_cpu_ctx);
+    INA_ASSERT_NOTNULL(bytes);
     *bytes = __ina_cpu_ctx->cache_line;
     return INA_SUCCESS;
 }

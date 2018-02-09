@@ -299,8 +299,7 @@ INA_API(ina_rc_t) ina_process_descriptor_free(ina_process_descriptor_t **descrip
     if (*descriptor != NULL) {
 
         if ((*descriptor)->c_ref > 0) {
-            /* FIXME: speciific error */
-            return INA_FAILURE;
+            return INA_ERROR(INA_NN_DESCRIPTOR|INA_ERR_INVALID);
         }
 
         if ((*descriptor)->full_path != NULL) {
@@ -388,14 +387,11 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
     /* Check descriptor is not referenced */
     if (descriptor->c_ref > 0) {
-        /* FIXME: specific error code */
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_DESCRIPTOR|INA_ERR_INVALID);
     }
 
     *process = ina_mempool_dalloc(ctx->mempool, sizeof(ina_process_t));
-    if (*process == NULL) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF(*process == NULL);
 
     /* copy descriptor if not allocated from context pool */
     if (INA_SUCCEED(ina_mempool_getbypointer(descriptor, &mp)) &&
@@ -547,10 +543,10 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
     INA_ASSERT_NOTNULL(process->ctx);
     INA_ASSERT_NOTNULL(should_be_running);
 
-    if (!INA_SUCCEED(ina_time_read_sys_clock(process->ctx->systime))) {
+    if (INA_FAILED(ina_time_read_sys_clock(process->ctx->systime))) {
         return ina_err_get_last_rc();
     }
-    if (!INA_SUCCEED(ina_time_sys_seconds_micros(process->ctx->systime,
+    if (INA_FAILED(ina_time_sys_seconds_micros(process->ctx->systime,
         &curr_time_sec, &curr_time_micros))) {
         return ina_err_get_last_rc();
     }
@@ -581,12 +577,13 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
         }
     }
     *should_be_running = 0;
-    return INA_FAILURE;
+    return INA_ERROR(INA_NN_PROCESS||INA_ERR_NOT_ALLOWED);
 }
 
 INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *binary)
 {
     *stat = (ina_process_stat_t*)ina_mem_alloc(sizeof(ina_process_stat_t));
+    INA_RETURN_IF(*stat == NULL);
     (*stat)->binary = ina_str_new_fromcstr(binary);
     (*stat)->available = 0;
     (*stat)->cmd = NULL;
@@ -597,6 +594,7 @@ INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *bi
 
 INA_API(ina_rc_t) ina_process_stat_query(ina_process_stat_t *stat)
 {
+    INA_ASSERT_NOTNULL(stat);
     if (stat->cmd != NULL) {
         ina_str_free(stat->cmd);
     }
@@ -611,24 +609,32 @@ INA_API(ina_rc_t) ina_process_stat_query(ina_process_stat_t *stat)
 
 INA_API(ina_rc_t) ina_process_stat_alive(ina_process_stat_t *stat, int *alive)
 {
+    INA_ASSERT_NOTNULL(stat);
+    INA_ASSERT_NOTNULL(alive);
     *alive = stat->available;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_stat_get_cmd(ina_process_stat_t *stat, const char **cmd)
 {
+    INA_ASSERT_NOTNULL(stat);
+    INA_ASSERT_NOTNULL(cmd);
     *cmd = ina_str_cstr(stat->cmd);
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_stat_get_memory(ina_process_stat_t *stat, uint64_t *memory)
 {
+    INA_ASSERT_NOTNULL(stat);
+    INA_ASSERT_NOTNULL(memory);
     *memory = stat->mem_bytes;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat, int *num_threads)
 {
+    INA_ASSERT_NOTNULL(stat);
+    INA_ASSERT_NOTNULL(num_threads);
     *num_threads = stat->num_threads;
     return INA_SUCCESS;
 }
@@ -870,11 +876,9 @@ static ina_rc_t __ina_process_query(const char *binary,
 {
     ina_ljit_ctx_t *ctx;
 
-    if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF_FAILED(ina_ljit_init(&ctx));
 
-    if (!INA_SUCCEED(ina_ljit_dostring(ctx, "local pq = require(\"lprocqry\");pqf=pq.query"))) {
+    if (INA_FAILED(ina_ljit_dostring(ctx, "local pq = require(\"lprocqry\");pqf=pq.query"))) {
         return ina_err_get_last_rc();
     }
 
