@@ -388,11 +388,11 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
     }
 #else   
     if (INA_UNLIKELY(stopwatch->tv->stop.tp.tv_sec <  stopwatch->tv->start.tp.tv_sec)) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_ERR_INVALID);
     }
     if (stopwatch->tv->stop.tp.tv_sec == stopwatch->tv->start.tp.tv_sec) {
         if (INA_UNLIKELY(stopwatch->tv->stop.tp.tv_nsec < stopwatch->tv->start.tp.tv_nsec)) {
-            return INA_FAILURE;
+            return INA_ERROR(INA_ERR_INVALID);
         }
     }
 #endif
@@ -658,7 +658,7 @@ __ina_time_tsc_os_read(ina_time_tsc_t *time)
      time->tp = mach_absolute_time();
 #else
     if (clock_gettime(__INA_CLOCK_TYPE, &time->tp) == -1) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #endif
     return INA_SUCCESS;

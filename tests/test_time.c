@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -458,6 +458,6 @@ INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     INA_TEST_ASSERT_EQUAL_INTEGER(c, 6);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(data->w));
     ina_time_sleep(500); /* Wait child is exit */
-    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
+    INA_TEST_ASSERT_FAILED(ina_time_stopwatch_started(data->w));
 }
 #endif

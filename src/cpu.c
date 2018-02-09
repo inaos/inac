@@ -142,7 +142,7 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	
 	f = fopen("/proc/cpuinfo", "rt");
 	if (!f) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 	
 	while (fgets(line, sizeof(line), f)) {
@@ -157,7 +157,7 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	}
 	fclose(f);
 
-	return INA_FAILURE;
+	return INA_ERROR(INA_NN_PATTERN|INA_ERR_NOT_FOUND);
 }
 #endif
 #endif
@@ -685,7 +685,7 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
     CPU_SET(cpuid, &mask);
     int ret = sched_setaffinity(0, sizeof(mask), &mask);
     if (ret != 0) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #endif
 #endif
@@ -800,16 +800,16 @@ INA_API(ina_rc_t) ina_cpu_process_promote()
     struct sched_param param;
     int max_prio = sched_get_priority_max(SCHED_FIFO);
     if (max_prio == -1) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     param.sched_priority = max_prio;
     int ret = sched_setscheduler(pid, SCHED_FIFO, &param);
     if (ret != 0) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     ret = mlockall(MCL_CURRENT | MCL_FUTURE);
     if (ret != 0) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #endif
 #endif

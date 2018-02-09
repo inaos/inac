@@ -83,7 +83,7 @@ INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
     ina_time_tsc_enable_rdtsc();
 
     if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, id, -1))) {
-        INA_TEST_HELPER_SET_RC(ina_err_peek());
+        INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
         return;
     }
  

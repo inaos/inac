@@ -107,7 +107,7 @@ static ina_rc_t __ina_create_socket(int domain, int type, int *s)
     return s;
 #else
     int on = 1;
-    INA_ASSERT_NOTNULL(socket);
+    INA_ASSERT_NOTNULL(s);
 
     if (type == __INA_SOCKET_TYPE_TCP) {
         *s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
@@ -123,8 +123,8 @@ static ina_rc_t __ina_create_socket(int domain, int type, int *s)
         return INA_USR_ERROR(INA_NN_SOCKET|INA_ERR_NOT_CREATED, __INA_ERRNO);
     }
 
-    /* Make sure connection-intensive things like the redis benckmark
- *      * will be able to close/open sockets a zillion of times */
+    /* Make sure connection-intensive things like the redis benchmark
+       will be able to close/open sockets a zillion of times */
     if (setsockopt(*s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
         return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
@@ -793,7 +793,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     int found = INA_NO;
 
     if (getifaddrs(&ifaddr) == -1) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 
     for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
@@ -809,7 +809,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
 
     if (!found) {
         freeifaddrs(ifaddr);
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_MAC|INA_ERR_NOT_DETECTED);
     }
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -818,7 +818,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
         close(fd);
         freeifaddrs(ifaddr);
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     close(fd);
     memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
