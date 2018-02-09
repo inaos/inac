@@ -435,11 +435,17 @@ INA_API(ina_rc_t) ina_err_backtrace(void *data)
     size = backtrace(fnptr, 30);
     char** fn = backtrace_symbols(fnptr, size);
     for (i = 0; i < size; i++) {
-        ina_err_log("%s\n", fn[i]);
+        ina_err_log("[%02d] %s\n", i, fn[i]);
 #ifdef INA_OS_LINUX
-        char syscom[256];
-        sprintf(syscom,"addr2line %p -e sighandler", fnptr[i]); //last parameter is the name of this app
-        system(syscom);
+        char syscom[296];
+        char buf[1035];
+        FILE *fp;
+        snprintf(syscom, sizeof(syscom)-40, "addr2line %p -e %s", fnptr[i], ina_app_get_path());
+        fp = popen(syscom, "r");
+        while (fgets(buf, sizeof(buf), fp) != NULL) {
+            ina_err_log("     # %s", buf);
+        }
+        pclose(fp);
 #endif
     }
     free(fn);

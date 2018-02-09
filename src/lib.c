@@ -330,13 +330,6 @@ INA_API(void) ina_exit(void)
         __cleanup(0, 0);
     }
 
-    if (__appname != NULL) {
-        ina_str_free(__appname);
-    }
-    if (__apppath != NULL) {
-        ina_str_free(__apppath);
-    }
-
     /* FIXME: Crashes during tests because sys mem pool 
        was destroyed */
     /*if (__lopt != NULL) {
@@ -363,6 +356,14 @@ INA_API(void) ina_exit(void)
         char buf[INA_ERR_MSGLEN];
         fprintf(stderr, "%s\n", ina_err_strerror(ina_err_get_last_rc(), buf));
     }
+
+    if (__appname != NULL) {
+        ina_str_free(__appname);
+    }
+    if (__apppath != NULL) {
+        ina_str_free(__apppath);
+    }
+
     ina_err_clear_last_rc();
 
 #ifdef INA_OS_WIN32
