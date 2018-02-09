@@ -263,5 +263,5 @@ INA_TEST(net_local, system_lookup)
        INA_TEST_MSG("address %d: %s", n, addresses[n]);
        ina_str_free(addresses[n]);
     }
-    INA_TEST_ASSERT_NOTSUCCEED(ina_net_system_lookup("blablabla", &address_count, &addresses));
+    INA_TEST_ASSERT_FAILED(ina_net_system_lookup("blablabla", &address_count, &addresses));
 }

@@ -35,11 +35,33 @@
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
 static INA_TLS(ina_rc_t) __rc = 0;
+static INA_TLS(FILE) *__logfile = NULL;
 
+INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path)
+{
+    if (__logfile != NULL) {
+        fclose(__logfile);
+    }
+    if (file_path != NULL) {
+        __logfile = fopen(file_path, "w+");
+        if (__logfile == NULL) {
+            __logfile = stderr;
+            return INA_OS_ERROR(INA_NN_FILE | INA_ERR_OPEN);
+        }
+    } else {
+        __logfile = stderr;
+    }
+    return INA_SUCCESS;
+}
 
 INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc)
 {
     __rc = rc;
+    if (__logfile != NULL) {
+        char buf[INA_ERR_MSGLEN];
+        fprintf(__logfile, "%s\n", ina_err_strerror(__rc, buf));
+        ina_err_backtrace(NULL);
+    }
     return __rc;
 }
 
@@ -48,7 +70,7 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void)
     return __rc;
 }
 
-INA_API(ina_rc_t) ina_err_clear()
+INA_API(ina_rc_t) ina_err_clear_last_rc(void)
 {
     __rc &= ~(INA_ERR_ERROR);
     return __rc;
@@ -361,8 +383,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
     };
 
     {
-        const char *common[] = { noun, neg, adj };
-        const char *special[] = { neg, adj, noun };
+        const char *common[] = {noun, neg, adj};
+        const char *special[] = {neg, adj, noun};
         const char **use = common;
         ina_rc_t type = rc & (0x1FFLL << INA_RC_BIT_A);
 
@@ -376,37 +398,42 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[1]);
         strcat(buf, (use)[1][0] ? " " : "");
         strcat(buf, (use)[2]);
+        sprintf(buf, "%s - error=%d,api=%d,rev=%d,line=%d,neg=%d,attr=%d,noun=%d",
+                buf,
+                INA_RC_E(rc),
+                INA_RC_V(rc),
+                INA_RC_R(rc),
+                INA_RC_L(rc),
+                INA_RC_N(rc),
+                INA_RC_A(rc),
+                INA_RC_U(rc));
+        return (buf[INA_ERR_MSGLEN-1] = '\0', buf);
     }
-    sprintf(buf, "%s ; error=%d,api=%d,rev=%d,line=%d,neg=%d,attr=%d,noun=%d",
-            buf,
-            INA_RC_E(rc),
-            INA_RC_V(rc),
-            INA_RC_R(rc),
-            INA_RC_L(rc),
-            INA_RC_N(rc),
-            INA_RC_A(rc),
-            INA_RC_U(rc));
-    return (buf[255] = '\0', buf);
 }
 
 
 INA_API(ina_rc_t) ina_err_backtrace(void *data)
 {
 #ifndef INA_OS_WIN32
+    FILE *f = __logfile;
     void *fnptr[30];
     int size;
     int i;
 
-    fprintf(stderr, "%s\n", "**** BACKTRACE START ******");
+    if (f == NULL) {
+        f = stderr;
+    }
+    fprintf(f, "%s\n", "**** BACKTRACE START ******");
     size = backtrace(fnptr, 30);
     char** fn = backtrace_symbols(fnptr, size);
     for (i = 0; i < size; i++) {
-        if (i > 3) {
-            fprintf(stderr, "%s\n", fn[i]);
-        }
+        fprintf(f, "%s\n", fn[i]);
+        char syscom[256];
+        sprintf(syscom,"addr2line %p -e sighandler", fnptr[i]); //last parameter is the name of this app
+        system(syscom);
     }
     free(fn);
-    fprintf(stderr, "%s\n", "**** BACKTRACE  END ******");
+    fprintf(f, "%s\n", "**** BACKTRACE  END ******");
 #else
 	#ifdef INA_CPU_X86_64
 	#else

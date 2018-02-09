@@ -59,7 +59,7 @@ INA_TEST(error, error_pack_rc)
     ina_rc_t rcc;
     ina_rc_t rc;
 
-    rcc = 2147483652 ;
+    rcc = 2147483652;
     rc = 0;
     rc = INA_RC_PACK(INA_NN_ACCESS|INA_ERR_NOT_ALLOWED, 0);
     

@@ -573,7 +573,7 @@ typedef int64_t ina_rc_t;
 
 
 /* Error message length */
-#define INA_ERR_MSGLEN  51
+#define INA_ERR_MSGLEN  256
 
 
 /*
@@ -610,6 +610,7 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void);
  */
 INA_API(ina_rc_t) ina_err_clear_last_rc(void);
 
+INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path);
 /*
  * Format the error message for a given RC.
  *

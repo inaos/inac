@@ -37,7 +37,7 @@ static ina_rc_t __ina_section_handler(const char* section_name, const char* sect
     INA_TEST_ASSERT_NULL(section_key);
     INA_TEST_ASSERT_NOT_NULL(entries);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "command_latency"));
-    INA_TEST_ASSERT_NOTSUCCEED(ina_conffile_has_value_in_entries(entries, "other_latency"));
+    INA_TEST_ASSERT_FAILED(ina_conffile_has_value_in_entries(entries, "other_latency"));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_number_from_entries(entries, "command_latency", &command_latency));
     INA_TEST_ASSERT_EQUAL_FLOATING(1000.0, command_latency);
     __section_count++;
@@ -168,8 +168,8 @@ INA_TEST(conffile, try_anonymous_section)
                                 INA_CONFFILE_VALUE_TYPE_STRING, INA_YES));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "mask", 
                                 INA_CONFFILE_VALUE_TYPE_STRING, INA_YES));
-    
-    INA_TEST_ASSERT_NOTSUCCEED(ina_conffile_process(cf, 
+
+    INA_TEST_ASSERT_FAILED(ina_conffile_process(cf,
                                 "test_conffile_anonymous_section.conf"));
 }
 
@@ -225,7 +225,7 @@ INA_TEST(conffile, duplicate_key)
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "debug", INA_YES, INA_NO, __ina_section_handler, &cs));
     INA_TEST_ASSERT_NOT_NULL(cs);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
-    INA_TEST_ASSERT_NOTSUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
+    INA_TEST_ASSERT_FAILED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
 }
 
