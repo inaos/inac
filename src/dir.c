@@ -239,13 +239,13 @@ INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
         }
         walker->current = walker->first;
         if (walker->current == NULL) {
-            return INA_FAILURE;
+            return INA_ERROR(INA_NN_ENUMERATION|INA_ERR_EMPTY);
         }
     } else if (walker->current == NULL) {
         walker->current = walker->first;
     } else if (walker->current == walker->last) {
         *entry = NULL;
-        return INA_FAILURE;
+        return INA_ERROR(INA_ERR_END_OF|INA_NN_ENUMERATION);
     } else {
         walker->current++;
     }
@@ -289,6 +289,7 @@ INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker) {
 INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
 {
     *stat = (ina_dir_stat_t*)ina_mem_alloc(sizeof(ina_dir_stat_t));
+    INA_RETURN_IF(*stat == NULL);
     (*stat)->dir = ina_str_new_fromcstr(dir);
 #ifdef INA_OS_WIN32
     if (GetDiskFreeSpaceEx(dir, &(*stat)->free_bytes_available, 
@@ -299,7 +300,8 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
 #else
     struct statvfs sfs;
     if (statvfs(dir, &sfs) != 0) {
-        return INA_ERRMSG(INA_EFS, "can't stat dir '%s", dir);
+        ina_dir_stat_free(stat);
+        return INA_ERROR(INA_NN_OPERATION||INA_ERR_FAILED);
     }
     (*stat)->free_bytes = sfs.f_bsize * sfs.f_bavail;
     (*stat)->total_bytes = sfs.f_blocks * sfs.f_bsize;
@@ -338,8 +340,8 @@ INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used)
     double free_pct;
     double used_pct;
     INA_ASSERT_NOTNULL(stat);
-    ina_dir_stat_bytes_capacity(stat, &b_total);
-    ina_dir_stat_bytes_free(stat, &b_free);
+    INA_RETURN_IF_FAILED(ina_dir_stat_bytes_capacity(stat, &b_total));
+    INA_RETURN_IF_FAILED(ina_dir_stat_bytes_free(stat, &b_free));
     free_pct = (((double)(b_free/1024/1024))*100.0)/((double)(b_total/1024/1024));
     used_pct = 100-free_pct;
     *pct_used = (int)used_pct;

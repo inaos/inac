@@ -39,22 +39,27 @@ extern "C" {
 
 /* Indicate no errors */
 #define INA_SUCCESS  (0)
-
-// Make a RC
-#define INA_RC_PACK(x) (INA_ERR_ERROR | (x))
-
 /* Check return code: successful or handled */
 #define INA_SUCCEED(rc) (rc >= 0)
 /* Check return code: failure */
 #define INA_FAILED(rc) (rc < 0)
 
+#define INA_RETURN_IF(x) if ((x)) return ina_err_get_last_rc()
+#define INA_RETURN_IF_FAILED(x) if (INA_FAILED((x))) return ina_err_get_last_rc()
+#define INA_RETURN_IF_SUCCEED(x) if (INA_SUCCEED((x))) return INA_SUCCEED
+
 /* Checkpoint must succeed */
-#define INA_MUST_SUCCEED(rc) if INA_UNLIKELY(INA_FAILED(rc))) abort()
+#define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(INA_FAILED(rc))) abort()
+/* Set last RC */
+#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL))
+/* Set last RC and capture errno */
+#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno))
 
-/* Set error RC */
-#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK(x))
 
-// Extract bits from error code: is_error, version, revision, line, errmsg { is_negation, attribute, noun }
+/* Pack a RC */
+#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)(e)) << INA_RC_BIT_L) | (x))
+
+/* Extract bits from error code */
 #define INA_RC_E(rc)   ( (int32_t)((rc >> INA_RC_BIT_E) & 0x1) )
 #define INA_RC_V(rc)   ( (int32_t)((rc >> INA_RC_BIT_V) & 0x7f) )
 #define INA_RC_R(rc)   ( (int32_t)((rc >> INA_RC_BIT_R) & 0xffff) )
@@ -63,22 +68,18 @@ extern "C" {
 #define INA_RC_A(rc)   ( (int32_t)((rc >> INA_RC_BIT_A) & 0xff) )
 #define INA_RC_U(rc)   ( (int32_t)((rc >> INA_RC_BIT_U) & 0x7fff) )
 
-// Bit-shifts
-#define INA_RC_BIT_E                       63
-#define INA_RC_BIT_V                       56
-#define INA_RC_BIT_R                       40
-#define INA_RC_BIT_L                       24
-#define INA_RC_BIT_N                       23
-#define INA_RC_BIT_A                       15
-#define INA_RC_BIT_U                       00
+/* Bit-shifts */
+#define INA_RC_BIT_E                63
+#define INA_RC_BIT_V                56
+#define INA_RC_BIT_R                40
+#define INA_RC_BIT_L                24
+#define INA_RC_BIT_N                23
+#define INA_RC_BIT_A                15
+#define INA_RC_BIT_U                00
 
-// Flags
+/* Flags */
 #define INA_ERR_ERROR               (  1LL << INA_RC_BIT_E) /*Error-bit*/
 #define INA_ERR_NOT                 (  1LL << INA_RC_BIT_N) /*Negate-bit*/
-
-/* Error message length */
-#define INA_ERR_MSGLEN  51
-
 /* Error attributes */
 #define INA_ERR_A                   (  1LL << INA_RC_BIT_A)
 #define INA_ERR_ACK                 (  2LL << INA_RC_BIT_A)
@@ -231,8 +232,9 @@ extern "C" {
 #define INA_ERR_WORKING             (149LL << INA_RC_BIT_A)
 #define INA_ERR_WRITABLE            (150LL << INA_RC_BIT_A)
 #define INA_ERR_WRONG               (151LL << INA_RC_BIT_A)
+#define INA_ERR_END_OF              (152LL << INA_RC_BIT_A)
 
-// Error attributes (negate forms)
+/* Error attributes (negate forms) */
 #define INA_ERR_NOT_A               (INA_ERR_NOT | INA_ERR_A )
 #define INA_ERR_NOT_ACK             (INA_ERR_NOT | INA_ERR_ACK )
 #define INA_ERR_NOT_ACTIVE          (INA_ERR_NOT | INA_ERR_ACTIVE )
@@ -384,8 +386,9 @@ extern "C" {
 #define INA_ERR_NOT_WORKING         (INA_ERR_NOT | INA_ERR_WORKING )
 #define INA_ERR_NOT_WRITABLE        (INA_ERR_NOT | INA_ERR_WRITABLE )
 #define INA_ERR_NOT_WRONG           (INA_ERR_NOT | INA_ERR_WRONG )
+#define INA_ERR_NOT_END_OF          (INA_ERR_NOT | INA_ERR_END_OF)
 
-// Attribute aliases
+/* Attribute aliases */
 #define INA_ERR_UNDEFINED           (INA_ERR_NOT_DEFINED)
 #define INA_ERR_UNUSED              (INA_ERR_NOT_USED)
 #define INA_ERR_UNORDERED           (INA_ERR_NOT_ORDERED)
@@ -396,7 +399,7 @@ extern "C" {
 #define INA_ERR_OFFLINE             (INA_ERR_NOT_ONLINE)
 #define INA_ERR_UNAVAILABLE         (INA_ERR_NOT_AVAILABLE)
 
-// Nouns
+/* Nouns */
 #define INA_NN_BLANK                (1)
 #define INA_NN_ACCESS               (2)
 #define INA_NN_ADMINISTRATOR        (3)
@@ -539,7 +542,15 @@ extern "C" {
 #define INA_NN_DECOMPRESSION        (149)
 #define INA_NM_STATE                (150)
 #define INA_NN_DUMP                 (151)
-
+#define INA_NN_CHAR                 (152)
+#define INA_NN_CONFIGURATION        (153)
+#define INA_NN_SECTION              (154)
+#define INA_NN_KEY                  (155)
+#define INA_NN_ENUMERATION          (156)
+#define INA_NN_READ                 (157)
+#define INA_NN_WRITE                (158)
+#define INA_NN_OPTION               (159)
+#define INA_NN_BUFFER               (160)
 
 /* Errors */
 #define INA_EMSGLEN   1
@@ -572,6 +583,10 @@ extern "C" {
 #define INA_ENOTFND  29
 #define INA_ESTATE   30
 #define INA_EFS      31
+
+
+/* Error message length */
+#define INA_ERR_MSGLEN  51
 
 
 /*

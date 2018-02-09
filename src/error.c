@@ -193,6 +193,15 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_DECOMPRESSION: return "DECOMPRESSION";
         case INA_NM_STATE: return "STATE";
         case INA_NN_DUMP: return "DUMP";
+        case INA_NN_CHAR: return "CHAR";
+        case INA_NN_CONFIGURATION: return "CONFIGURATION";
+        case INA_NN_SECTION: return "SECTION";
+        case INA_NN_KEY: return "KEY";
+        case INA_NN_ENUMERATION: return "ENUMERATION";
+        case INA_NN_READ: return "READ";
+        case INA_NN_WRITE: return "WRITE";
+        case INA_NN_OPTION: return "OPTION";
+        case INA_NN_BUFFER: return "BUFFER";
     }
 }
 
@@ -338,14 +347,15 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         case INA_ERR_VALID: adj = "VALID"; break;
         case INA_ERR_WORKING: adj = "WORKING"; break;
         case INA_ERR_WRITABLE: adj = "WRITABLE"; break;
-        case INA_ERR_WRONG: adj = "WRONG";
+        case INA_ERR_WRONG: adj = "WRONG"; break;
+        case INA_ERR_END_OF: adj = "END OF";
     };
 
     {
         const char *common[] = { noun, neg, adj };
         const char *special[] = { neg, adj, noun };
         const char **use = common;
-        ina_rc_t type = __rc & (0x1FFLL << INA_RC_BIT_A);
+        ina_rc_t type = rc & (0x1FFLL << INA_RC_BIT_A);
 
         if ((type == INA_ERR_A) || (type == INA_ERR_NOT_A) ||
             (type == INA_ERR_NO) || (type == INA_ERR_NO_SUCH) ||
@@ -358,6 +368,15 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[1][0] ? " " : "");
         strcat(buf, (use)[2]);
     }
+    sprintf(buf, "%s ; error=%d,api=%d,rev=%d,line=%d,neg=%d,attr=%d,noun=%d",
+            buf,
+            INA_RC_E(rc),
+            INA_RC_V(rc),
+            INA_RC_R(rc),
+            INA_RC_L(rc),
+            INA_RC_N(rc),
+            INA_RC_A(rc),
+            INA_RC_U(rc));
     return (buf[255] = '\0', buf);
 }
 

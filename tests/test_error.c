@@ -44,7 +44,7 @@ INA_TEST(error, clear)
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
 }
-INA_TEST(error, message_formatting)
+INA_TEST(error, strerror)
 {
     char msg[INA_ERR_MSGLEN];
 

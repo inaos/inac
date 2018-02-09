@@ -73,6 +73,9 @@ INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target,
 {
     INA_ASSERT_NOTNULL(cfg);
     *cfg = (ina_log_cfg_t*)ina_mem_alloc(sizeof(ina_log_cfg_t));
+    if (*cfg == NULL) {
+        return ina_err_get_last_rc();
+    }
     (*cfg)->fp1 = NULL;
     (*cfg)->fp2 = NULL;
     (*cfg)->logfile = ina_str_new_fromcstr(logfile);
@@ -136,6 +139,9 @@ __ina_init(ina_log_cfg_t *cfg)
     }
     if ((cfg->target & INA_LOG_FILE) == INA_LOG_FILE) {
         cfg->fp2 = (cfg->logfile == NULL) ? stdout : fopen(ina_str_cstr(cfg->logfile),"a");
+        if (cfg->fp2 == NULL) {
+            return INA_OS_ERROR(INA_NN_FILE|INA_ERR_OPEN);
+        }
     }
 #ifdef INA_OS_WIN32
     cfg->pid = (int)GetCurrentProcessId();
@@ -163,7 +169,7 @@ __ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, ina_str_t msg) {
 #endif
     INA_ASSERT_NOTNULL(lt);
     
-    strftime(buf,sizeof(buf),"%d %b %H:%M:%S", lt);
+    strftime(buf, sizeof(buf),"%d %b %H:%M:%S", lt);
 
     if (cfg->fp1 != NULL) {
         fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);

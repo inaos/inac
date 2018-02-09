@@ -128,7 +128,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
         }
         /* FIXME: not sure for all platforms */
         __apppath = ina_str_new(256);
-        if (!INA_SUCCEED(__ina_get_binpath(__apppath))) {
+        if (INA_FAILED(__ina_get_binpath(__apppath))) {
             __apppath = ina_str_new_fromcstr(argv[0]);
         }
     }
@@ -211,7 +211,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
                     if (so == NULL) {
                         INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
-                        return INA_ERR(INA_EOPT);
+                        return INA_ERROR(INA_NN_OPTION|INA_ERR_INVALID);
                     }
                     /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
@@ -235,7 +235,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             HASH_ITER(hh, __sopt, so, tmp_so) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
                     __ina_opt_usage();
-                    return INA_ERR(INA_EOPT);
+                    return INA_ERROR(INA_NN_OPTION|INA_ERR_INVALID);
                 }
             }
         }
@@ -252,9 +252,9 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     if (__initialized++) {
         return INA_SUCCESS;
     }
-    if (atexit(ina_exit) != 0) {
+    if (atexit(ina_exit) == -1) {
         INA_TRACE("Failed to register exit function!");
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_FUNCTION||INA_ERR_NOT_REGISTERED);
     }
 
     /* Setup signals */
@@ -277,10 +277,10 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
 
-    ina_err_reset();
+    ina_err_clear_last_rc();
 
     /* initailized console */
-    if (!INA_SUCCEED(ina_cio_init())) {
+    if (INA_FAILED(ina_cio_init())) {
         return ina_err_get_last_rc();
     }
 
@@ -288,10 +288,10 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     ina_mempool_set_fn(NULL, NULL, NULL);
 
     /* initalize error state */
-    ina_err_reset();
+    ina_err_clear_last_rc();
 
    /* initialize system memory pool and internal structures */
-    if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
+    if (INA_FAILED(ina_mempool_init(pool_size))) {
         return ina_err_get_last_rc();
     }
 #ifdef INA_OS_WIN32
@@ -304,7 +304,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
 #endif
 
     /* initialize CPU module */
-    if (!INA_SUCCEED(ina_cpu_init())) {
+    if (INA_FAILED(ina_cpu_init())) {
         return ina_err_get_last_rc();
     }
 
@@ -359,10 +359,11 @@ INA_API(void) ina_exit(void)
 
     ina_mempool_destroy();
 
-    if (!INA_SUCCEED(ina_err_get_last_rc())) {
-        fprintf(stderr, "%s\n", ina_err_get_last_msg());
+    if (INA_FAILED(ina_err_get_last_rc())) {
+        char buf[INA_ERR_MSGLEN];
+        fprintf(stderr, "%s\n", ina_err_strerror(ina_err_get_last_rc(), buf));
     }
-    ina_err_reset();
+    ina_err_clear_last_rc();
 
 #ifdef INA_OS_WIN32
 	timeEndPeriod(1);
@@ -392,11 +393,10 @@ INA_API(ina_rc_t) ina_opt_isset(const char *opt)
 {
     __ina_sopt_t *so = __ina_opt_get(opt);
     if (so == NULL) {
-        /* FIXME: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     if (so->type == INA_OPT_TYPE_FLAG && so->value == NULL) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);;
     }
     return INA_SUCCESS;
 }
@@ -416,7 +416,7 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
     }
 
     if (lo == NULL) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     *key = lo->opt;
     *value = lo->short_opt->value;
@@ -428,8 +428,7 @@ INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
     __ina_sopt_t *so = __ina_opt_get(opt);
     if (so == NULL) {
         *value = NULL;
-        /* FIXME: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     *value = ina_str_dup(so->value);
     return INA_SUCCESS;
@@ -440,8 +439,7 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
     __ina_sopt_t *so = __ina_opt_get(opt);
     if (so == NULL) {
         *value = 0.0;
-        /* FIXME: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     *value = (float)atof(so->value);
     return INA_SUCCESS;
@@ -452,8 +450,7 @@ INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value)
     __ina_sopt_t *so = __ina_opt_get(opt);
     if (so == NULL) {
         *value = 0;
-        /* FIXME: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     *value = atoi(so->value);
     return INA_SUCCESS;
@@ -523,7 +520,7 @@ __ina_get_binpath(ina_str_t path)
 #ifndef INA_OS_WIN32
     char linkname[64]; /* /proc/<pid>/exe */
     pid_t pid;
-    int ret;
+    ssize_t ret;
     char *buf;
 
     buf = (char*)ina_str_cstr(path);
@@ -531,20 +528,19 @@ __ina_get_binpath(ina_str_t path)
     /* Get our PID and build the name of the link in /proc */
     pid = getpid();
     if (snprintf(linkname, sizeof(linkname), "/proc/%i/exe", pid) < 0) {
-        abort();
+        INA_OS_ERROR(INA_ERR_NOT_FATAL);
     }
 
     /* Now read the symbolic link */
     ret = readlink(linkname, buf, ina_str_size(path));
-
     /* In case of an error, leave the handling up to the caller */
-    if (ret == -1)
-        return INA_FAILURE;
+    if (ret == -1) {
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+    }
 
     /* Report insufficient buffer size */
     if (ret >= ina_str_size(path)) {
-        errno = ERANGE;
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);
     }
 
     /* Ensure proper NUL termination */
@@ -641,9 +637,10 @@ __ina_signal_handler(int sig)
     switch (sig) {
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
+                char buf[INA_ERR_MSGLEN];
                 fprintf(stderr, "Program aborted.\n");
-                fprintf(stderr, "%s", ina_err_get_last_msg());
-                ina_err_reset();
+                fprintf(stderr, "%s", ina_err_strerror(ina_err_clear_last_rc(), buf));
+                ina_err_clear_last_rc();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
 #endif        
@@ -654,9 +651,10 @@ __ina_signal_handler(int sig)
         case SIGILL:
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
+                char buf[INA_ERR_MSGLEN];
                 fprintf(stderr, "Error: signal %d:\n", sig);
-                fprintf(stderr, "%s", ina_err_get_last_msg());
-                ina_err_reset();
+                fprintf(stderr, "%s", ina_err_strerror(ina_err_clear_last_rc(), buf));
+                ina_err_clear_last_rc();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
 #endif
