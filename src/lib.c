@@ -638,8 +638,8 @@ __ina_signal_handler(int sig)
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 char buf[INA_ERR_MSGLEN];
-                fprintf(stderr, "Program aborted.\n");
-                fprintf(stderr, "%s", ina_err_strerror(ina_err_clear_last_rc(), buf));
+                ina_err_log("Program aborted.\n");
+                ina_err_log("%s", ina_err_strerror(ina_err_clear_last_rc(), buf));
                 ina_err_clear_last_rc();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
@@ -652,8 +652,8 @@ __ina_signal_handler(int sig)
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 char buf[INA_ERR_MSGLEN];
-                fprintf(stderr, "Error: signal %d:\n", sig);
-                fprintf(stderr, "%s", ina_err_strerror(ina_err_clear_last_rc(), buf));
+                ina_err_log("Error: signal %d:\n", sig);
+                ina_err_log("Last error:\n%s", ina_err_strerror(ina_err_clear_last_rc(), buf));
                 ina_err_clear_last_rc();
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);

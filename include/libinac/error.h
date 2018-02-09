@@ -610,7 +610,18 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void);
  */
 INA_API(ina_rc_t) ina_err_clear_last_rc(void);
 
+/*
+ * Set log file.
+ *
+ * Parameters
+ *  file_path   path to the log file
+ *
+ * Return
+ *  INA_SUCCESS if no error occurred
+ */
 INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path);
+
+INA_API(ina_rc_t) ina_err_log(const char *fmt, ...);
 /*
  * Format the error message for a given RC.
  *

@@ -53,6 +53,16 @@ INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path)
     }
     return INA_SUCCESS;
 }
+INA_API(ina_rc_t) ina_err_log(const char *fmt, ...)
+{
+    if (__logfile != NULL) {
+        va_list args;
+        va_start(args, fmt);
+        vfprintf(__logfile, fmt, args);
+        va_end(args);
+    }
+    return INA_SUCCESS;
+}
 
 INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc)
 {
@@ -60,6 +70,9 @@ INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc)
     if (__logfile != NULL) {
         char buf[INA_ERR_MSGLEN];
         fprintf(__logfile, "%s\n", ina_err_strerror(__rc, buf));
+        if (INA_RC_L(__rc) > 0) {
+            fprintf(__logfile, "%s\n", strerror(INA_RC_L(__rc)));
+        }
         ina_err_backtrace(NULL);
     }
     return __rc;
@@ -415,25 +428,21 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
 INA_API(ina_rc_t) ina_err_backtrace(void *data)
 {
 #ifndef INA_OS_WIN32
-    FILE *f = __logfile;
     void *fnptr[30];
     int size;
     int i;
 
-    if (f == NULL) {
-        f = stderr;
-    }
-    fprintf(f, "%s\n", "**** BACKTRACE START ******");
     size = backtrace(fnptr, 30);
     char** fn = backtrace_symbols(fnptr, size);
     for (i = 0; i < size; i++) {
-        fprintf(f, "%s\n", fn[i]);
+        ina_err_log("%s\n", fn[i]);
+#ifdef INA_OS_LINUX
         char syscom[256];
         sprintf(syscom,"addr2line %p -e sighandler", fnptr[i]); //last parameter is the name of this app
         system(syscom);
+#endif
     }
     free(fn);
-    fprintf(f, "%s\n", "**** BACKTRACE  END ******");
 #else
 	#ifdef INA_CPU_X86_64
 	#else
