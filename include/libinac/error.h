@@ -55,11 +55,11 @@ typedef int64_t ina_rc_t;
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(INA_FAILED(rc))) abort()
 /* Set last RC */
-#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL))
+#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), __FILE__ ":" INA_NUM2STR(__LINE__))
 /* Set last RC and capture errno */
-#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno))
+#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno),  __FILE__ ":" INA_NUM2STR(__LINE__))
 /* Set last RC and ser user defined errno */
-#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)))
+#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  __FILE__ ":" INA_NUM2STR(__LINE__))
 
 
 /* Pack a RC */
@@ -586,7 +586,7 @@ typedef int64_t ina_rc_t;
  * Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc);
+INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char* location);
 
 /*
  * Return the last RC

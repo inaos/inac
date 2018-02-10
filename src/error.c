@@ -39,41 +39,48 @@ static INA_TLS(FILE) *__logfile = NULL;
 
 INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path)
 {
-    if (__logfile != NULL) {
+    if (__logfile != NULL && (__logfile != stderr || __logfile == stdout)) {
         fclose(__logfile);
+        __logfile = NULL;
     }
     if (file_path != NULL) {
-        __logfile = fopen(file_path, "w+");
-        if (__logfile == NULL) {
+        if (strcmp(file_path, ">1") == 0) {
+            __logfile = stdout;
+        } else if (strcmp(file_path, ">2") == 0) {
             __logfile = stderr;
-            return INA_OS_ERROR(INA_NN_FILE | INA_ERR_OPEN);
+        } else {
+            __logfile = fopen(file_path, "w+");
+            if (__logfile == NULL) {
+                __logfile = stderr;
+                return INA_OS_ERROR(INA_NN_FILE | INA_ERR_OPEN);
+            }
         }
-    } else {
-        __logfile = stderr;
     }
     return INA_SUCCESS;
 }
+
 INA_API(ina_rc_t) ina_err_log(const char *fmt, ...)
 {
     if (__logfile != NULL) {
         va_list args;
         va_start(args, fmt);
         vfprintf(__logfile, fmt, args);
+        fprintf(__logfile, "\n");
         va_end(args);
     }
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc)
+INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char *location)
 {
     __rc = rc;
     if (__logfile != NULL) {
         char buf[INA_ERR_MSGLEN];
-        fprintf(__logfile, "%s\n", ina_err_strerror(__rc, buf));
+        fprintf(__logfile, "%s at %s", ina_err_strerror(__rc, buf), location);
         if (INA_RC_L(__rc) > 0) {
-            fprintf(__logfile, "%s\n", strerror(INA_RC_L(__rc)));
+            fprintf(__logfile, " - OS error: %s (%d)", strerror(INA_RC_L(__rc)), INA_RC_L(__rc));
         }
-        ina_err_backtrace(NULL);
+        fprintf(__logfile, "\n");
     }
     return __rc;
 }
@@ -411,7 +418,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[1]);
         strcat(buf, (use)[1][0] ? " " : "");
         strcat(buf, (use)[2]);
-        sprintf(buf, "%s - error=%d,api=%d,rev=%d,line=%d,neg=%d,attr=%d,noun=%d",
+        sprintf(buf, "%s - error=%d,api=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
                 buf,
                 INA_RC_E(rc),
                 INA_RC_V(rc),
@@ -435,17 +442,25 @@ INA_API(ina_rc_t) ina_err_backtrace(void *data)
     size = backtrace(fnptr, 30);
     char** fn = backtrace_symbols(fnptr, size);
     for (i = 0; i < size; i++) {
-        ina_err_log("[%02d] %s\n", i, fn[i]);
+        if (fn[i][strlen(fn[i])-1] == '\n') {
+            fn[i][strlen(fn[i])-1] = '\0';
+        }
 #ifdef INA_OS_LINUX
+        ina_err_log("[%02d] %s", i, fn[i]);
         char syscom[296];
         char buf[1035];
         FILE *fp;
         snprintf(syscom, sizeof(syscom)-40, "addr2line %p -e %s", fnptr[i], ina_app_get_path());
         fp = popen(syscom, "r");
         while (fgets(buf, sizeof(buf), fp) != NULL) {
+            if (buf[strlen(buf)-1] == '\n') {
+                buf[strlen(buf)-1] = '\0';
+            }
             ina_err_log("     # %s", buf);
         }
         pclose(fp);
+#else
+        ina_err_log("%s", fn[i]);
 #endif
     }
     free(fn);

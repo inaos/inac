@@ -31,9 +31,9 @@
 INA_TEST(error, get_set_rc)
 {
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_RC_PACK(INA_ERR_FAILED, 0),
-                                  ina_err_set_last_rc(INA_RC_PACK(INA_ERR_FAILED, 0)));
+                                  ina_err_set_last_rc(INA_RC_PACK(INA_ERR_FAILED, 0), ""));
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_ERROR(INA_ERR_NOT_INITIALIZED),
-                                  ina_err_set_last_rc(INA_RC_PACK(INA_ERR_NOT_INITIALIZED, 0)));
+                                  ina_err_set_last_rc(INA_RC_PACK(INA_ERR_NOT_INITIALIZED, 0), ""));
 }
 
 INA_TEST(error, clear)
@@ -68,7 +68,7 @@ INA_TEST(error, error_pack_rc)
     
     INA_TEST_ASSERT_EQUAL_INTEGER(rcc, rc);
     INA_TEST_ASSERT_EQUAL_INTEGER(4 , INA_RC_A(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(2147483652, ina_err_set_last_rc(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(2147483652, ina_err_set_last_rc(rc, ""));
     INA_TEST_ASSERT_EQUAL_INTEGER(4,   ina_err_get_last_rc());
 
 }
