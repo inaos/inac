@@ -517,11 +517,11 @@ INA_API(ina_rc_t) ina_err_backtrace(void *data)
 
 INA_API(ina_rc_t) ina_err_coredump(void *data) {
 #ifndef INA_OS_WIN32
-    char cmd[160];
-    sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
+    char cmd[256];
+    sprintf(cmd, "gcore  -o coredump.%d %d", getpid(), getpid());
     if (system(cmd)) {
         return INA_ERROR(INA_NN_DUMP|INA_ERR_FAILED);
-    } 
+    }
 #else
     EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
     BOOL dumped;
