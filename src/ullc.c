@@ -608,7 +608,7 @@ __ina_sem_create(ina_ullc_ctx_t *ctx)
                         ctx->ring->semkey);
 
     if (ctx->sem_handle == NULL) {
-        return INA_ERR(INA_ESEMINIT);;
+        return INA_ERROR(INA_NN_SEMAPHORE|INA_ERR_NOT_CREATED);
     }
     return INA_SUCCESS;
 }

@@ -365,7 +365,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
         ina_time_sleep(500);
         return INA_SUCCESS;
     }
-    return INA_FAILURE;
+    return INA_OS_ERROR(INA_NN_PROCESS||INA_ERR_NOT_CREATED);
 #endif
 }
 

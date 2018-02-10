@@ -131,10 +131,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		(*mapping)->fmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, flProtect, (DWORD)offset, (DWORD)length, NULL);		
 	}
 	if ((*mapping)->fmap == INVALID_HANDLE_VALUE) {
-		/* FIXME: handle error */
-		DWORD err = GetLastError();
-		printf("%d", err);
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
 
 	// To calculate where to start the file mapping, round down the
@@ -158,10 +155,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	
     (*mapping)->lpMapAddress = MapViewOfFile((*mapping)->fmap, dwDesiredAccess, dwHigh, dwLow, (SIZE_T)llMapViewSize);
 	if ((*mapping)->lpMapAddress == NULL) {
-		/* FIXME: handle error */
-		DWORD err = GetLastError();
-		printf("%d", err);
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);;
 	}
 	data = (unsigned char*)(*mapping)->lpMapAddress + delta;
 #else
@@ -236,12 +230,10 @@ INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 	INA_ASSERT_NOTNULL(mapping);
 #ifdef INA_OS_WIN32
 	if (!FlushViewOfFile(mapping->begin_mmap, 0)) {
-		/* FIXME: handle error */
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
 	if (!FlushFileBuffers((HANDLE)ina_file_os_handle(mapping->fd))) {
-		/* FIXME: handle error */
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
 #else
     if (msync(mapping->addr, mapping->length, MS_SYNC) == -1) {

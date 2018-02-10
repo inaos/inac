@@ -380,7 +380,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
     INA_ASSERT_NOTNULL(stopwatch);
 #ifdef INA_OS_WIN32
     if (INA_UNLIKELY(stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart)) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_ERR_INVALID);
     }
 #elif defined(INA_OS_OSX)
     if (INA_UNLIKELY(stopwatch->tv->stop.tp < stopwatch->tv->start.tp)) {

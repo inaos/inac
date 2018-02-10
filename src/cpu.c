@@ -63,11 +63,11 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	DWORD size = 4;
 	
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), 0, KEY_READ, &key) != ERROR_SUCCESS)
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	
 	if (RegQueryValueEx(key, TEXT("~MHz"), NULL, NULL, (LPBYTE) &result, (LPDWORD) &size) != ERROR_SUCCESS) {
 		RegCloseKey(key);
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);;
 	}
 	RegCloseKey(key);
 	
@@ -677,7 +677,7 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 
     /* Set Affinity */
     if (!SetProcessAffinityMask(pid, processAffinityMask)) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #else
     cpu_set_t mask;
@@ -790,10 +790,10 @@ INA_API(ina_rc_t) ina_cpu_process_promote()
 
     /* Set Priority */
 	if(!SetPriorityClass(pid, HIGH_PRIORITY_CLASS)) {
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
 	if(!SetThreadPriority(GetCurrentThread(), HIGH_PRIORITY_CLASS)) {
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
 #else
     pid_t pid = getpid();

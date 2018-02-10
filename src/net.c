@@ -87,24 +87,20 @@ static ina_rc_t __ina_create_socket(int domain, int type, int *s)
     BOOL yes = TRUE;
 
     if (type == __INA_SOCKET_TYPE_TCP) {
-        *socket = socket(domain, SOCK_STREAM, IPPROTO_TCP);
+        *s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
     }
     else if (type == __INA_SOCKET_TYPE_UDP) {
-        *socket = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
-    }
-    else {
-        __ina_set_error(err, "unknown socket-type: %d!", type);
+        *s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
+    } else {
+        return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
     }
     if (*s == INVALID_SOCKET) {
-        __ina_set_error(err, "creating socket: %s", strerror(WSAGetLastError()));
-        return __INA_ERR;
+        return INA_USR_ERROR(INA_NN_SOCKET|INA_ERR_NOT_CREATED, __INA_ERRNO);
     }
 
     if (setsockopt(*s, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(BOOL)) == SOCKET_ERROR) {
-        __ina_set_error(err, "setsockopt SO_REUSEADDR: %s", strerror(WSAGetLastError()));
-        return __INA_ERR;
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
-    return s;
 #else
     int on = 1;
     INA_ASSERT_NOTNULL(s);
@@ -114,8 +110,7 @@ static ina_rc_t __ina_create_socket(int domain, int type, int *s)
     }
     else if (type == __INA_SOCKET_TYPE_UDP) {
         *s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
-    }
-    else {
+    } else {
         return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
     }
 
@@ -128,8 +123,8 @@ static ina_rc_t __ina_create_socket(int domain, int type, int *s)
     if (setsockopt(*s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
         return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
-    return INA_SUCCESS;
 #endif
+    return INA_SUCCESS;
 }
 
 #define __INA_CONNECT_NONE 0
@@ -334,7 +329,7 @@ INA_API(ina_rc_t) ina_net_nonblock(int fd)
     {
         unsigned long enable = 1;
         if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
-            return INA_ERRMSG(INA_ENET, "ioctlsocket(FIONBIO)");
+           return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
         }
     }
 #else
@@ -472,7 +467,7 @@ INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, in
         buf.buf = (CHAR*)iov->iov_base;
         buf.len = iov->iov_len;
         if (WSASend(fd, &buf, iovcnt, &swrite, 0, NULL, NULL) != 0) {
-            if (!__ina_egain()) {
+            if (!__ina_eagain()) {
                return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
             }
         }
@@ -507,7 +502,7 @@ INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, i
             bufs[i].len = msg->msg_iov[i].iov_len;
         }
         if (WSASend(fd, bufs, msg->msg_iovlen, &send, flags, NULL, NULL) != 0) {
-            if (!__ina_egain()) {
+            if (!__ina_eagain()) {
                return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
             }
         }
@@ -529,7 +524,7 @@ INA_API(ina_rc_t) ina_net_close(int fd)
 {
     INA_ASSERT_TRUE(fd > 0);
 #ifdef INA_OS_WIN32
-    __closesocket(fd):
+    closesocket(fd);
 #else
     close(fd);
 #endif
@@ -704,7 +699,7 @@ INA_API(ina_rc_t) ina_net_block(int fd)
 {
     unsigned long enable = 0; /* disable non-blocking */
     if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
-        return INA_ERRMSG(INA_ENET, "failed to block");
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }
@@ -833,7 +828,7 @@ INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int
 #ifdef INA_OS_WIN32
     int rc = WSAPoll(fds, nfds, timeout);
     if (rc == SOCKET_ERROR) {
-        return INA_ERRMSG(INA_ENET, "poll failed with error-code: %d", __INAERRNO);
+        return INA_USR_ERROR(INA_NN_IO|INA_ERR_FAILED, __INA_ERRNO);
     }
     *num_fds_ready = rc;
 #else

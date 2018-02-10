@@ -909,7 +909,7 @@ __ina_shm_open(ina_mempool_t *pool)
         ina_str_cstr(pool->label));
 
     if (pool->shm_handle == NULL) {
-        return INA_ERR(INA_EALLOC);
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     pool->m = (void*)MapViewOfFile(pool->shm_handle,
         FILE_MAP_ALL_ACCESS, 
@@ -920,7 +920,7 @@ __ina_shm_open(ina_mempool_t *pool)
     if (pool->m == NULL) {
         CloseHandle(pool->shm_handle);
         pool->shm_handle = NULL;
-        return INA_ERR(INA_EALLOC);
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }

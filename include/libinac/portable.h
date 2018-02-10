@@ -1159,7 +1159,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 #ifdef INA_OS_WIN32
-int inet_aton(const char *address, struct in_addr *sock)
+int inet_aton(const char *address, struct in_addr *sock);
 #endif
 
 #ifdef INA_OS_WIN32
@@ -1169,11 +1169,6 @@ typedef char ina_semkey_t[MAX_PATH];
 typedef int ina_handle_t;
 typedef int ina_semkey_t;
 #endif
-
-#ifdef __cplusplus
-}
-#endif 
-
 
 #ifdef INA_OS_WIN32
 typedef int mode_t;
@@ -1236,7 +1231,6 @@ DIR *opendir(const char *name);
 int  closedir(DIR *dir);
 struct dirent *readdir(DIR *dir);
 void  rewinddir(DIR *dir);
-
 #endif
 #endif
 
@@ -1244,7 +1238,7 @@ void  rewinddir(DIR *dir);
  * thread-local-safe variable
  */
 #ifndef INA_TLS
-#   if defined(__MINGW32__) || defined(__SUNPRO_C) || defined(__xlc__) || defined(__GNUC__) || defined(__clang__) || defined(__GNUC__) // __INTEL_COMPILER on linux
+#   ifndef INA_OS_WIN32
 #       define INA_TLS(x) __thread x             // MingW, Solaris Studio C/C++, IBM XL C/C++, GNU C, Clang and Intel C++ Compiler (Linux systems)
 #   else
 #       define INA_TLS(x) __declspec(thread) x   // Visual C++, Intel C/C++ (Windows systems), C++Builder and Digital Mars C++
@@ -1257,3 +1251,6 @@ void  rewinddir(DIR *dir);
  #endif
  #endif
 
+#ifdef __cplusplus
+}
+#endif

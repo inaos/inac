@@ -296,10 +296,11 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     }
 #ifdef INA_OS_WIN32
     /* Make sure to use high-accuracy multimedia-timers for windows */
-	timeBeginPeriod(1);
+    timeBeginPeriod(1);
     /* Initialize winsock */
+    
     if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
-        return INA_NET_ENETINIT;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #endif
 
@@ -323,9 +324,9 @@ INA_API(void) ina_exit(void)
     /* Reset CIO attributes */
     ina_cio_reset();
 
-	/* destroy cpu module */
+    /* destroy cpu module */
     ina_cpu_destroy();
-	
+
     if (__cleanup != NULL) {
         __cleanup(0, 0);
     }
@@ -367,7 +368,7 @@ INA_API(void) ina_exit(void)
     ina_err_clear_last_rc();
 
 #ifdef INA_OS_WIN32
-	timeEndPeriod(1);
+    timeEndPeriod(1);
     WSACleanup();
 #endif
 }
@@ -397,7 +398,7 @@ INA_API(ina_rc_t) ina_opt_isset(const char *opt)
         return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     if (so->type == INA_OPT_TYPE_FLAG && so->value == NULL) {
-        return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);;
+        return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     return INA_SUCCESS;
 }
@@ -556,10 +557,10 @@ __ina_get_binpath(ina_str_t path)
     ret = GetModuleFileName(hMod, buf, buf_size);
 
     if (ret == ERROR_INSUFFICIENT_BUFFER) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);
     }
     else if (ret >= ina_str_size(path)) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);
     }
 
     /* Ensure proper NUL termination */

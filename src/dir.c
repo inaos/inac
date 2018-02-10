@@ -295,7 +295,7 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
     if (GetDiskFreeSpaceEx(dir, &(*stat)->free_bytes_available, 
         &(*stat)->total_number_of_bytes, 
         &(*stat)->total_numof_free_bytes) == 0) {
-            return INA_DIR_ESTAT;
+            return INA_ERROR(INA_NN_OPERATION||INA_ERR_FAILED);
     }
 #else
     struct statvfs sfs;

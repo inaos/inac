@@ -249,6 +249,9 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_MAC: return "MAC";
         case INA_NN_PROCESS: return "PROCESS";
         case INA_NN_PATTERN: return "PATTERN";
+        case INA_NN_MUTEX: return "MUTEX";
+        case INA_NN_SEMAPHORE: return "SEMAPHORE";
+        case INA_NN_THREAD: return "THREAD";
     }
 }
 
@@ -543,8 +546,9 @@ INA_API(ina_rc_t) ina_err_coredump(void *data) {
     hFile = CreateFileA(final_name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     
     if (hFile == INVALID_HANDLE_VALUE) {
-        printf("Error ina_err_coredump: Could not create file %s!\n", final_name);
-        return INA_FAILURE;
+        INA_OS_ERROR(INA_NN_FILE|INA_ERR_NOT_CREATED);
+        ina_err_log("Error ina_err_coredump: Could not create file %s!", final_name);
+        return ina_err_get_last_rc();
     }
 
     exceptionInfo.ThreadId = GetCurrentThreadId();

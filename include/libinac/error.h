@@ -570,7 +570,9 @@ typedef int64_t ina_rc_t;
 #define INA_NN_MAC                  (163)
 #define INA_NN_PROCESS              (164)
 #define INA_NN_PATTERN              (165)
-
+#define INA_NN_MUTEX                (166)
+#define INA_NN_SEMAPHORE            (167)
+#define INA_NN_THREAD               (168)
 
 /* Error message length */
 #define INA_ERR_MSGLEN  256
