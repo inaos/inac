@@ -576,7 +576,7 @@ INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool, void *ptr, size_t size)
     
      /* bogus request */
     if (pool->end < size) {
-        return INA_ERROR(INA_NN_SIZE||INA_ERR_INVALID);
+        return INA_ERROR(INA_NN_SIZE|INA_ERR_INVALID);
     }
 
     if ((pool->pos >= size) && (&pool->m[pool->pos - size] == ptr)) {
@@ -607,7 +607,7 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 
      /* bogus request */
     if (pool->end < size) {
-        INA_ERROR(INA_NN_SIZE||INA_ERR_INVALID);
+        INA_ERROR(INA_NN_SIZE|INA_ERR_INVALID);
         return NULL;
     }
 
@@ -629,7 +629,7 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
         } else {
-            INA_ERROR(INA_NN_POOL||INA_ERR_FULL);
+            INA_ERROR(INA_NN_POOL|INA_ERR_FULL);
             return NULL;
         }
     }
@@ -823,7 +823,7 @@ __ina_shm_open(ina_mempool_t *pool)
 
     pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, S_IRUSR | S_IWUSR | S_IWGRP | S_IRGRP | S_IWOTH | S_IROTH);
     if (pool->shm_handle == -1) {
-        return INA_ERROR(INA_NN_HANDLE||INA_ERR_INVALID);
+        return INA_ERROR(INA_NN_HANDLE|INA_ERR_INVALID);
     }
 
     if (pool->cf&INA_MEM_SHARED_EXCL) {
@@ -831,7 +831,7 @@ __ina_shm_open(ina_mempool_t *pool)
             close(pool->shm_handle);
             pool->shm_handle = 0;
             shm_unlink(ina_str_cstr(pool->label));
-            return INA_ERROR(INA_NN_OPERATION||INA_ERR_FAILED);
+            return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
        }
     }
 
@@ -845,7 +845,7 @@ __ina_shm_open(ina_mempool_t *pool)
         if (pool->cf&INA_MEM_SHARED_EXCL) {
             shm_unlink(ina_str_cstr(pool->label));
         }
-        return INA_ERROR(INA_NN_OPERATION||INA_ERR_FAILED);
+        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     /* Inc ref count */
     __sync_fetch_and_add((int64_t*)pool->m, 1);
