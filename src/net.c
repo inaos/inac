@@ -361,7 +361,7 @@ INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read)
 #endif
 
 	if (*nb_read == -1 && !__ina_eagain()) {
-        return INA_USR_ERROR(INA_NN_READ||INA_ERR_FAILED, __INA_ERRNO);
+        return INA_USR_ERROR(INA_NN_READ|INA_ERR_FAILED, __INA_ERRNO);
     }
     return INA_SUCCESS;
 }
@@ -414,7 +414,7 @@ INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* n
         buf += nwritten;
     }
     if (*nb_write == -1) {
-        return INA_USR_ERROR(INA_NN_WRITE||INA_ERR_FAILED, __INA_ERRNO);
+        return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
     }
     *nb_write = totlen;
     return INA_SUCCESS;

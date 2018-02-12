@@ -186,7 +186,7 @@ INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t* flags, uint64_t va
     if ((value&flags->data->v) == (value)) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_NN_OPERATION||INA_ERR_FAILED);
+    return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 }
 
 INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)

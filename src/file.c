@@ -390,7 +390,7 @@ INA_API(ina_rc_t) ina_file_set_mode(const ina_file_t *file, mode_t mode)
 #ifndef INA_OS_WIN32
     mode_t old_mask = umask(0);
     if (fchmod(file->fh, mode) == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION||INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     umask(old_mask);
 #else
@@ -592,7 +592,7 @@ INA_API(ina_rc_t) ina_file_set_eof(ina_file_t *file)
 #else
     INA_ASSERT_NOTNULL(file);
     if (lseek(file->fh, 0, SEEK_END) == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION||INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #endif
     return INA_SUCCESS;

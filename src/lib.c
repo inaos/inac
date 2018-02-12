@@ -254,7 +254,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     }
     if (atexit(ina_exit) == -1) {
         INA_TRACE("Failed to register exit function!");
-        return INA_OS_ERROR(INA_NN_FUNCTION||INA_ERR_NOT_REGISTERED);
+        return INA_OS_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_REGISTERED);
     }
 
     /* Setup signals */
