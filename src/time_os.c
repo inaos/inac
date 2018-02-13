@@ -60,11 +60,16 @@ INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info)
 INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time)
 {
     *time = (ina_time_t*)ina_mem_alloc(sizeof(ina_time_t));
+    if (*time == NULL) {
+        return ina_err_get_last_rc();
+    }
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time)
 {
+    INA_ASSERT_NOTNULL(time);
+    INA_ASSERT_NOTNULL(*time);
     ina_mem_free(*time);
     return INA_SUCCESS;
 }
