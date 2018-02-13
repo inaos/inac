@@ -50,7 +50,7 @@ typedef int64_t ina_rc_t;
 
 #define INA_RETURN_IF(x) if ((x)) return ina_err_get_last_rc()
 #define INA_RETURN_IF_FAILED(x) if (INA_FAILED((x))) return ina_err_get_last_rc()
-#define INA_RETURN_IF_SUCCEED(x) if (INA_SUCCEED((x))) return INA_SUCCEED
+#define INA_RETURN_IF_SUCCEED(x) if (INA_SUCCEED((x))) return ina_err_get_last_rc()
 
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(INA_FAILED(rc))) abort()
@@ -414,7 +414,7 @@ typedef int64_t ina_rc_t;
 #define INA_ERR_UNAVAILABLE         (INA_ERR_NOT_AVAILABLE)
 
 /* Nouns */
-#define INA_NN_BLANK                (1)
+#define INA_NN_NONE                 (1)
 #define INA_NN_ACCESS               (2)
 #define INA_NN_ADMINISTRATOR        (3)
 #define INA_NN_API                  (4)
@@ -573,9 +573,10 @@ typedef int64_t ina_rc_t;
 #define INA_NN_MUTEX                (166)
 #define INA_NN_SEMAPHORE            (167)
 #define INA_NN_THREAD               (168)
+#define INA_NN_CRON                 (169)
 
 /* Error message length */
-#define INA_ERR_MSGLEN  256
+#define INA_ERR_MSGLEN  512
 
 
 /*
@@ -623,6 +624,16 @@ INA_API(ina_rc_t) ina_err_clear_last_rc(void);
  */
 INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path);
 
+/*
+ * Write to the error log
+ *
+ *  Parameters
+ *   fmt  format
+ *   ...  arguments
+ *
+ *  Return
+ *   INA_SUCCESS
+ */
 INA_API(ina_rc_t) ina_err_log(const char *fmt, ...);
 /*
  * Format the error message for a given RC.

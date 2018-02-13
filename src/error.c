@@ -98,9 +98,7 @@ INA_API(ina_rc_t) ina_err_clear_last_rc(void)
 
 static const char* __ina_get_noun(int id) {
     switch (id) {
-        case INA_NN_BLANK: return "";
-        default:  return "??";
-
+        case INA_NN_NONE: return "";
         case INA_NN_ACCESS: return "ACCESS";
         case INA_NN_ARRAY: return "ACCOUNT";
         case INA_NN_ADMINISTRATOR: return "ADMINISTRATOR";
@@ -188,6 +186,7 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_PERMISSION: return "PERMISSION";
         case INA_NN_PLATFORM: return "PLATFORM";
         case INA_NN_POSITION: return "POSITION";
+        case INA_NN_POOL: return "POOL";
         case INA_NN_PROFILER: return "PROFILER";
         case INA_NN_PROTOCOL: return "PROTOCOL";
         case INA_NN_PROXY: return "PROXY";
@@ -252,6 +251,8 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_MUTEX: return "MUTEX";
         case INA_NN_SEMAPHORE: return "SEMAPHORE";
         case INA_NN_THREAD: return "THREAD";
+        case INA_NN_CRON: return "CRON";
+        default:  return "??";
     }
 }
 
@@ -263,7 +264,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
     if (INA_SUCCEED(rc)) {
         return (buf[0] = '\0', buf);
     }
-    strcpy (noun, __ina_get_noun(rc & 0xFFFF));
+    strncpy (noun, __ina_get_noun(INA_RC_U(rc)), sizeof(noun));
 
     if (rc & ( 1LL << INA_RC_BIT_N )) {
         neg = "NOT";
