@@ -29,10 +29,10 @@
 
 
 INA_TEST_HELPER(process, spawn_and_wait) {
-	ina_rc_t rc = INA_TEST_HELPER_IARG(0);
-	printf("HELPER STARTED");
-	ina_time_sleep(2000);
-	INA_TEST_HELPER_SET_RC(rc);
+	int exit_code = INA_TEST_HELPER_IARG(0);
+	printf("HELPER spawn_and_wait STARTED, exit code = %d", exit_code);
+	ina_time_sleep(3000);
+	INA_TEST_HELPER_SET_RC(exit_code);
 }
 
 INA_TEST_HELPER(proccess, spawn_and_forget) { 
