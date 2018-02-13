@@ -326,7 +326,7 @@ static ina_rc_t __parse_cron_pattern(char *pattern_buf, __ina_cron_schedulable_t
 	 * check failure
 	 */
 	if (pattern_buf == NULL) {
-		return INA_ERROR(INA_NN_PATTERN||INA_ERR_INVALID);
+		return INA_ERROR(INA_NN_PATTERN|INA_ERR_INVALID);
 	}
 
 	/*
@@ -819,7 +819,7 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
     ina_mem_set(&dummy, 0, sizeof(ina_cron_func_t));
     sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
     sched.func = &dummy;
-    if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
+    if (INA_FAILED(__parse_cron_pattern(buf, &sched))) {
         ina_str_free(buf);
         return ina_err_get_last_rc();
     }
@@ -828,11 +828,11 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
     for (t = now - now % 60; t > 0; t -= 60) {
         struct tm *tp = localtime(&t);
         if (tp == NULL) {
-            return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+            return INA_OS_ERROR(INA_NN_TIME|INA_ERR_INVALID);
         }
         if (dummy.mins[tp->tm_min] && dummy.hours[tp->tm_hour] &&
-				(dummy.days[tp->tm_mday] || dummy.dow[tp->tm_wday]) &&
-				dummy.mons[tp->tm_mon]) {
+                (dummy.days[tp->tm_mday] || dummy.dow[tp->tm_wday]) &&
+                dummy.mons[tp->tm_mon]) {
                     break;
         }
     }
