@@ -277,23 +277,12 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
 
-    ina_err_clear_last_rc();
-
     /* initailized console */
-    if (INA_FAILED(ina_cio_init())) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF_FAILED(ina_cio_init());
 
-    /* initalize global memory functions for memory pools */
-    ina_mempool_set_fn(NULL, NULL, NULL);
+   /* initialize internal structures */
+    INA_RETURN_IF_FAILED(ina_mempool_init(pool_size));
 
-    /* initalize error state */
-    ina_err_clear_last_rc();
-
-   /* initialize system memory pool and internal structures */
-    if (INA_FAILED(ina_mempool_init(pool_size))) {
-        return ina_err_get_last_rc();
-    }
 #ifdef INA_OS_WIN32
     /* Make sure to use high-accuracy multimedia-timers for windows */
     timeBeginPeriod(1);
@@ -305,9 +294,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
 #endif
 
     /* initialize CPU module */
-    if (INA_FAILED(ina_cpu_init())) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF_FAILED(ina_cpu_init());
 
     return INA_SUCCESS;
 }
@@ -321,19 +308,22 @@ INA_API(void) ina_exit(void)
     while (__initialized--) {
     }
 
+    /* call cleanup handler if any */
+    if (__cleanup != NULL) {
+        __cleanup(0, 0);
+    }
+
     /* Reset CIO attributes */
     ina_cio_reset();
 
     /* destroy cpu module */
     ina_cpu_destroy();
 
-    if (__cleanup != NULL) {
-        __cleanup(0, 0);
-    }
+    /* destroy memory pool */
+    ina_mempool_destroy();
 
-    /* FIXME: Crashes during tests because sys mem pool 
-       was destroyed */
-    /*if (__lopt != NULL) {
+    /* free allocated memory  */
+    if (__lopt != NULL) {
         __ina_lopt_t *lo = NULL;
         __ina_lopt_t *tmp_lo =  NULL;    
         HASH_ITER(hh, __lopt, lo, tmp_lo) {
@@ -341,7 +331,6 @@ INA_API(void) ina_exit(void)
             ina_mem_free(lo);
         }
     }
-
     if (__sopt != NULL) {
         __ina_sopt_t *so = NULL;
         __ina_sopt_t *tmp_so =  NULL;    
@@ -349,15 +338,7 @@ INA_API(void) ina_exit(void)
             HASH_DEL(__sopt, so);
             ina_mem_free(so);
         }
-    }*/
-
-    ina_mempool_destroy();
-
-    if (INA_FAILED(ina_err_get_last_rc())) {
-        char buf[INA_ERR_MSGLEN];
-        fprintf(stderr, "%s\n", ina_err_strerror(ina_err_get_last_rc(), buf));
     }
-
     if (__appname != NULL) {
         ina_str_free(__appname);
     }
