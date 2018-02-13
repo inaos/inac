@@ -48,6 +48,14 @@ typedef int64_t ina_rc_t;
 /* Check return code: failure */
 #define INA_FAILED(rc) (rc < 0)
 
+#ifdef INA_VERIFY_ENABLED
+#define INA_VERIFY_NOT_NULL(x) INA_VERIFY(x != NULL)
+#define INA_VERIFY(x) if (INA_UNLIKELY((x))) return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID)
+#else
+#define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))
+#define INA_VERIFY(x) INA_ASSERT_TRUE((x))
+#endif
+
 #define INA_RETURN_IF(x) if ((x)) return ina_err_get_last_rc()
 #define INA_RETURN_IF_FAILED(x) if (INA_FAILED((x))) return ina_err_get_last_rc()
 #define INA_RETURN_IF_SUCCEED(x) if (INA_SUCCEED((x))) return ina_err_get_last_rc()
