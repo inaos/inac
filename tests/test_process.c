@@ -42,14 +42,29 @@ INA_TEST(process, init_destroy)
     INA_TEST_ASSERT_NULL(ctx);
 }
 
-INA_TEST_SKIP(process, manage)
+INA_TEST(process, manage)
 {
-    ina_process_ctx_t *ctx;    
+    ina_process_ctx_t *ctx = NULL;
+    ina_process_descriptor_t *pd = NULL;
+    ina_process_t *p = NULL;
+
     INA_TEST_ASSERT_SUCCEED(ina_process_init(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_SUCCEED(ina_process_descriptor_new(ctx, &pd,
+            __INA_TEST_EXE,
+            NULL,
+            "-h process spawn_and_wait 0",
+            INA_PROCESS_LIFECYCLE_TYPE_MANAGED,
+            INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME,
+            NULL,
+            NULL,
+            100,
+            0));
+    INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, pd, &p));
+    INA_TEST_ASSERT_NOT_NULL(p);
     INA_TEST_ASSERT_SUCCEED(ina_process_manage(ctx));
     INA_TEST_ASSERT_SUCCEED(ina_process_destroy(&ctx));
-    INA_TEST_ASSERT_NULL(ctx);    
+    INA_TEST_ASSERT_NULL(ctx);
 }
 
 INA_TEST(process, descriptor_new_free)

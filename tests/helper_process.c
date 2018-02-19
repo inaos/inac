@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,10 @@
 
 
 INA_TEST_HELPER(process, spawn_and_wait) {
-	int exit_code = INA_TEST_HELPER_IARG(0);
-	printf("HELPER spawn_and_wait STARTED, exit code = %d", exit_code);
-	ina_time_sleep(3000);
-	INA_TEST_HELPER_SET_RC(exit_code);
+    int exit_code = INA_TEST_HELPER_IARG(0);
+    printf("HELPER spawn_and_wait STARTED, exit code = %d", exit_code);
+    ina_time_sleep(3000);
+    INA_TEST_HELPER_SET_RC(exit_code);
 }
 
 INA_TEST_HELPER(proccess, spawn_and_forget) { 
