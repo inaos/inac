@@ -92,8 +92,13 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void)
 
 INA_API(ina_rc_t) ina_err_clear_last_rc(void)
 {
-    __rc &= ~(INA_ERR_ERROR);
+    __rc = ina_err_clear_rc(__rc);
     return __rc;
+}
+
+INA_API(ina_rc_t) ina_err_clear_rc(ina_rc_t rc)
+{
+    return (rc &= ~(INA_ERR_ERROR));
 }
 
 static const char* __ina_get_noun(int id) {

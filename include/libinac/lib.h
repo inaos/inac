@@ -114,7 +114,7 @@ extern "C" {
  * Version
  */
 #define INA_MAJOR_VERSION 0
-#define INA_MINOR_VERSION 3
+#define INA_MINOR_VERSION 9
 #define INA_MICRO_VERSION 0
 
 #define INA_VERSION       INA_NUM2STR(INA_MAJOR_VERSION)"." \
@@ -126,6 +126,9 @@ extern "C" {
 #define INA_VERSION_HEX  ((INA_MAJOR_VERSION << 16) |   \
                           (INA_MINOR_VERSION << 8)  |   \
                           (INA_MICRO_VERSION << 0))
+
+/* Source location */
+#define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
 
 /* Add flag option */
 #define INA_OPT_FLAG(short_opt, long_opt, desc)           \

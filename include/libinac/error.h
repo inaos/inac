@@ -56,18 +56,27 @@ typedef int64_t ina_rc_t;
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
 #endif
 
+/*
+ * Return with last rc if condition x fails
+ */
 #define INA_RETURN_IF(x) if ((x)) return ina_err_get_last_rc()
+/*
+ * Return with last rc if failed
+ */
 #define INA_RETURN_IF_FAILED(x) if (INA_FAILED((x))) return ina_err_get_last_rc()
+/**
+ * Return with last rc if succeed
+ */
 #define INA_RETURN_IF_SUCCEED(x) if (INA_SUCCEED((x))) return ina_err_get_last_rc()
 
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(INA_FAILED(rc))) abort()
 /* Set last RC */
-#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), __FILE__ ":" INA_NUM2STR(__LINE__))
+#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), INA_AT)
 /* Set last RC and capture errno */
-#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno),  __FILE__ ":" INA_NUM2STR(__LINE__))
+#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno),  INA_AT)
 /* Set last RC and ser user defined errno */
-#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  __FILE__ ":" INA_NUM2STR(__LINE__))
+#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 
 
 /* Pack a RC */
@@ -620,6 +629,8 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void);
  *  otherwise returns INA_FAILURE. A marked
  */
 INA_API(ina_rc_t) ina_err_clear_last_rc(void);
+
+INA_API(ina_rc_t) ina_err_clear_rc(ina_rc_t rc);
 
 /*
  * Set log file.
