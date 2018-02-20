@@ -78,7 +78,10 @@ INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char *location)
         char buf[INA_ERR_MSGLEN];
         fprintf(__logfile, "%s at %s", ina_err_strerror(__rc, buf), location);
         if (INA_RC_L(__rc) > 0) {
-            fprintf(__logfile, " - OS error: %s (%d)", strerror(INA_RC_L(__rc)), INA_RC_L(__rc));
+            fprintf(__logfile,
+                    " - OS error: %s (%d)",
+                    strerror(INA_RC_L(__rc)),
+                    INA_RC_L(__rc));
         }
         fprintf(__logfile, "\n");
     }
