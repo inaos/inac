@@ -110,6 +110,10 @@ extern "C" {
 
 #define INA_NUM2STR_X(x) #x
 #define INA_NUM2STR(x) INA_NUM2STR_X(x)
+
+#define INA_LAST_BIT(k,n) ((k) & ((1LL<<(n))-1LL))
+#define INA_MID_BITS(k,m,n) (LAST((k)>>(m),((n)-(m))))
+
 /*
  * Version
  */

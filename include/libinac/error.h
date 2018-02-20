@@ -82,6 +82,7 @@ typedef int64_t ina_rc_t;
 /* Pack a RC */
 #define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((e)) << INA_RC_BIT_L) | (x))
 
+
 /* Extract bits from error code */
 #define INA_RC_E(rc)   ( (int32_t)((rc >> INA_RC_BIT_E) & 0x1) )
 #define INA_RC_V(rc)   ( (int32_t)((rc >> INA_RC_BIT_V) & 0x7f) )
@@ -90,7 +91,7 @@ typedef int64_t ina_rc_t;
 #define INA_RC_N(rc)   ( (int32_t)((rc >> INA_RC_BIT_N) & 0x1) )
 #define INA_RC_A(rc)   ( (int32_t)((rc >> INA_RC_BIT_A) & 0xff) )
 #define INA_RC_U(rc)   ( (int32_t)((rc >> INA_RC_BIT_U) & 0x7fff) )
-#define INA_RC_EC(rc)  ( (int32_t)(rc >> INA_RC_BIT_U) & 0xFFFF )
+#define INA_RC_EC(rc)  ( (int32_t)((INA_MID_BITS((rc), INA_RC_BIT_A, INA_RC_BIT_N+1))<<INA_RC_BIT_A))
 
 /* Bit-shifts */
 #define INA_RC_BIT_E                63
