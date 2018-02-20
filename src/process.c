@@ -540,9 +540,11 @@ INA_API(ina_rc_t) ina_process_free(ina_process_t **process)
 {
     INA_ASSERT_NOTNULL(process);
     INA_ASSERT_NOTNULL(*process);
-    INA_ASSERT_NOTNULL((*process)->descriptor);
 
-    (*process)->descriptor->c_ref -= 1;
+    /* Release descriptor if any */
+    if ((*process)->descriptor != NULL) {
+        (*process)->descriptor->c_ref -= 1;
+    }
     (*process)->init = INA_YES;
     (*process)->descriptor = NULL;
     /* FIXME: reset memory pool here */
