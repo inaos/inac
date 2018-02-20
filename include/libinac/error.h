@@ -78,9 +78,9 @@ typedef int64_t ina_rc_t;
 /* Set last RC and ser user defined errno */
 #define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 
-
+#define INA_IS_ERROR(e)
 /* Pack a RC */
-#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)(e)) << INA_RC_BIT_L) | (x))
+#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((e)) << INA_RC_BIT_L) | (x))
 
 /* Extract bits from error code */
 #define INA_RC_E(rc)   ( (int32_t)((rc >> INA_RC_BIT_E) & 0x1) )
@@ -90,6 +90,7 @@ typedef int64_t ina_rc_t;
 #define INA_RC_N(rc)   ( (int32_t)((rc >> INA_RC_BIT_N) & 0x1) )
 #define INA_RC_A(rc)   ( (int32_t)((rc >> INA_RC_BIT_A) & 0xff) )
 #define INA_RC_U(rc)   ( (int32_t)((rc >> INA_RC_BIT_U) & 0x7fff) )
+#define INA_RC_EC(rc)  ( (int32_t)(rc >> INA_RC_BIT_U) & 0xFFFF )
 
 /* Bit-shifts */
 #define INA_RC_BIT_E                63

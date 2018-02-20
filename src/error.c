@@ -430,8 +430,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[1]);
         strcat(buf, (use)[1][0] ? " " : "");
         strcat(buf, (use)[2]);
-        sprintf(buf, "%s - error=%d,api=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
-                buf,
+        sprintf((char*)&buf[strlen(buf)], " - 0x%"PRIx64" - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
+                rc,
                 INA_RC_E(rc),
                 INA_RC_V(rc),
                 INA_RC_R(rc),

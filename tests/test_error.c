@@ -56,19 +56,25 @@ INA_TEST(error, strerror)
 
 INA_TEST(error, error_pack_rc) 
 {
+    char msg[INA_ERR_MSGLEN];
     ina_rc_t rcc;
     ina_rc_t rc;
 
-    rcc = 2147483652;
-    rc = 0;
-    rc = INA_RC_PACK(INA_NN_ACCESS|INA_ERR_NOT_ALLOWED, 0);
-    
+    rcc = -9223372036812668926;
+    rc = INA_RC_PACK(INA_NN_ACCESS|INA_ERR_NOT_ALLOWED, 2);
+
+
     INA_TRACE3("rc = %u", rc);
     INA_TRACE3("reason = %u", INA_RC_A(rc, 0));
+    INA_TEST_MSG("%s", ina_err_strerror(rc, msg));
     
-    INA_TEST_ASSERT_EQUAL_INTEGER(rcc, rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(4 , INA_RC_A(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(2147483652, ina_err_set_last_rc(rc, ""));
-    INA_TEST_ASSERT_EQUAL_INTEGER(4,   ina_err_get_last_rc());
+    INA_TEST_ASSERT_EQUAL_INTEGER(rcc,  rc);
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_NN_ACCESS , INA_RC_U(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_ERR_NOT_ALLOWED , INA_RC_EC (rc));
+    INA_TEST_ASSERT_TRUE(INA_ERR_NOT_ALLOWED&INA_RC_EC (rc));
+    INA_TEST_ASSERT_TRUE(INA_NN_ACCESS&rc);
+    INA_TEST_ASSERT_FALSE(INA_ERR_FAILED&rc);
+    INA_TEST_ASSERT_EQUAL_INTEGER(-9223372036812668926, ina_err_set_last_rc(rc, INA_AT));
+    INA_TEST_ASSERT_EQUAL_INTEGER(-9223372036812668926,   ina_err_get_last_rc());
 
 }
