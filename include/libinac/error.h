@@ -663,13 +663,6 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN]);
  */
 INA_API(ina_rc_t) ina_err_backtrace(void *data);
 
-/*
- * Create a core dump
- *
- * Return
- *  INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_err_coredump(void *data);
 
 #ifdef __cplusplus
 }
