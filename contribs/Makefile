@@ -33,7 +33,6 @@ all:
 	$(MAKE) -C luajit amalg
 ifneq ($(OS), Darwin)
 	$(MAKE) -C cpu-topology
-	$(MAKE) -C coredumper CFLAGS=-D_GNU_SOURCE
 endif
 	$(MAKE) -C lz4
 	$(MAKE) -C miniz
@@ -60,7 +59,6 @@ clean:
 	$(MAKE) clean -C luajit
 ifneq ($(OS), Darwin)
 	$(MAKE) clean -C cpu-topology
-	$(MAKE) clean -C coredumper
 endif
 	$(MAKE) clean -C lz4
 	$(MAKE) clean -C miniz
