@@ -582,7 +582,7 @@ INA_API(ina_rc_t) ina_cpu_destroy()
         if (__ina_cpu_ctx->brand != NULL) {
             ina_str_free(__ina_cpu_ctx->brand);
         }
-        free(__ina_cpu_ctx);
+        ina_mem_free(__ina_cpu_ctx);
     }
     return INA_SUCCESS;
 }
