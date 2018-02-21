@@ -64,11 +64,12 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     INA_ASSERT_NOTNULL(ctx);
 
     *ctx = (ina_ljit_ctx_t*)ina_mem_alloc(sizeof(ina_ljit_ctx_t));
+    INA_RETURN_IF(*ctx == NULL);
     (*ctx)->lstate = luaL_newstate();
     if ((*ctx)->lstate == NULL) {
         ina_mem_free(*ctx);
         ctx = NULL;
-        return INA_LJIT_ENSTATE;
+        return INA_ERROR(INA_NN_STATE|INA_ERR_NOT_CREATED);
     }
     luaL_openlibs((*ctx)->lstate);
     lua_getglobal((*ctx)->lstate, "package");
@@ -103,8 +104,6 @@ unsigned long ina_ljit_hash_sbdm(const char *str)
     INA_ASSERT_NOTNULL(str);
     return INA_HASH_CSTR_TO_SDBM(str);
 }
-
-
 
 INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const char *sig, ...)
 {
@@ -156,7 +155,7 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
                 goto endwhile;
                 break;
             default:
-                return INA_LJIT_EPARAM;
+                return INA_ERROR(INA_NN_TYPE|INA_ERR_INVALID);
          }
          narg++;
          luaL_checkstack(ctx->lstate, 1, "too many arguments");
@@ -166,7 +165,9 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
     /* do the call */
     nres = strlen(sig);
     if (lua_pcall(ctx->lstate, narg, nres, 0) != 0) {
-        return INA_LJIT_ELUA(ctx);
+        INA_ERROR(INA_NN_SCRIPT|INA_ERR_FAILED);
+        lua_pop(ctx->lstate, 1);
+        return ina_err_get_last_rc();
     }
     
     /* retrieve results */
@@ -175,13 +176,13 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
         switch (*sig++) {
             case 'd':  /* double result */
               if (!lua_isnumber(ctx->lstate, nres)) {
-                  return INA_LJIT_ERESULT;
+                  return INA_ERROR(INA_NN_TYPE|INA_ERR_INVALID);
               }
               *va_arg(vl, double *) = lua_tonumber(ctx->lstate, nres);
               break;
             case 'i':  /* int result */
               if (!lua_isnumber(ctx->lstate, nres)) {
-                  return INA_LJIT_ERESULT;
+                  return INA_ERROR(INA_NN_TYPE|INA_ERR_INVALID);;
               }
               *va_arg(vl, int *) = (int)lua_tonumber(ctx->lstate, nres);
               break;
@@ -192,18 +193,19 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
               } else if (lua_type(ctx->lstate, nres) == 10) { 
                   *va_arg(vl, const char **) = INA_LJIT_TOCSTRING(ctx, nres);
               } else {
-                  return INA_LJIT_ERESULT;
+                  return INA_ERROR(INA_NN_TYPE|INA_ERR_INVALID);
               }
               break;
             case 'c': /* void pointer */
               if (lua_type(ctx->lstate, nres) == 10) { 
                   *va_arg(vl, const void **) = INA_LJIT_TOPOINTER(ctx, nres, const void*);
               } else {
-                  return INA_LJIT_ERESULT;
+                  return INA_ERROR(INA_NN_TYPE|INA_ERR_INVALID);
+
               }
               break;            
             default:
-              return INA_LJIT_EPARAM;
+              return INA_ERROR(INA_NN_TYPE|INA_ERR_INVALID);
         }
         nres++;
     }
@@ -217,7 +219,10 @@ INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
     INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT_NOTNULL(code);
     if (luaL_dostring(ctx->lstate, code) != 0) {
-        return INA_LJIT_ELUA(ctx);
+        INA_ERROR(INA_NN_SCRIPT|INA_ERR_FAILED);
+        /*INA_ERRMSG(INA_EEXCALL, lua_tostring(ctx->lstate, -1), NULL);*/
+        lua_pop(ctx->lstate, 1);
+        return ina_err_get_last_rc();
     }
     return INA_SUCCESS;
 }

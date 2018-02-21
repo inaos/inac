@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ INA_TEST(time,time_stamp)
     INA_TEST_ASSERT_EQUAL_FLOATING(1024, w->tv->max_stamps);
     INA_TEST_ASSERT_NOT_NULL(w->tv);
     INA_TEST_ASSERT_NULL(w->ts);
-    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(w));
+    INA_TEST_ASSERT_FAILED(ina_time_stopwatch_started(w));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_start(w, NULL));
     while (c--) {
         INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, "1", "2"));
@@ -127,7 +127,7 @@ INA_TEST(time, stopwatch)
     INA_TEST_ASSERT_NULL(w->ts);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
     ina_time_sleep(1);
-    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
+    INA_TEST_ASSERT_FAILED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(w));
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_valid(w));
@@ -154,7 +154,7 @@ INA_TEST(time, stopwatch_startime)
     INA_TEST_ASSERT_NULL(w->ts);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
     ina_time_sleep(100);
-    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
+    INA_TEST_ASSERT_FAILED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, NULL, NULL));
     ina_time_sleep(100);
@@ -199,7 +199,7 @@ INA_TEST_SKIP(time, stopwatch_startime_rdtsc)
     INA_TEST_ASSERT_NULL(w->ts);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_started(w));
     ina_time_sleep(100);
-    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_valid(w));
+    INA_TEST_ASSERT_FAILED(ina_time_stopwatch_valid(w));
     ina_time_sleep(1);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stamp(w, NULL, NULL));
     ina_time_sleep(100);
@@ -390,7 +390,7 @@ INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
 
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(data->w));
     ina_time_sleep(500); /* Wait child is exit */
-    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
+    INA_TEST_ASSERT_FAILED(ina_time_stopwatch_started(data->w));
 }
 
 
@@ -458,6 +458,6 @@ INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     INA_TEST_ASSERT_EQUAL_INTEGER(c, 6);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_stop(data->w));
     ina_time_sleep(500); /* Wait child is exit */
-    INA_TEST_ASSERT_NOTSUCCEED(ina_time_stopwatch_started(data->w));
+    INA_TEST_ASSERT_FAILED(ina_time_stopwatch_started(data->w));
 }
 #endif

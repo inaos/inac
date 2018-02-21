@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,15 +58,15 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_SUCCEED(ina_timer_init(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
     e1 = ina_timer_create_event(t, 900);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     INA_TEST_ASSERT_NOT_NULL(e1);
     ina_time_sleep(100);
     e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     INA_TEST_ASSERT_NULL(e2);
     ina_time_sleep(1000);
     e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
     ina_timer_destroy(&t);
@@ -118,15 +118,15 @@ INA_TEST(timer, event_rdtsc)
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());
     ina_time_sleep(100);
     e1 = ina_timer_create_event(t, 900);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     INA_TEST_ASSERT_NOT_NULL(e1);
     ina_time_sleep(100);
     e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     INA_TEST_ASSERT_NULL(e2);
     ina_time_sleep(2000);
     e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_peek());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
         name, 
         INA_ULLC_WS_SIGNAL_WAIT, 
         &ullc_ctx))) {
-        INA_TEST_HELPER_SET_RC(INA_ERR_PUSH_LAST);
+        INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
     }
 
 
@@ -120,7 +120,7 @@ INA_TEST_HELPER(ullc, create_consumer) {
             consumers, 
             name, 
             &ullc_ctx))) {
-            INA_TEST_HELPER_EXIT(INA_ERR_PUSH_LAST);
+            INA_TEST_HELPER_EXIT(ina_err_get_last_rc());
     }
 
    INA_TRACE3("created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -165,4 +165,16 @@ void rewinddir(DIR *dir)
         errno = EBADF;
     }
 }
+
+int inet_aton(const char *address, struct in_addr *sock)
+{
+    int s;
+    s = inet_addr(address);
+    if (s == INADDR_NONE) {
+        return(0);
+    }
+    sock->s_addr = s;
+    return(1);
+}
+
 #endif

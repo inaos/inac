@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -615,13 +615,13 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (hStdin == INVALID_HANDLE_VALUE) {
-        return ENOTTY;
+        return INA_OS_ERROR(INA_NN_CONSOLE|INA_ERR_INVALID);
     }
 
     dw_wait_ret = WaitForSingleObject(hStdin, 1);
 
     if (dw_wait_ret == WAIT_ABANDONED || dw_wait_ret == WAIT_FAILED) {
-        return INA_EWAIT;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 
     if (blocking) {
@@ -646,7 +646,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         int finished = 0;
 
         if (dw_wait_ret == WAIT_TIMEOUT) {
-            ret = INA_EAGAIN;
+            ret = INA_ERR_TRY_AGAIN;
         }
         else {
             if (nb_buf == NULL) {
@@ -655,7 +655,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             __ina_cio_w32_read_input(line, hStdin, nb_buf, nb_buf_cur, nb_buf_len, &finished);
         }
         if (!finished) {
-            ret = INA_EAGAIN;
+            ret = INA_ERR_TRY_AGAIN;
         }
     }    
 
@@ -685,7 +685,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         rt = select(1, &fds, NULL, NULL, &tv);
 
         if (!rt && blocking == INA_NO) {
-            rc =  INA_EAGAIN;
+            rc =  INA_ERR_TRY_AGAIN;
             break;
         }
 
@@ -695,7 +695,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         
             if ((r = read(0, &c, sizeof(c))) < 0) {
                 if (blocking == INA_NO) {
-                    rc =  INA_EAGAIN;
+                    rc =  INA_ERR_TRY_AGAIN;
                     break;
                 }
                 ina_time_sleep(50);
@@ -712,7 +712,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 if (buf == NULL) {
                     ina_mem_free(*nb_buf);
                     *nb_buf = NULL;
-                    return INA_ERR_PUSH_LAST;
+                    return ina_err_get_last_rc();
                 }
                 *nb_buf = buf;
             }
@@ -740,7 +740,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             }
 
             if (blocking == INA_NO) {
-                rc = INA_EAGAIN;
+                rc = INA_ERR_TRY_AGAIN;
                 break;
             }
         }

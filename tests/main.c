@@ -42,6 +42,8 @@ int main(int argc,  char** argv)
         INA_OPT_STRING(NULL, "long-option", "long", "This is a long option without short option"),
         INA_OPT_FLAG(NULL, "tap", "Test Anything Protocol"));
 
+    ina_err_set_log_file("error_log.txt");
+
     if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
         return EXIT_FAILURE;
     }

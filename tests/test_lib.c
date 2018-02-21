@@ -56,8 +56,8 @@ INA_TEST(lib, opt)
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("x")); 
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("f"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("float"));
-    INA_TEST_ASSERT_NOTSUCCEED(ina_opt_isset(""));
-    INA_TEST_ASSERT_NOTSUCCEED(ina_opt_get_string("", &l_str_value));
+    INA_TEST_ASSERT_FAILED(ina_opt_isset(""));
+    INA_TEST_ASSERT_FAILED(ina_opt_get_string("", &l_str_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("long-option"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_string("long-option", &l_str_value));
     INA_TEST_ASSERT_EQUAL_STR("long", ina_str_cstr(l_str_value));
@@ -88,7 +88,7 @@ INA_TEST(lib, opt_get_key_value)
         ina_str_cstr(value));
     INA_TEST_ASSERT_NOT_NULL(key);
     INA_TEST_ASSERT_NOT_NULL(value);
-    INA_TEST_ASSERT_NOTSUCCEED(ina_opt_get_key_value(10, &key, &value));
+    INA_TEST_ASSERT_FAILED(ina_opt_get_key_value(10, &key, &value));
     INA_TEST_ASSERT_NULL(key);
     INA_TEST_ASSERT_NULL(value);    
 }

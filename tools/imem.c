@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, INAOS GmbH
+ * Copyright (c) 2015-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ static ina_rc_t __allocate_test_array(size_t **test_array, size_t test_array_siz
     *test_array = (size_t*)calloc(array_size, sizeof(size_t));
 
     if (*test_array == NULL) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
     }
 
     for(i = 0; i < array_size; i++) {
@@ -60,16 +60,16 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
     int64_t idx = 0;
 
     if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, 1, -1))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
 
     for (i = 0; i < iterations; i++) {
         
-        if (!INA_SUCCEED(__allocate_test_array(&__test_array_a, test_array_size))) {
-            return INA_ERR_PUSH_LAST;
+        if (INA_FAILED(__allocate_test_array(&__test_array_a, test_array_size))) {
+            return ina_err_get_last_rc();
         }
-        if (!INA_SUCCEED(__allocate_test_array(&__test_array_b, test_array_size))) {
-            return INA_ERR_PUSH_LAST;
+        if (INA_FAILED(__allocate_test_array(&__test_array_b, test_array_size))) {
+            return ina_err_get_last_rc();
         }
 
         INA_TIME_STOPWATCH_START(w);
@@ -137,7 +137,7 @@ int main(int argc,  char** argv)
 
     if (INA_SUCCEED(ina_opt_isset("b"))) {
         if (!INA_SUCCEED(__run_memcpy_test(test_iter, (size_t)test_array_size))) {
-            return ina_err_peek();
+            return ina_err_get_last_rc();
         }
     }
     else {

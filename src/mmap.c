@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,7 @@ struct ina_mmap_mapping_s {
 INA_API(ina_rc_t) ina_mmap_init(ina_mmap_ctx_t **ctx)
 {
     *ctx = (ina_mmap_ctx_t*)ina_mem_alloc(sizeof(ina_mmap_ctx_t));
+	INA_RETURN_IF(*ctx == NULL);
     ina_mem_get_pagesize(&(*ctx)->page_size);
     return INA_SUCCESS;
 }
@@ -86,17 +87,17 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 #endif
 
 	if (fd) {
-		ina_file_stat_new(fd, &fstat);
-		ina_file_stat_file_size(fstat, &flen);
+		INA_RETURN_IF_FAILED(ina_file_stat_new(fd, &fstat));
+		INA_RETURN_IF_FAILED(ina_file_stat_file_size(fstat, &flen));
 		ina_file_stat_free(fd, &fstat);
 
 		if (offset + length > flen) {
-			/* FIXME: proper error handling */
-			return INA_FAILURE;
+			return INA_ERROR(INA_NN_POSITION|INA_ERR_OUT_OF_RANGE);
 		}
 	}
 
 	*mapping = (ina_mmap_mapping_t*)ina_mem_alloc(sizeof(ina_mmap_mapping_t));
+	INA_RETURN_IF(*mapping == NULL);
 	(*mapping)->length = length;
 	(*mapping)->offset = offset;
 
@@ -130,10 +131,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		(*mapping)->fmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, flProtect, (DWORD)offset, (DWORD)length, NULL);		
 	}
 	if ((*mapping)->fmap == INVALID_HANDLE_VALUE) {
-		/* FIXME: handle error */
-		DWORD err = GetLastError();
-		printf("%d", err);
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
 
 	// To calculate where to start the file mapping, round down the
@@ -157,10 +155,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	
     (*mapping)->lpMapAddress = MapViewOfFile((*mapping)->fmap, dwDesiredAccess, dwHigh, dwLow, (SIZE_T)llMapViewSize);
 	if ((*mapping)->lpMapAddress == NULL) {
-		/* FIXME: handle error */
-		DWORD err = GetLastError();
-		printf("%d", err);
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);;
 	}
 	data = (unsigned char*)(*mapping)->lpMapAddress + delta;
 #else
@@ -203,8 +198,8 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     	(*mapping)->addr = mmap(0, length, pprot, pflags, -1, offset);
     }
     if ((*mapping)->addr == MAP_FAILED) {
-        /* FIXME: handle error */
-        return INA_FAILURE;
+		ina_mmap_free(ctx, mapping);
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     data = (unsigned char*)(*mapping)->addr;
 #endif
@@ -221,7 +216,9 @@ INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mappin
 	UnmapViewOfFile((*mapping)->lpMapAddress);
 	CloseHandle((*mapping)->fmap);
 #else
-    munmap((*mapping)->addr, (*mapping)->length);
+    if ((*mapping)->addr != MAP_FAILED && (*mapping)->addr != NULL) {
+		munmap((*mapping)->addr, (*mapping)->length);
+	}
 #endif
 	ina_mem_free(*mapping);
 	*mapping = NULL;
@@ -230,19 +227,17 @@ INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mappin
 
 INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 {
+	INA_ASSERT_NOTNULL(mapping);
 #ifdef INA_OS_WIN32
 	if (!FlushViewOfFile(mapping->begin_mmap, 0)) {
-		/* FIXME: handle error */
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
 	if (!FlushFileBuffers((HANDLE)ina_file_os_handle(mapping->fd))) {
-		/* FIXME: handle error */
-		return INA_FAILURE;
+		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
 #else
-    if (msync(mapping->addr, mapping->length, MS_SYNC) != 0) {
-        /* FIXME: handle error */
-        return INA_FAILURE;
+    if (msync(mapping->addr, mapping->length, MS_SYNC) == -1) {
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #endif
 	return INA_SUCCESS;
@@ -250,12 +245,16 @@ INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 
 INA_API(ina_rc_t) ina_mmap_memory_head(ina_mmap_mapping_t *mapping, void **memory)
 {
+	INA_ASSERT_NOTNULL(mapping);
+	INA_ASSERT_NOTNULL(memory);
 	*memory = mapping->begin_mmap;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memory)
 {
+	INA_ASSERT_NOTNULL(mapping);
+	INA_ASSERT_NOTNULL(memory);
 	*memory = mapping->end_mmap;
 	return INA_SUCCESS;
 }
@@ -274,8 +273,7 @@ INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, in
             break;
     }
     if (madvise(mapping->addr, mapping->length, padvice) != 0) {
-        /* FIXME: handle error */
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     } 
 #endif
 	return INA_SUCCESS;

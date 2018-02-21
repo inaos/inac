@@ -35,7 +35,7 @@ INA_TEST_DATA(string_mempool)
 
 INA_TEST_SETUP(string_mempool)
 {
-    ina_err_reset();
+    ina_err_clear_last_rc();
     INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&data->pool, 10*1024,INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(data->pool);
 }
@@ -795,12 +795,12 @@ INA_TEST(string, ina_str_wildcard_match)
 
 #define _INA_TEST_STRING_WILDCARD_TEST_OK(teme, wildcard)                  \
     ts = ina_str_new_fromcstr(teme);                                       \
-    INA_TEST_ASSERT_SUCCEED(ina_str_wildcard_match(ts, wildcard));         \
+    INA_TEST_ASSERT_FAILED(ina_str_wildcard_match(ts, wildcard));         \
     ina_str_free(ts);
 
 #define _INA_TEST_STRING_WILDCARD_TEST_NOK(teme, wildcard)                 \
     ts = ina_str_new_fromcstr(teme);                                       \
-    INA_TEST_ASSERT_NOTSUCCEED(ina_str_wildcard_match(ts, wildcard));      \
+    INA_TEST_ASSERT_FAILED(ina_str_wildcard_match(ts, wildcard));      \
     ina_str_free(ts);
 
     /* Cases with repeating character sequences. */

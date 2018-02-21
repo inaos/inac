@@ -50,14 +50,9 @@
 #include <net/if.h>
 #endif
 
-#define ANET_OK 0
-#define __INA_ERR -1
-
 #ifdef INA_OS_OSX
 #include <net/if_dl.h>
 #endif
-
-/*#include <contribs/anet/anet.h>*/
 
 #include <libinac/lib.h>
 
@@ -65,21 +60,9 @@
 #define __INA_SOCKET_TYPE_UDP 2
 
 #ifdef INA_OS_WIN32
-#define __INA_CLOSE(socket) closesocket(socket)
-#define __INA_STRERROR() strerror(WSAGetLastError())
-static int inet_aton(const char *address, struct in_addr *sock)
-{
-    int s;
-    s = inet_addr(address);
-    if (s == INADDR_NONE) {
-        return(0);
-    }
-    sock->s_addr = s;
-    return(1);
-}
+#define __INA_ERRNO WSAGetLastError()
 #else
-#define __INA_CLOSE(socket) close(socket)
-#define __INA_STRERROR() strerror(errno)
+#define __INA_ERRNO errno
 #endif
 
 struct ina_net_udp_receiver_s {
@@ -88,80 +71,69 @@ struct ina_net_udp_receiver_s {
     struct sockaddr_in addr;
 };
 
-static void __ina_set_error(char *err, const char *fmt, ...)
-{
-    va_list ap;
-
-    if (!err) return;
-    va_start(ap, fmt);
-    vsnprintf(err, INA_ERR_MSGLEN, fmt, ap);
-    va_end(ap);
-}
-
-static int __ina_create_socket(char* err, int domain, int type)
+INA_INLINE int __ina_eagain()
 {
 #ifdef INA_OS_WIN32
-    SOCKET s;
+    int e = WSAGetLastError();
+    return e == WSAEINPROGRESS||e == WSAEWOULDBLOCK;
+#else
+    return errno == EAGAIN || errno == EWOULDBLOCK || errno == EINPROGRESS;
+#endif
+}
+
+static ina_rc_t __ina_create_socket(int domain, int type, int *s)
+{
+#ifdef INA_OS_WIN32
     BOOL yes = TRUE;
 
     if (type == __INA_SOCKET_TYPE_TCP) {
-        s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
+        *s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
     }
     else if (type == __INA_SOCKET_TYPE_UDP) {
-        s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
+        *s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
+    } else {
+        return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
     }
-    else {
-        __ina_set_error(err, "unknown socket-type: %d!", type);
-    }
-    if (s == INVALID_SOCKET) {
-        __ina_set_error(err, "creating socket: %s", strerror(WSAGetLastError()));
-        return __INA_ERR;
+    if (*s == INVALID_SOCKET) {
+        return INA_USR_ERROR(INA_NN_SOCKET|INA_ERR_NOT_CREATED, __INA_ERRNO);
     }
 
-    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(BOOL)) == SOCKET_ERROR) {
-        __ina_set_error(err, "setsockopt SO_REUSEADDR: %s", strerror(WSAGetLastError()));
-        return __INA_ERR;
+    if (setsockopt(*s, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(BOOL)) == SOCKET_ERROR) {
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
-    return s;
 #else
-    int s = -1;
     int on = 1;
+    INA_ASSERT_NOTNULL(s);
 
     if (type == __INA_SOCKET_TYPE_TCP) {
-        s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
+        *s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
     }
     else if (type == __INA_SOCKET_TYPE_UDP) {
-        s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
-    }
-    else {
-        __ina_set_error(err, "unknown socket-type: %d!", type);
-    }
-
-    if (s == -1) {
-        __ina_set_error(err, "creating socket: %s", strerror(errno));
-        return __INA_ERR;
+        *s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
+    } else {
+        return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
     }
 
-    /* Make sure connection-intensive things like the redis benckmark
- *      * will be able to close/open sockets a zillion of times */
-    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
-        __ina_set_error(err, "setsockopt SO_REUSEADDR: %s", strerror(errno));
-        return __INA_ERR;
+    if (*s == -1) {
+        return INA_USR_ERROR(INA_NN_SOCKET|INA_ERR_NOT_CREATED, __INA_ERRNO);
     }
-    return s;
+
+    /* Make sure connection-intensive things like the redis benchmark
+       will be able to close/open sockets a zillion of times */
+    if (setsockopt(*s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
+    }
 #endif
+    return INA_SUCCESS;
 }
 
 #define __INA_CONNECT_NONE 0
 #define __INA_CONNECT_NONBLOCK 1
-static int __ina_tcp_generic_connect(char *err, char *addr, int port, int flags)
+static ina_rc_t __ina_tcp_generic_connect(int *s, char *addr, int port, int flags)
 {
-    int s;
     struct sockaddr_in sa;
 
-	if ((s = __ina_create_socket(err, AF_INET, __INA_SOCKET_TYPE_TCP)) == __INA_ERR) {
-		return __INA_ERR;
-	}
+	INA_RETURN_IF_FAILED(__ina_create_socket(AF_INET, __INA_SOCKET_TYPE_TCP, s));
 
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
@@ -170,68 +142,51 @@ static int __ina_tcp_generic_connect(char *err, char *addr, int port, int flags)
 
         he = gethostbyname(addr);
         if (he == NULL) {
-            __ina_set_error(err, "can't resolve: %s", addr);
-            __INA_CLOSE(s);
-            return __INA_ERR;
+            ina_net_close(*s);
+            return INA_OS_ERROR(INA_NN_HOST|INA_ERR_NOT_RESOLVED);
         }
         memcpy(&sa.sin_addr, he->h_addr, sizeof(struct in_addr));
     }
     if (flags & __INA_CONNECT_NONBLOCK) {
-        if (!INA_SUCCEED(ina_net_nonblock(s))) {
-            return __INA_ERR;
+        INA_RETURN_IF_FAILED(ina_net_nonblock(*s));
+    }
+
+    if (connect(*s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
+        if (__ina_eagain()  &&
+             flags & __INA_CONNECT_NONBLOCK) {
+            return INA_SUCCESS;
         }
-    }
-    if (connect(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
-#ifdef WIN32
-        if ((WSAGetLastError() == WSAEINPROGRESS || WSAGetLastError() == WSAEWOULDBLOCK)  &&
-         flags & __INA_CONNECT_NONBLOCK)
-         return(s);
-#else
-        if (errno == EINPROGRESS &&
-            flags & __INA_CONNECT_NONBLOCK)
-            return s;
-#endif
-
-#ifdef WIN32
-        __ina_set_error(err, "connect: %s (%d)", strerror(WSAGetLastError()), WSAGetLastError());
-#else
-        __ina_set_error(err, "connect: %s", strerror(errno));
-#endif
-        __INA_CLOSE(s);
-        return __INA_ERR;
-    }
-    return s;
-}
-
-static ina_rc_t __ina_listen(char *err, int s, struct sockaddr *sa, socklen_t len) {
-    if (bind(s,sa,len) == -1) {
-        __ina_set_error(err, "bind: %s", __INA_STRERROR());
-        __INA_CLOSE(s);
-        return INA_NET_ERROR(err);
-    }
-    if (listen(s, 511) == -1) { /* the magic 511 constant is from nginx */
-        __ina_set_error(err, "listen: %s", __INA_STRERROR());
-        __INA_CLOSE(s);
-        return INA_NET_ERROR(err);
+        ina_net_close(*s);
+        return INA_USR_ERROR(INA_NN_SOCKET|INA_ERR_NOT_CONNECTED, __INA_ERRNO);
     }
     return INA_SUCCESS;
 }
 
-static int __ina_generic_accept(char *err, int s, struct sockaddr *sa, socklen_t *len) {
-    int fd;
+static ina_rc_t __ina_listen(int s, struct sockaddr *sa, socklen_t len) {
+    if (bind(s,sa,len) == -1) {
+        ina_net_close(s);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
+    }
+    if (listen(s, 511) == -1) { /* the magic 511 constant is from nginx */
+        ina_net_close(s);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
+    }
+    return INA_SUCCESS;
+}
+
+static ina_rc_t __ina_generic_accept(int s, int *fd, struct sockaddr *sa, socklen_t *len) {
     while(1) {
-        fd = accept(s,sa,len);
-        if (fd == -1) {
+        *fd = accept(s,sa,len);
+        if (*fd == -1) {
             if (errno == EINTR)
                 continue;
             else {
-                __ina_set_error(err, "accept: %s", __INA_STRERROR());
-                return __INA_ERR;
+                return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
             }
         }
         break;
     }
-    return fd;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_count, ina_str_t **addresses)
@@ -246,7 +201,7 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
 
     remote_host = gethostbyname(hostname);
     if (remote_host == NULL || remote_host->h_addrtype != AF_INET) {
-        return INA_DNS_ELOOKUP;
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
 
     /* count how many addresses we have */
@@ -255,12 +210,12 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
         cnt++;
     }
     if (cnt == 0) {
-        return INA_DNS_ELOOKUP;
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
 
     *addresses = (ina_str_t*)ina_mem_alloc(sizeof(char)*15*cnt);
     if (*addresses == NULL) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_last_rc();
     }
     addresses_ptr = *addresses;
 
@@ -278,34 +233,22 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
     INA_ASSERT_NOTNULL(host);
-#ifdef INA_OS_WIN32
     if (gethostname(host, len) != 0) {
-        int ec = WSAGetLastError();
-        char err[INA_ERR_MSGLEN];
-        sprintf(err, "gethostname failed with error-code: %d", ec);
-        return INA_NET_ERROR(err);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
-#else
-    if (gethostname(host, len) != 0) {
-        char err[INA_ERR_MSGLEN];
-        sprintf(err, "gethostname failed with error-code: %d", errno);
-        return INA_NET_ERROR(err);
-    }
-#endif
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr)
 {
-    char err[INA_ERR_MSGLEN];
     struct sockaddr_in sa;
 
     INA_ASSERT_NOTNULL(fd);
     INA_ASSERT_NOTNULL(bindaddr);
     INA_ASSERT_TRUE(port > 0);
 
-    if ((*fd = __ina_create_socket(err, AF_INET, __INA_SOCKET_TYPE_TCP)) == __INA_ERR) {
-        return INA_NET_ERROR(err);
+    if (!INA_SUCCEED(__ina_create_socket(AF_INET, __INA_SOCKET_TYPE_TCP, fd))) {
+        return ina_err_get_last_rc();
     }
 
     memset(&sa,0,sizeof(sa));
@@ -313,104 +256,80 @@ INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr)
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bindaddr && inet_aton(bindaddr, &sa.sin_addr) == 0) {
-        __ina_set_error(err, "invalid bind address");
-        __INA_CLOSE(*fd);
-        return INA_NET_ERROR(err);
+        ina_net_close(*fd);
+        INA_USR_ERROR(INA_NN_ADDRESS|INA_ERR_INVALID, __INA_ERRNO);
     }
-    if (!INA_SUCCEED(__ina_listen(err, *fd,(struct sockaddr*)&sa, sizeof(sa)))) {
-        __INA_CLOSE(*fd);
-        return INA_NET_ERROR(err);
-    }
+    INA_RETURN_IF_FAILED(__ina_listen(*fd,(struct sockaddr*)&sa, sizeof(sa)));
 
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port)
 {
-    char err[INA_ERR_MSGLEN];
     struct sockaddr_in sa;
     socklen_t salen = sizeof(sa);
 
     INA_ASSERT_NOTNULL(fd);
     INA_ASSERT_TRUE(sfd > 0);
 
-    if ((*fd = __ina_generic_accept(err,sfd,(struct sockaddr*)&sa,&salen)) == __INA_ERR)
-        return INA_NET_ERROR(err);
+    if (!INA_SUCCEED(__ina_generic_accept(sfd, fd, (struct sockaddr*)&sa,&salen))) {
+        return ina_err_get_last_rc();
+    }
 
     if (ip) strcpy(ip,inet_ntoa(sa.sin_addr));
     if (port) *port = ntohs(sa.sin_port);
 
-    if (*fd == __INA_ERR) {
-#ifdef INA_OS_WIN32
-        int ec = WSAGetLastError();
-        /* this is ok we have a non-blocking socket */ 
-        if (ec != WSAEWOULDBLOCK) {
-            return INA_NET_ERROR(err);
-        }
-#else
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            return INA_NET_ERROR(err);
-        }
-#endif
+    if (*fd == -1 && !__ina_eagain()) {
+        return ina_err_get_last_rc();
     }
     return INA_SUCCESS;
 }
 INA_API(ina_rc_t) ina_net_tcp_connect(int* fd, const char *addr, int port, int timeout_sec)
 {
-    char err[INA_ERR_MSGLEN];
-
     INA_ASSERT_NOTNULL(fd);
     INA_ASSERT_NOTNULL(addr);
     INA_ASSERT_TRUE(port > 0);
 
     if (timeout_sec > 0) {
-        *fd = __ina_tcp_generic_connect(err, (char*)addr, port, __INA_CONNECT_NONBLOCK);
-        if (*fd != __INA_ERR) {
-            fd_set fdset;
-            struct timeval timeout;
+        if (INA_SUCCEED(__ina_tcp_generic_connect(fd, (char *) addr, port, __INA_CONNECT_NONBLOCK))) {
+            if (*fd != -1) {
+                fd_set fdset;
+                struct timeval timeout;
 
-            ina_mem_set(&fdset, 0, sizeof(fd_set));
-            FD_ZERO(&fdset);
-            FD_SET(*fd, &fdset);
-            timeout.tv_sec = timeout_sec;
-            timeout.tv_usec = 0;
-            if (select(*fd+1, NULL, &fdset, NULL, &timeout) > 0) {
-                int so_error = 0;
-                socklen_t so_len = sizeof(int);
-                getsockopt(*fd, SOL_SOCKET, SO_ERROR, (void*)(&so_error), &so_len);
-                if (so_error) {
+                ina_mem_set(&fdset, 0, sizeof(fd_set));
+                FD_ZERO(&fdset);
+                FD_SET(*fd, &fdset);
+                timeout.tv_sec = timeout_sec;
+                timeout.tv_usec = 0;
+                if (select(*fd + 1, NULL, &fdset, NULL, &timeout) > 0) {
+                    int so_error = 0;
+                    socklen_t so_len = sizeof(int);
+                    getsockopt(*fd, SOL_SOCKET, SO_ERROR, (void *) (&so_error), &so_len);
+                    if (so_error) {
+                        ina_net_close(*fd);
+                        return INA_USR_ERROR(INA_NN_SOCKET || INA_ERR_NOT_CONNECTED, __INA_ERRNO);
+                    }
+                } else {
                     ina_net_close(*fd);
-                    return INA_NET_ERROR("Could not connect");
+                    return INA_ERROR(INA_NN_SOCKET || INA_ERR_TIMED_OUT);
                 }
-            } else {
-                ina_net_close(*fd);
-                return INA_NET_ETIMEOUT;
+                return ina_net_block(*fd);
             }
-            return ina_net_block(*fd);
         }
-
-        /* Do a blocking connect */
-    } else {
-        *fd = __ina_tcp_generic_connect(err, (char*)addr, port, __INA_CONNECT_NONE);
+        return ina_err_get_last_rc();
     }
-
-    if (*fd == __INA_ERR) {
-        return INA_NET_ERROR(err);
-    }
-    return INA_SUCCESS;
+    /* Do a blocking connect */
+    return __ina_tcp_generic_connect(fd, (char*)addr, port, __INA_CONNECT_NONE);
 }
 
 INA_API(ina_rc_t) ina_net_nonblock(int fd)
 {
-    char err[INA_ERR_MSGLEN];
-
     INA_ASSERT_TRUE(fd > 0);
 #ifdef INA_OS_WIN32
     {
         unsigned long enable = 1;
         if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
-            __ina_set_error(err, "ioctlsocket(FIONBIO)");
-            return INA_NET_ERROR(err);
+           return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
         }
     }
 #else
@@ -419,12 +338,10 @@ INA_API(ina_rc_t) ina_net_nonblock(int fd)
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
     if ((flags = fcntl(fd, F_GETFL)) == -1) {
-        __ina_set_error(err, "fcntl(F_GETFL): %s", strerror(errno));
-        return INA_NET_ERROR(err);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        __ina_set_error(err, "fcntl(F_SETFL,O_NONBLOCK): %s", strerror(errno));
-        return INA_NET_ERROR(err);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
 #endif
     return INA_SUCCESS;
@@ -441,32 +358,16 @@ INA_API(ina_rc_t) ina_net_read(int fd, unsigned char *buf, int nb, int* nb_read)
     *nb_read = recv(fd, buf, nb, 0);
 #else
 	*nb_read = read(fd, buf, nb);
-	if (*nb_read == __INA_ERR) {
 #endif
-#ifdef INA_OS_WIN32
-    {
-        int ec = WSAGetLastError();
-        /* this is ok we have a non-blocking socket */
-        if (ec != WSAEWOULDBLOCK) {
-            /* FIXME : Stay in line with the coding standards */
-            /*         define Error message in error.h */
-            return INA_NET_ERROR("Error reading");
-        }
+
+	if (*nb_read == -1 && !__ina_eagain()) {
+        return INA_USR_ERROR(INA_NN_READ|INA_ERR_FAILED, __INA_ERRNO);
     }
-#else
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            /* FIXME : Stay in line with the coding standards */
-            /*         define Error message in error.h */
-            return INA_NET_ERROR("Error reading");
-        }
-    }
-#endif
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf)
 {
-    char err[INA_ERR_MSGLEN];
     struct sockaddr_in sa;
 
     INA_ASSERT_NOTNULL(host);
@@ -478,8 +379,7 @@ INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf)
 
         he = gethostbyname(host);
         if (he == NULL) {
-            __ina_set_error(err, "can't resolve: %s", host);
-            return INA_NET_ERROR(err);
+            return INA_USR_ERROR(INA_NN_HOST|INA_ERR_NOT_RESOLVED, __INA_ERRNO);
         }
         memcpy(&sa.sin_addr, he->h_addr, sizeof(struct in_addr));
     }
@@ -513,10 +413,8 @@ INA_API(ina_rc_t) ina_net_write(int fd, const unsigned char *buf, int nb, int* n
         totlen += nwritten;
         buf += nwritten;
     }
-    if (*nb_write == __INA_ERR) {
-        /* FIXME : Stay in line with the coding standards */
-        /*         define Error message in error.h */
-        return INA_NET_ERROR("Error writing");
+    if (*nb_write == -1) {
+        return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
     }
     *nb_write = totlen;
     return INA_SUCCESS;
@@ -536,12 +434,9 @@ INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int
         buf.buf = (CHAR*)iov->iov_base;
         buf.len = iov->iov_len;
         if (WSARecv(fd, &buf, iovcnt, &sread, NULL, NULL, NULL) != 0) {
-            int ec = WSAGetLastError();
             /* this is ok we have a non-blocking socket */ 
-            if (ec != WSAEWOULDBLOCK) {
-                /* FIXME : Stay in line with the coding standards */
-                /*         define Error message in error.h */
-                return INA_NET_ERROR("Error reading");
+            if (!__ina_eagain()) {
+                return INA_USR_ERROR(INA_NN_READ|INA_ERR_FAILED, __INA_ERRNO);
             }
         }
         *nb_read = sread;
@@ -549,10 +444,8 @@ INA_API(ina_rc_t) ina_net_readv(int fd, const struct iovec *iov, int iovcnt, int
 #else
     *nb_read = readv(fd, iov, iovcnt);
     if (*nb_read == -1) {
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            /* FIXME : Stay in line with the coding standards */
-            /*         define Error message in error.h */
-            return INA_NET_ERROR("Error reading");
+        if (!__ina_eagain()) {
+            return INA_USR_ERROR(INA_NN_READ|INA_ERR_FAILED, __INA_ERRNO);
         }
     }
 #endif
@@ -574,12 +467,8 @@ INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, in
         buf.buf = (CHAR*)iov->iov_base;
         buf.len = iov->iov_len;
         if (WSASend(fd, &buf, iovcnt, &swrite, 0, NULL, NULL) != 0) {
-            int ec = WSAGetLastError();
-            /* this is ok we have a non-blocking socket */ 
-            if (ec != WSAEWOULDBLOCK) {
-                /* FIXME : Stay in line with the coding standards */
-                /*         define Error message in error.h */
-                return INA_NET_ERROR("Error writing");
+            if (!__ina_eagain()) {
+               return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
             }
         }
         *nb_write = swrite;
@@ -587,10 +476,8 @@ INA_API(ina_rc_t) ina_net_writev(int fd, const struct iovec *iov, int iovcnt, in
 #else
     *nb_write = writev(fd, iov, iovcnt);
     if (*nb_write == -1) {
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            /* FIXME : Stay in line with the coding standards */
-            /*         define Error message in error.h */
-            return INA_NET_ERROR("Error writing");
+        if (!__ina_eagain()) {
+            return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
         }
     }
 #endif
@@ -615,12 +502,8 @@ INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, i
             bufs[i].len = msg->msg_iov[i].iov_len;
         }
         if (WSASend(fd, bufs, msg->msg_iovlen, &send, flags, NULL, NULL) != 0) {
-            int ec = WSAGetLastError();
-            /* this is ok we have a non-blocking socket */ 
-            if (ec != WSAEWOULDBLOCK) {
-                /* FIXME : Stay in line with the coding standards */
-                /*         define Error message in error.h */
-                return INA_NET_ERROR("Error writing");
+            if (!__ina_eagain()) {
+               return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
             }
         }
         *nb_send = send;
@@ -628,10 +511,8 @@ INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, i
 #else
     *nb_send = sendmsg(fd, msg, flags);
     if (*nb_send == -1) {
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            /* FIXME : Stay in line with the coding standards */
-            /*         define Error message in error.h */
-            return INA_NET_ERROR("Error sending");
+        if (!__ina_eagain()) {
+            return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
         }
     }
 #endif
@@ -642,21 +523,23 @@ INA_API(ina_rc_t) ina_net_sendmsg(int fd, const struct msghdr *msg, int flags, i
 INA_API(ina_rc_t) ina_net_close(int fd)
 {
     INA_ASSERT_TRUE(fd > 0);
-    __INA_CLOSE(fd);
+#ifdef INA_OS_WIN32
+    closesocket(fd);
+#else
+    close(fd);
+#endif
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_net_udp_bind(int *fd, const char *addr, int port)
 {
-    char err[INA_ERR_MSGLEN];
     struct sockaddr_in sa;
 
     INA_ASSERT_NOTNULL(fd);
     INA_ASSERT_NOTNULL(addr);
     INA_ASSERT_TRUE(port > 0);
 
-    if ((*fd = __ina_create_socket(err, AF_INET, __INA_SOCKET_TYPE_UDP)) == __INA_ERR)
-        return INA_NET_ERROR(err);
+    INA_RETURN_IF_FAILED(__ina_create_socket(AF_INET, __INA_SOCKET_TYPE_UDP, fd));
 
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
@@ -664,16 +547,14 @@ INA_API(ina_rc_t) ina_net_udp_bind(int *fd, const char *addr, int port)
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(*fd, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
-        __ina_set_error(err, "bind: %s", __INA_STRERROR());
-        __INA_CLOSE(*fd);
-        return INA_NET_ERROR(err);
+        ina_net_close(*fd);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *source)
 {
-    char err[INA_ERR_MSGLEN];
     struct ip_mreq imr;
 
     imr.imr_multiaddr.s_addr=inet_addr(source);
@@ -683,15 +564,13 @@ INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *so
     INA_ASSERT_NOTNULL(localif);
     INA_ASSERT_NOTNULL(source);
 
-#if INA_OS_WIN32
+#ifdef INA_OS_WIN32
     if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
-        __ina_set_error(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(WSAGetLastError()));
-        return INA_NET_ERROR(err);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
 #else
     if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
-        __ina_set_error(err, "setsockopt IP_ADD_MEMBERSHIP: %s", strerror(errno));
-        return INA_NET_ERROR(err);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
 #endif
     return INA_SUCCESS;
@@ -699,7 +578,6 @@ INA_API(ina_rc_t) ina_net_join_group(int fd, const char *localif, const char *so
 
 INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *source)
 {
-    char err[INA_ERR_MSGLEN];
     struct ip_mreq imr;
 
     imr.imr_multiaddr.s_addr=inet_addr(source);
@@ -709,15 +587,13 @@ INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *s
     INA_ASSERT_NOTNULL(localif);
     INA_ASSERT_NOTNULL(source);
 
-#if INA_OS_WIN32
+#ifdef INA_OS_WIN32
     if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
-        __ina_set_error(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(WSAGetLastError()));
-        return INA_NET_ERROR(err);
+       return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
 #else
     if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
-        __ina_set_error(err, "setsockopt IP_DROP_MEMBERSHIP: %s", strerror(errno));
-        return INA_NET_ERROR(err);
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);;
     }
 #endif
     return INA_SUCCESS;
@@ -725,13 +601,8 @@ INA_API(ina_rc_t) ina_net_leave_group(int fd, const char *localif, const char *s
 
 INA_API(ina_rc_t) ina_net_udp_socket(int* fd)
 {
-    char err[INA_ERR_MSGLEN];
-
     INA_ASSERT_TRUE(fd > 0);
-
-    if ((*fd = __ina_create_socket(err, AF_INET, __INA_SOCKET_TYPE_UDP)) == __INA_ERR) {
-        return INA_NET_ERROR(err);
-    }
+    INA_RETURN_IF_FAILED(__ina_create_socket(AF_INET, __INA_SOCKET_TYPE_UDP, fd));
     return INA_SUCCESS;
 }
 
@@ -759,10 +630,8 @@ INA_API(ina_rc_t) ina_net_udp_send(int fd, ina_net_udp_receiver_t *receiver, uns
         buf += nwritten;
     }
 
-    if (*nb_write == __INA_ERR) {
-        /* FIXME : Stay in line with the coding standards */
-        /*         define Error message in error.h */
-        return INA_NET_ERROR("Error sending");
+    if (*nb_write == -1) {
+        return INA_USR_ERROR(INA_NN_WRITE|INA_ERR_FAILED, __INA_ERRNO);
     }
     return INA_SUCCESS;
 }
@@ -779,7 +648,7 @@ INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_ne
 
     (*receiver)->addr.sin_family = AF_INET;
     if (address && inet_aton(address, &(*receiver)->addr.sin_addr) == 0) {
-        return INA_NET_ERROR("Invalid IP address");
+        return INA_USR_ERROR(INA_NN_ADDRESS|INA_ERR_INVALID, __INA_ERRNO);
     }
     (*receiver)->addr.sin_port = htons(port);
 
@@ -804,7 +673,7 @@ INA_API(ina_rc_t) ina_net_set_read_timeout(int fd, int msec)
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
                    sizeof(timeout)) < 0) {
-        return INA_NET_ERROR("setsockopt failed\n");
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);;
     }
     return INA_SUCCESS;
 }
@@ -820,7 +689,7 @@ INA_API(ina_rc_t) ina_net_set_write_timeout(int fd, int msec)
 
     if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
                    sizeof(timeout)) < 0) {
-        return INA_NET_ERROR("setsockopt failed\n");
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
     return INA_SUCCESS;
 }
@@ -830,7 +699,7 @@ INA_API(ina_rc_t) ina_net_block(int fd)
 {
     unsigned long enable = 0; /* disable non-blocking */
     if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
-        return INA_NET_ERROR("failed to block");
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }
@@ -842,10 +711,10 @@ INA_API(ina_rc_t) ina_net_block(int fd)
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
     if ((flags = fcntl(fd, F_GETFL)) == -1) {
-        return INA_NET_ERROR("fcntl(F_GETFL)");
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
     if (fcntl(fd, F_SETFL, flags & ~O_NONBLOCK) == -1) {
-        return INA_NET_ERROR("fcntl(F_SETFL,O_NONBLOCK): %s");
+        return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);;
     }
     return INA_SUCCESS;
 }
@@ -908,7 +777,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     if (found) {
         return INA_SUCCESS;
     }
-    return INA_FAILURE;
+    return INA_ERROR(INA_NN_MAC|INA_ERR_NOT_DETECTED);
 }
 #else
 INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
@@ -919,7 +788,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     int found = INA_NO;
 
     if (getifaddrs(&ifaddr) == -1) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 
     for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
@@ -935,7 +804,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
 
     if (!found) {
         freeifaddrs(ifaddr);
-        return INA_FAILURE;
+        return INA_ERROR(INA_NN_MAC|INA_ERR_NOT_DETECTED);
     }
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -944,7 +813,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
         close(fd);
         freeifaddrs(ifaddr);
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     close(fd);
     memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
@@ -959,18 +828,13 @@ INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int
 #ifdef INA_OS_WIN32
     int rc = WSAPoll(fds, nfds, timeout);
     if (rc == SOCKET_ERROR) {
-        int ec = WSAGetLastError();
-        char err[INA_ERR_MSGLEN];
-        sprintf(err, "poll failed with error-code: %d", ec);
-        return INA_NET_ERROR(err);
+        return INA_USR_ERROR(INA_NN_IO|INA_ERR_FAILED, __INA_ERRNO);
     }
     *num_fds_ready = rc;
 #else
     int rc = poll(fds, nfds, timeout);
     if (rc < 0) {
-        char err[INA_ERR_MSGLEN];
-        sprintf(err, "poll failed with error-code: %d", errno);
-        return INA_NET_ERROR(err);
+        return INA_USR_ERROR(INA_NN_IO|INA_ERR_FAILED, __INA_ERRNO);
     }
     *num_fds_ready = rc;
 #endif

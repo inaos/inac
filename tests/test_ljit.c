@@ -92,7 +92,7 @@ INA_TEST(ljit, call)
     double r = 0;
     char *rs = NULL;
 
-    ina_err_reset();
+    ina_err_clear_last_rc();
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);

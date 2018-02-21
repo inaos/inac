@@ -74,7 +74,7 @@ INA_TEST(cron, add_tasks_non_persistent_and_utils)
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_new_iter(ctx, &itr));
     while (task != NULL) {
         ina_str_t patt;
-        INA_TEST_ASSERT_NOTSUCCEED(ina_cron_task_is_running(task));
+        INA_TEST_ASSERT_FAILED(ina_cron_task_is_running(task));
         INA_TEST_ASSERT_SUCCEED(ina_cron_task_get_pattern(task, &patt));
         INA_TEST_ASSERT_NOT_NULL(patt);
         found++;

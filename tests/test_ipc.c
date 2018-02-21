@@ -98,7 +98,7 @@ INA_TEST(ipc_flags, is_set)
   
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_is_set", F1|F2|F3, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
-    INA_TEST_ASSERT_NOTSUCCEED(ina_ipc_flags_is_set(f, F4));
+    INA_TEST_ASSERT_FAILED(ina_ipc_flags_is_set(f, F4));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F1));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_is_set(f, F2));
@@ -169,7 +169,7 @@ INA_TEST(ipc_flags, wait)
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_wait", F1|F2|F3, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
-    INA_TEST_ASSERT_NOTSUCCEED(ina_ipc_flags_wait(f, F1|F2|F3|F4, 200));
+    INA_TEST_ASSERT_FAILED(ina_ipc_flags_wait(f, F1|F2|F3|F4, 200));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, F1|F2|F3|F4, 200));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, F4, 200));
@@ -182,8 +182,9 @@ INA_TEST(ipc_flags, wait_ipc)
     ina_ipc_flags_t *f;
     
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_wait_ipc", 0, &f));
-    INA_TEST_ASSERT_NOTSUCCEED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 500));
-    INA_TEST_HELPER_INVOKE(&hid, ipc, set_unset_flag,  
+    INA_TEST_ASSERT_FAILED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 500));
+    INA_TEST_ASSERT_FAILED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 500));
+    INA_TEST_HELPER_INVOKE(&hid, ipc, set_unset_flag,
         "test_wait_ipc", NULL);    
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 1000));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, 0, 2500));
