@@ -150,6 +150,7 @@ INA_TEST(process, start_and_wait)
     INA_TEST_ASSERT_SUCCEED(ina_process_get_exit_code(process, &exit_code));
     INA_TEST_ASSERT_EQUAL_INTEGER(0, exit_code);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
+    INA_TEST_ASSERT_SUCCEED(ina_process_destroy(&ctx));
 }
 
 INA_TEST(process, stop)
@@ -157,14 +158,15 @@ INA_TEST(process, stop)
     ina_process_ctx_t *ctx;
     ina_process_t *process;
     ina_process_descriptor_t pd;
-    
+    ina_fsm_state_t state;
+
     INA_TEST_ASSERT_SUCCEED(ina_process_init(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
     ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
     pd.full_path = ina_str_new_fromcstr(__INA_TEST_EXE);
-    pd.working_dir = ina_str_new_fromcstr("");
-    pd.startup_args = ina_str_new_fromcstr("-h process spwan_and_wait ");
+    pd.working_dir = NULL;
+    pd.startup_args = ina_str_new_fromcstr("-h process spawn_and_wait 0");
     pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET;
     pd.managed_type = 0;
     pd.scheduled_start_pattern = ina_str_new_fromcstr("");
@@ -174,9 +176,15 @@ INA_TEST(process, stop)
 
     INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, &pd, &process));
     INA_TEST_ASSERT_NOT_NULL(process);
+    INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
+    INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_RUNNING, state);
     INA_TEST_ASSERT_SUCCEED(ina_process_stop(process));
+    INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_STOPPED, state);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
     INA_TEST_ASSERT_NULL(process);
+    INA_TEST_ASSERT_SUCCEED(ina_process_destroy(&ctx));
 }
 
 INA_TEST(process, state)
@@ -191,8 +199,8 @@ INA_TEST(process, state)
 
     ina_mem_set(&pd, 0, sizeof(ina_process_descriptor_t));
     pd.full_path = ina_str_new_fromcstr(__INA_TEST_EXE);
-    pd.working_dir = ina_str_new_fromcstr("");
-    pd.startup_args = ina_str_new_fromcstr("-h process spwan_and_wait");
+    pd.working_dir = NULL;
+    pd.startup_args = ina_str_new_fromcstr("-h process spawn_and_wait 0");
     pd.lifecycle = INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET;
     pd.managed_type = 0;
     pd.scheduled_start_pattern = ina_str_new_fromcstr("");
@@ -203,12 +211,15 @@ INA_TEST(process, state)
     INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, &pd, &process));
     INA_TEST_ASSERT_NOT_NULL(process);
     INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_STARTABLE, state);
+    INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
+    INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_RUNNING, state);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
     INA_TEST_ASSERT_NULL(process);
 }
 
-INA_TEST_SKIP(process, should_be_running)
+INA_TEST(process, should_be_running)
 {
     ina_process_ctx_t *ctx;
     ina_process_t *process;
@@ -266,11 +277,7 @@ INA_TEST(process, stat)
     int num_threads = 0;
     const char *cmd = NULL;
 
-#ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "test.exe"));
-#else
-    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "test"));
-#endif
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, __INA_TEST_EXE));
     INA_TEST_ASSERT_NOT_NULL(ps);
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_query(ps));
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_alive(ps, &alive));

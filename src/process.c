@@ -169,35 +169,23 @@ ina_rc_t __ina_process_cron_stop_cb(ina_cron_ctx_t *ctx, void *user_data)
 
 INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx)
 {
-    ina_rc_t rc;
-
-    INA_ASSERT_NOTNULL(ctx);
-
+    INA_VERIFY_NOT_NULL(ctx);
     *ctx = (ina_process_ctx_t*)ina_mem_alloc(sizeof(ina_process_ctx_t));
     INA_RETURN_IF(*ctx == NULL);
-
-    if (INA_SUCCEED(ina_time_sys_new(&(*ctx)->systime))) {
-        if (INA_SUCCEED(ina_mempool_create(&(*ctx)->mempool,
+    INA_RETURN_IF_FAILED(ina_time_sys_new(&(*ctx)->systime));
+    INA_RETURN_IF_FAILED(ina_mempool_create(&(*ctx)->mempool,
                                            4096,
                                            INA_MEM_DYNAMIC,
-                                           NULL))) {
+                                           NULL));
+    INA_RETURN_IF_FAILED(ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL, *ctx));
 
-            if (INA_SUCCEED(
-                    ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL, *ctx))) {
-                return INA_SUCCESS;
-            }
-        }
-    }
-
-    rc = ina_err_get_last_rc();
-    ina_process_destroy(ctx);
-    return ina_err_set_last_rc(rc, INA_AT);
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(*ctx);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(*ctx);
 
     if (HASH_COUNT((*ctx)->processes) > 0) {
         ina_process_t *p, *pt;
@@ -294,9 +282,9 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
                               time_t stop_wait_time_ms,
                               uint32_t start_flags)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(full_path);
-    INA_ASSERT_TRUE(strlen(full_path));
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(full_path);
+    INA_VERIFY(strlen(full_path));
 
     *descriptor = (ina_process_descriptor_t*) ina_mem_alloc(
                                         sizeof(ina_process_descriptor_t));
@@ -304,20 +292,20 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
 
     (*descriptor)->full_path = ina_str_new_fromcstr(full_path);
 
-    if (working_dir) {
+    if (working_dir != NULL) {
         (*descriptor)->working_dir = ina_str_new_fromcstr(working_dir);
     }
-    if (startup_args) {
+    if (startup_args != NULL) {
         (*descriptor)->startup_args = ina_str_new_fromcstr(startup_args);
     }
 
     (*descriptor)->lifecycle = lifecycle;
     (*descriptor)->managed_type = managed_type;
-    if (scheduled_start_pattern) {
+    if (scheduled_start_pattern != NULL) {
         (*descriptor)->scheduled_start_pattern = ina_str_new_fromcstr(
                                                     scheduled_start_pattern);
     }
-    if (scheduled_stop_pattern) {
+    if (scheduled_stop_pattern != NULL) {
         (*descriptor)->scheduled_stop_pattern = ina_str_new_fromcstr(
                                                     scheduled_stop_pattern);
     }
@@ -328,8 +316,8 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
 
 INA_API(ina_rc_t) ina_process_descriptor_free(ina_process_descriptor_t **descriptor)
 {
-    INA_ASSERT_NOTNULL(descriptor);
-    INA_ASSERT_NOTNULL(*descriptor);
+    INA_VERIFY_NOT_NULL(descriptor);
+    INA_VERIFY_NOT_NULL(*descriptor);
 
     if ((*descriptor)->c_ref > 0) {
         return INA_ERROR(INA_NN_DESCRIPTOR|INA_ERR_IN_USE);
@@ -362,9 +350,9 @@ INA_API(ina_rc_t) ina_process_exec(ina_process_ctx_t *ctx,
                                    ina_process_t **process)
 {
     ina_process_descriptor_t *ds = NULL;
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(full_path);
-    INA_ASSERT_NOTNULL(process);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(full_path);
+    INA_VERIFY_NOT_NULL(process);
 
     *process = NULL;
 
@@ -390,9 +378,10 @@ INA_API(ina_rc_t) ina_process_exec_and_wait(ina_process_ctx_t *ctx,
 {
     int exit_code;
     ina_process_descriptor_t *ds = NULL;
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(full_path);
-    INA_ASSERT_NOTNULL(process);
+
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(full_path);
+    INA_VERIFY_NOT_NULL(process);
 
     *process = NULL;
 
@@ -422,9 +411,9 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                   ina_process_t **process)
 {
     ina_mempool_t *mp;
-    INA_ASSERT_NOTNULL(descriptor);
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(process);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(descriptor);
+    INA_VERIFY_NOT_NULL(process);
 
     *process = NULL;
 
@@ -538,8 +527,8 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
 INA_API(ina_rc_t) ina_process_free(ina_process_t **process)
 {
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(*process);
+    INA_VERIFY_NOT_NULL(process);
+    INA_VERIFY_NOT_NULL(*process);
 
     /* Release descriptor if any */
     if ((*process)->descriptor != NULL) {
@@ -547,21 +536,20 @@ INA_API(ina_rc_t) ina_process_free(ina_process_t **process)
     }
     (*process)->init = INA_YES;
     (*process)->descriptor = NULL;
-    /* FIXME: reset memory pool here */
     *process = NULL;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_start(ina_process_t *process)
 {
-    INA_ASSERT_NOTNULL(process);
+    INA_VERIFY_NOT_NULL(process);
     INA_FSM_FIRE_EVENT(process_fsm, process->state, INA_PROCESS_START, process);
     return process->last_rc;
 }
 
 INA_API(ina_rc_t) ina_process_stop(ina_process_t *process)
 {
-    INA_ASSERT_NOTNULL(process);
+    INA_VERIFY_NOT_NULL(process);
     INA_FSM_FIRE_EVENT(process_fsm, process->state, INA_PROCESS_STOP, process);
     return process->last_rc;
 }
@@ -569,15 +557,15 @@ INA_API(ina_rc_t) ina_process_stop(ina_process_t *process)
 INA_API(ina_rc_t) ina_process_query_state(ina_process_t *process,
                                           ina_fsm_state_t *state)
 {
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(state);
+    INA_VERIFY_NOT_NULL(process);
+    INA_VERIFY_NOT_NULL(state);
     *state = INA_FSM_GET_STATE(process_fsm, process->state);
     return process->last_rc;
 }
 
 INA_API(ina_rc_t) ina_process_reset(ina_process_t *process)
 {
-    INA_ASSERT_NOTNULL(process);
+    INA_VERIFY_NOT_NULL(process);
     INA_FSM_FIRE_EVENT(process_fsm, process->state, INA_PROCESS_RESET, process);
     return process->last_rc;
 }
@@ -586,8 +574,8 @@ INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process,
                                             int *exit_code)
 {
     int still_running;
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(exit_code);
+    INA_VERIFY_NOT_NULL(process);
+    INA_VERIFY_NOT_NULL(exit_code);
     __ina_process_is_running(process, &still_running);
     if (still_running == INA_YES) {
         return INA_ERROR(INA_NN_PROCESS|INA_ERR_RUNNING);
@@ -602,9 +590,9 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
     time_t curr_time_sec;
     long curr_time_micros;
 
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(process->ctx);
-    INA_ASSERT_NOTNULL(should_be_running);
+    INA_VERIFY_NOT_NULL(process);
+    INA_VERIFY_NOT_NULL(process->ctx);
+    INA_VERIFY_NOT_NULL(should_be_running);
 
     if (INA_FAILED(ina_time_read_sys_clock(process->ctx->systime))) {
         return ina_err_get_last_rc();
@@ -645,6 +633,10 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
 
 INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *binary)
 {
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(binary);
+    INA_VERIFY(strlen(binary));
+
     *stat = (ina_process_stat_t*)ina_mem_alloc(sizeof(ina_process_stat_t));
     INA_RETURN_IF(*stat == NULL);
     (*stat)->binary = ina_str_new_fromcstr(binary);
@@ -657,7 +649,7 @@ INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *bi
 
 INA_API(ina_rc_t) ina_process_stat_query(ina_process_stat_t *stat)
 {
-    INA_ASSERT_NOTNULL(stat);
+    INA_VERIFY_NOT_NULL(stat);
     if (stat->cmd != NULL) {
         ina_str_free(stat->cmd);
     }
@@ -673,41 +665,41 @@ INA_API(ina_rc_t) ina_process_stat_query(ina_process_stat_t *stat)
 INA_API(ina_rc_t) ina_process_stat_alive(ina_process_stat_t *stat, int *alive)
 {
 
-    INA_ASSERT_NOTNULL(stat);
-    INA_ASSERT_NOTNULL(alive);
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(alive);
     *alive = stat->available;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_stat_get_cmd(ina_process_stat_t *stat, const char **cmd)
 {
-    INA_ASSERT_NOTNULL(stat);
-    INA_ASSERT_NOTNULL(cmd);
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(cmd);
     *cmd = ina_str_cstr(stat->cmd);
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_stat_get_memory(ina_process_stat_t *stat, uint64_t *memory)
 {
-    INA_ASSERT_NOTNULL(stat);
-    INA_ASSERT_NOTNULL(memory);
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(memory);
     *memory = stat->mem_bytes;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat, int *num_threads)
 {
-    INA_ASSERT_NOTNULL(stat);
-    INA_ASSERT_NOTNULL(num_threads);
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(num_threads);
     *num_threads = stat->num_threads;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_stat_free(ina_process_stat_t **stat)
 {
-    if (*stat == NULL) {
-        return INA_SUCCESS;
-    }
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(*stat);
+
     if ((*stat)->cmd != NULL) {
         ina_str_free((*stat)->cmd);
     }
@@ -865,8 +857,10 @@ static void __ina_process_is_running(ina_process_t *process,
 
     w = waitpid(process->pid, &status, WNOHANG);
     if (w == -1) {
-        process->last_rc = INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
-    }else if (w > 0) {
+        if (errno != ECHILD) {
+            process->last_rc = INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        }
+    } else if (w > 0) {
         *still_running = INA_YES;
     } else if (process->exit_code < 0) {
         if (WIFEXITED(status)) {
@@ -880,8 +874,7 @@ static void __ina_process_start(ina_process_t *process)
     pid_t pid = fork();
 
     if (pid < 0) {
-        INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_CREATED);
-        process->last_rc = ina_err_get_last_rc();
+        process->last_rc = INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_CREATED);
         return;
     }
 
@@ -893,6 +886,7 @@ static void __ina_process_start(ina_process_t *process)
 
         if (process->descriptor->working_dir != NULL) {
             if (chdir(process->descriptor->working_dir) != 0) {
+                INA_OS_ERROR(INA_NN_DIRECTORY|INA_ERR_NOT_CHANGED);
                 return;
             }
         }
@@ -906,9 +900,9 @@ static void __ina_process_start(ina_process_t *process)
         }
         args[n++] = NULL;
         execv(args[0], args);
-
-        perror("execv()");
-        _exit(127);
+        INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_CREATED);
+        INA_TRACE("%s", "FAILED");
+        exit(127);
     } else {
         int status = 0;
 
@@ -929,7 +923,12 @@ static void __ina_process_stop(ina_process_t *process)
     int still_running = INA_NO;
 
     if (process->pid > 0) {
-        kill(process->pid, SIGTERM);
+        INA_TRACE("Kill %d", process->pid);
+        if (kill(process->pid, SIGTERM) == -1) {
+            INA_TRACE("%s", "FAILED to kill");
+            process->last_rc = INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_STOPPED);
+            return;
+        }
     }
     __ina_process_is_running(process, &still_running);
 }

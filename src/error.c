@@ -411,7 +411,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         case INA_ERR_RESOLVED: adj = "RESOLVED"; break;
         case INA_ERR_MATCH: adj = "MATCH"; break;
         case INA_ERR_TRY_AGAIN: adj = "TRY AGAIN"; break;
-        case INA_ERR_PARSED: adj = "PARSED";
+        case INA_ERR_PARSED: adj = "PARSED"; break;
+        case INA_ERR_CHANGED: adj = "CHANGED";
     };
 
     {

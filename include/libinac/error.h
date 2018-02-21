@@ -44,13 +44,13 @@ typedef int64_t ina_rc_t;
 /* Indicate no errors */
 #define INA_SUCCESS  (0)
 /* Check return code: successful or handled */
-#define INA_SUCCEED(rc) (rc >= 0)
+#define INA_SUCCEED(rc) ((rc) >= 0)
 /* Check return code: failure */
-#define INA_FAILED(rc) (rc < 0)
+#define INA_FAILED(rc) ((rc) < 0)
 
 #ifdef INA_VERIFY_ENABLED
 #define INA_VERIFY_NOT_NULL(x) INA_VERIFY(x != NULL)
-#define INA_VERIFY(x) if (INA_UNLIKELY((x))) return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID)
+#define INA_VERIFY(x) do { if (INA_UNLIKELY((x))) return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID) } while (0)
 #else
 #define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
@@ -75,10 +75,9 @@ typedef int64_t ina_rc_t;
 #define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), INA_AT)
 /* Set last RC and capture errno */
 #define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno),  INA_AT)
-/* Set last RC and ser user defined errno */
+/* Set last RC and set user defined errno */
 #define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 
-#define INA_IS_ERROR(e)
 /* Pack a RC */
 #define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((e)) << INA_RC_BIT_L) | (x))
 
@@ -262,6 +261,7 @@ typedef int64_t ina_rc_t;
 #define INA_ERR_MATCH               (154LL << INA_RC_BIT_A)
 #define INA_ERR_TRY_AGAIN           (155LL << INA_RC_BIT_A)
 #define INA_ERR_PARSED              (156LL << INA_RC_BIT_A)
+#define INA_ERR_CHANGED             (157LL << INA_RC_BIT_A)
 
 /* Error attributes (negate forms) */
 #define INA_ERR_NOT_A               (INA_ERR_NOT | INA_ERR_A )
@@ -420,6 +420,7 @@ typedef int64_t ina_rc_t;
 #define INA_ERR_NOT_MATCH           (INA_ERR_NOT | INA_ERR_MATCH)
 #define INA_ERR_NOT_TRY_AGAIN       (INA_ERR_NOT | INA_ERR_TRY_AGAIN)
 #define INA_ERR_NOT_PARSED          (INA_ERR_NOT | INA_ERR_PARSED)
+#define INA_ERR_NOT_CHANGED         (INA_ERR_NOT | INA_ERR_CHANGED)
 
 /* Attribute aliases */
 #define INA_ERR_UNDEFINED           (INA_ERR_NOT_DEFINED)
