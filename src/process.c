@@ -716,7 +716,6 @@ static void __ina_process_is_running(ina_process_t *process,
                                      int *still_running)
 {
     DWORD ec;
-    BOOL ret;
     /* FIME: Error handling */
 
     *still_running = INA_NO;

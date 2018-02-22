@@ -697,7 +697,6 @@ void __ina_signal(int sig, void (*handler)(int))
 #ifdef INA_OS_WIN32
 static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *exception_ptr)
 {
-    ina_err_coredump(exception_ptr);
     ina_err_backtrace(exception_ptr);
     switch (exception_ptr->ExceptionRecord->ExceptionCode) {
         case EXCEPTION_FLT_DENORMAL_OPERAND:
