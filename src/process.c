@@ -922,9 +922,9 @@ static void __ina_process_stop(ina_process_t *process)
     int still_running = INA_NO;
 
     if (process->pid > 0) {
-        INA_TRACE("Kill %d", process->pid);
+        INA_TRACE2("Kill %d", process->pid);
         if (kill(process->pid, SIGTERM) == -1) {
-            INA_TRACE("%s", "FAILED to kill");
+            INA_TRACE2("%s", "FAILED to kill");
             process->last_rc = INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_STOPPED);
             return;
         }
