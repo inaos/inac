@@ -233,9 +233,9 @@ __FIXME__
 ## Library Version
 The INAOS Common C Library version is of the form A.B.C, where A is the major 
 version, B is the minor version and C is the micro version. If the micro 
-version is zero, it’s omitted from the version string, i.e. the version string 
+version is zero, itï¿½s omitted from the version string, i.e. the version string 
 is just A.B.
-When a new release only fixes bugs and doesn’t add new features or 
+When a new release only fixes bugs and doesnï¿½t add new features or 
 functionality, the micro version is incremented. When new features are added
 in a backwards compatible way, the minor version is incremented and the micro 
 version is set to zero. When there are backwards incompatible changes, the 
@@ -843,6 +843,7 @@ from the library itself.
  * Minimal memory footprint (no allocations)
  * Supports test helpers
  * Working the same way on Linux/OS-X/Win 
+ * Support tap and junit result format
  
 Possibles improvements:
 
@@ -911,6 +912,12 @@ From the command line prompt you can start all tests or a single suite
 
     ./test
     ./test test_suite
+    
+You can choose alternative result formats like `tap` or `JUnit` with the 
+`format` options.
+
+    ./test --format=tap
+    ./test --format=junit
 
     
 #### Helpers 

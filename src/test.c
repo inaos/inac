@@ -525,7 +525,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
     if (__tap) {
         printf("1..%d\n", total);
     } else if (__junit) {
-        printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         printf("<testsuites tests=\"%d\">\n", total);
         printf("\t<testsuite tests=\"%d\">\n", total);
     }
