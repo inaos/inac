@@ -431,7 +431,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[1]);
         strcat(buf, (use)[1][0] ? " " : "");
         strcat(buf, (use)[2]);
-        sprintf((char*)&buf[strlen(buf)], " - 0x%"PRIx64" - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
+        sprintf((char*)&buf[strlen(buf)], " - 0x%"INA_INT64_T_FMT" - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
                 rc,
                 INA_RC_E(rc),
                 INA_RC_V(rc),
