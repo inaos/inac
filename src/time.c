@@ -581,7 +581,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
 {
 #ifdef INA_OS_WIN32
     LARGE_INTEGER elapsed;
-    INA_ASSERT_NOTNULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->tv->sec_duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);

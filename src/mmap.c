@@ -52,6 +52,7 @@ struct ina_mmap_mapping_s {
 
 INA_API(ina_rc_t) ina_mmap_init(ina_mmap_ctx_t **ctx)
 {
+    INA_VERIFY_NOT_NULL(ctx);
     *ctx = (ina_mmap_ctx_t*)ina_mem_alloc(sizeof(ina_mmap_ctx_t));
 	INA_RETURN_IF_NULL(*ctx);
     ina_mem_get_pagesize(&(*ctx)->page_size);
@@ -61,8 +62,7 @@ INA_API(ina_rc_t) ina_mmap_init(ina_mmap_ctx_t **ctx)
 INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx)
 {
 	INA_VERIFY_NOT_NULL(ctx);
-	INA_VERIFY_NOT_NULL(*ctx)
-			;
+	INA_VERIFY_NOT_NULL(*ctx);
 	ina_mem_free(*ctx);
 	*ctx = NULL;
 	return INA_SUCCESS;

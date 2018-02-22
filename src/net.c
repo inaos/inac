@@ -253,7 +253,7 @@ INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr)
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bindaddr && inet_aton(bindaddr, &sa.sin_addr) == 0) {
         ina_net_close(*fd);
-        INA_USR_ERROR(INA_NN_ADDRESS|INA_ERR_INVALID, __INA_ERRNO);
+        return INA_USR_ERROR(INA_NN_ADDRESS|INA_ERR_INVALID, __INA_ERRNO);
     }
     if INA_FAILED(__ina_listen(*fd,(struct sockaddr*)&sa, sizeof(sa))) {
         ina_net_close(*fd);
@@ -700,6 +700,7 @@ INA_API(ina_rc_t) ina_net_set_write_timeout(int fd, int msec)
 INA_API(ina_rc_t) ina_net_block(int fd)
 {
     unsigned long enable = 0; /* disable non-blocking */
+    INA_VERIFY(fd > 0);
     if (ioctlsocket(fd, FIONBIO, &enable) != 0) {
         return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
@@ -731,7 +732,9 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     ULONG mac_addr[2];
     ULONG phy_addr_len = 6;
     int i;
- 
+    
+    INA_VERIFY_NOT_NULL(ip);
+    INA_VERIFY_NOT_NULL(mac);
     dst_ip = inet_addr(ip);
 
     ret = SendARP(dst_ip , INADDR_ANY, mac_addr, &phy_addr_len);
@@ -831,11 +834,13 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
 INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *num_fds_ready)
 {
 #ifdef INA_OS_WIN32
-    int rc = WSAPoll(fds, nfds, timeout);
-    if (rc == SOCKET_ERROR) {
+    INA_VERIFY_NOT_NULL(fds);
+    INA_VERIFY_NOT_NULL(num_fds_ready);
+
+    *num_fds_ready = WSAPoll(fds, nfds, timeout);
+    if (*num_fds_ready == SOCKET_ERROR) {
         return INA_USR_ERROR(INA_NN_IO|INA_ERR_FAILED, __INA_ERRNO);
     }
-    *num_fds_ready = rc;
 #else
     INA_VERIFY_NOT_NULL(fds);
     INA_VERIFY_NOT_NULL(num_fds_ready);

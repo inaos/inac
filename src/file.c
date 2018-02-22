@@ -235,7 +235,10 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
 	DWORD dwCreationDisposition;
 	DWORD dwFlagsAndAttributes;
 	HANDLE fhandle;
-	
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(file_fqn);
+    INA_VERIFY_NOT_NULL(file);
+    *file = NULL;
 	__ina_file_win_map_flags(access, create, share, flags, 
 		&dwDesiredAccess, &dwShareMode, &dwCreationDisposition, &dwFlagsAndAttributes);
 
@@ -317,8 +320,8 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat)
 	SYSTEMTIME systime;
     struct _stat fst;
 
-    INA_ASSERT_NOTNULL(file);
-    INA_ASSERT_NOTNULL(stat);
+    INA_VERIFY_NOT_NULL(file);
+    INA_VERIFY_NOT_NULL(stat);
 
 	if (!GetFileSizeEx(file->fh, &pin)) {
 		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
@@ -533,7 +536,7 @@ INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file)
 #ifdef INA_OS_WIN32
     LONG high = 0;
     LONG low = 0;
-    INA_ASSERT_NOTNULL(file);
+    INA_VERIFY_NOT_NULL(file);
     if (SetFilePointer(file->fh, low, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
         return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
@@ -552,7 +555,7 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_s
     static DWORD modes[2] = {FILE_BEGIN,FILE_CURRENT};
     LONG high = offset >> 32;
     LONG low = offset & 0xffffffff;
-    INA_ASSERT_NOTNULL(file);
+    INA_VERIFY_NOT_NULL(file);
     if (SetFilePointer(file->fh, low, &high, modes[mode]) == INVALID_SET_FILE_POINTER) {
         return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);;
     }
@@ -568,16 +571,16 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_s
 
 INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset)
 {
-    off_t off;
 #ifdef INA_OS_WIN32
     DWORD dwOffset;
-    INA_ASSERT_NOTNULL(file);
+    INA_VERIFY_NOT_NULL(file);
     dwOffset = SetFilePointer(file->fh, 0, NULL, FILE_CURRENT);
     if (dwOffset == INVALID_SET_FILE_POINTER) {
         return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
     *offset = dwOffset;
 #else
+    off_t off;
     INA_VERIFY_NOT_NULL(file);
     off = lseek(file->fh, 0, SEEK_CUR);
     if (off == -1) {
@@ -594,7 +597,7 @@ INA_API(ina_rc_t) ina_file_set_eof(ina_file_t *file)
 #ifdef INA_OS_WIN32
     LONG high = 0;
     LONG low = 0;
-    INA_ASSERT_NOTNULL(file);
+    INA_VERIFY_NOT_NULL(file);
     if (SetFilePointer(file->fh, low, &high, FILE_END) == INVALID_SET_FILE_POINTER) {
         return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
