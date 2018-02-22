@@ -44,34 +44,43 @@ typedef int64_t ina_rc_t;
 /* Indicate no errors */
 #define INA_SUCCESS  (0)
 /* Check return code: successful or handled */
-#define INA_SUCCEED(rc) (rc >= 0)
+#define INA_SUCCEED(rc) ((rc) >= 0)
 /* Check return code: failure */
-#define INA_FAILED(rc) (rc < 0)
+#define INA_FAILED(rc) ((rc) < 0)
 
 #ifdef INA_VERIFY_ENABLED
 #define INA_VERIFY_NOT_NULL(x) INA_VERIFY(x != NULL)
-#define INA_VERIFY(x) if (INA_UNLIKELY((x))) return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID)
+#define INA_VERIFY(x) do { if (INA_UNLIKELY((x))) return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID) } while (0)
 #else
 #define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
 #endif
 
+/*
+ * Return with last rc if condition x fails
+ */
 #define INA_RETURN_IF(x) if ((x)) return ina_err_get_last_rc()
+/*
+ * Return with last rc if failed
+ */
 #define INA_RETURN_IF_FAILED(x) if (INA_FAILED((x))) return ina_err_get_last_rc()
+/**
+ * Return with last rc if succeed
+ */
 #define INA_RETURN_IF_SUCCEED(x) if (INA_SUCCEED((x))) return ina_err_get_last_rc()
 
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(INA_FAILED(rc))) abort()
 /* Set last RC */
-#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), __FILE__ ":" INA_NUM2STR(__LINE__))
+#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), INA_AT)
 /* Set last RC and capture errno */
-#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno),  __FILE__ ":" INA_NUM2STR(__LINE__))
-/* Set last RC and ser user defined errno */
-#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  __FILE__ ":" INA_NUM2STR(__LINE__))
-
+#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno),  INA_AT)
+/* Set last RC and set user defined errno */
+#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 
 /* Pack a RC */
-#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)(e)) << INA_RC_BIT_L) | (x))
+#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((e)) << INA_RC_BIT_L) | (x))
+
 
 /* Extract bits from error code */
 #define INA_RC_E(rc)   ( (int32_t)((rc >> INA_RC_BIT_E) & 0x1) )
@@ -81,6 +90,7 @@ typedef int64_t ina_rc_t;
 #define INA_RC_N(rc)   ( (int32_t)((rc >> INA_RC_BIT_N) & 0x1) )
 #define INA_RC_A(rc)   ( (int32_t)((rc >> INA_RC_BIT_A) & 0xff) )
 #define INA_RC_U(rc)   ( (int32_t)((rc >> INA_RC_BIT_U) & 0x7fff) )
+#define INA_RC_EC(rc)  ( (int32_t)((INA_MID_BITS((rc), INA_RC_BIT_A, INA_RC_BIT_N+1))<<INA_RC_BIT_A))
 
 /* Bit-shifts */
 #define INA_RC_BIT_E                63
@@ -251,6 +261,7 @@ typedef int64_t ina_rc_t;
 #define INA_ERR_MATCH               (154LL << INA_RC_BIT_A)
 #define INA_ERR_TRY_AGAIN           (155LL << INA_RC_BIT_A)
 #define INA_ERR_PARSED              (156LL << INA_RC_BIT_A)
+#define INA_ERR_CHANGED             (157LL << INA_RC_BIT_A)
 
 /* Error attributes (negate forms) */
 #define INA_ERR_NOT_A               (INA_ERR_NOT | INA_ERR_A )
@@ -409,6 +420,7 @@ typedef int64_t ina_rc_t;
 #define INA_ERR_NOT_MATCH           (INA_ERR_NOT | INA_ERR_MATCH)
 #define INA_ERR_NOT_TRY_AGAIN       (INA_ERR_NOT | INA_ERR_TRY_AGAIN)
 #define INA_ERR_NOT_PARSED          (INA_ERR_NOT | INA_ERR_PARSED)
+#define INA_ERR_NOT_CHANGED         (INA_ERR_NOT | INA_ERR_CHANGED)
 
 /* Attribute aliases */
 #define INA_ERR_UNDEFINED           (INA_ERR_NOT_DEFINED)
@@ -620,6 +632,8 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void);
  *  otherwise returns INA_FAILURE. A marked
  */
 INA_API(ina_rc_t) ina_err_clear_last_rc(void);
+
+INA_API(ina_rc_t) ina_err_clear_rc(ina_rc_t rc);
 
 /*
  * Set log file.

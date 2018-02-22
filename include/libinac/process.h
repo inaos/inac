@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014,2016 INAOS GmbH
+ * Copyright (c) 2013-2018 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,14 +154,14 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
                               uint32_t start_flags);
 
 /*
- * Destroy a process descriptor.
+ * Destroy a process descriptor.
  *
  * Parameters
  *  descriptor  Process descriptor to free
  *
  * Return
  *  INA_SUCCESS if all went well
- */
+ */
 INA_API(ina_rc_t) ina_process_descriptor_free(
                                     ina_process_descriptor_t **descriptor);
 

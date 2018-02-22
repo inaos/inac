@@ -78,7 +78,10 @@ INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char *location)
         char buf[INA_ERR_MSGLEN];
         fprintf(__logfile, "%s at %s", ina_err_strerror(__rc, buf), location);
         if (INA_RC_L(__rc) > 0) {
-            fprintf(__logfile, " - OS error: %s (%d)", strerror(INA_RC_L(__rc)), INA_RC_L(__rc));
+            fprintf(__logfile,
+                    " - OS error: %s (%d)",
+                    strerror(INA_RC_L(__rc)),
+                    INA_RC_L(__rc));
         }
         fprintf(__logfile, "\n");
     }
@@ -92,8 +95,13 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void)
 
 INA_API(ina_rc_t) ina_err_clear_last_rc(void)
 {
-    __rc &= ~(INA_ERR_ERROR);
+    __rc = ina_err_clear_rc(__rc);
     return __rc;
+}
+
+INA_API(ina_rc_t) ina_err_clear_rc(ina_rc_t rc)
+{
+    return (rc &= ~(INA_ERR_ERROR));
 }
 
 static const char* __ina_get_noun(int id) {
@@ -403,7 +411,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         case INA_ERR_RESOLVED: adj = "RESOLVED"; break;
         case INA_ERR_MATCH: adj = "MATCH"; break;
         case INA_ERR_TRY_AGAIN: adj = "TRY AGAIN"; break;
-        case INA_ERR_PARSED: adj = "PARSED";
+        case INA_ERR_PARSED: adj = "PARSED"; break;
+        case INA_ERR_CHANGED: adj = "CHANGED";
     };
 
     {
@@ -422,8 +431,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[1]);
         strcat(buf, (use)[1][0] ? " " : "");
         strcat(buf, (use)[2]);
-        sprintf(buf, "%s - error=%d,api=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
-                buf,
+        sprintf((char*)&buf[strlen(buf)], " - 0x%"PRIx64" - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
+                rc,
                 INA_RC_E(rc),
                 INA_RC_V(rc),
                 INA_RC_R(rc),

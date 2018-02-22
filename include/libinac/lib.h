@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,11 +110,15 @@ extern "C" {
 
 #define INA_NUM2STR_X(x) #x
 #define INA_NUM2STR(x) INA_NUM2STR_X(x)
+
+#define INA_LAST_BIT(k,n) ((k) & ((1LL<<(n))-1LL))
+#define INA_MID_BITS(k,m,n) (INA_LAST_BIT((k)>>(m),((n)-(m))))
+
 /*
  * Version
  */
 #define INA_MAJOR_VERSION 0
-#define INA_MINOR_VERSION 3
+#define INA_MINOR_VERSION 9
 #define INA_MICRO_VERSION 0
 
 #define INA_VERSION       INA_NUM2STR(INA_MAJOR_VERSION)"." \
@@ -126,6 +130,9 @@ extern "C" {
 #define INA_VERSION_HEX  ((INA_MAJOR_VERSION << 16) |   \
                           (INA_MINOR_VERSION << 8)  |   \
                           (INA_MICRO_VERSION << 0))
+
+/* Source location */
+#define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
 
 /* Add flag option */
 #define INA_OPT_FLAG(short_opt, long_opt, desc)           \

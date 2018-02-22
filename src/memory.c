@@ -628,7 +628,7 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
             }
 
             /* FIXME: Push an error , if fails */
-            /* FXIME: shm can not handled in chunks ! */
+            /* FIXME: shm can not handled in chunks ! */
             ina_mempool_create(&pool->current->child, nsize, 
                     pool->cf|INA_MEM_CHILD, 
                     pool->label);
@@ -665,7 +665,7 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
         }
 
         /* FIXME: Push an error , if fails */
-        /* FXIME: shm can not handled in chunks ! */
+        /* FIXME: shm can not handled in chunks ! */
         ina_mempool_create(&pool->current->child, nsize, 
                     pool->cf|INA_MEM_CHILD, 
                     pool->label);
