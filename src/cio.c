@@ -181,7 +181,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
    __INA_CHECK_TTTY;
 
     INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(pos);
+    INA_VERIFY_NOT_NULL(pos);
     pos->row = pos->col = 0;
 
 #ifdef INA_OS_WIN32
@@ -217,7 +217,7 @@ INA_API(ina_rc_t) ina_cio_show_cursor(int show)
 INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
 {
     INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(attribs);
+    INA_VERIFY_NOT_NULL(attribs);
 
    __INA_CHECK_TTTY;
 
@@ -252,7 +252,7 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
 INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 {
     INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(attribs);
+    INA_VERIFY_NOT_NULL(attribs);
 
     attribs->bg_color = __attribs.bg_color;
     attribs->fg_color = __attribs.fg_color;
@@ -263,7 +263,7 @@ INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 {
     INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(pos);
+    INA_VERIFY_NOT_NULL(pos);
     __INA_CHECK_TTTY;
     
     __ina_get_cursor_pos(pos);
@@ -273,7 +273,7 @@ INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos)
 {
     INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(pos);
+    INA_VERIFY_NOT_NULL(pos);
     return ina_cio_move_to_row_and_col(pos->row, pos->col);
 }
 
@@ -323,7 +323,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     int setpos = INA_NO;
 
     INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(fmt);
+    INA_VERIFY_NOT_NULL(fmt);
 
     pos.col = 0;
     pos.row = 0;
@@ -731,10 +731,10 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                     fflush(stdout);
                 }
             } else if (c >=32 && c <= 126) {
-                INA_ASSERT_NOTNULL(nb_buf);  
-	            buf = *nb_buf;
+                INA_ASSERT_NOTNULL(nb_buf);
+                buf = *nb_buf;
                 buf[*nb_buf_pos] = (char)c;
-	            *nb_buf_pos += 1;
+                *nb_buf_pos += 1;
                 fprintf(stdout, "%c", c);
                 fflush(stdout);
             }
@@ -757,16 +757,16 @@ INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
     char *buf = NULL;
     size_t buf_len = 0;
     size_t buf_pos = 0;
-    INA_ASSERT_NOTNULL(line);
+    INA_VERIFY_NOT_NULL(line);
     return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos);
 }
 
 INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
                                               size_t *buf_len, size_t *buf_pos)
 {
-    INA_ASSERT_NOTNULL(line);
-    INA_ASSERT_NOTNULL(buf);
-    INA_ASSERT_NOTNULL(buf_len);
-    INA_ASSERT_NOTNULL(buf_pos);
+    INA_VERIFY_NOT_NULL(line);
+    INA_VERIFY_NOT_NULL(buf);
+    INA_VERIFY_NOT_NULL(buf_len);
+    INA_VERIFY_NOT_NULL(buf_pos);
     return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos);
 }

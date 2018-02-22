@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -281,6 +281,9 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
                                                  ina_compression_mode_t mode, ina_mempool_t *pool)
 {
     size_t sstate = 0;
+    INA_VERIFY_NOT_NULL(state);
+
+    *state = NULL;
 
     if (pool != NULL) {
         *state = (ina_compression_state_t*)ina_mempool_dalloc(pool, sizeof(struct ina_compression_state_s));
@@ -288,9 +291,7 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
     else {
         *state = (ina_compression_state_t*)ina_mem_alloc(sizeof(struct ina_compression_state_s));
     }
-    if (*state == NULL) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF(*state == NULL);
 
     (*state)->type = type;
     (*state)->chunk_src_len = 0;
@@ -343,19 +344,20 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
         (*state)->statedata = ina_mem_alloc(sstate);
     }
 
-
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_compression_free(ina_compression_state_t **state)
 {
-    INA_ASSERT_NOTNULL(*state);
+    INA_VERIFY_NOT_NULL(state);
+    INA_VERIFY_NOT_NULL(*state);
 
     if ((*state)->mempool == NULL) {
         ina_mem_free((*state)->statedata);
     }
 
     ina_mem_free(*state);
+    *state = NULL;
 
     return INA_SUCCESS;
 }
@@ -363,7 +365,12 @@ INA_API(ina_rc_t) ina_compression_free(ina_compression_state_t **state)
 INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state, const unsigned char *src,
                                                  size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
-    INA_ASSERT_NOTNULL(state);
+    INA_VERIFY_NOT_NULL(state);
+    INA_VERIFY_NOT_NULL(src);
+    INA_VERIFY_NOT_NULL(dst);
+    INA_VERIFY(dst_len>0);
+    INA_VERIFY_NOT_NULL(wrote_len);
+    INA_VERIFY_NOT_NULL(read_len);
 
     state->chunk_src_len = src_len;
     return state->compress_fn(state, src, dst, dst_len, wrote_len, read_len, more);
@@ -372,13 +379,20 @@ INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state,
 INA_API(ina_rc_t) ina_compression_decompress_chunk(ina_compression_state_t *state, const unsigned char *src,
                                                    size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
 {
+    INA_VERIFY_NOT_NULL(state);
+    INA_VERIFY_NOT_NULL(src);
+    INA_VERIFY_NOT_NULL(dst);
+    INA_VERIFY(dst_len>0);
+    INA_VERIFY_NOT_NULL(wrote_len);
+    INA_VERIFY_NOT_NULL(read_len);
+
     return state->decompress_fn(state, src, src_len, dst, dst_len, wrote_len, read_len, more);
 }
 
 INA_API(ina_rc_t) ina_compression_get_destination_len(ina_compression_state_t *state, size_t src_len, size_t *len)
 {
-    INA_ASSERT_NOTNULL(state);
-    INA_ASSERT_NOTNULL(len);
+    INA_VERIFY_NOT_NULL(state);
+    INA_VERIFY_NOT_NULL(len);
 
     state->chunk_src_len = src_len;
     state->dest_len_fn(state, &state->chunk_proposed_dst_len);

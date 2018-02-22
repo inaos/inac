@@ -46,6 +46,8 @@ static const unsigned char base64_decode_tab[] = {
 INA_API(ina_rc_t) ina_util_base64_encode_length(size_t in_length, unsigned int line_length, size_t *out_length)
 {
     unsigned int adjustment, code_padded_size, newline_size = 0;
+    INA_VERIFY_NOT_NULL(out_length);
+    INA_VERIFY(line_length != 0);
 
     adjustment = ( (in_length % 3) ? (3 - (in_length % 3)) : 0);
     code_padded_size = ( (in_length + adjustment) / 3) * 4;
@@ -67,6 +69,8 @@ INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t data
     uint32_t n = 0;
     int padCount = dataLength % 3;
     uint8_t n0, n1, n2, n3;
+    INA_VERIFY_NOT_NULL(data_buf);
+    INA_VERIFY_NOT_NULL(result);
     
     /* increment over the length of the string, three characters at a time */
     for (x = 0; x < dataLength; x += 3) {
@@ -149,7 +153,10 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned
 #define __INA_UTILS_BASE64_INVALID    66
     char *end = in + in_len;
     size_t buf = 1, len = 0;
-    
+    INA_VERIFY_NOT_NULL(in);
+    INA_VERIFY_NOT_NULL(out);
+    INA_VERIFY_NOT_NULL(out_len);
+
     *out_len = 0;
 
     while (in < end) {

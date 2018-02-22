@@ -475,7 +475,12 @@ INA_API(ina_rc_t) ina_file_cursor_new_using_pool(ina_file_t *file,
                                                  ina_mmap_ctx_t *mmap_ctx,
                                                  ina_mempool_t *pool)
 {
+	INA_VERIFY_NOT_NULL(file);
+    INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(mmap_ctx);
+	INA_VERIFY_NOT_NULL(pool);
     *cursor = (ina_file_cursor_t*)ina_mempool_dalloc(pool, sizeof(ina_file_cursor_t));
+    INA_RETURN_IF_NULL(*cursor);
     (*cursor)->mpref = pool;
     return ina_file_cursor_init_internal(file, cursor_type, mode, buffer_size, *cursor, mmap_ctx);
 }
@@ -487,7 +492,9 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
 									  ina_file_cursor_t **cursor,
                                       ina_mmap_ctx_t *mmap_ctx)
 {
-	
+    INA_VERIFY_NOT_NULL(file);
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(mmap_ctx);
     *cursor = (ina_file_cursor_t*)ina_mem_alloc(sizeof(ina_file_cursor_t));
     (*cursor)->mpref = NULL;
 	return ina_file_cursor_init_internal(file, cursor_type, mode, buffer_size, *cursor, mmap_ctx);
@@ -501,39 +508,39 @@ INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor)
 
 INA_API(ina_rc_t) ina_file_cursor_get_file(const ina_file_cursor_t *cursor, ina_file_t **file)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(file);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(file);
 	*file = cursor->file;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_cursor_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(buffer_size);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(buffer_size);
 	return cursor->get_buffer_size_fp(cursor, buffer_size);
 }
 
 INA_API(ina_rc_t) ina_file_cursor_get_mode(const ina_file_cursor_t *cursor, ina_file_cursor_mode_t *mode)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(mode);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(mode);
 	*mode = cursor->mode;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_cursor_get_type(const ina_file_cursor_t *cursor, ina_file_cursor_type_t *type)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(type);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(type);
 	*type = cursor->cur_type;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_cursor_get_pos(const ina_file_cursor_t *cursor, uint64_t *position)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(position);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(position);
 	return cursor->get_pos_fp(cursor, position);
 }
 

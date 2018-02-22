@@ -111,10 +111,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
     _set_abort_behavior(INA_DGBMSG_ASSERT, _WRITE_ABORT_MSG);
     __main_thread = GetCurrentThread();
 #endif
-    
-    if (!INA_SUCCEED(ina_init(pool_size))) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF_FAILED(ina_init(pool_size));
     
     if (argv != NULL) {
         const char* basename = strrchr(argv[0], INA_PATH_SEPARATOR);
@@ -374,7 +371,10 @@ INA_API(ina_signal_handler_t) ina_register_signal_handler(ina_signal_t sig,
 
 INA_API(ina_rc_t) ina_opt_isset(const char *opt) 
 {
-    __ina_sopt_t *so = __ina_opt_get(opt);
+    __ina_sopt_t *so;
+    INA_VERIFY_NOT_NULL(opt);
+
+    so = __ina_opt_get(opt);
     if (so == NULL) {
         return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
@@ -389,7 +389,9 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
 {
     __ina_lopt_t *lo = NULL;
 
-    INA_ASSERT_TRUE(index >= 0);
+    INA_VERIFY_NOT_NULL(key);
+    INA_VERIFY_NOT_NULL(value);
+    INA_VERIFY(index >= 0);
 
     *key = NULL;
     *value = NULL;
@@ -408,7 +410,12 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
 
 INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
 {
-    __ina_sopt_t *so = __ina_opt_get(opt);
+    __ina_sopt_t *so;
+
+    INA_VERIFY_NOT_NULL(opt);
+    INA_VERIFY_NOT_NULL(value);
+
+    so = __ina_opt_get(opt);
     if (so == NULL) {
         *value = NULL;
         return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
@@ -419,9 +426,12 @@ INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
 
 INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
 {
-    __ina_sopt_t *so = __ina_opt_get(opt);
+    __ina_sopt_t *so;
+    INA_VERIFY_NOT_NULL(opt);
+    INA_VERIFY_NOT_NULL(value);
+    *value = 0.0;
+    so = __ina_opt_get(opt);
     if (so == NULL) {
-        *value = 0.0;
         return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     *value = (float)atof(so->value);
@@ -430,9 +440,12 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
 
 INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value)
 {
-    __ina_sopt_t *so = __ina_opt_get(opt);
+    __ina_sopt_t *so;
+    INA_VERIFY_NOT_NULL(opt);
+    INA_VERIFY_NOT_NULL(value);
+    *value = 0;
+    so = __ina_opt_get(opt);
     if (so == NULL) {
-        *value = 0;
         return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
     }
     *value = atoi(so->value);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,31 +46,30 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
     ina_timer_t* t;
     int err;
     
-    INA_ASSERT_NOTNULL(timer);
+    INA_VERIFY_NOT_NULL(timer);
 
     *timer = (ina_timer_t*)ina_mem_alloc(sizeof(ina_timer_t));
+    INA_RETURN_IF_NULL(*timer);
+
     t = *timer;
     t->timeouts = timeouts_open(0, &err, ina_mem_alloc, ina_mem_free);
     t->next_event_id = 0;
-    ina_time_tsc_new(&(*timer)->stamp);
-
-    return INA_SUCCESS;
+    return ina_time_tsc_new(&(*timer)->stamp);
 }
 
 INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
 {
-    INA_ASSERT_NOTNULL(timer);
+    INA_VERIFY_NOT_NULL(timer);
+    INA_VERIFY_NOT_NULL(*timer);
 
-    if (*timer == NULL) {
-        return INA_SUCCESS;
+    if ((*timer)->timeouts != NULL) {
+        timeouts_close((*timer)->timeouts);
     }
-
-    timeouts_close((*timer)->timeouts);
-
-    ina_time_tsc_free(&(*timer)->stamp);
+    if ((*timer)->stamp != NULL) {
+        INA_MUST_SUCCEED(ina_time_tsc_free(&(*timer)->stamp));
+    }
     ina_mem_free(*timer);
     *timer = NULL;
-
     return INA_SUCCESS;
 }
 
@@ -79,7 +78,7 @@ INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t mse
 {
     time_t now_millis;
     
-    INA_ASSERT_NOTNULL(timer);
+    INA_VERIFY_NOT_NULL(timer);
 
     ina_time_read_tsc_clock(timer->stamp);
     now_millis = __ina_timer_tsc_to_msec(timer->stamp);
@@ -91,13 +90,20 @@ INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer, 
 {
     ina_time_event_t *e;
     
-    INA_ASSERT_NOTNULL(timer);
-    INA_ASSERT(n_msec > 0);
-    INA_ASSERT(e_msec > 0);
+    INA_VERIFY_NOT_NULL(timer);
+    INA_VERIFY(n_msec > 0);
+    INA_VERIFY(e_msec > 0);
 
     e = (ina_time_event_t*)ina_mem_alloc(sizeof(ina_time_event_t));
+    if (e == NULL) {
+        return NULL;
+    }
 
     e->t = (struct timeout*)ina_mem_alloc(sizeof(struct timeout));
+    if (e->t != NULL) {
+        ina_mem_free(e);
+        return NULL;
+    }
     e->id = ++timer->next_event_id;
 
     /* let the timewheel know the current time */
@@ -106,19 +112,17 @@ INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer, 
     e->t = timeout_init(e->t, TIMEOUT_INT);
     e->t->data = e;
     timeouts_add(timer->timeouts, e->t, e_msec);
-
     return e;
 }
 
 INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e)
 {
-    INA_ASSERT_NOTNULL(timer);
-    INA_ASSERT_NOTNULL(e);
+    INA_VERIFY_NOT_NULL(timer);
+    INA_VERIFY_NOT_NULL(e);
 
     timeouts_del(timer->timeouts, e->t);
     ina_mem_free(e->t);
     ina_mem_free(e);
-
     return INA_SUCCESS;
 }
 
@@ -126,7 +130,7 @@ INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer)
 {
     time_t now_millis;
     
-    INA_ASSERT_NOTNULL(timer);
+    INA_VERIFY_NOT_NULL(timer);
 
     ina_time_read_tsc_clock(timer->stamp);
     now_millis = __ina_timer_tsc_to_msec(timer->stamp);
@@ -138,7 +142,7 @@ INA_API(ina_time_event_t*) ina_timer_next_event_with_time(ina_timer_t *timer, ti
 {
     struct timeout *ne;
 
-    INA_ASSERT_NOTNULL(timer);
+    INA_VERIFY_NOT_NULL(timer);
 
     timeouts_update(timer->timeouts, now_millis);
     ne = timeouts_get(timer->timeouts);
@@ -150,7 +154,7 @@ INA_API(ina_time_event_t*) ina_timer_next_event_with_time(ina_timer_t *timer, ti
 
 INA_API(ina_rc_t) ina_timer_time_to_next_event(ina_timer_t *timer, time_t *how_long_msec)
 {
-    INA_ASSERT_NOTNULL(timer);
+    INA_VERIFY_NOT_NULL(timer);
     *how_long_msec = timeouts_timeout(timer->timeouts);
     return INA_SUCCESS;
 }

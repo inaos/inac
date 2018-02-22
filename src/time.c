@@ -205,7 +205,7 @@ INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc(void)
 
 INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info)
 {
-    INA_ASSERT_NOTNULL(info);
+    INA_VERIFY_NOT_NULL(info);
     ina_mem_set(info, 0, sizeof(ina_time_tsc_info_t));
     if (__ina_time_tsc_read == __ina_time_tsc_rdtsc_read) {
         info->rdtsc_enabled = INA_YES;
@@ -223,24 +223,33 @@ INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info)
 
 INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
 {
+    INA_VERIFY_NOT_NULL(time);
     *time = (ina_time_tsc_t*)ina_mem_alloc(sizeof(ina_time_tsc_t));
+    INA_RETURN_IF_NULL(*time);
     __ina_time_init(*time);
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time)
 {
+    INA_VERIFY_NOT_NULL(time);
+    INA_VERIFY_NOT_NULL(*time);
     ina_mem_free(*time);
+    *time = NULL;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)
 {
+    INA_VERIFY_NOT_NULL(time);
     return __ina_time_tsc_read(time);
 }
 
 INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(const ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
+    INA_VERIFY_NOT_NULL(time);
+    INA_VERIFY_NOT_NULL(secs);
+    INA_VERIFY_NOT_NULL(nanos);
     return __ina_time_tsc_secnan(time, secs, nanos);
 }
 
@@ -249,8 +258,8 @@ INA_API(ina_rc_t) ina_time_tsc_millis(ina_time_tsc_t *tsc, time_t *now_millis)
     time_t secs = 0;
     long nanos = 0;
 
-    INA_ASSERT_NOTNULL(tsc);
-    INA_ASSERT_NOTNULL(now_millis);
+    INA_VERIFY_NOT_NULL(tsc);
+    INA_VERIFY_NOT_NULL(now_millis);
 
     ina_time_tsc_seconds_nanos(tsc, &secs, &nanos);
     *now_millis = (secs*1000) + (nanos/1000/1000);
@@ -269,14 +278,19 @@ INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf, size_t buflen,
 #ifdef INA_OS_LINUX
     static struct tm rtm;
 #endif
-
+    INA_VERIFY_NOT_NULL(buf);
+    INA_VERIFY_NOT_NULL(written);
+    INA_VERIFY_NOT_NULL(fmt);
+    INA_VERIFY_NOT_NULL(time);
     ina_time_sys_seconds_micros(time, &secs, &micros);
 #ifdef INA_OS_LINUX
     mtm = localtime_r(&secs, &rtm);
 #else
     mtm = localtime(&secs);
 #endif
-    INA_ASSERT_NOTNULL(mtm);
+    if (mtm == NULL) {
+        return INA_OS_ERROR(INA_NN_TIME|INA_ERR_NOT_INITIALIZED);
+    }
     nw = strftime(b, buflen, fmt, mtm);
 
     if (nw == 0) {
@@ -312,13 +326,15 @@ INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
     time_t secs;
     long nanos;
 
-    INA_ASSERT_NOTNULL(buf);
-    INA_ASSERT_NOTNULL(fmt);
-    INA_ASSERT_NOTNULL(time);
+    INA_VERIFY_NOT_NULL(buf);
+    INA_VERIFY_NOT_NULL(fmt);
+    INA_VERIFY_NOT_NULL(time);
 
     ina_time_tsc_seconds_nanos(time, &secs, &nanos);
     mtm = localtime(&secs);
-    INA_ASSERT_NOTNULL(mtm);
+    if (mtm == NULL) {
+        return INA_OS_ERROR(INA_NN_TIME|INA_ERR_NOT_INITIALIZED);
+    }
     nw = strftime(b, ina_str_size(buf), fmt, mtm);
  
     if (nw == 0) {
@@ -354,7 +370,8 @@ INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch, int id,
 	       					int max_stamps)
 {
     size_t size = INA_TIME_MAX_STAMPS;
-
+    INA_VERIFY_NOT_NULL(stopwatch);
+    *stopwatch = NULL;
     if (max_stamps == -1) {
         size = (size_t)INA_TIME_MAX_STAMPS;
     }
@@ -368,7 +385,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id)
 
 INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch)
 {
-    INA_ASSERT_NOTNULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stopwatch);
     if (stopwatch->tv->sec_duration == 0.0) {
         return INA_SUCCESS;
     }
@@ -377,7 +394,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch)
 
 INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
 {
-    INA_ASSERT_NOTNULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stopwatch);
 #ifdef INA_OS_WIN32
     if (INA_UNLIKELY(stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart)) {
         return INA_ERROR(INA_ERR_INVALID);
@@ -402,10 +419,12 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
 
 INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch) 
 {
-    if (*stopwatch == NULL) {
-        return INA_SUCCESS;
+    INA_VERIFY_NOT_NULL(stopwatch);
+    INA_VERIFY_NOT_NULL(*stopwatch);
+
+    if ((*stopwatch)->shared_mem != NULL) {
+        INA_MUST_SUCCEED(ina_mempool_release((*stopwatch)->shared_mem, 1));
     }
-    ina_mempool_release((*stopwatch)->shared_mem, 1);
     ina_mem_free(*stopwatch);
     *stopwatch = NULL;
     return INA_SUCCESS;
@@ -414,7 +433,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch)
 INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch, 
                                            ina_time_tsc_t *start)
 {
-    INA_ASSERT_NOTNULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stopwatch);
     /* Duration = 0, indicate stopwwatch is running */
     stopwatch->tv->sec_duration  = 0.0;
     /* Reset timestamp index, clear all timestamps */
@@ -435,7 +454,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch,
 INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch, 
                                                 int64_t *stamp_index)
 {
-    INA_ASSERT_NOTNULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stopwatch);
 
     /* reset current timestamp */
     stopwatch->ts = NULL;
@@ -530,7 +549,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch,
     int64_t si = 0;
     ina_stopwatch_ts_t *ts = NULL;
 
-    INA_ASSERT_NOTNULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stopwatch);
     if (INA_UNLIKELY(stopwatch->tv->max_stamps == 0)) {
         return INA_ERROR(INA_NN_STATE|INA_ERR_INVALID);
     }
@@ -567,10 +586,11 @@ INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch)
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->tv->sec_duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
 #elif defined(INA_OS_OSX)
+    INA_VERIFY_NOT_NULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp - stopwatch->tv->stop.tp) / 1000000000;
 #else
-    INA_ASSERT_NOTNULL(stopwatch);
+    IN_VERIFY_NOT_NULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     
     stopwatch->tv->stop.ref = stopwatch->tv->start.ref;
@@ -602,6 +622,8 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
     size_t size;
     uint32_t cf = INA_MEM_SHARED;
     char name[100];
+    INA_VERIFY_NOT_NULL(stopwatch);
+
     sprintf(name, "/ina_stopwatch_%d", id);
 
      *stopwatch = (ina_stopwatch_t*)ina_mem_alloc(sizeof(ina_stopwatch_t));

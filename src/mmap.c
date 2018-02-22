@@ -53,13 +53,16 @@ struct ina_mmap_mapping_s {
 INA_API(ina_rc_t) ina_mmap_init(ina_mmap_ctx_t **ctx)
 {
     *ctx = (ina_mmap_ctx_t*)ina_mem_alloc(sizeof(ina_mmap_ctx_t));
-	INA_RETURN_IF(*ctx == NULL);
+	INA_RETURN_IF_NULL(*ctx);
     ina_mem_get_pagesize(&(*ctx)->page_size);
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx)
 {
+	INA_VERIFY_NOT_NULL(ctx);
+	INA_VERIFY_NOT_NULL(*ctx)
+			;
 	ina_mem_free(*ctx);
 	*ctx = NULL;
 	return INA_SUCCESS;
@@ -86,10 +89,14 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     SYSTEM_INFO si;
 #endif
 
+	INA_VERIFY_NOT_NULL(ctx);
+	INA_VERIFY_NOT_NULL(fd);
+	INA_VERIFY_NOT_NULL(mapping);
+	*mapping = NULL;
 	if (fd) {
 		INA_RETURN_IF_FAILED(ina_file_stat_new(fd, &fstat));
-		INA_RETURN_IF_FAILED(ina_file_stat_file_size(fstat, &flen));
-		ina_file_stat_free(fd, &fstat);
+		INA_MUST_SUCCEED(ina_file_stat_file_size(fstat, &flen));
+		INA_MUST_SUCCEED(ina_file_stat_free(fd, &fstat));
 
 		if (offset + length > flen) {
 			return INA_ERROR(INA_NN_POSITION|INA_ERR_OUT_OF_RANGE);
@@ -97,7 +104,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	}
 
 	*mapping = (ina_mmap_mapping_t*)ina_mem_alloc(sizeof(ina_mmap_mapping_t));
-	INA_RETURN_IF(*mapping == NULL);
+	INA_RETURN_IF_NULL(*mapping);
 	(*mapping)->length = length;
 	(*mapping)->offset = offset;
 
@@ -212,6 +219,10 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 
 INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mapping)
 {
+	INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(mapping);
+    INA_VERIFY_NOT_NULL(*mapping);
+
 #ifdef INA_OS_WIN32
 	UnmapViewOfFile((*mapping)->lpMapAddress);
 	CloseHandle((*mapping)->fmap);
@@ -227,7 +238,7 @@ INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mappin
 
 INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 {
-	INA_ASSERT_NOTNULL(mapping);
+	INA_VERIFY_NOT_NULL(mapping);
 #ifdef INA_OS_WIN32
 	if (!FlushViewOfFile(mapping->begin_mmap, 0)) {
 		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
@@ -245,16 +256,16 @@ INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 
 INA_API(ina_rc_t) ina_mmap_memory_head(ina_mmap_mapping_t *mapping, void **memory)
 {
-	INA_ASSERT_NOTNULL(mapping);
-	INA_ASSERT_NOTNULL(memory);
+	INA_VERIFY_NOT_NULL(mapping);
+	INA_VERIFY_NOT_NULL(memory);
 	*memory = mapping->begin_mmap;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memory)
 {
-	INA_ASSERT_NOTNULL(mapping);
-	INA_ASSERT_NOTNULL(memory);
+	INA_VERIFY_NOT_NULL(mapping);
+	INA_VERIFY_NOT_NULL(memory);
 	*memory = mapping->end_mmap;
 	return INA_SUCCESS;
 }
@@ -263,7 +274,9 @@ INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, in
 {
 #ifndef INA_OS_WIN32
     int padvice = 0;
-
+    INA_VERIFY_NOT_NULL(mapping);
+    INA_VERIFY(advice == INA_MMAP_MEM_ADVICE_RANDOM ||
+               advice == INA_MMAP_MEM_ADVICE_SEQUENTIAL);
     switch (advice) {
         case INA_MMAP_MEM_ADVICE_SEQUENTIAL:
             padvice = MADV_SEQUENTIAL;

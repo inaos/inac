@@ -500,7 +500,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
         }
     }
    
-    /* print TAP plan */
+    /* print TAP plan */
     if (__tap) {
         printf("1..%d\n", total);
     }

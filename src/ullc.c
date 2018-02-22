@@ -57,9 +57,9 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     ina_ullc_rb_t *rb = NULL;
     /* size_t c = 0; */
 
-    INA_ASSERT_NOTNULL(info);
+    INA_VERIFY_NOT_NULL(info);
 
-    if (!INA_SUCCEED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, name))) {
+    if (INA_FAILED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, name))) {
         return ina_err_get_last_rc();
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
@@ -103,8 +103,9 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
 {
     ina_ullc_ctx_t *pctx;
     
-    INA_ASSERT_NOTNULL(name);
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(name);
+    INA_VERIFY_NOT_NULL(ctx);
+    *ctx = NULL;
 
     if (version <= 0) {
         return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
@@ -170,10 +171,10 @@ INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
     ina_mempool_t *m = NULL;
     ina_ullc_rb_t *rb = NULL;
 
-    INA_ASSERT_NOTNULL(name);
-    INA_ASSERT_TRUE(strlen(name));
+    INA_VERIFY_NOT_NULL(name);
+    INA_VERIFY(strlen(name));
 
-    if (!INA_SUCCEED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, name))) {
+    if (INA_FAILED(ina_mempool_create(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, name))) {
         return ina_err_get_last_rc();
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
@@ -188,7 +189,7 @@ INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
 
 INA_API(ina_rc_t) ina_ullc_overrun_enable(ina_ullc_ctx_t *ctx) 
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
     if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, INT64_MAX, -1) == INT64_MAX) {
         return INA_SUCCESS;
     }
@@ -197,7 +198,7 @@ INA_API(ina_rc_t) ina_ullc_overrun_enable(ina_ullc_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
     if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, -1, INT64_MAX) == -1) {
         return INA_SUCCESS;
     }
@@ -211,11 +212,9 @@ INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
 
-    if (*ctx == NULL) {
-        return INA_SUCCESS;
-    }
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, (*ctx)->type);
     
     INA_ATOMIC_SWAP(&(*ctx)->p_offset->alive,1,0);
@@ -246,8 +245,8 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
     int64_t num;
     void *item;
 
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY(INA_ULLC_CTX_PRODUCER == ctx->type);
 
     slow_consumer = ctx->ring->overrun_enabled;
     like_to_write = ctx->ring->next_ptr % ctx->ring->slots;
@@ -271,8 +270,8 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY(INA_ULLC_CTX_PRODUCER == ctx->type);
     INA_ATOMIC_INC(&ctx->ring->next_ptr);
     INA_ATOMIC_INC(&ctx->ring->cursor);
     return INA_SUCCESS;
@@ -280,9 +279,9 @@ INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_ullc_producer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(pos);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(pos);
+    INA_VERIFY(INA_ULLC_CTX_PRODUCER == ctx->type);
 
     *pos = ctx->ring->next_ptr;
     return INA_SUCCESS;
@@ -290,7 +289,7 @@ INA_API(ina_rc_t) ina_ullc_producer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos)
 
 INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
     /*INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);*/
 
     /* FIMXE: maybe declare API as inline */
@@ -304,13 +303,15 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
     ina_ullc_cursor_t *cons;
     ina_ullc_ctx_t* ccxt;
 
-    INA_ASSERT_NOTNULL(name);
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(name);
+    INA_VERIFY_NOT_NULL(ctx);
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
+    INA_RETURN_IF_NULL(*ctx);
+
     ccxt = *ctx;
 
-    if (!INA_SUCCEED(__ina_ullc_ring_create(&ccxt->ring, ccxt, version, size, 
+    if (INA_FAILED(__ina_ullc_ring_create(&ccxt->ring, ccxt, version, size,
             slots, num_producers, num_consumers, name, 0))) {
         return ina_err_get_last_rc();
     }
@@ -345,13 +346,10 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
 
 INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(*ctx);
+    INA_VERIFY(INA_ULLC_CTX_CONSUMER == (*ctx)->type);
 
-    if (*ctx == NULL) {
-        return INA_SUCCESS;
-    }
-
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, (*ctx)->type);
     INA_ATOMIC_SWAP(&(*ctx)->c_offset->alive,1,0);
     INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive);
     (*ctx)->c_offset->cursor = 0;
@@ -371,9 +369,9 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
 
 INA_API(ina_rc_t) ina_ullc_consumer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(pos);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(pos);
+    INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
 
     *pos = ctx->c_offset->cursor;
     return INA_SUCCESS;
@@ -383,8 +381,8 @@ INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos)
 {
     int64_t cursor;
 
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
 
     cursor = ctx->c_offset->cursor;
 
@@ -394,21 +392,21 @@ INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos)
     if (INA_ATOMIC_SWAP(&ctx->c_offset->cursor, cursor, pos) == cursor) {
         return INA_SUCCESS;
     }
-        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+    return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_swait(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
 
     return __ina_sem_operation(ctx, INA_ULLC_SIG_WAIT);
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_swait_begin(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
 
 #ifdef INA_OS_WIN32
 	INA_ATOMIC_INC(&ctx->ring->swait_count);
@@ -418,8 +416,8 @@ INA_API(ina_rc_t) ina_ullc_consumer_swait_begin(ina_ullc_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_ullc_consumer_swait_end(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
 
 #ifdef INA_OS_WIN32
 	INA_ATOMIC_DEC(&ctx->ring->swait_count);
@@ -434,8 +432,8 @@ INA_API(void *) ina_ullc_consumer_get(ina_ullc_ctx_t *ctx)
     void *item;
     int64_t wait_for;
 
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_EQUAL(INA_ULLC_CTX_CONSUMER, ctx->type);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
     
     wait_for = ctx->c_offset->cursor;
     if (ctx->ring->cursor < wait_for) {

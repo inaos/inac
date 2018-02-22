@@ -123,13 +123,14 @@ static void __ina_dir_walker_set_sort_cb(ina_dir_walker_t *walker)
 INA_API(ina_rc_t) ina_dir_walker_new(const char *basedir,
                                       ina_dir_walker_t **walker)
 {
-    INA_ASSERT_NOTNULL(walker);
-    INA_ASSERT_NOTNULL(basedir);
-    INA_ASSERT_TRUE(strlen(basedir));
+    INA_VERIFY_NOT_NULL(walker);
+    INA_VERIFY_NOT_NULL(basedir);
+    INA_VERIFY(strlen(basedir));
 
     *walker = (ina_dir_walker_t*)ina_mem_alloc(sizeof(ina_dir_walker_t));
-    INA_MUST_SUCCEED(ina_mempool_create(&(*walker)->mp, 1024*sizeof(ina_dir_entry_t), 0, NULL));
-    INA_MUST_SUCCEED(ina_mempool_create(&(*walker)->smp, 1024*1024, INA_MEM_DYNAMIC, NULL));
+    INA_RETURN_IF_NULL(*walker);
+    INA_RETURN_IF_FAILED(ina_mempool_create(&(*walker)->mp, 1024*sizeof(ina_dir_entry_t), 0, NULL));
+    INA_RETURN_IF_FAILED(ina_mempool_create(&(*walker)->smp, 1024*1024, INA_MEM_DYNAMIC, NULL));
     (*walker)->head = ina_mempool_dalloc((*walker)->mp,1024*sizeof(ina_dir_entry_t));
     (*walker)->basedir = ina_str_new_fromcstr(basedir);
     (*walker)->sort_order = INA_DIR_SORT_ORDER_NONE;
@@ -139,14 +140,14 @@ INA_API(ina_rc_t) ina_dir_walker_new(const char *basedir,
 
 INA_API(ina_rc_t) ina_dir_walker_enable_recursive(ina_dir_walker_t *walker)
 {
-    INA_ASSERT_NOTNULL(walker);
+    INA_VERIFY_NOT_NULL(walker);
     walker->recursive = INA_YES;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_dir_walker_disable_recursive(ina_dir_walker_t *walker)
 {
-    INA_ASSERT_NOTNULL(walker);
+    INA_VERIFY_NOT_NULL(walker);
     walker->recursive = INA_NO;
     return INA_SUCCESS;
 }
@@ -154,8 +155,8 @@ INA_API(ina_rc_t) ina_dir_walker_disable_recursive(ina_dir_walker_t *walker)
 INA_API(ina_rc_t) ina_dir_walker_get_sort_order(const ina_dir_walker_t *walker,
                                                 ina_dir_sort_order_t *sort_order)
 {
-    INA_ASSERT_NOTNULL(walker);
-    INA_ASSERT_NOTNULL(sort_order);
+    INA_VERIFY_NOT_NULL(walker);
+    INA_VERIFY_NOT_NULL(sort_order);
     *sort_order = walker->sort_order;
     return INA_SUCCESS;
 }
@@ -163,7 +164,7 @@ INA_API(ina_rc_t) ina_dir_walker_get_sort_order(const ina_dir_walker_t *walker,
 INA_API(ina_rc_t) ina_dir_walker_set_sort_order(ina_dir_walker_t *walker,
                                                 ina_dir_sort_order_t sort_order)
 {
-    INA_ASSERT_NOTNULL(walker);
+    INA_VERIFY_NOT_NULL(walker);
     walker->sort_order = sort_order;
     __ina_dir_walker_set_sort_cb(walker);
     return INA_SUCCESS;
@@ -172,8 +173,8 @@ INA_API(ina_rc_t) ina_dir_walker_set_sort_order(ina_dir_walker_t *walker,
 INA_API(ina_rc_t) ina_dir_walker_get_sort_attrib(const ina_dir_walker_t *walker,
                                                  ina_dir_sort_attrib_t *sort_attrib)
 {
-    INA_ASSERT_NOTNULL(walker);
-    INA_ASSERT_NOTNULL(sort_attrib);
+    INA_VERIFY_NOT_NULL(walker);
+    INA_VERIFY_NOT_NULL(sort_attrib);
     *sort_attrib = walker->sort_attrib;
     return INA_SUCCESS;
 }
@@ -181,7 +182,7 @@ INA_API(ina_rc_t) ina_dir_walker_get_sort_attrib(const ina_dir_walker_t *walker,
 INA_API(ina_rc_t) ina_dir_walker_set_sort_attrib(ina_dir_walker_t *walker,
                                                  ina_dir_sort_attrib_t sort_attrib)
 {
-    INA_ASSERT_NOTNULL(walker);
+    INA_VERIFY_NOT_NULL(walker);
     walker->sort_attrib = sort_attrib;
     __ina_dir_walker_set_sort_cb(walker);
     return INA_SUCCESS;
@@ -190,8 +191,9 @@ INA_API(ina_rc_t) ina_dir_walker_set_sort_attrib(ina_dir_walker_t *walker,
 INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
                                                  const ina_dir_entry_t **entry)
 {
-    INA_ASSERT_NOTNULL(walker);
-    INA_ASSERT_NOTNULL(entry);
+    INA_VERIFY_NOT_NULL(walker);
+    INA_VERIFY_NOT_NULL(entry);
+    *entry = NULL;
 
     if (walker->first == NULL) {
         DIR *dir;
@@ -256,24 +258,22 @@ INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
 
 INA_API(ina_rc_t) ina_dir_walker_reset(ina_dir_walker_t *walker)
 {
-    INA_ASSERT_NOTNULL(walker);
+    INA_VERIFY_NOT_NULL(walker);
     walker->current = NULL;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_dir_walker_reload(ina_dir_walker_t *walker)
 {
-    INA_ASSERT_NOTNULL(walker);
+    INA_VERIFY_NOT_NULL(walker);
     walker->first = NULL;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker) {
 
-    INA_ASSERT_NOTNULL(walker);
-    if (*walker == NULL) {
-        return INA_SUCCESS;
-    }
+    INA_VERIFY_NOT_NULL(walker);
+    INA_VERIFY_NOT_NULL(*walker);
 
     INA_MUST_SUCCEED(ina_mempool_release((*walker)->mp, INA_YES));
     INA_MUST_SUCCEED(ina_mempool_release((*walker)->smp, INA_YES));
@@ -288,6 +288,9 @@ INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker) {
 
 INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
 {
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(dir);
+
     *stat = (ina_dir_stat_t*)ina_mem_alloc(sizeof(ina_dir_stat_t));
     INA_RETURN_IF(*stat == NULL);
     (*stat)->dir = ina_str_new_fromcstr(dir);
@@ -311,8 +314,8 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
 
 INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat, uint64_t *capacity_bytes)
 {
-    INA_ASSERT_NOTNULL(stat);
-    INA_ASSERT_NOTNULL(capacity_bytes);
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(capacity_bytes);
 #ifdef INA_OS_WIN32
     *capacity_bytes = stat->total_number_of_bytes.QuadPart;
 #else
@@ -323,8 +326,8 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat, uint64_t *ca
 
 INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat, uint64_t *free_bytes)
 {
-    INA_ASSERT_NOTNULL(stat);
-    INA_ASSERT_NOTNULL(free_bytes);
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(free_bytes);
 #ifdef INA_OS_WIN32
     *free_bytes = stat->free_bytes_available.QuadPart;
 #else
@@ -339,7 +342,8 @@ INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used)
     uint64_t b_free = 0;
     double free_pct;
     double used_pct;
-    INA_ASSERT_NOTNULL(stat);
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(pct_used);
     INA_RETURN_IF_FAILED(ina_dir_stat_bytes_capacity(stat, &b_total));
     INA_RETURN_IF_FAILED(ina_dir_stat_bytes_free(stat, &b_free));
     free_pct = (((double)(b_free/1024/1024))*100.0)/((double)(b_total/1024/1024));
@@ -350,9 +354,9 @@ INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used)
 
 INA_API(ina_rc_t) ina_dir_stat_free(ina_dir_stat_t **stat)
 {
-    if (*stat == NULL) {
-        return INA_SUCCESS;
-    }
+    INA_VERIFY_NOT_NULL(stat);
+    INA_VERIFY_NOT_NULL(*stat);
+
     if ((*stat)->dir != NULL) {
         ina_str_free((*stat)->dir);
     }

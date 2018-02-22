@@ -458,9 +458,10 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
                                     ina_cron_save_cb save_cb,
                                     ina_process_ctx_t *process_ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
 
 	*ctx = (ina_cron_ctx_t*)ina_mem_alloc(sizeof(ina_cron_ctx_t));
+    INA_RETURN_IF_NULL(ctx);
 
     if (load_cb) {
 		(*ctx)->load_cb = load_cb;
@@ -476,21 +477,24 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
 	(*ctx)->t1 = time(NULL);
 	(*ctx)->t2 = 0;
 	(*ctx)->stime = 60;
+
     if (process_ctx == NULL) {
-        INA_MUST_SUCCEED(ina_process_init(&(*ctx)->process_ctx));
-    } else {
-        (*ctx)->process_ctx = process_ctx;
+        if (INA_FAILED(ina_process_init(&process_ctx))) {
+            ina_mem_free(*ctx);
+            return ina_err_get_last_rc();
+        }
     }
+    (*ctx)->process_ctx = process_ctx;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
 {
-	ina_cron_task_t *t, *ttmp;
+    ina_cron_task_t *t, *ttmp;
     ina_cron_func_t *f, *ftmp;
-	
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(*ctx);
+
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(*ctx);
 
     HASH_ITER(hh, (*ctx)->task_head, t, ttmp) {
 		HASH_DELETE(hh, (*ctx)->task_head, t);
@@ -505,11 +509,9 @@ INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
     /*if ((*ctx)->process_ctx != NULL) {
         ina_process_destroy(&(*ctx)->process_ctx);
     }*/
-	ina_mem_free(*ctx);
-
+    ina_mem_free(*ctx);
     *ctx = NULL;
-	
-	return INA_SUCCESS;
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const char *pattern, 
@@ -523,16 +525,16 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
     ina_str_t skey;
     unsigned long key;
     
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(id);
-    INA_ASSERT_NOTNULL(pattern);
-    INA_ASSERT_NOTNULL(cmd);
-    INA_ASSERT_NOTNULL(working_dir);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(id);
+    INA_VERIFY_NOT_NULL(pattern);
+    INA_VERIFY_NOT_NULL(cmd);
+    INA_VERIFY_NOT_NULL(working_dir);
 
     skey = ina_str_new_fromcstr(id);
     key = INA_HASH_STR_TO_SDBM(skey);
     ina_str_free(skey);
-	
+
 	/* check if we already have this task - by using the ID */
 	HASH_FIND_ULONG(ctx->task_head, &key, task);
 	
@@ -596,9 +598,9 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
 
 INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx, ina_cron_task_t **task)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(task);
-    INA_ASSERT_NOTNULL(*task);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(task);
+    INA_VERIFY_NOT_NULL(*task);
 
     if (INA_FAILED(ina_cron_task_is_running(*task))) {
         HASH_DEL(ctx->task_head, *task);
@@ -615,8 +617,8 @@ INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggest
 {
     time_t dt;
 	
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(suggested_next_time);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(suggested_next_time);
 
 	ctx->t2 = now;
 	dt = ctx->t2 - ctx->t1;
@@ -654,26 +656,28 @@ INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggest
 
 INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_ctx_t *ctx, ina_cron_task_itr_t **iter)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(iter);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(iter);
 
     *iter = (ina_cron_task_itr_t*)ina_mem_alloc(sizeof(ina_cron_task_itr_t));
-    INA_RETURN_IF(*iter == NULL);
+    INA_RETURN_IF_NULL(*iter);
     (*iter)->cursor = ctx->task_head;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cron_task_free_iter(ina_cron_task_itr_t **iter)
 {
-    INA_ASSERT_NOTNULL(iter);
+    INA_VERIFY_NOT_NULL(iter);
+    INA_VERIFY_NOT_NULL(*iter);
     ina_mem_free(*iter);
+    *iter = NULL;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cron_task_next(ina_cron_task_itr_t *iter, ina_cron_task_t **task)
 {
-    INA_ASSERT_NOTNULL(iter);
-    INA_ASSERT_NOTNULL(task);
+    INA_VERIFY_NOT_NULL(iter);
+    INA_VERIFY_NOT_NULL(task);
     iter->cursor = (ina_cron_task_t*)iter->cursor->hh.next;
     *task = iter->cursor;
     return INA_SUCCESS;
@@ -685,9 +689,11 @@ INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx, const char *id, ina_c
     ina_str_t skey;
     unsigned long key;
     
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(id);
-    INA_ASSERT_NOTNULL(task);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(id);
+    INA_VERIFY_NOT_NULL(task);
+
+    *task = NULL;
 
     skey = ina_str_new_fromcstr(id);
     key = INA_HASH_STR_TO_SDBM(skey);
@@ -695,19 +701,15 @@ INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx, const char *id, ina_c
 
     if (t != NULL) {
         *task = t;
-    } else {
-        *task = NULL;
     }
-
     ina_str_free(skey);
-
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task)
 {
     ina_fsm_state_t state;
-    INA_ASSERT_NOTNULL(task);
+    INA_VERIFY_NOT_NULL(task);
     if (INA_SUCCEED(ina_process_query_state(task->process, &state)) &&
             state == INA_PROCESS_RUNNING) {
         return INA_SUCCESS;
@@ -717,8 +719,8 @@ INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task)
 
 INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pattern)
 {
-    INA_ASSERT_NOTNULL(task);
-    INA_ASSERT_NOTNULL(pattern);
+    INA_VERIFY_NOT_NULL(task);
+    INA_VERIFY_NOT_NULL(pattern);
     *pattern = task->pattern;
     return INA_SUCCESS;
 }
@@ -731,9 +733,9 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
     ina_str_t skey;
     unsigned long key;
   
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(id);
-    INA_ASSERT_NOTNULL(pattern);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(id);
+    INA_VERIFY_NOT_NULL(pattern);
     
     skey = ina_str_new_fromcstr(id);
     key = INA_HASH_STR_TO_SDBM(skey);
@@ -784,8 +786,8 @@ INA_API(ina_rc_t) ina_cron_unregister_function(ina_cron_ctx_t *ctx, const char *
 	ina_str_t skey;
     unsigned long key;
 
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(id);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(id);
 
     skey = ina_str_new_fromcstr(id);
     key = INA_HASH_STR_TO_SDBM(skey);
@@ -809,9 +811,9 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
     __ina_cron_schedulable_t sched;
     ina_str_t buf;
 
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(pattern);
-    INA_ASSERT_NOTNULL(last_exec_time);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(pattern);
+    INA_VERIFY_NOT_NULL(last_exec_time);
 
     buf = ina_str_new_fromcstr(pattern);
     buf = ina_str_catcstr(buf, "\n");
@@ -848,10 +850,10 @@ INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, co
     ina_str_t skey;
     unsigned long key;
     
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(id);
-    INA_ASSERT_NOTNULL(pattern);
-    INA_ASSERT_NOTNULL(key_out);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(id);
+    INA_VERIFY_NOT_NULL(pattern);
+    INA_VERIFY_NOT_NULL(key_out);
 
     skey = ina_str_new_fromcstr(id);
     key = INA_HASH_STR_TO_SDBM(skey);
@@ -899,8 +901,9 @@ INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx, unsigned long *key)
 {
     ina_cron_func_t *func, *ftmp;
 
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(key);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(key);
+    *key = 0;
 
     HASH_ITER(hh, ctx->func_head, func, ftmp) {
         if (func->func_type == __INA_CRON_FUNCTION_TYPE_PULL && func->callable) {
@@ -909,6 +912,5 @@ INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx, unsigned long *key)
             break;
         }
     }
-
     return INA_SUCCESS;
 }

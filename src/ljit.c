@@ -61,10 +61,10 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     ina_str_t cur_path = NULL;
     ina_str_t new_path = NULL;
 
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
 
     *ctx = (ina_ljit_ctx_t*)ina_mem_alloc(sizeof(ina_ljit_ctx_t));
-    INA_RETURN_IF(*ctx == NULL);
+    INA_RETURN_IF_NULL(*ctx);
     (*ctx)->lstate = luaL_newstate();
     if ((*ctx)->lstate == NULL) {
         ina_mem_free(*ctx);
@@ -88,12 +88,11 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
 INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx)
 {
     INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOTNULL(*ctx);
 
-    if (*ctx == NULL) {
-        return INA_SUCCESS;
+    if (((*ctx)->lstate) != NULL) {
+        lua_close((*ctx)->lstate);
     }
-    INA_ASSERT_NOTNULL((*ctx)->lstate);
-    lua_close((*ctx)->lstate);
     ina_mem_free(*ctx);
     *ctx = NULL;
     return INA_SUCCESS;
@@ -112,9 +111,9 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
     int nres;
     char *cfname;
 
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(ctx->lstate);
-    INA_ASSERT_NOTNULL(fname);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx->lstate);
+    INA_VERIFY_NOT_NULL(fname);
 
     /* Global function or object method? */
     if (!(cfname = (char*)strchr(fname, '.'))) {
@@ -231,7 +230,7 @@ INA_API(ina_rc_t) ina_ljit_dump_stack(ina_ljit_ctx_t *ctx)
 {
     int i;
 
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
 
     i = lua_gettop(ctx->lstate);
     fprintf(stdout, " \n----------------  Lua Stack Dump ----------------\n" );
@@ -262,7 +261,7 @@ INA_API(ina_rc_t) ina_ljit_dump_stack(ina_ljit_ctx_t *ctx)
  */
 INA_API(const void*) ina_ljit_checkcdata(ina_ljit_ctx_t *ctx, int narg)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_VERIFY_NOT_NULL(ctx);
     if (lua_type(ctx->lstate, narg) != 10) {
         luaL_typerror(ctx->lstate, narg, "cdata");
     }

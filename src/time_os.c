@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ struct ina_time_s {
 
 INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info)
 {
-    INA_ASSERT_NOTNULL(info);
+    INA_VERIFY_NOT_NULL(info);
 #ifdef INA_OS_WIN32
     strncpy(info->backend_name, "OS backend: GetSystemTimeAsFileTime()", INA_TIME_BACKEND_NAME_MAXLEN);
 #else
@@ -59,23 +59,24 @@ INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info)
 
 INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time)
 {
+    INA_VERIFY_NOT_NULL(time);
     *time = (ina_time_t*)ina_mem_alloc(sizeof(ina_time_t));
-    if (*time == NULL) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF_NULL(*time);
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time)
 {
-    INA_ASSERT_NOTNULL(time);
-    INA_ASSERT_NOTNULL(*time);
+    INA_VERIFY_NOT_NULL(time);
+    INA_VERIFY_NOT_NULL(*time);
     ina_mem_free(*time);
+    *time = NULL;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
 {
+    INA_VERIFY_NOT_NULL(time);
 #ifdef INA_OS_WIN32
     GetSystemTimeAsFileTime(&time->systime);
 #else
@@ -91,6 +92,7 @@ INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *se
 {
 #ifdef INA_OS_WIN32
     unsigned __int64 tmpres = 0;
+    INA_VERIFY_NOT_NULL(time);
     tmpres |= time->systime.dwHighDateTime;
     tmpres <<= 32;
     tmpres |= time->systime.dwLowDateTime;
@@ -100,6 +102,7 @@ INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *se
     *secs = (long)(tmpres / 1000000UL);
     *micros = (long)(tmpres % 1000000UL);
 #else
+    INA_VERIFY_NOT_NULL(time);
     *secs = time->systime.tv_sec;
     *micros = time->systime.tv_usec;
 #endif

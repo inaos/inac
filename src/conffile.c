@@ -100,9 +100,10 @@ static ina_rc_t __ina_get_value(ina_conffile_t*, const char*, const char*,
 
 INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
 {
-    INA_ASSERT_NOTNULL(cf);
+    INA_VERIFY_NOT_NULL(cf);
 
     *cf = (ina_conffile_t*)ina_mem_alloc(sizeof(ina_conffile_t));
+    INA_RETURN_IF(*cf == NULL);
 
     if (INA_FAILED(ina_ljit_init(&(*cf)->lctx))) {
         ina_mem_free(*cf);
@@ -123,13 +124,11 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
 
 INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf)
 {
-    INA_ASSERT_NOTNULL(cf);
+    INA_VERIFY_NOT_NULL(cf);
+    INA_VERIFY_NOT_NULL(*cf);
 
-    if (*cf == NULL) {
-        return INA_SUCCESS;
-    }
-    ina_ljit_destroy(&(*cf)->lctx);
-    ina_mempool_release((*cf)->mempool, INA_YES);
+    INA_MUST_SUCCEED(ina_ljit_destroy(&(*cf)->lctx));
+    INA_MUST_SUCCEED(ina_mempool_release((*cf)->mempool, INA_YES));
     ina_mem_free(*cf);
     *cf = NULL;
     return INA_SUCCESS;
@@ -144,9 +143,11 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
     ina_conffile_section_t *sp;
     ina_conffile_section_t *check;
 
-    INA_ASSERT_NOTNULL(cf);
-    INA_ASSERT_NOTNULL(name);
-    INA_ASSERT_NOTNULL(section);
+    INA_VERIFY_NOT_NULL(cf);
+    INA_VERIFY_NOT_NULL(name);
+    INA_VERIFY_NOT_NULL(section);
+
+    *section = NULL;
     
     if (cf->prepared == INA_YES) {
         return INA_ERROR(INA_ERR_INITIALIZED);
@@ -162,6 +163,7 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
                                             sizeof(ina_conffile_section_t));
     sp = *section;
     if (sp == NULL) {
+        *section = NULL;
         return ina_err_get_last_rc();
     }
 
@@ -183,8 +185,8 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
     unsigned long k;
     ina_conffile_section_key_t *key;
 
-    INA_ASSERT_NOTNULL(section);
-    INA_ASSERT_NOTNULL(name);
+    INA_VERIFY_NOT_NULL(section);
+    INA_VERIFY_NOT_NULL(name);
     
     k = INA_HASH_CSTR_TO_SDBM(name);
 
@@ -228,8 +230,8 @@ INA_API(ina_rc_t) ina_conffile_has_value_in_entries(
     ina_conffile_entry_t *entry = NULL;
     unsigned long k;
 
-    INA_ASSERT_NOTNULL(entries);
-    INA_ASSERT_NOTNULL(key);
+    INA_VERIFY_NOT_NULL(entries);
+    INA_VERIFY_NOT_NULL(key);
 
     k = INA_HASH_CSTR_TO_SDBM(key);
 
@@ -249,10 +251,10 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf,
 {
     ina_conffile_entry_t *entry = NULL;
 
-    INA_ASSERT_NOTNULL(cf);
-    INA_ASSERT_NOTNULL(section_name);
-    INA_ASSERT_NOTNULL(key);
-    INA_ASSERT_NOTNULL(value);
+    INA_VERIFY_NOT_NULL(cf);
+    INA_VERIFY_NOT_NULL(section_name);
+    INA_VERIFY_NOT_NULL(key);
+    INA_VERIFY_NOT_NULL(value);
 
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
@@ -275,10 +277,10 @@ INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
     ina_conffile_entry_t *entry = NULL;
     unsigned long k;
 
-    INA_ASSERT_NOTNULL(entries);
-    INA_ASSERT_NOTNULL(key);
-    INA_ASSERT_NOTNULL(value);
-    
+    INA_VERIFY_NOT_NULL(entries);
+    INA_VERIFY_NOT_NULL(key);
+    INA_VERIFY_NOT_NULL(value);
+
     k = INA_HASH_CSTR_TO_SDBM(key);
 
     HASH_FIND_ULONG(entries, &k, entry);
@@ -302,10 +304,10 @@ INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf,
 {
     ina_conffile_entry_t *entry = NULL;
 
-    INA_ASSERT_NOTNULL(cf);
-    INA_ASSERT_NOTNULL(section_name);
-    INA_ASSERT_NOTNULL(key);
-    INA_ASSERT_NOTNULL(value);
+    INA_VERIFY_NOT_NULL(cf);
+    INA_VERIFY_NOT_NULL(section_name);
+    INA_VERIFY_NOT_NULL(key);
+    INA_VERIFY_NOT_NULL(value);
 
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
@@ -326,9 +328,9 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
     ina_conffile_entry_t *entry = NULL;
     unsigned long k;
 
-    INA_ASSERT_NOTNULL(entries);
-    INA_ASSERT_NOTNULL(key);
-    INA_ASSERT_NOTNULL(value);
+    INA_VERIFY_NOT_NULL(entries);
+    INA_VERIFY_NOT_NULL(key);
+    INA_VERIFY_NOT_NULL(value);
     
     k = INA_HASH_CSTR_TO_SDBM(key);
 
@@ -348,7 +350,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
 {
     ina_conffile_section_t *s, *stmp;
 
-    INA_ASSERT_NOTNULL(cf);
+    INA_VERIFY_NOT_NULL(cf);
  
     /* Almost one section must be there */
     if (cf->sections == NULL) {
@@ -421,8 +423,6 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
 static ina_rc_t 
 __ina_prepare(ina_conffile_t *cf)
 {
-    INA_ASSERT_NOTNULL(cf);
-
     if (INA_FAILED(ina_ljit_init(&cf->lctx))) {
         return ina_err_get_last_rc();
     }

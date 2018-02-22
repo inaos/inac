@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014,2016 INAOS GmbH
+ * Copyright (c) 2013-2018 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,8 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const
     va_list ap;
     ina_rc_t rc;
 
-    INA_ASSERT_NOTNULL(cfg);
-    INA_ASSERT_NOTNULL(fmt);
+    INA_VERIFY_NOT_NULL(cfg);
+    INA_VERIFY_NOT_NULL(fmt);
 
     va_start(ap, fmt);
     rc = ina_log_v(cfg, level, fmt, ap);
@@ -55,9 +55,9 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level,
         msg = ina_str_new(1024);
     }
  
-    INA_ASSERT_NOTNULL(cfg);
-    INA_ASSERT_NOTNULL(fmt);
-    INA_ASSERT_TRUE(strlen(fmt));
+    INA_VERIFY_NOT_NULL(cfg);
+    INA_VERIFY_NOT_NULL(fmt);
+    INA_VERIFY(strlen(fmt));
 
     if ((level&0xff) < cfg->level) {
         return INA_SUCCESS;
@@ -71,11 +71,10 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level,
 INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target, 
                                 ina_log_level_t level, const char  *logfile)
 {
-    INA_ASSERT_NOTNULL(cfg);
+    INA_VERIFY_NOT_NULL(cfg);
     *cfg = (ina_log_cfg_t*)ina_mem_alloc(sizeof(ina_log_cfg_t));
-    if (*cfg == NULL) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF_NULL(*cfg);
+
     (*cfg)->fp1 = NULL;
     (*cfg)->fp2 = NULL;
     (*cfg)->logfile = ina_str_new_fromcstr(logfile);
@@ -116,7 +115,8 @@ INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg, int32_t target,
 
 INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg)
 {   
-    INA_ASSERT_NOTNULL(*cfg);
+    INA_VERIFY_NOT_NULL(cfg);
+    INA_VERIFY_NOT_NULL(*cfg);
 
     if ((*cfg)->fp2 != NULL) {
         fclose((*cfg)->fp2);
