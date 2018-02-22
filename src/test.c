@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ static const char* __helper_name;
 static const char* __binpath;
 static int         __last_signal = 0;
 static int         __tap = INA_NO;
+static int         __junit = INA_NO;
 
 INA_TEST(suite, test) { }
 
@@ -92,18 +93,24 @@ static void __ina_signal_handler(int sig) {
 
 INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
  {
-     int size;
+     int size = 0;
      va_list argp;
      
 
-    if (!__tap) {
+    if (!__tap && !__junit) {
         if (is_error != INA_YES) {
             size = sprintf(__errormsg, "%s", "     MSG: ");
         } else {
             size = sprintf(__errormsg, "%s", "ERR: ");
         }
-    } else {
+    } else if (__tap) {
         size = sprintf(__errormsg, "%s", "# ");
+    } else if (__junit) {
+        if (is_error) {
+            size = sprintf(__errormsg, "%s", "\t\t\t<failure message=\"");
+        } else {
+            size = sprintf(__errormsg, "%s", "\t\t\t<system-out>");
+        }
     }
  
     __errorsize -= size;
@@ -114,8 +121,16 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
      va_end(argp); 
      __errorsize -= size;
      __errormsg += size;
-    
-     size = sprintf(__errormsg, "%s", "\n");
+
+     if (!__junit) {
+         size = sprintf(__errormsg, "%s", "\n");
+     } else {
+         if (is_error) {
+             size = sprintf(__errormsg, "%s", "\"></failure>\n");
+         } else {
+             size = sprintf(__errormsg, "%s", "</system-out>\n");
+         }
+     }
      __errorsize -= size;
      __errormsg += size;
      return INA_SUCCESS;
@@ -456,8 +471,14 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
         if (strcmp(argv[1], "-h")==0) {
             return ina_test_helper_run(argc, argv);
         }
-        if (strcmp(argv[1], "--tap")==0) {
+        if (strcmp(argv[1], "--format=tap")==0) {
             __tap = INA_YES;
+            if (argc > 2) {
+                __suite_name = argv[2];
+                filter = __ina_suite_filter;
+            }
+        }else if (strcmp(argv[1], "--format=junit")==0) {
+            __junit = INA_YES;
             if (argc > 2) {
                 __suite_name = argv[2];
                 filter = __ina_suite_filter;
@@ -503,6 +524,10 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
     /* print TAP plan */
     if (__tap) {
         printf("1..%d\n", total);
+    } else if (__junit) {
+        printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        printf("<testsuites tests=\"%d\">\n", total);
+        printf("\t<testsuite tests=\"%d\">\n", total);
     }
  
     for (test = begin; test != end; test++) {
@@ -513,18 +538,22 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
             __errorbuffer[0] = 0;
             __errorsize = __INA_MSG_SIZE-1;
             __errormsg = __errorbuffer;
-            if (!__tap) {
+            if (!__tap && !__junit) {
                 printf("TEST %d/%d %s:%s ", index, total, test->suite_name, test->test_name);
                 fflush(stdout);
+            } else if (__junit) {
+                printf("\t\t<testcase name=\"%s:%s\">\n", test->suite_name, test->test_name);
             }
             if (test->skip) {
-                if (!__tap) {
+                if (!__tap && !__junit) {
                     ina_cio_printf(-1,-1, INA_CIO_COLOR_YELLOW, 
                         INA_CIO_COLOR_UNDEFINED, 
                         "[SKIPPED]\n");                    
-                } else {
+                } else if (__tap) {
                     printf("ok %d %s:%s # skip \n", index, test->suite_name, test->test_name); 
-                } 
+                } else if (__junit) {
+                    printf("\t\t\t<skipped/>\n");
+                }
                 num_skip++;
             } else {
                 void* old_sigabrt_handler = NULL;
@@ -549,21 +578,21 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     } else {
                         test->run();
                     }
-                    if (!__tap) {
+                    if (!__tap && !__junit) {
                         ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
                             INA_CIO_COLOR_UNDEFINED, 
                             "[OK]\n");
-                    } else {
-                        printf("ok %d %s:%s\n", index, test->suite_name, test->test_name);                         
-                    }  
+                    } else if (__tap) {
+                        printf("ok %d %s:%s\n", index, test->suite_name, test->test_name);
+                    }
                     num_ok++;
                 } else {
-                    if (!__tap) {
+                    if (!__tap && !__junit) {
                         ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
                             INA_CIO_COLOR_UNDEFINED, 
                             "[FAIL]\n");
-                    } else {
-                        printf("not ok %d %s:%s\n", index, test->suite_name, test->test_name);  
+                    } else if (__tap){
+                        printf("not ok %d %s:%s\n", index, test->suite_name, test->test_name);
                     }
                     num_fail++;
                 }
@@ -577,13 +606,16 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     printf("%s", __errorbuffer);
                 }
             }
+            if (__junit) {
+                printf("\t\t</testcase>\n");
+            }
             index++;
         }
     }
 
     if (total > 0) {
         color = (num_fail) ? INA_CIO_COLOR_RED : INA_CIO_COLOR_GREEN;
-        if (!__tap) {
+        if (!__tap && !__junit) {
             ina_cio_printf(-1,-1, color, INA_CIO_COLOR_UNDEFINED,
                     "RESULTS: %d tests (%d ok, %d failed, %d skipped)\n",
                     total,
@@ -591,6 +623,10 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     num_fail,
                     num_skip);
         }
+    }
+    if (__junit) {
+        printf("\t</testsuite>\n");
+        printf("</testsuites>");
     }
 
     /* Run Lua unit and specification tests */
