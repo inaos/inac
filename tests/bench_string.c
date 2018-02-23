@@ -96,4 +96,27 @@ INA_BENCH_END(string, series_2) {
     printf("end series %s\n", ina_bench_get_series_name());
 }
 
+INA_BENCH_BEGIN(string, series_3) {
+    printf("begin series %s - allocate string using same memory pool\n", ina_bench_get_series_name());
+    INA_MUST_SUCCEED(ina_mempool_create(&data->mp, data->c*50, INA_MEM_FIXED, NULL));
+}
+
+INA_BENCH(string, series_3, 10) {
+    printf("%s - iteration: %d allocate %d strings:", ina_bench_get_series_name(), ic, data->c);
+    ina_bench_stopwatch_start();
+    ina_mempool_reset(data->mp);
+    for (int i = 0; i < data->c; i++) {
+        ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
+    }
+    ina_bench_set_value(ina_bench_stopwatch_stop());
+
+    printf(" time: %lld ns\n", ina_bench_get_value());
+}
+
+
+INA_BENCH_END(string, series_3) {
+    printf("end series %s\n", ina_bench_get_series_name());
+    INA_MUST_SUCCEED(ina_mempool_release(data->mp, INA_YES));
+
+}
 

@@ -121,7 +121,7 @@ static ina_rc_t __ina_write_report(int num_series)
     for (j = 0; j < __current->iterations; ++j) {
         fprintf(f, "%"INA_INT64_T_FMT, scale[j]);
         for (i = 0; i < num_series; ++i) {
-            fprintf(f, ",%"INA_INT64_T_FMT, result[j%__current->iterations+i]);
+            fprintf(f, ",%"INA_INT64_T_FMT, result[i*__current->iterations+j]);
         }
         fprintf(f, "\n");
     }
