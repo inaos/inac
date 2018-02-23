@@ -39,7 +39,8 @@ extern "C" {
 typedef void (*ina_bench_setup_cb_t)(void*);
 /* Teardown callback */
 typedef void (*ina_bench_teardown_cb_t)(void*);
-
+/* Scale callback */
+typedef void (*ina_bench_scale_cb_t)(void*, int);
 
 /* Test case */
 typedef struct ina_bench_benchmark_s {
@@ -52,6 +53,7 @@ typedef struct ina_bench_benchmark_s {
     ina_bench_teardown_cb_t teardown;
     ina_bench_setup_cb_t series_setup;
     ina_bench_teardown_cb_t series_teardown;
+    ina_bench_scale_cb_t scale;
     int iterations;
     unsigned int magic;
 } ina_bench_benchmark_t;
@@ -78,7 +80,7 @@ typedef struct ina_bench_benchmark_s {
 
 /* Benchmark data defines. For internal purpose only */
 #define INA_BENCH_STRUCT(bname, sname, _skip,  __data, __setup,     \
-                            __teardown, __series_setup, __series_teardown, __iter)                      \
+                            __teardown, __series_setup, __series_teardown, __scale,  __iter)                      \
     INA_BENCH_SECTION_PUSH ina_bench_benchmark_t INA_BENCH_BNAME(bname, sname) INA_BENCH_SECTION = {   \
         #bname,                                                              \
         #sname,                                                              \
@@ -89,6 +91,7 @@ typedef struct ina_bench_benchmark_s {
         (ina_bench_teardown_cb_t)__teardown,                                 \
         (ina_bench_setup_cb_t)__series_setup,                                \
         (ina_bench_teardown_cb_t)__series_teardown,                          \
+        (ina_bench_scale_cb_t)__scale,                                       \
         __iter,                                                              \
         INA_BENCH_MAGIC}
 
@@ -100,6 +103,10 @@ typedef struct ina_bench_benchmark_s {
 /* Define teardown code for a benchmark */
 #define INA_BENCH_TEARDOWN(bname)                                            \
     void bname##_teardown(struct bname##_data* data)
+
+/* Define scale code for a benchmark */
+#define INA_BENCH_SCALE(bname)                                             \
+    void bname##_scale(struct bname##_data* data, int ic)
 
 #define INA_BENCH_BEGIN(bname, sname)                                      \
     void bname##_##sname##_setup(struct bname##_data* data)
@@ -114,23 +121,26 @@ typedef struct ina_bench_benchmark_s {
 #define INA_BTEARDOWN_FNAME(bname) NULL
 #define INA_BBEGIN_FNAME(bname, sname) NULL
 #define INA_BEND_FNAME(bname, sname) NULL
+#define INA_BSCALE_FNAME(bname) NULL
 #else
 #define INA_BSETUP_FNAME(bname) bname##_setup
 #define INA_BTEARDOWN_FNAME(bname) bname##_teardown
+#define INA_BSCALE_FNAME(bname) bname##_scale
 #define INA_BBEGIN_FNAME(bname, sname) bname##_##sname##_setup
 #define INA_BTEND_FNAME(bname, sname) bname##_##sname##_teardown
-
 #endif
 #define INA_BENCH_DECL(bname, sname, iter, _skip)                              \
     static struct bname##_data  __ina_bench_##bname##_data;                    \
     INA_BENCH_SETUP(bname);                                                    \
     INA_BENCH_TEARDOWN(bname);                                                 \
+    INA_BENCH_SCALE(bname);                                                    \
     INA_BENCH_BEGIN(bname, sname);                                             \
     INA_BENCH_END(bname, sname);                                               \
     void INA_BENCH_FNAME(bname, sname)(struct bname##_data* data, int ic);     \
     INA_BENCH_STRUCT(bname, sname, _skip,  &__ina_bench_##bname##_data,        \
         INA_BSETUP_FNAME(bname), INA_BTEARDOWN_FNAME(bname),                   \
-        INA_BBEGIN_FNAME(bname, sname), INA_BEND_FNAME(bname, sname), iter);   \
+        INA_BBEGIN_FNAME(bname, sname), INA_BEND_FNAME(bname, sname) ,         \
+        INA_BSCALE_FNAME(bname),  iter);   \
     void INA_BENCH_FNAME(bname, sname)(struct bname##_data* data, int ic)
 
 #define INA_BENCH(bname, sname, iter) INA_BENCH_DECL(bname, sname, iter, 0)
@@ -151,13 +161,17 @@ int ina_bench_run(int argc, char *argv[]);
 
 INA_API(const char*) ina_bench_get_name(void);
 INA_API(const char*) ina_bench_get_series_name(void);
-INA_API(ina_rc_t) ina_bench_set_y_label(const char* label);
-INA_API(ina_rc_t) ina_bench_set_x_label(const char* label);
-INA_API(ina_rc_t) ina_bench_set_y_value(double value);
-INA_API(ina_rc_t) ina_bench_set_x_value(double value);
+INA_API(ina_rc_t) ina_bench_set_value_label(const char* label);
+INA_API(ina_rc_t) ina_bench_set_scale_label(const char* label);
+INA_API(const char*) ina_bench_get_value_label(void);
+INA_API(const char*) ina_bench_get_scale_label(void);
+INA_API(ina_rc_t) ina_bench_set_value(int64_t value);
+INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale);
+INA_API(int64_t) ina_bench_get_value(void);
+INA_API(int64_t) ina_bench_get_scale(void);
 INA_API(int) ina_bench_get_iterations(void);
 INA_API(ina_rc_t) ina_bench_stopwatch_start(void);
-INA_API(int) ina_bench_stopwatch_stop(void);
+INA_API(int64_t) ina_bench_stopwatch_stop(void);
 
 
 

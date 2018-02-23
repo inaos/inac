@@ -30,46 +30,70 @@
 
 
 INA_BENCH_DATA(string) {
-    int c1;
-    int c2;
+    ina_str_t *strings;
+    ina_mempool_t *mp;
+    int c;
 };
 
+
 INA_BENCH_SETUP(string) {
-    ina_bench_set_x_label("hits");
-    ina_bench_set_y_label("ms");
-    printf("Setup %s\n", ina_bench_get_name());
+    printf("setup %s - %s\n", ina_bench_get_name(),  ina_bench_get_series_name());
 }
 
 INA_BENCH_TEARDOWN(string) {
-    printf("Teardown %s\n", ina_bench_get_name());
+    printf("teardown %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
 }
 
 INA_BENCH_BEGIN(string, series_1) {
-    printf("Setup %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
-    ina_bench_stopwatch_start();
-
+    printf("begin series %s - %s\n", ina_bench_get_series_name(), "allocate strings with ina_mem_alloc()");
+    data->strings = NULL;
 }
-INA_BENCH(string, series_1, 100) {
-    printf("%s - iteration: %d\n", ina_bench_get_series_name(), ic);
+
+INA_BENCH_SCALE(string) {
+    data->c = 1000 * ic;
+    ina_bench_set_scale(data->c);
+}
+
+INA_BENCH(string, series_1, 10) {
+    printf("%s - iteration: %d - allocate %d strings ",ina_bench_get_series_name(), ic, data->c);
+
+    data->strings = ina_mem_alloc(sizeof(ina_str_t) * data->c);
+
+    ina_bench_stopwatch_start();
+    for (int i = 0; i < data->c; i++) {
+        data->strings[i] = ina_str_new_fromcstr("this is just a test string");
+    }
+    ina_bench_set_value(ina_bench_stopwatch_stop());
+    printf(" time: %lld ns\n", ina_bench_get_value());
+    ina_mem_free(data->strings);
 }
 
 INA_BENCH_END(string, series_1) {
-    printf("Teardown %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
+    printf("end series %s\n", ina_bench_get_series_name());
 }
 
 
 INA_BENCH_BEGIN(string, series_2) {
-    printf("Setup %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
-    ina_bench_stopwatch_start();
+    printf("begin series %s - allocate string using memory pool\n", ina_bench_get_series_name());
+    data->mp = NULL;
 }
 
-INA_BENCH(string, series_2, 100) {
-    printf("%s - iteration: %d\n", ina_bench_get_series_name(), ic);
+INA_BENCH(string, series_2, 10) {
+    printf("%s - iteration: %d allocate %d strings:", ina_bench_get_series_name(), ic, data->c);
+    INA_MUST_SUCCEED(ina_mempool_create(&data->mp, data->c*50, INA_MEM_FIXED, NULL));
+    ina_bench_stopwatch_start();
+    for (int i = 0; i < data->c; i++) {
+        ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
+    }
+    ina_bench_set_value(ina_bench_stopwatch_stop());
+
+    printf(" time: %lld ns\n", ina_bench_get_value());
+    INA_MUST_SUCCEED(ina_mempool_release(data->mp, INA_YES));
 }
 
 
 INA_BENCH_END(string, series_2) {
-    printf("Teardown %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
+    printf("end series %s\n", ina_bench_get_series_name());
 }
 
 

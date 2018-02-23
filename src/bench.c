@@ -42,9 +42,17 @@ typedef int (*ina_bench_filter_fn_t)(ina_bench_benchmark_t*);
 static const char* __bench_name = NULL;
 static const char* __binpath = NULL;
 static ina_bench_benchmark_t *__current = NULL;
+static ina_str_t __scale_label = NULL;
+static ina_str_t __value_label = NULL;
+static int64_t __scale = 0;
+static int64_t __value = 0;
+static ina_time_tsc_t *__time1;
+static ina_time_tsc_t *__time2;
+
 INA_BENCH_DATA(bench) {
     int dummy;
 };
+
 INA_BENCH(bench, series, 0) { }
 
 static int __ina_bench_all(ina_bench_benchmark_t* b) {
@@ -96,10 +104,12 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
     static ina_bench_benchmark_t* bench;
     ina_bench_benchmark_t* begin;
     ina_bench_benchmark_t* end;
-    ina_cio_color_t color;
 
     __binpath = argv[0];
-    
+
+    INA_MUST_SUCCEED(ina_time_tsc_new(&__time1));
+    INA_MUST_SUCCEED(ina_time_tsc_new(&__time2));
+
     if (argc > 2) {
         __bench_name = argv[2];
         filter = __ina_bench_filter;
@@ -146,6 +156,9 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
                 if (!bench->teardown) {
                     bench->teardown = __ina_find_symbol(bench, "teardown");
                 }
+                if (!bench->scale) {
+                    bench->scale = __ina_find_symbol(bench, "scale");
+                }
                 if (!bench->series_setup) {
                     bench->series_setup = __ina_find_symbol2(bench, "setup");
                 }
@@ -158,7 +171,8 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
                 bench->setup(bench->data);
                 bench->series_setup(bench->data);
                 for (int ic = 0; ic < bench->iterations; ++ic) {
-                    bench->run(bench->data, ic);
+                    bench->scale(bench->data, ic+1);
+                    bench->run(bench->data, ic+1);
                 }
                 bench->series_teardown(bench->data);
                 bench->teardown(bench->data);
@@ -168,6 +182,8 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
             index++;
         }
     }
+    ina_time_tsc_free(&__time1);
+    ina_time_tsc_free(&__time2);
     return total;
 }
 
@@ -187,26 +203,56 @@ INA_API(const char*) ina_bench_get_series_name(void)
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_bench_set_y_label(const char* label)
+INA_API(ina_rc_t) ina_bench_set_value_label(const char* label)
 {
     INA_VERIFY_NOT_NULL(label);
-    return INA_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_IMPLEMENTED);
+    if (__value_label != NULL) {
+        ina_str_free(__value_label);
+    }
+    __value_label = ina_str_new_fromcstr(label);
+    return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_bench_set_x_label(const char* label)
+INA_API(const char*) ina_bench_get_value_label(void)
+{
+    return __value_label;
+}
+
+INA_API(ina_rc_t) ina_bench_set_scale_label(const char* label)
 {
     INA_VERIFY_NOT_NULL(label);
-    return INA_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_IMPLEMENTED);
+    if (__scale_label != NULL) {
+        ina_str_free(__scale_label);
+    }
+    __scale_label = ina_str_new_fromcstr(label);
+    return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_bench_set_y_value(double value)
+INA_API(const char*) ina_bench_get_scale_label(void)
 {
-    return INA_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_IMPLEMENTED);
+    return __scale_label;
 }
 
-INA_API(ina_rc_t) ina_bench_set_x_value(double value)
+INA_API(ina_rc_t) ina_bench_set_value(int64_t value)
 {
-    return INA_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_IMPLEMENTED);
+    __value = value;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
+{
+    __scale = scale;
+    return INA_SUCCESS;
+}
+
+INA_API(int64_t) ina_bench_get_value(void)
+{
+    return __value;
+}
+
+INA_API(int64_t) ina_bench_get_scale(void)
+{
+    return __scale;
 }
 
 INA_API(int) ina_bench_get_iterations(void)
@@ -219,10 +265,20 @@ INA_API(int) ina_bench_get_iterations(void)
 
 INA_API(ina_rc_t) ina_bench_stopwatch_start(void)
 {
-    return INA_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_IMPLEMENTED);
+    return  ina_time_read_tsc_clock(__time1);
 }
 
-INA_API(int) ina_bench_stopwatch_stop(void)
+INA_API(int64_t) ina_bench_stopwatch_stop(void)
 {
-    return INA_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_IMPLEMENTED);
+    time_t secs;
+    long nanos;
+    int64_t micros;
+
+    INA_MUST_SUCCEED(ina_time_read_tsc_clock(__time2));
+    ina_time_tsc_seconds_nanos(__time2, &secs, &nanos);
+    micros = secs * 1000*1000*1000 + nanos;
+    ina_time_tsc_seconds_nanos(__time1, &secs, &nanos);
+    micros -= (secs * 1000 * 1000 *1000 + nanos);
+    return micros;
+
 }
