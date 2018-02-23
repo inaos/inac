@@ -33,10 +33,6 @@
 #include <dlfcn.h>
 #endif
 
-#ifdef INA_OS_WIN32
-#define snprintf sprintf_s
-#endif
-
 #define __INA_MAX_SERIES 64
 
 typedef int (*ina_bench_filter_fn_t)(ina_bench_benchmark_t*);
@@ -61,6 +57,11 @@ INA_BENCH_DATA(bench) {
     int dummy;
 };
 
+INA_BENCH_SETUP(bench) {}
+INA_BENCH_TEARDOWN(bench) {}
+INA_BENCH_SCALE(bench) {}
+INA_BENCH_BEGIN(bench, series) {}
+INA_BENCH_END(bench, series) {}
 INA_BENCH(bench, series, 0) { }
 
 static int __ina_bench_all(ina_bench_benchmark_t* b) {
@@ -142,15 +143,14 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
 
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time1));
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time2));
-
     if (argc > 2) {
         __bench_name = argv[2];
         filter = __ina_bench_filter;
     }
-
+    INA_TRACE("BEG");
     begin = &INA_BENCH_BNAME(bench, series);
     end = &INA_BENCH_BNAME(bench, series);
-
+    INA_TRACE("BEG %p", begin);
     while (begin) {
         ina_bench_benchmark_t* t = begin-1;
         if (t->magic != INA_BENCH_MAGIC) {
@@ -166,22 +166,27 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
         end++;
     }
     end++;
+    INA_TRACE("BEG %p", begin);
+    INA_TRACE("END %p", end);
 
     for (bench = begin; bench != end; bench++) {
         if (bench == &INA_BENCH_BNAME(bench, series)) {
             continue;
         }
+        INA_TRACE("FN");
         if (filter(bench)) {
             total++;
         }
     }
-
+    INA_TRACE("total %d", total);
     for (bench = begin; bench != end; bench++) {
         if (bench == &__ina_bench_bench_series) {
             continue;
         }
+        INA_TRACE("OK");
         if (filter(bench)) {
             if (!bench->skip) {
+                INA_TRACE("RUN");
 #ifdef INA_OS_OSX
                 if (!bench->setup) {
                     bench->setup = __ina_find_symbol(bench, "setup");

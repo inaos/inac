@@ -59,7 +59,7 @@ typedef struct ina_bench_benchmark_s {
 } ina_bench_benchmark_t;
 
 /* Magic. For internal purpose only. */
-#define INA_BENCH_MAGIC (0xDEADBEEF)
+#define INA_BENCH_MAGIC (0xDEADC0DE)
 /* Benchmark function name. For internal purpose only. */
 #define INA_BENCH_FNAME(bname, sname) __ina_bench_##bname##_##sname##_run
 /* Benchmark struct name. For internal purpose only */
@@ -93,7 +93,7 @@ typedef struct ina_bench_benchmark_s {
         (ina_bench_teardown_cb_t)__series_teardown,                          \
         (ina_bench_scale_cb_t)__scale,                                       \
         __iter,                                                              \
-        INA_BENCH_MAGIC}
+        INA_BENCH_MAGIC }
 
 /* Define data for a benchmark  */
 #define INA_BENCH_DATA(bname) struct bname##_data
@@ -127,7 +127,7 @@ typedef struct ina_bench_benchmark_s {
 #define INA_BTEARDOWN_FNAME(bname) bname##_teardown
 #define INA_BSCALE_FNAME(bname) bname##_scale
 #define INA_BBEGIN_FNAME(bname, sname) bname##_##sname##_setup
-#define INA_BTEND_FNAME(bname, sname) bname##_##sname##_teardown
+#define INA_BEND_FNAME(bname, sname) bname##_##sname##_teardown
 #endif
 #define INA_BENCH_DECL(bname, sname, iter, _skip)                              \
     static struct bname##_data  __ina_bench_##bname##_data;                    \
@@ -172,10 +172,6 @@ INA_API(int64_t) ina_bench_get_scale(void);
 INA_API(int) ina_bench_get_iterations(void);
 INA_API(ina_rc_t) ina_bench_stopwatch_start(void);
 INA_API(int64_t) ina_bench_stopwatch_stop(void);
-
-
-
-
 
 #ifdef __cplusplus
 }

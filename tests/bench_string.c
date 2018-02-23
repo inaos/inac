@@ -64,7 +64,7 @@ INA_BENCH(string, series_1, 10) {
         data->strings[i] = ina_str_new_fromcstr("this is just a test string");
     }
     ina_bench_set_value(ina_bench_stopwatch_stop());
-    printf(" time: %lld ns\n", ina_bench_get_value());
+    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_value());
     ina_mem_free(data->strings);
 }
 
@@ -87,7 +87,7 @@ INA_BENCH(string, series_2, 10) {
     }
     ina_bench_set_value(ina_bench_stopwatch_stop());
 
-    printf(" time: %lld ns\n", ina_bench_get_value());
+    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_value());
     INA_MUST_SUCCEED(ina_mempool_release(data->mp, INA_YES));
 }
 
@@ -110,13 +110,12 @@ INA_BENCH(string, series_3, 10) {
     }
     ina_bench_set_value(ina_bench_stopwatch_stop());
 
-    printf(" time: %lld ns\n", ina_bench_get_value());
+    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_value());
 }
 
 
 INA_BENCH_END(string, series_3) {
     printf("end series %s\n", ina_bench_get_series_name());
     INA_MUST_SUCCEED(ina_mempool_release(data->mp, INA_YES));
-
 }
 
