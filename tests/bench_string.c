@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, INAOS GmbH
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -20,46 +20,56 @@
  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <stdio.h>
 #include <libinac/lib.h>
 
-#define INAC_TEST_INT_PARAM 121
 
 
-int main(int argc,  char** argv) 
-{
-    INA_OPTS(opt,
-        INA_OPT_FLAG("h", "helper", "Start a helper"),
-             INA_OPT_FLAG("b", "bench", "Start benchmarks"),
-        INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test intargument"),
-        INA_OPT_INT("x", "repeat", 1, "Test int argument"),
-        INA_OPT_FLOAT("f", "float", 1.02, "Test float argument"),
-        INA_OPT_STRING("r", "run", "all", "Test string argument"),
-        INA_OPT_STRING(NULL, "long-option", "long", "This is a long option without short option"),
-        INA_OPT_STRING(NULL, "format", "inac", "Format: tap=Test Anything Protocol, junit=JUnit"),
-             INA_OPT_STRING("o", "output", "/dev/null", "Output (/dev/null)"));
+INA_BENCH_DATA(string) {
+    int c1;
+    int c2;
+};
 
-    ina_str_t output;
-
-
-    if (INA_FAILED(ina_app_init(argc, argv, 0, opt))) {
-        return EXIT_FAILURE;
-    }
-    if (INA_FAILED(ina_opt_get_string("o", &output))) {
-        return EXIT_FAILURE;
-    }
-    if (INA_FAILED(ina_err_set_log_file(ina_str_cstr(output)))) {
-        ina_str_free(output);
-        return EXIT_FAILURE;
-    }
-    ina_str_free(output);
-    if (INA_SUCCEED(ina_opt_isset("b"))) {
-        return ina_bench_run(argc, argv);
-    }
-    return ina_test_run(argc, argv, NULL);
+INA_BENCH_SETUP(string) {
+    ina_bench_set_x_label("hits");
+    ina_bench_set_y_label("ms");
+    printf("Setup %s\n", ina_bench_get_name());
 }
+
+INA_BENCH_TEARDOWN(string) {
+    printf("Teardown %s\n", ina_bench_get_name());
+}
+
+INA_BENCH_BEGIN(string, series_1) {
+    printf("Setup %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
+    ina_bench_stopwatch_start();
+
+}
+INA_BENCH(string, series_1, 100) {
+    printf("%s - iteration: %d\n", ina_bench_get_series_name(), ic);
+}
+
+INA_BENCH_END(string, series_1) {
+    printf("Teardown %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
+}
+
+
+INA_BENCH_BEGIN(string, series_2) {
+    printf("Setup %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
+    ina_bench_stopwatch_start();
+}
+
+INA_BENCH(string, series_2, 100) {
+    printf("%s - iteration: %d\n", ina_bench_get_series_name(), ic);
+}
+
+
+INA_BENCH_END(string, series_2) {
+    printf("Teardown %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
+}
+
+

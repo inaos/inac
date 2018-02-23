@@ -1,10 +1,10 @@
 DIRS = $(shell ls -p |grep /)
 SRC = $(wildcard test*.c)
 SRC += $(wildcard helper*.c)
+SRC += bench_string.c
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
 BIN = test
-
 # ****************************************************************************
 # Linker settings
 # ****************************************************************************
