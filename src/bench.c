@@ -37,6 +37,8 @@
 #define snprintf sprintf_s
 #endif
 
+#define __INA_MAX_SERIES 64
+
 typedef int (*ina_bench_filter_fn_t)(ina_bench_benchmark_t*);
 
 static const char* __bench_name = NULL;
@@ -44,10 +46,16 @@ static const char* __binpath = NULL;
 static ina_bench_benchmark_t *__current = NULL;
 static ina_str_t __scale_label = NULL;
 static ina_str_t __value_label = NULL;
-static int64_t __scale = 0;
-static int64_t __value = 0;
-static ina_time_tsc_t *__time1;
-static ina_time_tsc_t *__time2;
+static ina_time_tsc_t *__time1 = NULL;
+static ina_time_tsc_t *__time2 = NULL;
+static int64_t *__scales = NULL;
+static int64_t *__results = NULL;
+static int64_t *__current_result = NULL;
+static int64_t *__current_scale = NULL;
+static int __current_iteration = 0;
+static int __current_series = 0;
+static char __header[4069];
+
 
 INA_BENCH_DATA(bench) {
     int dummy;
@@ -95,6 +103,31 @@ static void *__ina_find_symbol2(ina_bench_benchmark_t *bench, const char *fname)
 }
 #endif
 
+static ina_rc_t __ina_write_report(int num_series)
+{
+    FILE* f;
+    ina_str_t file_path;
+    int64_t *result;
+    int64_t *scale;
+    int i,j;
+
+    file_path = ina_str_sprintf("bench_%s.csv", __current->bench_name);
+    INA_ASSERT_NOTNULL(file_path);
+
+    f = fopen(ina_str_cstr(file_path), "w");
+    fprintf(f, "scale,%s\n", __header);
+    result = __results;
+    scale = __scales;
+    for (j = 0; j < __current->iterations; ++j) {
+        fprintf(f, "%"INA_INT64_T_FMT, scale[j]);
+        for (i = 0; i < num_series; ++i) {
+            fprintf(f, ",%"INA_INT64_T_FMT, result[j%__current->iterations+i]);
+        }
+        fprintf(f, "\n");
+    }
+    fclose(f);
+    return INA_SUCCESS;
+}
 
 INA_API(int) ina_bench_run(int argc, char *argv[])
 {
@@ -166,21 +199,45 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
                     bench->series_teardown = __ina_find_symbol2(bench, "teardown");
                 }
 #endif
+                if (__current == NULL || strcmp(__current->bench_name, bench->bench_name) != 0) {
+                    if (__current != NULL) {
+                        __ina_write_report(__current_series);
+                        ina_mem_free(__results);
+                        ina_mem_free(__scales);
+                    }
+                    __scales = ina_mem_alloc(sizeof(int64_t)*bench->iterations);
+                    __results = ina_mem_alloc(sizeof(int64_t)*bench->iterations*__INA_MAX_SERIES);
+                    __current_result = __results;
+                    __header[0] = '\0';
+                    __current_series = 0;
+                    __current_iteration = 0;
+                }
+                __current_scale = __scales;
                 __current = bench;
+                if (strlen(__header)) {
+                    strncat(__header, ",", sizeof(__header)-strlen(__header)+1);
+                }
+                strncat(__header, bench->serie_name, sizeof(__header)-strlen(__header)+1);
 
                 bench->setup(bench->data);
                 bench->series_setup(bench->data);
                 for (int ic = 0; ic < bench->iterations; ++ic) {
+                    __current_iteration = ic;
                     bench->scale(bench->data, ic+1);
                     bench->run(bench->data, ic+1);
+                    __current_result += 1;
+                    __current_scale += 1;
                 }
                 bench->series_teardown(bench->data);
                 bench->teardown(bench->data);
-
-                __current = NULL;
+                __current_series += 1;
             }
             index++;
         }
+    }
+    if (__current != NULL) {
+        __ina_write_report(__current_series);
+        ina_mem_free(__results);
     }
     ina_time_tsc_free(&__time1);
     ina_time_tsc_free(&__time2);
@@ -235,24 +292,24 @@ INA_API(const char*) ina_bench_get_scale_label(void)
 
 INA_API(ina_rc_t) ina_bench_set_value(int64_t value)
 {
-    __value = value;
+    *__current_result = value;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
 {
-    __scale = scale;
+    *__current_scale = scale;
     return INA_SUCCESS;
 }
 
 INA_API(int64_t) ina_bench_get_value(void)
 {
-    return __value;
+    return *__current_result;
 }
 
 INA_API(int64_t) ina_bench_get_scale(void)
 {
-    return __scale;
+    return *__current_scale;
 }
 
 INA_API(int) ina_bench_get_iterations(void)
