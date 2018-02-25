@@ -40,12 +40,12 @@ typedef void (*ina_bench_setup_cb_t)(void*);
 /* Teardown callback */
 typedef void (*ina_bench_teardown_cb_t)(void*);
 /* Scale callback */
-typedef void (*ina_bench_scale_cb_t)(void*, int);
+typedef void (*ina_bench_scale_cb_t)(void*);
 
-/* Test case */
+/* Benchmark, single series */
 typedef struct ina_bench_benchmark_s {
     const char* bench_name;
-    const char* serie_name;
+    const char* series_name;
     void (*run)();
     int skip;
     void *data;
@@ -106,7 +106,7 @@ typedef struct ina_bench_benchmark_s {
 
 /* Define scale code for a benchmark */
 #define INA_BENCH_SCALE(bname)                                             \
-    void bname##_scale(struct bname##_data* data, int ic)
+    void bname##_scale(struct bname##_data* data)
 
 #define INA_BENCH_BEGIN(bname, sname)                                      \
     void bname##_##sname##_setup(struct bname##_data* data)
@@ -136,19 +136,20 @@ typedef struct ina_bench_benchmark_s {
     INA_BENCH_SCALE(bname);                                                    \
     INA_BENCH_BEGIN(bname, sname);                                             \
     INA_BENCH_END(bname, sname);                                               \
-    void INA_BENCH_FNAME(bname, sname)(struct bname##_data* data, int ic);     \
+    void INA_BENCH_FNAME(bname, sname)(struct bname##_data* data);             \
     INA_BENCH_STRUCT(bname, sname, _skip,  &__ina_bench_##bname##_data,        \
         INA_BSETUP_FNAME(bname), INA_BTEARDOWN_FNAME(bname),                   \
         INA_BBEGIN_FNAME(bname, sname), INA_BEND_FNAME(bname, sname) ,         \
         INA_BSCALE_FNAME(bname),  iter);   \
-    void INA_BENCH_FNAME(bname, sname)(struct bname##_data* data, int ic)
+    void INA_BENCH_FNAME(bname, sname)(struct bname##_data* data)
 
+/* Declare a series */
 #define INA_BENCH(bname, sname, iter) INA_BENCH_DECL(bname, sname, iter, 0)
-/* Skip a test case */
-#define INA_BENCH_SKIP(bname, sname, iter) INA_TEST_DECL(bname, sname, iter, 1)
+/* Skip a series */
+#define INA_BENCH_SKIP(bname, sname, iter) INA_BENCH_DECL(bname, sname, iter, 1)
 
 /*
- * Run benchmark suites.
+ * Run benchmarks.
  *
  * Parameters
  *  argc  Argument count
@@ -159,18 +160,90 @@ typedef struct ina_bench_benchmark_s {
  */
 int ina_bench_run(int argc, char *argv[]);
 
+/*
+ * Returns the name of the current running benchmark
+ */
 INA_API(const char*) ina_bench_get_name(void);
+
+/*
+ * Returns the name of the current running series
+ */
 INA_API(const char*) ina_bench_get_series_name(void);
-INA_API(ina_rc_t) ina_bench_set_value_label(const char* label);
+
+/*
+ * Set the label for the scale
+ *
+ * Parameters
+ *  label  Label for scale
+ *
+ * Return
+ *   INA_SUCCESS if all went well
+ *   INA_NN_ARGUMENT|INA_ERR_INVALID  if label was NULL
+ */
 INA_API(ina_rc_t) ina_bench_set_scale_label(const char* label);
-INA_API(const char*) ina_bench_get_value_label(void);
+
+/*
+ * Returns the current scale label
+ */
 INA_API(const char*) ina_bench_get_scale_label(void);
+
+/*
+ * Set the value for the current series and iteration.
+ *
+ * Parameters
+ *  value   Value
+ *
+ * Return
+ *  INA_SUCCESS
+ */
 INA_API(ina_rc_t) ina_bench_set_value(int64_t value);
-INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale);
+
+/*
+ * Returns the current value of current series and iteration.
+ */
 INA_API(int64_t) ina_bench_get_value(void);
+
+/*
+ * Set the scale value for the current series and iteration.
+ *
+ * Parameters
+ *  scale   Scale value
+ *
+ * Return
+ *   INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale);
+
+/*
+ * Returns the scale value of the current series and iteration.
+ */
 INA_API(int64_t) ina_bench_get_scale(void);
+
+/*
+ * Returns the total number of iterations of the current running
+ * series.
+ */
 INA_API(int) ina_bench_get_iterations(void);
+
+/*
+ * Returns the current iteration of the running series
+ */
+INA_API(int) ina_bench_get_iteration(void);
+
+/*
+ * Starts the stopwatch.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
 INA_API(ina_rc_t) ina_bench_stopwatch_start(void);
+
+/*
+ * Stop the the stopwatch.
+ *
+ * Return
+ *  Number of nanoseconds elapsed since the last start.
+ */
 INA_API(int64_t) ina_bench_stopwatch_stop(void);
 
 #ifdef __cplusplus
