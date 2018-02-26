@@ -172,6 +172,8 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
 
     __binpath = argv[0];
 
+    INA_MUST_SUCCEED(ina_init(0));
+
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time1));
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time2));
     if (argc > 2) {
@@ -346,5 +348,4 @@ INA_API(int64_t) ina_bench_stopwatch_stop(void)
     ina_time_tsc_seconds_nanos(__time1, &secs, &nanos);
     micros -= (secs * 1000 * 1000 *1000 + nanos);
     return micros;
-
 }

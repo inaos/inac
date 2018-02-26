@@ -117,7 +117,7 @@ INA_BENCH(string, series_3, 10) {
 
     ina_mempool_reset(data->mp);
     ina_bench_stopwatch_start();
-    for (int i = 0; i < data->c; i++) {
+    for (int i = 0; i < data->c; i++)  {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
     }
     ina_bench_set_value(ina_bench_stopwatch_stop());

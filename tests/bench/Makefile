@@ -1,13 +1,11 @@
 DIRS = $(shell ls -p |grep /)
-SRC = $(wildcard test*.c)
-SRC += $(wildcard helper*.c)
+SRC = $(wildcard bench_*.c)
 OBJ = $(SRC:%.c=%.o)
 FN  = $(SRC:%.c=%)
-BIN = test
+BIN = bench
 # ****************************************************************************
 # Linker settings
 # ****************************************************************************
-LDFLAGS += $(INAC_HOME_DIR)/src/$(INAC_LIB) $(INAC_LIBS)
 
 ifeq (,$(findstring Windows,$(OS)))
 	ifneq (Darwin,$(shell uname -s))
@@ -19,8 +17,7 @@ endif
 
 
 all: $(OBJ)  main.o
-	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS)
-	@for i in $(DIRS); do $(MAKE) -C $$i $(INAC_BUILD_TYPE); done
+	@$(CC) $(CFLAGS) -o $(BIN) main.o $(OBJ)  $(LDFLAGS) 
 	
 %.o: %.c
 	@echo compiling $<
@@ -33,10 +30,8 @@ debug: all
 release: all
 
 clean:
-	@echo cleaning tests...
+	@echo cleaning benchmarks...
 	@-rm -f *.o $(BIN)  *.gcno *.gcda *.gcov* *.tap
-	@for i in $(DIRS); do $(MAKE) clean -C $$i; done
-
 
 test: all
 	./test --tap
