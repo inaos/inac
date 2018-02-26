@@ -459,15 +459,19 @@ extern "C" {
 #  if defined( __cplusplus__ )
 #    define INA_API(rtype) extern "C" rtype INA_EXPORT
 #  else
-#    define INA_API(rtype) extern rtype INA_EXPORT 
+#    define INA_API(rtype) extern rtype INA_EXPORT
 #  endif
+#  define INA_DEPRECATED __declspec(deprecated)
 #else
 #  ifdef __cplusplus__
 #    define INA_API(rtype) extern "C" INA_EXPORT rtype
 #  else
-#    define INA_API(rtype) extern INA_EXPORT rtype 
+#    define INA_API(rtype) extern INA_EXPORT rtype
 #  endif
+#  define INA_DEPRECATED __attribute__ ((deprecated))
 #endif
+#define INA_API_DEPRECATED(rtype) INA_DEPRECATED INA_API(rtype)
+
 
 /*
  * Try to infer endianess.  Basically we just go through the CPUs we know are
