@@ -38,7 +38,7 @@ INA_BENCH_DATA(string) {
 
 INA_BENCH_SETUP(string) {
     printf("setup %s - %s\n", ina_bench_get_name(),  ina_bench_get_series_name());
-    ina_bench_set_scale_label("ns");
+    ina_bench_set_scale_label("nr_of_elements");
 }
 
 INA_BENCH_TEARDOWN(string) {
