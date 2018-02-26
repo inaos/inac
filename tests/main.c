@@ -35,7 +35,6 @@ int main(int argc,  char** argv)
 {
     INA_OPTS(opt,
         INA_OPT_FLAG("h", "helper", "Start a helper"),
-             INA_OPT_FLAG("b", "bench", "Start benchmarks"),
         INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test intargument"),
         INA_OPT_INT("x", "repeat", 1, "Test int argument"),
         INA_OPT_FLOAT("f", "float", 1.02, "Test float argument"),

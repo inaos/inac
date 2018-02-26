@@ -126,7 +126,7 @@ static ina_rc_t __ina_find_symbols(ina_bench_benchmark_t *bench)
 }
 #endif
 
-static ina_rc_t __ina_write_report(int num_series)
+static ina_rc_t __ina_write_report(int num_series, const char* report_path)
 {
     FILE* f;
     ina_str_t file_path;
@@ -134,7 +134,11 @@ static ina_rc_t __ina_write_report(int num_series)
     int64_t *scale;
     int i,j;
 
-    file_path = ina_str_sprintf("bench_%s.csv", __current->bench_name);
+    if (report_path != NULL) {
+        file_path = ina_str_sprintf("%s%cbench_%s.csv", report_path, INA_PATH_SEPARATOR,  __current->bench_name);
+    } else {
+        file_path = ina_str_sprintf("bench_%s.csv", __current->bench_name);
+    }
     INA_ASSERT_NOTNULL(file_path);
 
     f = fopen(ina_str_cstr(file_path), "w");
@@ -169,6 +173,7 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
     static ina_bench_benchmark_t* bench;
     ina_bench_benchmark_t* begin;
     ina_bench_benchmark_t* end;
+    ina_str_t report_path = NULL;
 
     __binpath = argv[0];
 
@@ -176,7 +181,19 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
 
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time1));
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time2));
-    if (argc > 2) {
+    if (argc > 1) {
+        if (strstr(argv[1], "-r=") != NULL ||
+            strstr(argv[1], "--report-path=")) {
+            report_path = ina_str_new_fromcstr(strstr(argv[1], "=")+1);
+            if (argc > 2) {
+                __bench_name = argv[2];
+                filter = __ina_bench_filter;
+            }
+        } else {
+            __bench_name = argv[1];
+            filter = __ina_bench_filter;
+        }
+    } else {
         __bench_name = argv[2];
         filter = __ina_bench_filter;
     }
@@ -218,7 +235,7 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
 #endif
                 if (__current == NULL || strcmp(__current->bench_name, bench->bench_name) != 0) {
                     if (__current != NULL) {
-                       INA_MUST_SUCCEED( __ina_write_report(__current_series));
+                       INA_MUST_SUCCEED( __ina_write_report(__current_series, ina_str_cstr(report_path)));
                         ina_mem_free(__results);
                         ina_mem_free(__scales);
                     }
@@ -252,11 +269,12 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
         }
     }
     if (__current != NULL) {
-        __ina_write_report(__current_series);
+        __ina_write_report(__current_series, report_path);
         ina_mem_free(__results);
     }
     ina_time_tsc_free(&__time1);
     ina_time_tsc_free(&__time2);
+    ina_str_free(report_path);
     return total;
 }
 
