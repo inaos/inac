@@ -31,6 +31,8 @@ set_target_properties(
 
 inac_add_tests()
 inac_add_benchmarks()
+inac_add_tools()
+
 inac_copy_file(tests test.conf)
 inac_copy_file(tests test.exe.conf)
 inac_copy_file(tests test_conffile_anonymous_section.conf)

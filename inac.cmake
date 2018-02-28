@@ -75,6 +75,18 @@ function (inac_add_benchmarks)
     target_link_libraries(bench inac)
 endfunction(inac_add_benchmarks)
 
+function(inac_add_tools)
+    remove_definitions(-DINA_LIB)
+    file(GLOB src ${CMAKE_SOURCE_DIR}/tools/*.c)
+    foreach(tool_src ${src})
+        string(REGEX MATCH "^(.*)\\.[^.]*$" dummy ${tool_src})
+        set(tool ${CMAKE_MATCH_1})
+        STRING(REGEX REPLACE "^${CMAKE_SOURCE_DIR}/tools/" "" tool ${tool})
+        add_executable(${tool} ${tool_src})
+        target_link_libraries(${tool} inac)
+    endforeach()
+endfunction(inac_add_tools)
+
 function(inac_copy_file TARGET FILE)
     add_custom_command(TARGET ${TARGET} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
