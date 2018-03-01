@@ -4,6 +4,9 @@ include(inac.cmake)
 
 inac_enable_aes()
 inac_enable_sse4()
+inac_enable_trace(Debug 4)
+inac_enable_log(Debug 4)
+inac_enable_log(Release 3)
 
 inac_add_contrib_lib(miniz)
 inac_add_contrib_lib(lz4)
@@ -12,7 +15,6 @@ inac_add_contrib_lib(xxhash)
 inac_add_contrib_lib(falkhash)
 inac_add_contrib_lib(t1ha src/)
 inac_add_luajit(luajit)
-
 # Intel cpu-topology
 #if(WIN32)
 #set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
@@ -27,6 +29,7 @@ set_target_properties(
 		inac
 		PROPERTIES
 		COMPILE_DEFINITIONS INA_LIB=1)
+add_dependencies(inac luajit_local)
 
 
 inac_add_tests()
