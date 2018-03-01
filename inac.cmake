@@ -253,7 +253,7 @@ function (inac_add_luafiles DIR)
         add_custom_command (
                 OUTPUT  ${ls}.o DEPENDS ${ls}
                 COMMAND luajit -b ${ls} ${ls}.o )
-        add_library(${TN} STATIC ${ls}.o)
+        add_library(${TN}_LUA STATIC ${ls}.o)
         SET_SOURCE_FILES_PROPERTIES(
                 ${TN}_LUA
                 PROPERTIES
@@ -261,11 +261,11 @@ function (inac_add_luafiles DIR)
                 GENERATED true
         )
         SET_TARGET_PROPERTIES(
-                ${TN}
+                ${TN}_LUA
                 PROPERTIES
                 LINKER_LANGUAGE C
         )
-        list(APPEND OBJECTS ${TN})
+        list(APPEND OBJECTS ${TN}_LUA)
     endforeach()
     set(LUA_OBJECTS ${OBJECTS} PARENT_SCOPE)
 endfunction()
