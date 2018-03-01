@@ -179,13 +179,20 @@ endmacro()
 #
 function (inac_add_tests)
     remove_definitions(-DINA_LIB)
-    if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c")
-        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c
-                "int main(int argc,  char** argv) { return ina_test_run(argc, argv);}"
-                )
+    file(GLOB src ${CMAKE_SOURCE_DIR}/tests/test_*.c ${CMAKE_SOURCE_DIR}/tests/helper_*.c)
+    if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/main.c")
+        if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c")
+            file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c
+                    "int main(int argc,  char** argv) { return ina_test_run(argc, argv);}"
+                    )
+            list(APPEND src "${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c")
+            message(STATUS "Generate main.c for tests")
+        endif()
+    else()
+        list(APPEND src "${CMAKE_SOURCE_DIR}/tests/main.c")
+        message(STATUS "Do NOT generate main.c for tests")
     endif()
-    file(GLOB src ${CMAKE_SOURCE_DIR}/tests/test_.c helper_*.c)
-    add_executable(tests ${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c ${src})
+    add_executable(tests ${src})
     target_link_libraries(tests inac ${INAC_LIBS})
 endfunction(inac_add_tests)
 
@@ -194,13 +201,18 @@ endfunction(inac_add_tests)
 #
 function (inac_add_benchmarks)
     remove_definitions(-DINA_LIB)
-    if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
-        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c
+    file(GLOB src ${CMAKE_SOURCE_DIR}/tests/bench/bench_*.c)
+    if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/bench/main.c")
+        if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
+            file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c
                 "int main(int argc,  char** argv) { return ina_bench_run(argc, argv);}"
                 )
+        endif()
+    else()
+        list(APPEND src "${CMAKE_SOURCE_DIR}/tests/bench/main.c")
+        message(STATUS "Do NOT generate main.c for benchmarks")
     endif()
-    file(GLOB src ${CMAKE_SOURCE_DIR}/tests/bench/bench_*.c)
-    add_executable(bench ${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c ${src})
+    add_executable(bench ${src})
     target_link_libraries(bench  inac ${INAC_LIBS})
 endfunction(inac_add_benchmarks)
 
@@ -229,6 +241,9 @@ function(inac_post_copy_file TARGET FILE)
             $<TARGET_FILE_DIR:${TARGET}>)
 endfunction()
 
+#
+#
+#
 function (inac_add_luafiles DIR)
     set(OBJECTS ${LUA_OBJECTS})
     file(GLOB src ${DIR}/*.lua)
