@@ -229,3 +229,28 @@ function(inac_post_copy_file TARGET FILE)
             $<TARGET_FILE_DIR:${TARGET}>)
 endfunction()
 
+function (inac_add_luafiles DIR)
+    set(OBJECTS ${LUA_OBJECTS})
+    file(GLOB src ${DIR}/*.lua)
+    foreach(ls ${src})
+        message(STATUS "${ls}")
+        get_filename_component(TN ${ls} NAME_WE)
+        add_custom_command (
+                OUTPUT  ${ls}.o DEPENDS ${ls}
+                COMMAND luajit -b ${ls} ${ls}.o )
+        add_library(${TN} STATIC ${ls}.o)
+        SET_SOURCE_FILES_PROPERTIES(
+                ${TN}_LUA
+                PROPERTIES
+                EXTERNAL_OBJECT true
+                GENERATED true
+        )
+        SET_TARGET_PROPERTIES(
+                ${TN}
+                PROPERTIES
+                LINKER_LANGUAGE C
+        )
+        list(APPEND OBJECTS ${TN})
+    endforeach()
+    set(LUA_OBJECTS ${OBJECTS} PARENT_SCOPE)
+endfunction()

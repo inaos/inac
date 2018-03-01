@@ -21,16 +21,13 @@ inac_add_contrib_lib(falkhash)
 inac_add_contrib_lib(t1ha src/)
 inac_add_contrib_lib_win32(cpu-topology)
 
-file(GLOB lua_src ${SRC_DIR}/*.lua)
-foreach(lua_src ${ls})
-	add_custom_command (
-			OUTPUT  ${ld}.o DEPENDS ${ls}
-			COMMAND luajit -b ${ls} ">${ls}.o" )
-endforeach()
+inac_add_luafiles(${SRC_DIR})
+inac_add_luafiles(${DEPS_DIR}/luajit/src/jit)
+inac_add_luafiles(${DEPS_DIR}/luatest)
 
 file(GLOB src ${SRC_DIR}/*.c)
 add_library(inac ${src})
-target_link_libraries(inac ${INAC_LIBS})
+target_link_libraries(inac ${INAC_LIBS} ${LUA_OBJECTS})
 set_target_properties(
 		inac
 		PROPERTIES
