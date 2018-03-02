@@ -33,11 +33,10 @@ set_target_properties(
 		PROPERTIES
 		COMPILE_DEFINITIONS INA_LIB=1)
 
-inac_add_contrib_lib_ex_win32(luajit src/ YES src/msvcbuild.bat)
-inac_add_contrib_lib_ex_unix(luajit src/ YES make amalg)
-
-inac_add_contrib_lib_ex_unix(memhash "/"  NON make)
-inac_add_contrib_lib_ex_linux(cpu-topology "/" NON make)
+inac_add_contrib_lib_ex_win32(inac luajit src/ YES src/msvcbuild.bat)
+inac_add_contrib_lib_ex_unix(inac luajit src/ YES make amalg)
+inac_add_contrib_lib_ex_unix(inac memhash "/"  NO make)
+inac_add_contrib_lib_ex_linux(inac cpu-topology "/" NO make)
 
 inac_add_tests()
 inac_add_benchmarks()

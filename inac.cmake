@@ -7,10 +7,11 @@ include_directories("${PROJECT_BINARY_DIR}"
         "${CMAKE_SOURCE_DIR}"
         "${DEPS_DIR}")
 
-#set build-type specific variables
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
     SET(CMAKE_BUILD_TYPE RelWithDebInfo)
-else()
+    message(WARNING "Build type 'Relase'  not supported, switched to 'RelWithDebInfo'")
+endif()
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "debug")
     add_definitions(-DDEBUG)
 endif()
 
@@ -58,6 +59,7 @@ endfunction()
 function (inac_enable_sse4)
     if(APPLE)
         add_definitions(-msse4)
+        message(STATUS "SSE4 enabled")
     endif()
 endfunction(inac_enable_sse4)
 
@@ -67,6 +69,7 @@ endfunction(inac_enable_sse4)
 function (inac_enable_aes)
     if(APPLE)
         add_definitions(-maes)
+        message(STATUS "AES enabled")
     endif()
 endfunction(inac_enable_aes)
 
@@ -122,12 +125,12 @@ endmacro()
 #
 #
 #
-function(inac_add_contrib_lib_ex TARGET DIR PREFIX_YES_NO COMMAND)
+function(inac_add_contrib_lib_ex DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
     ExternalProject_Add(${TARGET}
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
             CONFIGURE_COMMAND ""
             URL ${CMAKE_SOURCE_DIR}/contribs/${TARGET}
-            BUILD_COMMAND "${COMMAND}" "${ARGV4}"
+            BUILD_COMMAND "${COMMAND}" "${ARGV5}"
             BUILD_IN_SOURCE 1
             INSTALL_COMMAND ""
             )
@@ -147,30 +150,30 @@ function(inac_add_contrib_lib_ex TARGET DIR PREFIX_YES_NO COMMAND)
 
     set(LIBRARIES "${LIB_DIR}/${prefix}${TARGET}${suffix}")
     set(INAC_LIBS ${INAC_LIBS} ${LIBRARIES} PARENT_SCOPE)
-    add_dependencies(inac ${TARGET})
+    add_dependencies(${DEPENDS} ${TARGET})
 endfunction()
 
-macro(inac_add_contrib_lib_ex_win32 TARGET DIR PREFIX_YES_NO COMMAND)
+macro(inac_add_contrib_lib_ex_win32 DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
     if (WIN32)
-        inac_add_contrib_lib_ex(${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV4}")
+        inac_add_contrib_lib_ex(${DEPENDS} ${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV5}")
     endif()
 endmacro()
 
-macro(inac_add_contrib_lib_ex_linux TARGET DIR PREFIX_YES_NO COMMAND)
+macro(inac_add_contrib_lib_ex_linux DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
     if (LINUX)
-        inac_add_contrib_lib_ex(${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} ${ARGV4})
+        inac_add_contrib_lib_ex(${DEPENDS} ${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV5}")
     endif()
 endmacro()
 
-macro(inac_add_contrib_lib_ex_unix TARGET DIR PREFIX_YES_NO COMMAND)
+macro(inac_add_contrib_lib_ex_unix DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
     if (NOT WIN32)
-        inac_add_contrib_lib_ex(${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} ${ARGV4})
+        inac_add_contrib_lib_ex(${DEPENDS} ${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV5}")
     endif()
 endmacro()
 
-macro(inac_add_contrib_lib_ex_osx TARGET DIR PREFIX_YES_NO COMMAND)
+macro(inac_add_contrib_lib_ex_osx DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
     if (APPLE)
-        inac_add_contrib_lib_ex(${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} ${ARGV4})
+        inac_add_contrib_lib_ex(${DEPENDS} ${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV5}")
     endif()
 endmacro()
 
@@ -180,6 +183,12 @@ endmacro()
 function (inac_add_tests)
     remove_definitions(-DINA_LIB)
     file(GLOB src ${CMAKE_SOURCE_DIR}/tests/test_*.c ${CMAKE_SOURCE_DIR}/tests/helper_*.c)
+    list(LENGTH src src_count)
+    if(${src_count} EQUAL 0)
+        message(WARNING "Did no found any test in ${CMAKE_SOURCE_DIR}/tests")
+        return()
+    endif()
+    message(STATUS "Found ${src_count} files to compile into tests")
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/main.c")
         if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c")
             file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c
@@ -202,6 +211,12 @@ endfunction(inac_add_tests)
 function (inac_add_benchmarks)
     remove_definitions(-DINA_LIB)
     file(GLOB src ${CMAKE_SOURCE_DIR}/tests/bench/bench_*.c)
+    list(LENGTH src src_count)
+    if(${src_count} EQUAL 0)
+        message(WARNING "Did no found any benchmark in ${CMAKE_SOURCE_DIR}/tests/bench")
+        return()
+    endif()
+    message(STATUS "Found ${src_count} files to compile into bench")
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/bench/main.c")
         if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
             file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c
@@ -235,6 +250,7 @@ endfunction(inac_add_tools)
 #
 #
 function(inac_post_copy_file TARGET FILE)
+    message(STATUS "Post copy file '${FILE} for target ${TARGET}")
     add_custom_command(TARGET ${TARGET} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${PROJECT_SOURCE_DIR}/${FILE}"
@@ -248,19 +264,19 @@ function (inac_add_luafiles DIR)
     set(OBJECTS ${LUA_OBJECTS})
     file(GLOB src ${DIR}/*.lua)
     foreach(ls ${src})
-        message(STATUS "${ls}")
+        message(STATUS "Added ${ls} to compile")
         get_filename_component(TN ${ls} NAME_WE)
         add_custom_command (
                 OUTPUT  ${ls}.o DEPENDS ${ls}
                 COMMAND luajit -b ${ls} ${ls}.o )
         add_library(${TN}_LUA STATIC ${ls}.o)
-        SET_SOURCE_FILES_PROPERTIES(
+        set_source_files_properties(
                 ${TN}_LUA
                 PROPERTIES
                 EXTERNAL_OBJECT true
                 GENERATED true
         )
-        SET_TARGET_PROPERTIES(
+        set_target_properties(
                 ${TN}_LUA
                 PROPERTIES
                 LINKER_LANGUAGE C
