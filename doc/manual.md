@@ -75,21 +75,13 @@ Initialize the library context as soon as possible:
 
 	ina_init(0);
 
-For each call of `ina_init()` you have to call `ina_exit()`. You can override
-the size system memory pool by passing the pool size in bytes as argument.  
-You can override the size system memory pool by passing the pool size in bytes 
-as argument to `ina_init(pool_size)`.
-For each call of `ina_init()` you have to call `ina_exit()`.   
-
 ## For applications
 For applications, initialize the application context with `ina_app_init()`. 
-This must be  the first function call in your program. You must call 
-`ina_exit()` once before you quit  your program. You can override the system 
-memory pool size by passing the pool size in bytes as third argument.
+This must be  the first function call in your program.
 
 	int main(int argc, char **argv,) 
 	{
-	    if (INA_SUCCEED(ina_app_init(argc, argv, 0, NULL)) {
+	    if (INA_SUCCEED(ina_app_init(argc, argv, NULL)) {
 	        while (... {
 	            ...
 	        }
@@ -122,7 +114,7 @@ The function fails with RC `INA_EOPT` if current command line options don't
 match with the registered definition and simple a usage screen will be printed 
 out to the standard output.
 
-	if (INA_SUCCEED(ina_app_init(argc, argv, 0, opt)) {
+	if (INA_SUCCEED(ina_app_init(argc, argv, opt)) {
 	    while (... {
 	            ...
 	    }
