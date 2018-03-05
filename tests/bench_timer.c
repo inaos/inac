@@ -134,7 +134,7 @@ int main(int argc, char **argv)
         INA_OPT_INT("i", "iterations", 1, "Number of benchmark iterations")
     );
 
-    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
+    if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
     }
 
