@@ -104,14 +104,14 @@ INA_API(const char*) ina_app_get_path(void)
     return ina_str_cstr(__apppath);
 }
 
-INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, ina_opt_t *opt) 
+INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, ina_opt_t *opt)
 {
     
 #ifdef INA_OS_WIN32
     _set_abort_behavior(INA_DGBMSG_ASSERT, _WRITE_ABORT_MSG);
     __main_thread = GetCurrentThread();
 #endif
-    INA_RETURN_IF_FAILED(ina_init(pool_size));
+    INA_RETURN_IF_FAILED(ina_init());
     
     if (argv != NULL) {
         const char* basename = strrchr(argv[0], INA_PATH_SEPARATOR);
@@ -240,7 +240,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_init(size_t pool_size)
+INA_API(ina_rc_t) ina_init(void)
 {
 #ifdef INA_OS_WIN32
     WSADATA wsaData;
@@ -278,7 +278,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     INA_RETURN_IF_FAILED(ina_cio_init());
 
    /* initialize internal structures */
-    INA_RETURN_IF_FAILED(ina_mempool_init(pool_size));
+    INA_RETURN_IF_FAILED(ina_mempool_init(INA_MEM_DFT_POOL_SIZE));
 
 #ifdef INA_OS_WIN32
     /* Make sure to use high-accuracy multimedia-timers for windows */

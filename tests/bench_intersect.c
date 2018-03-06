@@ -84,7 +84,7 @@ int main(int argc, char **argv)
         INA_OPT_FLAG("l", "logical", "Execute a logical intersection of two equally sized arrays")
     );
 
-    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
+    if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
     }
     ina_set_cleanup_handler(its_cleanup_handler);

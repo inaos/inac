@@ -221,8 +221,6 @@ INA_API(const char*) ina_app_get_path(void);
  * Parameters
  *  argc       argc of main() function
  *  argv       Pointer to the argv of main() function
- *  pool_size  Initial size of internal memory pool. if 0 passed a pool
- *             with size INA_MEM_DFT_POOL_SIZE will be created.
  *  opt        Array of options to parse
  *
  * Return
@@ -230,7 +228,6 @@ INA_API(const char*) ina_app_get_path(void);
  */
 INA_API(ina_rc_t) ina_app_init(const int argc,
                                char **argv,
-                               size_t pool_size,
                                ina_opt_t *opt);
 
 /*
@@ -297,13 +294,10 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value);
  * Initialize all internal data structures. This must be the first function 
  * called for any library.
  *
- * Parameters
- *  pool_size  Initial size of internal memory pool. if 0 passed a pool
- *             with size INA_MEM_DFT_POOL_SIZE will be created.
  * Return
  *  INA_SUCCESS  if no error occurred
  */
-INA_API(ina_rc_t) ina_init(size_t pool_size);
+INA_API(ina_rc_t) ina_init(void);
 
 /*
  * Set a custom termination routine to call in case of an 

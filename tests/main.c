@@ -46,7 +46,7 @@ int main(int argc,  char** argv)
     ina_str_t output;
 
 
-    if (INA_FAILED(ina_app_init(argc, argv, 0, opt))) {
+    if (INA_FAILED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
     }
     if (INA_FAILED(ina_opt_get_string("o", &output))) {
