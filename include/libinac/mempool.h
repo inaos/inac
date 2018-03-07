@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 INAOS GmbH
+ * Copyright (c) 2012-2018 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 extern "C" {
 #endif
     
-/* TODO: rename all constants to INA_MEMPOOL_.... */
+/* TODO: rename all constants to INA_MEMPOOL_.... */
 #define INA_MEM_DFT_POOL_SIZE (8*1024*1204)
 /* Minimal allowed pool size */
 #define INA_MEM_MIN_POOL_SIZE (1024)
@@ -104,17 +104,13 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
                                  ina_realloc_t realloc_fn);
 
 /* 
- * Initialize internal structures an allocate the internal memory pool. This
- * system pool will automatically increase his size if needed.
- *
- * Parameters
- *  size  Initial size in bytes
+ * Initialize internal structures.
  *
  * Return
- *  INA_SUCCESS when the system memory pool was successfully allocated.
+ *  INA_SUCCESS if all went well
  *  INA_FAILURE if an error  occurred
  */
-INA_API(ina_rc_t) ina_mempool_init(size_t size);
+INA_API(ina_rc_t) ina_mempool_init(void);
 
 /*
  * Destroy all memory pools.
@@ -178,23 +174,21 @@ INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr,
  * Return
  *  INA_SUCCESS if pool was craeted successfully.
  */
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool,
+INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool,
                                      size_t size,
                                      uint32_t cf,
                                      const char* label);
 
 /* 
- * Releases a memory pool.
+ * Free a memory pool.
  *
  * Parameters
- *  pool     Memory pool to release
- *  destroy  INA_YES to destroy an deallocate memory or IN_NO to reset the
- *           pool to the original size
+ *  pool     Memory pool to free
  *
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy);
+INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool);
 
 /*
  * Shrink a memory pool.
@@ -235,16 +229,6 @@ INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
  *   kind of variable
  */
 INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
-
-/*
- * Free reallocable memory from a pool.
- *
- * Parameters
- *  pool  Memory pool
- *  ptr   Pointer to the previously allocated memory.
- *  size  size
- */
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool, void *ptr, size_t size);
 
 /*
  * Allocate not reallocable memory from a pool.

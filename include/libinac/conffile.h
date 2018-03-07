@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ typedef ina_rc_t (*ina_conffile_section_cb_t)(const char *section_name,
  * Return
  * INA_SUCCESS if no error occured.
  */
-INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf);
+INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf);
 
 /*
  * Add a section to the configuration file. A section can be named or unnamned.
@@ -252,7 +252,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf);
+INA_API(ina_rc_t) ina_conffile_free(ina_conffile_t **cf);
 
 /*
  *  Add a string value key to the configuration file.
@@ -317,7 +317,7 @@ do                                                        \
     ina_conffile_t *__cf = NULL;                          \
     ina_conffile_section_t *__cs = NULL;                  \
     if (cf != NULL) __cf = cf;                            \
-    if (!INA_SUCCEED(ina_conffile_init(&__cf)))       {   \
+    if (!INA_SUCCEED(ina_conffile_new(&__cf)))        {   \
         exit(EXIT_FAILURE);                               \
     }                                                     \
     __VA_ARGS__;                                          \
@@ -327,7 +327,7 @@ do                                                        \
     if (cf == NULL) {                                     \
         cf = __cf;                                        \
     } else {                                              \
-        ina_conffile_destroy(&__cf);                      \
+        ina_conffile_free(&__cf);                         \
     }                                                     \
 } while(0)
 

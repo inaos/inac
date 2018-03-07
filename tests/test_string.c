@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014,2016 INAOS GmbH
+ * Copyright (c) 2012-2018 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,13 @@ INA_TEST_DATA(string_mempool)
 INA_TEST_SETUP(string_mempool)
 {
     ina_err_clear_last_rc();
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&data->pool, 10*1024,INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&data->pool, 10*1024,INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(data->pool);
 }
 
 INA_TEST_TEARDOWN(string_mempool)
 {
-    ina_mempool_release(data->pool, INA_YES);
+    ina_mempool_free(data->pool);
     data->pool = NULL;
 }
 
@@ -766,7 +766,7 @@ INA_TEST(string, simple_allocation_with_pool)
     ina_str_t str2;
     ina_mempool_t *pool;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024, 0, NULL));
 
     str1 = ina_str_new_fromcstr_using_pool("hallo", pool);
     INA_TEST_ASSERT_NOT_NULL(str1);
