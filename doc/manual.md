@@ -569,19 +569,19 @@ Declare
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_NUMBER_KEY("mask", INA_NO)));
 
-Create a configuration file instance by calling `ina_conffile_init()`.
+Create a configuration file instance by calling `ina_conffile_new()`.
 
     ina_conffile_t *cf = NULL;
    
-    if (INA_SUCCEED(ina_conffile_init(&cf, NULL)) {
+    if (INA_SUCCEED(ina_conffile_new(&cf, NULL)) {
 
 After calling you will get an new configurations file instance. You can 
-optinally pass a filepath as second argument to overide the standard pattern of
-configuation file location. By convention the configuration file path is 
+optionally pass a filepath as second argument to override the standard pattern of
+configuration file location. By convention the configuration file path is 
 [binary-name].conf in the current working directory if nothing else is 
 specified.
 
-Remember that each instance need to be destroyed with `ina_conffile_destroy()`. 
+Remember that each instance need to be destroyed with `ina_conffile_free()`. 
 
 Define section and keys
    	

@@ -98,7 +98,7 @@ static ina_rc_t __ina_get_value(ina_conffile_t*, const char*, const char*,
                                 ina_conffile_entry_t**);
 
 
-INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
+INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
 {
     INA_VERIFY_NOT_NULL(cf);
 
@@ -122,7 +122,7 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf)
+INA_API(ina_rc_t) ina_conffile_free(ina_conffile_t **cf)
 {
     INA_VERIFY_NOT_NULL(cf);
     INA_VERIFY_NOT_NULL(*cf);
