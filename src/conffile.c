@@ -110,7 +110,7 @@ INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf)
         *cf = NULL;
         return ina_err_get_last_rc();
     }
-    if (INA_FAILED(ina_mempool_create(&(*cf)->mempool,
+    if (INA_FAILED(ina_mempool_new(&(*cf)->mempool,
                                         4094, 
                                         INA_MEM_DYNAMIC, 
                                         NULL))) {
@@ -128,7 +128,7 @@ INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf)
     INA_VERIFY_NOT_NULL(*cf);
 
     INA_MUST_SUCCEED(ina_ljit_destroy(&(*cf)->lctx));
-    INA_MUST_SUCCEED(ina_mempool_release((*cf)->mempool, INA_YES));
+    INA_MUST_SUCCEED(ina_mempool_free((*cf)->mempool));
     ina_mem_free(*cf);
     *cf = NULL;
     return INA_SUCCESS;

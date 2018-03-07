@@ -278,7 +278,7 @@ INA_API(ina_rc_t) ina_init(void)
     INA_RETURN_IF_FAILED(ina_cio_init());
 
    /* initialize internal structures */
-    INA_RETURN_IF_FAILED(ina_mempool_init(INA_MEM_DFT_POOL_SIZE));
+    INA_RETURN_IF_FAILED(ina_mempool_init());
 
 #ifdef INA_OS_WIN32
     /* Make sure to use high-accuracy multimedia-timers for windows */

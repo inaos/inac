@@ -173,7 +173,7 @@ INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx)
     *ctx = (ina_process_ctx_t*)ina_mem_alloc(sizeof(ina_process_ctx_t));
     INA_RETURN_IF(*ctx == NULL);
     INA_RETURN_IF_FAILED(ina_time_sys_new(&(*ctx)->systime));
-    INA_RETURN_IF_FAILED(ina_mempool_create(&(*ctx)->mempool,
+    INA_RETURN_IF_FAILED(ina_mempool_new(&(*ctx)->mempool,
                                            4096,
                                            INA_MEM_DYNAMIC,
                                            NULL));
@@ -201,7 +201,7 @@ INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx)
         INA_MUST_SUCCEED(ina_time_sys_free(&(*ctx)->systime));
     }
     if ((*ctx)->mempool != NULL) {
-        INA_MUST_SUCCEED(ina_mempool_release((*ctx)->mempool, INA_YES));
+        INA_MUST_SUCCEED(ina_mempool_free((*ctx)->mempool));
     }
     ina_mem_free(*ctx);
     *ctx = NULL;
