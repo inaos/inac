@@ -514,7 +514,7 @@ INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const char *pattern, 
+INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const char *pattern,
 	int persistent, const char *cmd, const char *working_dir)
 {
     size_t cmd_parts_count;
@@ -596,7 +596,7 @@ INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx, const char *id, const c
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx, ina_cron_task_t **task)
+INA_API(ina_rc_t) ina_cron_task_free(ina_cron_ctx_t *ctx, ina_cron_task_t **task)
 {
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(task);
