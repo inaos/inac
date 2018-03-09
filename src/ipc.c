@@ -87,7 +87,7 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
         ina_ipc_flags_free(flags);
         return ina_err_get_last_rc();
     }
-    if (INA_FAILED(ina_timer_init(&(*flags)->timer))) {
+    if (INA_FAILED(ina_timer_new(&(*flags)->timer))) {
         return ina_err_get_last_rc();
     }
     strncpy((*flags)->data->name, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
@@ -119,7 +119,7 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
     if ((*flags)->data == NULL) {
         ina_ipc_flags_free(flags);
     }
-    if (INA_FAILED(ina_timer_init(&(*flags)->timer))) {
+    if (INA_FAILED(ina_timer_new(&(*flags)->timer))) {
         return ina_err_get_last_rc();
     }
     return INA_SUCCESS;
@@ -131,7 +131,7 @@ INA_API(ina_rc_t) ina_ipc_flags_free(ina_ipc_flags_t **flags)
     INA_VERIFY_NOT_NULL(*flags);
 
     if ((*flags)->timer != NULL) {
-        INA_MUST_SUCCEED(ina_timer_destroy(&(*flags)->timer));
+        INA_MUST_SUCCEED(ina_timer_free(&(*flags)->timer));
     }
     if ((*flags)->m != NULL) {
         INA_MUST_SUCCEED(ina_mempool_free((*flags)->m));
@@ -238,7 +238,7 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
 
     INA_VERIFY_NOT_NULL(flags);
 
-    event = ina_timer_create_event(flags->timer, msec_timeout);
+    event = ina_timer_event_new(flags->timer, msec_timeout);
     if (event == NULL) {
         return ina_err_get_last_rc();
     }
@@ -249,7 +249,7 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
             break;
         }
     }
-    ina_timer_delete_event(flags->timer, event);
+    ina_timer_event_free(flags->timer, event);
 
     if (timeout == INA_YES) {
         return INA_ERROR(INA_NN_OPERATION|INA_ERR_TIMED_OUT);
