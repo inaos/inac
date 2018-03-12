@@ -35,7 +35,7 @@ INA_TEST_DATA(string_mempool)
 
 INA_TEST_SETUP(string_mempool)
 {
-    ina_err_clear_last_rc();
+    ina_err_reset();
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&data->pool, 10*1024,INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(data->pool);
 }

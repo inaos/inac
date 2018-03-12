@@ -40,7 +40,7 @@ INA_TEST(error, clear)
 {
     INA_TEST_ASSERT_FAILED(INA_ERROR(INA_ERR_NOT_INITIALIZED));
     INA_TEST_ASSERT_FAILED(ina_err_get_last_rc());
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
 }
@@ -48,7 +48,7 @@ INA_TEST(error, strerror)
 {
     char msg[INA_ERR_MSGLEN];
 
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     INA_ERROR(INA_NN_DEVICE|INA_ERR_IN_USE);
     INA_TEST_MSG("%s", ina_err_strerror(ina_err_get_last_rc(), msg));
@@ -65,15 +65,15 @@ INA_TEST(error, error_pack_rc)
 
 
     INA_TRACE3("rc = %u", rc);
-    INA_TRACE3("reason = %u", INA_RC_A(rc, 0));
+    INA_TRACE3("reason = %u", INA_RC_ATTRIB(rc, 0));
     INA_TEST_MSG("%s", ina_err_strerror(rc, msg));
     
     INA_TEST_ASSERT_EQUAL_INTEGER(rcc,  rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_NN_ACCESS, INA_RC_U(rc));
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(INA_NN_DEVICE, INA_RC_U(rc));
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(INA_NN_OPERATION, INA_RC_U(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_ERR_NOT_ALLOWED, INA_RC_EC(rc));
-    INA_TEST_ASSERT_TRUE(INA_ERR_NOT_ALLOWED&INA_RC_EC(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_NN_ACCESS, INA_RC_USERNN(rc));
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(INA_NN_DEVICE, INA_RC_USERNN(rc));
+    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(INA_NN_OPERATION, INA_RC_USERNN(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_ERR_NOT_ALLOWED, INA_RC_ERROR(rc));
+    INA_TEST_ASSERT_TRUE(INA_ERR_NOT_ALLOWED&INA_RC_ERROR(rc));
     INA_TEST_ASSERT_EQUAL_INTEGER( -9223372036812668926, ina_err_set_last_rc(rc, INA_AT));
     INA_TEST_ASSERT_EQUAL_INTEGER(-9223372036812668926,   ina_err_get_last_rc());
 

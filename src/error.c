@@ -77,11 +77,11 @@ INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char *location)
     if (__logfile != NULL) {
         char buf[INA_ERR_MSGLEN];
         fprintf(__logfile, "%s at %s", ina_err_strerror(__rc, buf), location);
-        if (INA_RC_L(__rc) > 0) {
+        if (INA_RC_ERRNO(__rc) > 0) {
             fprintf(__logfile,
                     " - OS error: %s (%d)",
-                    strerror(INA_RC_L(__rc)),
-                    INA_RC_L(__rc));
+                    strerror(INA_RC_ERRNO(__rc)),
+                    INA_RC_ERRNO(__rc));
         }
         fprintf(__logfile, "\n");
     }
@@ -93,7 +93,7 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void)
     return __rc;
 }
 
-INA_API(ina_rc_t) ina_err_clear_last_rc(void)
+INA_API(ina_rc_t) ina_err_reset(void)
 {
     __rc = ina_err_clear_rc(__rc);
     return __rc;
@@ -272,7 +272,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
     if (INA_SUCCEED(rc)) {
         return (buf[0] = '\0', buf);
     }
-    strncpy (noun, __ina_get_noun(INA_RC_U(rc)), sizeof(noun));
+    strncpy (noun, __ina_get_noun(INA_RC_USERNN(rc)), sizeof(noun));
 
     if (rc & ( 1LL << INA_RC_BIT_N )) {
         neg = "NOT";
@@ -433,13 +433,13 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[2]);
         sprintf((char*)&buf[strlen(buf)], " - 0x%"INA_INT64_T_FMT" - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
                 rc,
-                INA_RC_E(rc),
-                INA_RC_V(rc),
-                INA_RC_R(rc),
-                INA_RC_L(rc),
-                INA_RC_N(rc),
-                INA_RC_A(rc),
-                INA_RC_U(rc));
+                INA_RC_EFLAG(rc),
+                INA_RC_APIVER(rc),
+                INA_RC_APIREV(rc),
+                INA_RC_ERRNO(rc),
+                INA_RC_NFLAG(rc),
+                INA_RC_ATTRIB(rc),
+                INA_RC_USERNN(rc));
         return (buf[INA_ERR_MSGLEN-1] = '\0', buf);
     }
 }

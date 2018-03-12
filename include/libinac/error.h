@@ -60,15 +60,18 @@ typedef int64_t ina_rc_t;
  * Return with last rc if condition x fails
  */
 #define INA_RETURN_IF(x) if ((x)) return ina_err_get_last_rc()
+/*
+ * Return with last rc if x == NULL
+ */
 #define INA_RETURN_IF_NULL(x) if ((x) == NULL) return ina_err_get_last_rc();
 /*
  * Return with last rc if failed
  */
-#define INA_RETURN_IF_FAILED(x) if (INA_FAILED((x))) return ina_err_get_last_rc()
+#define INA_RETURN_IF_FAILED(rc) if (INA_FAILED((rc))) return ina_err_get_last_rc()
 /**
  * Return with last rc if succeed
  */
-#define INA_RETURN_IF_SUCCEED(x) if (INA_SUCCEED((x))) return ina_err_get_last_rc()
+#define INA_RETURN_IF_SUCCEED(rc) if (INA_SUCCEED((rc))) return ina_err_get_last_rc()
 
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(INA_FAILED(rc))) abort()
@@ -80,31 +83,30 @@ typedef int64_t ina_rc_t;
 #define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 
 /* Pack a RC */
-#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((e)) << INA_RC_BIT_L) | (x))
+#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((e)) << INA_RC_BIT_O) | (x))
 
 
-/* Extract bits from error code */
-#define INA_RC_E(rc)   ( (int32_t)((rc >> INA_RC_BIT_E) & 0x1) )
-#define INA_RC_V(rc)   ( (int32_t)((rc >> INA_RC_BIT_V) & 0x7f) )
-#define INA_RC_R(rc)   ( (int32_t)((rc >> INA_RC_BIT_R) & 0xffff) )
-#define INA_RC_L(rc)   ( (int32_t)((rc >> INA_RC_BIT_L) & 0xffff) )
-#define INA_RC_N(rc)   ( (int32_t)((rc >> INA_RC_BIT_N) & 0x1) )
-#define INA_RC_A(rc)   ( (int32_t)((rc >> INA_RC_BIT_A) & 0xff) )
-#define INA_RC_U(rc)   ( (int32_t)((rc >> INA_RC_BIT_U) & 0x7fff) )
-#define INA_RC_EC(rc)  ( (int32_t)((INA_MID_BITS((rc), INA_RC_BIT_A, INA_RC_BIT_N+1))<<INA_RC_BIT_A))
+#define INA_RC_EFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_E) & 0x1))
+#define INA_RC_APIVER(rc)  ((int32_t)((rc >> INA_RC_BIT_V) & 0x1))
+#define INA_RC_APIREV(rc)  ((int32_t)((rc >> INA_RC_BIT_R) & 0xffff))
+#define INA_RC_ERRNO(rc)   ((int32_t)((rc >> INA_RC_BIT_O) & 0xffff))
+#define INA_RC_NFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_N) & 0x1))
+#define INA_RC_ATTRIB(rc)  ((int32_t)((rc >> INA_RC_BIT_A) & 0xff))
+#define INA_RC_USERNN(rc)  ((int32_t)((rc >> INA_RC_BIT_U) & 0x7fff))
+#define INA_RC_ERROR(rc)   ((int32_t)((INA_MID_BITS((rc), INA_RC_BIT_A, INA_RC_BIT_N+1))<<INA_RC_BIT_A))
 
 /* Bit-shifts */
 #define INA_RC_BIT_E                63
 #define INA_RC_BIT_V                56
 #define INA_RC_BIT_R                40
-#define INA_RC_BIT_L                24
+#define INA_RC_BIT_O                24
 #define INA_RC_BIT_N                23
 #define INA_RC_BIT_A                15
 #define INA_RC_BIT_U                00
 
 /* Flags */
-#define INA_ERR_ERROR               (  1LL << INA_RC_BIT_E) /*Error-bit*/
-#define INA_ERR_NOT                 (  1LL << INA_RC_BIT_N) /*Negate-bit*/
+#define INA_ERR_ERROR               (  1LL << INA_RC_BIT_E) /* Error-bit  */
+#define INA_ERR_NOT                 (  1LL << INA_RC_BIT_N) /* Negate-bit */
 /* Error attributes */
 #define INA_ERR_A                   (  1LL << INA_RC_BIT_A)
 #define INA_ERR_ACK                 (  2LL << INA_RC_BIT_A)
@@ -621,19 +623,28 @@ INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char* location);
 INA_API(ina_rc_t) ina_err_get_last_rc(void);
 
 /*
- * Mark an error as handled. All errors pushed before this one are removed
- * from the state.
+ * Mark an error as handled.
  *
  * Parameters
- *  rc  Valid RC to mark as handled. If a error was already maked as handled
+ *  rc  Valid RC to mark as handled. If a error was already marked as handled
  *      no error occurs.
  *
  * Return
  *  Returns INA_SUCCESS when the complete error state was cleared successfully
- *  otherwise returns INA_FAILURE. A marked
+ *  otherwise
  */
-INA_API(ina_rc_t) ina_err_clear_last_rc(void);
+INA_API(ina_rc_t) ina_err_reset(void);
 
+/*
+ * Mark a RC as handled.
+ *
+ * Parameters
+ *  rc  Valid RC to mark as handled. If a error was already marked as handled
+ *      no error occurs.
+ *
+ * Return
+ *  Returns cleared RC
+ */
 INA_API(ina_rc_t) ina_err_clear_rc(ina_rc_t rc);
 
 /*

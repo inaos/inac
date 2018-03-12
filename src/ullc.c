@@ -129,7 +129,7 @@ INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size,
                                             num_consumers, 
                                             name, 
                                             INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL))) {
-        ina_err_clear_last_rc();
+        ina_err_reset();
         if (INA_FAILED(__ina_ullc_ring_create(&pctx->ring, pctx, version, size,
                                             slots, 
                                             num_producers, 

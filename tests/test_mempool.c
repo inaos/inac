@@ -165,7 +165,7 @@ INA_TEST(mempool, dalloc)
     ina_mempool_t *pool;
     char *buf;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024*1024*2, INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
@@ -183,7 +183,7 @@ INA_TEST(mempool, reset)
 
     char *buf;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 2048, INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
@@ -220,7 +220,7 @@ INA_TEST(mempool, realloc_dynamic)
     char *buf;
     char *old_buf;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
@@ -261,7 +261,7 @@ INA_TEST(mempool, realloc_fixed)
     char *buf2;
     char *old_buf;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
@@ -316,7 +316,7 @@ INA_TEST(mempool, fill_zero)
     size_t size = INA_MEM_MIN_POOL_SIZE-100;
 
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     pool = NULL;
@@ -334,7 +334,7 @@ INA_TEST(mempool, min_allowed_size)
     ina_mempool_info_t mi;
 
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     
     pool = NULL;
@@ -353,7 +353,7 @@ INA_TEST(mempool, auto_resize) {
     unsigned char *buffer;
 
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     /* Allocate pool with initial site 2KB dynamic + auto size */
@@ -427,7 +427,7 @@ INA_TEST(mempool, bad_dalloc)
     pool = NULL;
 
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     /* create a fixed size pool of 1KB and try to allocate 2KB */
@@ -446,7 +446,7 @@ INA_TEST(mempool, getbypointer)
     unsigned char *buffer1, *buffer2;
  
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     /* Allocate pool with initial site 2KB dynamic + auto size */
