@@ -263,24 +263,40 @@ __FIXME__
 A good error handling should know as much as possible about an error. Things
 like when, where, what, who, is it handed or not, and "should I abort my 
 program" are such kind of information we want to know.  
-The "who" question isn't really easy to implement, so we omitted  it.
+The "who" question isn't really easy to implement, so we omitted it.
 
 Also important: Easy access to error information. That's why we pack the 
-'where', 'what', 'handled or not' and 'abort or not' in one single value. 
+error information in one single value. 
 We call it 'Return Code' or simply RC. RC is defined by `ina_rc_t` which is 
-in fact a 32bit unsigned integer value. The RC is packed as follow:
+in fact a 64bit signed integer value.  The RC The RC is packed as follow:
+  
+    64bit mask of a RC
+    
+    |------ 24 bit header ----|-------- 56 bit descriptor -----------------|
+    EVVVVVVV|RRRRRRRR|RRRRRRRR|OOOOOOOO|OOOOOOOO|NAAAAAAA|AUUUUUUU|UUUUUUUU|
+    |    |           |                 |         |    |      |
+    |    |           |                 |         |    |      +--->15 bit - User defined code
+    |    |           |                 |         |    +----------> 8 bit - Attribute code
+    |    |           |                 |         +---------------> 1 bit - Negate flag
+    |    |           |                 +------------------------->16 bit - Native OS Error
+    |    |           +------------------------------------------->16 bit - API Revision
+    |    +-------------------------------------------------------> 7 bit - API Version
+    +------------------------------------------------------------> 1 bit - Error flag
 
-	 32bit |IIIIIIII|IIMMMMMM|OOOOOFHR|RRRRRRRR|
-	            |         |     |  ||      +->  9bit - Reason
-	            |         |     |  |+-------->  1bit - Handled flag
-	            |         |     |  +--------->  1bit - Fatal flag
-	            |         |     +------------>  5bit - OS function identifier   
-	            |         +------------------>  6bit - Module identifier
-	            +----------------------------> 10bit - Error identifier
+
 To know if an error occurred use `INA_SUCCEED` macro, which returns `1` if no
-errors occurred or the last error was handled by a previous caller.
+error occurred or the last error was handled by a previous caller.
 
 ### Return Code
+
+#### Error flag
+#### Deprecated flag
+#### API version
+#### API revision
+#### OS Native error 
+#### Negate flag
+#### Attribute code
+#### User defined code
 
 #### Reason
 
@@ -348,78 +364,6 @@ For instance:
 OS function identifiers are defined in `<libinac/error.h>`. Only those 
 identifiers are allowed. Don't define any others.  
 
-#### Module identifier
-
-Clearly identify the source (compilation unit) of error. For instance 
-`INA_MOD_STRING` identifies the string compilation unit. Developers can define
-their own identifiers. User defined modules should start with `INA_MOD_USER`.
-
-### Push and peek instead of throw and catch
-
-The basic concept of our error handling is that we push an error to a global
-error state. The error state is a simple  pointer array which stores a 
-certain number of errors (`__INA_ERR_STATE_SIZE`). In case the max number of 
-errors is reached, the "first in" error will be dropped from the state.
-
-The caller has the responsibility to take care about the pushed error(s).
-He has in fact, depending on the error situation, 4 options:
-
-1. Handle the error situation
-2. Leave it unhandled and push a new error.
-3. Leave it unhandled and return it to the caller
-4. Abort the program
-
-#### Push
-
-Use the `INA_ERR_PUSH` macro to push an error to the global error state.
-
-	INA_ERR_PUSH(INAWS_ERR_NOCONNECT, 
-	    INAWS_MOD_SERVER, INA_OSFN_NONE, "Connection failed");
-
-For simplification, use the `INA_ERR_PUSH_BASIC` or `INA_ERR_PUSH_OSFN` 
-macros on depending the error information you have.
-
-	INA_ERR_PUSH_BASIC(INAWS_ERR_NOCONNECT, "Connection failed");
-	INA_ERR_PUSH_OSFN(INAWS_ERR_NOCONNECT, INA_OSFN_NONE, "Connection failed");
-
-#### Peek
-
-With a peek operation we get the first unhandled error from the global state. 
-Call `ina_err_peek()`to peek. Peek doesn't drop the error. For instance:
-  
-	if (!INA_SUCCEED(inaws_server_start())) {
-	    rc = ina_err_peek();
-	    ... do something now!
-
-To know what is the first pushed error we use `ina_err_peek_last()`. It's 
-maybe confusing but, in fact the first pushed error is the last error in our
-global error state.  In others words, `ina_err_peek_last()` returns the root 
-of failure (until no errors were dropped) .
-
-We can walk through the global error state by using `ina_err_peek()` and 
-`ina_err_peek_next()`
-
-	if (!INA_SUCCEED(inaws_server_start())) {
-	    rc = ina_err_peek();
-	    while (!INA_SUCCEED(rc)) {
-	       /* check if we must abort ... */
-	      if (INA_ERR_FATAL(RC)) {
-	        abort();
-	      }
-	      rc = ina_err_peek_next(rc);
-	    }
-		
-For simplification we can set our RC to `INA_ERR_PEEK_FIRST` and then walk 
-through using `ina_err_peek_next()`.
-
-	    rc =  INA_ERR_PEEK_FIRST;
-	    while (!(rc = ina_err_peek_next(rc)) {
-	       /* check if we must abort ... */
-	      if (INA_ERR_FATAL(RC)) {
-	        abort();
-	      }
-		}
-
 #### Cleanup the error state
 
 To reset the entire error state use `ina_err_reset()`. All errors including 
@@ -429,17 +373,8 @@ the most recently  pushed are removed from the error state.
 	ina_err_reset();
 	/* do the work now */
 	if (!INA_SUCCEED(inaws_server_start())) {
-	    rc = ina_err_peek();
-	    if (!INA_ERR_FATAL(RC)) 
 
-### Cleanup handler
 
-There is a possibility to define a callback function which is called in case 
-the program is being terminated because of fatal error like segmentation fault
-or an interruption request like ctrl-c.
-Use `ina_err_set_cleanup_handler()` to define such a callback. 
-Keep in mind that this cleanup handler will be called only in case of abnormal
-program termination.
 
 ### Utilities
 
