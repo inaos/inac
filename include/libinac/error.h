@@ -83,11 +83,11 @@ typedef int64_t ina_rc_t;
 #define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 
 /* Pack a RC */
-#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((e)) << INA_RC_BIT_O) | (x))
+#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_VERSION_HEX) << INA_RC_BIT_R) | (((e)) << INA_RC_BIT_O) | (x))
 
 
 #define INA_RC_EFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_E) & 0x1))
-#define INA_RC_APIVER(rc)  ((int32_t)((rc >> INA_RC_BIT_V) & 0x1))
+#define INA_RC_APIVER(rc)  ((int32_t)((rc >> INA_RC_BIT_V) & 0x7f))
 #define INA_RC_APIREV(rc)  ((int32_t)((rc >> INA_RC_BIT_R) & 0xffff))
 #define INA_RC_ERRNO(rc)   ((int32_t)((rc >> INA_RC_BIT_O) & 0xffff))
 #define INA_RC_NFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_N) & 0x1))
@@ -597,10 +597,22 @@ typedef int64_t ina_rc_t;
 #define INA_NN_SEMAPHORE            (167)
 #define INA_NN_THREAD               (168)
 #define INA_NN_CRON                 (169)
-#define INA_NN_USER_DEFINED         (256)
+#define INA_NN_USER_DEFINED         (1024)
 /* Error message length */
 #define INA_ERR_MSGLEN  512
 
+typedef const char* (*ina_err_dict_cb_t)(int);
+
+/*
+ * Register a user defined dictionary.
+ *
+ * Parameters
+ *  cb  Dictionary callback
+ *
+ * Returns
+ *  Previously registered dictionary callback
+ */
+INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb);
 
 /*
  * Set RC

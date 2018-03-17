@@ -28,6 +28,34 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
+#define INA_NN_HELLO   INA_NN_USER_DEFINED+1
+#define INA_NN_WORLD   INA_NN_USER_DEFINED+2
+#define INA_NN_UNKNOWN INA_NN_USER_DEFINED+3
+
+static const char* __ina_get_noun_a(int id)
+{
+    switch (id) {
+        case INA_NN_HELLO:
+            return "HELLO A";
+        case INA_NN_WORLD:
+            return "WORLD A";
+        default:
+            return "--";
+    }
+}
+
+static const char* __ina_get_noun_b(int id)
+{
+    switch (id) {
+        case INA_NN_HELLO:
+            return "HELLO B";
+        case INA_NN_WORLD:
+            return "WORLD B";
+        default:
+            return "XX";
+    }
+}
+
 INA_TEST(error, get_set_rc)
 {
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_RC_PACK(INA_ERR_FAILED, 0),
@@ -60,7 +88,7 @@ INA_TEST(error, error_pack_rc)
     ina_rc_t rcc;
     ina_rc_t rc;
 
-    rcc = -9223372036812668926;
+    rcc = -9220838762022273022;
     rc = INA_RC_PACK(INA_NN_ACCESS|INA_ERR_NOT_ALLOWED, 2);
 
 
@@ -73,8 +101,29 @@ INA_TEST(error, error_pack_rc)
     INA_TEST_ASSERT_NOT_EQUAL_INTEGER(INA_NN_DEVICE, INA_RC_USERNN(rc));
     INA_TEST_ASSERT_NOT_EQUAL_INTEGER(INA_NN_OPERATION, INA_RC_USERNN(rc));
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_ERR_NOT_ALLOWED, INA_RC_ERROR(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_MAJOR_VERSION, INA_RC_APIVER(rc));
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_REVISION_HEX,  INA_RC_APIREV(rc));
     INA_TEST_ASSERT_TRUE(INA_ERR_NOT_ALLOWED&INA_RC_ERROR(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER( -9223372036812668926, ina_err_set_last_rc(rc, INA_AT));
-    INA_TEST_ASSERT_EQUAL_INTEGER(-9223372036812668926,   ina_err_get_last_rc());
+    INA_TEST_ASSERT_EQUAL_INTEGER(rcc, ina_err_set_last_rc(rc, INA_AT));
+    INA_TEST_ASSERT_EQUAL_INTEGER(rcc,   ina_err_get_last_rc());
 
+}
+
+INA_TEST(error, register_dict)
+{
+    char msg[INA_ERR_MSGLEN];
+    INA_TEST_ASSERT_NULL(ina_err_register_dict(__ina_get_noun_a));
+    INA_ERROR(INA_NN_HELLO|INA_ERR_FAILED);
+    INA_TEST_ASSERT_EQUAL_STR("HELLO A FAILED - 0x8009000000158401 - error=1,ver=0,rev=2304,os=0,neg=0,attr=43,noun=1025", ina_err_strerror(ina_err_get_last_rc(), msg));
+    INA_ERROR(INA_NN_WORLD|INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("WORLD A NOT FOUND - 0x8009000000980402 - error=1,ver=0,rev=2304,os=0,neg=1,attr=48,noun=1026", ina_err_strerror(ina_err_get_last_rc(), msg));
+    INA_ERROR(INA_NN_UNKNOWN|INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("-- NOT FOUND - 0x8009000000980403 - error=1,ver=0,rev=2304,os=0,neg=1,attr=48,noun=1027", ina_err_strerror(ina_err_get_last_rc(), msg));
+    INA_TEST_ASSERT_SAME(__ina_get_noun_a, ina_err_register_dict(__ina_get_noun_b));
+    INA_ERROR(INA_NN_HELLO|INA_ERR_FAILED);
+    INA_TEST_ASSERT_EQUAL_STR("HELLO B FAILED - 0x8009000000158401 - error=1,ver=0,rev=2304,os=0,neg=0,attr=43,noun=1025", ina_err_strerror(ina_err_get_last_rc(), msg));
+    INA_ERROR(INA_NN_WORLD|INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("WORLD B NOT FOUND - 0x8009000000980402 - error=1,ver=0,rev=2304,os=0,neg=1,attr=48,noun=1026", ina_err_strerror(ina_err_get_last_rc(), msg));
+    INA_ERROR(INA_NN_UNKNOWN|INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("XX NOT FOUND - 0x8009000000980403 - error=1,ver=0,rev=2304,os=0,neg=1,attr=48,noun=1027", ina_err_strerror(ina_err_get_last_rc(), msg));
 }

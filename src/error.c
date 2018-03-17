@@ -36,6 +36,14 @@
 
 static INA_TLS(ina_rc_t) __rc = 0;
 static INA_TLS(FILE) *__logfile = NULL;
+static INA_TLS(ina_err_dict_cb_t) __dict_cb = NULL;
+
+INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb)
+{
+    ina_err_dict_cb_t old_cb = __dict_cb;
+    __dict_cb = cb;
+    return old_cb;
+}
 
 INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path)
 {
@@ -260,7 +268,11 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_SEMAPHORE: return "SEMAPHORE";
         case INA_NN_THREAD: return "THREAD";
         case INA_NN_CRON: return "CRON";
-        default:  return "??";
+        default:
+            if (__dict_cb != NULL) {
+                return  __dict_cb(id);
+            }
+            return "??";
     }
 }
 
@@ -431,7 +443,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[1]);
         strcat(buf, (use)[1][0] ? " " : "");
         strcat(buf, (use)[2]);
-        sprintf((char*)&buf[strlen(buf)], " - 0x%"INA_INT64_T_FMT" - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
+        sprintf((char*)&buf[strlen(buf)], " - 0x%"PRIx64" - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
                 rc,
                 INA_RC_EFLAG(rc),
                 INA_RC_APIVER(rc),
