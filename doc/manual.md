@@ -283,16 +283,18 @@ The RC is packed as follow:
 To know if an error occurred use _INA_SUCCEED()_ macro, which returns `1` if no
 error occurred or the last error was handled by a previous caller.
 
+### API
+INA_ERROR(error message)
+
 ### Return Code
 
 #### Error flag
-Indicate RC is an error. _INA_SUCCEED()_ retuns 1 if this flag is on. Use 
-_INA_EFLAG()_ to extract the error flag.
-#### API version
-Contains the major INAC api version number defined by _INA_MAJOR_VERSION_. 
-Use _INA_APIVER()_ to extract the version number from RC.
-#### API revision
-Contains the revision number of INAC. Use _INA_RC_APIREV()_ to extarct the
+Indicate RC is an error. Use  _INA_EFLAG()_ to extract the error flag.
+#### Version
+Contains the major version number defined by _INA_ERROR_VER_. 
+Use _INA_RC_VER()_ to extract the version number from RC.
+#### Revision
+Contains the revision number defined by _INA_ERROR_REV_. Use _INA_RC_REV()_ to extract the
 revision number.
 #### Native OS error 
 Contains the captured native error code. Use _INA_RC_ERRNO()_ to extract the
