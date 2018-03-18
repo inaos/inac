@@ -8,6 +8,7 @@ BIN = test
 # ****************************************************************************
 # Linker settings
 # ****************************************************************************
+CFLAGS := $(filter-out -DINA_LIB=1,$(CFLAGS))
 LDFLAGS += ../src/$(INAC_LIB) $(INAC_LIBS)
 
 ifeq (,$(findstring Windows,$(OS)))

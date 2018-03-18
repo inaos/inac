@@ -83,12 +83,21 @@ typedef int64_t ina_rc_t;
 #define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 
 /* Pack a RC */
-#define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_VERSION_HEX) << INA_RC_BIT_R) | (((e)) << INA_RC_BIT_O) | (x))
-
+#ifdef INA_LIB
+#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_VERSION_HEX) << INA_RC_BIT_R) | (((e)) << INA_RC_BIT_O) | (x))
+#else
+#  ifndef INA_ERROR_VER
+#    define INA_ERROR_VER (0)
+#  endif
+#  ifndef INA_ERROR_REV
+#    define INA_ERROR_REV (0)
+#  endif
+#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_ERROR_VER) << INA_RC_BIT_V) | (((ina_rc_t)INA_ERROR_REV) << INA_RC_BIT_R) | (((e)) << INA_RC_BIT_O) | (x))
+#endif
 
 #define INA_RC_EFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_E) & 0x1))
-#define INA_RC_APIVER(rc)  ((int32_t)((rc >> INA_RC_BIT_V) & 0x7f))
-#define INA_RC_APIREV(rc)  ((int32_t)((rc >> INA_RC_BIT_R) & 0xffff))
+#define INA_RC_VER(rc)     ((int32_t)((rc >> INA_RC_BIT_V) & 0x7f))
+#define INA_RC_REV(rc)     ((int32_t)((rc >> INA_RC_BIT_R) & 0xffff))
 #define INA_RC_ERRNO(rc)   ((int32_t)((rc >> INA_RC_BIT_O) & 0xffff))
 #define INA_RC_NFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_N) & 0x1))
 #define INA_RC_ATTRIB(rc)  ((int32_t)((rc >> INA_RC_BIT_A) & 0xff))
