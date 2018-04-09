@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, INAOS GmbH
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,15 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#include <stdio.h>
 #include <libinac/lib.h>
-
-#define INAC_TEST_INT_PARAM 121
-
 
 int main(int argc,  char** argv) 
 {
     INA_OPTS(opt,
-        INA_OPT_FLAG("h", "helper", "Start a helper"),
-        INA_OPT_INT("t", "testint", INAC_TEST_INT_PARAM, "Test intargument"),
-        INA_OPT_INT("x", "repeat", 1, "Test int argument"),
-        INA_OPT_FLOAT("f", "float", 1.02, "Test float argument"),
-        INA_OPT_STRING("r", "run", "all", "Test string argument"),
-        INA_OPT_STRING(NULL, "long-option", "long", "This is a long option without short option"),
-        INA_OPT_STRING(NULL, "format", "inac", "Format: tap=Test Anything Protocol, junit=JUnit"),
-             INA_OPT_STRING("o", "output", "/dev/null", "Output (/dev/null)"));
-
-    ina_str_t output;
-
+             INA_OPT_STRING("r", "report-path", NULL, "Directory for report output"));
 
     if (INA_FAILED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
     }
-    if (INA_FAILED(ina_opt_get_string("o", &output))) {
-        return EXIT_FAILURE;
-    }
-    if (INA_FAILED(ina_err_set_log_file(ina_str_cstr(output)))) {
-        ina_str_free(output);
-        return EXIT_FAILURE;
-    }
-    ina_str_free(output);
-    if (INA_SUCCEED(ina_opt_isset("b"))) {
-        return ina_bench_run(argc, argv);
-    }
-    return ina_test_run(argc, argv, NULL);
+    return ina_bench_run(argc, argv);
 }

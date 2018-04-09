@@ -99,6 +99,7 @@
 #include <libinac/utlist.h>
 #include <libinac/debug.h>
 #include <libinac/test.h>
+#include <libinac/bench.h>
 
 
 #ifdef __cplusplus
