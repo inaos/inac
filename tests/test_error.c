@@ -74,7 +74,7 @@ INA_TEST(error, clear)
 }
 INA_TEST(error, strerror)
 {
-    char msg[INA_ERR_MSGLEN];
+    char msg[INA_ERROR_MSGLEN];
 
     INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
@@ -84,7 +84,7 @@ INA_TEST(error, strerror)
 
 INA_TEST(error, error_pack_rc) 
 {
-    char msg[INA_ERR_MSGLEN];
+    char msg[INA_ERROR_MSGLEN];
     ina_rc_t rcc;
     ina_rc_t rc;
 
@@ -122,7 +122,7 @@ INA_TEST(error, error_pack_rc)
 
 INA_TEST(error, register_dict)
 {
-    char msg[INA_ERR_MSGLEN];
+    char msg[INA_ERROR_MSGLEN];
     INA_TEST_ASSERT_NULL(ina_err_register_dict(__ina_get_noun_a));
     INA_ERROR(INA_NN_HELLO|INA_ERR_FAILED);
     INA_TEST_ASSERT_EQUAL_STR("HELLO A FAILED - 0x8009000000158401 - error=1,ver=0,rev=2304,os=0,neg=0,attr=43,noun=1025", ina_err_strerror(ina_err_get_last_rc(), msg));

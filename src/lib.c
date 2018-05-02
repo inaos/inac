@@ -633,7 +633,7 @@ __ina_signal_handler(int sig)
     switch (sig) {
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                char buf[INA_ERR_MSGLEN];
+                char buf[INA_ERROR_MSGLEN];
                 ina_err_log("Program aborted.");
                 if (INA_FAILED(ina_err_get_last_rc())) {
                     ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc(), buf));
@@ -649,7 +649,7 @@ __ina_signal_handler(int sig)
         case SIGILL:
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                char buf[INA_ERR_MSGLEN];
+                char buf[INA_ERROR_MSGLEN];
                 ina_err_log("Signal %d received", sig);
                 if (INA_FAILED(ina_err_get_last_rc())) {
                     ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc(), buf));

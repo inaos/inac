@@ -251,12 +251,12 @@ e.g.:
 
 ## Strings
 
-__FIXME__
+__TODO__
 
 ## Error handling
 
 A good error handling should know as much as possible about an error. Things
-like when, where, what, who, is it handed or not, and "should I abort my 
+like when, where, what, who, is it handled or not, and "should I abort my 
 program" are such kind of information we want to know.  
 The "who" question isn't really easy to implement, so we omitted it.
 
@@ -280,61 +280,41 @@ The RC is packed as follow:
     +------------------------------------------------------------> 1 bit - Error flag
 
 
-To know if an error occurred use _INA_SUCCEED()_ macro, which returns `1` if no
-error occurred or the last error was handled by a previous caller.
 
-### API
-INA_ERROR(error message)
-
-### Return Code
-
-#### Error flag
-Indicate RC is an error. Use  _INA_EFLAG()_ to extract the error flag.
-#### Version
-Contains the major version number defined by _INA_ERROR_VER_. 
-Use _INA_RC_VER()_ to extract the version number from RC.
-#### Revision
-Contains the revision number defined by _INA_ERROR_REV_. Use _INA_RC_REV()_ to extract the
-revision number.
-#### Native OS error 
-Contains the captured native error code. Use _INA_RC_ERRNO()_ to extract the
-native error code.
-#### Negate flag
-Use _INA_RC_NFLAG()_ to extract the negate flag. 
-#### Attribute code
-There are a max of 256 predefined error code
-#### User defined code
 
 #### Defining errors
 An error message has the form '(NOT) + ADJ/V' like "Empty", "Not valid", 
 "Not initialized", "Not running", "Unavailable", etc
 
-Additionally, 'NOUN + (NOT) + ADJ/V' errors are also supported like
+Or additionally, 'NOUN + (NOT) + ADJ/V' errors are also supported like
 "Argument invalid", "Network not initialized", "File not out", "Disk full", etc.
 
 INAC provides standard nouns and adj/v which can be used. Nouns are identified 
 by an 15 bit integer. Therefor there are 32767 possible nouns. The first 
 1024 are reserved by INAC libraries.
   
-Nouns can be app-defined. For this purpose INAC provides user defined dictionary 
+Nouns can be app-defined. For this purpose INAC provides a user defined dictionary 
 callback function. Nouns are resolved by calling the user-provided dictionary 
-function  of type `ina_err_dict_cb_t` and registered by `ina_err_register_dict()`.
+function of type `ina_err_dict_cb_t` which registered by `ina_err_register_dict()`.
+The user defined dictionary is used to retrieve the full error message.
 
-INAC nouns and adj/v are defined in `libinac/error.h`. To defined error codes
+INAC nouns and adj/verb  are defined in `libinac/error.h`. To defined error codes
 in a application/library using predefined codes:
 
 	 #define INAWS_ERR_NOCONNECTION    INA_ERR_NOT_CONNECTED
 	 #define INAWS_ERR_CONNECT         INA_NN_CONNECTION|INA_ERR_NOT_CONNECTED
 
 
-To define errors using user defined nouns:
+To define errors using user defined nouns. Define first your user defined noun
 
-    /* Define user defined noun for works
-    #define INAWS_NN_WORKSTATION    INA_NN_USER_DEFINED+1
+    #define INAWS_NN_WORKSTATION       INA_NN_USER_DEFINED+1
     
+Then define the error code cobining error and noun
+
     #define INAWS_ERR_WS_NOT_FOUND     INAWS_NN_WORKSRATION|INA_ERR_NOT_FOUND
     
-    /* define a dictonary call be to get noun string */
+Declare and implement a dictionary callback.
+
     static const char* __get_noun(int id) {
         switch (id) {
             case INAWS_NN_WORKSTATION:
@@ -343,6 +323,14 @@ To define errors using user defined nouns:
                 return "";
         }
     }
+
+Register your dictionary callback at program startup
+    
+    int main(int argc,  char** argv) {
+        ina_err_register_dict(__get_noun);
+    
+        ...
+     }
     
     
 
@@ -351,6 +339,81 @@ We can get access to the reason of failure by `INA_RC_ERROR` macro.
 	switch (INA_RC_REASON(rc)) {
 	   case INAWS_ECONNECT:
 	      .....
+
+Use  _INA_SUCCEED()_ or _INA_FAILED()_ macro to determine if an RC is an
+error or not.
+
+    if (INA_SUCCEED(inaws_start_server()) {
+        ....
+    }
+
+    if (INA_FAILED(inaws_start_server()) {
+        ....
+    }    
+
+#### General
+Generally one will set error state by using _INA_ERROR()_
+
+    ina_rc_t release_object(obj_t m) {
+        if (m->c_ref != 0) {
+            return INA_ERROR(INA_NN_OBJECT|INA_ERR_IN_USE);
+        }
+        return INA_SUCCESS;
+     }
+     
+     ....
+     if (INA_SUCCEED(release_object(m)) {
+        ina_mem_free(m);
+     } else {
+        switch (ina_err_get_last_rc()) {
+            case INA_NN_OBJECT|INA_ERR_IN_USE:
+                ...
+        }
+     
+    
+#### Capture and hanling of native errors 
+Use _INA_OS_ERROR(error) to capture the last native error. This is errno on
+unix based os and GetLastError() on Windows platforms.
+    
+    ina_rc_t openfile(const char* fn)
+    {
+        f = fopen("test.csv", "r");
+        if (f == NULL) {
+            INA_OS_ERROR(INA_NN_FILE|INA_ERR_NOT_OPEN);
+        }
+        return INA_SUCCESS
+    }
+    
+    ...
+    if (INA_FAILED(openfile(fn)) {
+        if (INA_RC_ERRNO(ina_err_get_last_rc() == EFULL) {
+            
+    
+    
+    
+#### Setting native errors
+- INA_USR_ERROR(error, errno)
+
+INA_ERROR(error message)
+
+### Return Code
+
+#### Error flag
+Indicate RC is an error. Use  _INA_EFLAG()_ to extract the error flag.
+#### Version
+Contains the major version number defined by _INA_ERROR_VER_ or 0 if not defined.
+Use _INA_RC_VER()_ to extract the version number from RC.
+#### Revision
+Contains the revision number defined by _INA_ERROR_REV_. Use _INA_RC_REV()_ to extract the
+revision number from.
+#### Native OS error 
+Contains the captured native error code. Use _INA_RC_ERRNO()_ to extract the
+native error code.
+#### Negate flag
+Use _INA_RC_NFLAG()_ to extract the negate flag. 
+#### Attribute code
+There are a max of 256 predefined error code
+#### User defined code
 
 #### Cleanup the error state
 
@@ -366,8 +429,8 @@ U
 
 ### Utilities
 
-The error handling module of this library provide two useful functions. They 
-are used internally but they are for public use as well.
+This library provide two useful functions. They are used internally but they are
+ for public use as well.
 
 - `ina_err_backtrace()` printout current backtrace to the standard output.
 

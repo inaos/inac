@@ -56,23 +56,14 @@ typedef int64_t ina_rc_t;
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
 #endif
 
-/*
- * Return with last rc if condition x fails
- */
-#define INA_RETURN_IF(x) if ((x)) return ina_err_get_last_rc()
-/*
- * Return with last rc if x == NULL
- */
+/* Return with last rc if condition x fails */
+#define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_last_rc() } while(0)
+/* Return with last rc if x == NULL */
 #define INA_RETURN_IF_NULL(x) if ((x) == NULL) return ina_err_get_last_rc();
-/*
- * Return with last rc if failed
- */
+/* Return with last rc if failed */
 #define INA_RETURN_IF_FAILED(rc) if (INA_FAILED((rc))) return ina_err_get_last_rc()
-/**
- * Return with last rc if succeed
- */
+/* Return with last rc if succeed */
 #define INA_RETURN_IF_SUCCEED(rc) if (INA_SUCCEED((rc))) return ina_err_get_last_rc()
-
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(INA_FAILED(rc))) abort()
 /* Set last RC */
@@ -116,6 +107,7 @@ typedef int64_t ina_rc_t;
 /* Flags */
 #define INA_ERR_ERROR               (  1LL << INA_RC_BIT_E) /* Error-bit  */
 #define INA_ERR_NOT                 (  1LL << INA_RC_BIT_N) /* Negate-bit */
+
 /* Error attributes */
 #define INA_ERR_A                   (  1LL << INA_RC_BIT_A)
 #define INA_ERR_ACK                 (  2LL << INA_RC_BIT_A)
@@ -455,10 +447,8 @@ typedef int64_t ina_rc_t;
 #define INA_NN_ARRAY                (200)
 #define INA_NN_AUTHENTICATION       (7)
 #define INA_NN_BINARY               (8)
-#define INA_NN_BLOB                 (9)
 #define INA_NN_BROADCAST            (10)
 #define INA_NN_CLIENT               (11)
-#define INA_NN_CLOUD                (12)
 #define INA_NN_CHARSET              (13)
 #define INA_NN_CODE                 (14)
 #define INA_NN_COMMIT               (15)
@@ -466,6 +456,7 @@ typedef int64_t ina_rc_t;
 #define INA_NN_COMPILER             (17)
 #define INA_NN_COMPRESSION          (18)
 #define INA_NN_CONSOLE              (19)
+#define INA_NN_CRC                 (19)
 #define INA_NN_DAEMON               (20)
 #define INA_NN_DATA                 (21)
 #define INA_NN_DEPENDENCY           (22)
@@ -473,11 +464,10 @@ typedef int64_t ina_rc_t;
 #define INA_NN_DEVICE               (24)
 #define INA_NN_DIRECTORY            (25)
 #define INA_NN_DISK                 (26)
+#define INA_NN_DRIVE                (26)
 #define INA_NN_DLL                  (27)
 #define INA_NN_DOMAIN               (28)
-#define INA_NN_DOWNLOAD             (29)
 #define INA_NN_DRIVER               (30)
-#define INA_NN_EDITOR               (31)
 #define INA_NN_ENDPOINT             (32)
 #define INA_NN_ENGINE               (33)
 #define INA_NN_EVALUATION           (34)
@@ -487,7 +477,6 @@ typedef int64_t ina_rc_t;
 #define INA_NN_FETCH                (38)
 #define INA_NN_FILE                 (39)
 #define INA_NN_FLOAT                (40)
-#define INA_NN_FOLDER               (41)
 #define INA_NN_FORMAT               (42)
 #define INA_NN_FUNCTION             (43)
 #define INA_NN_GATEWAY              (44)
@@ -542,7 +531,6 @@ typedef int64_t ina_rc_t;
 #define INA_NN_PROFILER             (93)
 #define INA_NN_PROTOCOL             (94)
 #define INA_NN_PROXY                (95)
-#define INA_NN_QUERY                (96)
 #define INA_NN_RANGE                (97)
 #define INA_NN_RATIO                (98)
 #define INA_NN_RECORD               (99)
@@ -559,6 +547,7 @@ typedef int64_t ina_rc_t;
 #define INA_NN_SERIALIZATION        (110)
 #define INA_NN_SERVER               (111)
 #define INA_NN_SERVICE              (112)
+#define INA_NN_SEEK                 (112)
 #define INA_NN_SIZE                 (113)
 #define INA_NN_SOCKET               (114)
 #define INA_NN_SOFTWARE             (115)
@@ -576,10 +565,7 @@ typedef int64_t ina_rc_t;
 #define INA_NN_TIME                 (127)
 #define INA_NN_TRANSLATION          (128)
 #define INA_NN_TRANSPORT            (129)
-#define INA_NN_TRIGGER              (130)
 #define INA_NN_TYPE                 (131)
-#define INA_NN_UPGRADE              (132)
-#define INA_NN_UPLOAD               (133)
 #define INA_NN_USER                 (134)
 #define INA_NN_USERNAME             (135)
 #define INA_NN_VALUE                (146)
@@ -606,9 +592,10 @@ typedef int64_t ina_rc_t;
 #define INA_NN_SEMAPHORE            (167)
 #define INA_NN_THREAD               (168)
 #define INA_NN_CRON                 (169)
+#define INA_NN_VIOLATION            (169)
 #define INA_NN_USER_DEFINED         (1024)
 /* Error message length */
-#define INA_ERR_MSGLEN  512
+#define INA_ERROR_MSGLEN  512
 
 typedef const char* (*ina_err_dict_cb_t)(int);
 
@@ -700,7 +687,7 @@ INA_API(ina_rc_t) ina_err_log(const char *fmt, ...);
  * Return
  *  INA_SUCCESS
  */
-INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN]);
+INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERROR_MSGLEN]);
 
 /*
  * Makes a backtrace to the stderr
