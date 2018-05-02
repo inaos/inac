@@ -284,7 +284,7 @@ The RC is packed as follow:
 
 #### Defining errors
 An error message has the form '(NOT) + ADJ/V' like "Empty", "Not valid", 
-"Not initialized", "Not running", "Unavailable", etc
+"Not initialized", "Not running", "Unavailable", etc.
 
 Or additionally, 'NOUN + (NOT) + ADJ/V' errors are also supported like
 "Argument invalid", "Network not initialized", "File not out", "Disk full", etc.
@@ -295,7 +295,7 @@ by an 15 bit integer. Therefor there are 32767 possible nouns. The first
   
 Nouns can be app-defined. For this purpose INAC provides a user defined dictionary 
 callback function. Nouns are resolved by calling the user-provided dictionary 
-function of type `ina_err_dict_cb_t` which registered by `ina_err_register_dict()`.
+function of type `ina_err_dict_cb_t` which is registered by `ina_err_register_dict()`.
 The user defined dictionary is used to retrieve the full error message.
 
 INAC nouns and adj/verb  are defined in `libinac/error.h`. To defined error codes
@@ -305,15 +305,16 @@ in a application/library using predefined codes:
 	 #define INAWS_ERR_CONNECT         INA_NN_CONNECTION|INA_ERR_NOT_CONNECTED
 
 
-To define errors using user defined nouns. Define first your user defined noun
+There is also the posibility to define errors using user defined nouns. Define first 
+your user defined noun:
 
     #define INAWS_NN_WORKSTATION       INA_NN_USER_DEFINED+1
     
-Then define the error code cobining error and noun
+Then define the error code combining error and noun
 
     #define INAWS_ERR_WS_NOT_FOUND     INAWS_NN_WORKSRATION|INA_ERR_NOT_FOUND
     
-Declare and implement a dictionary callback.
+Declare and implement a dictionary callback for your user defined nouns.
 
     static const char* __get_noun(int id) {
         switch (id) {
@@ -332,24 +333,6 @@ Register your dictionary callback at program startup
         ...
      }
     
-    
-
-We can get access to the reason of failure by `INA_RC_ERROR` macro.
-
-	switch (INA_RC_REASON(rc)) {
-	   case INAWS_ECONNECT:
-	      .....
-
-Use  _INA_SUCCEED()_ or _INA_FAILED()_ macro to determine if an RC is an
-error or not.
-
-    if (INA_SUCCEED(inaws_start_server()) {
-        ....
-    }
-
-    if (INA_FAILED(inaws_start_server()) {
-        ....
-    }    
 
 #### General
 Generally one will set error state by using _INA_ERROR()_
@@ -371,7 +354,24 @@ Generally one will set error state by using _INA_ERROR()_
         }
      
     
-#### Capture and hanling of native errors 
+We can get access to the reason of failure by `INA_RC_ERROR` macro.
+
+	switch (INA_RC_REASON(rc)) {
+	   case INAWS_ERR_CONNECT:
+	      .....
+
+Use  _INA_SUCCEED()_ or _INA_FAILED()_ macro to determine if an RC is an
+error or not.
+
+    if (INA_SUCCEED(inaws_start_server()) {
+        ....
+    }
+
+    if (INA_FAILED(inaws_start_server()) {
+        ....
+    }    
+    
+#### Capture and handling of native errors 
 Use _INA_OS_ERROR(error) to capture the last native error. This is errno on
 unix based os and GetLastError() on Windows platforms.
     
