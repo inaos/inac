@@ -27,4 +27,4 @@ build_script:
   - make.bat all %BUILD_CONFIGURATION%
   
 test_script:
-  - make.bat test
+  - make.bat test %BUILD_CONFIGURATION%
