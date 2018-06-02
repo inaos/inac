@@ -2,6 +2,7 @@ branches:
   # whitelist
   only:
     - master
+    - develop
 
 environment:
   matrix:
