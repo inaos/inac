@@ -1,0 +1,25 @@
+branches:
+  # whitelist
+  only:
+    - master
+
+environment:
+  matrix:
+    - MY_NAME: Windows VS 2015 Debug
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      MSVC_PLATFORM: amd64
+      BUILD_CONFIGURATION: debug
+
+    - MY_NAME: Windows VS 2017 Debug
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      MSVC_PLATFORM: amd64
+      BUILD_CONFIGURATION: debug
+
+matrix:
+  fast_finish: true
+
+init:
+  - C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
+
+build_script:
+  - make.bat all %BUILD_CONFIGURATION%
