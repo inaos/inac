@@ -5,13 +5,13 @@ branches:
 
 environment:
   matrix:
-    - MY_NAME: Windows VS 2015 Debug
+    - MY_NAME: Windows VS 2015 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
-      MSVC_PLATFORM: amd64
+      MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: debug
 
-    - MY_NAME: Windows VS 2017 Debug
+    - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
@@ -25,3 +25,6 @@ init:
 
 build_script:
   - make.bat all %BUILD_CONFIGURATION%
+  
+test_script:
+  - make.bat test
