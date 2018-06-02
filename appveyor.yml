@@ -7,11 +7,13 @@ environment:
   matrix:
     - MY_NAME: Windows VS 2015 Debug
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: amd64
       BUILD_CONFIGURATION: debug
 
     - MY_NAME: Windows VS 2017 Debug
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
       BUILD_CONFIGURATION: debug
 
