@@ -29,7 +29,7 @@ init:
   - cmd: C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
 
 build_script:
-  - sh: make %BUILD_CONFIGURATION%
+  - sh: make $BUILD_CONFIGURATION
   - cmd: make.bat all %BUILD_CONFIGURATION%
   
 test_script:
