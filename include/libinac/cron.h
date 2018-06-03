@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,7 +146,7 @@ INA_API(ina_rc_t) ina_cron_task_next(ina_cron_task_itr_t *iter,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_cron_task_add(ina_cron_ctx_t *ctx,
+INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx,
                                     const char *id,
                                     const char *pattern,
                                     int persistent,
@@ -180,7 +180,7 @@ INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_cron_task_remove(ina_cron_ctx_t *ctx,
+INA_API(ina_rc_t) ina_cron_task_free(ina_cron_ctx_t *ctx,
                                       ina_cron_task_t **task);
 
 /*

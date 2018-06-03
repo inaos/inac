@@ -37,7 +37,7 @@ int main(int argc,  char** argv)
     INA_OPTS(opt,
         INA_OPT_STRING("b", "bootstrap", "<bootstrap>", "Full path to the bootstrap file"));
 
-    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, opt))) {
+    if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
     }
 

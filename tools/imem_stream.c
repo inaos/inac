@@ -274,7 +274,7 @@ main(int argc, char **argv)
     double		t, times[4][NTIMES];
     size_t l1=0, l2=0, l3=0;
 
-    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, NULL))) {
+    if (!INA_SUCCEED(ina_app_init(argc, argv, NULL))) {
         return EXIT_FAILURE;
     }
     if (!INA_SUCCEED(ina_time_sys_new(&__ina_time_ref))) {

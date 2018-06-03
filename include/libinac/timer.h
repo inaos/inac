@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ typedef struct ina_time_event_s {
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer);
+INA_API(ina_rc_t) ina_timer_new(ina_timer_t **timer);
 
 /*
  * Destroy a timer.
@@ -65,7 +65,7 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer);
+INA_API(ina_rc_t) ina_timer_free(ina_timer_t **timer);
 
 
 /*
@@ -78,8 +78,7 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer);
  * Return
  *  Pointer to timer event or NULL if an error occurred.
  */
-INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer,
-                                                  time_t msec);
+INA_API(ina_time_event_t*) ina_timer_event_new(ina_timer_t *timer, time_t msec);
 
 /*
  * Create a new time event for a timer while providing current time.
@@ -92,7 +91,7 @@ INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer,
  * Return
  *  Pointer to timer event or NULL if an error occurred.
  */
-INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer,
+INA_API(ina_time_event_t*) ina_timer_event_new_with_time(ina_timer_t *timer,
                                                             time_t n_msec,
                                                             time_t e_msec);
 /*
@@ -105,8 +104,8 @@ INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer,
-                                         ina_time_event_t *e);
+INA_API(ina_rc_t) ina_timer_event_free(ina_timer_t *timer,
+                                       ina_time_event_t *e);
 
 
 /*

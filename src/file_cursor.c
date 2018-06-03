@@ -74,7 +74,7 @@ struct ina_file_cursor_s {
 static ina_rc_t ina_file_cursor_fileio_free(ina_file_cursor_t **cursor)
 {
     if ((*cursor)->ext.f.lmp != NULL) {
-        ina_mempool_release((*cursor)->ext.f.lmp, INA_YES);
+        ina_mempool_free((*cursor)->ext.f.lmp);
     }
     if ((*cursor)->ext.f.line != NULL) {
         ina_str_free((*cursor)->ext.f.line);
@@ -194,12 +194,12 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *curs
     size_t nread = 0;
     const char *chunk;
     if (cursor->ext.f.lmp == NULL) {
-        if (INA_FAILED(ina_mempool_create(&cursor->ext.f.lmp, 1024, INA_MEM_DYNAMIC, NULL))) {
+        if (INA_FAILED(ina_mempool_new(&cursor->ext.f.lmp, 1024, INA_MEM_DYNAMIC, NULL))) {
             return ina_err_get_last_rc();
         }
     }
     else {
-        ina_mempool_release(cursor->ext.f.lmp, INA_NO);
+        ina_mempool_reset(cursor->ext.f.lmp);
     }
     if (INA_FAILED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
         return ina_err_get_last_rc();
