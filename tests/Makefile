@@ -38,4 +38,7 @@ clean:
 	@-rm -f *.o $(BIN)  *.gcno *.gcda *.gcov* *.tap
 
 test: all
-	./test --tap
+	./test --format tap
+
+test-appveyor: all
+	./test --format junit --output junit.xml
