@@ -33,5 +33,5 @@ build_script:
   - cmd: make.bat all %BUILD_CONFIGURATION%
   
 test_script:
-  - sh: make test
+  - sh: ./tests/test --format junit --output junit.xml
   - cmd: make.bat test %BUILD_CONFIGURATION%
