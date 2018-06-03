@@ -17,4 +17,4 @@ High level objectives:
 To learn more about INAOS Common C Library, please see the Manual.
 
 ### Build
-[![Build Status (AppVeyor CI)](https://ci.appveyor.com/api/projects/status/github/stoni/inac?branch=develop&svg=true)](https://ci.appveyor.com/project/stoni/inac)
+[![Build Status (AppVeyor CI)](https://ci.appveyor.com/api/projects/status/github/inaos/inac?branch=develop&svg=true)](https://ci.appveyor.com/project/stoni/inac)
