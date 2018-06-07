@@ -55,6 +55,7 @@ typedef struct ina_bench_benchmark_s {
     ina_bench_teardown_cb_t series_teardown;
     ina_bench_scale_cb_t scale;
     int iterations;
+    int32_t padding;
     unsigned int magic;
 } ina_bench_benchmark_t;
 
@@ -93,6 +94,7 @@ typedef struct ina_bench_benchmark_s {
         (ina_bench_teardown_cb_t)__series_teardown,                          \
         (ina_bench_scale_cb_t)__scale,                                       \
         __iter,                                                              \
+        0,                                                                   \
         INA_BENCH_MAGIC }
 
 /* Define data for a benchmark  */
