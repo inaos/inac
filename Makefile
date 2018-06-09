@@ -157,7 +157,9 @@ clean:
  
 
 test: debug 
-	$(MAKE) test -C tests
+	$(MAKE) test -C tests test-appveyor
+test-appveyor: debug 
+	$(MAKE) test-appveyor -C tests
 
 coverage-test: CFLAGS += --coverage
 	export CFLAGS

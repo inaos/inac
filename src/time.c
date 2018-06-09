@@ -704,8 +704,8 @@ __ina_time_tsc_os_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos)
     ns = (int64_t)(time->tp);
     ns *= info.numer;
     ns /= info.denom;
-    *nanos = (long)ns;
-    *secs /= 1000000000;
+    *nanos = (long)ns % 1000000000;
+    *secs = (time_t)(ns / 1000000000);
 #else
     uint64_t stamp = (time->tp.tv_sec * 1000000000) + time->tp.tv_nsec;
     uint64_t elapsed = stamp - time->ref;

@@ -1,0 +1,37 @@
+branches:
+  # whitelist
+  only:
+    - master
+    - develop
+
+environment:
+  matrix:
+    - MY_NAME: Linux Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      BUILD_CONFIGURATION: debug
+      
+    - MY_NAME: Windows VS 2015 Debug 32bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+      MSVC_PLATFORM: x86
+      BUILD_CONFIGURATION: debug
+
+    - MY_NAME: Windows VS 2017 Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+      BUILD_CONFIGURATION: debug
+
+matrix:
+  fast_finish: true
+
+init:
+  - cmd: C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
+
+build_script:
+  - sh: make $BUILD_CONFIGURATION
+  - cmd: make.bat all %BUILD_CONFIGURATION%
+  
+test_script:
+  - sh: make test-appveyor
+  - cmd: make.bat test %BUILD_CONFIGURATION%
