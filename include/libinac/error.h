@@ -57,7 +57,7 @@ typedef int64_t ina_rc_t;
 #endif
 
 /* Return with last rc if condition x fails */
-#define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_last_rc() } while(0)
+#define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_last_rc(); } while(0)
 /* Return with last rc if x == NULL */
 #define INA_RETURN_IF_NULL(x) if ((x) == NULL) return ina_err_get_last_rc();
 /* Return with last rc if failed */
