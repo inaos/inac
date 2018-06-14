@@ -78,9 +78,7 @@ add_library(${T1HA_LIB_NAME} ${T1HA_SRC})
 
 # BEGIN backend configuration
 
-if ($ENV{INAC_TIME_BACKEND} STREQUAL "time-meinberg")
-	add_definitions(-DINA_MBTIME_ENABLED -DINA_TIME_DEFINED)
-endif()
+add_definitions(-DINA_OSTIME_ENABLED -DINA_TIME_DEFINED)
 MESSAGE(STATUS "Time-Backend: $ENV{INAC_TIME_BACKEND}")
 
 # END backend configuration
