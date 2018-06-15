@@ -33,7 +33,7 @@ build_script:
   - cmd: make.bat all %BUILD_CONFIGURATION%
   
 test_script:
-  - sh: make test-appveyor & exit 0
+  - sh: make test-appveyor || true
   - cmd: make.bat test %BUILD_CONFIGURATION%
 
 after_test:
