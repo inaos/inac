@@ -41,7 +41,7 @@ test_script:
 after_test:
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
-        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $($env:APPVEYOR_BUILD_FOLDER)/junit.xml))
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/junit.xml))
         
         # Detect if there are any failure nodes in the junit results
         [xml]$results = Get-Content junit.xml
