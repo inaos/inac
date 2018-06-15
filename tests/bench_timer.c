@@ -49,24 +49,24 @@ static ina_time_event_t *stop_event = NULL;
 
 static ina_rc_t __ina_timer_bench_create_events(ina_timer_t *timer)
 {
-    e1 = ina_timer_create_event(timer, 50);
-    e2 = ina_timer_create_event(timer, 500);
-    e3 = ina_timer_create_event(timer, 100);
-    e4 = ina_timer_create_event(timer, 200);
-    e5 = ina_timer_create_event(timer, 70);
-    e6 = ina_timer_create_event(timer, 100);
-    e7 = ina_timer_create_event(timer, 1000);
-    e8 = ina_timer_create_event(timer, 150);
-    e9 = ina_timer_create_event(timer, 555);
-    e10 = ina_timer_create_event(timer, 2000);
-    e11 = ina_timer_create_event(timer, 1500);
-    e12 = ina_timer_create_event(timer, 30);
-    e13 = ina_timer_create_event(timer, 8);
-    e14 = ina_timer_create_event(timer, 22);
-    e15 = ina_timer_create_event(timer, 111);
-    e16 = ina_timer_create_event(timer, 222);
-    e17 = ina_timer_create_event(timer, 333);
-    stop_event = ina_timer_create_event(timer, 20000);
+    e1 = ina_timer_event_new(timer, 50);
+    e2 = ina_timer_event_new(timer, 500);
+    e3 = ina_timer_event_new(timer, 100);
+    e4 = ina_timer_event_new(timer, 200);
+    e5 = ina_timer_event_new(timer, 70);
+    e6 = ina_timer_event_new(timer, 100);
+    e7 = ina_timer_event_new(timer, 1000);
+    e8 = ina_timer_event_new(timer, 150);
+    e9 = ina_timer_event_new(timer, 555);
+    e10 = ina_timer_event_new(timer, 2000);
+    e11 = ina_timer_event_new(timer, 1500);
+    e12 = ina_timer_event_new(timer, 30);
+    e13 = ina_timer_event_new(timer, 8);
+    e14 = ina_timer_event_new(timer, 22);
+    e15 = ina_timer_event_new(timer, 111);
+    e16 = ina_timer_event_new(timer, 222);
+    e17 = ina_timer_event_new(timer, 333);
+    stop_event = ina_timer_event_new(timer, 20000);
     return INA_SUCCESS;
 }
 static ina_rc_t __ina_timer_bench_exec(int rdtsc, int iteration)
@@ -77,7 +77,7 @@ static ina_rc_t __ina_timer_bench_exec(int rdtsc, int iteration)
     ina_stopwatch_t *s3 = NULL;
     double total = 0;
 
-    if (!INA_SUCCEED(ina_timer_init(&timer))) {
+    if (!INA_SUCCEED(ina_timer_new(&timer))) {
         return EXIT_FAILURE;
     }
 
@@ -119,7 +119,7 @@ static ina_rc_t __ina_timer_bench_exec(int rdtsc, int iteration)
     INA_TIME_STOPWATCH_DESTROY(&s2);
     INA_TIME_STOPWATCH_DESTROY(&s3);
 
-    ina_timer_destroy(&timer);
+    ina_timer_free(&timer);
 
     return INA_SUCCESS;
 }

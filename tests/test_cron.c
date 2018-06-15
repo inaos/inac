@@ -28,7 +28,7 @@
 #include <libinac/lib.h>
 
 
-INA_TEST(cron, add_tasks_non_persistent_and_utils)
+INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
 {
     ina_cron_ctx_t *ctx;
     ina_str_t cmd, wd;
