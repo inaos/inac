@@ -35,5 +35,9 @@ build_script:
 test_script:
   - sh: make test-appveyor
   - cmd: make.bat test %BUILD_CONFIGURATION%
-  - ps: $wc = New-Object 'System.Net.WebClient'
-  - ps: $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests\junit.xml))
+
+after_test:
+  - ps: |
+        $wc = New-Object 'System.Net.WebClient'
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests\junit.xml))
+  
