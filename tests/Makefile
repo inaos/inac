@@ -43,4 +43,4 @@ test: all
 	./test --format tap
 
 test-appveyor: all
-	./test --format junit --output junit.xml
+	./test --format=junit > junit.xml
