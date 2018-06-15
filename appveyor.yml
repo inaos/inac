@@ -33,11 +33,18 @@ build_script:
   - cmd: make.bat all %BUILD_CONFIGURATION%
   
 test_script:
-  - sh: make test-appveyor
+  - sh: make test-appveyor & exit 0
   - cmd: make.bat test %BUILD_CONFIGURATION%
 
 after_test:
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
         $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests\junit.xml))
-  
+        
+        # Detect if there are any failure nodes in the junit results
+        [xml]$results = Get-Content tests/junit.xml
+        $failure = $results.SelectSingleNode("//failure")
+        if ($failure -ne $null) { 
+            $host.SetShouldExit(1)
+            Write-Host "Forcing build failure due to unit test failure(s)"
+        }
