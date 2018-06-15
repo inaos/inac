@@ -35,16 +35,17 @@ build_script:
 test_script:
   - sh: make test-appveyor || true
   - cmd: |
-         make.bat test %BUILD_CONFIGURATION%
+         cd buildtest\%BUILD_CONFIGURATION%
+         test.exe --format=junit > ..\..\junit.xml
          exit /b 0
 
 after_test:
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
-        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests\junit.xml))
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path junit.xml))
         
         # Detect if there are any failure nodes in the junit results
-        [xml]$results = Get-Content tests/junit.xml
+        [xml]$results = Get-Content junit.xml
         $failure = $results.SelectSingleNode("//failure")
         if ($failure -ne $null) { 
             $host.SetShouldExit(1)
