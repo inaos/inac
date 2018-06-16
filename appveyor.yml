@@ -23,7 +23,7 @@ environment:
       BUILD_CONFIGURATION: debug
 
 matrix:
-  fast_finish: true
+  fast_finish: false
 
 init:
   - cmd: C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
