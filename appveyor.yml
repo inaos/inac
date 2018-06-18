@@ -63,6 +63,5 @@ after_test:
         [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/junit.xml
         $failure = $results.SelectSingleNode("//failure")
         if ($failure -ne $null) { 
-            $host.SetShouldExit(1)
-            Write-Host "Forcing build failure due to unit test failure(s)"
+            throw "Forcing build failure due to unit test failure(s)"
         }
