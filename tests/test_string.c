@@ -216,7 +216,7 @@ INA_TEST(string, ina_str_ncpy)
     ina_str_free(dest);
 }
 
-INA_TEST(string, ina_str_cat)
+INA_TEST_SKIP(string, ina_str_cat)
 {
     ina_str_t str = ina_str_new(128);
     ina_str_t part1 = ina_str_new_fromcstr("part1");
