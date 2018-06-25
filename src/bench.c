@@ -248,6 +248,7 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
                     __header[0] = '\0';
                     __current_series = 0;
                     __current_iteration = 0;
+                    __precision = 5;
                 }
                 __current_scale = __scales;
                 __current = bench;
