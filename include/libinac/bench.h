@@ -150,6 +150,7 @@ typedef struct ina_bench_benchmark_s {
 /* Skip a series */
 #define INA_BENCH_SKIP(bname, sname, iter) INA_BENCH_DECL(bname, sname, iter, 1)
 
+#define INA_BENCH_IS_SERIES(name) (ina_str_cmp(name, ina_bench_get_series_name()) == 0)
 /*
  * Run benchmarks.
  *
