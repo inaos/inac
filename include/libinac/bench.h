@@ -185,10 +185,28 @@ INA_API(const char*) ina_bench_get_series_name(void);
  */
 INA_API(ina_rc_t) ina_bench_set_scale_label(const char* label);
 
+
 /*
  * Returns the current scale label
  */
 INA_API(const char*) ina_bench_get_scale_label(void);
+
+/*
+ * Set precision for results
+ *
+ * Parameters
+ *  precision  Precision
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ *  INA_NN_ARGUMENT|INA_ERR_INVALID  if precision was < 0
+ */
+INA_API(ina_rc_t) ina_bench_set_precision(int precision);
+
+/*
+ * Return current precision for results
+ */
+INA_API(int) ina_bench_get_precision(void);
 
 /*
  * Set the value for the current series and iteration.
@@ -199,12 +217,29 @@ INA_API(const char*) ina_bench_get_scale_label(void);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_bench_set_value(int64_t value);
+INA_API(ina_rc_t) ina_bench_set_double(double value);
+
+/*
+ * Set the value for the current series and iteration.
+ *
+ * Parameters
+ *  value   Value
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_bench_set_int64(int64_t value);
+
 
 /*
  * Returns the current value of current series and iteration.
  */
-INA_API(int64_t) ina_bench_get_value(void);
+INA_API(double) ina_bench_get_double(void);
+
+/*
+ * Returns the current value of current series and iteration.
+ */
+INA_API(int64_t) ina_bench_get_int64(void);
 
 /*
  * Set the scale value for the current series and iteration.
@@ -245,7 +280,7 @@ INA_API(ina_rc_t) ina_bench_stopwatch_start(void);
  * Stop the the stopwatch.
  *
  * Return
- *  Number of nanoseconds elapsed since the last start.
+ *  Number of microseconds elapsed since the last start.
  */
 INA_API(int64_t) ina_bench_stopwatch_stop(void);
 

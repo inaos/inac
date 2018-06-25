@@ -45,12 +45,13 @@ static ina_str_t __scale_label = NULL;
 static ina_time_tsc_t *__time1 = NULL;
 static ina_time_tsc_t *__time2 = NULL;
 static int64_t *__scales = NULL;
-static int64_t *__results = NULL;
-static int64_t *__current_result = NULL;
+static double *__results = NULL;
+static double *__current_result = NULL;
 static int64_t *__current_scale = NULL;
 static int __current_iteration = 0;
 static int __current_series = 0;
 static char __header[__INA_MAX_HEADER_LENGTH];
+static int __precision = 5;
 
 
 INA_BENCH_DATA(bench) {
@@ -130,7 +131,7 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
 {
     FILE* f;
     ina_str_t file_path;
-    int64_t *result;
+    double *result;
     int64_t *scale;
     int i,j;
 
@@ -158,7 +159,9 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     for (j = 0; j < __current->iterations; ++j) {
         fprintf(f, "%"INA_INT64_T_FMT, scale[j]);
         for (i = 0; i < num_series; ++i) {
-            fprintf(f, ",%"INA_INT64_T_FMT, result[i*__current->iterations+j]);
+            char fmt[20];
+            sprintf(fmt, ",%%.%df", __precision);
+            fprintf(f, fmt, result[i*__current->iterations+j]);
         }
         fprintf(f, "\n");
     }
@@ -312,11 +315,19 @@ INA_API(const char*) ina_bench_get_scale_label(void)
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_bench_set_value(int64_t value)
+INA_API(ina_rc_t) ina_bench_set_double(double value)
 {
     *__current_result = value;
     return INA_SUCCESS;
 }
+
+
+INA_API(ina_rc_t) ina_bench_set_int64(int64_t value)
+{
+    *__current_result = (double)value;
+    return INA_SUCCESS;
+}
+
 
 INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
 {
@@ -324,9 +335,14 @@ INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
     return INA_SUCCESS;
 }
 
-INA_API(int64_t) ina_bench_get_value(void)
+INA_API(double) ina_bench_get_double(void)
 {
     return *__current_result;
+}
+
+INA_API(int64_t) ina_bench_get_int64(void)
+{
+    return (int64_t )*__current_result;
 }
 
 INA_API(int64_t) ina_bench_get_scale(void)
@@ -367,4 +383,16 @@ INA_API(int64_t) ina_bench_stopwatch_stop(void)
     ina_time_tsc_seconds_nanos(__time1, &secs, &nanos);
     micros -= (secs * 1000 * 1000 *1000 + nanos);
     return micros;
+}
+
+INA_API(ina_rc_t) ina_bench_set_precision(int precision)
+{
+    INA_VERIFY(precision >= 0);
+    __precision = precision;
+    return INA_SUCCESS;
+}
+
+INA_API(int) ina_bench_get_precision(void)
+{
+    return __precision;
 }

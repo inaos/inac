@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <libinac/lib.h>
 
+#define __INA_MBS(tot_nb_read, us) ((tot_nb_read)/(us)/1000/1000)
+
 INA_BENCH_DATA(file)
 {
     ina_str_t          filepath;
@@ -74,9 +76,6 @@ INA_BENCH_TEARDOWN(file) {
     if (data->cursor != NULL) {
         ina_file_cursor_free(&data->cursor);
     }
-    if (data->file != NULL) {
-        ina_file_free(data->file_ctx, &data->file);
-    }
     if (data->file_ctx != NULL) {
         ina_file_destroy(&data->file_ctx);
     }
@@ -102,6 +101,7 @@ INA_BENCH_END(file, bf_read) {
 INA_BENCH(file, bf_read, 4)
 {
     int64_t nb_read = -1;
+    data->tot_nb_read = 0;
     printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, ina_str_cstr(data->filepath),
@@ -117,7 +117,7 @@ INA_BENCH(file, bf_read, 4)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_value(ina_bench_stopwatch_stop());
+    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
 
     ina_file_free(data->file_ctx, &data->file);
     ina_mem_free(data->read_buf);
@@ -136,6 +136,7 @@ INA_BENCH_END(file, bf_read_seq) {
 INA_BENCH(file, bf_read_seq, 4)
 {
     int64_t nb_read = -1;
+    data->tot_nb_read = 0;
     printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
@@ -151,7 +152,7 @@ INA_BENCH(file, bf_read_seq, 4)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_value(ina_bench_stopwatch_stop());
+    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
 
     ina_file_free(data->file_ctx, &data->file);
     ina_mem_free(data->read_buf);
@@ -169,6 +170,7 @@ INA_BENCH_END(file, bf_read_direct) {
 INA_BENCH(file, bf_read_direct, 4)
 {
     int64_t nb_read = -1;
+    data->tot_nb_read = 0;
     printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
@@ -185,7 +187,7 @@ INA_BENCH(file, bf_read_direct, 4)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_value(ina_bench_stopwatch_stop());
+    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     ina_file_free(data->file_ctx, &data->file);
     //ina_mem_free_aligned(data->read_buf);
     data->read_buf = NULL;
@@ -202,6 +204,7 @@ INA_BENCH_END(file, bf_read_cursor) {
 INA_BENCH(file, bf_read_cursor, 4)
 {
     size_t nb_read = -1;
+    data->tot_nb_read = 0;
     const unsigned char *buf;
 
     printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
@@ -226,7 +229,7 @@ INA_BENCH(file, bf_read_cursor, 4)
                             data->buffer_size, &nb_read, &buf)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_value(ina_bench_stopwatch_stop());
+    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     ina_file_free(data->file_ctx, &data->file);
 }
 
@@ -241,6 +244,7 @@ INA_BENCH_END(file, bf_read_mmap_cursor) {
 INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4)
 {
     size_t nb_read = -1;
+    data->tot_nb_read = 0;
     const unsigned char *buf;
 
     printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
@@ -264,7 +268,7 @@ INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4)
                             (size_t)data->buffer_size, &nb_read, &buf)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_value(ina_bench_stopwatch_stop());
+    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     ina_file_free(data->file_ctx, &data->file);
 }
 

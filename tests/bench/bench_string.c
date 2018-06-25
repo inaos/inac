@@ -39,6 +39,7 @@ INA_BENCH_DATA(string) {
 INA_BENCH_SETUP(string) {
     printf("setup %s - %s\n", ina_bench_get_name(),  ina_bench_get_series_name());
     ina_bench_set_scale_label("nr_of_elements");
+    ina_bench_set_precision(0);
 }
 
 INA_BENCH_TEARDOWN(string) {
@@ -68,8 +69,8 @@ INA_BENCH(string, series_1, 10) {
     for (i = 0; i < data->c; i++) {
         data->strings[i] = ina_str_new_fromcstr("this is just a test string");
     }
-    ina_bench_set_value(ina_bench_stopwatch_stop());
-    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_value());
+    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_int64());
     ina_mem_free(data->strings);
 }
 
@@ -95,9 +96,9 @@ INA_BENCH(string, series_2, 10) {
     for (i = 0; i < data->c; i++) {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
     }
-    ina_bench_set_value(ina_bench_stopwatch_stop());
+    ina_bench_set_int64(ina_bench_stopwatch_stop());
 
-    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_value());
+    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_int64());
     INA_MUST_SUCCEED(ina_mempool_free(data->mp));
 }
 
@@ -123,9 +124,9 @@ INA_BENCH(string, series_3, 10) {
     for (i = 0; i < data->c; i++)  {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
     }
-    ina_bench_set_value(ina_bench_stopwatch_stop());
+    ina_bench_set_int64(ina_bench_stopwatch_stop());
 
-    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_value());
+    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_int64());
 }
 
 
