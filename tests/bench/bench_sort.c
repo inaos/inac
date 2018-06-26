@@ -63,6 +63,9 @@ INA_BENCH_DATA(sort) {
 };
 INA_BENCH_SETUP(sort){}
 INA_BENCH_TEARDOWN(sort) {}
+INA_BENCH_SCALE(sort) {
+    ina_bench_set_scale(1);
+}
 INA_BENCH_BEGIN(sort, quicksort_simple){}
 INA_BENCH_END(sort, quicksort_simple) {}
 INA_BENCH(sort, quicksort_simple, 1) {
