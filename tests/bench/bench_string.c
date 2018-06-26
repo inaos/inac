@@ -28,7 +28,6 @@
 #include <libinac/lib.h>
 
 
-
 INA_BENCH_DATA(string) {
     ina_str_t *strings;
     ina_mempool_t *mp;
@@ -37,20 +36,13 @@ INA_BENCH_DATA(string) {
 
 
 INA_BENCH_SETUP(string) {
-    printf("setup %s - %s\n", ina_bench_get_name(),  ina_bench_get_series_name());
     ina_bench_set_scale_label("nr_of_elements");
     ina_bench_set_precision(0);
 }
-
-INA_BENCH_TEARDOWN(string) {
-    printf("teardown %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
-}
-
+INA_BENCH_TEARDOWN(string) {}
 INA_BENCH_BEGIN(string, series_1) {
-    printf("begin series %s - %s\n", ina_bench_get_series_name(), "allocate strings with ina_mem_alloc()");
     data->strings = NULL;
 }
-
 INA_BENCH_SCALE(string) {
     data->c = 1000 * ina_bench_get_iteration();
     ina_bench_set_scale(data->c);
@@ -58,8 +50,7 @@ INA_BENCH_SCALE(string) {
 
 INA_BENCH(string, series_1, 10) {
     int i;
-    printf("%s - iteration: %d - allocate %d strings ",
-           ina_bench_get_series_name(),
+    INA_BENCH_MSG("iteration: %d - allocate %d strings ",
            ina_bench_get_iteration(),
            data->c);
 
@@ -70,24 +61,16 @@ INA_BENCH(string, series_1, 10) {
         data->strings[i] = ina_str_new_fromcstr("this is just a test string");
     }
     ina_bench_set_int64(ina_bench_stopwatch_stop());
-    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_int64());
     ina_mem_free(data->strings);
 }
 
-INA_BENCH_END(string, series_1) {
-    printf("end series %s\n", ina_bench_get_series_name());
-}
-
-
+INA_BENCH_END(string, series_1) {}
 INA_BENCH_BEGIN(string, series_2) {
-    printf("begin series %s - allocate string using memory pool\n", ina_bench_get_series_name());
     data->mp = NULL;
 }
-
 INA_BENCH(string, series_2, 10) {
     int i;
-    printf("%s - iteration: %d allocate %d strings:",
-           ina_bench_get_series_name(),
+    INA_BENCH_MSG("iteration: %d allocate %d strings:",
            ina_bench_get_iteration(),
            data->c);
 
@@ -98,24 +81,18 @@ INA_BENCH(string, series_2, 10) {
     }
     ina_bench_set_int64(ina_bench_stopwatch_stop());
 
-    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_int64());
     INA_MUST_SUCCEED(ina_mempool_free(data->mp));
 }
 
 
-INA_BENCH_END(string, series_2) {
-    printf("end series %s\n", ina_bench_get_series_name());
-}
-
+INA_BENCH_END(string, series_2) {}
 INA_BENCH_BEGIN(string, series_3) {
-    printf("begin series %s - allocate string using same memory pool\n", ina_bench_get_series_name());
     INA_MUST_SUCCEED(ina_mempool_new(&data->mp, data->c*50, INA_MEM_FIXED, NULL));
 }
 
 INA_BENCH(string, series_3, 10) {
     int i;
-    printf("%s - iteration: %d allocate %d strings:",
-           ina_bench_get_series_name(),
+    INA_BENCH_MSG("iteration: %d allocate %d strings:",
            ina_bench_get_iteration(),
            data->c);
 
@@ -125,13 +102,9 @@ INA_BENCH(string, series_3, 10) {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
     }
     ina_bench_set_int64(ina_bench_stopwatch_stop());
-
-    printf(" time: %"INA_INT64_T_FMT" ns\n", ina_bench_get_int64());
 }
 
-
 INA_BENCH_END(string, series_3) {
-    printf("end series %s\n", ina_bench_get_series_name());
     INA_MUST_SUCCEED(ina_mempool_free(data->mp));
 }
 
