@@ -43,7 +43,6 @@ INA_BENCH_DATA(file)
 };
 
 INA_BENCH_SETUP(file) {
-    printf("setup %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
     ina_bench_set_scale_label("buffer_size_kb");
     ina_mem_set(data, 0, sizeof(struct file_data));
     INA_MUST_SUCCEED(ina_file_init(&data->file_ctx, 0));
@@ -67,8 +66,6 @@ INA_BENCH_SETUP(file) {
 }
 
 INA_BENCH_TEARDOWN(file) {
-    printf("teardown %s - %s\n", ina_bench_get_name(), ina_bench_get_series_name());
-
     if (data->filepath != NULL) {
         ina_str_free(data->filepath);
         data->filepath = NULL;
@@ -89,20 +86,12 @@ INA_BENCH_SCALE(file) {
     ina_bench_set_scale(data->buffer_size);
 }
 
-
-INA_BENCH_BEGIN(file, bf_read) {
-    printf("begin series %s\n", ina_bench_get_series_name());
-}
-
-INA_BENCH_END(file, bf_read) {
-    printf("end series %s\n", ina_bench_get_series_name());
-}
-
+INA_BENCH_BEGIN(file, bf_read) {}
+INA_BENCH_END(file, bf_read) {}
 INA_BENCH(file, bf_read, 4)
 {
     int64_t nb_read = -1;
     data->tot_nb_read = 0;
-    printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, ina_str_cstr(data->filepath),
             INA_FILE_ACCESS_MODE_READ,
@@ -124,20 +113,12 @@ INA_BENCH(file, bf_read, 4)
 }
 
 
-INA_BENCH_BEGIN(file, bf_read_seq) {
-    printf("begin series %s\n", ina_bench_get_series_name());
-}
-
-INA_BENCH_END(file, bf_read_seq) {
-    printf("end series %s\n", ina_bench_get_series_name());
-}
-
-
+INA_BENCH_BEGIN(file, bf_read_seq) {}
+INA_BENCH_END(file, bf_read_seq) {}
 INA_BENCH(file, bf_read_seq, 4)
 {
     int64_t nb_read = -1;
     data->tot_nb_read = 0;
-    printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
             INA_FILE_ACCESS_MODE_READ,
@@ -159,20 +140,13 @@ INA_BENCH(file, bf_read_seq, 4)
     data->read_buf = NULL;
 }
 
-INA_BENCH_BEGIN(file, bf_read_direct) {
-    printf("begin series %s\n", ina_bench_get_series_name());
-}
-
-INA_BENCH_END(file, bf_read_direct) {
-    printf("end series %s\n", ina_bench_get_series_name());
-}
-
+INA_BENCH_BEGIN(file, bf_read_direct) {}
+INA_BENCH_END(file, bf_read_direct) {}
 INA_BENCH(file, bf_read_direct, 4)
 {
     int64_t nb_read = -1;
     data->tot_nb_read = 0;
-    printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
-
+    unsigned char* buf;
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,
@@ -181,6 +155,7 @@ INA_BENCH(file, bf_read_direct, 4)
             &data->file));
 
     data->read_buf = ina_mem_alloc_aligned(4096 * 2, data->buffer_size + 4096);
+    buf = data->read_buf;
     data->read_buf += 4096;
 
     ina_bench_stopwatch_start();
@@ -189,25 +164,17 @@ INA_BENCH(file, bf_read_direct, 4)
     }
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     ina_file_free(data->file_ctx, &data->file);
-    //ina_mem_free_aligned(data->read_buf);
+    ina_mem_free_aligned(buf);
     data->read_buf = NULL;
 }
 
-INA_BENCH_BEGIN(file, bf_read_cursor) {
-    printf("begin series %s\n", ina_bench_get_series_name());
-}
-
-INA_BENCH_END(file, bf_read_cursor) {
-    printf("end series %s\n", ina_bench_get_series_name());
-}
-
+INA_BENCH_BEGIN(file, bf_read_cursor) {}
+INA_BENCH_END(file, bf_read_cursor) {}
 INA_BENCH(file, bf_read_cursor, 4)
 {
     size_t nb_read = -1;
     data->tot_nb_read = 0;
     const unsigned char *buf;
-
-    printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
             INA_FILE_ACCESS_MODE_READ,
@@ -233,21 +200,13 @@ INA_BENCH(file, bf_read_cursor, 4)
     ina_file_free(data->file_ctx, &data->file);
 }
 
-INA_BENCH_BEGIN(file, bf_read_mmap_cursor) {
-    printf("begin series %s\n", ina_bench_get_series_name());
-}
-
-INA_BENCH_END(file, bf_read_mmap_cursor) {
-    printf("end series %s\n", ina_bench_get_series_name());
-}
-
+INA_BENCH_BEGIN(file, bf_read_mmap_cursor) {}
+INA_BENCH_END(file, bf_read_mmap_cursor) {}
 INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4)
 {
     size_t nb_read = -1;
     data->tot_nb_read = 0;
     const unsigned char *buf;
-
-    printf("buffer size %s: %u\n", ina_bench_get_series_name(), data->buffer_size);
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
         INA_FILE_ACCESS_MODE_READ,
