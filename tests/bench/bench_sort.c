@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, INAOS GmbH
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,6 @@
 #include <stdlib.h>
 #include <libinac/lib.h>
 
-static ina_stopwatch_t   *stopwatch = NULL;
-static ina_str_t          benchmark = NULL;
 
 size_t j = 0, p = 0, temp = 0;
 
@@ -57,60 +55,20 @@ static void quicksort(double *input, size_t *position, size_t k, size_t m)
     }
 }
 
-static void its_cleanup_handler(int sig, int *error)
-{
-    if (stopwatch != NULL && INA_SUCCEED(ina_time_stopwatch_started(stopwatch))) {
-        
-        INA_TIME_STOPWATCH_STOP(stopwatch);
-
-        printf("%s: Duration %f seconds\n", 
-            ina_str_cstr(benchmark),
-            stopwatch->tv->sec_duration);
-        
-        ina_time_stopwatch_destroy(&stopwatch);
-    }
-    if (benchmark) {
-        ina_str_free(benchmark);
-    }
-}
-
-int main(int argc, char **argv)
-{
-    size_t len;
+INA_BENCH_DATA(sort) {
+    double *input;
+    size_t position;
     size_t k;
-
-    INA_OPTS(opt,
-        INA_OPT_INT("i", "size", 1e6, "Number of elements in the input array"),
-		INA_OPT_INT("k", "size", 1e4, "Number of output elements"),
-        INA_OPT_FLAG("q", "quicksort-simple", "Simple quicksort"),
-        INA_OPT_FLAG("s", "quicksort-smid", "AVX2 based quicksort")
-    );
-
-    if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
-        return EXIT_FAILURE;
-    }
-    ina_set_cleanup_handler(its_cleanup_handler);
-
-    if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&stopwatch, 1, -1))) {
-        return EXIT_FAILURE;
-    }
-
-    ina_opt_get_int("i", (int*)&len);
-    ina_opt_get_int("k", (int*)&k);
-    
-    if (INA_SUCCEED(ina_opt_isset("q"))) {
-        benchmark = ina_str_new_fromcstr("simple quicksort");
-        INA_TIME_STOPWATCH_START(stopwatch);
-    }
-    else if (INA_SUCCEED(ina_opt_isset("s"))) {
-        benchmark = ina_str_new_fromcstr("SMID(AVX2) quicksort");
-        INA_TIME_STOPWATCH_START(stopwatch);
-    }
-    else {
-        printf("Invalid benchmark!\n");
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    size_t m;
+};
+INA_BENCH_SETUP(sort){}
+INA_BENCH_TEARDOWN(sort) {}
+INA_BENCH_BEGIN(sort, quicksort_simple){}
+INA_BENCH_END(sort, quicksort_simple) {}
+INA_BENCH(sort, quicksort_simple, 1) {
+    ina_bench_stopwatch_start();
+    quicksort(data->input, &data->position, data->k, data->m);
+    ina_bench_set_int64(ina_bench_stopwatch_stop());
 }
+
 
