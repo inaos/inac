@@ -257,7 +257,9 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
                 }
                 strncat(__header, bench->series_name, sizeof(__header)-strlen(__header)+1);
 
+                printf("%s:%s : setup\n", ina_bench_get_name(), ina_bench_get_series_name());
                 bench->setup(bench->data);
+                printf("%s:%s : begin\n", ina_bench_get_name(), ina_bench_get_series_name());
                 bench->series_setup(bench->data);
                 for (ic = 0; ic < bench->iterations; ++ic) {
                     __current_iteration = ic;
@@ -266,8 +268,11 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
                     __current_result += 1;
                     __current_scale += 1;
                 }
+                printf("%s:%s : end\n", ina_bench_get_name(), ina_bench_get_series_name());
                 bench->series_teardown(bench->data);
+                printf("%s:%s : teardown\n", ina_bench_get_name(), ina_bench_get_series_name());
                 bench->teardown(bench->data);
+
                 __current_series += 1;
             }
         }
@@ -305,6 +310,11 @@ INA_API(ina_rc_t) ina_bench_set_scale_label(const char* label)
         ina_str_free(__scale_label);
     }
     __scale_label = ina_str_new_fromcstr(label);
+    printf("%s:%s : set scale label '%s'\n",
+           ina_bench_get_name(),
+           ina_bench_get_series_name(),
+           ina_str_cstr(__scale_label));
+
     return INA_SUCCESS;
 }
 
@@ -319,19 +329,30 @@ INA_API(const char*) ina_bench_get_scale_label(void)
 INA_API(ina_rc_t) ina_bench_set_double(double value)
 {
     *__current_result = value;
+    printf("%s:%s : set result %f for iteration '%d'\n",
+           ina_bench_get_name(),
+           ina_bench_get_series_name(),
+           value,
+           ina_bench_get_iteration());
+
     return INA_SUCCESS;
 }
 
 
 INA_API(ina_rc_t) ina_bench_set_int64(int64_t value)
 {
-    *__current_result = (double)value;
-    return INA_SUCCESS;
+    return ina_bench_set_double((double)value);
 }
 
 
 INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
 {
+    printf("%s:%s : set scale %"INA_INT64_T_FMT" for iteration '%d'\n",
+           ina_bench_get_name(),
+           ina_bench_get_series_name(),
+           scale,
+           ina_bench_get_iteration());
+
     *__current_scale = scale;
     return INA_SUCCESS;
 }
@@ -369,6 +390,7 @@ INA_API(int) ina_bench_get_iteration(void)
 
 INA_API(ina_rc_t) ina_bench_stopwatch_start(void)
 {
+    printf("%s:%s : start time measurement\n", ina_bench_get_name(), ina_bench_get_series_name());
     return  ina_time_read_tsc_clock(__time1);
 }
 
@@ -379,6 +401,7 @@ INA_API(int64_t) ina_bench_stopwatch_stop(void)
     int64_t micros;
 
     INA_MUST_SUCCEED(ina_time_read_tsc_clock(__time2));
+    printf("%s:%s : stop time measurement\n", ina_bench_get_name(), ina_bench_get_series_name());
     ina_time_tsc_seconds_nanos(__time2, &secs, &nanos);
     micros = secs * 1000*1000*1000 + nanos;
     ina_time_tsc_seconds_nanos(__time1, &secs, &nanos);
@@ -389,6 +412,7 @@ INA_API(int64_t) ina_bench_stopwatch_stop(void)
 INA_API(ina_rc_t) ina_bench_set_precision(int precision)
 {
     INA_VERIFY(precision >= 0);
+    printf("%s:%s : set precision  '%d'\n", ina_bench_get_name(), ina_bench_get_series_name(), precision);
     __precision = precision;
     return INA_SUCCESS;
 }

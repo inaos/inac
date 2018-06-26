@@ -151,6 +151,14 @@ typedef struct ina_bench_benchmark_s {
 #define INA_BENCH_SKIP(bname, sname, iter) INA_BENCH_DECL(bname, sname, iter, 1)
 
 #define INA_BENCH_IS_SERIES(name) (ina_str_cmp(name, ina_bench_get_series_name()) == 0)
+
+#define INA_BENCH_MSG(fmt, ...)      \
+    fprintf(stdout,                  \
+        "%s:%s : " fmt "\n",         \
+        ina_bench_get_name(),        \
+        ina_bench_get_series_name(), \
+        ##__VA_ARGS__           \
+        )
 /*
  * Run benchmarks.
  *
