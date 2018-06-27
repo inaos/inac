@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <libinac/lib.h>
 
-#define __INA_MBS(tot_nb_read, us) ((tot_nb_read)/(us)/1000/1000)
+#define __INA_MBS(tot_nb_read, us) ((((double)(tot_nb_read))/1024)/(((double)us)/1000/1000))
 
 INA_BENCH_DATA(file)
 {
@@ -44,6 +44,7 @@ INA_BENCH_DATA(file)
 
 INA_BENCH_SETUP(file) {
     ina_bench_set_scale_label("buffer_size_kb");
+    ina_bench_set_precision(2);
     ina_mem_set(data, 0, sizeof(struct file_data));
     INA_MUST_SUCCEED(ina_file_init(&data->file_ctx, 0));
     INA_MUST_SUCCEED(ina_mmap_init(&data->mmap_ctx));
@@ -107,6 +108,7 @@ INA_BENCH(file, bf_read, 4)
         data->tot_nb_read += nb_read;
     }
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(data->file_ctx, &data->file);
     ina_mem_free(data->read_buf);
@@ -134,6 +136,7 @@ INA_BENCH(file, bf_read_seq, 4)
         data->tot_nb_read += nb_read;
     }
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(data->file_ctx, &data->file);
     ina_mem_free(data->read_buf);
@@ -163,6 +166,8 @@ INA_BENCH(file, bf_read_direct, 4)
         data->tot_nb_read += nb_read;
     }
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
+
     ina_file_free(data->file_ctx, &data->file);
     ina_mem_free_aligned(buf);
     data->read_buf = NULL;
@@ -197,6 +202,8 @@ INA_BENCH(file, bf_read_cursor, 4)
         data->tot_nb_read += nb_read;
     }
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
+
     ina_file_free(data->file_ctx, &data->file);
 }
 
@@ -228,6 +235,7 @@ INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4)
         data->tot_nb_read += nb_read;
     }
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
     ina_file_free(data->file_ctx, &data->file);
 }
 
