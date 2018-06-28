@@ -1050,7 +1050,7 @@ INA_BENCH_BEGIN(sort, quick_sort) {}
 ```
 
 ##### The scale phase
-The scale phase is intended to capture the scale valuey You need to 
+The scale phase is intended to capture the scale value. You need to
 call _ina_bench_set_scale()_ before leaving the phase. This phase is called 
 for each iteration just before running the benchmark code.
 
