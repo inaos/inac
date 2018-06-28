@@ -132,6 +132,11 @@ extern "C" {
                           (INA_MINOR_VERSION << 8)  |   \
                           (INA_MICRO_VERSION << 0))
 
+/* Revsion number as 2-byte hex number e.g 0x900 == 0.9. Use this
+ * for numeric comparisons, e.g. #if INA_REVISION_HEX >= ... */
+#define INA_REVISION_HEX ((INA_MINOR_VERSION << 8)  |   \
+                          (INA_MICRO_VERSION << 0))
+
 /* Source location */
 #define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
 

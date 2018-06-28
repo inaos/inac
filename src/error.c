@@ -36,6 +36,14 @@
 
 static INA_TLS(ina_rc_t) __rc = 0;
 static INA_TLS(FILE) *__logfile = NULL;
+static INA_TLS(ina_err_dict_cb_t) __dict_cb = NULL;
+
+INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb)
+{
+    ina_err_dict_cb_t old_cb = __dict_cb;
+    __dict_cb = cb;
+    return old_cb;
+}
 
 INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path)
 {
@@ -75,13 +83,13 @@ INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char *location)
 {
     __rc = rc;
     if (__logfile != NULL) {
-        char buf[INA_ERR_MSGLEN];
+        char buf[INA_ERROR_MSGLEN];
         fprintf(__logfile, "%s at %s", ina_err_strerror(__rc, buf), location);
-        if (INA_RC_L(__rc) > 0) {
+        if (INA_RC_ERRNO(__rc) > 0) {
             fprintf(__logfile,
                     " - OS error: %s (%d)",
-                    strerror(INA_RC_L(__rc)),
-                    INA_RC_L(__rc));
+                    strerror(INA_RC_ERRNO(__rc)),
+                    INA_RC_ERRNO(__rc));
         }
         fprintf(__logfile, "\n");
     }
@@ -93,7 +101,7 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void)
     return __rc;
 }
 
-INA_API(ina_rc_t) ina_err_clear_last_rc(void)
+INA_API(ina_rc_t) ina_err_reset(void)
 {
     __rc = ina_err_clear_rc(__rc);
     return __rc;
@@ -115,10 +123,8 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_ARGUMENT: return "ARGUMENT";
         case INA_NN_AUTHENTICATION: return "AUTHENTICATION";
         case INA_NN_BINARY: return "BINARY";
-        case INA_NN_BLOB: return "BLOB";
         case INA_NN_BROADCAST: return "BROADCAST";
         case INA_NN_CLIENT: return "CLIENT";
-        case INA_NN_CLOUD: return "CLOUD";
         case INA_NN_CODE: return "CODE";
         case INA_NN_COMMIT: return "COMMIT";
         case INA_NN_COMPILATION: return "COMPILATION";
@@ -134,9 +140,7 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_DISK: return "DISK";
         case INA_NN_DLL: return "DLL";
         case INA_NN_DOMAIN: return "DOMAIN";
-        case INA_NN_DOWNLOAD: return "DOWNLOAD";
         case INA_NN_DRIVER: return "DRIVER";
-        case INA_NN_EDITOR: return "EDITOR";
         case INA_NN_ENDPOINT: return "ENDPOINT";
         case INA_NN_ENGINE: return "ENGINE";
         case INA_NN_EVALUATION: return "EVALUATION";
@@ -146,7 +150,6 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_FETCH: return "FETCH";
         case INA_NN_FILE: return "FILE";
         case INA_NN_FLOAT: return "FLOAT";
-        case INA_NN_FOLDER: return "FOLDER";
         case INA_NN_FORMAT: return "FORMAT";
         case INA_NN_FUNCTION: return "FUNCTION";
         case INA_NN_GATEWAY: return "GATEWAY";
@@ -198,7 +201,6 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_PROFILER: return "PROFILER";
         case INA_NN_PROTOCOL: return "PROTOCOL";
         case INA_NN_PROXY: return "PROXY";
-        case INA_NN_QUERY: return "QUERY";
         case INA_NN_RANGE: return "RANGE";
         case INA_NN_RATIO: return "RATIO";
         case INA_NN_RECORD: return "RECORD";
@@ -231,10 +233,7 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_TIME: return "TIME";
         case INA_NN_TRANSLATION: return "TRANSLATION";
         case INA_NN_TRANSPORT: return "TRANSPORT";
-        case INA_NN_TRIGGER: return "TRIGGER";
         case INA_NN_TYPE: return "TYPE";
-        case INA_NN_UPGRADE: return "UPGRADE";
-        case INA_NN_UPLOAD: return "UPLOAD";
         case INA_NN_USER: return "USER";
         case INA_NN_USERNAME: return "USERNAME";
         case INA_NN_VALUE: return "VALUE";
@@ -260,11 +259,15 @@ static const char* __ina_get_noun(int id) {
         case INA_NN_SEMAPHORE: return "SEMAPHORE";
         case INA_NN_THREAD: return "THREAD";
         case INA_NN_CRON: return "CRON";
-        default:  return "??";
+        default:
+            if (__dict_cb != NULL) {
+                return  __dict_cb(id);
+            }
+            return "??";
     }
 }
 
-INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
+INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERROR_MSGLEN])
 {
     const char *neg = "", *adj = "";
     char noun[256-48];
@@ -272,7 +275,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
     if (INA_SUCCEED(rc)) {
         return (buf[0] = '\0', buf);
     }
-    strncpy (noun, __ina_get_noun(INA_RC_U(rc)), sizeof(noun));
+    strncpy (noun, __ina_get_noun(INA_RC_USERNN(rc)), sizeof(noun));
 
     if (rc & ( 1LL << INA_RC_BIT_N )) {
         neg = "NOT";
@@ -431,16 +434,16 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERR_MSGLEN])
         strcat(buf, (use)[1]);
         strcat(buf, (use)[1][0] ? " " : "");
         strcat(buf, (use)[2]);
-        sprintf((char*)&buf[strlen(buf)], " - 0x%"INA_INT64_T_FMT" - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
+        sprintf((char*)&buf[strlen(buf)], " - 0x%" INA_INT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
                 rc,
-                INA_RC_E(rc),
-                INA_RC_V(rc),
-                INA_RC_R(rc),
-                INA_RC_L(rc),
-                INA_RC_N(rc),
-                INA_RC_A(rc),
-                INA_RC_U(rc));
-        return (buf[INA_ERR_MSGLEN-1] = '\0', buf);
+                INA_RC_EFLAG(rc),
+                INA_RC_VER(rc),
+                INA_RC_REV(rc),
+                INA_RC_ERRNO(rc),
+                INA_RC_NFLAG(rc),
+                INA_RC_ATTRIB(rc),
+                INA_RC_USERNN(rc));
+        return (buf[INA_ERROR_MSGLEN-1] = '\0', buf);
     }
 }
 

@@ -35,7 +35,7 @@ INA_TEST_DATA(string_mempool)
 
 INA_TEST_SETUP(string_mempool)
 {
-    ina_err_clear_last_rc();
+    ina_err_reset();
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&data->pool, 10*1024,INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(data->pool);
 }
@@ -216,7 +216,7 @@ INA_TEST(string, ina_str_ncpy)
     ina_str_free(dest);
 }
 
-INA_TEST(string, ina_str_cat)
+INA_TEST_SKIP(string, ina_str_cat)
 {
     ina_str_t str = ina_str_new(128);
     ina_str_t part1 = ina_str_new_fromcstr("part1");

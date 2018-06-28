@@ -28,6 +28,13 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+/* 
+ * TODO:
+ * - I believe we use the same algorithm as described here: https://www.snellman.net/blog/archive/2016-07-27-ratas-hierarchical-timer-wheel/ 
+ *   It could be interesting to compare/benchmark the two implementations, currently it seems there is no need for this.
+ * 
+ */
+
 struct ina_timer_s {
     ina_time_tsc_t *stamp;
     struct timeouts *timeouts;

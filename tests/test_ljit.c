@@ -48,7 +48,7 @@ INA_TEST_TEARDOWN(ljit_ex) {
     INA_TEST_HELPER_TERMINATE(&data->debug_hid);
 }
 
-INA_TEST_FIXTURE(ljit_ex, lsocket_echo_client)
+INA_TEST_FIXTURE_SKIP(ljit_ex, lsocket_echo_client)
 {
     ina_ljit_ctx_t *ctx = NULL;
     int r = 0;
@@ -92,7 +92,7 @@ INA_TEST(ljit, call)
     double r = 0;
     char *rs = NULL;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);

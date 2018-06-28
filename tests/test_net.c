@@ -81,7 +81,7 @@ INA_TEST_FIXTURE(net, tcp_connect_5sec_timeout) {
     INA_TEST_ASSERT_SUCCEED(ina_net_close(data->client_fd));
 }
 
-INA_TEST_FIXTURE(net, tcp_write_read) {
+INA_TEST_FIXTURE_SKIP(net, tcp_write_read) {
     char buffer[1024];
     int nb_read = 0;
     int nb_write = 0;
@@ -108,7 +108,7 @@ INA_TEST_FIXTURE(net, tcp_write_read) {
 }
 
 
-INA_TEST_FIXTURE(net, tcp_write_read_1000_times) {
+INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
     char buffer[1024];
     int nb_read = 0;
     int nb_write = 0;

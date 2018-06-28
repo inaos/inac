@@ -1,7 +1,7 @@
 @echo off
 
 REM
-REM Copyright (c) 2013-2017, INAOS GmbH
+REM Copyright (c) 2013-2018, INAOS GmbH
 REM All rights reserved.
 REM
 REM Redistribution and use in source and binary forms, with or without
@@ -153,6 +153,7 @@ REM return here if we only evalutated the parameters
 if "%3" == "eval_params" goto exit
 
 REM check luajit
+if "%INAC_BUILD_TYPE%" == "debug" SET INAC_W32_LUAJIT=%INAC_HOME%\contribs\luajit\src\luajitd.exe
 if not exist %INAC_W32_LUAJIT% goto fail_no_luajit
 if not exist %INAC_W32_LUAJIT_DIR% goto fail_no_luajit_dir
 

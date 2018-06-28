@@ -343,7 +343,7 @@ INA_API(void) ina_exit(void)
         ina_str_free(__apppath);
     }
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
 #ifdef INA_OS_WIN32
     timeEndPeriod(1);
@@ -633,11 +633,11 @@ __ina_signal_handler(int sig)
     switch (sig) {
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                char buf[INA_ERR_MSGLEN];
+                char buf[INA_ERROR_MSGLEN];
                 ina_err_log("Program aborted.");
                 if (INA_FAILED(ina_err_get_last_rc())) {
-                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_clear_last_rc(), buf));
-                    ina_err_clear_last_rc();
+                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc(), buf));
+                    ina_err_reset();
                 }
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
@@ -649,11 +649,11 @@ __ina_signal_handler(int sig)
         case SIGILL:
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                char buf[INA_ERR_MSGLEN];
+                char buf[INA_ERROR_MSGLEN];
                 ina_err_log("Signal %d received", sig);
                 if (INA_FAILED(ina_err_get_last_rc())) {
-                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_clear_last_rc(), buf));
-                    ina_err_clear_last_rc();
+                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc(), buf));
+                    ina_err_reset();
                 }
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);

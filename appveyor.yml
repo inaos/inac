@@ -1,0 +1,67 @@
+branches:
+  # whitelist
+  only:
+    - master
+    - develop
+
+environment:
+  matrix:
+    - MY_NAME: Linux Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      BUILD_CONFIGURATION: debug
+      
+    - MY_NAME: Linux Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      BUILD_CONFIGURATION: release
+      
+    - MY_NAME: Windows VS 2015 Debug 32bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+      MSVC_PLATFORM: x86
+      BUILD_CONFIGURATION: debug
+      
+    - MY_NAME: Windows VS 2015 Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+      MSVC_PLATFORM: amd64
+      BUILD_CONFIGURATION: debug
+
+    - MY_NAME: Windows VS 2017 Debug 32bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: x86
+      BUILD_CONFIGURATION: debug
+
+    - MY_NAME: Windows VS 2017 Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+      BUILD_CONFIGURATION: debug
+
+matrix:
+  fast_finish: false
+
+init:
+  - cmd: C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
+
+build_script:
+  - sh: make $BUILD_CONFIGURATION
+  - cmd: make.bat all %BUILD_CONFIGURATION%
+  
+test_script:
+  - sh: make test-appveyor || true
+  - cmd: |
+         cd buildtest\%BUILD_CONFIGURATION%
+         test.exe --format=junit > ..\..\junit.xml & exit 0
+
+after_test:
+  - ps: |
+        $wc = New-Object 'System.Net.WebClient'
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/junit.xml))
+        
+        # Detect if there are any failure nodes in the junit results
+        [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/junit.xml
+        $failure = $results.SelectSingleNode("//failure")
+        if ($failure -ne $null) { 
+            throw "Forcing build failure due to unit test failure(s)"
+        }

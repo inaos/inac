@@ -344,7 +344,7 @@ static void __ina_hash_test_init32(int has_aes_support)
 	__hash32_all[14].test2_expected = 1;
 }
 
-INA_TEST(hash, all_32_bit) {
+INA_TEST_SKIP(hash, all_32_bit) {
     int i;
     int aes_hw_support = 0;
     ina_cpu_feature_t cpu_features;
@@ -406,7 +406,7 @@ static void __ina_hash_test_init64(int has_aes_support)
 	__hash64_all[8].name = ina_str_new_fromcstr("t1ha0");
 }
                             
-INA_TEST(hash, all_64_bit)
+INA_TEST_SKIP(hash, all_64_bit)
 {
     int i;
     int aes_hw_support = 0;
@@ -436,7 +436,7 @@ INA_TEST(hash, all_64_bit)
 }
 
 
-INA_TEST(hash, sdbm_macro)
+INA_TEST_SKIP(hash, sdbm_macro)
 {
     ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
@@ -445,7 +445,7 @@ INA_TEST(hash, sdbm_macro)
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
 }
 
-INA_TEST(hash, sdbm)
+INA_TEST_SKIP(hash, sdbm)
 {
     ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
@@ -455,7 +455,7 @@ INA_TEST(hash, sdbm)
     INA_TEST_ASSERT_EQUAL_FLOATING(1732587620, ina_hash_sdbm(1195757874, str, ina_str_len(str)));
 }
 
-INA_TEST(hash, crc32_macro)
+INA_TEST_SKIP(hash, crc32_macro)
 {
     ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
@@ -464,7 +464,7 @@ INA_TEST(hash, crc32_macro)
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
 }
 
-INA_TEST(hash, crc32)
+INA_TEST_SKIP(hash, crc32)
 {
     ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
