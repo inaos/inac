@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,82 +69,101 @@ static ina_rc_t __ina_timer_bench_create_events(ina_timer_t *timer)
     stop_event = ina_timer_event_new(timer, 20000);
     return INA_SUCCESS;
 }
-static ina_rc_t __ina_timer_bench_exec(int rdtsc, int iteration)
-{
+
+INA_BENCH_DATA(timer) {
+    int dummy;
+};
+
+INA_BENCH_SETUP(timer){
+    ina_bench_set_precision(0);
+}
+INA_BENCH_TEARDOWN(timer){}
+INA_BENCH_SCALE(timer) {
+    ina_bench_set_scale(1);
+}
+INA_BENCH_BEGIN(timer, create_rdtsc) {}
+INA_BENCH_END(timer, create_rdtsc) {}
+INA_BENCH(timer, create_rdtsc, 1) {
     ina_timer_t *timer;
-    ina_stopwatch_t *s1 = NULL; 
-    ina_stopwatch_t *s2 = NULL;
-    ina_stopwatch_t *s3 = NULL;
-    double total = 0;
 
-    if (!INA_SUCCEED(ina_timer_new(&timer))) {
-        return EXIT_FAILURE;
-    }
+    INA_MUST_SUCCEED(ina_timer_new(&timer));
 
-    if (rdtsc) {
-        ina_time_tsc_enable_rdtsc();
-    }
-
-    INA_TIME_STOPWATCH_CREATE(&s1, 1, -1);
-    INA_TIME_STOPWATCH_CREATE(&s2, 2, -1);
-    INA_TIME_STOPWATCH_CREATE(&s3, 3, -1);
-
-    INA_TIME_STOPWATCH_START(s1);
+    ina_time_tsc_enable_rdtsc();
+    ina_bench_stopwatch_start();
     __ina_timer_bench_create_events(timer);
-    INA_TIME_STOPWATCH_STOP(s1);
+    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_time_tsc_disable_rdtsc();
 
-    printf("IT-%d: Time to create time-events in micro-sec: %f\n", iteration, s1->tv->usec_duration);
+    ina_timer_free(&timer);
+}
 
-    INA_TIME_STOPWATCH_START(s3);
+INA_BENCH_BEGIN(timer, create) {}
+INA_BENCH_END(timer, create) {}
+INA_BENCH(timer, create, 1) {
+    ina_timer_t *timer;
+
+    INA_MUST_SUCCEED(ina_timer_new(&timer));
+
+    ina_bench_stopwatch_start();
+    __ina_timer_bench_create_events(timer);
+    ina_bench_set_int64(ina_bench_stopwatch_stop());
+
+    ina_timer_free(&timer);
+}
+
+
+INA_BENCH_BEGIN(timer, exec) {}
+INA_BENCH_END(timer, exec) {}
+INA_BENCH(timer, exec, 1) {
+    ina_timer_t *timer;
+    int64_t total = 0;
+
+    INA_MUST_SUCCEED(ina_timer_new(&timer));
+
+    __ina_timer_bench_create_events(timer);
 
     for (;;) {
         ina_time_event_t *e;
-        INA_TIME_STOPWATCH_START(s2);
+        ina_bench_stopwatch_start();
         e = ina_timer_next_event(timer);
-        INA_TIME_STOPWATCH_STOP(s2);
+        total += ina_bench_stopwatch_stop();
         if (e != NULL && e->id == stop_event->id) {
-           break;
+            break;
         }
-        total += s2->tv->usec_duration;
         ina_time_sleep(1);
     }
-
-    INA_TIME_STOPWATCH_STOP(s3);
-
-    printf("IT-%d: ina_timer_next_event() in micro-seconds: %f or in sec: %f\n", iteration, total, total/1000/1000);
-
-    printf("IT-%d: Test total time: %f\n", iteration, s3->tv->sec_duration);
-
-    INA_TIME_STOPWATCH_DESTROY(&s1);
-    INA_TIME_STOPWATCH_DESTROY(&s2);
-    INA_TIME_STOPWATCH_DESTROY(&s3);
-
+    ina_bench_set_int64(total);
     ina_timer_free(&timer);
-
-    return INA_SUCCESS;
 }
-int main(int argc, char **argv)
-{
-    int rdtsc = INA_NO;
-    int iterations = 0;
-    int i;
 
-    INA_OPTS(opt,
-        INA_OPT_INT("r", "rdtsc", INA_NO, "Use RDTSC"),
-        INA_OPT_INT("i", "iterations", 1, "Number of benchmark iterations")
-    );
 
-    if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
-        return EXIT_FAILURE;
+INA_BENCH_BEGIN(timer, exec_rdtsc) {}
+INA_BENCH_END(timer, exec_rdtsc) {}
+INA_BENCH(timer, exec_rdtsc, 1) {
+    ina_timer_t *timer;
+    int64_t total = 0;
+
+    ina_time_tsc_enable_rdtsc();
+
+    INA_MUST_SUCCEED(ina_timer_new(&timer));
+
+    __ina_timer_bench_create_events(timer);
+
+    for (;;) {
+        ina_time_event_t *e;
+        ina_bench_stopwatch_start();
+        e = ina_timer_next_event(timer);
+        total += ina_bench_stopwatch_stop();
+        if (e != NULL && e->id == stop_event->id) {
+            break;
+        }
+        ina_time_sleep(1);
     }
-
-    ina_opt_get_int("r", &rdtsc);
-    ina_opt_get_int("i", &iterations);
-
-    for (i = 0; i < iterations; i++) {
-        __ina_timer_bench_exec(rdtsc, i+1);
-    }
-    
-    return EXIT_SUCCESS;
+    ina_time_tsc_disable_rdtsc();
+    ina_bench_set_int64(total);
+    ina_timer_free(&timer);
 }
+
+
+
 
