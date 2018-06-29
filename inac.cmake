@@ -9,7 +9,7 @@ include_directories("${PROJECT_BINARY_DIR}"
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
     SET(CMAKE_BUILD_TYPE RelWithDebInfo)
-    message(WARNING "Build type 'Relase'  not supported, switched to 'RelWithDebInfo'")
+    message(WARNING "Build type 'Release' not supported, switched to 'RelWithDebInfo'")
 endif()
 if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "debug")
     add_definitions(-DDEBUG)
@@ -102,6 +102,7 @@ function(inac_add_contrib_lib libname)
     file(GLOB src "${CMAKE_SOURCE_DIR}/contribs/${libname}/${ARGV1}*.c")
     set(INAC_LIBS ${INAC_LIBS_LIST} PARENT_SCOPE)
     add_library(${libname} ${src})
+    message(STATUS "Added contrib lib ${libname}")
 endfunction(inac_add_contrib_lib)
 
 macro(inac_add_contrib_lib_win32 libname)
