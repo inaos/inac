@@ -104,14 +104,14 @@ INA_API(const char*) ina_app_get_path(void)
     return ina_str_cstr(__apppath);
 }
 
-INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, ina_opt_t *opt) 
+INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, ina_opt_t *opt)
 {
     
 #ifdef INA_OS_WIN32
     _set_abort_behavior(INA_DGBMSG_ASSERT, _WRITE_ABORT_MSG);
     __main_thread = GetCurrentThread();
 #endif
-    INA_RETURN_IF_FAILED(ina_init(pool_size));
+    INA_RETURN_IF_FAILED(ina_init());
     
     if (argv != NULL) {
         const char* basename = strrchr(argv[0], INA_PATH_SEPARATOR);
@@ -240,7 +240,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_init(size_t pool_size)
+INA_API(ina_rc_t) ina_init(void)
 {
 #ifdef INA_OS_WIN32
     WSADATA wsaData;
@@ -278,7 +278,7 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     INA_RETURN_IF_FAILED(ina_cio_init());
 
    /* initialize internal structures */
-    INA_RETURN_IF_FAILED(ina_mempool_init(pool_size));
+    INA_RETURN_IF_FAILED(ina_mempool_init());
 
 #ifdef INA_OS_WIN32
     /* Make sure to use high-accuracy multimedia-timers for windows */
@@ -343,7 +343,7 @@ INA_API(void) ina_exit(void)
         ina_str_free(__apppath);
     }
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
 #ifdef INA_OS_WIN32
     timeEndPeriod(1);
@@ -633,11 +633,11 @@ __ina_signal_handler(int sig)
     switch (sig) {
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                char buf[INA_ERR_MSGLEN];
+                char buf[INA_ERROR_MSGLEN];
                 ina_err_log("Program aborted.");
                 if (INA_FAILED(ina_err_get_last_rc())) {
-                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_clear_last_rc(), buf));
-                    ina_err_clear_last_rc();
+                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc(), buf));
+                    ina_err_reset();
                 }
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);
@@ -649,11 +649,11 @@ __ina_signal_handler(int sig)
         case SIGILL:
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                char buf[INA_ERR_MSGLEN];
+                char buf[INA_ERROR_MSGLEN];
                 ina_err_log("Signal %d received", sig);
                 if (INA_FAILED(ina_err_get_last_rc())) {
-                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_clear_last_rc(), buf));
-                    ina_err_clear_last_rc();
+                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc(), buf));
+                    ina_err_reset();
                 }
 #ifndef INA_OS_WIN32
                 ina_err_backtrace(NULL);

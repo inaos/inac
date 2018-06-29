@@ -28,6 +28,13 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+/* 
+ * TODO:
+ * - I believe we use the same algorithm as described here: https://www.snellman.net/blog/archive/2016-07-27-ratas-hierarchical-timer-wheel/ 
+ *   It could be interesting to compare/benchmark the two implementations, currently it seems there is no need for this.
+ * 
+ */
+
 struct ina_timer_s {
     ina_time_tsc_t *stamp;
     struct timeouts *timeouts;
@@ -41,7 +48,7 @@ static time_t __ina_timer_tsc_to_msec(ina_time_tsc_t *tsc)
     return now_millis;
 }
 
-INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
+INA_API(ina_rc_t) ina_timer_new(ina_timer_t **timer)
 {
     ina_timer_t* t;
     int err;
@@ -57,7 +64,7 @@ INA_API(ina_rc_t) ina_timer_init(ina_timer_t **timer)
     return ina_time_tsc_new(&(*timer)->stamp);
 }
 
-INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
+INA_API(ina_rc_t) ina_timer_free(ina_timer_t **timer)
 {
     INA_VERIFY_NOT_NULL(timer);
     INA_VERIFY_NOT_NULL(*timer);
@@ -74,7 +81,7 @@ INA_API(ina_rc_t) ina_timer_destroy(ina_timer_t **timer)
 }
 
 
-INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t msec)
+INA_API(ina_time_event_t*) ina_timer_event_new(ina_timer_t *timer, time_t msec)
 {
     time_t now_millis;
     
@@ -83,10 +90,10 @@ INA_API(ina_time_event_t*) ina_timer_create_event(ina_timer_t *timer, time_t mse
     ina_time_read_tsc_clock(timer->stamp);
     now_millis = __ina_timer_tsc_to_msec(timer->stamp);
 
-    return ina_timer_create_event_with_time(timer, now_millis, msec);
+    return ina_timer_event_new_with_time(timer, now_millis, msec);
 }
 
-INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer, time_t n_msec, time_t e_msec)
+INA_API(ina_time_event_t*) ina_timer_event_new_with_time(ina_timer_t *timer, time_t n_msec, time_t e_msec)
 {
     ina_time_event_t *e;
     
@@ -115,7 +122,7 @@ INA_API(ina_time_event_t*) ina_timer_create_event_with_time(ina_timer_t *timer, 
     return e;
 }
 
-INA_API(ina_rc_t) ina_timer_delete_event(ina_timer_t *timer, ina_time_event_t *e)
+INA_API(ina_rc_t) ina_timer_event_free(ina_timer_t *timer, ina_time_event_t *e)
 {
     INA_VERIFY_NOT_NULL(timer);
     INA_VERIFY_NOT_NULL(e);

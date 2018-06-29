@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -135,7 +135,7 @@ INA_TEST(conffile , using_macros_without_section_handler)
     INA_TEST_ASSERT_NOT_NULL(value);
     INA_TEST_ASSERT_EQUAL_STR("255.0.0.1", ina_str_cstr(value));
     value = NULL;
-    ina_conffile_destroy(&cf);
+    ina_conffile_free(&cf);
 }
 
 
@@ -144,7 +144,7 @@ INA_TEST(conffile, try_anonymous_section)
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t *cs = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
  
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "debug", 
                                 INA_YES, INA_NO, 
@@ -182,7 +182,7 @@ INA_TEST(conffile, process_with_filepath)
     __section_count = 0;
     __named_section_count = 0;
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
  
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "debug", INA_YES, INA_NO, __ina_section_handler, &cs));
     INA_TEST_ASSERT_NOT_NULL(cs);
@@ -207,7 +207,7 @@ INA_TEST(conffile, process_with_filepath)
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_free(&cf));
     INA_TEST_ASSERT_NULL(cf);
 
 }
@@ -220,13 +220,13 @@ INA_TEST(conffile, duplicate_key)
     __section_count = 0;
     __named_section_count = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "debug", INA_YES, INA_NO, __ina_section_handler, &cs));
     INA_TEST_ASSERT_NOT_NULL(cs);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
     INA_TEST_ASSERT_FAILED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_free(&cf));
 }
 
 
@@ -238,7 +238,7 @@ INA_TEST(conffile, process_without_filepath)
     __section_count = 0;
     __named_section_count = 0;
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
  
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_section(cf, "debug", INA_YES, INA_NO, __ina_section_handler, &cs));
     INA_TEST_ASSERT_NOT_NULL(cs);
@@ -263,18 +263,18 @@ INA_TEST(conffile, process_without_filepath)
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_free(&cf));
     INA_TEST_ASSERT_NULL(cf);
 
 }
 
-INA_TEST(conffile, init_destroy)
+INA_TEST(conffile, new_free)
 {
     ina_conffile_t *cf = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_init(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
     INA_TEST_ASSERT_NOT_NULL(cf);
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_destroy(&cf));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_free(&cf));
     INA_TEST_ASSERT_NULL(cf);
 }
 

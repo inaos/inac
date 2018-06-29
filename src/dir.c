@@ -129,8 +129,8 @@ INA_API(ina_rc_t) ina_dir_walker_new(const char *basedir,
 
     *walker = (ina_dir_walker_t*)ina_mem_alloc(sizeof(ina_dir_walker_t));
     INA_RETURN_IF_NULL(*walker);
-    INA_RETURN_IF_FAILED(ina_mempool_create(&(*walker)->mp, 1024*sizeof(ina_dir_entry_t), 0, NULL));
-    INA_RETURN_IF_FAILED(ina_mempool_create(&(*walker)->smp, 1024*1024, INA_MEM_DYNAMIC, NULL));
+    INA_RETURN_IF_FAILED(ina_mempool_new(&(*walker)->mp, 1024*sizeof(ina_dir_entry_t), 0, NULL));
+    INA_RETURN_IF_FAILED(ina_mempool_new(&(*walker)->smp, 1024*1024, INA_MEM_DYNAMIC, NULL));
     (*walker)->head = ina_mempool_dalloc((*walker)->mp,1024*sizeof(ina_dir_entry_t));
     (*walker)->basedir = ina_str_new_fromcstr(basedir);
     (*walker)->sort_order = INA_DIR_SORT_ORDER_NONE;
@@ -199,7 +199,7 @@ INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
         DIR *dir;
         struct dirent *f;
 
-        INA_MUST_SUCCEED(ina_mempool_release(walker->smp, INA_NO));
+        INA_MUST_SUCCEED(ina_mempool_reset(walker->smp));
         walker->last = NULL;
 
         if ((dir = opendir(walker->basedir)) != NULL) {
@@ -275,8 +275,8 @@ INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker) {
     INA_VERIFY_NOT_NULL(walker);
     INA_VERIFY_NOT_NULL(*walker);
 
-    INA_MUST_SUCCEED(ina_mempool_release((*walker)->mp, INA_YES));
-    INA_MUST_SUCCEED(ina_mempool_release((*walker)->smp, INA_YES));
+    INA_MUST_SUCCEED(ina_mempool_free((*walker)->mp));
+    INA_MUST_SUCCEED(ina_mempool_free((*walker)->smp));
 
     if ((*walker)->basedir != NULL) {
         ina_str_free((*walker)->basedir);

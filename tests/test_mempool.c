@@ -34,14 +34,14 @@ INA_TEST(mempool, create_fixed)
     ina_mempool_t *pool;
     ina_mempool_info_t info;
     
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_TRUE(info.cf == INA_MEM_FIXED);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, info.children);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, info.used);
     INA_TEST_ASSERT_EQUAL_INTEGER(4096, info.size);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 
 INA_TEST(mempool, create_fixed_bestfit)
@@ -49,14 +49,14 @@ INA_TEST(mempool, create_fixed_bestfit)
     ina_mempool_t *pool;
     ina_mempool_info_t info;
     
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, INA_MEM_BESTFIT, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, INA_MEM_BESTFIT, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_TRUE(info.cf&INA_MEM_BESTFIT);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, info.children);
     INA_TEST_ASSERT_EQUAL_INTEGER(0, info.used);
     INA_TEST_ASSERT_EQUAL_INTEGER(4096, info.size);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 
 INA_TEST(mempool, bestfit)
@@ -65,7 +65,7 @@ INA_TEST(mempool, bestfit)
     ina_mempool_info_t info;
     char *buf;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, INA_MEM_BESTFIT, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, INA_MEM_BESTFIT, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     buf = ina_mempool_dalloc(pool, 1);
     INA_TEST_ASSERT_NOT_NULL(buf);
@@ -75,7 +75,7 @@ INA_TEST(mempool, bestfit)
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_INTEGER(34, info.used);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 
 
@@ -85,7 +85,7 @@ INA_TEST(mempool, aligned)
     ina_mempool_info_t info;
     char *buf;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     buf = ina_mempool_dalloc(pool, 1);
     INA_TEST_ASSERT_NOT_NULL(buf);
@@ -95,7 +95,7 @@ INA_TEST(mempool, aligned)
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_INTEGER(64, info.used);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 
 INA_TEST(mempool, nalloc_fixed)
@@ -108,7 +108,7 @@ INA_TEST(mempool, nalloc_fixed)
     char *buf4;
     int i;
     
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     
     /* Allocate a reallocable buffer */
@@ -126,7 +126,7 @@ INA_TEST(mempool, nalloc_fixed)
     INA_TEST_ASSERT_EQUAL_INTEGER(2048, info.used);
 
     /* Release pool */
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_NO));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_reset(pool));
 
     /* After release we still use 1x1024 bytes */
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
@@ -165,27 +165,27 @@ INA_TEST(mempool, dalloc)
     ina_mempool_t *pool;
     char *buf;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024*1024*2, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024*1024*2, INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     buf = ina_mempool_dalloc(pool, 1024*1024*2);
-    ina_mempool_release(pool, INA_NO);
+    ina_mempool_reset(pool);
     INA_TEST_ASSERT_NOT_NULL(buf);
     buf = ina_mempool_dalloc(pool, 1024*1024*2);
-    ina_mempool_release(pool, INA_YES);
+    ina_mempool_free(pool);
 }
 
-INA_TEST(mempool, release)
+INA_TEST(mempool, reset)
 {
     ina_mempool_t *pool;
     ina_mempool_info_t info;
 
     char *buf;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 2048, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 2048, INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
 
     buf = ina_mempool_dalloc(pool, 4*1024);
@@ -201,7 +201,7 @@ INA_TEST(mempool, release)
     INA_TEST_ASSERT_EQUAL_INTEGER(6*1024, info.used);
     INA_TEST_ASSERT_EQUAL_INTEGER(2, info.children);
 
-    ina_mempool_release(pool, INA_NO);
+    ina_mempool_reset(pool);
 
     buf = ina_mempool_dalloc(pool, 4*1024);
     INA_TEST_ASSERT_NOT_NULL(buf);
@@ -220,9 +220,9 @@ INA_TEST(mempool, realloc_dynamic)
     char *buf;
     char *old_buf;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, INA_MEM_DYNAMIC, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
 
     buf = ina_mempool_dalloc(pool, 1024);
@@ -249,7 +249,7 @@ INA_TEST(mempool, realloc_dynamic)
     INA_TEST_ASSERT_EQUAL_INTEGER(9216+2048, info.used);
     INA_TEST_ASSERT_EQUAL_INTEGER(1, info.children);
 
-    ina_mempool_release(pool, INA_YES);
+    ina_mempool_free(pool);
 }
 
 INA_TEST(mempool, realloc_fixed)
@@ -261,9 +261,9 @@ INA_TEST(mempool, realloc_fixed)
     char *buf2;
     char *old_buf;
 
-    ina_err_clear_last_rc();
+    ina_err_reset();
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 4096, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 4096, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     
     buf = ina_mempool_dalloc(pool, 128);
@@ -303,7 +303,7 @@ INA_TEST(mempool, realloc_fixed)
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_INTEGER(128+256+512, info.used); 
 
-    ina_mempool_release(pool, INA_YES);
+    ina_mempool_free(pool);
 
 }
 
@@ -316,11 +316,11 @@ INA_TEST(mempool, fill_zero)
     size_t size = INA_MEM_MIN_POOL_SIZE-100;
 
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     pool = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     buf = (unsigned char*)ina_mempool_dalloc(pool, size);
     INA_TEST_ASSERT_NOT_NULL(buf);
@@ -334,15 +334,15 @@ INA_TEST(mempool, min_allowed_size)
     ina_mempool_info_t mi;
 
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     
     pool = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE-100, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, INA_MEM_MIN_POOL_SIZE-100, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_MEM_MIN_POOL_SIZE, mi.size);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, INA_MEM_MIN_POOL_SIZE, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
 }
 
@@ -353,11 +353,11 @@ INA_TEST(mempool, auto_resize) {
     unsigned char *buffer;
 
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     /* Allocate pool with initial site 2KB dynamic + auto size */
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
     buffer = ina_mempool_dalloc(pool, 1024);
     INA_TEST_ASSERT_NOT_NULL(buffer);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
@@ -382,10 +382,10 @@ INA_TEST(mempool, auto_resize) {
     INA_TEST_ASSERT_EQUAL_INTEGER(7168, mi.size);
     INA_TEST_ASSERT_EQUAL_INTEGER(7168, mi.used);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
     
     /* Allocate pool with initial site 2KB dynamic */
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 2048, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 2048, INA_MEM_DYNAMIC, NULL));
     buffer = ina_mempool_dalloc(pool, 1024);
     INA_TEST_ASSERT_NOT_NULL(buffer);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &mi));
@@ -427,12 +427,12 @@ INA_TEST(mempool, bad_dalloc)
     pool = NULL;
 
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     /* create a fixed size pool of 1KB and try to allocate 2KB */
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_init(0));
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_init());
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     ptr = ina_mempool_dalloc(pool, 2048);
     INA_TEST_ASSERT_NULL(ptr);
@@ -446,11 +446,11 @@ INA_TEST(mempool, getbypointer)
     unsigned char *buffer1, *buffer2;
  
     /* clear error state and assure it's clean */
-    INA_TEST_ASSERT_SUCCEED(ina_err_clear_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     /* Allocate pool with initial site 2KB dynamic + auto size */
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool1, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool1, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
     buffer1 = ina_mempool_dalloc(pool1, 1024);
     INA_TEST_ASSERT_NOT_NULL(buffer1);
     buffer1 = ina_mempool_dalloc(pool1, 32);
@@ -460,7 +460,7 @@ INA_TEST(mempool, getbypointer)
     INA_TEST_MSG("%p pool, %p ref_pool", pool1, ref_pool);
     INA_TEST_ASSERT_SAME(pool1, ref_pool);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool2, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool2, 2048, INA_MEM_DYNAMIC|INA_MEM_AUTOSIZE, NULL));
     buffer2 = ina_mempool_dalloc(pool2, 1024);
     INA_TEST_ASSERT_NOT_NULL(buffer2);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getbypointer(buffer2, &ref_pool));
@@ -487,7 +487,7 @@ INA_TEST_SETUP(mempool_ipc)
 INA_TEST_TEARDOWN(mempool_ipc)
 {
     INA_TEST_HELPER_TERMINATE(&data->hid);
-    ina_mempool_release(data->mp, INA_YES);
+    ina_mempool_free(data->mp);
 }
 
 INA_TEST_FIXTURE(mempool_ipc, mempool_create)
@@ -497,7 +497,7 @@ INA_TEST_FIXTURE(mempool_ipc, mempool_create)
  
     ina_time_sleep(1000);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&data->mp, 
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&data->mp,
         1024*sizeof(int32_t),
         INA_MEM_SHARED,
         "/ina_test"));

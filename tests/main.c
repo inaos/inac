@@ -40,25 +40,10 @@ int main(int argc,  char** argv)
         INA_OPT_FLOAT("f", "float", 1.02, "Test float argument"),
         INA_OPT_STRING("r", "run", "all", "Test string argument"),
         INA_OPT_STRING(NULL, "long-option", "long", "This is a long option without short option"),
-        INA_OPT_STRING(NULL, "format", "inac", "Format: tap=Test Anything Protocol, junit=JUnit"),
-             INA_OPT_STRING("o", "output", "/dev/null", "Output (/dev/null)"));
+        INA_OPT_STRING(NULL, "format", "inac", "Format: tap=Test Anything Protocol, junit=JUnit"));
 
-    ina_str_t output;
-
-
-    if (INA_FAILED(ina_app_init(argc, argv, 0, opt))) {
+    if (INA_FAILED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
-    }
-    if (INA_FAILED(ina_opt_get_string("o", &output))) {
-        return EXIT_FAILURE;
-    }
-    if (INA_FAILED(ina_err_set_log_file(ina_str_cstr(output)))) {
-        ina_str_free(output);
-        return EXIT_FAILURE;
-    }
-    ina_str_free(output);
-    if (INA_SUCCEED(ina_opt_isset("b"))) {
-        return ina_bench_run(argc, argv);
     }
     return ina_test_run(argc, argv, NULL);
 }

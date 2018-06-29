@@ -122,7 +122,8 @@ extern "C" {
  *      -> http://cmph.sourceforge.net/bdz.html
  *      -> https://www.snellman.net/blog/archive/2017-03-19-parallel-hashing-with-avx2/
  *    - Do we need to store data in our nodes or do we store it externally? in other words do we need handles in 
-        hash nodes. What are the pros and cons?
+ *      hash nodes. What are the pros and cons?
+ *    - How to select hash-buckets: https://probablydance.com/2018/06/16/fibonacci-hashing-the-optimization-that-the-world-forgot-or-a-better-alternative-to-integer-modulo/?		
  *
  * 2. How to benchmark
  *    - must be simple because the real benchmark is alwayls the application

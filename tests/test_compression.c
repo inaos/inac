@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,11 +94,11 @@ INA_TEST(compression, deflate_pool_string)
 {
     ina_mempool_t *pool;
     
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
 
     __ina_test_compression(pool, INA_COMPRESSION_TYPE_DEFLATE, INA_COMPRESSION_MODE_TRUSTED_FAST);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 
 INA_TEST(compression, lz4_safe_string)
@@ -110,11 +110,11 @@ INA_TEST(compression, lz4_safe_pool_string)
 {
     ina_mempool_t *pool;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4, INA_COMPRESSION_MODE_TRUSTED_SAFE);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 
 INA_TEST(compression, lz4_fast_string)
@@ -126,11 +126,11 @@ INA_TEST(compression, lz4_fast_pool_string)
 {
     ina_mempool_t *pool;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4, INA_COMPRESSION_MODE_TRUSTED_FAST);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 
 INA_TEST(compression, lz4hc_safe_string)
@@ -142,11 +142,11 @@ INA_TEST(compression, lz4hc_safe_pool_string)
 {
     ina_mempool_t *pool;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4HC, INA_COMPRESSION_MODE_TRUSTED_SAFE);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 
 INA_TEST(compression, lz4hc_fast_string)
@@ -158,10 +158,10 @@ INA_TEST(compression, lz4hc_fast_pool_string)
 {
     ina_mempool_t *pool;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024*1024, INA_MEM_DYNAMIC, NULL));
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4HC, INA_COMPRESSION_MODE_TRUSTED_FAST);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_release(pool, INA_YES));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
 }
 

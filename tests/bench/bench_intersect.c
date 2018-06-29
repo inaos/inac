@@ -1,4 +1,5 @@
-/* Copyright (c) 2013-2018, INAOS GmbH
+/*
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,38 +25,66 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
+#include <stdlib.h>
 #include <libinac/lib.h>
 
+INA_BENCH_DATA(intersect){
+    int32_t* A;
+    int32_t* B;
+    int32_t* C;
+    size_t elements;
+};
 
-INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
-    const char *label;
-    size_t size;
-    int32_t *v;
-    size_t c;
-    ina_mempool_t *mp = NULL;
-
-    INA_TEST_HELPER_CHECK_ARGC(2);
-    label = INA_TEST_HELPER_CARG(0);
-    size = INA_TEST_HELPER_IARG(1);
-
-    if (INA_FAILED(ina_mempool_new(&mp, size,
-        INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, ina_str_new_fromcstr(label)))) {
-            INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
-            return;
-    }
-
-    c = 0;
-    v = (int32_t*)ina_mempool_dalloc(mp, size);
-    INA_ASSERT_NOTNULL(v);
-    
-    while (c  < (size/sizeof(int32_t))) {
-        v[c] = c;
-        c++;
-    }
-    
-    /* Run until kill signal */
-    while (1) {
-        ina_time_sleep(1000);
-    }
-    INA_TEST_HELPER_SET_RC(INA_SUCCESS);
+INA_BENCH_SETUP(intersect)
+{
+    ina_bench_set_precision(0);
+    data->elements = 1024;
+    data->A = (int32_t*)ina_mem_alloc(sizeof(int32_t)*data->elements);
+    data->B = (int32_t*)ina_mem_alloc(sizeof(int32_t)*data->elements);
+    data->C = (int32_t*)ina_mem_alloc(sizeof(int32_t)*data->elements);
 }
+INA_BENCH_TEARDOWN(intersect)
+{
+    ina_mem_free(data->A);
+    ina_mem_free(data->C);
+    ina_mem_free(data->B);
+}
+
+INA_BENCH_SCALE(intersect)
+{
+    ina_bench_set_scale(1);
+}
+INA_BENCH_BEGIN(intersect, zipper) {}
+INA_BENCH_END(intersect, zipper) {}
+
+INA_BENCH(intersect, zipper, 1)
+{
+    size_t i_a = 0, i_b = 0;
+    size_t counter = 0;
+
+    ina_bench_stopwatch_start();
+    while(i_a < data->elements && i_b < data->elements) {
+        if(data->A[i_a] < data->B[i_b]) {
+            i_a++;
+        } else if(data->B[i_b] < data->A[i_a]) {
+            i_b++;
+        } else {
+            data->C[counter++] = data->A[i_a];
+            i_a++; i_b++;
+        }
+    }
+    ina_bench_set_int64(ina_bench_stopwatch_stop());
+}
+
+INA_BENCH_BEGIN(intersect, logical) {}
+INA_BENCH_END(intersect, logical) {}
+INA_BENCH(intersect, logical, 1)
+{
+    size_t i;
+    ina_bench_stopwatch_start();
+    for (i = 0; i < data->elements; i++) {
+        data->C[i] = data->A[i] & data->B[i];
+    }
+    ina_bench_set_int64(ina_bench_stopwatch_stop());
+}
+
