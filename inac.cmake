@@ -107,19 +107,19 @@ endfunction(inac_add_contrib_lib)
 
 macro(inac_add_contrib_lib_win32 libname)
     if (WIN32)
-        inac_add_contrib_lib(${libname)
+        inac_add_contrib_lib(${libname})
     endif()
 endmacro()
 
 macro(inac_add_contrib_lib_linux libname)
     if (LINUX)
-        inac_add_contrib_lib(${libname)
+        inac_add_contrib_lib(${libname})
     endif()
 endmacro()
 
 macro(inac_add_contrib_lib_osx libname)
     if (APPLE)
-        inac_add_contrib_lib(${libname)
+        inac_add_contrib_lib(${libname})
     endif()
 endmacro()
 
@@ -237,13 +237,14 @@ endfunction(inac_add_benchmarks)
 #
 function(inac_add_tools)
     remove_definitions(-DINA_LIB)
+    message(STATUS "Platform libs: ${PLATFORM_LIBS}")
     file(GLOB src ${CMAKE_SOURCE_DIR}/tools/*.c)
     foreach(tool_src ${src})
         string(REGEX MATCH "^(.*)\\.[^.]*$" dummy ${tool_src})
         set(tool ${CMAKE_MATCH_1})
         STRING(REGEX REPLACE "^${CMAKE_SOURCE_DIR}/tools/" "" tool ${tool})
         add_executable(${tool} ${tool_src})
-        target_link_libraries(${tool} inac ${INAC_LIBS})
+        target_link_libraries(${tool} inac ${INAC_LIBS} ${PLATFORM_LIBS})
     endforeach()
 endfunction(inac_add_tools)
 
@@ -259,17 +260,22 @@ function(inac_post_copy_file TARGET FILE)
 endfunction()
 
 #
-#
+# Add lua file to compile
 #
 function (inac_add_luafiles DIR)
+    set(ENV{LUA_PATH}  "${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src/?.lua" PARENT_SCOPE)
+    message(STATUS "Lua Path: $ENV{LUA_PATH}")
+	message(STATUS "Searching luajit in ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src")
+	find_program(LUAJIT_CMD luajit PATHS ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src 
+	NO_DEFAULT_PATH)
     set(OBJECTS ${LUA_OBJECTS})
     file(GLOB src ${DIR}/*.lua)
     foreach(ls ${src})
         message(STATUS "Added ${ls} to compile")
         get_filename_component(TN ${ls} NAME_WE)
         add_custom_command (
-                OUTPUT  ${ls}.o DEPENDS ${ls}
-                COMMAND luajit -b ${ls} ${ls}.o )
+                OUTPUT  ${ls}.o DEPENDS ${ls} luajit
+                COMMAND ${LUAJIT_CMD} -b ${ls} ${ls}.o )
         add_library(${TN}_LUA STATIC ${ls}.o)
         set_source_files_properties(
                 ${TN}_LUA
