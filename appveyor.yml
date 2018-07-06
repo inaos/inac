@@ -3,6 +3,7 @@ branches:
   only:
     - master
     - develop
+    - task-513
 
 environment:
   matrix:
