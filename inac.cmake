@@ -289,23 +289,26 @@ endfunction()
 #
 # Add lua file to compile
 #
-function(inac_add_luafiles TARGET DIR)
+function(inac_add_luafiles TARGET)
+    if(WIN32)
+        set(LUAJIT_EXEC "luajit.exe")
+    else()
+        set(LUAJIT_EXEC "luajit")
+    endif()
     set(LUA_PATH "${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src/")
     message(STATUS "Lua Path: ${LUA_PATH}")
     message(STATUS "Searching luajit in ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src")
-    find_program(LUAJIT_CMD luajit PATHS ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src
+    find_program(LUAJIT_CMD ${LUAJIT_EXEC} PATHS "${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src"
             NO_DEFAULT_PATH)
-
-    file(GLOB src ${DIR}/*.lua)
 
     set(SOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_depends.c)
     set(OBJECTS)
-    foreach (ls ${src})
+    foreach (ls IN LISTS ARGN)
         message(STATUS "Added ${ls} to compile")
         get_filename_component(TN ${ls} NAME_WE)
         add_custom_command(
                 OUTPUT ${ls}.o DEPENDS ${ls} luajit
-                COMMAND ${LUAJIT_CMD} -b ${ls} ${ls}.o WORKING_DIRECTORY ${LUA_PATH})
+                COMMAND "${LUAJIT_CMD}" -b ${ls} ${ls}.o WORKING_DIRECTORY "${LUA_PATH}")
         list(APPEND OBJECTS ${ls}.o)
     endforeach ()
 

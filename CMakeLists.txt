@@ -20,10 +20,25 @@ inac_add_contrib_lib(t1ha src/)
 inac_platform_libs_for_win("Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib DbgHelp.lib")
 inac_platform_libs_for_unix("rt -ldl -lm")
 
-
-inac_add_luafiles(inac_lua ${SRC_DIR})
-inac_add_luafiles(inac_jit ${DEPS_DIR}/luajit/src/jit)
-inac_add_luafiles(inac_luatest ${DEPS_DIR}/luatest)
+inac_add_luafiles(inac_jit
+		"${DEPS_DIR}/luajit/src/jit/bc.lua"
+		"${DEPS_DIR}/luajit/src/jit/bcsave.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_arm.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_mips.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_mipsel.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_ppc.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_x64.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_x86.lua"
+		"${DEPS_DIR}/luajit/src/jit/dump.lua"
+		"${DEPS_DIR}/luajit/src/jit/v.lua"
+		"${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src/jit/vmdef.lua"
+		"${DEPS_DIR}/luatest/luamock.lua"
+		"${DEPS_DIR}/luatest/luaspec.lua"
+		"${SRC_DIR}/lconffile.lua"
+		"${SRC_DIR}/ldebug.lua"
+		"${SRC_DIR}/lprocqry.lua"
+		"${SRC_DIR}/lsocket.lua"
+		"${SRC_DIR}/ltest.lua")
 
 file(GLOB src ${SRC_DIR}/*.c)
 add_library(inac ${src})
@@ -38,7 +53,6 @@ inac_add_contrib_lib_ex_unix(inac luajit src/ YES make amalg)
 inac_add_contrib_lib_ex_unix(inac memhash "/"  NO make)
 inac_add_contrib_lib_ex_linux(inac cpu-topology "/" NO make)
 inac_add_contrib_lib_ex_win32(inac cpu-topology "/" NO inac_64.bat)
-inac_add_objects(${DEPS_DIR}/luajit/src/jit/vmdef.o)
 
 inac_add_tests()
 inac_add_benchmarks()
