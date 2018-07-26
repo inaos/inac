@@ -153,6 +153,7 @@ endmacro()
 #
 function(inac_add_contrib_lib_ex DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
     set(INAC_LIBS_LIST ${INAC_LIBS})
+    set(LIB_DIR)
     ExternalProject_Add(${TARGET}
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
             CONFIGURE_COMMAND ""
@@ -177,7 +178,7 @@ function(inac_add_contrib_lib_ex DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
     add_dependencies(${DEPENDS} ${TARGET})
     list(APPEND INAC_LIBS_LIST  "${LIB_DIR}/${prefix}${TARGET}${suffix}")
     set(INAC_LIBS "${INAC_LIBS_LIST}" PARENT_SCOPE)
-    message(STATUS "Added external contrib lib ${TARGET}")
+    message(STATUS "Added external contrib lib ${TARGET} : ${LIB_DIR}/${prefix}${TARGET}${suffix}")
 endfunction()
 
 macro(inac_add_contrib_lib_ex_win32 DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
@@ -296,10 +297,8 @@ function(inac_add_luafiles TARGET)
         set(LUAJIT_EXEC "luajit")
     endif()
     set(LUA_PATH "${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src/")
+    set(LUAJIT_CMD "${LUA_PATH}${LUAJIT_EXEC}")
     message(STATUS "Lua Path: ${LUA_PATH}")
-    message(STATUS "Searching luajit in ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src")
-    find_program(LUAJIT_CMD ${LUAJIT_EXEC} PATHS "${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src"
-            NO_DEFAULT_PATH)
 
     set(SOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_depends.c)
     set(OBJECTS)

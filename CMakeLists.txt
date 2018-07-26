@@ -17,10 +17,10 @@ inac_add_contrib_lib(falkhash)
 inac_add_contrib_lib(t1ha src/)
 
 
-inac_platform_libs_for_win("Ws2_32.lib Psapi.lib Iphlpapi.lib winmm.lib DbgHelp.lib")
+inac_platform_libs_for_win("Ws2_32.lib;Psapi.lib;Iphlpapi.lib;winmm.lib;DbgHelp.lib")
 inac_platform_libs_for_unix("rt -ldl -lm")
 
-inac_add_luafiles(inac_jit
+inac_add_luafiles(inac_lua
 		"${DEPS_DIR}/luajit/src/jit/bc.lua"
 		"${DEPS_DIR}/luajit/src/jit/bcsave.lua"
 		"${DEPS_DIR}/luajit/src/jit/dis_arm.lua"
