@@ -67,6 +67,7 @@ set_target_properties(
 inac_add_contrib_lib_ex_win32(inac luajit src/ YES src/msvcbuild.bat)
 inac_add_contrib_lib_ex_unix(inac luajit src/ YES make amalg)
 inac_add_contrib_lib_ex_unix(inac memhash "/"  NO make)
+inac_add_contrib_lib_ex_win32(inac memhash "/"  NO memhash_64.bat)
 inac_add_contrib_lib_ex_linux(inac cpu-topology "/" NO make)
 inac_add_contrib_lib_ex_win32(inac cpu-topology "/" NO inac_64.bat)
 
