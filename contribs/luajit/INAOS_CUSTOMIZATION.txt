@@ -8,6 +8,7 @@ It contains the following changes:
 - append /DLUA_USE_APICHECK to the LJCOMPILE variable
 - change output library to: lua51d.lib and lua51d.dll
 - change library of luajit.exe to reflect the 'd'
+- add cd %~dp0 on top of the scripts in order to get them work under cmake
 - THE IDEA IS THAT YOU'LL HAVE 2 LIBS IN THE END -> lua51.lib, lua51d.lib
 
 Make sure to maintain this file when upgrading luajit!
