@@ -241,7 +241,7 @@ function(inac_add_tests)
     add_executable(tests ${src})
     target_link_libraries(tests inac ${INAC_OBJECTS} ${INAC_LIBS}  ${PLATFORM_LIBS})
 
-    add_custom_target(runtests DEPENDS tests COMMAND ${CMD} WORKING_DIRECTORY "{${CMAKE_CURRENT_BINARY_DIR}")
+    add_custom_target(runtests DEPENDS tests COMMAND ${CMD} WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runtests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_tests)
 
