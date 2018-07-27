@@ -212,6 +212,11 @@ endmacro()
 #
 #
 function(inac_add_tests)
+    if(WIN32)
+        set(CMD "tests.exe")
+    else()
+        set(CMD "tests")
+    endif()
     remove_definitions(-DINA_LIB)
     message(STATUS "Platform libs: ${PLATFORM_LIBS}")
     file(GLOB src ${CMAKE_SOURCE_DIR}/tests/test_*.c ${CMAKE_SOURCE_DIR}/tests/helper_*.c)
@@ -234,7 +239,10 @@ function(inac_add_tests)
         message(STATUS "Do NOT generate main.c for tests")
     endif ()
     add_executable(tests ${src})
-    target_link_libraries(tests inac ${INAC_OBJECTS} ${INAC_LIBS}  ${PLATFORM_LIBS} )
+    target_link_libraries(tests inac ${INAC_OBJECTS} ${INAC_LIBS}  ${PLATFORM_LIBS})
+
+    add_custom_target(runtests DEPENDS tests COMMAND ${CMD} WORKING_DIRECTORY "{${CMAKE_CURRENT_BINARY_DIR}")
+    set_target_properties(runtests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_tests)
 
 #
