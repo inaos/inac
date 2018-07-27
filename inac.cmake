@@ -303,12 +303,13 @@ function(inac_add_luafiles TARGET)
     set(SOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_depends.c)
     set(OBJECTS)
     foreach (ls IN LISTS ARGN)
-        message(STATUS "Added ${ls} to compile")
-        get_filename_component(TN ${ls} NAME_WE)
+        get_filename_component(TN ${ls} NAME)
+        file(RELATIVE_PATH DN ${CMAKE_SOURCE_DIR} ${ls} )
         add_custom_command(
                 OUTPUT ${ls}.o DEPENDS ${ls} luajit
-                COMMAND "${LUAJIT_CMD}" -b ${ls} ${ls}.o WORKING_DIRECTORY "${LUA_PATH}")
-        list(APPEND OBJECTS ${ls}.o)
+                COMMAND "${LUAJIT_CMD}" -b ${ls} "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o" WORKING_DIRECTORY "${LUA_PATH}")
+        list(APPEND OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o")
+        message(STATUS "Added ${DN}/${TN} to compile")
     endforeach ()
 
 
