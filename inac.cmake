@@ -1,6 +1,9 @@
 include(ExternalProject)
 set(DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
+set(INAC_CMAKE_VERSION "0.1.0")
+
+message(STATUS "INAC CMake version ${INAC_CMAKE_VERSION}")
 
 include_directories("${PROJECT_BINARY_DIR}"
         "${CMAKE_SOURCE_DIR}/include"
@@ -306,9 +309,16 @@ function(inac_add_luafiles TARGET)
     foreach (ls IN LISTS ARGN)
         get_filename_component(TN ${ls} NAME)
         file(RELATIVE_PATH DN ${CMAKE_SOURCE_DIR} ${ls} )
+        SET_SOURCE_FILES_PROPERTIES(
+                "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o"
+                PROPERTIES
+                EXTERNAL_OBJECT true
+                GENERATED true
+        )
         add_custom_command(
-                OUTPUT ${ls}.o DEPENDS ${ls} luajit
+                OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o" DEPENDS ${ls} luajit
                 COMMAND "${LUAJIT_CMD}" -b ${ls} "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o" WORKING_DIRECTORY "${LUA_PATH}")
+
         list(APPEND OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o")
         message(STATUS "Added ${DN}/${TN} to ${TARGET}")
     endforeach ()
@@ -321,7 +331,9 @@ function(inac_add_luafiles TARGET)
             COMMAND ${CMAKE_COMMAND} -E touch ${SOURCE_FILE}
             DEPENDS ${STATIC_LIBS})
 
-    add_library(${TARGET} STATIC ${SOURCE_FILE} ${OBJECTS})
+
+    add_library(${TARGET} STATIC EXCLUDE_FROM_ALL ${SOURCE_FILE}  ${OBJECTS})
+    SET_TARGET_PROPERTIES(${TARGET} PROPERTIES LINKER_LANGUAGE C)
 
     set(INAC_LIBS_LIST ${INAC_LIBS})
     list(APPEND INAC_LIBS_LIST ${TARGET})
