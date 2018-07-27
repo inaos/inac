@@ -28,10 +28,13 @@
 #ifndef _LIBINAC_MEMORY_H_
 #define _LIBINAC_MEMORY_H_
 
+#include <libinac/lib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
- 
+
+
 /* Align to 2x word size (as GNU libc does). */
 #define INA_MEM_ALIGN_SIZE (2 * sizeof(void*))
 
