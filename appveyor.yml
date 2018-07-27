@@ -46,7 +46,11 @@ init:
   - cmd: C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
 
 build_script:
-  - sh: make $BUILD_CONFIGURATION
+  - sh: |
+        mkdir cmake-build-$BUILD_CONFIGURATION
+        cd cmake-build-$BUILD_CONFIGURATION
+        cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION
+        make
   - cmd: make.bat all %BUILD_CONFIGURATION%
   
 test_script:
