@@ -54,7 +54,9 @@ build_script:
   - cmd: make.bat all %BUILD_CONFIGURATION%
   
 test_script:
-  - sh: make test-appveyor || true
+  - sh: |
+        cd cmake-build-$BUILD_CONFIGURATION
+        make runtests || true
   - cmd: |
          cd buildtest\%BUILD_CONFIGURATION%
          test.exe --format=junit > ..\..\junit.xml & exit 0
