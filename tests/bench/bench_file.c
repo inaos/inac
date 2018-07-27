@@ -150,13 +150,21 @@ INA_BENCH(file, bf_read_direct, 4)
     int64_t nb_read = -1;
     data->tot_nb_read = 0;
     unsigned char* buf;
+#ifndef INA_OS_WIN32
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,
             INA_FILE_SHARE_MODE_READ,
             INA_FILE_FLAG_POSIX_DIRECT|INA_FILE_FLAG_SEQUENTIAL_ACCESS,
             &data->file));
-
+#else
+    INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
+                                  INA_FILE_ACCESS_MODE_READ,
+                                  INA_FILE_CREATE_MODE_OPEN,
+                                  INA_FILE_SHARE_MODE_READ,
+                                  INA_FILE_FLAG_SEQUENTIAL_ACCESS,
+                                  &data->file));
+#endif
     data->read_buf = ina_mem_alloc_aligned(4096 * 2, data->buffer_size + 4096);
     buf = data->read_buf;
     data->read_buf += 4096;
