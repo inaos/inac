@@ -249,6 +249,11 @@ endfunction(inac_add_tests)
 #
 #
 function(inac_add_benchmarks)
+    if(WIN32)
+        set(CMD ".\bench.exe")
+    else()
+        set(CMD "./bench")
+    endif()
     remove_definitions(-DINA_LIB)
     message(STATUS "Platform libs: ${PLATFORM_LIBS}")
     file(GLOB src ${CMAKE_SOURCE_DIR}/tests/bench/bench_*.c)
@@ -270,6 +275,8 @@ function(inac_add_benchmarks)
     endif ()
     add_executable(bench ${src})
     target_link_libraries(bench inac ${INAC_LIBS} ${PLATFORM_LIBS})
+    add_custom_target(runbenchmarks DEPENDS bench COMMAND "${CMD}" "--r=."  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    set_target_properties(runbenchmarks PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_benchmarks)
 
 #
