@@ -118,13 +118,17 @@ endfunction(inac_add_objects)
 #
 #
 #
-function(inac_add_contrib_lib libname)
+function(inac_add_contrib_lib LIB)
+    cmake_parse_arguments(PARSE_ARGV 1 LIB "" "SOURCE_ROOT" "")
+    if (LIB_SOURCE_ROOT)
+        set(ROOT "${LIB_SOURCE_ROOT}/")
+    endif()
     set(INAC_LIBS_LIST ${INAC_LIBS})
-    list(APPEND INAC_LIBS_LIST "${libname}")
-    file(GLOB src "${CMAKE_SOURCE_DIR}/contribs/${libname}/${ARGV1}*.c")
+    list(APPEND INAC_LIBS_LIST "${LIB}")
+    file(GLOB src "${CMAKE_SOURCE_DIR}/contribs/${LIB}/${ROOT}*.c")
     set(INAC_LIBS ${INAC_LIBS_LIST} PARENT_SCOPE)
-    add_library(${libname} ${src})
-    message(STATUS "Added contrib lib ${libname}")
+    add_library(${LIB} ${src})
+    message(STATUS "Added contrib lib ${LIB}")
 endfunction(inac_add_contrib_lib)
 
 macro(inac_add_contrib_lib_win32 libname)
