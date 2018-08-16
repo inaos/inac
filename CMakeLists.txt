@@ -17,7 +17,7 @@ if(NOT EXISTS "${CMAKE_BINARY_DIR}/inac.cmake")
 endif()
 include("inac.cmake")
 
-#inac_enable_verbose()
+inac_enable_verbose()
 inac_enable_aes()
 inac_enable_sse4()
 inac_enable_trace(Debug 1)
@@ -64,12 +64,14 @@ set_target_properties(
 		PROPERTIES
 		COMPILE_DEFINITIONS INA_LIB=1)
 
-inac_add_contrib_lib_ex_win32(inac luajit src/ YES src/msvcbuild.bat)
-inac_add_contrib_lib_ex_unix(inac luajit src/ YES make amalg)
-inac_add_contrib_lib_ex_unix(inac memhash "/"  NO make)
-inac_add_contrib_lib_ex_win32(inac memhash "/"  NO memhash_64.bat)
-inac_add_contrib_lib_ex_linux(inac cpu-topology "/" NO make)
-inac_add_contrib_lib_ex_win32(inac cpu-topology "/" NO inac_64.bat)
+inac_add_contrib_lib_ex_win32(luajit DEPENDS inac SOURCE_ROOT /src COMMAND src/msvcbuild.bat LIBNAME lua51)
+inac_add_contrib_lib_ex_unix(luajit DEPENDS inac SOURCE_ROOT /src COMMAND_ARGS amalg)
+inac_add_contrib_lib_ex_unix(memhash DEPENDS inac OMIT_PREFIX)
+inac_add_contrib_lib_ex_win32(memhash DEPENDS inac COMMAND memhash_64.bat ARCH x86_64)
+inac_add_contrib_lib_ex_win32(memhash DEPENDS inac COMMAND memhash_32.bat ARCH i386)
+inac_add_contrib_lib_ex_linux(cpu-topology DEPENDS inac)
+inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac COMMAND inac_64.bat ARCH x86_64)
+inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac COMMAND inac_32.bat ARCH i386)
 
 inac_add_tests()
 inac_add_benchmarks()
@@ -77,7 +79,9 @@ inac_add_tools()
 
 inac_post_copy_file(tests tests.conf)
 inac_post_copy_file(tests test_filepath.conf)
-#inac_post_copy_file(tests test.exe.conf)
 inac_post_copy_file(tests test_conffile_anonymous_section.conf)
 inac_post_copy_file(tests test_ljit.lua)
 inac_post_copy_file(tests test_lsocket.lua)
+
+inac_post_copy_file_win32(tests test.exe.conf)
+

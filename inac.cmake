@@ -158,61 +158,77 @@ endmacro()
 #
 #
 #
-function(inac_add_contrib_lib_ex DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
+function(inac_add_contrib_lib_ex TARGET)
+    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH" "")
+
+    if(LIB_ARCH)
+        inac_check_arch(${LIB_ARCH})
+        if (NOT (LIB_ARCH STREQUAL ${INAC_TARGET_ARCH}))
+            return()
+        endif()
+    endif()
+
     set(INAC_LIBS_LIST ${INAC_LIBS})
     set(LIB_DIR)
+
+    if (NOT LIB_COMMAND)
+        set(LIB_COMMAND make)
+    endif()
+
     ExternalProject_Add(${TARGET}
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
             CONFIGURE_COMMAND ""
             URL ${CMAKE_SOURCE_DIR}/contribs/${TARGET}
-            BUILD_COMMAND "${COMMAND}" "${ARGV5}"
+            BUILD_COMMAND "${LIB_COMMAND}" "${LIB_COMMAND_ARGS}"
             BUILD_IN_SOURCE 1
             INSTALL_COMMAND ""
             )
+
+    if (NOT LIB_LIBNAME)
         set(LIBNAME ${TARGET})
+    else()
+        set(LIBNAME ${LIB_LIBNAME})
+    endif()
+    set(LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}/src/${TARGET}/${LIB_SOURCE_ROOT}")
+
     if(WIN32)
-        if ("${TARGET}" STREQUAL "luajit")
-            set(LIBNAME lua51)
-        endif()
-        set(LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}/src/${TARGET}/${DIR}")
         set(prefix "")
         set(suffix ".lib")
     else()
-        set(LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}/src/${TARGET}/${DIR}")
-        if ("${PREFIX_YES_NO}" STREQUAL "YES")
-            set(prefix "lib")
-        else ()
+        if (${LIB_OMIT_PREFIX})
             set(prefix "")
+        else ()
+            set(prefix "lib")
         endif ()
         set(suffix ".a")
     endif()
-    add_dependencies(${DEPENDS} ${TARGET})
+    add_dependencies(${LIB_DEPENDS} ${TARGET})
     list(APPEND INAC_LIBS_LIST  "${LIB_DIR}/${prefix}${LIBNAME}${suffix}")
     set(INAC_LIBS "${INAC_LIBS_LIST}" PARENT_SCOPE)
-    message(STATUS "Added external contrib lib ${TARGET}")
+    message(STATUS "Added external contrib lib ${TARGET} ${LIB_COMMAND} ${LIB_COMMAND_ARGS}")
 endfunction()
 
-macro(inac_add_contrib_lib_ex_win32 DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
+macro(inac_add_contrib_lib_ex_win32 TARGET)
     if (WIN32)
-        inac_add_contrib_lib_ex(${DEPENDS} ${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV5}")
+        inac_add_contrib_lib_ex(${TARGET} ${ARGN})
     endif ()
 endmacro()
 
-macro(inac_add_contrib_lib_ex_linux DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
+macro(inac_add_contrib_lib_ex_linux TARGET)
     if ("${CMAKE_SYSTEM}" MATCHES "Linux")
-        inac_add_contrib_lib_ex(${DEPENDS} ${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV5}")
+        inac_add_contrib_lib_ex(${TARGET} ${ARGN})
     endif ()
 endmacro()
 
-macro(inac_add_contrib_lib_ex_unix DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
+macro(inac_add_contrib_lib_ex_unix TARGET)
     if (UNIX)
-        inac_add_contrib_lib_ex(${DEPENDS} ${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV5}")
+        inac_add_contrib_lib_ex(${TARGET} ${ARGN})
     endif ()
 endmacro()
 
-macro(inac_add_contrib_lib_ex_osx DEPENDS TARGET DIR PREFIX_YES_NO COMMAND)
+macro(inac_add_contrib_lib_ex_osx TARGET)
     if (APPLE)
-        inac_add_contrib_lib_ex(${DEPENDS} ${TARGET} ${DIR} ${PREFIX_YES_NO} ${COMMAND} "${ARGV5}")
+        inac_add_contrib_lib_ex(${TARGET} ${ARGN})
     endif ()
 endmacro()
 
@@ -314,6 +330,12 @@ function(inac_post_copy_file TARGET FILE)
             $<TARGET_FILE_DIR:${TARGET}>)
 endfunction()
 
+macro(inac_post_copy_file_win32 TARGET FILE)
+    if (WIN32)
+        inac_post_copy_file(${TARGET} ${FILE})
+    endif()
+endmacro()
+
 #
 # Add lua file to compile
 #
@@ -370,6 +392,14 @@ function(inac_amalg_lib LIB LIBS)
     SET_TARGET_PROPERTIES(merged PROPERTIES
             STATIC_LIBRARY_FLAGS "full\path\to\lib1.lib full\path\to\lib2.lib")
 endfunction()
+
+macro(inac_check_arch arch)
+    set(ARCHS "armv7;armv6;armv5;arm;i386;x86_64;ia64;ppc64;ppc;ppc64")
+    list(FIND "${ARCHS}" "${arch}" index)
+    if (${index}  EQUAL -1)
+        message(FATAL_ERROR "Invalid architectur ${arch}")
+    endif()
+endmacro()
 
 # Based on the Qt 5 processor detection code, so should be very accurate
 # https://qt.gitorious.org/qt/qtbase/blobs/master/src/corelib/global/qprocessordetection.h
