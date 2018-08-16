@@ -160,7 +160,6 @@ INA_TEST(ljit, init_destroy)
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
     INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
 }
 
 INA_TEST(ljit, open_close_state_native)

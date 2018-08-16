@@ -68,7 +68,7 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     (*ctx)->lstate = luaL_newstate();
     if ((*ctx)->lstate == NULL) {
         ina_mem_free(*ctx);
-        ctx = NULL;
+        *ctx = NULL;
         return INA_ERROR(INA_NN_STATE|INA_ERR_NOT_CREATED);
     }
     luaL_openlibs((*ctx)->lstate);
@@ -87,8 +87,8 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
 
 INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(*ctx);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(*ctx);
 
     if (((*ctx)->lstate) != NULL) {
         lua_close((*ctx)->lstate);
