@@ -159,11 +159,18 @@ endmacro()
 #
 #
 function(inac_add_contrib_lib_ex TARGET)
-    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH" "")
+    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH" "BUILD_TYPES")
 
     if(LIB_ARCH)
         inac_check_arch(${LIB_ARCH})
         if (NOT (LIB_ARCH STREQUAL ${INAC_TARGET_ARCH}))
+            return()
+        endif()
+    endif()
+
+    if(LIB_BUILD_TYPES)
+        list(FIND "${LIB_BUILD_TYOES}" "${CMAKE_BUILD_TYPE}" index)
+        if (${index}  EQUAL -1)
             return()
         endif()
     endif()

@@ -64,7 +64,8 @@ set_target_properties(
 		PROPERTIES
 		COMPILE_DEFINITIONS INA_LIB=1)
 
-inac_add_contrib_lib_ex_win32(luajit DEPENDS inac SOURCE_ROOT /src COMMAND src/msvcbuild.bat LIBNAME lua51)
+inac_add_contrib_lib_ex_win32(luajit DEPENDS inac SOURCE_ROOT /src COMMAND src/msvcbuild.bat LIBNAME lua51 BUILD_TYPES release Release RelWithDebInfo)
+inac_add_contrib_lib_ex_win32(luajit DEPENDS inac SOURCE_ROOT /src COMMAND src/msvcbuild_debug.bat LIBNAME lua51 BUILD_TYPES debug Debug)
 inac_add_contrib_lib_ex_unix(luajit DEPENDS inac SOURCE_ROOT /src COMMAND_ARGS amalg)
 inac_add_contrib_lib_ex_unix(memhash DEPENDS inac OMIT_PREFIX)
 inac_add_contrib_lib_ex_win32(memhash DEPENDS inac COMMAND memhash_64.bat ARCH x86_64)
