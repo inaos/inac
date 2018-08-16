@@ -1029,7 +1029,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /* int64_t uint64_t format specifiers */
-#define INA_INT64_T_FMT  PRINTF_INT64_MODIFIER "d"
+#define INA_INT64_T_FMT  PRIx64
 #define INA_UINT64_T_FMT PRINTF_INT64_MODIFIER "u"
 
 /* Pack */
