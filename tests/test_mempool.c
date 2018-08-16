@@ -207,7 +207,7 @@ INA_TEST(mempool, reset)
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_INTEGER(4*1024, info.used);
-    INA_TEST_ASSERT_EQUAL_INTEGER(2, info.children);
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, info.children);
 
 }
 
@@ -437,7 +437,7 @@ INA_TEST(mempool, bad_dalloc)
     ptr = ina_mempool_dalloc(pool, 2048);
     INA_TEST_ASSERT_NULL(ptr);
     INA_TEST_ASSERT_FALSE(INA_SUCCEED(ina_err_get_last_rc()));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_NN_POOL|INA_ERR_FULL , ina_err_get_last_rc());
+    INA_TEST_ASSERT_EQUAL_INTEGER(INA_ERR_FULL , INA_RC_ERROR(ina_err_get_last_rc()));
 }
 
 INA_TEST(mempool, getbypointer)
