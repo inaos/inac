@@ -107,7 +107,7 @@ INA_API(ina_time_event_t*) ina_timer_event_new_with_time(ina_timer_t *timer, tim
     }
 
     e->t = (struct timeout*)ina_mem_alloc(sizeof(struct timeout));
-    if (e->t != NULL) {
+    if (e->t == NULL) {
         ina_mem_free(e);
         return NULL;
     }

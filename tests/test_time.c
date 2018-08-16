@@ -54,10 +54,10 @@ INA_TEST(time,time_stamp)
     int64_t c = 10;
     double msec_duration = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 1, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w, 3, -1));
     INA_TEST_ASSERT_NOT_NULL(w);
-    INA_TEST_ASSERT_EQUAL_FLOATING(1, w->id);
-    INA_TEST_ASSERT_EQUAL_FLOATING(1024, w->tv->max_stamps);
+    INA_TEST_ASSERT_EQUAL_INTEGER(3, w->id);
+    INA_TEST_ASSERT_EQUAL_INTEGER(1024, w->tv->max_stamps);
     INA_TEST_ASSERT_NOT_NULL(w->tv);
     INA_TEST_ASSERT_NULL(w->ts);
     INA_TEST_ASSERT_FAILED(ina_time_stopwatch_started(w));
