@@ -108,6 +108,22 @@ endfunction()
 #
 #
 #
+function(inac_set_version major minor micro)
+    cmake_parse_arguments(PARSE_ARGV 3 VER "" "OUTPUT" "")
+    set(INAC_PROJECT_MAJOR_VERSION ${major})
+    set(INAC_PROJECT_MINOR_VERSION ${minor})
+    set(INAC_PROJECT_MICRO_VERSION ${micro})
+    if (NOT VER_OUTPUT)
+        set(VER_OUTPUT version.h)
+    endif()
+
+    configure_file(${VER_OUTPUT}.in ${VER_OUTPUT})
+endfunction()
+
+
+#
+#
+#
 function(inac_add_objects OBJECTS)
     set(INAC_OBJS_LIST ${INAC_OBJECTS})
     list(APPEND INAC_OBJS_LIST ${OBJECTS})

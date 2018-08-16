@@ -69,6 +69,7 @@
 #include <contribs/luajit/src/lauxlib.h>
 #include <contribs/luajit/src/lualib.h>
 
+#include <libinac/version.h>
 #include <libinac/portable.h>
 #include <libinac/uthash.h>
 #include <libinac/error.h>
@@ -115,12 +116,6 @@ extern "C" {
 #define INA_LAST_BIT(k,n) ((k) & ((1LL<<(n))-1LL))
 #define INA_MID_BITS(k,m,n) (INA_LAST_BIT((k)>>(m),((n)-(m))))
 
-/*
- * Version
- */
-#define INA_MAJOR_VERSION 0
-#define INA_MINOR_VERSION 9
-#define INA_MICRO_VERSION 0
 
 #define INA_VERSION       INA_NUM2STR(INA_MAJOR_VERSION)"." \
                           INA_NUM2STR(INA_MINOR_VERSION)"." \

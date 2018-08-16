@@ -17,6 +17,7 @@ if(NOT EXISTS "${CMAKE_BINARY_DIR}/inac.cmake")
 endif()
 include("inac.cmake")
 
+inac_set_version(0 9 0 OUTPUT ${CMAKE_SOURCE_DIR}/include/libinac/version.h)
 inac_enable_verbose()
 inac_enable_aes()
 inac_enable_sse4()
