@@ -795,7 +795,7 @@ INA_TEST(string, ina_str_wildcard_match)
 
 #define _INA_TEST_STRING_WILDCARD_TEST_OK(teme, wildcard)                  \
     ts = ina_str_new_fromcstr(teme);                                       \
-    INA_TEST_ASSERT_FAILED(ina_str_wildcard_match(ts, wildcard));         \
+    INA_TEST_ASSERT_SUCCEED(ina_str_wildcard_match(ts, wildcard));         \
     ina_str_free(ts);
 
 #define _INA_TEST_STRING_WILDCARD_TEST_NOK(teme, wildcard)                 \
