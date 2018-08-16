@@ -69,7 +69,7 @@ inac_add_contrib_lib_ex_unix(luajit DEPENDS inac SOURCE_ROOT /src COMMAND_ARGS a
 inac_add_contrib_lib_ex_unix(memhash DEPENDS inac OMIT_PREFIX)
 inac_add_contrib_lib_ex_win32(memhash DEPENDS inac COMMAND memhash_64.bat ARCH x86_64)
 inac_add_contrib_lib_ex_win32(memhash DEPENDS inac COMMAND memhash_32.bat ARCH i386)
-inac_add_contrib_lib_ex_linux(cpu-topology DEPENDS inac)
+inac_add_contrib_lib_ex_linux(cpu-topology DEPENDS inac OMIT_PREFIX)
 inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac COMMAND inac_64.bat ARCH x86_64)
 inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac COMMAND inac_32.bat ARCH i386)
 
