@@ -29,7 +29,7 @@ inac_add_contrib_lib(lz4)
 inac_add_contrib_lib(timerwheel)
 inac_add_contrib_lib(xxhash)
 inac_add_contrib_lib(falkhash)
-inac_add_contrib_lib(t1ha SOURCE_ROOT /src)
+inac_add_contrib_lib(t1ha SOURCE_ROOT src)
 
 
 inac_platform_libs_for_win("Ws2_32.lib;Psapi.lib;Iphlpapi.lib;winmm.lib;DbgHelp.lib")
