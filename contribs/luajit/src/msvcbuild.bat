@@ -12,7 +12,7 @@
 @rem Then cd to this directory and run this script.
 
 @if not defined INCLUDE goto :FAIL
-
+cd %~dp0
 @setlocal
 @set LJCOMPILE=cl /nologo /c /MD /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_STDIO_INLINE=__declspec(dllexport)__inline
 @set LJLINK=link /nologo

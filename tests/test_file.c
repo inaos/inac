@@ -32,7 +32,7 @@ INA_TEST(file, test_open_close)
 {
     ina_file_ctx_t *ctx;
     ina_file_t *f;
-    const char *test_file = "test.conf";
+    const char *test_file = "tests.conf";
     
     INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
 

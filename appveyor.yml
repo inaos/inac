@@ -3,6 +3,7 @@ branches:
   only:
     - master
     - develop
+    - task-513
 
 environment:
   matrix:
@@ -45,22 +46,32 @@ init:
   - cmd: C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
 
 build_script:
-  - sh: make $BUILD_CONFIGURATION
-  - cmd: make.bat all %BUILD_CONFIGURATION%
+  - sh: |
+        mkdir cmake-build-$BUILD_CONFIGURATION
+        cd cmake-build-$BUILD_CONFIGURATION
+        cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION
+        make
+  - cmd: |
+         mkdir cmake-build-$BUILD_CONFIGURATION
+         cd cmake-build-$BUILD_CONFIGURATION
+         cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION%
+         nmake
   
 test_script:
-  - sh: make test-appveyor || true
+  - sh: |
+        cd cmake-build-$BUILD_CONFIGURATION
+        make runtests || true
   - cmd: |
-         cd buildtest\%BUILD_CONFIGURATION%
-         test.exe --format=junit > ..\..\junit.xml & exit 0
+         cd cmake-build-%BUILD_CONFIGURATION%
+         make runtests l & exit 0
 
 after_test:
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
-        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/junit.xml))
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml))
         
         # Detect if there are any failure nodes in the junit results
-        [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/junit.xml
+        [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml
         $failure = $results.SelectSingleNode("//failure")
         if ($failure -ne $null) { 
             throw "Forcing build failure due to unit test failure(s)"

@@ -202,7 +202,7 @@ INA_TEST(conffile, process_with_filepath)
 #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp(ina_str_cstr(cf->filepath), "test.exe.conf"));
 #else
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp(ina_str_cstr(cf->filepath), "test.conf"));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp(ina_str_cstr(cf->filepath), "tests.conf"));
 #endif
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
@@ -258,7 +258,7 @@ INA_TEST(conffile, process_without_filepath)
 #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "test.exe.conf"));
 #else
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "test.conf"));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "tests.conf"));
 #endif
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);

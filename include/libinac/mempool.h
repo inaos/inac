@@ -28,6 +28,8 @@
 #ifndef _LIBINAC_MEMPOOL_H_
 #define _LIBINAC_MEMPOOL_H_
 
+#include <libinac/lib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

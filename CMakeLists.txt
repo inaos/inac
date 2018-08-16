@@ -1,94 +1,87 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.1)
 project (inac)
 
-set (DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
-set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")
-
-include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}"
-					"${DEPS_DIR}")
-
-set(LZ4_LIB_NAME "lz4")
-set(MINIZ_LIB_NAME "miniz")
-set(ICT_LIB_NAME "cpu-topology")
-set(TIMER_WHEEL_LIB_NAME "timerwheel")
-set(XXHASH_LIB_NAME "xxhash")
-set(FALKHASH_LIB_NAME "falkhash")
-set(T1HA_LIB_NAME "t1ha")
-set(INAC_LIB_NAME "libinac_c")
-set(INAC_TESTLIB_NAME "testinac")
-
-#set build-type specific variables
-if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
-	SET(CMAKE_BUILD_TYPE RelWithDebInfo)
-	#Preprocessor
-	add_definitions(-DINA_LIB -DINA_LOG_ENABLED -DINA_LOG_LEVEL=3)
-else()
-	#Preprocessor
-	add_definitions(-DDEBUG -DTRACE_ENABLED -DINA_LIB -DINA_LOG_ENABLED -DINA_LOG_LEVEL=4)
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/inac.cmake")
+	if (NOT EXISTS "${CMAKE_SOURCE_DIR}/inac.cmake")
+		message(STATUS "Downloading inac.cmake from https://github.com/inaos/inac-cmake")
+		file(DOWNLOAD "https://raw.githubusercontent.com/inaos/inac-cmake/0.1.0/inac.cmake"
+			"${CMAKE_BINARY_DIR}/inac.cmake" STATUS DS)
+		if(NOT "${DS}"  MATCHES "0;")
+			file(REMOVE "${CMAKE_BINARY_DIR}/inac.cmake")
+			message(FATAL_ERROR "Failed to download inac.cmake")
+		endif()
+	else()
+		message(STATUS "Use local inac.cmake")
+		configure_file("${CMAKE_SOURCE_DIR}/inac.cmake" "${CMAKE_BINARY_DIR}/inac.cmake" COPYONLY)
+	endif()
 endif()
+include("inac.cmake")
 
-if(WIN32)
-	add_definitions(-DINA_OS_WIN32)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
-endif(WIN32)
+inac_enable_verbose()
+inac_enable_aes()
+inac_enable_sse4()
+inac_enable_trace(Debug 1)
+inac_enable_log(Debug 4)
+inac_enable_log(RelWithDebInfo 3)
 
-# BEGIN dependencies
+inac_add_contrib_lib(miniz)
+inac_add_contrib_lib(lz4)
+inac_add_contrib_lib(timerwheel)
+inac_add_contrib_lib(xxhash)
+inac_add_contrib_lib(falkhash)
+inac_add_contrib_lib(t1ha SOURCE_ROOT src)
 
-# Miniz
-set (MINIZ_SRC_DIR ${DEPS_DIR}/miniz)
-set (MINIZ_SRC     ${MINIZ_SRC_DIR}/miniz.c)
-add_library(${MINIZ_LIB_NAME} ${MINIZ_SRC})
 
-# LZ4
-set (LZ4_SRC_DIR ${DEPS_DIR}/lz4)
-set (LZ4_SRC     ${LZ4_SRC_DIR}/lz4.c ${LZ4_SRC_DIR}/lz4hc.c)
-add_library(${LZ4_LIB_NAME} ${LZ4_SRC})
+inac_platform_libs_for_win("Ws2_32.lib;Psapi.lib;Iphlpapi.lib;winmm.lib;DbgHelp.lib")
+inac_platform_libs_for_linux("-lrt -ldl -lm")
+inac_platform_libs_for_osx("-ldl -lm")
 
-# Intel cpu-topology
-if(WIN32)
-set (ICT_SRC_DIR ${DEPS_DIR}/cpu-topology)
-set (ICT_SRC     ${ICT_SRC_DIR}/cpu_topo.c ${ICT_SRC_DIR}/util_os.c)
-add_library(${ICT_LIB_NAME} ${ICT_SRC})
-endif(WIN32)
+inac_add_luafiles(inac_lua
+		"${DEPS_DIR}/luajit/src/jit/bc.lua"
+		"${DEPS_DIR}/luajit/src/jit/bcsave.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_arm.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_mips.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_mipsel.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_ppc.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_x64.lua"
+		"${DEPS_DIR}/luajit/src/jit/dis_x86.lua"
+		"${DEPS_DIR}/luajit/src/jit/dump.lua"
+		"${DEPS_DIR}/luajit/src/jit/v.lua"
+		"${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src/jit/vmdef.lua"
+		"${DEPS_DIR}/luatest/luamock.lua"
+		"${DEPS_DIR}/luatest/luaspec.lua"
+		"${SRC_DIR}/lconffile.lua"
+		"${SRC_DIR}/ldebug.lua"
+		"${SRC_DIR}/lprocqry.lua"
+		"${SRC_DIR}/lsocket.lua"
+		"${SRC_DIR}/ltest.lua")
 
-# Timerwheel
-set (TIMER_WHEEL_SRC_DIR ${DEPS_DIR}/timerwheel)
-set (TIMER_WHEEL_SRC ${TIMER_WHEEL_SRC_DIR}/timeout.c)
-add_library(${TIMER_WHEEL_LIB_NAME} ${TIMER_WHEEL_SRC})
+file(GLOB src ${SRC_DIR}/*.c)
+add_library(inac ${src})
+target_link_libraries(inac ${INAC_LIBS})
+set_target_properties(
+		inac
+		PROPERTIES
+		COMPILE_DEFINITIONS INA_LIB=1)
 
-# xxhash
-set (XXHASH_SRC_DIR ${DEPS_DIR}/xxhash)
-set (XXHASH_SRC ${XXHASH_SRC_DIR}/xxhash.c)
-add_library(${XXHASH_LIB_NAME} ${XXHASH_SRC})
+inac_add_contrib_lib_ex_win32(luajit DEPENDS inac SOURCE_ROOT /src COMMAND src/msvcbuild.bat LIBNAME lua51)
+inac_add_contrib_lib_ex_unix(luajit DEPENDS inac SOURCE_ROOT /src COMMAND_ARGS amalg)
+inac_add_contrib_lib_ex_unix(memhash DEPENDS inac OMIT_PREFIX)
+inac_add_contrib_lib_ex_win32(memhash DEPENDS inac COMMAND memhash_64.bat ARCH x86_64)
+inac_add_contrib_lib_ex_win32(memhash DEPENDS inac COMMAND memhash_32.bat ARCH i386)
+inac_add_contrib_lib_ex_linux(cpu-topology DEPENDS inac OMIT_PREFIX)
+inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac COMMAND inac_64.bat ARCH x86_64)
+inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac COMMAND inac_32.bat ARCH i386)
 
-# falkhash
-set (FALKHASH_SRC_DIR ${DEPS_DIR}/falkhash)
-set (FALKHASH_SRC ${FALKHASH_SRC_DIR}/falkhash.c)
-add_library(${FALKHASH_LIB_NAME} ${FALKHASH_SRC})
+inac_add_tests()
+inac_add_benchmarks()
+inac_add_tools()
 
-# t1ha
-set (T1HA_SRC_DIR ${DEPS_DIR}/t1ha/src)
-set (T1HA_SRC ${T1HA_SRC_DIR}/t1ha0.c ${T1HA_SRC_DIR}/t1ha0_ia32aes_avx.c 
-              ${T1HA_SRC_DIR}/t1ha0_ia32aes_avx2.c ${T1HA_SRC_DIR}/t1ha1.c
-			  ${T1HA_SRC_DIR}/t1ha0_ia32aes_noavx.c)
-add_library(${T1HA_LIB_NAME} ${T1HA_SRC})
+inac_post_copy_file(tests tests.conf)
+inac_post_copy_file(tests test_filepath.conf)
+inac_post_copy_file(tests test_conffile_anonymous_section.conf)
+inac_post_copy_file(tests test_ljit.lua)
+inac_post_copy_file(tests test_lsocket.lua)
 
-# END dependencies
+inac_post_copy_file_win32(tests test.exe.conf)
 
-# BEGIN backend configuration
-
-add_definitions(-DINA_OSTIME_ENABLED -DINA_TIME_DEFINED)
-MESSAGE(STATUS "Time-Backend: $ENV{INAC_TIME_BACKEND}")
-
-# END backend configuration
-
-set (LIBINAC_SRC ${SRC_DIR}/error.c ${SRC_DIR}/memory.c ${SRC_DIR}/lib.c ${SRC_DIR}/ullc.c 
-                 ${SRC_DIR}/string.c ${SRC_DIR}/util.c ${SRC_DIR}/net.c ${SRC_DIR}/log.c
-                 ${SRC_DIR}/time.c ${SRC_DIR}/time_os.c ${SRC_DIR}/timer.c ${SRC_DIR}/conffile.c 
-				 ${SRC_DIR}/ljit.c ${SRC_DIR}/portable.c ${SRC_DIR}/cio.c ${SRC_DIR}/cron.c 
-				 ${SRC_DIR}/ipc.c ${SRC_DIR}/cpu.c ${SRC_DIR}/compression.c 
-				 ${SRC_DIR}/file.c ${SRC_DIR}/mmap.c ${SRC_DIR}/file_cursor.c ${SRC_DIR}/process.c 
-				 ${SRC_DIR}/hash.c ${SRC_DIR}/dir.c ${SRC_DIR}/test.c)
-
-add_library(${INAC_LIB_NAME} ${LIBINAC_SRC})
