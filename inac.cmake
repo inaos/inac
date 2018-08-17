@@ -185,7 +185,7 @@ function(inac_add_contrib_lib_ex TARGET)
     endif()
 
     if(LIB_BUILD_TYPES)
-        list(FIND "${LIB_BUILD_TYOES}" "${CMAKE_BUILD_TYPE}" index)
+        list(FIND LIB_BUILD_TYPES "${CMAKE_BUILD_TYPE}" index)
         if (${index}  EQUAL -1)
             return()
         endif()
@@ -346,10 +346,15 @@ endfunction(inac_add_tools)
 #
 #
 function(inac_post_copy_file TARGET FILE)
+    cmake_parse_arguments(PARSE_ARGV 2 CPY "" "DEST" "")
+    if (NOT CPY_DEST)
+        set(CPY_DEST ${FILE})
+    endif()
+
     message(STATUS "Post copy file '${FILE} for target ${TARGET}")
     add_custom_command(TARGET ${TARGET} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${PROJECT_SOURCE_DIR}/${TARGET}/${FILE}"
+            "${PROJECT_SOURCE_DIR}/${TARGET}/${CPY_DEST}"
             $<TARGET_FILE_DIR:${TARGET}>)
 endfunction()
 
@@ -364,7 +369,11 @@ endmacro()
 #
 function(inac_add_luafiles TARGET)
     if(WIN32)
-        set(LUAJIT_EXE "luajit.exe")
+        if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "debug")
+            set(LUAJIT_EXE "luajitd.exe")
+        else()
+            set(LUAJIT_EXE "luajitd.exe")
+        endif()
     else()
         set(LUAJIT_EXE "luajit")
     endif()
@@ -418,8 +427,8 @@ endfunction()
 
 macro(inac_check_arch arch)
     set(ARCHS "armv7;armv6;armv5;arm;i386;x86_64;ia64;ppc64;ppc;ppc64")
-    list(FIND "${ARCHS}" "${arch}" index)
-    if (${index}  EQUAL -1)
+    list(FIND ARCHS "${arch}" index)
+    if (${index} EQUAL -1)
         message(FATAL_ERROR "Invalid architectur ${arch}")
     endif()
 endmacro()

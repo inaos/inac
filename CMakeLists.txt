@@ -66,7 +66,7 @@ set_target_properties(
 		COMPILE_DEFINITIONS INA_LIB=1)
 
 inac_add_contrib_lib_ex_win32(luajit DEPENDS inac SOURCE_ROOT /src COMMAND src/msvcbuild.bat LIBNAME lua51 BUILD_TYPES release Release RelWithDebInfo)
-inac_add_contrib_lib_ex_win32(luajit DEPENDS inac SOURCE_ROOT /src COMMAND src/msvcbuild_debug.bat LIBNAME lua51 BUILD_TYPES debug Debug)
+inac_add_contrib_lib_ex_win32(luajit DEPENDS inac SOURCE_ROOT /src COMMAND src/msvcbuild_debug.bat LIBNAME lua51d BUILD_TYPES debug Debug)
 inac_add_contrib_lib_ex_unix(luajit DEPENDS inac SOURCE_ROOT /src COMMAND_ARGS amalg)
 inac_add_contrib_lib_ex_unix(memhash DEPENDS inac OMIT_PREFIX)
 inac_add_contrib_lib_ex_win32(memhash DEPENDS inac COMMAND memhash_64.bat ARCH x86_64)
@@ -85,5 +85,5 @@ inac_post_copy_file(tests test_conffile_anonymous_section.conf)
 inac_post_copy_file(tests test_ljit.lua)
 inac_post_copy_file(tests test_lsocket.lua)
 
-inac_post_copy_file_win32(tests test.exe.conf)
+inac_post_copy_file_win32(tests tests.conf DEST tests.exe.conf)
 
