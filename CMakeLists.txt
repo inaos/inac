@@ -57,6 +57,15 @@ inac_add_luafiles(inac_lua
 		"${SRC_DIR}/lsocket.lua"
 		"${SRC_DIR}/ltest.lua")
 
+inac_add_contribs_headers(
+		timerwheel/timeout_queue.h
+		timerwheel/timeout.h
+		luajit/src/lua.h
+		luajit/src/luaconf.h
+		luajit/src/luajit.h
+		luajit/src/lauxlib.h
+		luajit/src/lualib.h)
+
 file(GLOB src ${SRC_DIR}/*.c)
 add_library(inac ${src})
 target_link_libraries(inac ${INAC_LIBS})

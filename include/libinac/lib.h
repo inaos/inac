@@ -65,9 +65,7 @@
 #include <time.h>
 #include <ctype.h>
 
-#include <contribs/luajit/src/luajit.h>
-#include <contribs/luajit/src/lauxlib.h>
-#include <contribs/luajit/src/lualib.h>
+#include <libinac/contribs.h>
 
 #include <libinac/version.h>
 #include <libinac/portable.h>

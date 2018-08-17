@@ -29,7 +29,6 @@
 #define _LIBINAC_TIMER_H_
 
 #include <libinac/lib.h>
-#include <contribs/timerwheel/timeout.h>
 
 #ifdef __cplusplus
 extern "C" {

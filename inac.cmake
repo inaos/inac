@@ -365,6 +365,31 @@ macro(inac_post_copy_file_win32 TARGET FILE)
 endmacro()
 
 #
+#
+#
+function(inac_merge_headers OUT_FILE)
+    file(WRITE ${OUT_FILE}.in "")
+    foreach(file ${ARGN})
+        file(READ ${file} CONTENT)
+        file(APPEND ${OUT_FILE}.in "${CONTENT}")
+        message(STATUS "Added ${file} for merge in ${OUT_FILE}")
+    endforeach()
+    configure_file(${OUT_FILE}.in ${OUT_FILE} COPYONLY)
+endfunction()
+
+#
+#
+#
+function(inac_add_contribs_headers)
+    set(INAC_CONTRIBS_HEADERS "")
+    foreach(file ${ARGN})
+        message(STATUS "Include contrib header ${file}")
+        string(CONCAT INAC_CONTRIBS_HEADERS ${INAC_CONTRIBS_HEADERS} "#include <libinac/contribs/" ${file} ">\n")
+        configure_file(${DEPS_DIR}/${file} ${CMAKE_SOURCE_DIR}/include/libinac/contribs/${file} COPYONLY)
+    endforeach()
+    configure_file(${CMAKE_SOURCE_DIR}/include/libinac/contribs.h.in ${CMAKE_SOURCE_DIR}/include/libinac/contribs.h)
+endfunction()
+#
 # Add lua file to compile
 #
 function(inac_add_luafiles TARGET)
