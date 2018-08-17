@@ -364,6 +364,24 @@ macro(inac_post_copy_file_win32 TARGET FILE)
     endif()
 endmacro()
 
+macro(inac_post_copy_file_unix TARGET FILE)
+    if (UNIX)
+        inac_post_copy_file(${TARGET} ${FILE})
+    endif()
+endmacro()
+
+macro(inac_post_copy_file_osx TARGET FILE)
+    if (APPLE)
+        inac_post_copy_file(${TARGET} ${FILE})
+    endif()
+endmacro()
+
+macro(inac_post_copy_file_linux TARGET FILE)
+    if ("${CMAKE_SYSTEM}" MATCHES "Linux")
+        inac_post_copy_file(${TARGET} ${FILE})
+    endif()
+endmacro()
+
 #
 #
 #
@@ -447,7 +465,7 @@ function(inac_amalg_lib LIB LIBS)
     ADD_LIBRARY(merged STATIC dummy.c)
 
     SET_TARGET_PROPERTIES(merged PROPERTIES
-            STATIC_LIBRARY_FLAGS "full\path\to\lib1.lib full\path\to\lib2.lib")
+            STATIC_LIBRARY_FLAGS "full\\path\\to\\lib1.lib full\\path\\to\\lib2.lib")
 endfunction()
 
 macro(inac_check_arch arch)

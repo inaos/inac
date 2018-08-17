@@ -88,11 +88,10 @@ inac_add_tests()
 inac_add_benchmarks()
 inac_add_tools()
 
-inac_post_copy_file(tests tests.conf)
 inac_post_copy_file(tests test_filepath.conf)
 inac_post_copy_file(tests test_conffile_anonymous_section.conf)
 inac_post_copy_file(tests test_ljit.lua)
 inac_post_copy_file(tests test_lsocket.lua)
-
+inac_post_copy_file_unix(tests tests.conf)
 inac_post_copy_file_win32(tests tests.conf DEST tests.exe.conf)
 
