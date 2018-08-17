@@ -461,11 +461,10 @@ function(inac_add_luafiles TARGET)
 endfunction()
 
 function(inac_amalg_lib LIB LIBS)
-    message(STATUS "Amalg lib ${LIB} with ${LIBS}")
+    message(STATUS "Merge lib ${LIB} with ${LIBS}")
     ADD_LIBRARY(merged STATIC dummy.c)
-
     SET_TARGET_PROPERTIES(merged PROPERTIES
-            STATIC_LIBRARY_FLAGS "full\\path\\to\\lib1.lib full\\path\\to\\lib2.lib")
+            STATIC_LIBRARY_FLAGS ${LIBS})
 endfunction()
 
 macro(inac_check_arch arch)
