@@ -58,10 +58,8 @@ build_script:
   
 test_script:
   - sh: |
-        cd cmake-build-$BUILD_CONFIGURATION
         make runtests || true
   - cmd: |
-         cd cmake-build-%BUILD_CONFIGURATION%
          make runtests l & exit 0
 
 after_test:
