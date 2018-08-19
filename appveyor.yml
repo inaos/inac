@@ -19,24 +19,28 @@ environment:
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: debug
+      BUILD_ARCH: i386
       
     - MY_NAME: Windows VS 2015 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: amd64
       BUILD_CONFIGURATION: debug
+      BUILD_ARCH: x86_64
 
     - MY_NAME: Windows VS 2017 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: debug
+      BUILD_ARCH: i386
 
     - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
       BUILD_CONFIGURATION: debug
+      BUILD_ARCH: x86_64
 
 matrix:
   fast_finish: false
@@ -53,14 +57,14 @@ build_script:
   - cmd: |
          mkdir cmake-build-$BUILD_CONFIGURATION
          cd cmake-build-$BUILD_CONFIGURATION
-         cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION%
+         cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH%
          nmake
   
 test_script:
   - sh: |
         make runtests || true
   - cmd: |
-         make runtests l & exit 0
+         make runtests & exit 0
 
 after_test:
   - ps: |

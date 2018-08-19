@@ -622,4 +622,6 @@ function(inac_detect_host_arch)
 endfunction()
 
 inac_detect_host_arch()
-inac_set_target_arch(${INAC_HOST_ARCH})
+if (NOT INAC_TARGET_ARCH)
+    inac_set_target_arch(${INAC_HOST_ARCH})
+endif()
