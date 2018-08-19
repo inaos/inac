@@ -93,7 +93,7 @@ test_script:
   - sh: |
         make runtests || true
   - cmd: |
-         make runtests & exit 0
+         nmake runtests & exit 0
 
 after_test:
   - ps: |
