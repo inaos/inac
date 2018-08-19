@@ -84,8 +84,8 @@ build_script:
         cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION
         make
   - cmd: |
-         mkdir cmake-build-$BUILD_CONFIGURATION
-         cd cmake-build-$BUILD_CONFIGURATION
+         mkdir cmake-build-%BUILD_CONFIGURATION%
+         cd cmake-build-%BUILD_CONFIGURATION%
          cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH%
          nmake
   
