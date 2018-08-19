@@ -64,6 +64,7 @@
 #include <float.h>
 #include <time.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #include <libinac/contribs.h>
 
