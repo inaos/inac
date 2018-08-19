@@ -37,7 +37,7 @@ endif (WIN32)
 add_definitions(-DINA_OSTIME_ENABLED -DINA_TIME_DEFINED)
 
 function(inac_enable_verbose)
-    set(CMAKE_VERBOSE_MAKEFILE ON)
+    set(CMAKE_VERBOSE_MAKEFILE ON PARENT_SCOPE)
     message(STATUS "Verbose output enabled")
 endfunction()
 
