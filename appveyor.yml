@@ -10,7 +10,7 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
       BUILD_CONFIGURATION: debug
       
-    - MY_NAME: Linux Debug 64bit
+    - MY_NAME: Linux Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
       BUILD_CONFIGURATION: release
       
