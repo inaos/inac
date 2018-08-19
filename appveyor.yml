@@ -32,14 +32,14 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: release
       BUILD_ARCH: i386
 
     - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: release
       BUILD_ARCH: x86_64
 
 matrix:
