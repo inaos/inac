@@ -434,7 +434,7 @@ function(inac_add_luafiles TARGET)
     set(LUAJIT_CMD "${LUA_PATH}${LUAJIT_EXE}")
     message(STATUS "Lua Path: ${LUAJIT_CMD}")
 
-    set(SOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_depends.c)
+    set(SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_depends.c")
     set(OBJECTS)
     foreach (ls IN LISTS ARGN)
         get_filename_component(TN ${ls} NAME)
