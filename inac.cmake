@@ -270,7 +270,7 @@ endmacro()
 #
 function(inac_add_tests)
     if(WIN32)
-        set(CMD ".\tests.exe")
+        set(CMD ".\\tests.exe")
     else()
         set(CMD "./tests")
     endif()
