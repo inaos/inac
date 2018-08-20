@@ -489,8 +489,8 @@ endfunction()
 
 function(inac_merge_libs LIB)
     set(SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/${LIB}_merged.c")
+    add_library(${LIB} STATIC ${SOURCE_FILE})
     if (MSVC)
-        add_library(${LIB} STATIC ${SOURCE_FILE})
         add_custom_command(
                 OUTPUT  ${SOURCE_FILE}
                 COMMAND ${CMAKE_COMMAND} -E touch ${SOURCE_FILE}
@@ -524,7 +524,6 @@ function(inac_merge_libs LIB)
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                 DEPENDS ${extracts} ${ARGN})
 
-        add_library(${LIB} STATIC IMPORTED GLOBAL)
         add_dependencies(${LIB} ${LIB}_combined)
         set_target_properties(${LIB}
                 PROPERTIES
