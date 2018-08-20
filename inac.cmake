@@ -211,7 +211,7 @@ function(inac_add_contrib_lib_ex TARGET)
         set(LIB_URL ${CMAKE_SOURCE_DIR}/contribs/${TARGET})
     endif()
 
-    ExternalProject_Add(${TARGET}
+    ExternalProject_Add(${TARGET}-external
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
             CONFIGURE_COMMAND ""
             URL ${LIB_URL}
@@ -225,7 +225,7 @@ function(inac_add_contrib_lib_ex TARGET)
     else()
         set(LIBNAME ${LIB_LIBNAME})
     endif()
-    set(LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}/src/${TARGET}/${LIB_SOURCE_ROOT}")
+    set(LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}/src/${TARGET}-external/${LIB_SOURCE_ROOT}")
 
     if(WIN32)
         set(prefix "")
@@ -238,8 +238,14 @@ function(inac_add_contrib_lib_ex TARGET)
         endif ()
         set(suffix ".a")
     endif()
+    add_library(${TARGET} STATIC IMPORTED GLOBAL)
+    set_target_properties(${TARGET}
+            PROPERTIES
+            IMPORTED_LOCATION "${LIB_DIR}/${prefix}${LIBNAME}${suffix}"
+            )
+    add_dependencies(${TARGET} ${TARGET}-external)
     add_dependencies(${LIB_DEPENDS} ${TARGET})
-    list(APPEND INAC_LIBS_LIST  "${LIB_DIR}/${prefix}${LIBNAME}${suffix}")
+    list(APPEND INAC_LIBS_LIST  ${TARGET})
     set(INAC_LIBS "${INAC_LIBS_LIST}" PARENT_SCOPE)
     message(STATUS "Added external contrib lib ${TARGET} ${LIB_COMMAND} ${LIB_COMMAND_ARGS}")
 endfunction()
@@ -299,7 +305,7 @@ function(inac_add_tests)
         message(STATUS "Do NOT generate main.c for tests")
     endif ()
     add_executable(tests ${src})
-    target_link_libraries(tests inac ${INAC_LIBS} ${PLATFORM_LIBS})
+    target_link_libraries(tests inac ${PLATFORM_LIBS})
 
     add_custom_target(runtests DEPENDS tests COMMAND "${CMD}" "--format=junit>junit.xml"  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runtests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
@@ -334,7 +340,7 @@ function(inac_add_benchmarks)
         message(STATUS "Do NOT generate main.c for benchmarks")
     endif ()
     add_executable(bench ${src})
-    target_link_libraries(bench inac ${INAC_LIBS} ${PLATFORM_LIBS})
+    target_link_libraries(bench inac ${PLATFORM_LIBS})
     add_custom_target(runbenchmarks DEPENDS bench COMMAND "${CMD}" "--r=."  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runbenchmarks PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_benchmarks)
@@ -351,7 +357,7 @@ function(inac_add_tools)
         set(tool ${CMAKE_MATCH_1})
         STRING(REGEX REPLACE "^${CMAKE_SOURCE_DIR}/tools/" "" tool ${tool})
         add_executable(${tool} ${tool_src})
-        target_link_libraries(${tool} inac ${INAC_OBJECTS} ${INAC_LIBS} ${PLATFORM_LIBS})
+        target_link_libraries(${tool} inac ${PLATFORM_LIBS})
     endforeach ()
 endfunction(inac_add_tools)
 
@@ -433,7 +439,7 @@ function(inac_add_luafiles TARGET)
     else()
         set(LUAJIT_EXE "luajit")
     endif()
-    set(LUA_PATH "${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit/src/")
+    set(LUA_PATH "${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/")
     set(LUAJIT_CMD "${LUA_PATH}${LUAJIT_EXE}")
     message(STATUS "Lua Path: ${LUAJIT_CMD}")
 
@@ -449,7 +455,7 @@ function(inac_add_luafiles TARGET)
                 GENERATED true
         )
         add_custom_command(
-                OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o" DEPENDS ${ls} luajit
+                OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o" DEPENDS ${ls} luajit luajit-external
                 COMMAND "${LUAJIT_CMD}" -b ${ls} "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o" WORKING_DIRECTORY "${LUA_PATH}")
 
         list(APPEND OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TARGET}.dir/${TN}.o")
@@ -473,11 +479,37 @@ function(inac_add_luafiles TARGET)
     set(INAC_LIBS ${INAC_LIBS_LIST} PARENT_SCOPE)
 endfunction()
 
-function(inac_amalg_lib LIB LIBS)
-    message(STATUS "Merge lib ${LIB} with ${LIBS}")
-    ADD_LIBRARY(merged STATIC dummy.c)
-    SET_TARGET_PROPERTIES(merged PROPERTIES
-            STATIC_LIBRARY_FLAGS ${LIBS})
+function(inac_merge_libs LIB)
+    set(SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/${LIB}_depends.c")
+    if (NOT MSVC)
+        set(C_LIB ${CMAKE_BINARY_DIR}/lib${LIB}.a)
+        set(extracts "")
+        foreach(l ${ARGN})
+            message(STATUS "Merge lib ${l}")
+            add_custom_target(${l}_extract
+                    COMMAND ar -x $<TARGET_FILE:${l}>
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    DEPENDS ${l}
+                    )
+            list(APPEND extracts ${l}_extract)
+        endforeach()
+        add_custom_command(
+                OUTPUT  ${SOURCE_FILE}
+                COMMAND ${CMAKE_COMMAND} -E touch ${SOURCE_FILE}
+                DEPENDS ${ARGN} ${extracts} )
+
+        add_custom_target(${LIB}_combined
+                COMMAND ar -qcs ${C_LIB} *.o
+                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                DEPENDS ${extracts} ${ARGN})
+
+        add_library(${LIB} STATIC IMPORTED GLOBAL)
+        add_dependencies(${LIB} ${LIB}_combined)
+        set_target_properties(${LIB}
+                PROPERTIES
+                IMPORTED_LOCATION ${C_LIB}
+                )
+    endif()
 endfunction()
 
 macro(inac_check_arch arch)
