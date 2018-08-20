@@ -185,7 +185,7 @@ endmacro()
 #
 #
 function(inac_add_contrib_lib_ex TARGET)
-    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH" "BUILD_TYPES")
+    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH;URL" "BUILD_TYPES")
 
     if(LIB_ARCH)
         inac_check_arch(${LIB_ARCH})
@@ -207,11 +207,14 @@ function(inac_add_contrib_lib_ex TARGET)
     if (NOT LIB_COMMAND)
         set(LIB_COMMAND make)
     endif()
+    if (NOT LIB_URL)
+        set(LIB_URL ${CMAKE_SOURCE_DIR}/contribs/${TARGET})
+    endif()
 
     ExternalProject_Add(${TARGET}
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
             CONFIGURE_COMMAND ""
-            URL ${CMAKE_SOURCE_DIR}/contribs/${TARGET}
+            URL ${LIB_URL}
             BUILD_COMMAND "${LIB_COMMAND}" "${LIB_COMMAND_ARGS}"
             BUILD_IN_SOURCE 1
             INSTALL_COMMAND ""
