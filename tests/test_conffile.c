@@ -200,7 +200,7 @@ INA_TEST(conffile, process_with_filepath)
     
     INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
 #ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp(ina_str_cstr(cf->filepath), "test.exe.conf"));
+    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp(ina_str_cstr(cf->filepath), "tests.exe.conf"));
 #else
     INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp(ina_str_cstr(cf->filepath), "tests.conf"));
 #endif
@@ -256,7 +256,7 @@ INA_TEST(conffile, process_without_filepath)
     
     INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
 #ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "test.exe.conf"));
+    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "tests.exe.conf"));
 #else
     INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "tests.conf"));
 #endif
