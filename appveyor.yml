@@ -110,5 +110,5 @@ after_test:
             throw "Forcing build failure due to unit test failure(s)"
         }
 artifacts:
-  - path: cmake-build-$(BUILD-CONFIGURATION)/_CPack_Packages/ZIP/*.zip
+  - path: cmake-build-$(BUILD-CONFIGURATION)/_CPack_Packages/**/ZIP/*.zip
     name: INAC $(MY_NAME)
