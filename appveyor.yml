@@ -88,7 +88,10 @@ build_script:
          cd cmake-build-%BUILD_CONFIGURATION%
          cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH%
          nmake
-  
+after_build:
+  - sh: cpack
+  - cmd: cpack
+
 test_script:
   - sh: |
         make runtests || true
@@ -106,3 +109,6 @@ after_test:
         if ($failure -ne $null) { 
             throw "Forcing build failure due to unit test failure(s)"
         }
+artifacts:
+  - path: cmake-build-$(BUILD-CONFIGURATION)/_CPack_Packages/ZIP/*.zip
+    name: INAC $(MY_NAME)

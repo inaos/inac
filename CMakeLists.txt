@@ -100,4 +100,16 @@ inac_post_copy_file(tests test_lsocket.lua)
 inac_post_copy_file_unix(tests tests.conf)
 inac_post_copy_file_win32(tests tests.conf DEST tests.exe.conf)
 
+install(TARGETS inac
+        ARCHIVE
+        DESTINATION lib
+        COMPONENT libraries)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/libinac
+        DESTINATION include
+		FILES_MATCHING
+		PATTERN *.h)
 
+inac_make_package(NAME INAC
+		VENDOR INAOS
+		SUMMARY "INAOS Common C Library"
+		INSTALL_DIRECTORY libinac)
