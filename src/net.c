@@ -303,11 +303,11 @@ INA_API(ina_rc_t) ina_net_tcp_connect(int* fd, const char *addr, int port, int t
                     getsockopt(*fd, SOL_SOCKET, SO_ERROR, (void *) (&so_error), &so_len);
                     if (so_error) {
                         ina_net_close(*fd);
-                        return INA_USR_ERROR(INA_NN_SOCKET || INA_ERR_NOT_CONNECTED, __INA_ERRNO);
+                        return INA_USR_ERROR(INA_NN_SOCKET|INA_ERR_NOT_CONNECTED, __INA_ERRNO);
                     }
                 } else {
                     ina_net_close(*fd);
-                    return INA_ERROR(INA_NN_SOCKET || INA_ERR_TIMED_OUT);
+                    return INA_ERROR(INA_NN_SOCKET|INA_ERR_TIMED_OUT);
                 }
                 return ina_net_block(*fd);
             }
