@@ -3,6 +3,12 @@ set(DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(INAC_CMAKE_VERSION "0.1.0")
 
+if (WIN32)
+    set(INAC_USER_HOME "$ENV{USERPROFILE}")
+else()
+    set(INAC_USER_HOME "$ENV{HOME}")
+endif()
+
 if (MSVC)
     if (POLICY CMP0026)
         cmake_policy(SET CMP0026 OLD)
@@ -532,8 +538,67 @@ function(inac_merge_libs LIB)
     endif()
 endfunction()
 
+function(inac_set_repository_url URL)
+    set(INA_REPOSITORY_URL "${URL}" PARENT_SCOPE)
+endfunction()
+
+function(inac_set_repository_path PATH)
+    set(INA_REPOSITORY_PATH "${PATH}" PARENT_SCOPE)
+endfunction()
+
+function(inac_add_dependency name version)
+    cmake_parse_arguments(PARSE_ARGV 2 DEP "" "REPOSITORY_URL" "REPOSITORY_PATH")
+    if (MSVC)
+        if (MSVC_VERSION EQUAL 120)
+            string(APPEND DEPENDENCY_NAME "${name}-${CMAKE_SYSTEM_NAME}vs13-${INAC_TARGET_ARCH}-${CMAKE_BUILD_TYPE}-${version}")
+        elseif(MSVC_VERSION EQUAL 140)
+            string(APPEND DEPENDENCY_NAME "${name}-${CMAKE_SYSTEM_NAME}vs15-${INAC_TARGET_ARCH}-${CMAKE_BUILD_TYPE}-${version}")
+        elseif(MSVC_VERSION EQUAL 141)
+            string(APPEND DEPENDENCY_NAME "${name}-${CMAKE_SYSTEM_NAME}vs17-${INAC_TARGET_ARCH}-${CMAKE_BUILD_TYPE}-${version}")
+        endif()
+    else()
+        string(APPEND DEPENDENCY_NAME "${name}-${CMAKE_SYSTEM_NAME}-${INAC_TARGET_ARCH}-${CMAKE_BUILD_TYPE}-${version}")
+    endif()
+    if (NOT DEP_REPOSITORY_PATH)
+        set(DEP_REPOSITORY_PATH "${INA_REPOSITORY_PATH}")
+    endif()
+    if (NOT DEP_REPOSITORY_URL)
+        set(DEP_REPOSITORY_URL ${INA_REPOSITORY_URL})
+    endif()
+
+    string(TOLOWER ${DEPENDENCY_NAME} DEPENDENCY_NAME)
+    set(LOCAL_PATH "${DEP_REPOSITORY_PATH}/.ina/cmake/${DEPENDENCY_NAME}.zip")
+
+    if (NOT EXISTS "${INAC_USER_HOME}/.ina/cmake/${DEPENDENCY_NAME}")
+        if(EXISTS "${LOCAL_PATH}")
+            message(STATUS "Dependency ${DEPENDENCY_NAME} found in local repository ${DEP_REPOSITORY_PATH}")
+            file(COPY "${LOCAL_PATH}" DESTINATION "${INAC_USER_HOME}/.ina/cmake/${DEPENDENCY_NAME}.zip")
+        else()
+            message(STATUS "Dependency ${DEPENDENCY_NAME} from ${DEP_REPOSITORY_URL}")
+            if (INA_REPOSITORY_USRPWD)
+                file(DOWNLOAD "${DEP_REPOSITORY_URL}/${DEPENDENCY_NAME}.zip" "${INAC_USER_HOME}/.ina/cmake/${DEPENDENCY_NAME}.zip" STATUS DS USERPWD ${INA_REPOSITORY_USRPWD} LOG DL)
+            else()
+                file(DOWNLOAD "${DEP_REPOSITORY_URL}/${DEPENDENCY_NAME}.zip" "${INAC_USER_HOME}/.ina/cmake/${DEPENDENCY_NAME}.zip" STATUS DS LOG DL)
+            endif()
+            if(NOT "${DS}"  MATCHES "0;")
+                file(REMOVE "${INAC_USER_HOME}/.ina/cmake/${DEPENDENCY_NAME}.zip")
+                message(FATAL_ERROR "Failed to download dependency ${DEPENDENCY_NAME} from ${DEP_REPOSITORY_URL}: ${DL}")
+            endif()
+        endif()
+        add_custom_target(unpack_${DEPENDENCY_NAME} ALL)
+        add_custom_command(TARGET unpack_${DEPENDENCY_NAME} PRE_BUILD
+                COMMAND ${CMAKE_COMMAND} -E remove_directory "${INAC_USER_HOME}/.ina/cmake/${DEPENDENCY_NAME}"
+                COMMAND ${CMAKE_COMMAND} -E tar xzf "${INAC_USER_HOME}/.ina/cmake/${DEPENDENCY_NAME}.zip"
+                WORKING_DIRECTORY "${INAC_USER_HOME}/.ina/cmake"
+                DEPENDS "${INAC_USER_HOME}/.ina/cmake/${DEPENDENCY_NAME}.zip"
+                COMMENT "Unpacking ${DEPENDENCY_NAME}.zip"
+                VERBATIM)
+        endif()
+    message(STATUS "Add binary dependency ${name}: ${DEPENDENCY_NAME}")
+endfunction()
+
 macro(inac_check_arch arch)
-    set(ARCHS "armv7;armv6;armv5;arm;i386;x86_64;ia64;ppc64;ppc;ppc64")
+    set(ARCHS "armv7;armv6;armv5;arm;x86;x86_64;ia64;ppc64;ppc;ppc64")
     list(FIND ARCHS "${arch}" index)
     if (${index} EQUAL -1)
         message(FATAL_ERROR "Invalid architectur ${arch}")
@@ -571,7 +636,7 @@ set(INAC_ARCH_DETECT_C_CODE "
         #error cmake_ARCH arm
     #endif
 #elif defined(__i386) || defined(__i386__) || defined(_M_IX86)
-    #error cmake_ARCH i386
+    #error cmake_ARCH x86
 #elif defined(__x86_64) || defined(__x86_64__) || defined(__amd64) || defined(_M_X64)
     #error cmake_ARCH x86_64
 #elif defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
@@ -697,8 +762,26 @@ function (inac_make_package)
     set(CPACK_PACKAGE_INSTALL_DIRECTRORY "${P_INSTALL_DIRECTORY}}")
     include(CPack)
 endfunction()
-    inac_detect_host_arch()
+
+function (inac_load_config_file PATH REQUIRED)
+    if(EXISTS "${PATH}")
+        file(STRINGS "${PATH}" contents)
+        foreach(NameAndValue ${contents})
+            string(REGEX REPLACE "^[ ]+" "" NameAndValue ${NameAndValue})
+            string(REGEX MATCH "^[^=]+" Name ${NameAndValue})
+            string(REPLACE "${Name}=" "" Value ${NameAndValue})
+            set(${Name} "${Value}" PARENT_SCOPE)
+        endforeach()
+    else()
+        if (REQUIRED)
+            message(FATAL_ERROR "Config file ${PATH} cannot be read")
+        endif()
+    endif()
+endfunction()
+
+inac_detect_host_arch()
 if (NOT INAC_TARGET_ARCH)
     inac_set_target_arch(${INAC_HOST_ARCH})
 endif()
 
+inac_load_config_file("${INAC_USER_HOME}/.ina/cmake/repository.txt" FALSE)
