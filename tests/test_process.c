@@ -28,9 +28,9 @@
 #include <libinac/lib.h>
 
 #ifndef INA_OS_WIN32
-#define __INA_TEST_EXE "./test"
+#define __INA_TEST_EXE "./tests"
 #else
-#define __INA_TEST_EXE "test.exe"
+#define __INA_TEST_EXE "tests.exe"
 #endif
 
 INA_TEST(process, init_destroy)
