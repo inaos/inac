@@ -19,7 +19,7 @@ environment:
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: debug
-      BUILD_ARCH: i386
+      BUILD_ARCH: x86
       
     - MY_NAME: Windows VS 2015 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -33,7 +33,7 @@ environment:
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: release
-      BUILD_ARCH: i386
+      BUILD_ARCH: x86
 
     - MY_NAME: Windows VS 2015 Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -47,7 +47,7 @@ environment:
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: debug
-      BUILD_ARCH: i386
+      BUILD_ARCH: x86
 
     - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -61,7 +61,7 @@ environment:
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: release
-      BUILD_ARCH: i386
+      BUILD_ARCH: x86
 
     - MY_NAME: Windows VS 2017 Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017

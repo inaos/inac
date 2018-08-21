@@ -4,7 +4,11 @@
     #include <intrin.h>
     #pragma warning(pop)
 #else
-#include <x86intrin.h>
+    #if (__GNUC__ == 4 &&  __GNUC_MINOR__ < 4)
+        #include <avxintrin.h>
+    #else
+        #include <x86intrin.h>
+    #endif
 #endif
 /* Discard SAL annotations if you're not using MSVC :( */
 #ifndef _MSC_VER
