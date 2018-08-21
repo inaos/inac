@@ -25,7 +25,7 @@ Building on Windows requires some programs to be present on your system.
 ### Prerequisites
 
 * [Visual Studio 2017 Community Edition][1]
-* [CMake][2]
+* [CMake][3.x]
   * Use the binary installer you don't need to build from source
   * Make sure you add cmake to your PATH
 
@@ -45,6 +45,30 @@ Building on Windows requires some programs to be present on your system.
 
 To build the library, simply type `sudo make`. To select the debug build, 
 type `sudo make debug`.
+
+## Versioning and compatibility
+
+Describes the approach for API and ABI compatibility when INAC is used as binary dependency.
+
+### Decisions
+
+* INAC is only distributed as static library
+* Major releases break the compatibility
+* Minor releases are backward compatible ABI and API wise
+* Introduce compiler warnings to deprecate API's
+
+## Dependency handling
+
+* CMake based
+* User must provide:
+	* Repository: Local or URL (https://inaos.jfrog.io/inaos/webapp/...)
+	* Package name
+	* Version
+* CMake macro will compile full path
+* On Windows we use environment variable: ${ENV:VisualStudioVersion} for version info
+* Unpacking should happen in user home e.g. %USERPROFILE%\.ina\cmake\...
+* Transitive dependencies must be managed by the User. CMake will only throw and error if a library is not present	
+
 
 ## Compile time configuration
  * `INA_TRACE_ENABLED`  : Enable/disable tracing. Default enabled.
