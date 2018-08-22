@@ -147,17 +147,6 @@ function(inac_set_version major minor micro)
     endif()
 endfunction()
 
-
-#
-#
-#
-function(inac_add_objects OBJECTS)
-    set(INAC_OBJS_LIST ${INAC_OBJECTS})
-    list(APPEND INAC_OBJS_LIST ${OBJECTS})
-    set(INAC_OBJECTS ${INAC_OBJS_LIST} PARENT_SCOPE)
-    message(STATUS "Added objects ${OBJECTS}")
-endfunction(inac_add_objects)
-
 #
 #
 #
