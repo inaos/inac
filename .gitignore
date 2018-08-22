@@ -53,7 +53,6 @@ contribs/luajit/src/lj_ffdef.h
 contribs/luajit/src/lj_folddef.h
 contribs/luajit/src/lj_libdef.h
 contribs/luajit/src/lj_recdef.h
-contribs/luajit/src/lj_vm.s
 contribs/luajit/src/luajit
 contribs/makeheaders/makeheaders
 build/*
@@ -69,4 +68,5 @@ contribs/t1ha/t1ha0_ia32aes_avx2.i
 contribs/t1ha/t1ha0_ia32aes_avx2.s
 .scannerwork/
 bw-output/
+cmake-build-*
 
