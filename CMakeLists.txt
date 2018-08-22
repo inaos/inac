@@ -89,7 +89,7 @@ inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_32.bat AR
 
 inac_merge_libs(inac inac_c ${INAC_LIBS})
 
-inac_add_tests()
+inac_add_tests(inac)
 inac_add_benchmarks()
 inac_add_tools()
 
