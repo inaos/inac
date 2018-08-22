@@ -108,7 +108,4 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/libinac
 		FILES_MATCHING
 		PATTERN *.h)
 
-inac_make_package(NAME INAC
-		VENDOR INAOS
-		SUMMARY "INAOS Common C Library"
-		INSTALL_DIRECTORY libinac)
+inac_make_package()
