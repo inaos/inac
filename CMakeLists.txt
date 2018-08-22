@@ -90,8 +90,8 @@ inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_32.bat AR
 inac_merge_libs(inac inac_c ${INAC_LIBS})
 
 inac_add_tests(inac)
-inac_add_benchmarks()
-inac_add_tools()
+inac_add_benchmarks(inac)
+inac_add_tools(inac)
 
 inac_post_copy_file(tests test_filepath.conf)
 inac_post_copy_file(tests test_conffile_anonymous_section.conf)
@@ -102,7 +102,7 @@ inac_post_copy_file_win32(tests tests.conf DEST tests.exe.conf)
 
 if (MSVC)
 	install(TARGETS inac
-			DESTINATION lib
+			DESTINATION libs
 			COMPONENT libraries)
 else()
 	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libinac.a
