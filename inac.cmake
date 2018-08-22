@@ -320,7 +320,7 @@ function(inac_add_tests)
         message(STATUS "Do NOT generate main.c for tests")
     endif ()
     add_executable(tests ${src})
-    target_link_libraries(tests inac ${PLATFORM_LIBS})
+    target_link_libraries(tests ${ARGN} ${INA_DEPENDENCY_LIBS} ${PLATFORM_LIBS})
 
     add_custom_target(runtests DEPENDS tests COMMAND "${CMD}" "--format=junit>junit.xml"  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runtests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
@@ -355,7 +355,7 @@ function(inac_add_benchmarks)
         message(STATUS "Do NOT generate main.c for benchmarks")
     endif ()
     add_executable(bench ${src})
-    target_link_libraries(bench inac ${PLATFORM_LIBS})
+    target_link_libraries(bench inac ${ARGN} ${PLATFORM_LIBS})
     add_custom_target(runbenchmarks DEPENDS bench COMMAND "${CMD}" "--r=."  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runbenchmarks PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_benchmarks)
@@ -372,7 +372,7 @@ function(inac_add_tools)
         set(tool ${CMAKE_MATCH_1})
         STRING(REGEX REPLACE "^${CMAKE_SOURCE_DIR}/tools/" "" tool ${tool})
         add_executable(${tool} ${tool_src})
-        target_link_libraries(${tool} inac ${PLATFORM_LIBS})
+        target_link_libraries(${tool} inac ${ARGN} ${PLATFORM_LIBS})
     endforeach ()
 endfunction(inac_add_tools)
 
@@ -485,7 +485,6 @@ function(inac_add_luafiles TARGET)
             COMMAND ${CMAKE_COMMAND} -E touch ${SOURCE_FILE}
             DEPENDS ${STATIC_LIBS})
 
-
     add_library(${TARGET} STATIC EXCLUDE_FROM_ALL ${SOURCE_FILE}  ${OBJECTS})
     SET_TARGET_PROPERTIES(${TARGET} PROPERTIES LINKER_LANGUAGE C)
 
@@ -507,7 +506,7 @@ function(inac_merge_libs LIB)
             get_property(LIB_LOCATION TARGET ${l} PROPERTY LOCATION)
             message(STATUS "Merge lib ${l}: ${LIB_LOCATION}")
             set(LINKER_EXTRA_FLAGS "${LINKER_EXTRA_FLAGS} \"${LIB_LOCATION}\"")
-         endforeach()
+        endforeach()
         set_target_properties(${LIB} PROPERTIES STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS}")
     else()
         set(C_LIB ${CMAKE_BINARY_DIR}/lib${LIB}.a)
@@ -557,7 +556,7 @@ function(inac_add_dependency name version)
     if (NOT EXISTS "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}")
         if(EXISTS "${LOCAL_PACKAGE_PATH}")
             message(STATUS "Dependency ${DEPENDENCY_NAME} found in local repository ${DEP_REPOSITORY_LOCAL}")
-            file(COPY "${LOCAL_PACKAGE_PATH}" DESTINATION "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip")
+            file(COPY "${LOCAL_PACKAGE_PATH}" DESTINATION "${INA_REPOSITORY_PATH}")
         else()
             message(STATUS "Dependency ${DEPENDENCY_NAME} from ${DEP_REPOSITORY_URL}")
             if (INA_REPOSITORY_USRPWD)
@@ -569,18 +568,25 @@ function(inac_add_dependency name version)
                 file(REMOVE "${LOCAL_PACKAGE_PATH}")
                 message(FATAL_ERROR "Failed to download dependency ${DEPENDENCY_NAME} from ${DEP_REPOSITORY_REMOTE}: ${DL}")
             endif()
-            file(COPY "${LOCAL_PACKAGE_PATH}" DESTINATION "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip")
         endif()
+        file(COPY "${LOCAL_PACKAGE_PATH}" DESTINATION "${INA_REPOSITORY_PATH}")
         add_custom_target(unpack_${DEPENDENCY_NAME} ALL)
         add_custom_command(TARGET unpack_${DEPENDENCY_NAME} PRE_BUILD
                 COMMAND ${CMAKE_COMMAND} -E remove_directory "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}"
                 COMMAND ${CMAKE_COMMAND} -E tar xzf "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
-                COMMAND ${CMAKE_COMMAND} -E remove "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
+                COMMAND ${CMAKE_COMMAND} -E remove  "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
                 WORKING_DIRECTORY "${INA_REPOSITORY_PATH}"
-                DEPENDS "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}"
+                DEPENDS "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
                 COMMENT "Unpacking ${DEPENDENCY_NAME}.zip"
                 VERBATIM)
-        endif()
+    endif()
+    include_directories("${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}/include")
+    set(deps ${INA_DEPENDENCY_LIBS})
+    file(GLOB libs "${INA_REPOSITORY_PATH}/${DEPENDENCY_NAME}/lib/*")
+    foreach(lib ${libs})
+        list(APPEND deps "${lib}")
+    endforeach()
+    set(INA_DEPENDENCY_LIBS ${deps} PARENT_SCOPE)
     message(STATUS "Add binary dependency ${name}: ${DEPENDENCY_NAME}")
 endfunction()
 
