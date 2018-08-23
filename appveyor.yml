@@ -128,7 +128,7 @@ deploy_script:
         Write-Host $artifact_name
         Write-Host $artifact_version
         Write-Host $target
-        $curl_argument = "-u$jfrog_artifactory_uid:$jfrog_artifactory_pwd", '-T', "$src", "https://inaos.jfrog.io/inaos/libs-snapshot-local/$target"
+        $curl_argument = "-u$env:jfrog_artifactory_uid:$env:jfrog_artifactory_pwd", '-T', "$src", "https://inaos.jfrog.io/inaos/libs-snapshot-local/$target"
         $curl_exe = 'curl.exe'
         & $curl_exe @curl_argument
  
