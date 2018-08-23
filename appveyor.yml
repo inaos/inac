@@ -108,7 +108,7 @@ build_script:
          7z e build-wrapper-win-x86.zip -ocmake-build-%BUILD_CONFIGURATION%
          cd cmake-build-%BUILD_CONFIGURATION%
          cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH%
-         ..\build-wrapper-win-x86\%SONAR_BW% nmake
+         %SONAR_BW% nmake
 after_build:
   - sh: cpack
   - cmd: |
