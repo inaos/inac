@@ -26,7 +26,6 @@ environment:
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: debug
       BUILD_ARCH: x86
-      SONAR_BW: build-wrapper-win-x86-32.exe
       
     - MY_NAME: Windows VS 2015 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -34,7 +33,6 @@ environment:
       MSVC_PLATFORM: amd64
       BUILD_CONFIGURATION: debug
       BUILD_ARCH: x86_64
-      SONAR_BW: build-wrapper-win-x86-64.exe
 
     - MY_NAME: Windows VS 2015 Release 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -42,7 +40,6 @@ environment:
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: release
       BUILD_ARCH: x86
-      SONAR_BW: build-wrapper-win-x86-32.exe
 
     - MY_NAME: Windows VS 2015 Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -50,7 +47,6 @@ environment:
       MSVC_PLATFORM: amd64
       BUILD_CONFIGURATION: release
       BUILD_ARCH: x86_64
-      SONAR_BW: build-wrapper-win-x86-64.exe
 
     - MY_NAME: Windows VS 2017 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -58,7 +54,6 @@ environment:
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: debug
       BUILD_ARCH: x86
-      SONAR_BW: build-wrapper-win-x86-32.exe
 
     - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -66,7 +61,6 @@ environment:
       MSVC_PLATFORM: amd64
       BUILD_CONFIGURATION: debug
       BUILD_ARCH: x86_64
-      SONAR_BW: build-wrapper-win-x86-64.exe
 
     - MY_NAME: Windows VS 2017 Release 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -74,7 +68,6 @@ environment:
       MSVC_PLATFORM: x86
       BUILD_CONFIGURATION: release
       BUILD_ARCH: x86
-      SONAR_BW: build-wrapper-win-x86-32.exe
 
     - MY_NAME: Windows VS 2017 Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -82,7 +75,6 @@ environment:
       MSVC_PLATFORM: amd64
       BUILD_CONFIGURATION: release
       BUILD_ARCH: x86_64
-      SONAR_BW: build-wrapper-win-x86-64.exe
 
 
 matrix:
@@ -108,7 +100,7 @@ build_script:
          7z e build-wrapper-win-x86.zip -ocmake-build-%BUILD_CONFIGURATION%
          cd cmake-build-%BUILD_CONFIGURATION%
          cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH%
-         %SONAR_BW% nmake
+         build-wrapper-win-x86-64.exe nmake
 after_build:
   - sh: cpack
   - cmd: |
