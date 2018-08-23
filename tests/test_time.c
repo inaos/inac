@@ -87,12 +87,12 @@ INA_TEST(time, two_stopwatches)
     long nano1 = 0;
     long nano2 = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w1, 1, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_new(&w1, 1, -1));
     INA_TEST_ASSERT_NOT_NULL(w1);
     INA_TEST_ASSERT_EQUAL_FLOATING(1, w1->id);
     INA_TEST_ASSERT_NOT_NULL(w1->tv);
     INA_TEST_ASSERT_NULL(w1->ts);
-    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_create(&w2, 2, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_new(&w2, 2, -1));
     INA_TEST_ASSERT_NOT_NULL(w2);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, w2->id);
     INA_TEST_ASSERT_NOT_NULL(w2->tv);
@@ -107,8 +107,8 @@ INA_TEST(time, two_stopwatches)
                                 &sec2, &nano2));
     INA_TEST_ASSERT_EQUAL_INTEGER(sec1, sec2);
     INA_TEST_ASSERT_TRUE(nano1< nano2);
-    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w1));
-    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_destroy(&w2));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_free(&w1));
+    INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_free(&w2));
 } 
 #endif
 

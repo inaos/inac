@@ -18,12 +18,8 @@ endif()
 
 include("inac.cmake")
 inac_set_version(0 9 0 OUTPUT ${CMAKE_SOURCE_DIR}/include/libinac/version.h)
-inac_enable_verbose()
 inac_enable_aes()
 inac_enable_sse4()
-inac_enable_trace(Debug 1)
-inac_enable_log(Debug 4)
-inac_enable_log(RelWithDebInfo 3)
 
 inac_add_contrib_lib(miniz)
 inac_add_contrib_lib(lz4)
@@ -31,11 +27,6 @@ inac_add_contrib_lib(timerwheel)
 inac_add_contrib_lib(xxhash)
 inac_add_contrib_lib(falkhash)
 inac_add_contrib_lib(t1ha SOURCE_ROOT src)
-
-
-inac_platform_libs_for_win("Ws2_32.lib;Psapi.lib;Iphlpapi.lib;winmm.lib;DbgHelp.lib")
-inac_platform_libs_for_linux("-lrt -ldl -lm")
-inac_platform_libs_for_osx("-ldl -lm")
 
 inac_add_luafiles(inac_lua
 		"${DEPS_DIR}/luajit/src/jit/bc.lua"
