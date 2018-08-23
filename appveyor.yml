@@ -119,7 +119,11 @@ artifacts:
     
 deploy_script:
   - ps: |
-        $src = $artifacts['INAC'].path
+        foreach ($artifactName in $artifacts.keys) {
+          Write-Host $artifactName
+          Write-Host $artifacts[$artifactName].path
+        }
+        $src = $artifacts["INAC"].path
         $artifact_name = Split-Path $src -leaf
         $artifact_name -match "(\d+\.)(\d+)"
         $artifact_version = $matches[1]
