@@ -87,7 +87,7 @@ inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_64.bat AR
 inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_32.bat ARCH x86 COMMAND_ARGS /MDd BUILD_TYPES debug Debug)
 
 
-inac_merge_libs(inac inac_c ${INAC_LIBS})
+inac_merge_static_libs(inac inac_c ${INAC_LIBS})
 
 inac_add_tests(inac)
 inac_add_benchmarks(inac)

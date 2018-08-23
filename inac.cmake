@@ -496,7 +496,7 @@ function(inac_add_luafiles TARGET)
     set(INAC_LIBS ${INAC_LIBS_LIST} PARENT_SCOPE)
 endfunction()
 
-function(inac_merge_libs LIB)
+function(inac_merge_static_libs LIB)
     set(SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/${LIB}_merged.c")
     if (MSVC)
         add_library(${LIB} STATIC ${SOURCE_FILE})
