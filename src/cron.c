@@ -654,7 +654,7 @@ INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggest
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_ctx_t *ctx, ina_cron_task_itr_t **iter)
+INA_API(ina_rc_t) ina_cron_task_iter_new(ina_cron_ctx_t *ctx, ina_cron_task_itr_t **iter)
 {
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(iter);
@@ -665,7 +665,7 @@ INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_ctx_t *ctx, ina_cron_task_itr_
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cron_task_free_iter(ina_cron_task_itr_t **iter)
+INA_API(ina_rc_t) ina_cron_task_iter_free(ina_cron_task_itr_t **iter)
 {
     INA_VERIFY_NOT_NULL(iter);
     INA_VERIFY_NOT_NULL(*iter);

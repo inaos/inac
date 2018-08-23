@@ -42,7 +42,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     INA_TEST_HELPER_CHECK_ARGC(1);
     id = INA_TEST_HELPER_IARG(0);
 
-    if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, id, -1))) {
+    if (!INA_SUCCEED(INA_TIME_STOPWATCH_NEW(&w, id, -1))) {
         INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
         return;
     }
@@ -63,7 +63,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     while (INA_SUCCEED(ina_time_stopwatch_started(w))) {
         ina_time_sleep(100);
     }
-    INA_TIME_STOPWATCH_DESTROY(&w);
+    INA_TIME_STOPWATCH_FREE(&w);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
 
@@ -82,7 +82,7 @@ INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
 
     ina_time_tsc_enable_rdtsc();
 
-    if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, id, -1))) {
+    if (!INA_SUCCEED(INA_TIME_STOPWATCH_NEW(&w, id, -1))) {
         INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
         return;
     }
@@ -118,7 +118,7 @@ INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
     while (INA_SUCCEED(ina_time_stopwatch_started(w))) {
         ina_time_sleep(10);
     }
-    INA_TIME_STOPWATCH_DESTROY(&w);
+    INA_TIME_STOPWATCH_FREE(&w);
     ina_time_tsc_disable_rdtsc();
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,12 @@ INA_TEST(log, open_close_console)
     
     cfg = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_STDOUT, INA_LOG_LEVEL_DEBUG, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_log_new(&cfg, INA_LOG_STDOUT, INA_LOG_LEVEL_DEBUG, NULL));
     INA_TEST_ASSERT_NOT_NULL(cfg);
     INA_TEST_ASSERT_EQUAL_FLOATING(INA_LOG_STDOUT, cfg->target);
     INA_TEST_ASSERT_EQUAL_FLOATING(INA_LOG_LEVEL_DEBUG, cfg->level);
     /*INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test log entry, var=%d", 2));*/
-    INA_TEST_ASSERT_SUCCEED(ina_log_close(&cfg));
+    INA_TEST_ASSERT_SUCCEED(ina_log_free(&cfg));
     INA_TEST_ASSERT_NULL(cfg);
 }
 
@@ -47,7 +47,7 @@ INA_TEST(log, syslog)
 {
   	ina_log_cfg_t *cfg = NULL;
   
-    INA_TEST_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_SYSLOG, INA_LOG_LEVEL_DEBUG, "test"));
+    INA_TEST_ASSERT_SUCCEED(ina_log_new(&cfg, INA_LOG_SYSLOG, INA_LOG_LEVEL_DEBUG, "test"));
     INA_TEST_ASSERT_NOT_NULL(cfg);
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_LOG_SYSLOG, cfg->target);
     INA_TEST_ASSERT_EQUAL_INTEGER(INA_LOG_LEVEL_DEBUG, cfg->level);
@@ -55,7 +55,7 @@ INA_TEST(log, syslog)
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_INFO, "Test INFO log entry, var=%d", 2));
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_WARNING, "Test WARNING log entry, var=%d", 2));
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_ERROR, "Test ERROR log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log_close(&cfg));
+    INA_TEST_ASSERT_SUCCEED(ina_log_free(&cfg));
     INA_TEST_ASSERT_NULL(cfg);	
 }
 #endif

@@ -5,7 +5,11 @@
     #pragma warning(pop)
 #else
     #if (__GNUC__ == 4 &&  __GNUC_MINOR__ < 4)
-        #include <avxintrin.h>
+    	#ifndef INA_OS_OSX
+        	#include <avxintrin.h>
+        #else
+			#include <immintrin.h>
+		#endif
     #else
         #include <x86intrin.h>
     #endif

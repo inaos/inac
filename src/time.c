@@ -366,7 +366,7 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch, int id,
+INA_API(ina_rc_t) ina_time_stopwatch_new(ina_stopwatch_t **stopwatch, int id,
 	       					int max_stamps)
 {
     size_t size = INA_TIME_MAX_STAMPS;
@@ -417,7 +417,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch)
 }
 
 
-INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch) 
+INA_API(ina_rc_t) ina_time_stopwatch_free(ina_stopwatch_t **stopwatch)
 {
     INA_VERIFY_NOT_NULL(stopwatch);
     INA_VERIFY_NOT_NULL(*stopwatch);

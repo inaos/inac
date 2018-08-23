@@ -105,7 +105,7 @@ INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_ctx_t *ctx,
+INA_API(ina_rc_t) ina_cron_task_iter_new(ina_cron_ctx_t *ctx,
                                          ina_cron_task_itr_t **iter);
 
 /*
@@ -117,7 +117,7 @@ INA_API(ina_rc_t) ina_cron_task_new_iter(ina_cron_ctx_t *ctx,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_cron_task_free_iter(ina_cron_task_itr_t **iter);
+INA_API(ina_rc_t) ina_cron_task_iter_free(ina_cron_task_itr_t **iter);
 
 /*
  * Get next task

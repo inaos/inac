@@ -49,24 +49,25 @@ static ina_time_event_t *stop_event = NULL;
 
 static ina_rc_t __ina_timer_bench_create_events(ina_timer_t *timer)
 {
-    e1 = ina_timer_event_new(timer, 50);
-    e2 = ina_timer_event_new(timer, 500);
-    e3 = ina_timer_event_new(timer, 100);
-    e4 = ina_timer_event_new(timer, 200);
-    e5 = ina_timer_event_new(timer, 70);
-    e6 = ina_timer_event_new(timer, 100);
-    e7 = ina_timer_event_new(timer, 1000);
-    e8 = ina_timer_event_new(timer, 150);
-    e9 = ina_timer_event_new(timer, 555);
-    e10 = ina_timer_event_new(timer, 2000);
-    e11 = ina_timer_event_new(timer, 1500);
-    e12 = ina_timer_event_new(timer, 30);
-    e13 = ina_timer_event_new(timer, 8);
-    e14 = ina_timer_event_new(timer, 22);
-    e15 = ina_timer_event_new(timer, 111);
-    e16 = ina_timer_event_new(timer, 222);
-    e17 = ina_timer_event_new(timer, 333);
-    stop_event = ina_timer_event_new(timer, 20000);
+    ina_time_event_t *e;
+    ina_timer_event_new(timer, 50, &e1);
+    ina_timer_event_new(timer, 500, &e2);
+    ina_timer_event_new(timer, 100, &e3);
+    ina_timer_event_new(timer, 200 ,&e4);
+    ina_timer_event_new(timer, 70,  &e5);
+    ina_timer_event_new(timer, 100, &e6);
+    ina_timer_event_new(timer, 1000, &e7);
+    ina_timer_event_new(timer, 150, &e8);
+    ina_timer_event_new(timer, 555, &e9);
+    ina_timer_event_new(timer, 2000, &e10);
+    ina_timer_event_new(timer, 1500, &e11);
+    ina_timer_event_new(timer, 30, &e12);
+    ina_timer_event_new(timer, 8, &e13);
+    ina_timer_event_new(timer, 22, &e14);
+    ina_timer_event_new(timer, 111, &e15);
+    ina_timer_event_new(timer, 222, &e16);
+    ina_timer_event_new(timer, 333, &e17);
+    ina_timer_event_new(timer, 20000, &stop_event);
     return INA_SUCCESS;
 }
 
@@ -125,7 +126,7 @@ INA_BENCH(timer, exec, 1) {
     for (;;) {
         ina_time_event_t *e;
         ina_bench_stopwatch_start();
-        e = ina_timer_next_event(timer);
+        ina_timer_next_event(timer, &e);
         total += ina_bench_stopwatch_stop();
         if (e != NULL && e->id == stop_event->id) {
             break;
@@ -152,7 +153,7 @@ INA_BENCH(timer, exec_rdtsc, 1) {
     for (;;) {
         ina_time_event_t *e;
         ina_bench_stopwatch_start();
-        e = ina_timer_next_event(timer);
+        ina_timer_next_event(timer, &e);
         total += ina_bench_stopwatch_stop();
         if (e != NULL && e->id == stop_event->id) {
             break;
