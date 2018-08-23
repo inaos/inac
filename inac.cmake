@@ -515,12 +515,18 @@ function(inac_merge_static_libs LIB)
         add_custom_command(
                 OUTPUT  ${SOURCE_FILE}
                 COMMAND ${CMAKE_COMMAND} -E touch ${SOURCE_FILE}
-                DEPENDS ${ARGN} ${extracts} )
+                DEPENDS ${ARGN} ${extracts})
 
         add_custom_target(${LIB}_merged
                 COMMAND ar -qcs ${C_LIB} *.o
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                 DEPENDS ${extracts} ${ARGN})
+        add_custom_command(
+                POST_BUILD
+                TARGET ${LIB}_merged
+                COMMAND ${CMAKE_COMMAND} -E remove *.o
+                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                DEPENDS ALL)
         add_library(${LIB} STATIC IMPORTED GLOBAL)
         add_dependencies(${LIB} ${LIB}_merged)
         set_target_properties(${LIB}
