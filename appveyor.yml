@@ -119,18 +119,16 @@ artifacts:
     
 deploy_script:
   - ps: |
-        foreach ($artifactName in $artifacts.keys) {
-          Write-Host $artifactName
-          Write-Host $artifacts[$artifactName].path
-        }
         $src = $artifacts["INAC"].path
         $artifact_name = Split-Path $src -leaf
-        $artifact_name -match "(\d+\.)(\d+)"
+        $artifact_name -match "(\d+\.\d+)"
         $artifact_version = $matches[1]
         $target = "inaos/inac/$artifact_version/$artifact_name"
         Write-Host $src
         Write-Host $artifact_name
         Write-Host $artifact_version
         Write-Host $target
-        curl -u$jfrog_artifactory_uid:$jfrog_artifactory_pwd -T $src "https://inaos.jfrog.io/inaos/libs-snapshot-local/$target"
-  
+        $curl_argument = '-u$jfrog_artifactory_uid:$jfrog_artifactory_pwd', '-T', '$src', 'https://inaos.jfrog.io/inaos/libs-snapshot-local/$target'
+        $curl_exe = 'curl.exe'
+        & $curl_exe @curl_argument
+ 
