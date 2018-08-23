@@ -77,7 +77,9 @@ INA_API(ina_rc_t) ina_timer_free(ina_timer_t **timer);
  * Return
  *  Pointer to timer event or NULL if an error occurred.
  */
-INA_API(ina_time_event_t*) ina_timer_event_new(ina_timer_t *timer, time_t msec);
+INA_API(ina_rc_t ) ina_timer_event_new(ina_timer_t *timer,
+                                        time_t msec,
+                                        ina_time_event_t **event);
 
 /*
  * Create a new time event for a timer while providing current time.
@@ -90,9 +92,10 @@ INA_API(ina_time_event_t*) ina_timer_event_new(ina_timer_t *timer, time_t msec);
  * Return
  *  Pointer to timer event or NULL if an error occurred.
  */
-INA_API(ina_time_event_t*) ina_timer_event_new_with_time(ina_timer_t *timer,
-                                                            time_t n_msec,
-                                                            time_t e_msec);
+INA_API(ina_rc_t) ina_timer_event_new_with_time(ina_timer_t *timer,
+                                            time_t n_msec,
+                                            time_t e_msec,
+                                            ina_time_event_t **event);
 /*
  * Delete a time event from a timer.
  *
@@ -112,11 +115,14 @@ INA_API(ina_rc_t) ina_timer_event_free(ina_timer_t *timer,
  *
  * Parameters
  *  timer  Timer to query
+ *  event  Pointer where to store next elapsed time event
+ *         or NULL if no events elapsed.
  *
  * Return
- *  Next elapsed time event or NULL if no events elapsed.
+ *  INA_EEGAIN or INA_SUCCESS
  */
-INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer);
+INA_API(ina_rc_t) ina_timer_next_event(const ina_timer_t *timer,
+                                        ina_time_event_t **event);
 
 /*
  * Get the next elapsed time event by providing the milliseconds since epoch.
@@ -124,12 +130,16 @@ INA_API(ina_time_event_t*) ina_timer_next_event(ina_timer_t *timer);
  * Parameters
  *  timer      Timer to query
  *  now_millis Time since epoch
+ *  event      Pointer where to store next elapsed time event
+ *             or NULL if no events elapsed.
+ *
  *
  * Return
- *  Next elapsed time event or NULL if no events elapsed.
+ *  INA_EEGAIN or INA_SUCCESS
  */
-INA_API(ina_time_event_t*) ina_timer_next_event_with_time(ina_timer_t *timer,
-                                                          time_t now_millis);
+INA_API(ina_rc_t) ina_timer_next_event_with_time(const ina_timer_t *timer,
+                                                 time_t now_millis,
+                                                 ina_time_event_t **event);
 
 /*
  * Calculate time in milliseconds until the next time event will elapse.
@@ -141,7 +151,7 @@ INA_API(ina_time_event_t*) ina_timer_next_event_with_time(ina_timer_t *timer,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_timer_time_to_next_event(ina_timer_t *timer,
+INA_API(ina_rc_t) ina_timer_time_to_next_event(const ina_timer_t *timer,
                                                time_t *how_long_msec);
 
 #ifdef __cplusplus

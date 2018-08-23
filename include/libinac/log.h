@@ -28,6 +28,8 @@
 #ifndef _LIBINAC_LOG_H_
 #define _LIBINAC_LOG_H_
 
+#include <libinac/lib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -109,7 +111,7 @@ typedef struct ina_log_cfg_s {
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg,
+INA_API(ina_rc_t) ina_log_new(ina_log_cfg_t **cfg,
                                int32_t target,
                                ina_log_level_t level,
                                const char *logfile);
@@ -155,7 +157,7 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg);
+INA_API(ina_rc_t) ina_log_free(ina_log_cfg_t **cfg);
 
 #ifdef __cplusplus
 }

@@ -71,7 +71,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_free(ctx, &task));
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_task_new_iter(ctx, &itr));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_task_iter_new(ctx, &itr));
     while (task != NULL) {
         ina_str_t patt;
         INA_TEST_ASSERT_FAILED(ina_cron_task_is_running(task));
@@ -81,7 +81,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
         INA_TEST_ASSERT_SUCCEED(ina_cron_task_next(itr, &task));
     }
     INA_TEST_ASSERT_EQUAL_INTEGER(2, found);
-    INA_TEST_ASSERT_SUCCEED(ina_cron_task_free_iter(&itr));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_task_iter_free(&itr));
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_destroy(&ctx));
 }

@@ -58,16 +58,13 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_NULL(t);
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
-    e1 = ina_timer_event_new(t, 900);
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_timer_event_new(t, 900,&e1));
     INA_TEST_ASSERT_NOT_NULL(e1);
     ina_time_sleep(100);
-    e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_timer_next_event(t, &e2));
     INA_TEST_ASSERT_NULL(e2);
     ina_time_sleep(1000);
-    e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_timer_next_event(t, &e2));
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
     ina_timer_free(&t);
@@ -82,11 +79,10 @@ INA_TEST(timer, stress_test)
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
 
-    e = ina_timer_event_new(t, 3000);
+    ina_timer_event_new(t, 3000, &e);
     for (c = 0; c < 1000000; c++) {
         ina_time_event_t *ne;
-        ne = ina_timer_next_event(t);
-        if (ne != NULL) {
+        if (INA_SUCCEED(ina_timer_next_event(t, &ne))) {
             INA_TEST_ASSERT_SAME(e, ne);
         }
     }
@@ -118,16 +114,13 @@ INA_TEST(timer, event_rdtsc)
     INA_TEST_ASSERT_NOT_NULL(t);
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());
     ina_time_sleep(100);
-    e1 = ina_timer_event_new(t, 900);
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_timer_event_new(t, 900, &e1));
     INA_TEST_ASSERT_NOT_NULL(e1);
     ina_time_sleep(100);
-    e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_timer_next_event(t, &e2));
     INA_TEST_ASSERT_NULL(e2);
     ina_time_sleep(2000);
-    e2 = ina_timer_next_event(t);
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_timer_next_event(t, &e2));
     INA_TEST_ASSERT_NOT_NULL(e2);
     INA_TEST_ASSERT_SAME(e2, e1);
 
@@ -137,8 +130,8 @@ INA_TEST(timer, event_rdtsc)
     nowtm = localtime(&nowtime);
     strftime(tmbuf, sizeof tmbuf, "Timer event started at %Y-%m-%d %H:%M:%S", nowtm);
     INA_TEST_MSG("%s", tmbuf);
-    e1 = ina_timer_event_new(t, 30*1000);
-    while (ina_timer_next_event(t) == NULL);
+    INA_TEST_ASSERT_SUCCEED(ina_timer_event_new(t, 30*1000, &e1));
+    while (INA_RC_ERROR(ina_timer_next_event(t, &e1)) == INA_ERR_TRY_AGAIN);
     gettimeofday(&tv, NULL);
     nowtime = tv.tv_sec;
     nowtm = localtime(&nowtime);

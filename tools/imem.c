@@ -59,7 +59,7 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
     int i;
     int64_t idx = 0;
 
-    if (!INA_SUCCEED(INA_TIME_STOPWATCH_CREATE(&w, 1, -1))) {
+    if (!INA_SUCCEED(INA_TIME_STOPWATCH_NEW(&w, 1, -1))) {
         return ina_err_get_last_rc();
     }
 
@@ -87,7 +87,7 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
         free(__test_array_b);
     }
 
-    INA_TIME_STOPWATCH_DESTROY(&w);
+    INA_TIME_STOPWATCH_FREE(&w);
 
     printf("AVG:\tElapsed: %.5f\t", elapsed_total/iterations);
     printf("MiB: %.5f\t", mib);

@@ -88,12 +88,12 @@ typedef struct ina_time_tsc_s {
 
 
 #ifndef INA_TIME_STOPWATCH_DISABLED
-#define INA_TIME_STOPWATCH_CREATE(pptr_sw, id, max_stamps)  \
-    ina_time_stopwatch_create(pptr_sw, id, max_stamps) 
+#define INA_TIME_STOPWATCH_NEW(pptr_sw, id, max_stamps)  \
+    ina_time_stopwatch_new(pptr_sw, id, max_stamps)
 #define INA_TIME_STOPWATCH_OPEN(id, pptr_sw)                \
     ina_time_stopwatch_open(id, pptr_sw) 
-#define INA_TIME_STOPWATCH_DESTROY(pptr_sw)                 \
-    ina_time_stopwatch_destroy(pptr_sw)
+#define INA_TIME_STOPWATCH_FREE(pptr_sw)                 \
+    ina_time_stopwatch_free(pptr_sw)
 #define INA_TIME_STOPWATCH_START(ptr_sw)                    \
     ina_time_stopwatch_start(ptr_sw,NULL)
 #define INA_TIME_STOPWATCH_START_EX(ptr_sw, ptr_start)      \
@@ -398,7 +398,7 @@ INA_API(ina_rc_t) ina_time_tsc_millis(ina_time_tsc_t *tsc, time_t *now_millis);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch,
+INA_API(ina_rc_t) ina_time_stopwatch_new(ina_stopwatch_t **stopwatch,
                                             int id,
                                             int max_stamps);
 
@@ -436,7 +436,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t *stopwatch,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch);
+INA_API(ina_rc_t) ina_time_stopwatch_free(ina_stopwatch_t **stopwatch);
 
 /*
  * Check if stopwatch started.

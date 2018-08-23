@@ -238,13 +238,10 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
 
     INA_VERIFY_NOT_NULL(flags);
 
-    event = ina_timer_event_new(flags->timer, msec_timeout);
-    if (event == NULL) {
-        return ina_err_get_last_rc();
-    }
+    INA_RETURN_IF_FAILED(ina_timer_event_new(flags->timer, msec_timeout, &event));
 
     while (!INA_SUCCEED(ina_ipc_flags_is_set(flags, wait_for))) {
-        if (ina_timer_next_event(flags->timer) != NULL) {
+        if (INA_SUCCEED(ina_timer_next_event(flags->timer, &event))) {
             timeout = INA_YES;
             break;
         }
