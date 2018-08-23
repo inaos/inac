@@ -312,7 +312,7 @@ function(inac_add_tests)
     if (NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/main.c")
         if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c")
             file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c
-                    "int main(int argc,  char** argv) { return ina_test_run(argc, argv);}"
+                    "#include <libinac/lib.h>\nint main(int argc,  char** argv) { return ina_test_run(argc, argv, NULL);}"
                     )
             message(STATUS "Generate main.c for tests")
         endif ()
@@ -349,7 +349,7 @@ function(inac_add_benchmarks)
     if (NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/bench/main.c")
         if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
             file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c
-                    "int main(int argc,  char** argv) { return ina_bench_run(argc, argv);}"
+                    "#include <libinac/lib>\nint main(int argc,  char** argv) { return ina_bench_run(argc, argv);}"
                     )
         endif ()
         list(APPEND src "${CMAKE_CURRENT_BINARY_DIR}/tests/bench/main.c")
@@ -757,7 +757,7 @@ function(inac_detect_host_arch)
     set(INAC_HOST_ARCH "${ARCH}" PARENT_SCOPE)
 endfunction()
 
-function (inac_make_package)
+function (inac_package)
     cmake_parse_arguments(P "" "NAME;VENDOR;SUMMARY;INSTALL_DIRECTORY" "")
     set(CPACK_GENERATOR ZIP)
     if (P_NAME)
