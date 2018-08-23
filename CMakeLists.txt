@@ -114,4 +114,4 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/libinac
 		FILES_MATCHING
 		PATTERN *.h)
 
-inac_make_package()
+inac_package()
