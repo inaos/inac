@@ -541,7 +541,7 @@ function(inac_merge_libs LIB)
     endif()
 endfunction()
 
-function(inac_artifacts_repository LOCAL REMOTE)
+function(inac_artifact_repository LOCAL REMOTE)
     cmake_parse_arguments(PARSE_ARGV 2 R "" "USRPWD" "")
 
     if (NOT EXISTS "${INAC_REPOSITORY_PATH}")
