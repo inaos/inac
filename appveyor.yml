@@ -104,7 +104,7 @@ build_script:
 after_build:
   - sh: cpack
   - cmd: |
-         sonar-scanner -Dsonar.projectKey=inac -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=../contribs/** -Dsonar.cfamily.gcov.reportsPath=../src -Dsonar.coverage.exclusions=../tests/**,../tools/**
+         C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectKey=inac -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=../contribs/** -Dsonar.cfamily.gcov.reportsPath=../src -Dsonar.coverage.exclusions=../tests/**,../tools/**
          cpack
 
 test_script:
