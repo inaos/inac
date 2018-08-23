@@ -125,7 +125,7 @@ function(inac_enable_log BUILD_TYPE LEVEL)
     if (${BUILD_TYPE} STREQUAL CMAKE_BUILD_TYPE)
         message(STATUS "Logging enabled. Level: ${LEVEL}")
         add_definitions(-DINA_LOG_ENABLED -DINA_LOG_LEVEL=${LEVEL})
-    endif ()
+    endif()
 endfunction()
 
 #
@@ -538,6 +538,26 @@ function(inac_merge_libs LIB)
                 PROPERTIES
                 IMPORTED_LOCATION ${C_LIB}
                 )
+    endif()
+endfunction()
+
+function(inac_artifacts_repository LOCAL REMOTE)
+    cmake_parse_arguments(PARSE_ARGV 2 R "" "USRPWD" "")
+
+    if (NOT EXISTS "${INA_REPOSITORY_PATH}")
+        file(MAKE_DIRECTORY "${INA_REPOSITORY_PATH}")
+    endif()
+    if (NOT INA_REPOSITORY_LOCAL)
+        if (NOT EXISTS "${LOCAL}")
+            file(MAKE_DIRECTORY "${LOCAL}")
+        endif()
+        set(INA_REPOSITORY_LOCAL "${LOCAL}" PARENT_SCOPE)
+    endif()
+    if (NOT INA_REPOSTORY_REMOTE)
+        set(INA_REPOSITORY_REMOTE "${REMOTE}" PARENT_SCOPE)
+    endif()
+    if (NOT INA_REPOSITORY_USRPWD AND R_USRPWD)
+        set(INA_REPOSITORY_USRPWD "${R_USRPWD}" PARENT_SCOPE)
     endif()
 endfunction()
 
