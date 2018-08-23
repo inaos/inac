@@ -116,3 +116,17 @@ after_test:
 artifacts:
   - path: cmake-build-*/_CPack_Packages/**/ZIP/*.zip
     name: INAC
+    
+deploy_script:
+  - ps: |
+        $src = $artifacts['INAC'].path
+        $artifact_name = Split-Path $src -leaf
+        $artifact_name -match "(\d+\.)(\d+)"
+        $artifact_version = $matches[1]
+        $target = "inaos/inac/$artifact_version/$artifact_name"
+        Write-Host $src
+        Write-Host $artifact_name
+        Write-Host $artifact_version
+        Write-Host $target
+        curl -u$jfrog_artifactory_uid:$jfrog_artifactory_pwd -T $src "https://inaos.jfrog.io/inaos/libs-snapshot-local/$target"
+  
