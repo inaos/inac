@@ -1,23 +1,7 @@
 cmake_minimum_required (VERSION 3.1)
 project (inac)
-
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/inac.cmake")
-	if (NOT EXISTS "${CMAKE_SOURCE_DIR}/inac.cmake")
-		message(STATUS "Downloading inac.cmake from https://github.com/inaos/inac-cmake")
-		file(DOWNLOAD "https://raw.githubusercontent.com/inaos/inac-cmake/0.1.0/inac.cmake"
-			"${CMAKE_BINARY_DIR}/inac.cmake" STATUS DS)
-		if(NOT "${DS}"  MATCHES "0;")
-			file(REMOVE "${CMAKE_BINARY_DIR}/inac.cmake")
-			message(FATAL_ERROR "Failed to download inac.cmake")
-		endif()
-	else()
-		message(STATUS "Use local inac.cmake")
-		configure_file("${CMAKE_SOURCE_DIR}/inac.cmake" "${CMAKE_BINARY_DIR}/inac.cmake" COPYONLY)
-	endif()
-endif()
-
 include("inac.cmake")
-inac_set_version(0 9 0 OUTPUT ${CMAKE_SOURCE_DIR}/include/libinac/version.h)
+inac_version(0 9 0 OUTPUT include/libinac/version.h)
 inac_enable_aes()
 inac_enable_sse4()
 
@@ -65,17 +49,17 @@ set_target_properties(
 		PROPERTIES
 		COMPILE_DEFINITIONS INA_LIB=1)
 
-inac_add_contrib_lib_ex_win32(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND src/msvcbuild.bat COMMAND_ARGS static LIBNAME lua51 BUILD_TYPES release Release RelWithDebInfo)
-inac_add_contrib_lib_ex_win32(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND src/msvcbuild_debug.bat COMMAND_ARGS static LIBNAME lua51d BUILD_TYPES debug Debug)
+inac_add_contrib_lib_ex_win32(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND src/msvcbuild.bat COMMAND_ARGS static LIBNAME lua51 BUILD_TYPES MinSizeRel Release RelWithDebInfo)
+inac_add_contrib_lib_ex_win32(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND src/msvcbuild_debug.bat COMMAND_ARGS static LIBNAME lua51d BUILD_TYPES  Debug)
 inac_add_contrib_lib_ex_unix(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND_ARGS amalg)
 inac_add_contrib_lib_ex_unix(memhash DEPENDS inac_c OMIT_PREFIX)
 inac_add_contrib_lib_ex_win32(memhash DEPENDS inac_c COMMAND memhash_64.bat ARCH x86_64)
 inac_add_contrib_lib_ex_win32(memhash DEPENDS inac_c COMMAND memhash_32.bat ARCH x86)
 inac_add_contrib_lib_ex_linux(cpu-topology DEPENDS inac_c OMIT_PREFIX)
-inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_64.bat ARCH x86_64 COMMAND_ARGS /MD BUILD_TYPES release Release RelWithDebInfo)
-inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_32.bat ARCH x86 COMMAND_ARGS /MD BUILD_TYPES release Release RelWithDebInfo)
-inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_64.bat ARCH x86_64 COMMAND_ARGS /MDd BUILD_TYPES debug Debug)
-inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_32.bat ARCH x86 COMMAND_ARGS /MDd BUILD_TYPES debug Debug)
+inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_64.bat ARCH x86_64 COMMAND_ARGS /MD BUILD_TYPES  Release RelWithDebInfo MinSizeRel)
+inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_32.bat ARCH x86 COMMAND_ARGS /MD BUILD_TYPES  Release RelWithDebInfo MinSizeRel)
+inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_64.bat ARCH x86_64 COMMAND_ARGS /MDd BUILD_TYPES  Debug)
+inac_add_contrib_lib_ex_win32(cpu-topology DEPENDS inac_c COMMAND inac_32.bat ARCH x86 COMMAND_ARGS /MDd BUILD_TYPES  Debug)
 
 
 inac_merge_static_libs(inac inac_c ${INAC_LIBS})
@@ -100,9 +84,15 @@ else()
     	    DESTINATION lib
         	COMPONENT libraries)
 endif()
+install(TARGETS ${INAC_TOOLS}
+		DESTINATION bin
+		COMPONENT bninaries)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/libinac
         DESTINATION include
 		FILES_MATCHING
 		PATTERN *.h)
-
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/doc/
+		DESTINATION doc
+		FILES_MATCHING
+		PATTERN *.md)
 inac_package()

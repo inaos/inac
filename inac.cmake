@@ -3,6 +3,11 @@ set(DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(INAC_CMAKE_VERSION "0.1.0")
 message(STATUS "INAC CMake version ${INAC_CMAKE_VERSION}")
+
+if(NOT ${CMAKE_BUILD_TYPE} MATCHES "Debug|Release|RelWithDebInfo|MinSizeRel")
+    message(STATUS "Unsupported buidl type ${CMAKE_BUILD_TYPE} , allowed Debug|Release|RelWithDebInfo|MinSizeRel")
+endif()
+
 if (WIN32)
     set(INAC_USER_HOME "$ENV{USERPROFILE}")
 else()
@@ -25,19 +30,21 @@ if (MSVC)
     STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags3 ${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
     SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO ${replacementFlags3})
     SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/INCREMENTAL:NO ${replacementFlags3}" )
+    STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags3 ${CMAKE_EXE_LINKER_FLAGS_RELEASE})
+    SET(CMAKE_EXE_LINKER_FLAGS_RELEASE ${replacementFlags3})
+    SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "/INCREMENTAL:NO ${replacementFlags3}" )
+    STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags3 ${CMAKE_EXE_LINKER_FLAGS_MINSIZE})
+    SET(CMAKE_EXE_LINKER_FLAGS_MINSIZE ${replacementFlags3})
+    SET(CMAKE_EXE_LINKER_FLAGS_MINSIZE "/INCREMENTAL:NO ${replacementFlags3}" )
 endif()
 
 
-include_directories("${PROJECT_BINARY_DIR}"
+include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include"
         "${CMAKE_SOURCE_DIR}/include"
         "${CMAKE_SOURCE_DIR}"
         "${DEPS_DIR}")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
-    SET(CMAKE_BUILD_TYPE RelWithDebInfo)
-    message(WARNING "Build type 'Release' not supported, switched to 'RelWithDebInfo'")
-endif ()
-if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "debug")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG)
 endif ()
 
@@ -131,7 +138,14 @@ endfunction()
 #
 #
 #
-function(inac_set_version major minor micro)
+function (inac_enable_snapshot)
+    set(INAC_SNAPSHOT ON PARENT_SCOPE)
+endfunction()
+
+#
+#
+#
+function(inac_version major minor micro)
     cmake_parse_arguments(PARSE_ARGV 3 VER "" "OUTPUT" "")
     set(INAC_PROJECT_MAJOR_VERSION ${major})
     set(INAC_PROJECT_MINOR_VERSION ${minor})
@@ -142,8 +156,8 @@ function(inac_set_version major minor micro)
     set(INAC_PROJECT_MAJOR_VERSION ${major} PARENT_SCOPE)
     set(INAC_PROJECT_MINOR_VERSION ${minor} PARENT_SCOPE)
     set(INAC_PROJECT_MICRO_VERSION ${micro} PARENT_SCOPE)
-    if (EXISTS ${VER_OUTPUT}.in)
-        configure_file(${VER_OUTPUT}.in ${VER_OUTPUT})
+    if (EXISTS ${CMAKE_SOURCE_DIR}/${VER_OUTPUT}.in)
+        configure_file(${CMAKE_SOURCE_DIR}/${VER_OUTPUT}.in ${VER_OUTPUT})
     endif()
 endfunction()
 
@@ -358,6 +372,7 @@ endfunction(inac_add_benchmarks)
 function(inac_add_tools)
     remove_definitions(-DINA_LIB)
     message(STATUS "Platform libs: ${PLATFORM_LIBS}")
+    set(tools "")
     file(GLOB src ${CMAKE_SOURCE_DIR}/tools/*.c)
     foreach (tool_src ${src})
         string(REGEX MATCH "^(.*)\\.[^.]*$" dummy ${tool_src})
@@ -365,7 +380,9 @@ function(inac_add_tools)
         STRING(REGEX REPLACE "^${CMAKE_SOURCE_DIR}/tools/" "" tool ${tool})
         add_executable(${tool} ${tool_src})
         target_link_libraries(${tool} ${ARGN} ${INAC_DEPENDENCY_LIBS} ${PLATFORM_LIBS})
+        list(APPEND tools ${tool})
     endforeach ()
+    set(INAC_TOOLS ${tools} PARENT_SCOPE)
 endfunction(inac_add_tools)
 
 #
@@ -408,18 +425,6 @@ macro(inac_post_copy_file_linux TARGET FILE)
     endif()
 endmacro()
 
-#
-#
-#
-function(inac_merge_headers OUT_FILE)
-    file(WRITE ${OUT_FILE}.in "")
-    foreach(file ${ARGN})
-        file(READ ${file} CONTENT)
-        file(APPEND ${OUT_FILE}.in "${CONTENT}")
-        message(STATUS "Added ${file} for merge in ${OUT_FILE}")
-    endforeach()
-    configure_file(${OUT_FILE}.in ${OUT_FILE} COPYONLY)
-endfunction()
 
 #
 #
@@ -429,16 +434,16 @@ function(inac_add_contribs_headers)
     foreach(file ${ARGN})
         message(STATUS "Include contrib header ${file}")
         string(CONCAT INAC_CONTRIBS_HEADERS ${INAC_CONTRIBS_HEADERS} "#include <libinac/contribs/" ${file} ">\n")
-        configure_file(${DEPS_DIR}/${file} ${CMAKE_SOURCE_DIR}/include/libinac/contribs/${file} COPYONLY)
+        configure_file(${DEPS_DIR}/${file} include/libinac/contribs/${file} COPYONLY)
     endforeach()
-    configure_file(${CMAKE_SOURCE_DIR}/include/libinac/contribs.h.in ${CMAKE_SOURCE_DIR}/include/libinac/contribs.h)
+    configure_file(${CMAKE_SOURCE_DIR}/include/libinac/contribs.h.in include/libinac/contribs.h)
 endfunction()
 #
 # Add lua file to compile
 #
 function(inac_add_luafiles TARGET)
     if(WIN32)
-        if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "debug")
+        if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             set(LUAJIT_EXE "luajitd.exe")
         else()
             set(LUAJIT_EXE "luajit.exe")
@@ -765,10 +770,15 @@ function (inac_package)
         set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${P_SUMMARY})
     endif()
     set(CPACK_PACKAGE_VERSION ${INAC_PROJECT_MAJOR_VERSION}.${INAC_PROJECT_MINOR_VERSION}.${INAC_PROJECT_MICRO_VERSION})
-    set(CPACK_PACKAGE_VERSION_MAJOR ${INAC_PROJECT_MAJOR_VERSION})
+    set(CPACK_PACKAGE_VERSION_MAJOR ${${INAC_PROJECT_MAJOR_VERSION}})
     set(CPACK_PACKAGE_VERSION_MINOR ${INAC_PROJECT_MINOR_VERSION})
     set(CPACK_PACKAGE_VERSION_MICRO ${INAC_PROJECT_MICRO_VERSION})
-    inac_artifact_name("${CPACK_PACKAGE_NAME}" "${CPACK_PACKAGE_VERSION}" CPACK_PACKAGE_FILE_NAME)
+    if (NOT INAC_SNAPSHOT)
+        set(version "${CPACK_PACKAGE_VERSION}")
+    else()
+        set(version "${INAC_PROJECT_MAJOR_VERSION}.${INAC_PROJECT_MINOR_VERSION}-snapshot")
+    endif()
+    inac_artifact_name("${CPACK_PACKAGE_NAME}" "${version}" CPACK_PACKAGE_FILE_NAME)
     include(CPack)
 endfunction()
 
@@ -815,6 +825,8 @@ inac_load_config_file("${INAC_REPOSITORY_PATH}/repository.txt" FALSE)
 inac_enable_trace(Debug 1)
 inac_enable_log(Debug 4)
 inac_enable_log(RelWithDebInfo 3)
+inac_enable_log(Release 3)
+inac_enable_log(MinRelSize 3)
 inac_platform_libs_for_win("Ws2_32.lib;Psapi.lib;Iphlpapi.lib;winmm.lib;DbgHelp.lib")
 inac_platform_libs_for_linux("-lrt -ldl -lm")
 inac_platform_libs_for_osx("-ldl -lm")

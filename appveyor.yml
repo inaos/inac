@@ -14,66 +14,66 @@ environment:
   matrix:
     - MY_NAME: Linux Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: Debug
       
     - MY_NAME: Linux Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
-      BUILD_CONFIGURATION: release
+      BUILD_CONFIGURATION: RelWithDebInfo
       
     - MY_NAME: Windows VS 2015 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86
       
     - MY_NAME: Windows VS 2015 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86_64
 
     - MY_NAME: Windows VS 2015 Release 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: release
+      BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86
 
     - MY_NAME: Windows VS 2015 Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: release
+      BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86_64
 
     - MY_NAME: Windows VS 2017 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86
 
     - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86_64
 
     - MY_NAME: Windows VS 2017 Release 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: release
+      BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86
 
     - MY_NAME: Windows VS 2017 Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: release
+      BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86_64
 
 
