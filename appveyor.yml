@@ -125,7 +125,7 @@ after_test:
   #          throw "Forcing build failure due to unit test failure(s)"
   #      }
 artifacts:
-  - path: cmake-build-*/_CPack_Packages/**/ZIP/*.zip
+  - path: cmake-build-*/*.zip
     name: INAC
     
 deploy_script:
