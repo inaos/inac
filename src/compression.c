@@ -38,12 +38,12 @@
 struct ina_compression_state_s;
 
 typedef ina_rc_t (*ina_compression_compress_fn)(struct ina_compression_state_s *state, const unsigned char *src,
-                                                unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more);
+                                                unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more);
 
 typedef ina_rc_t (*ina_compression_decompress_fn)(struct ina_compression_state_s *state, const unsigned char *src,
-                                                  size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more);
+                                                  int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more);
 
-typedef ina_rc_t (*ina_compression_dest_len_fn)(struct ina_compression_state_s *state, size_t *dst_len);
+typedef ina_rc_t (*ina_compression_dest_len_fn)(struct ina_compression_state_s *state, int *dst_len);
 
 struct ina_compression_state_s {
     ina_compression_type_t type;
@@ -51,8 +51,8 @@ struct ina_compression_state_s {
     ina_compression_decompress_fn decompress_fn;
     ina_compression_dest_len_fn dest_len_fn;
     ina_mempool_t *mempool;
-    size_t chunk_src_len;
-    size_t chunk_proposed_dst_len;
+    int chunk_src_len;
+    int chunk_proposed_dst_len;
     void *statedata;
     int flags;
     int more;
@@ -61,7 +61,7 @@ struct ina_compression_state_s {
 };
 
 static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, const unsigned char *src, 
-                                             unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
+                                             unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
@@ -78,7 +78,7 @@ static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, con
 }
 
 static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, const unsigned char *src, 
-                                             unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
+                                             unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
@@ -95,7 +95,7 @@ static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, c
 }
 
 static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *state, const unsigned char *src, 
-                                                    size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
+                                                    int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     int read = 0;
     INA_ASSERT_NOTNULL(state);
@@ -113,7 +113,7 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
 }
 
 static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *state, const unsigned char *src, 
-                                                    size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
+                                                    int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
@@ -128,7 +128,7 @@ static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *sta
     return INA_SUCCESS;
 }
 
-static ina_rc_t ina_compression_bounds_lz4(struct ina_compression_state_s *state, size_t *dst_len)
+static ina_rc_t ina_compression_bounds_lz4(struct ina_compression_state_s *state, int *dst_len)
 {
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(dst_len);
@@ -156,7 +156,7 @@ static void ina_mz_wp_free_func(void *opaque, void *address)
 }
 
 static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, const unsigned char *src, 
-                                               unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
+                                               unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     int status;
     mz_stream *stream;
@@ -210,7 +210,7 @@ static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, c
 }
 
 static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state, const unsigned char *src, 
-                                                 size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
+                                                 int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     int status;
     mz_stream *stream;
@@ -263,7 +263,7 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     return INA_SUCCESS;
 }
 
-static ina_rc_t ina_compression_bounds_miniz(struct ina_compression_state_s *state, size_t *dst_len)
+static ina_rc_t ina_compression_bounds_miniz(struct ina_compression_state_s *state, int *dst_len)
 {
     INA_ASSERT_NOTNULL(state);
 
@@ -363,7 +363,7 @@ INA_API(ina_rc_t) ina_compression_free(ina_compression_state_t **state)
 }
 
 INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state, const unsigned char *src,
-                                                 size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
+                                                 int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     INA_VERIFY_NOT_NULL(state);
     INA_VERIFY_NOT_NULL(src);
@@ -377,7 +377,7 @@ INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state,
 }
 
 INA_API(ina_rc_t) ina_compression_decompress_chunk(ina_compression_state_t *state, const unsigned char *src,
-                                                   size_t src_len, unsigned char *dst, size_t dst_len, size_t *wrote_len, size_t *read_len, int more)
+                                                   int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     INA_VERIFY_NOT_NULL(state);
     INA_VERIFY_NOT_NULL(src);
@@ -389,7 +389,7 @@ INA_API(ina_rc_t) ina_compression_decompress_chunk(ina_compression_state_t *stat
     return state->decompress_fn(state, src, src_len, dst, dst_len, wrote_len, read_len, more);
 }
 
-INA_API(ina_rc_t) ina_compression_get_destination_len(ina_compression_state_t *state, size_t src_len, size_t *len)
+INA_API(ina_rc_t) ina_compression_get_destination_len(ina_compression_state_t *state, int src_len, int *len)
 {
     INA_VERIFY_NOT_NULL(state);
     INA_VERIFY_NOT_NULL(len);

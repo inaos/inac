@@ -139,8 +139,8 @@ INA_API(ina_rc_t) ina_compression_free(ina_compression_state_t **state);
  */
 INA_API(ina_rc_t) ina_compression_get_destination_len(
                                                 ina_compression_state_t *state,
-                                                size_t src_len,
-                                                size_t *dst_len);
+                                                int src_len,
+                                                int *dst_len);
 /*
  * Compress a chunk of data.
  *
@@ -160,11 +160,11 @@ INA_API(ina_rc_t) ina_compression_get_destination_len(
  */
 INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state,
                                                  const unsigned char *src,
-                                                 size_t src_len,
+                                                 int src_len,
                                                  unsigned char *dst,
-                                                 size_t dst_len,
-                                                 size_t *wrote_len,
-                                                 size_t *read_len,
+                                                 int dst_len,
+                                                 int *wrote_len,
+                                                 int *read_len,
                                                  int more);
 /*
  * Decompress a chunk of data.
@@ -185,11 +185,11 @@ INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state,
  */
 INA_API(ina_rc_t) ina_compression_decompress_chunk(ina_compression_state_t *state,
                                                    const unsigned char *src,
-                                                   size_t src_len,
+                                                   int src_len,
                                                    unsigned char *dst,
-                                                   size_t dst_len,
-                                                   size_t *wrote_len,
-                                                   size_t *read_len,
+                                                   int dst_len,
+                                                   int *wrote_len,
+                                                   int *read_len,
                                                    int more);
 
 #ifdef __cplusplus
