@@ -139,6 +139,7 @@ deploy_script:
         Write-Host $artifact_name
         Write-Host $artifact_version
         Write-Host $target
+        Write-Host $Env:OS
         $creds = "$env:jfrog_artifactory_uid:$env:jfrog_artifactory_pwd"
         $url = "https://inaos.jfrog.io/inaos/libs-snapshot-local/$target"
 
