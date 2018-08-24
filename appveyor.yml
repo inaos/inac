@@ -104,7 +104,9 @@ build_script:
 after_build:
   - sh: cpack
   - cmd: |
-         C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectKey=inac -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=../contribs/** -Dsonar.cfamily.gcov.reportsPath=../src -Dsonar.coverage.exclusions=../tests/**,../tools/**
+         if "%BUILD_ARCH%" == "x86_64" (
+            C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/** -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**
+         )
          cpack
 
 test_script:
@@ -144,6 +146,7 @@ deploy_script:
         $url = "https://inaos.jfrog.io/inaos/libs-snapshot-local/$target"
 
         if ($Env:OS -eq "Windows_NT") {
+          Write-Host "curl.exe -u$creds  -T $src $url"
           curl.exe "-u$creds" "-T" $src $url
         } else {
           /usr/bin/curl "-u$creds" "-T" $src $url
