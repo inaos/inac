@@ -87,6 +87,7 @@ install:
   - sh:  |
          sudo sh -c "echo 'deb https://appveyor:N9z6j8yVukyeLcfE@inaos.jfrog.io/inaos/debian-local xenial main' >> /etc/apt/sources.list"
          sudo wget --http-user=$jfrog_artifactory_uid --http-password=$jfrog_artifactory_pwd -O - https://inaos.jfrog.io/inaos/api/gpg/key/public | sudo apt-key add -
+         sudo apt-get update
          sudo apt-get install inaos-dev-quality-tools
          appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
   - cmd: |
@@ -97,7 +98,7 @@ install:
 build_script:
   - sh: |
         mkdir cmake-build-$BUILD_CONFIGURATION
-        p7zip e build-wrapper-linux-x86.zip -ocmake-build-%BUILD_CONFIGURATION%
+        7z e build-wrapper-linux-x86.zip -ocmake-build-%BUILD_CONFIGURATION%
         cd cmake-build-$BUILD_CONFIGURATION
         cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION
         build-wrapper-linux-x86-64 --out-dir bw-output make
