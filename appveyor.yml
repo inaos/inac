@@ -165,7 +165,7 @@ deploy_script:
 
         if ($Env:OS -eq "Windows_NT") {
           Write-Host "curl.exe -u${user}:${pwd}  -T $src $url"
-          curl.exe "-u${user}:${pwd}" "-T" $src $url 2> $null
+          curl.exe "-u${user}:${pwd}" "-T" $src $url > $null
         } else {
-          /usr/bin/curl "-u${user}:${pwd}" "-T" $src $url 2> $null
+          /usr/bin/curl "-u${user}:${pwd}" "-T" $src $url > $null
         }
