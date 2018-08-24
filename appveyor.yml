@@ -149,12 +149,13 @@ deploy_script:
         Write-Host $artifact_version
         Write-Host $target
         Write-Host $Env:OS
-        $creds = "$env:jfrog_artifactory_uid:$env:jfrog_artifactory_pwd"
+        $user = $env:jfrog_artifactory_uid
+        $pwd = $env:jfrog_artifactory_pwd
         $url = "https://inaos.jfrog.io/inaos/libs-snapshot-local/$target"
 
         if ($Env:OS -eq "Windows_NT") {
-          Write-Host "curl.exe -u$creds  -T $src $url"
-          curl.exe "-u$creds" "-T" $src $url
+          Write-Host "curl.exe -u$user:$pwd  -T $src $url"
+          curl.exe "-u$user:$pwd" "-T" $src $url
         } else {
-          /usr/bin/curl "-u$creds" "-T" $src $url
+          /usr/bin/curl "-u$user:$pwd" "-T" $src $url
         }
