@@ -169,4 +169,4 @@ deploy_script:
         } else {
           $ret = /usr/bin/curl "-u${user}:${pwd}" "-T" $src 2>1
         }
-        $host.SetShouldExit(0)
+        $LastExitCode = 0
