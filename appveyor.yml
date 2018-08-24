@@ -120,7 +120,7 @@ build_script:
          build-wrapper-win-x86-64.exe --out-dir bw-output nmake
 after_build:
   - sh: |
-        if [ $RUN_SONAR == "yes" ]; then sonar-scanner -Dsonar.projectBaseDir=$APPVEYOR_BUILD_FOLDER -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-$BUILD_CONFIGURATION -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**; fi
+        if [ $RUN_SONAR == "yes" ]; then /opt/dev/tool/sonar-scanner-3.2.0.1227/bin/sonar-scanner -Dsonar.projectBaseDir=$APPVEYOR_BUILD_FOLDER -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-$BUILD_CONFIGURATION -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**; fi
         cpack
   - cmd: |
          if "%RUN_SONAR%"=="yes" C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-%BUILD_CONFIGURATION% -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**
