@@ -44,9 +44,9 @@ struct ina_cpu_ctx_s {
     ina_cpu_feature_t features;
     ina_str_t brand;
     ina_str_t vendor;
-    size_t l1_data_bytes;
-    size_t l2_bytes;
-    size_t l3_bytes;
+	unsigned long l1_data_bytes;
+	unsigned long l2_bytes;
+	unsigned long l3_bytes;
     size_t cache_line;
     int ipc_sp;
     int ipc_dp;
@@ -673,8 +673,11 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 #ifndef INA_OS_OSX
 #ifdef INA_OS_WIN32
     HANDLE pid = GetCurrentProcess();
-    DWORD_PTR processAffinityMask = 1 << cpuid;
-
+#ifdef INA_CPU_X86_64
+    DWORD_PTR processAffinityMask = 1ULL << cpuid;
+#else
+	DWORD_PTR processAffinityMask = 1UL << cpuid;
+#endif
     /* Set Affinity */
     if (!SetProcessAffinityMask(pid, processAffinityMask)) {
         return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
