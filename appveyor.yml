@@ -111,7 +111,7 @@ build_script:
         7z e build-wrapper-linux-x86.zip -ocmake-build-$BUILD_CONFIGURATION
         cd cmake-build-$BUILD_CONFIGURATION
         cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION
-        build-wrapper-linux-x86-64 --out-dir bw-output make
+        build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir bw-output make
   - cmd: |
          mkdir cmake-build-%BUILD_CONFIGURATION%
          7z e build-wrapper-win-x86.zip -ocmake-build-%BUILD_CONFIGURATION%
