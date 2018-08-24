@@ -38,10 +38,10 @@ static const char *my_test_string = "Good morning Dr. Chandra. This is Hal. I am
 static void __ina_test_compression(ina_mempool_t *pool, ina_compression_type_t ct, ina_compression_mode_t cm)
 {
     ina_compression_state_t *cstate;
-    size_t dest_len;
-    size_t src_len = strlen(my_test_string);
-    size_t wrote_len;
-    size_t read_len;
+    int dest_len;
+    int src_len = (int)strlen(my_test_string);
+    int wrote_len;
+    int read_len;
     unsigned char *dest_buf;
     unsigned char *buf;
 
