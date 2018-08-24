@@ -165,10 +165,8 @@ deploy_script:
 
         if ($Env:OS -eq "Windows_NT") {
           Write-Host "curl.exe -u${user}:${pwd}  -T $src $url"
-          try {
-            $ret = curl.exe "-u${user}:${pwd}" "-T" $src $url 2>1
-          } Catch {
-          }
+          $ret = curl.exe "-u${user}:${pwd}" "-T" $src $url 2>1
         } else {
           $ret = /usr/bin/curl "-u${user}:${pwd}" "-T" $src 2>1
         }
+        $host.SetShouldExit(0)
