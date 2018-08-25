@@ -546,7 +546,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, 
 			const char* user_data1, const char* user_data2)
 {
-    int64_t si = 0;
+    size_t si = 0;
     ina_stopwatch_ts_t *ts = NULL;
 
     INA_VERIFY_NOT_NULL(stopwatch);
@@ -658,9 +658,14 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
      }
 
      if (create) {
-        ina_mem_set(&(*stopwatch)->tv, size, 0);
-        (*stopwatch)->tv->max_stamps = max_stamps;
-        (*stopwatch)->tv->sec_duration = -1.0;
+		 int stamps = 0;
+		 if (size > INT32_MAX) {
+			 return INA_ERROR(INA_ERR_OVERFLOW);
+		 }
+		 stamps = (int)size;
+		 ina_mem_set(&(*stopwatch)->tv, stamps, 0);
+		 (*stopwatch)->tv->max_stamps = max_stamps;
+		 (*stopwatch)->tv->sec_duration = -1.0;
      }
 #ifdef INA_OS_WIN32
      (*stopwatch)->freq_sec = __ina_freq_sec();
