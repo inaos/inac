@@ -162,7 +162,7 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
 
 
     /* do the call */
-    nres = (int)strlen(sig);
+    nres = (int)strlen(sig); /* We can assume a function would not return more than INT_MAX variables */
     if (lua_pcall(ctx->lstate, narg, nres, 0) != 0) {
         INA_ERROR(INA_NN_SCRIPT|INA_ERR_FAILED);
         lua_pop(ctx->lstate, 1);

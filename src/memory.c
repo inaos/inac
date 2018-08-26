@@ -772,11 +772,17 @@ __ina_shm_close(ina_mempool_t *pool)
 static ina_rc_t 
 __ina_shm_open(ina_mempool_t *pool)
 {
+	DWORD pool_size;
     INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->label);
     INA_ASSERT(pool->size > 0);
     INA_ASSERT(pool->cf&INA_MEM_SHARED);
     INA_ASSERT_NULL(pool->m);
+
+	if (pool->size > MAXDWORD) {
+		return INA_ERROR(INA_NN_POOL | INA_ERR_EXCEEDED);
+	}
+	pool_size = (DWORD)pool->size;
 
     pool->shm_handle = CreateFileMapping(
         INVALID_HANDLE_VALUE,
