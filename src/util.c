@@ -45,7 +45,7 @@ static const unsigned char base64_decode_tab[] = {
 
 INA_API(ina_rc_t) ina_util_base64_encode_length(size_t in_length, unsigned int line_length, size_t *out_length)
 {
-    unsigned int adjustment, code_padded_size, newline_size = 0;
+    size_t adjustment, code_padded_size, newline_size = 0;
     INA_VERIFY_NOT_NULL(out_length);
     INA_VERIFY(line_length != 0);
 
