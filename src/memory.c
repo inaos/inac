@@ -782,8 +782,8 @@ __ina_shm_open(ina_mempool_t *pool)
         INVALID_HANDLE_VALUE,
         NULL,
         PAGE_READWRITE,
-        0,
-        pool->size,
+        INA_HIGH32(pool->size),
+        INA_LOW32(pool->size),
         ina_str_cstr(pool->label));
 
     if (pool->shm_handle == NULL) {

@@ -1014,6 +1014,14 @@ typedef uint_least32_t uint_fast32_t;
 #define INA_MIN(a,b) min(a,b)
 #endif
 
+#ifdef INA_CPU_X86_64
+#define INA_LOW32(x)       ((uint32_t)(x))
+#define INA_HIGH32(x)      ((uint32_t)(((uint64_t)(x)) >> 32))
+#else
+#define INA_LOW32(x)       (x)
+#define INA_HIGH32(x)      (0UL)
+#endif
+
 #define INA_LOW(x)       ((uint8_t)(x))
 #define INA_HIGH(x)      ((uint8_t)(((uint16_t)(x)) >> 8))
 #define INA_TOWORD(x,y)  (((x) << 8) | y)

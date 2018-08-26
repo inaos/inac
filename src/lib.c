@@ -544,7 +544,7 @@ __ina_get_binpath(ina_str_t path)
 #elif INA_OS_WIN32
     HMODULE hMod;
     DWORD ret;
-    size_t buf_size = ina_str_size(path);
+    DWORD buf_size = (DWORD)ina_str_size(path);
     char *buf = (char*)ina_str_cstr(path);
 
     hMod = GetModuleHandle(NULL);
