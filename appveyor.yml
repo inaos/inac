@@ -2,7 +2,6 @@ branches:
   # whitelist
   only:
     - master
-    - develop
 
 environment:
   jfrog_artifactory_uid: appveyor
