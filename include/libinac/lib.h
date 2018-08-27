@@ -118,18 +118,18 @@ extern "C" {
 
 #define INA_VERSION       INA_NUM2STR(INA_MAJOR_VERSION)"." \
                           INA_NUM2STR(INA_MINOR_VERSION)"." \
-                          INA_NUM2STR(INA_MICRO_VERSION)
+                          INA_NUM2STR(INA_PATCH_VERSION)
 
 /* Version as a 3-byte hex number, e.g. 0x010201 == 1.2.1. Use this
  * for numeric comparisons, e.g. #if INA_VERSION_HEX >= ... */
 #define INA_VERSION_HEX  ((INA_MAJOR_VERSION << 16) |   \
                           (INA_MINOR_VERSION << 8)  |   \
-                          (INA_MICRO_VERSION << 0))
+                          (INA_PATCH_VERSION << 0))
 
 /* Revsion number as 2-byte hex number e.g 0x900 == 0.9. Use this
  * for numeric comparisons, e.g. #if INA_REVISION_HEX >= ... */
 #define INA_REVISION_HEX ((INA_MINOR_VERSION << 8)  |   \
-                          (INA_MICRO_VERSION << 0))
+                          (INA_PATCH_VERSION << 0))
 
 /* Source location */
 #define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)

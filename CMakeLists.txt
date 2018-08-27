@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.1)
-project (inac)
+project(inac)
 include("inac.cmake")
-inac_version(0 9 0 OUTPUT include/libinac/version.h)
+inac_version("0.9.0" HEADER include/libinac/version.h)
 inac_enable_aes()
 inac_enable_sse4()
 
