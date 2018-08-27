@@ -233,7 +233,7 @@ INA_API(ina_rc_t) ina_ipc_flags_clear(ina_ipc_flags_t *flags, uint64_t value)
 
 INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait_for, time_t msec_timeout)
 {
-    ina_time_event_t *event;
+    ina_timer_event_t *event;
     int timeout = INA_NO;
 
     INA_VERIFY_NOT_NULL(flags);

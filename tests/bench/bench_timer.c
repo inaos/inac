@@ -28,28 +28,28 @@
 #include <stdlib.h>
 #include <libinac/lib.h>
 
-static ina_time_event_t *e1 = NULL;
-static ina_time_event_t *e2 = NULL;
-static ina_time_event_t *e3 = NULL;
-static ina_time_event_t *e4 = NULL;
-static ina_time_event_t *e5 = NULL;
-static ina_time_event_t *e6 = NULL;
-static ina_time_event_t *e7 = NULL;
-static ina_time_event_t *e8 = NULL;
-static ina_time_event_t *e9 = NULL;
-static ina_time_event_t *e10 = NULL;
-static ina_time_event_t *e11 = NULL;
-static ina_time_event_t *e12 = NULL;
-static ina_time_event_t *e13 = NULL;
-static ina_time_event_t *e14 = NULL;
-static ina_time_event_t *e15 = NULL;
-static ina_time_event_t *e16 = NULL;
-static ina_time_event_t *e17 = NULL;
-static ina_time_event_t *stop_event = NULL;
+static ina_timer_event_t *e1 = NULL;
+static ina_timer_event_t *e2 = NULL;
+static ina_timer_event_t *e3 = NULL;
+static ina_timer_event_t *e4 = NULL;
+static ina_timer_event_t *e5 = NULL;
+static ina_timer_event_t *e6 = NULL;
+static ina_timer_event_t *e7 = NULL;
+static ina_timer_event_t *e8 = NULL;
+static ina_timer_event_t *e9 = NULL;
+static ina_timer_event_t *e10 = NULL;
+static ina_timer_event_t *e11 = NULL;
+static ina_timer_event_t *e12 = NULL;
+static ina_timer_event_t *e13 = NULL;
+static ina_timer_event_t *e14 = NULL;
+static ina_timer_event_t *e15 = NULL;
+static ina_timer_event_t *e16 = NULL;
+static ina_timer_event_t *e17 = NULL;
+static ina_timer_event_t *stop_event = NULL;
 
 static ina_rc_t __ina_timer_bench_create_events(ina_timer_t *timer)
 {
-    ina_time_event_t *e;
+    ina_timer_event_t *e;
     ina_timer_event_new(timer, 50, &e1);
     ina_timer_event_new(timer, 500, &e2);
     ina_timer_event_new(timer, 100, &e3);
@@ -118,18 +118,20 @@ INA_BENCH_END(timer, exec) {}
 INA_BENCH(timer, exec, 1) {
     ina_timer_t *timer;
     int64_t total = 0;
+    uint64_t id;
+    uint64_t stop_id;
 
     INA_MUST_SUCCEED(ina_timer_new(&timer));
 
     __ina_timer_bench_create_events(timer);
-
+    INA_TEST_ASSERT_SUCCEED(ina_timer_event_get_id(stop_event, &stop_id));
     for (;;) {
-        ina_time_event_t *e;
+        ina_timer_event_t *e;
         ina_bench_stopwatch_start();
         ina_timer_next_event(timer, &e);
         total += ina_bench_stopwatch_stop();
-        if (e != NULL && e->id == stop_event->id) {
-            break;
+        if (e != NULL && INA_SUCCEED(ina_timer_event_get_id(e, &id)) && id == stop_id) {
+                break;
         }
         ina_time_sleep(1);
     }
@@ -143,19 +145,21 @@ INA_BENCH_END(timer, exec_rdtsc) {}
 INA_BENCH(timer, exec_rdtsc, 1) {
     ina_timer_t *timer;
     int64_t total = 0;
+    uint64_t id;
+    uint64_t stop_id;
 
     ina_time_tsc_enable_rdtsc();
 
     INA_MUST_SUCCEED(ina_timer_new(&timer));
 
     __ina_timer_bench_create_events(timer);
-
+    INA_TEST_ASSERT_SUCCEED(ina_timer_event_get_id(stop_event, &stop_id));
     for (;;) {
-        ina_time_event_t *e;
+        ina_timer_event_t *e;
         ina_bench_stopwatch_start();
         ina_timer_next_event(timer, &e);
         total += ina_bench_stopwatch_stop();
-        if (e != NULL && e->id == stop_event->id) {
+        if (e != NULL && INA_SUCCEED(ina_timer_event_get_id(e, &id)) && id == stop_id) {
             break;
         }
         ina_time_sleep(1);

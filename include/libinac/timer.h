@@ -36,13 +36,7 @@ extern "C" {
 
 /* Timer */
 typedef struct ina_timer_s ina_timer_t;
-
-/* FIXME: make it opaque */
-/* Time event */
-typedef struct ina_time_event_s {
-    uint64_t id;
-    struct timeout *t;
-} ina_time_event_t;
+typedef struct ina_timer_event_s ina_timer_event_t;
 
 /*
  * Creates a new timer.
@@ -79,7 +73,7 @@ INA_API(ina_rc_t) ina_timer_free(ina_timer_t **timer);
  */
 INA_API(ina_rc_t ) ina_timer_event_new(ina_timer_t *timer,
                                         time_t msec,
-                                        ina_time_event_t **event);
+                                        ina_timer_event_t **event);
 
 /*
  * Create a new time event for a timer while providing current time.
@@ -95,7 +89,7 @@ INA_API(ina_rc_t ) ina_timer_event_new(ina_timer_t *timer,
 INA_API(ina_rc_t) ina_timer_event_new_with_time(ina_timer_t *timer,
                                             time_t n_msec,
                                             time_t e_msec,
-                                            ina_time_event_t **event);
+                                            ina_timer_event_t **event);
 /*
  * Delete a time event from a timer.
  *
@@ -107,8 +101,20 @@ INA_API(ina_rc_t) ina_timer_event_new_with_time(ina_timer_t *timer,
  *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_timer_event_free(ina_timer_t *timer,
-                                       ina_time_event_t *e);
+                                       ina_timer_event_t *e);
 
+
+/*
+ * Get ID of a time event
+ *
+ * Parameter
+ *  e      Timer event
+ *  id     Pointer where to store event ID
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_timer_event_get_id(const ina_timer_event_t *event, uint64_t *id);
 
 /*
  * Get the next elapsed time event.
@@ -122,7 +128,7 @@ INA_API(ina_rc_t) ina_timer_event_free(ina_timer_t *timer,
  *  INA_EEGAIN or INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_timer_next_event(const ina_timer_t *timer,
-                                        ina_time_event_t **event);
+                                        ina_timer_event_t **event);
 
 /*
  * Get the next elapsed time event by providing the milliseconds since epoch.
@@ -139,7 +145,7 @@ INA_API(ina_rc_t) ina_timer_next_event(const ina_timer_t *timer,
  */
 INA_API(ina_rc_t) ina_timer_next_event_with_time(const ina_timer_t *timer,
                                                  time_t now_millis,
-                                                 ina_time_event_t **event);
+                                                 ina_timer_event_t **event);
 
 /*
  * Calculate time in milliseconds until the next time event will elapse.

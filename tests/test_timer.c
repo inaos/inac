@@ -45,8 +45,8 @@ INA_TEST(timer,new_free)
 INA_TEST(timer, event)
 {
     ina_timer_t *t;
-    ina_time_event_t *e1;
-    ina_time_event_t *e2;
+    ina_timer_event_t *e1;
+    ina_timer_event_t *e2;
 
     t = NULL;
     e1 = NULL;
@@ -73,7 +73,7 @@ INA_TEST(timer, event)
 INA_TEST(timer, stress_test)
 {
     ina_timer_t *t = NULL;
-    ina_time_event_t *e = NULL;
+    ina_timer_event_t *e = NULL;
     int c = 0;
   
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
@@ -81,7 +81,7 @@ INA_TEST(timer, stress_test)
 
     ina_timer_event_new(t, 3000, &e);
     for (c = 0; c < 1000000; c++) {
-        ina_time_event_t *ne;
+        ina_timer_event_t *ne;
         if (INA_SUCCEED(ina_timer_next_event(t, &ne))) {
             INA_TEST_ASSERT_SAME(e, ne);
         }
@@ -93,8 +93,8 @@ INA_TEST(timer, stress_test)
 INA_TEST(timer, event_rdtsc)
 {
     ina_timer_t *t;
-    ina_time_event_t *e1;
-    ina_time_event_t *e2;
+    ina_timer_event_t *e1;
+    ina_timer_event_t *e2;
     struct timeval tv;
     time_t nowtime;
     struct tm *nowtm;
