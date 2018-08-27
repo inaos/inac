@@ -33,8 +33,6 @@ inac_add_luafiles(inac_lua
 		"${SRC_DIR}/ltest.lua")
 
 inac_add_contribs_headers(
-		timerwheel/timeout_queue.h
-		timerwheel/timeout.h
 		luajit/src/lua.h
 		luajit/src/luaconf.h
 		luajit/src/luajit.h
