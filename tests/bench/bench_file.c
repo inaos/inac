@@ -110,7 +110,7 @@ INA_BENCH(file, bf_read, 4)
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
-    ina_file_free(data->file_ctx, &data->file);
+    ina_file_free(&data->file);
     ina_mem_free(data->read_buf);
 }
 
@@ -138,7 +138,7 @@ INA_BENCH(file, bf_read_seq, 4)
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
-    ina_file_free(data->file_ctx, &data->file);
+    ina_file_free(&data->file);
     ina_mem_free(data->read_buf);
     data->read_buf = NULL;
 }
@@ -176,7 +176,7 @@ INA_BENCH(file, bf_read_direct, 4)
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
-    ina_file_free(data->file_ctx, &data->file);
+    ina_file_free(&data->file);
     ina_mem_free_aligned(buf);
     data->read_buf = NULL;
 }
@@ -212,7 +212,7 @@ INA_BENCH(file, bf_read_cursor, 4)
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
-    ina_file_free(data->file_ctx, &data->file);
+    ina_file_free(&data->file);
 }
 
 INA_BENCH_BEGIN(file, bf_read_mmap_cursor) {}
@@ -244,7 +244,7 @@ INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4)
     }
     ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
-    ina_file_free(data->file_ctx, &data->file);
+    ina_file_free(&data->file);
 }
 
 

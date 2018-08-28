@@ -386,7 +386,7 @@ static ina_rc_t ina_file_cursor_init_internal(ina_file_t *file,
 		return ina_err_get_last_rc();
 	}
 	ina_file_stat_file_size(fstat, &flen);
-	ina_file_stat_free(file, &fstat);
+	ina_file_stat_free(&fstat);
 
 	cursor->file = file;
     cursor->cur_type = cursor_type;
