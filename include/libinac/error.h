@@ -59,13 +59,13 @@ typedef int64_t ina_rc_t;
 /* Return with last rc if condition x fails */
 #define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_last_rc(); } while(0)
 /* Return with last rc if x == NULL */
-#define INA_RETURN_IF_NULL(x) if ((x) == NULL) return ina_err_get_last_rc();
+#define INA_RETURN_IF_NULL(x) do {if ((x) == NULL) return ina_err_get_last_rc();} while(0)
 /* Return with last rc if failed */
 #define INA_RETURN_IF_FAILED(rc) if (INA_FAILED((rc))) return ina_err_get_last_rc()
 /* Return with last rc if succeed */
 #define INA_RETURN_IF_SUCCEED(rc) if (INA_SUCCEED((rc))) return ina_err_get_last_rc()
 /* Checkpoint must succeed */
-#define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(INA_FAILED(rc))) abort()
+#define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED(rc))) abort(); } while(0)
 /* Set last RC */
 #define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), INA_AT)
 /* Set last RC and capture errno */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,7 +76,8 @@ extern "C" {
 /* File access mode */
 typedef enum ina_file_access_mode_e {
     INA_FILE_ACCESS_MODE_READ,
-    INA_FILE_ACCESS_MODE_READWRITE
+    INA_FILE_ACCESS_MODE_READWRITE,
+    INA_FILE_ACCESS_MODE_WRITE
 } ina_file_access_mode_t;
 
 /* File open mode */
@@ -163,10 +164,8 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx,
  *
  * Return
  *  INA_SUCCESS
- *
- * FIXME: Why we have context and file as argument
  */
-INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file);
+INA_API(ina_rc_t) ina_file_free(ina_file_t **file);
 
 /*
  * Create and initialize file attributes.
@@ -178,20 +177,30 @@ INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat);
+INA_API(ina_rc_t) ina_file_stat_new(const ina_file_t *file, ina_file_stat_t **stat);
 
 /*
  * Destroy file attributes.
  *
  * Parameters
- *  file  File
  *  stat  File attributes to free
  *
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_stat_free(ina_file_t *file, ina_file_stat_t **stat);
+INA_API(ina_rc_t) ina_file_stat_free(ina_file_stat_t **stat);
 
+/*
+ * Synchronize file attributes.
+ *
+ * Parameters
+ *  file  File
+ *  stat  Where to store the file attributes
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat, const ina_file_t *file);
 
 /*
  * Get the filepath of a file
@@ -290,7 +299,7 @@ INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat,
  * Return
  *  Void pointer to the Native file handle
  */
-INA_API(void*) ina_file_os_handle(ina_file_t *file);
+INA_API(ina_handle_t) ina_file_os_handle(ina_file_t *file);
 
 /*
  * Return the underlying C stream of a INAC file handle

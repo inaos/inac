@@ -36,12 +36,9 @@
 
 
 struct ina_file_s {
+    ina_file_ctx_t *ctx;
     ina_str_t file_path;
-#ifdef INA_OS_WIN32
-	HANDLE fh;
-#else
-	int fh;
-#endif
+    ina_handle_t fh;
     FILE *stream;
 	int cursors;
 	ina_file_access_mode_t access;
@@ -155,6 +152,8 @@ static void __ina_file_posix_map_flags(ina_file_access_mode_t access,
         case INA_FILE_ACCESS_MODE_READWRITE:
             *posix_flags |= O_RDWR;
             break;
+        case INA_FILE_ACCESS_MODE_WRITE:
+            *posix_flags |= O_WRONLY;
     }
     switch (create) {
         case INA_FILE_CREATE_MODE_OPEN:
@@ -214,7 +213,7 @@ INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx)
      * close files that are still open
      */
     HASH_ITER(hh, (*ctx)->files, fe, fetmp) {
-        INA_MUST_SUCCEED(ina_file_free(*ctx, &fe->file));
+        INA_MUST_SUCCEED(ina_file_free(&fe->file));
     }
     HASH_CLEAR(hh, (*ctx)->files);
 
@@ -279,6 +278,7 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
     (*file)->share = share;
     (*file)->fh = fhandle;
     (*file)->file_path = ina_str_new_fromcstr(file_fqn);
+    (*file)->ctx = ctx;
     fe = (ina_file_entry_t*)ina_mem_alloc(sizeof(ina_file_entry_t));
     INA_RETURN_IF_NULL(fe);
     fe->file = *file;
@@ -286,17 +286,19 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file)
+INA_API(ina_rc_t) ina_file_free(ina_file_t **file)
 {
     ina_file_entry_t *fe;
-    INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(*file);
 
-    HASH_FIND_PTR(ctx->files, file, fe);
+    HASH_FIND_PTR((*file)->ctx->files, file, fe);
     INA_ASSERT_NOTNULL(fe);
-    HASH_DEL(ctx->files, fe);
+    HASH_DEL((*file)->ctx->files, fe);
 
+    if ((*file)->stream) {
+        fclose((*file)->stream);
+    }
 #ifdef INA_OS_WIN32
     CloseHandle((*file)->fh);
 #else
@@ -310,10 +312,21 @@ INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat)
+INA_API(ina_rc_t) ina_file_stat_new(const ina_file_t *file, ina_file_stat_t **stat)
+{
+    INA_VERIFY_NOT_NULL(stat);
+    *stat = (ina_file_stat_t*)ina_mem_alloc(sizeof(ina_file_stat_t));
+    INA_RETURN_IF_NULL(*stat);
+    if (file != NULL) {
+        return ina_file_stat_synch(*stat, file);
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *file)
 {
 #ifdef INA_OS_WIN32
-	LARGE_INTEGER pin;
+    LARGE_INTEGER pin;
 	DWORD attrs;
 	FILETIME ct,at,wt;
 	LARGE_INTEGER utcFT = {0};
@@ -330,10 +343,6 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat)
 	if (!GetFileTime(file->fh, &ct, &at, &wt)) {
 		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
-	*stat = (ina_file_stat_t*)ina_mem_alloc(sizeof(ina_file_stat_t));
-    if (*stat == NULL) {
-        return INA_OS_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
-    }
 	(*stat)->file_size = pin.QuadPart;
 	(*stat)->is_dir = (FILE_ATTRIBUTE_DIRECTORY & attrs);
 	FileTimeToSystemTime((FILETIME*)&wt, &systime);
@@ -344,40 +353,33 @@ INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat)
     (*stat)->mode = fst.st_mode;
 #else
     struct stat fst;
-   
+
     INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(stat);
-
-    *stat = NULL;
- 
     ina_mem_set(&fst, 0, sizeof(struct stat));
     if (fstat(file->fh, &fst) != 0) {
         return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
-    *stat = (ina_file_stat_t*)ina_mem_alloc(sizeof(ina_file_stat_t));
-    INA_RETURN_IF_NULL(*stat);
-
-    (*stat)->file_size = (size_t)fst.st_size;
+    stat->file_size = (size_t)fst.st_size;
     if (fst.st_mode & S_IFDIR) {
-        (*stat)->is_dir = 1;
+        stat->is_dir = 1;
     } else {
-        (*stat)->is_dir = 0;
+        stat->is_dir = 0;
     }
 #ifdef INA_OS_OSX
     (*stat)->mtime = fst.st_mtimespec.tv_sec;
-    (*stat)->atime = fst.st_atimespec.tv_sec; 
+    (*stat)->atime = fst.st_atimespec.tv_sec;
 #else
-    (*stat)->mtime = fst.st_mtime;
-    (*stat)->atime = fst.st_atime;
+    stat->mtime = fst.st_mtime;
+    stat->atime = fst.st_atime;
 #endif
-    (*stat)->mode = fst.st_mode;
+    stat->mode = fst.st_mode;
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_stat_free(ina_file_t *file, ina_file_stat_t **stat)
+INA_API(ina_rc_t) ina_file_stat_free(ina_file_stat_t **stat)
 {
-    INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(*stat);
     ina_mem_free(*stat);
@@ -415,10 +417,9 @@ INA_API(ina_rc_t) ina_file_get_mode(const ina_file_t *file, mode_t *mode)
 
     INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(mode);
-    if (INA_SUCCEED(ina_file_stat_new((ina_file_t*)file, &stat))) {
-        INA_MUST_SUCCEED(ina_file_stat_free((ina_file_t*)file, &stat));
-        *mode = stat->mode;
-    }
+    INA_RETURN_IF_FAILED(ina_file_stat_new(file, &stat));
+    *mode = stat->mode;
+    INA_MUST_SUCCEED(ina_file_stat_free(&stat));
     return INA_SUCCESS;
 }
 
@@ -458,14 +459,10 @@ INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat, time_t *last_modifi
     return INA_SUCCESS;
 }
 
-INA_API(void*) ina_file_os_handle(ina_file_t *file)
+INA_API(ina_handle_t) ina_file_os_handle(ina_file_t *file)
 {
     INA_VERIFY_NOT_NULL(file);
-#ifdef INA_OS_WIN32
     return file->fh;
-#else
-    return &file->fh;
-#endif
 }
 
 INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
@@ -474,17 +471,37 @@ INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
 #include <fcntl.h>
     int fd;
 #endif
+    ina_str_t mode;
     INA_VERIFY_NOT_NULL(file);
     if (file->stream != NULL) {
         return file->stream;
     }
+    if (file->access == INA_FILE_ACCESS_MODE_READ) {
+        mode = ina_str_new_fromcstr("r");
+    } else if (file->access == INA_FILE_ACCESS_MODE_READWRITE) {
+        if (file->create == INA_FILE_CREATE_MODE_CREATE) {
+            mode = ina_str_new_fromcstr("w+");
+        } else if (file->create == INA_FILE_CREATE_MODE_APPEND) {
+            mode = ina_str_new_fromcstr("a+");
+        } else {
+            mode = ina_str_new_fromcstr("r+");
+        }
+    } else if (file->access == INA_FILE_ACCESS_MODE_WRITE) {
+        if (file->create == INA_FILE_CREATE_MODE_CREATE) {
+            mode = ina_str_new_fromcstr("w");
+        } else if (file->create == INA_FILE_CREATE_MODE_APPEND) {
+            mode = ina_str_new_fromcstr("a");
+        } else {
+            mode = ina_str_new_fromcstr("w");
+        }
+    }
 
 #ifdef INA_OS_WIN32
     fd = _open_osfhandle((intptr_t)file->fh, _O_APPEND | _O_RDONLY);
-    file->stream = _fdopen(fd, "r+");
+    file->stream = _fdopen(fd, ina_str_cstr(mode));
     return file->stream;
 #else
-    file->stream = fdopen(file->fh, "+r");
+    file->stream = fdopen(file->fh, ina_str_cstr(mode));
     return file->stream;
 #endif
 }
