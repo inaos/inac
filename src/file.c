@@ -422,15 +422,12 @@ INA_API(ina_rc_t) ina_file_get_mode(const ina_file_t *file, mode_t *mode)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat, int *dir)
+INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat)
 {
     INA_VERIFY_NOT_NULL(stat);
-    INA_VERIFY_NOT_NULL(dir);
 
-    if (stat->is_dir) {
-        *dir = INA_YES;
-    } else {
-        *dir = INA_NO;
+    if (!stat->is_dir) {
+        INA_ERROR(INA_NN_DIRECTORY|INA_ERR_NOT_A);
     }
     return INA_SUCCESS;
 }

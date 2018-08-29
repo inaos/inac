@@ -44,4 +44,23 @@ INA_TEST(file, test_open_close)
     INA_TEST_ASSERT_SUCCEED(ina_file_destroy(&ctx));
 }
 
+INA_TEST(file, test_stat)
+{
+    ina_file_ctx_t *ctx;
+    ina_file_t *f;
+    ina_file_stat_t *stat = NULL;
+    uint64_t file_size;
+
+    const char *test_file = "tests.conf";
+    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file, INA_FILE_ACCESS_MODE_READ,
+                                         INA_FILE_CREATE_MODE_OPEN, INA_FILE_SHARE_MODE_READ, 0, &f));
+
+    INA_TEST_ASSERT_SUCCEED(ina_file_stat_new(test_file, &stat));
+    INA_TEST_ASSERT_NOT_NULL(stat);
+    INA_TEST_ASSERT_SUCCEED(ina_file_stat_file_size(stat, &file_size));
+    INA_TEST_ASSERT_EQUAL_INTEGER(195, file_size);
+
+}
+
 
