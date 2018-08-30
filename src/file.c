@@ -367,8 +367,8 @@ INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *
         stat->is_dir = 0;
     }
 #ifdef INA_OS_OSX
-    (*stat)->mtime = fst.st_mtimespec.tv_sec;
-    (*stat)->atime = fst.st_atimespec.tv_sec;
+    stat->mtime = fst.st_mtimespec.tv_sec;
+    stat->atime = fst.st_atimespec.tv_sec;
 #else
     stat->mtime = fst.st_mtime;
     stat->atime = fst.st_atime;
