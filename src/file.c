@@ -343,14 +343,14 @@ INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *
 	if (!GetFileTime(file->fh, &ct, &at, &wt)) {
 		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
 	}
-	(*stat)->file_size = pin.QuadPart;
-	(*stat)->is_dir = (FILE_ATTRIBUTE_DIRECTORY & attrs);
+	stat->file_size = pin.QuadPart;
+	stat->is_dir = (FILE_ATTRIBUTE_DIRECTORY & attrs);
 	FileTimeToSystemTime((FILETIME*)&wt, &systime);
-	__ina_file_system_time_to_time_t(&systime, &(*stat)->mtime);
+	__ina_file_system_time_to_time_t(&systime, &stat->mtime);
 	FileTimeToSystemTime((FILETIME*)&at, &systime);
-	__ina_file_system_time_to_time_t(&systime, &(*stat)->atime);
+	__ina_file_system_time_to_time_t(&systime, &stat->atime);
     _stat(file->file_path, &fst);
-    (*stat)->mode = fst.st_mode;
+    stat->mode = fst.st_mode;
 #else
     struct stat fst;
 
@@ -367,8 +367,8 @@ INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *
         stat->is_dir = 0;
     }
 #ifdef INA_OS_OSX
-    (*stat)->mtime = fst.st_mtimespec.tv_sec;
-    (*stat)->atime = fst.st_atimespec.tv_sec;
+    stat->mtime = fst.st_mtimespec.tv_sec;
+    stat->atime = fst.st_atimespec.tv_sec;
 #else
     stat->mtime = fst.st_mtime;
     stat->atime = fst.st_atime;
@@ -423,15 +423,12 @@ INA_API(ina_rc_t) ina_file_get_mode(const ina_file_t *file, mode_t *mode)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat, int *dir)
+INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat)
 {
     INA_VERIFY_NOT_NULL(stat);
-    INA_VERIFY_NOT_NULL(dir);
 
-    if (stat->is_dir) {
-        *dir = INA_YES;
-    } else {
-        *dir = INA_NO;
+    if (!stat->is_dir) {
+        INA_ERROR(INA_NN_DIRECTORY|INA_ERR_NOT_A);
     }
     return INA_SUCCESS;
 }

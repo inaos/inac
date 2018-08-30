@@ -247,12 +247,9 @@ INA_API(ina_rc_t) ina_file_set_mode(const ina_file_t *file, mode_t mode);
  *  dir   Where to store the result. 1 for a regular directory otherwise 0.
  *
  * Return
- * INA_SUCCESS
- *
- * FIXME: Remove argument dir and use RC to indicate whenever file is a
- *        directory or not.
+ * INA_SUCCESS if is a directory
  */
-INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat, int *dir);
+INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat);
 
 /*
  * Get current file size in bytes.

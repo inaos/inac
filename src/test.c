@@ -180,11 +180,38 @@ INA_API(void) ina_test_assert_data(const unsigned char *exp, size_t exp_size,
     }
 }
 
-INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, const char *caller, 
+INA_API(void) ina_test_assert_equal_int(int exp, int real, const char *caller,
+                                            int line)
+{
+    if (exp != real) {
+        INA_TEST_ERR("%s:%d  expected %d, got %d", caller, line, exp, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_equal_uint(unsigned int exp, unsigned int real, const char *caller,
+                                        int line)
+{
+    if (exp != real) {
+        INA_TEST_ERR("%s:%d  expected %u, got %u", caller, line, exp, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_equal_int64(int64_t exp, int64_t real, const char *caller,
                 int line) 
 {
     if (exp != real) {
-        INA_TEST_ERR("%s:%d  expected %"INA_INT64_T_FMT " , got %"INA_INT64_T_FMT, caller, line, (int64_t)exp, (int64_t)real);
+        INA_TEST_ERR("%s:%d  expected %"INA_INT64_T_FMT " , got %"INA_INT64_T_FMT, caller, line, exp, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_equal_uint64(uint64_t exp, uint64_t real, const char *caller,
+                                            int line)
+{
+    if (exp != real) {
+        INA_TEST_ERR("%s:%d  expected %"INA_UINT64_T_FMT " , got %"INA_UINT64_T_FMT, caller, line, exp, real);
         longjmp(__err, 1);
     }
 }
@@ -198,8 +225,26 @@ INA_API(void) ina_test_assert_equal_floating(double exp, double real, const char
     }
 }
 
-INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, const char *caller, 
+INA_API(void) ina_test_assert_not_equal_int(int exp, int real, const char *caller,
                 int line) 
+{
+    if ((exp) == (real)) {
+        INA_TEST_ERR("%s:%d  should not be %d", caller, line, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_not_equal_uint(unsigned int exp, unsigned int real, const char *caller,
+                                            int line)
+{
+    if ((exp) == (real)) {
+        INA_TEST_ERR("%s:%d  should not be %u", caller, line, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_not_equal_int64(int64_t exp, int64_t real, const char *caller,
+                                            int line)
 {
     if ((exp) == (real)) {
         INA_TEST_ERR("%s:%d  should not be %"INA_INT64_T_FMT, caller, line, real);
@@ -207,6 +252,14 @@ INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, const
     }
 }
 
+INA_API(void) ina_test_assert_not_equal_uint64(uint64_t exp, uint64_t real, const char *caller,
+                                            int line)
+{
+    if ((exp) == (real)) {
+        INA_TEST_ERR("%s:%d  should not be %"INA_UINT64_T_FMT, caller, line, real);
+        longjmp(__err, 1);
+    }
+}
 INA_API(void) ina_test_assert_not_equal_floating(double exp, double real, const char *caller, 
                 int line) 
 {

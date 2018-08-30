@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,15 @@ INA_TEST(file, test_open_close)
     const char *test_file2 = "tests2.conf";
     ina_str_t file_path = NULL;
     mode_t mode = 0;
-    
+
     INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file1,
-            INA_FILE_ACCESS_MODE_READ,
-            INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_READ,
-            0,
-            &f));
+                                         INA_FILE_ACCESS_MODE_READ,
+                                         INA_FILE_CREATE_MODE_OPEN,
+                                         INA_FILE_SHARE_MODE_READ,
+                                         0,
+                                         &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_file_get_filepath(f, &file_path));
     INA_TEST_ASSERT_NOT_NULL(file_path);
@@ -53,20 +53,20 @@ INA_TEST(file, test_open_close)
 #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_NOT_NULL(ina_file_os_handle(f));
 #else
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, ina_file_os_handle(f));
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, ina_file_os_handle(f));
 #endif
     INA_TEST_ASSERT_SUCCEED(ina_file_get_mode(f, &mode));
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, mode);
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, mode);
     INA_TEST_ASSERT_NOT_NULL(ina_file_get_stream(f));
     INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
     INA_ASSERT_NULL(f);
 
     INA_TEST_ASSERT_FAILED(ina_file_new(ctx, test_file2,
-            INA_FILE_ACCESS_MODE_READ,
-            INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_READ,
-            0,
-            &f));
+                                        INA_FILE_ACCESS_MODE_READ,
+                                        INA_FILE_CREATE_MODE_OPEN,
+                                        INA_FILE_SHARE_MODE_READ,
+                                        0,
+                                        &f));
     INA_TEST_ASSERT_NULL(f);
 
     INA_TEST_ASSERT_SUCCEED(ina_file_destroy(&ctx));
@@ -80,28 +80,26 @@ INA_TEST(file, stat)
     ina_file_stat_t *stat = NULL;
     uint64_t file_size = 0;
     time_t t = 0;
-    int is_dir;
 
     const char *test_file = "tests.conf";
 
     INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
-            INA_FILE_ACCESS_MODE_READ,
-            INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_READ,
-            0,
-            &f));
+                                         INA_FILE_ACCESS_MODE_READ,
+                                         INA_FILE_CREATE_MODE_OPEN,
+                                         INA_FILE_SHARE_MODE_READ,
+                                         0,
+                                         &f));
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_new(f, &stat));
     INA_TEST_ASSERT_NOT_NULL(stat);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_file_size(stat, &file_size));
-    INA_TEST_ASSERT_EQUAL_INTEGER(180LL, file_size);
+    INA_TEST_ASSERT_EQUAL_INT64(180LL, file_size);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_atime(stat, &t));
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, t);
+    INA_TEST_ASSERT_NOT_EQUAL_SIZE_T(0, t);
     t = 0;
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_mtime(stat, &t));
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, t);
-    INA_TEST_ASSERT_SUCCEED(ina_file_stat_is_dir(stat, &is_dir));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_NO, is_dir);
+    INA_TEST_ASSERT_NOT_EQUAL_SIZE_T(0, t);
+    INA_TEST_ASSERT_FAILED(ina_file_stat_is_dir(stat));
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_free(&stat));
     INA_ASSERT_NULL(stat);
     INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
@@ -116,24 +114,26 @@ INA_TEST(file, os_handle)
     const char *test_file = "tests.conf";
     ina_handle_t h;
     char buf[10];
-
+#ifdef INA_OS_WIN32
+    DWORD nread;
+#endif
     INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
-            INA_FILE_ACCESS_MODE_READ,
-            INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_READ,
-            0,
-            &f));
+                                         INA_FILE_ACCESS_MODE_READ,
+                                         INA_FILE_CREATE_MODE_OPEN,
+                                         INA_FILE_SHARE_MODE_READ,
+                                         0,
+                                         &f));
     INA_TEST_ASSERT_NOT_NULL(f);
 
     memset(buf, 0, 10);
     h = ina_file_os_handle(f);
 #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_NOT_NULL(h);
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, ReadFile(h, buf, 7, &nread));
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, ReadFile(h, buf, 7, &nread, NULL));
 #else
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, h);
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, h);
     read(h, buf, 7);
 #endif
     INA_TEST_ASSERT_EQUAL_STR("debug {", buf);
@@ -152,11 +152,11 @@ INA_TEST(file, stream)
     INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
-            INA_FILE_ACCESS_MODE_READ,
-            INA_FILE_CREATE_MODE_OPEN,
-            INA_FILE_SHARE_MODE_READ,
-            0,
-            &f));
+                                         INA_FILE_ACCESS_MODE_READ,
+                                         INA_FILE_CREATE_MODE_OPEN,
+                                         INA_FILE_SHARE_MODE_READ,
+                                         0,
+                                         &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     fp = ina_file_get_stream(f);
     INA_TEST_ASSERT_NOT_NULL(fp);

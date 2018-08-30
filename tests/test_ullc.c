@@ -60,7 +60,7 @@ INA_TEST(ullc, slow_consumer)
             }
             if (v->i3 != old+1) {
                 INA_TEST_MSG("Overrun at %d(last = %d)", v->i3, old);
-                INA_TEST_ASSERT_EQUAL_INTEGER(v->i3, old+1);   
+                INA_TEST_ASSERT_EQUAL_INT(v->i3, old+1);
             }
             old = v->i3;
         }
@@ -188,7 +188,7 @@ INA_TEST(ullc, consumer_get_set_pos)
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(consumer1, -1));
     v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
     INA_TEST_ASSERT_NULL(v);
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, pos);
+    INA_TEST_ASSERT_EQUAL_INT64(0, pos);
 
     for (c = 0; c < 125; c++) {
         v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
@@ -199,12 +199,12 @@ INA_TEST(ullc, consumer_get_set_pos)
     }
 
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer1, &pos));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, pos);
+    INA_TEST_ASSERT_EQUAL_INT64(0, pos);
     v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
     INA_TEST_ASSERT_NOT_NULL(v);
     INA_TEST_ASSERT_EQUAL_FLOATING(0.0, v->d1);
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer1, &pos));
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, pos);
+    INA_TEST_ASSERT_EQUAL_INT64(1, pos);
     v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
     INA_TEST_ASSERT_NOT_NULL(v);
     INA_TEST_ASSERT_EQUAL_FLOATING(1.0, v->d1);
@@ -213,10 +213,10 @@ INA_TEST(ullc, consumer_get_set_pos)
     INA_TEST_ASSERT_NOT_NULL(v);
     INA_TEST_ASSERT_EQUAL_FLOATING(102.0, v->d1);
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer1, &pos));
-    INA_TEST_ASSERT_EQUAL_INTEGER(103, pos);   
+    INA_TEST_ASSERT_EQUAL_INT64(103, pos);
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(consumer1, 1024));
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer1, &pos));
-    INA_TEST_ASSERT_EQUAL_INTEGER(125, pos);
+    INA_TEST_ASSERT_EQUAL_INT64(125, pos);
     v = INA_ULLC_GET(ina_test_ullc_t, consumer1);
     INA_TEST_ASSERT_NULL(v);
     v = INA_ULLC_CLAIM(ina_test_ullc_t, producer);
@@ -229,7 +229,7 @@ INA_TEST(ullc, consumer_get_set_pos)
  
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(consumer2, -1));
     INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(consumer2, &pos));
-    INA_TEST_ASSERT_EQUAL_INTEGER(126, pos);
+    INA_TEST_ASSERT_EQUAL_INT64(126, pos);
     v = INA_ULLC_GET(ina_test_ullc_t, consumer2);
     INA_TEST_ASSERT_NULL(v);
  

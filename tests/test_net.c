@@ -104,7 +104,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read) {
                             (unsigned char*)buffer, 1024,
                             &nb_read));
     INA_TEST_MSG("read %d bytes:%s", nb_read, buffer);
-    INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
+    INA_TEST_ASSERT_EQUAL_INT(nb_read, nb_write);
 }
 
 
@@ -132,7 +132,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
         INA_TEST_ASSERT_SUCCEED(ina_net_read(data->client_fd, 
                                 (unsigned char*)buffer, 1024,
                                 &nb_read));
-        INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
+        INA_TEST_ASSERT_EQUAL_INT(nb_read, nb_write);
     }
 }
 #ifdef INA_OS_WIN32

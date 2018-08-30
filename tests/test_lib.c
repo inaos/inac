@@ -65,12 +65,12 @@ INA_TEST(lib, opt)
     INA_TEST_ASSERT_NOT_NULL(l_str_value);
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_string("run", &s_str_value));
     INA_TEST_ASSERT_NOT_NULL(s_str_value);
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_cmp(l_str_value, s_str_value));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_cmp(l_str_value, s_str_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("repeat", &l_int_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("x", &s_int_value));
-    INA_TEST_ASSERT_EQUAL_INTEGER(s_int_value, l_int_value);
+    INA_TEST_ASSERT_EQUAL_INT(s_int_value, l_int_value);
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_int("t", &s_int_value));
-    INA_TEST_ASSERT_EQUAL_INTEGER(121, s_int_value);
+    INA_TEST_ASSERT_EQUAL_INT(121, s_int_value);
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_float("f", &s_float_value));
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_float("float", &l_float_value));
     INA_TEST_ASSERT_EQUAL_FLOATING(l_float_value, s_float_value);
@@ -97,9 +97,9 @@ INA_TEST(lib, appname)
 {
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_name());
 #ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp("test.exe", ina_app_get_name()));
+    INA_TEST_ASSERT_EQUAL_INT(0, strcmp("test.exe", ina_app_get_name()));
 #else
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp("tests", ina_app_get_name()));
+    INA_TEST_ASSERT_EQUAL_INT(0, strcmp("tests", ina_app_get_name()));
 #endif
 }
 
@@ -129,14 +129,14 @@ INA_TEST(lib, set_signal_handler)
 
 INA_TEST(lib, min)
 {
-    INA_TEST_ASSERT_EQUAL_INTEGER(3, INA_MAX(2,3));
-    INA_TEST_ASSERT_EQUAL_INTEGER(3, INA_MAX(3,2));
+    INA_TEST_ASSERT_EQUAL_INT(3, INA_MAX(2,3));
+    INA_TEST_ASSERT_EQUAL_INT(3, INA_MAX(3,2));
 }
 
 INA_TEST(lib, max)
 {
-    INA_TEST_ASSERT_EQUAL_INTEGER(2, INA_MIN(2,3));
-    INA_TEST_ASSERT_EQUAL_INTEGER(2, INA_MIN(3,2));
+    INA_TEST_ASSERT_EQUAL_INT(2, INA_MIN(2,3));
+    INA_TEST_ASSERT_EQUAL_INT(2, INA_MIN(3,2));
 }
 
 INA_TEST(lib, high_low_toword) 

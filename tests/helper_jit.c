@@ -42,23 +42,23 @@ INA_TEST_HELPER(ljit, lua_echo_server) {
     port = INA_TEST_HELPER_IARG(1);
 
     if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
-        *retval = ina_err_get_last_rc();
+        *retval = INA_RC_ERROR(ina_err_get_last_rc());
         return;
     }
 
     ret = luaL_dostring(ctx->lstate, "t = require(\"test_lsocket\")\n");
     if (ret != 0) {
-        *retval = ina_err_get_last_rc();
+        *retval = INA_RC_ERRNO(ina_err_get_last_rc());
         return;
     }
     
     if (!INA_SUCCEED(ina_ljit_call(ctx, "t.echo_server", "si<i", addr, port))) {
-        *retval = ina_err_get_last_rc();
+        *retval = INA_RC_ERROR(ina_err_get_last_rc());
         return;
     }
    
     if (!INA_SUCCEED(ina_ljit_destroy(&ctx))) {
-        *retval = ina_err_get_last_rc();
+        *retval = INA_RC_ERROR(ina_err_get_last_rc());
         return;
     }
 }
@@ -72,23 +72,23 @@ INA_TEST_HELPER(ljit, lua_debug_server) {
     int ret;
 
     if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
-        *retval = ina_err_get_last_rc();
+        *retval = INA_RC_ERROR(ina_err_get_last_rc());
         return;
     }
 
     ret = luaL_dostring(ctx->lstate, "t = require(\"test_ldebug\")\n");
     if (ret != 0) {
-        *retval = ina_err_get_last_rc();
+        *retval = INA_RC_ERRNO(ina_err_get_last_rc());
         return;
     }
     
     if (!INA_SUCCEED(ina_ljit_call(ctx, "t.debug_server", "<"))) {
-        *retval = ina_err_get_last_rc();
+        *retval = INA_RC_ERROR(ina_err_get_last_rc());
         return;
     }
    
     if (!INA_SUCCEED(ina_ljit_destroy(&ctx))) {
-        *retval = ina_err_get_last_rc();
+        *retval = INA_RC_ERROR(ina_err_get_last_rc());
         return;
     }
 }

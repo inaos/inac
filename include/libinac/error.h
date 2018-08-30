@@ -69,7 +69,11 @@ typedef int64_t ina_rc_t;
 /* Set last RC */
 #define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), INA_AT)
 /* Set last RC and capture errno */
+#ifndef INA_OS_WIN32
 #define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno),  INA_AT)
+#else
+#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), GetLastError()),  INA_AT)
+#endif
 /* Set last RC and set user defined errno */
 #define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 

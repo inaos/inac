@@ -90,10 +90,10 @@ INA_TEST(process, descriptor_new_free)
     INA_TEST_ASSERT_EQUAL_STR("working_dir", pd->working_dir);
     INA_TEST_ASSERT_EQUAL_STR("scheduled_stop_pattern", pd->scheduled_stop_pattern);
     INA_TEST_ASSERT_EQUAL_STR("scheduled_start_pattern", pd->scheduled_start_pattern);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET, pd->lifecycle);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_MANAGED_TYPE_SCHEDULED_START, pd->managed_type);
-    INA_TEST_ASSERT_EQUAL_INTEGER(100, pd->stop_wait_time_ms);
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, pd->start_flags);
+    INA_TEST_ASSERT_EQUAL_INT(INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET, pd->lifecycle);
+    INA_TEST_ASSERT_EQUAL_INT(INA_PROCESS_MANAGED_TYPE_SCHEDULED_START, pd->managed_type);
+    INA_TEST_ASSERT_EQUAL_INT64(100, pd->stop_wait_time_ms);
+    INA_TEST_ASSERT_EQUAL_INT(0, pd->start_flags);
     INA_TEST_ASSERT_EQUAL_STR("1 2 3 4", ina_str_cstr(pd->startup_args));
     INA_TEST_ASSERT_SUCCEED(ina_process_descriptor_free(&pd));
     INA_TEST_ASSERT_NULL(pd);
@@ -148,7 +148,7 @@ INA_TEST(process, start_and_wait)
     INA_TEST_ASSERT_NOT_NULL(process);
     INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_get_exit_code(process, &exit_code));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, exit_code);
+    INA_TEST_ASSERT_EQUAL_INT(0, exit_code);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
     INA_TEST_ASSERT_SUCCEED(ina_process_destroy(&ctx));
 }
@@ -178,10 +178,10 @@ INA_TEST(process, stop)
     INA_TEST_ASSERT_NOT_NULL(process);
     INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_RUNNING, state);
+    INA_TEST_ASSERT_EQUAL_INT(INA_PROCESS_RUNNING, state);
     INA_TEST_ASSERT_SUCCEED(ina_process_stop(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_STOPPED, state);
+    INA_TEST_ASSERT_EQUAL_INT(INA_PROCESS_STOPPED, state);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
     INA_TEST_ASSERT_NULL(process);
     INA_TEST_ASSERT_SUCCEED(ina_process_destroy(&ctx));
@@ -211,10 +211,10 @@ INA_TEST(process, state)
     INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, &pd, &process));
     INA_TEST_ASSERT_NOT_NULL(process);
     INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_STARTABLE, state);
+    INA_TEST_ASSERT_EQUAL_INT(INA_PROCESS_STARTABLE, state);
     INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_PROCESS_RUNNING, state);
+    INA_TEST_ASSERT_EQUAL_INT(INA_PROCESS_RUNNING, state);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
     INA_TEST_ASSERT_NULL(process);
 }
@@ -265,7 +265,7 @@ INA_TEST(process, get_exit_code)
     INA_TEST_ASSERT_NOT_NULL(process);
     INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_get_exit_code(process, &exit_code));
-    INA_TEST_ASSERT_EQUAL_INTEGER(123, exit_code);
+    INA_TEST_ASSERT_EQUAL_INT(123, exit_code);
     INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
 }
 

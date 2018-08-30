@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,7 +118,7 @@ struct ina_test_hid_s {
 
 /* Set the return code inside a main function */
 #define INA_TEST_HELPER_SET_RC(rc)                                          \
-    *retval = rc
+    *retval = INA_RC_ERROR(rc)
 
 /* Check if min argument passed, if not exit with EXIT_FAILURE */
 #define INA_TEST_HELPER_CHECK_ARGC(c)                                       \
@@ -182,7 +182,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
 #define INA_TEST_ASSERT(expr)                                               \
     INA_TEST_ASSERT_TRUE(expr)
 #define INA_TEST_ASSERT_SUCCESS(expr)                                       \
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, expr)
+    INA_TEST_ASSERT_EQUAL_INT(INA_SUCCESS, expr)
 #define INA_TEST_ASSERT_SUCCEED(expr)                                       \
     INA_TEST_ASSERT_TRUE(INA_SUCCEED(expr))
 #define INA_TEST_ASSERT_FAILED(expr)                                        \
@@ -193,12 +193,35 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
     ina_test_assert_not_equal_str(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_DATA(exp, expsize, real, realsize)                  \
     ina_test_assert_data(exp, expsize, real, realsize, __FILE__, __LINE__)
-#define INA_TEST_ASSERT_EQUAL_INTEGER(exp, real)                            \
-    ina_test_assert_equal_integer(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_INT(exp, real)                                \
+    ina_test_assert_equal_int(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_UINT(exp, real)                               \
+    ina_test_assert_equal_uint(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_INT64(exp, real)                              \
+    ina_test_assert_equal_int64(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_UINT64(exp, real)                             \
+    ina_test_assert_equal_uint64(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_EQUAL_FLOATING(exp, real)                           \
     ina_test_assert_equal_floating(exp, real, __FILE__, __LINE__)
-#define INA_TEST_ASSERT_NOT_EQUAL_INTEGER(exp, real)                        \
-    ina_test_assert_not_equal_integer(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_INT(exp, real)                            \
+    ina_test_assert_not_equal_int(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_UINT(exp, real)                           \
+    ina_test_assert_not_equal_uint(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_INT64(exp, real)                          \
+    ina_test_assert_not_equal_int64(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_UINT64(exp, real)                         \
+    ina_test_assert_not_equal_uint64(exp, real, __FILE__, __LINE__)
+#ifdef INA_CPU_X86_64
+#define INA_TEST_ASSERT_EQUAL_SIZE_T(exp, real)                             \
+    ina_test_assert_equal_uint64(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_SIZE_T(exp, real)                         \
+    ina_test_assert_not_equal_uint64(exp, real, __FILE__, __LINE__)
+#else
+#define INA_TEST_ASSERT_EQUAL_SIZE_T(exp, real)                             \
+    ina_test_assert_equal_uint(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_SIZE_T(exp, real)                         \
+    ina_test_assert_not_equal_uint(exp, real, __FILE__, __LINE__)
+#endif
 #define INA_TEST_ASSERT_NOT_EQUAL_FLOATING(exp, real)                       \
     ina_test_assert_not_equal_floating(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NULL(real)                                          \
@@ -273,11 +296,52 @@ INA_API(void) ina_test_assert_data(const unsigned char* exp,
  *  caller  Caller function name calling this assert
  *  line    Caller line number
  */
-INA_API(void) ina_test_assert_equal_integer(int64_t exp,
-                                            int64_t real,
-                                            const char *caller,
-                                            int line);
+INA_API(void) ina_test_assert_equal_int(int exp,
+                                        int real,
+                                        const char *caller,
+                                        int line);
 
+/*
+ * Assert integer value to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_equal_uint(unsigned int exp,
+                                         unsigned int real,
+                                        const char *caller,
+                                        int line);
+
+/*
+ * Assert integer value to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_equal_uint64(uint64_t exp,
+                                           uint64_t real,
+                                           const char *caller,
+                                           int line);
+
+/*
+ * Assert integer value to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_equal_int64(int64_t exp,
+                                          int64_t real,
+                                           const char *caller,
+                                           int line);
 /*
  * Assert floating value to be equal.
  *
@@ -301,11 +365,51 @@ INA_API(void) ina_test_assert_equal_floating(double exp,
  *  caller  Caller function name calling this assert
  *  line    Caller line number
  */
-INA_API(void) ina_test_assert_not_equal_integer(int64_t exp,
-                                                int64_t real,
+INA_API(void) ina_test_assert_not_equal_int(int exp,
+                                            int real,
+                                            const char *caller,
+                                            int line);
+
+/*
+ * Assert integer value not to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_not_equal_uint(unsigned int exp,
+                                            unsigned int real,
+                                            const char *caller,
+                                            int line);
+/*
+ * Assert integer value not to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_not_equal_int64(int64_t exp,
+                                              int64_t real,
                                                 const char *caller,
                                                 int line);
 
+/*
+ * Assert integer value not to be equal.
+ *
+ * Parameters
+ *  exp     Expected value
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_not_equal_uint64(uint64_t exp,
+                                              uint64_t real,
+                                              const char *caller,
+                                              int line);
 /*
  * Assert floating value not to be equal.
  *
