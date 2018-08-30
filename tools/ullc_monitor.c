@@ -52,18 +52,18 @@ static ina_rc_t umon_draw_monitor(ina_ullc_rb_info_t *rbi)
     ina_cio_printf(x, y++, fg, bg, "Current slot   : %ld", rbi->current_slot);
     
     y++;
-    ina_cio_printf(x, y++, fg, bg, "Producers cursors");
+    /*ina_cio_printf(x, y++, fg, bg, "Producers cursors");
     while (c < rbi->num_producers) {
-        ina_cio_printf(x, y++, fg, bg, "Producers %d    : %ld", 
-            rbi->p_cursors[c].cursor);        
+        ina_cio_printf(x, y++, fg, bg, "Producers %d    : %ld",
+            rbi->p_cursors[c].cursor);
     }
 
     y++;
     ina_cio_printf(x, y++, fg, bg, "Consumers cursors");
     while (c < rbi->num_producers) {
         ina_cio_printf(x, y++, fg, bg, "Consumers %d    : %ld", 
-            rbi->c_cursors[c].cursor);        
-    }
+            rbi->c_cursors[c]->cursor);
+    }*/
 
     return INA_SUCCESS;    
 }

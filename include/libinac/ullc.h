@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
+ * Copyright (c) 2012-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,39 +145,13 @@ typedef enum ina_ullc_wait_strategy_e {
  } ina_ullc_wait_strategy;
 
 /* ring buffer (shared mem) */
-typedef struct ina_ullc_rb_s {
-    char magic;
-    int16_t version;
-    int32_t num_consumers;
-    int32_t num_producers;
-    size_t size;
-    size_t slots;
-    INA_VOLATILE int64_t cursor;
-    INA_VOLATILE int64_t next_ptr;
-    INA_VOLATILE int64_t swait_count;
-    INA_VOLATILE int64_t alive_producers;
-    INA_VOLATILE int64_t overrun_enabled;
-    ina_semkey_t semkey; /*FIXME: multiple producer */
-} ina_ullc_rb_t;
+typedef struct ina_ullc_rb_s ina_ullc_rb_t;
 
 /* ULLC ring cursor */
-typedef struct ina_ullc_cursor_s {
-    INA_VOLATILE int64_t alive;
-    INA_VOLATILE int64_t cursor;
- } ina_ullc_cursor_t;
+typedef struct ina_ullc_cursor_s ina_ullc_cursor_t;
 
 /* ullc context */
-typedef struct ina_ullc_ctx_s {
-    int id;                         /* id of consumer or producer */
-    ina_mempool_t *pool;            /* memory-pool */
-    ina_ullc_ctx_type_t type;       /* type of context */
-    ina_handle_t sem_handle;        /* semaphore handle */
-    ina_ullc_wait_strategy ws;      /* wait strategy */
-    ina_ullc_rb_t *ring;            /* ring buffer */
-    ina_ullc_cursor_t *c_offset;    /* consumer(s) */
-    ina_ullc_cursor_t *p_offset;    /* prodducers */
-    unsigned char *data;            /* slot data */
-} ina_ullc_ctx_t;
+typedef struct ina_ullc_ctx_s ina_ullc_ctx_t;
 
 /* ULLC Ring buffer info */
 typedef struct ina_ullc_rb_info_s {
@@ -194,8 +168,8 @@ typedef struct ina_ullc_rb_info_s {
     size_t slot_size;               /* Size in bytes for each slot */
     size_t num_slots;               /* Nr of slots */
     int64_t current_slot;           /* Last commited slot */
-    ina_ullc_cursor_t c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
-    ina_ullc_cursor_t p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */
+    ina_ullc_cursor_t *c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
+    ina_ullc_cursor_t *p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */
 } ina_ullc_rb_info_t;
 
 

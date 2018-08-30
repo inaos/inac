@@ -36,6 +36,41 @@
 #define __INA_SEMKEY 0x300
 #endif
 
+/* ullc context */
+typedef struct ina_ullc_ctx_s {
+    int id;                         /* id of consumer or producer */
+    ina_mempool_t *pool;            /* memory-pool */
+    ina_ullc_ctx_type_t type;       /* type of context */
+    ina_handle_t sem_handle;        /* semaphore handle */
+    ina_ullc_wait_strategy ws;      /* wait strategy */
+    ina_ullc_rb_t *ring;            /* ring buffer */
+    ina_ullc_cursor_t *c_offset;    /* consumer(s) */
+    ina_ullc_cursor_t *p_offset;    /* prodducers */
+    unsigned char *data;            /* slot data */
+};
+
+/* ring buffer (shared mem) */
+typedef struct ina_ullc_rb_s {
+    char magic;
+    int32_t version;
+    int32_t num_consumers;
+    int32_t num_producers;
+    int64_t size;
+    int64_t slots;
+    INA_VOLATILE int64_t cursor;
+    INA_VOLATILE int64_t next_ptr;
+    INA_VOLATILE int64_t swait_count;
+    INA_VOLATILE int64_t alive_producers;
+    INA_VOLATILE int64_t overrun_enabled;
+    ina_semkey_t semkey; /*FIXME: multiple producer */
+};
+
+/* ULLC ring cursor */
+typedef struct ina_ullc_cursor_s {
+    INA_VOLATILE int64_t alive;
+    INA_VOLATILE int64_t cursor;
+};
+
 /* make unique sem key */
 static ina_rc_t __ina_sem_makekey(ina_ullc_rb_t*, const char*);
 /* create semaphore */
