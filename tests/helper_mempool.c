@@ -49,7 +49,7 @@ INA_TEST_HELPER(mempool_ipc, mempool_create_and_fill_int32_values) {
     INA_ASSERT_NOTNULL(v);
     
     while (c  < (size/sizeof(int32_t))) {
-        v[c] = c;
+        v[c] = (int)c;
         c++;
     }
     

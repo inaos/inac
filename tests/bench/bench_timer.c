@@ -49,7 +49,6 @@ static ina_timer_event_t *stop_event = NULL;
 
 static ina_rc_t __ina_timer_bench_create_events(ina_timer_t *timer)
 {
-    ina_timer_event_t *e;
     ina_timer_event_new(timer, 50, &e1);
     ina_timer_event_new(timer, 500, &e2);
     ina_timer_event_new(timer, 100, &e3);

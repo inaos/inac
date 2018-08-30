@@ -58,9 +58,9 @@ static const char* __ina_get_noun_b(int id)
 
 INA_TEST(error, get_set_rc)
 {
-    INA_TEST_ASSERT_EQUAL_INT(INA_RC_PACK(INA_ERR_FAILED, 0),
+    INA_TEST_ASSERT_EQUAL_INT64(INA_RC_PACK(INA_ERR_FAILED, 0),
                                   ina_err_set_last_rc(INA_RC_PACK(INA_ERR_FAILED, 0), ""));
-    INA_TEST_ASSERT_EQUAL_INT(INA_ERROR(INA_ERR_NOT_INITIALIZED),
+    INA_TEST_ASSERT_EQUAL_INT64(INA_ERROR(INA_ERR_NOT_INITIALIZED),
                                   ina_err_set_last_rc(INA_RC_PACK(INA_ERR_NOT_INITIALIZED, 0), ""));
 }
 
@@ -104,8 +104,8 @@ INA_TEST(error, error_pack_rc)
     INA_TEST_ASSERT_EQUAL_INT(0, INA_RC_VER(rc));
     INA_TEST_ASSERT_EQUAL_INT(0,  INA_RC_REV(rc));
     INA_TEST_ASSERT_TRUE(INA_ERR_NOT_ALLOWED&INA_RC_ERROR(rc));
-    INA_TEST_ASSERT_EQUAL_INT(rcc, ina_err_set_last_rc(rc, INA_AT));
-    INA_TEST_ASSERT_EQUAL_INT(rcc,   ina_err_get_last_rc());
+    INA_TEST_ASSERT_EQUAL_INT64(rcc, ina_err_set_last_rc(rc, INA_AT));
+    INA_TEST_ASSERT_EQUAL_INT64(rcc,   ina_err_get_last_rc());
 #undef INA_ERROR_VER
 #undef INA_ERROR_REV
 #define INA_ERROR_VER 2
