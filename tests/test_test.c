@@ -42,11 +42,11 @@ INA_TEST_TEARDOWN(test) {
 }
 
 INA_TEST_FIXTURE(test, fixture_setup) {
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, data->x);
+    INA_TEST_ASSERT_EQUAL_INT(1, data->x);
 }
 
 INA_TEST_FIXTURE(test, fixture_teardown) {
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, data->x);
+    INA_TEST_ASSERT_EQUAL_INT(1, data->x);
 }
 
 INA_TEST_SKIP(test, handle_sigabrt) {
@@ -85,11 +85,11 @@ INA_TEST(test_assert, assert_not_equal_floating) {
 }
 
 INA_TEST(test_assert, assert_equal_integer) {
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, 1);
+    INA_TEST_ASSERT_EQUAL_INT(1, 1);
 }
 
 INA_TEST(test_assert, assert_not_equal_integer) {
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(1, 3);
+    INA_TEST_ASSERT_NOT_EQUAL_INT(1, 3);
 }
 
 INA_TEST(test_assert, assert_not_null) {

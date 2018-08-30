@@ -185,6 +185,6 @@ INA_TEST(fsm, signal_light)
     };
     INA_TEST_ASSERT_TRUE(INA_FSM_GET_STATE(signal_fsm, sl.fsm_status) == OFF);
     INA_TEST_ASSERT_TRUE(INA_FSM_GET_EVENT(signal_fsm, sl.fsm_status) == TURN_ON_OFF);
-    INA_TEST_ASSERT_EQUAL_INTEGER(3, sl.c);
+    INA_TEST_ASSERT_EQUAL_INT(3, sl.c);
 }
 

@@ -94,9 +94,9 @@ INA_TEST_FIXTURE(dir, test_new_free)
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new(data->tmp_dir, &w));
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_get_sort_order(w, &sort_order));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_DIR_SORT_ORDER_NONE, sort_order);
+    INA_TEST_ASSERT_EQUAL_INT(INA_DIR_SORT_ORDER_NONE, sort_order);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_get_sort_attrib(w, &sort_attrib));
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_DIR_SORT_ATTRIB_DFT, sort_attrib);
+    INA_TEST_ASSERT_EQUAL_INT(INA_DIR_SORT_ATTRIB_DFT, sort_attrib);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_free(&w));
     INA_TEST_ASSERT_NULL(w);
 }

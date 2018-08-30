@@ -80,7 +80,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
         found++;
         INA_TEST_ASSERT_SUCCEED(ina_cron_task_next(itr, &task));
     }
-    INA_TEST_ASSERT_EQUAL_INTEGER(2, found);
+    INA_TEST_ASSERT_EQUAL_INT(2, found);
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_iter_free(&itr));
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_destroy(&ctx));

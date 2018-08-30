@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,10 +53,10 @@ INA_TEST(file, test_open_close)
 #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_NOT_NULL(ina_file_os_handle(f));
 #else
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, ina_file_os_handle(f));
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, ina_file_os_handle(f));
 #endif
     INA_TEST_ASSERT_SUCCEED(ina_file_get_mode(f, &mode));
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, mode);
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, mode);
     INA_TEST_ASSERT_NOT_NULL(ina_file_get_stream(f));
     INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
     INA_ASSERT_NULL(f);
@@ -93,12 +93,12 @@ INA_TEST(file, stat)
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_new(f, &stat));
     INA_TEST_ASSERT_NOT_NULL(stat);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_file_size(stat, &file_size));
-    INA_TEST_ASSERT_EQUAL_INTEGER(180LL, file_size);
+    INA_TEST_ASSERT_EQUAL_INT64(180LL, file_size);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_atime(stat, &t));
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, t);
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, t);
     t = 0;
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_mtime(stat, &t));
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, t);
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, t);
     INA_TEST_ASSERT_FAILED(ina_file_stat_is_dir(stat));
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_free(&stat));
     INA_ASSERT_NULL(stat);
@@ -114,7 +114,9 @@ INA_TEST(file, os_handle)
     const char *test_file = "tests.conf";
     ina_handle_t h;
     char buf[10];
-
+#ifdef INA_OS_WIN32
+    DWORD nread;
+#endif
     INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
@@ -129,9 +131,9 @@ INA_TEST(file, os_handle)
     h = ina_file_os_handle(f);
 #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_NOT_NULL(h);
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, ReadFile(h, buf, 7, &nread));
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, ReadFile(h, buf, 7, &nread, NULL));
 #else
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(0, h);
+    INA_TEST_ASSERT_NOT_EQUAL_INT(0, h);
     read(h, buf, 7);
 #endif
     INA_TEST_ASSERT_EQUAL_STR("debug {", buf);

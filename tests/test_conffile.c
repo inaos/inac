@@ -92,8 +92,8 @@ INA_TEST(conffile , using_macros)
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_STRING_KEY("mask", INA_YES)));
     INA_TEST_ASSERT_NOT_NULL(cf);
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, __section_count);
-    INA_TEST_ASSERT_EQUAL_INTEGER(2, __named_section_count);
+    INA_TEST_ASSERT_EQUAL_INT(1, __section_count);
+    INA_TEST_ASSERT_EQUAL_INT(2, __named_section_count);
 }
 
 INA_TEST(conffile , using_macros_without_section_handler)
@@ -200,9 +200,9 @@ INA_TEST(conffile, process_with_filepath)
     
     INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
 #ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp(ina_str_cstr(cf->filepath), "tests.exe.conf"));
+    INA_TEST_ASSERT_EQUAL_INT(0, strcmp(ina_str_cstr(cf->filepath), "tests.exe.conf"));
 #else
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, strcmp(ina_str_cstr(cf->filepath), "tests.conf"));
+    INA_TEST_ASSERT_EQUAL_INT(0, strcmp(ina_str_cstr(cf->filepath), "tests.conf"));
 #endif
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);

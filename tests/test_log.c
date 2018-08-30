@@ -49,8 +49,8 @@ INA_TEST(log, syslog)
   
     INA_TEST_ASSERT_SUCCEED(ina_log_new(&cfg, INA_LOG_SYSLOG, INA_LOG_LEVEL_DEBUG, "test"));
     INA_TEST_ASSERT_NOT_NULL(cfg);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_LOG_SYSLOG, cfg->target);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_LOG_LEVEL_DEBUG, cfg->level);
+    INA_TEST_ASSERT_EQUAL_INT(INA_LOG_SYSLOG, cfg->target);
+    INA_TEST_ASSERT_EQUAL_INT(INA_LOG_LEVEL_DEBUG, cfg->level);
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test DEBUG log entry, var=%d", 2));
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_INFO, "Test INFO log entry, var=%d", 2));
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_WARNING, "Test WARNING log entry, var=%d", 2));

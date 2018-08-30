@@ -34,10 +34,10 @@ INA_TEST(memory, memory_memfn)
 
 INA_TEST(memory, memory_align)
 {
-    INA_TEST_ASSERT_EQUAL_INTEGER(16, INA_MEM_ALIGN(1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(16, INA_MEM_ALIGN(10));
-    INA_TEST_ASSERT_EQUAL_INTEGER(32, INA_MEM_ALIGN(17));
-    INA_TEST_ASSERT_EQUAL_INTEGER(48, INA_MEM_ALIGN(33));
+    INA_TEST_ASSERT_EQUAL_INT(16, INA_MEM_ALIGN(1));
+    INA_TEST_ASSERT_EQUAL_INT(16, INA_MEM_ALIGN(10));
+    INA_TEST_ASSERT_EQUAL_INT(32, INA_MEM_ALIGN(17));
+    INA_TEST_ASSERT_EQUAL_INT(48, INA_MEM_ALIGN(33));
 }
 
 INA_TEST(memory, memory_alloc_aligned)
@@ -68,6 +68,6 @@ INA_TEST(memory, pagesize)
     INA_TEST_ASSERT_TRUE((size_t)sysconf(_SC_PAGESIZE) == size);
 #else
     GetSystemInfo(&si);
-    INA_TEST_ASSERT_EQUAL_INTEGER((size_t)si.dwPageSize, size);
+    INA_TEST_ASSERT_EQUAL_SIZE_T((size_t)si.dwPageSize, size);
 #endif
 }
