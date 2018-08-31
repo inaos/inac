@@ -91,13 +91,13 @@ int main(int argc,  char** argv)
             &dst_file))) {
         return EXIT_FAILURE;
     }
-    if (INA_FAILED(ina_file_set_mode(dst_file, mode))) {
+    if (INA_FAILED(ina_file_set_mode(dst_file, (mode_t )mode))) {
         printf("Can't set mode for %s\n", ina_str_cstr(dst));
         ina_file_stat_free(&stat);
         return EXIT_FAILURE;
     }
 
-    while (INA_SUCCEED(ina_file_read(src_file, (unsigned char*)buf, buf_size, &nread) && nread > 0)) {
+    while ((INA_SUCCEED(ina_file_read(src_file, (unsigned char*)buf, buf_size, &nread)) && nread > 0)) {
         if (INA_FAILED(ina_file_write(dst_file, (unsigned char*)buf, nread, &nwrote))) {
             break;
         }
