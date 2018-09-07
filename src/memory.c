@@ -69,15 +69,7 @@ static ina_memset_t  __ina_memset  = INA_MEM_MEMSET;
 
 INA_API(void *) ina_mem_alloc(size_t size)
 {
-    void *p = NULL;
-    p = __ina_malloc(size);
-    if (p == NULL) {
-        INA_OS_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
-        return NULL;
-    }
-    INA_TRACE3("Alloc %p", p);
-    ina_mem_set(p, 0, size);
-    return p;
+    return ina_mem_alloc_aligned(sizeof(void*), size);
 }
 
 INA_API(ina_rc_t) ina_mem_get_aligned_size(size_t query, size_t *aligned)
@@ -88,14 +80,27 @@ INA_API(ina_rc_t) ina_mem_get_aligned_size(size_t query, size_t *aligned)
 }
 
 INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
-{     
+{
+    /*
+     * Same behavior as in c-runtime
+     */
+    if (size == 0) {
+        ina_err_reset();
+        return NULL;
+    }
+
+    if (alignment == 0) {
+        INA_ERROR(INA_EINVAL);
+        return NULL;
+    }
+
     /* Allocate necessary memory area
      * client request - size parameter -
      * plus area to store the address
      * of the memory returned by standard
      * malloc().
      */
-    void *p = ina_mem_alloc(size + alignment - 1 + sizeof(void*));
+    void *p = __ina_malloc(size + alignment - 1 + sizeof(void*));
      
     if (p != NULL) {
         void *ptr;
@@ -110,18 +115,12 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
         /* Return the address of aligned memory */
         return ptr;
     }
-    INA_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
+    INA_ERROR(INA_ENOMEM);
     return NULL;
 }
 
-INA_API(void) ina_mem_free(void *ptr)
-{
-    INA_VERIFY_NOT_NULL(ptr);
-    INA_TRACE3("Free %p", ptr);
-    __ina_free(ptr);
-}
 
-INA_API(void) ina_mem_free_aligned(void *ptr)
+INA_API(void) ina_mem_free(void *ptr)
 {
     /* Get the address of the memory, stored at the
      * start of our total memory area. Alternatively,
@@ -129,7 +128,7 @@ INA_API(void) ina_mem_free_aligned(void *ptr)
      * of the one below.
      */
     void *p = *((void**)((size_t)ptr - sizeof(void*)));
-    ina_mem_free(p);
+    __ina_free(p);
 }
 
 INA_API(void *) ina_mem_realloc(void *ptr, size_t nb)
@@ -208,6 +207,7 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
 
     *pool = (ina_mempool_t*)ina_mem_alloc(sizeof(ina_mempool_t));
     INA_RETURN_IF_NULL(*pool);
+    ina_mem_set(*pool, 0, sizeof(ina_mempool_t));
     (*pool)->cf = cf;
     (*pool)->pos = 0;
     (*pool)->size = size;
@@ -231,6 +231,9 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
     } else {
         (*pool)->shm_handle = 0;
         (*pool)->m = (unsigned char*)ina_mem_alloc(size);
+         if (0 == (cf&INA_MEM_NOZEROFILL)) {
+            ina_mem_set((*pool)->m, 0, (*pool)->size);
+         }
     }
 
     if ((*pool)->m == NULL) {
@@ -239,7 +242,7 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
             ina_str_free((*pool)->label);
         }
         *pool = NULL;
-        return INA_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
+        return INA_ERROR(INA_ENOMEM);
     }
 
     if (!(cf&INA_MEM_CHILD)) {
@@ -249,12 +252,13 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
         }
 
         next = (__ina_mplist_t*)ina_mem_alloc(sizeof(__ina_mplist_t));
+        ina_mem_set(next, 0, sizeof(__ina_mplist_t));
         if (next == NULL) {
             ina_mem_free((*pool)->label);
             ina_mem_free((*pool)->m);
             ina_mem_free(*pool);
             *pool = NULL;
-           return INA_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
+           return INA_ERROR(INA_ENOMEM);
         }
         if (last != NULL) {
             last->next = next;
@@ -347,10 +351,30 @@ INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool, size_t chunks,
             ina_mem_free(pm);
         } else {
             pm->pos = 0;
-            ina_mem_set(pm->m, 0, pm->end);
         }
         --c;
     }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_mempool_clear(ina_mempool_t *pool)
+{
+    ina_mempool_t *pm;
+    ina_mempool_t *pn;
+
+    INA_VERIFY_NOT_NULL(pool);
+
+    pn = pool;
+    pm = NULL;
+    while (pn != NULL) {
+        pm = pn;
+        if (pn != pn->child) {
+            pn = pn->child;
+        }
+        pm->pos = 0;
+        ina_mem_set(pm->m, 0, pm->size);
+    }
+    pool->current = pool;
     return INA_SUCCESS;
 }
 
@@ -369,8 +393,8 @@ INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool)
             pn = pn->child;
         }
         pm->pos = 0;
-        ina_mem_set(pm->m, 0, pm->end);
     }
+    pool->current = pool;
     return INA_SUCCESS;
 }
 

@@ -144,7 +144,7 @@ INA_TEST(mempool, nalloc_fixed)
     INA_TEST_ASSERT_EQUAL_INT(40, buf1[1]);
     INA_TEST_ASSERT_EQUAL_INT(40, buf1[2]);
     INA_TEST_ASSERT_EQUAL_INT(40, buf1[3]);
-    INA_TEST_ASSERT_EQUAL_INT(0, buf1[4]);
+    INA_TEST_ASSERT_EQUAL_INT(20, buf1[4]);
 
     /* allocate new NOT reallocable buffer from the fresh pool */
     buf4 = ina_mempool_nalloc(pool, 5);
@@ -176,6 +176,45 @@ INA_TEST(mempool, dalloc)
     ina_mempool_free(pool);
 }
 
+INA_TEST(mempool, clear)
+{
+    ina_mempool_t *pool;
+    ina_mempool_info_t info;
+
+    char *buf;
+
+    ina_err_reset();
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 2048, INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+
+    buf = ina_mempool_dalloc(pool, 4*1024);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4*1024, info.used);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(1, info.children);
+    ina_mem_set(buf, 20, 4*1024);
+
+
+    buf = ina_mempool_dalloc(pool, 2*1024);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(6*1024, info.used);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(2, info.children);
+
+    ina_mempool_clear(pool);
+
+    buf = ina_mempool_dalloc(pool, 4*1024);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4*1024, info.used);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(2, info.children);
+    INA_TEST_ASSERT_EQUAL_INT(0, buf[0]);
+    INA_TEST_ASSERT_EQUAL_INT(0, buf[100]);
+    INA_TEST_ASSERT_EQUAL_INT(0, buf[4095]);
+
+}
+
 INA_TEST(mempool, reset)
 {
     ina_mempool_t *pool;
@@ -193,6 +232,7 @@ INA_TEST(mempool, reset)
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_SIZE_T(4*1024, info.used);
     INA_TEST_ASSERT_EQUAL_SIZE_T(1, info.children);
+    ina_mem_set(buf, 20, 4*1024);
 
 
     buf = ina_mempool_dalloc(pool, 2*1024);
@@ -203,14 +243,24 @@ INA_TEST(mempool, reset)
 
     ina_mempool_reset(pool);
 
-    buf = ina_mempool_dalloc(pool, 4*1024);
+    buf = ina_mempool_dalloc(pool, 2*1024);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(2*1024, info.used);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(2, info.children);
+    INA_TEST_ASSERT_EQUAL_INT(0, buf[0]);
+    INA_TEST_ASSERT_EQUAL_INT(0, buf[100]);
+    INA_TEST_ASSERT_EQUAL_INT(0, buf[2047]);
+
+    buf = ina_mempool_dalloc(pool, 2*1024);
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_SIZE_T(4*1024, info.used);
-    INA_TEST_ASSERT_EQUAL_SIZE_T(3, info.children);
-
+    INA_TEST_ASSERT_EQUAL_SIZE_T(2, info.children);
+    INA_TEST_ASSERT_EQUAL_INT(20, buf[0]);
+    INA_TEST_ASSERT_EQUAL_INT(20, buf[100]);
+    INA_TEST_ASSERT_EQUAL_INT(20, buf[3071]);
 }
-
 
 INA_TEST(mempool, realloc_dynamic)
 {

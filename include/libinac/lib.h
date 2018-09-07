@@ -106,6 +106,9 @@
 extern "C" {
 #endif
 
+#define INA_EINVAL INA_NN_ARGUMENT|INA_ERR_INVALID
+
+
 #define INA_YES (1)
 #define INA_NO  (0)
 
