@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.12)
 project(inac)
 include("inac.cmake")
 inac_version("0.9.0" HEADER include/libinac/version.h)
