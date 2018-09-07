@@ -172,8 +172,6 @@ INA_TEST(file, mode)
     ina_file_ctx_t *ctx = NULL;
     ina_file_t *f = NULL;
     const char *test_file = "tests.conf";
-    ina_handle_t h;
-    char buf[10];
 
     INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);

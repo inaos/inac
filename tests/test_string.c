@@ -690,12 +690,12 @@ INA_TEST(string, ina_str_substr)
     INA_TEST_ASSERT_EQUAL_STR("substring", substr);
     ina_str_free(substr);
 
-    substr = ina_str_substr(str, 0, -1);
+    substr = ina_str_substr(str, 0, ina_str_len(str));
     INA_TEST_ASSERT_NOT_NULL(substr);
     INA_TEST_ASSERT_EQUAL_STR("extract a substring from a string", substr);
     ina_str_free(substr);
 
-    substr = ina_str_substr(str, 10, -1);
+    substr = ina_str_substr(str, 10, ina_str_len(str));
     INA_TEST_ASSERT_NOT_NULL(substr);
     INA_TEST_ASSERT_EQUAL_STR("substring from a string", substr);
     ina_str_free(substr);
