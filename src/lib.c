@@ -104,7 +104,7 @@ INA_API(const char*) ina_app_get_path(void)
     return ina_str_cstr(__apppath);
 }
 
-INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, ina_opt_t *opt)
+INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
 {
     
 #ifdef INA_OS_WIN32
