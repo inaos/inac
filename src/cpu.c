@@ -765,7 +765,7 @@ INA_API(ina_rc_t) ina_cpu_get_gflops_dp(double *gflops)
     INA_MUST_SUCCEED(ina_cpu_get_core_count(&cores));
     INA_MUST_SUCCEED(ina_cpu_get_ipc_dp(&ipc));
 
-    *gflops = (mHz/1024)*cores*ipc;
+    *gflops = (mHz/1024.0)*cores*ipc;
 
     return INA_SUCCESS;
 }
@@ -780,7 +780,7 @@ INA_API(ina_rc_t) ina_cpu_get_gflops_sp(double *gflops)
     INA_MUST_SUCCEED(ina_cpu_get_core_count(&cores));
     INA_MUST_SUCCEED(ina_cpu_get_ipc_dp(&ipc));
 
-    *gflops = (mHz/1024)*cores*ipc;
+    *gflops = (mHz/1024.0)*cores*ipc;
 
     return INA_SUCCESS;
 }
