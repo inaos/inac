@@ -29,11 +29,12 @@
 #ifndef _LIBINAC_HASHTABLE_H_
 #define _LIBINAC_HASHTABLE_H_
 
-#include <libinac/lib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /*
  * DESIGN:
@@ -133,20 +134,73 @@ extern "C" {
  *
  */
 
-/* opaque hash table */
-typedef ina_hashtbl_s ina_hash_tbl_t;
+#define INA_HASHTABLE_CF_GROWABLE         (1UL)
+#define INA_HASHTABLE_CF_SHRINKABLE       (2UL)
 
-INA_API(ina_rc_t) ina_hashtbl_new();
+typedef enum ina_hashtable_type_e {
+    INA_HASHTABLE_TYPE_CHAINED,
+    INA_HASHTABL_TYPE_OPENADR
+} ina_hashtable_type_t;
 
-INA_API(ina_rc_t) ina_hashtbl_free();
+typedef enum ina_hashtable_key_type_e {
+     INA_HASHTABLE_STR_KEY,
+     INA_HASHTABL_UINT32_KEY,
+     INA_HASHTABLE_UINT64_KEY,
+     INA_HASHTABL_INT32_KEY,
+     INA_HASHTABLE_INT64_KEY
+} ina_hashtable_key_type_t;
 
-INA_API(ina_rc_t) ina_hashtbl_put();
+typedef enum ina_hashtable_growth_strategy_e {
+    INA_HASHTABLE_GROW_LINEAR,
+    INA_HASHTABLE_GROW_QUADRATIC,
+    INA_HASHTABLE_GROW_DOUBLE_HASH,
+} ina_hashtable_growth_strategy_t;
 
-INA_API(ina_rc_t) ina_hashtbl_get();
+typedef enum ina_hashtable_hash_type_e {
+     INA_HASHTABLE_HASH_CRC,
+     INA_HASHTABLE_HASH_JEKINS,
+     INA_HASHTABLE_HASH_WANG,
+} ina_hashtable_hash_type_t;
 
-INA_API(ina_rc_t) ina_hashtbl_del();
+/* opaque hashtable types */
+typedef struct ina_hashtable_ctx_s   ina_hashtable_ctx_t;
+typedef struct ina_hashtable_s       ina_hashtable_t;
+typedef struct ina_hashtable_iter_s  ina_hashtable_iter_t;
 
-INA_API(ina_rc_t) ina_hashtbl_iter();
+
+INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
+                                     ina_hashtable_hash_type_t hash_type,
+                                     ina_hashtable_type_t type,
+                                     ina_hashtable_growth_strategy_t growth_strategy,
+                                     uint32_t  cf,
+                                     ina_hashtable_ctx_t **ctx);
+
+INA_API(ina_rc_t) ina_hashtable_destroy(ina_hashtable_ctx_t **ctx);
+
+
+INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
+                                    int capacity,
+                                    uint32_t  cf,
+                                    ina_hashtable_t **t);
+
+
+INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **t);
+
+INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key, const void *data);
+
+INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key, void **data);
+
+INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key, void **data);
+
+
+INA_API(ina_rc_t) ina_hashtable_iter_new(ina_hashtable_t *t, ina_hashtable_iter_t **iter);
+
+INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **data);
+
+INA_API(ina_rc_t) ina_hashtable_iter_reset(ina_hashtable_iter_t *iter);
+
+INA_API(ina_rc_t) ina_hashtable_iter_free(ina_hashtable_iter_t **iter);
+
 
 #ifdef __cplusplus
 }

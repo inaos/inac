@@ -97,6 +97,7 @@
 #include <libinac/file_cursor.h>
 #include <libinac/uthash.h>
 #include <libinac/utlist.h>
+#include <libinac/hashtable.h>
 #include <libinac/debug.h>
 #include <libinac/test.h>
 #include <libinac/bench.h>
