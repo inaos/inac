@@ -51,8 +51,53 @@ struct ina_hashtable_s {
     ina_hashtable_ctx_t *ctx;
     ina_mempool_t *mp;
     int capacity;
-    ina_hashtable_node_t **buckets;
+    ina_hashtable_node_t *buckets;
 };
+
+INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
+                                     ina_hashtable_hash_type_t hash_type,
+                                     ina_hashtable_type_t type,
+                                     ina_hashtable_growth_strategy_t growth_strategy,
+                                     uint32_t  cf,
+                                     ina_hashtable_ctx_t **ctx)
+{
+    INA_VERIFY_NOT_NULL(ctx);
+    *ctx = ina_mem_alloc(sizeof(ina_hashtable_ctx_t));
+    INA_RETURN_IF_NULL(*ctx);
+
+    switch (key_type) {
+        case INA_HASHTABL_UINT32_KEY: {
+            (*ctx)->key_len = sizeof(uint32_t);
+            break;
+        }
+        case INA_HASHTABL_INT32_KEY:  {
+            (*ctx)->key_len = sizeof(int32_t);
+            break;
+        }
+        case INA_HASHTABLE_INT64_KEY: {
+            (*ctx)->key_len = sizeof(int64_t);
+            break;
+        }
+        case INA_HASHTABLE_UINT64_KEY: {
+            (*ctx)->key_len = sizeof(uint64_t);
+        }
+        case INA_HASHTABLE_STR_KEY: {
+            (*ctx)->key_len = INA_HASHTABLE_STR_KEY;
+        }
+
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_hashtable_destroy(ina_hashtable_ctx_t **ctx)
+{
+    INA_VERIFY_NOT_NULL(*ctx);
+    ina_mem_free(*ctx);
+    return INA_SUCCESS;
+}
+
+
+
 
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
                                     int capacity,
@@ -62,13 +107,14 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
     INA_VERIFY_NOT_NULL(ctx);
     *t = ina_mem_alloc(sizeof(ina_hashtable_t));
     INA_RETURN_IF_NULL(*t);
+    (*t)->ctx = ctx;
     (*t)->capacity = capacity;
     if (INA_FAILED(ina_mempool_new(&(*t)->mp, (sizeof(ina_hashtable_node_t) * (*t)->capacity),
             0, NULL))) {
         ina_hashtable_free(t);
         return ina_err_get_last_rc();
     }
-
+    (*t)->buckets = ina_mempool_dalloc((*t)->mp, sizeof(ina_hashtable_node_t) * (*t)->capacity);
     return INA_SUCCESS;
 }
 
@@ -81,32 +127,38 @@ INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **t)
     *t = NULL;
     return INA_SUCCESS;
 }
-
-INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key, const void *data)
-{
-    ina_hashtable_node_t *next;
-
-    INA_VERIFY_NOT_NULL(t);
-    INA_VERIFY_NOT_NULL(t);
-    INA_VERIFY_NOT_NULL(data);
-
-    uint32_t hash = ina_hash_32_sdbm(0, key , sizeof(uint32_t)) % t->capacity;
-    next = t->buckets[hash];
-    ina_mem_cpy(&next->key, key, (size_t)t->ctx->key_len);
-    next->data = (void*)data;
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key, void **data)
+INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key, int key_len, const void *data)
 {
     ina_hashtable_node_t *next;
 
     INA_VERIFY_NOT_NULL(t);
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(data);
-    uint32_t hash = ina_hash_32_sdbm(0, key , sizeof(uint32_t)) % t->capacity;
-    next = t->buckets[hash];
-    if (NULL != next->data) {
+
+    printf("%s\n", "OK");
+    fflush(stdout);
+
+    uint32_t hash = ina_hash_32_sdbm(0, key , key_len) % t->capacity;
+    printf("hash: %u\n", hash);
+    fflush(stdout);
+    next = t->buckets+hash;
+    ina_mem_cpy(&next->key, key, (size_t)key_len);
+    next->data = (void*)data;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key, int key_len, void **data)
+{
+    ina_hashtable_node_t *next;
+
+    INA_VERIFY_NOT_NULL(t);
+    INA_VERIFY_NOT_NULL(key);
+    INA_VERIFY_NOT_NULL(data);
+    uint32_t hash = ina_hash_32_sdbm(0, key ,key_len) % t->capacity;
+    printf("hash: %u\n", hash);
+    fflush(stdout);
+    next = t->buckets+hash;
+    if (NULL == next->data) {
         return INA_ERROR(INA_ERR_NOT_FOUND);
     }
     *data = next->data;
@@ -122,7 +174,7 @@ INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key, voi
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(data);
     uint32_t hash = ina_hash_32_sdbm(0, key , sizeof(uint32_t)) % t->capacity;
-    next = t->buckets[hash];
+    next = t->buckets+hash;
     if (NULL != next->data) {
         return INA_ERROR(INA_ERR_NOT_FOUND);
     }

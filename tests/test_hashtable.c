@@ -32,17 +32,41 @@ typedef struct data {
     int id;
 } ina_data_t;
 
-static ina_data_t* new_data(const char* name, int id)
+static ina_data_t* new_data(int id, const char* name)
 {
-    return NULL;
+    ina_data_t *data;
+    data = ina_mem_alloc(sizeof(ina_data_t));
+    data->id = id;
+    data->name = ina_str_new_fromcstr(name);
+    return data;
 }
 
-INA_TEST_SKIP(hashtable, simple)
+INA_TEST(hashtable, simple)
 {
-
+    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
+    ina_data_t *data;
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABL_INT32_KEY,
+            INA_HASHTABLE_HASH_CRC,
+            INA_HASHTABLE_TYPE_CHAINED,
+            INA_HASHTABLE_GROW_LINEAR, 0, &ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
 
 
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, 1024, 0, &ht));
+    INA_TEST_ASSERT_NOT_NULL(ht);
+
+    data = new_data(1, "Name 1");
+    ina_hashtable_set_int32(ht, data->id, data);
+    data = new_data(2, "Name 2");
+    ina_hashtable_set_int32(ht, data->id, data);
 
 
+    data = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_int32(ht, 1, (void**)&data));
+    INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_int32(ht, 2, (void**)&data));
+    INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
+    INA_TEST_ASSERT_FAILED(ina_hashtable_get_int32(ht, 3, (void**)&data));
 }

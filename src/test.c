@@ -622,8 +622,8 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                 if (test->setup) {
                     test->setup(test->data);
                 }
-                old_sigabrt_handler = signal(SIGABRT, __ina_signal_handler);
-                old_sigsegv_handler = signal(SIGSEGV, __ina_signal_handler);
+                /*old_sigabrt_handler = signal(SIGABRT, __ina_signal_handler);
+                old_sigsegv_handler = signal(SIGSEGV, __ina_signal_handler);*/
 
                 if (setjmp(__err) == 0) {
                     if (test->data) {
@@ -649,8 +649,8 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     }
                     num_fail++;
                 }
-                signal(SIGABRT, old_sigabrt_handler);
-                signal(SIGSEGV, old_sigsegv_handler);
+                /*signal(SIGABRT, old_sigabrt_handler);
+                signal(SIGSEGV, old_sigsegv_handler);*/
                 if (test->teardown) {
                     test->teardown(test->data);
                 }

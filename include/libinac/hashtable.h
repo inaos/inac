@@ -186,12 +186,23 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
 
 INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **t);
 
-INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key, const void *data);
 
-INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key, void **data);
+INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key, int key_len, const void *data);
+
+INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key, int key_len, void **data);
 
 INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key, void **data);
 
+
+INA_INLINE ina_rc_t ina_hashtable_set_int32(ina_hashtable_t *t, int32_t key, const void *data)
+{
+    return ina_hashtable_set(t, &key, sizeof(key), data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_get_int32(ina_hashtable_t *t, int32_t key, void **data)
+{
+    return ina_hashtable_get(t, &key, sizeof(key), data);
+}
 
 INA_API(ina_rc_t) ina_hashtable_iter_new(ina_hashtable_t *t, ina_hashtable_iter_t **iter);
 
