@@ -81,7 +81,7 @@ INA_BENCH(string, series_2, 10) {
     }
     ina_bench_set_int64(ina_bench_stopwatch_stop());
 
-    INA_MUST_SUCCEED(ina_mempool_free(data->mp));
+    INA_MUST_SUCCEED(ina_mempool_free(&data->mp));
 }
 
 
@@ -105,6 +105,6 @@ INA_BENCH(string, series_3, 10) {
 }
 
 INA_BENCH_END(string, series_3) {
-    INA_MUST_SUCCEED(ina_mempool_free(data->mp));
+    INA_MUST_SUCCEED(ina_mempool_free(&data->mp));
 }
 

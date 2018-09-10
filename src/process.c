@@ -201,7 +201,7 @@ INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx)
         INA_MUST_SUCCEED(ina_time_sys_free(&(*ctx)->systime));
     }
     if ((*ctx)->mempool != NULL) {
-        INA_MUST_SUCCEED(ina_mempool_free((*ctx)->mempool));
+        INA_MUST_SUCCEED(ina_mempool_free(&(*ctx)->mempool));
     }
     ina_mem_free(*ctx);
     *ctx = NULL;

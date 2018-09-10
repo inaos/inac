@@ -192,7 +192,7 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool);
+INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t **pool);
 
 /*
  * Shrink a memory pool.

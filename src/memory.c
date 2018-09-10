@@ -274,23 +274,21 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool)
+INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t **pool)
 {
     ina_mempool_t *pm;
     ina_mempool_t *pn;
     __ina_mplist_t *ref;
 
     INA_VERIFY_NOT_NULL(pool);
-
-    INA_TRACE3("Free pool: %p->%p", pool, pool->m);
-
+    INA_VERIFY_NOT_NULL(*pool);
 
     /* Unlink parent */
-    if (pool->parent != NULL) {
-        pool->parent->child = NULL;
+    if ((*pool)->parent != NULL) {
+        (*pool)->parent->child = NULL;
     } else {
         ref = __pools;
-        while (ref != NULL && ref->pool != pool) {
+        while (ref != NULL && ref->pool != *pool) {
             ref = ref->next;
         }
         if (ref != NULL) {
@@ -299,9 +297,9 @@ INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool)
         }
     }
 
-    pool->current = pool;
+    (*pool)->current = *pool;
 
-    pn = pool;
+    pn = *pool;
     pm = NULL;
     while (pn != NULL) {
         pm = pn;
@@ -680,7 +678,7 @@ INA_API(ina_rc_t) ina_mempool_destroy(void)
     while (next != NULL) {
         if (next->active == 1) {
             /* FIXME: error handling */
-            ina_mempool_free(next->pool);
+            ina_mempool_free(&next->pool);
             next->active = 0;
         }
         next = next->next;

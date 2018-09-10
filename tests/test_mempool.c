@@ -41,7 +41,7 @@ INA_TEST(mempool, create_fixed)
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, info.children);
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, info.used);
     INA_TEST_ASSERT_EQUAL_SIZE_T(4096, info.size);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
 }
 
 INA_TEST(mempool, create_fixed_bestfit)
@@ -56,7 +56,7 @@ INA_TEST(mempool, create_fixed_bestfit)
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, info.children);
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, info.used);
     INA_TEST_ASSERT_EQUAL_SIZE_T(4096, info.size);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
 }
 
 INA_TEST(mempool, bestfit)
@@ -75,7 +75,7 @@ INA_TEST(mempool, bestfit)
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_SIZE_T(34, info.used);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
 }
 
 
@@ -95,7 +95,7 @@ INA_TEST(mempool, aligned)
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_SIZE_T(64, info.used);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
 }
 
 INA_TEST(mempool, nalloc_fixed)
@@ -173,7 +173,7 @@ INA_TEST(mempool, dalloc)
     ina_mempool_reset(pool);
     INA_TEST_ASSERT_NOT_NULL(buf);
     buf = ina_mempool_dalloc(pool, 1024*1024*2);
-    ina_mempool_free(pool);
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(mempool, clear)
@@ -299,7 +299,7 @@ INA_TEST(mempool, realloc_dynamic)
     INA_TEST_ASSERT_EQUAL_SIZE_T(9216+2048, info.used);
     INA_TEST_ASSERT_EQUAL_SIZE_T(1, info.children);
 
-    ina_mempool_free(pool);
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(mempool, realloc_fixed)
@@ -353,7 +353,7 @@ INA_TEST(mempool, realloc_fixed)
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_SIZE_T(128+256+512, info.used);
 
-    ina_mempool_free(pool);
+    ina_mempool_free(&pool);
 
 }
 
@@ -432,7 +432,7 @@ INA_TEST(mempool, auto_resize) {
     INA_TEST_ASSERT_EQUAL_SIZE_T(7168, mi.size);
     INA_TEST_ASSERT_EQUAL_SIZE_T(7168, mi.used);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(pool));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
     
     /* Allocate pool with initial site 2KB dynamic */
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 2048, INA_MEM_DYNAMIC, NULL));
@@ -537,7 +537,7 @@ INA_TEST_SETUP(mempool_ipc)
 INA_TEST_TEARDOWN(mempool_ipc)
 {
     INA_TEST_HELPER_TERMINATE(&data->hid);
-    ina_mempool_free(data->mp);
+    ina_mempool_free(&data->mp);
 }
 
 INA_TEST_FIXTURE(mempool_ipc, mempool_create)
