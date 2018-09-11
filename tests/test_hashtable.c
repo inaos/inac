@@ -32,6 +32,14 @@ typedef struct data {
     int id;
 } ina_data_t;
 
+static ina_rc_t print_data(const void* data)
+{
+    printf("[%d] - %s\n",
+            ((const ina_data_t*)data)->id,
+           ((const ina_data_t*)data)->name);
+    return INA_SUCCESS;
+}
+
 static ina_data_t* new_data(int id, const char* name)
 {
     ina_data_t *data;
@@ -54,7 +62,7 @@ INA_TEST(hashtable, simple)
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, 1024, 0, &ht));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, 5, 0, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data = new_data(1, "Name 1");
@@ -69,4 +77,21 @@ INA_TEST(hashtable, simple)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_int32(ht, 2, (void**)&data));
     INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
     INA_TEST_ASSERT_FAILED(ina_hashtable_get_int32(ht, 3, (void**)&data));
+    data = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_remove32(ht, 1, (void**)&data));
+    INA_TEST_ASSERT_NOT_NULL(data);
+    INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
+    INA_TEST_ASSERT_FAILED(ina_hashtable_get_int32(ht, 1, (void**)&data));
+    data = new_data(10, "Name 10");
+    ina_hashtable_set_int32(ht, data->id, data);
+    data = new_data(20, "Name 20");
+    ina_hashtable_set_int32(ht, data->id, data);
+    data = new_data(30, "Name 30");
+    ina_hashtable_set_int32(ht, data->id, data);
+    data = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_int32(ht, 10, (void**)&data));
+    INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
+
+    ina_hashtable_foreach(ht, print_data);
+
 }

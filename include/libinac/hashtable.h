@@ -137,6 +137,8 @@ extern "C" {
 #define INA_HASHTABLE_CF_GROWABLE         (1UL)
 #define INA_HASHTABLE_CF_SHRINKABLE       (2UL)
 
+typedef ina_rc_t (*ina_hashtable_foreach_fn)(const void *data);
+
 typedef enum ina_hashtable_type_e {
     INA_HASHTABLE_TYPE_CHAINED,
     INA_HASHTABL_TYPE_OPENADR
@@ -187,30 +189,30 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
 INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **t);
 
 
-INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key, int key_len, const void *data);
+INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key,  const void *data);
 
-INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key, int key_len, void **data);
+INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key,  void **data);
 
-INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key, void **data);
+INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key,  void **data);
 
 
 INA_INLINE ina_rc_t ina_hashtable_set_int32(ina_hashtable_t *t, int32_t key, const void *data)
 {
-    return ina_hashtable_set(t, &key, sizeof(key), data);
+    return ina_hashtable_set(t, &key,  data);
 }
 
 INA_INLINE ina_rc_t ina_hashtable_get_int32(ina_hashtable_t *t, int32_t key, void **data)
 {
-    return ina_hashtable_get(t, &key, sizeof(key), data);
+    return ina_hashtable_get(t, &key, data);
 }
 
-INA_API(ina_rc_t) ina_hashtable_iter_new(ina_hashtable_t *t, ina_hashtable_iter_t **iter);
+INA_INLINE ina_rc_t ina_hashtable_get_remove32(ina_hashtable_t *t, int32_t key, void **data)
+{
+    return ina_hashtable_remove(t, &key, data);
+}
 
-INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **data);
+INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t *ht, ina_hashtable_foreach_fn foreach_fn);
 
-INA_API(ina_rc_t) ina_hashtable_iter_reset(ina_hashtable_iter_t *iter);
-
-INA_API(ina_rc_t) ina_hashtable_iter_free(ina_hashtable_iter_t **iter);
 
 
 #ifdef __cplusplus
