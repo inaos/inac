@@ -42,7 +42,7 @@ INA_TEST_SETUP(string_mempool)
 
 INA_TEST_TEARDOWN(string_mempool)
 {
-    ina_mempool_free(data->pool);
+    ina_mempool_free(&data->pool);
     data->pool = NULL;
 }
 

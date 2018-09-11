@@ -177,7 +177,7 @@ INA_BENCH(file, bf_read_direct, 4)
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
-    ina_mem_free_aligned(buf);
+    ina_mem_free(buf);
     data->read_buf = NULL;
 }
 

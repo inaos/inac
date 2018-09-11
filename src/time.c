@@ -423,7 +423,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_free(ina_stopwatch_t **stopwatch)
     INA_VERIFY_NOT_NULL(*stopwatch);
 
     if ((*stopwatch)->shared_mem != NULL) {
-        INA_MUST_SUCCEED(ina_mempool_free((*stopwatch)->shared_mem));
+        INA_MUST_SUCCEED(ina_mempool_free(&(*stopwatch)->shared_mem));
     }
     ina_mem_free(*stopwatch);
     *stopwatch = NULL;
@@ -651,7 +651,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
              size);
 
      if ((*stopwatch)->tv == NULL) {
-         ina_mempool_free((*stopwatch)->shared_mem);
+         ina_mempool_free(&(*stopwatch)->shared_mem);
          ina_mem_free(*stopwatch);
          *stopwatch = NULL;
          return ina_err_get_last_rc();

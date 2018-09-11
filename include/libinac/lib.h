@@ -107,6 +107,9 @@
 extern "C" {
 #endif
 
+#define INA_EINVAL INA_NN_ARGUMENT|INA_ERR_INVALID
+
+
 #define INA_YES (1)
 #define INA_NO  (0)
 
@@ -226,7 +229,7 @@ INA_API(const char*) ina_app_get_path(void);
  * Return
  *  INA_SUCCESS  if no error occurred
  */
-INA_API(ina_rc_t) ina_app_init(const int argc,
+INA_API(ina_rc_t) ina_app_init(int argc,
                                char **argv,
                                ina_opt_t *opt);
 

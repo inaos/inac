@@ -28,12 +28,12 @@
 #ifndef _LIBINAC_MEMPOOL_H_
 #define _LIBINAC_MEMPOOL_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
+#include <libinac/lib.h>
+
 /* TODO: rename all constants to INA_MEMPOOL_.... */
 #define INA_MEM_DFT_POOL_SIZE (8*1024*1204)
 /* Minimal allowed pool size */
@@ -56,6 +56,8 @@ extern "C" {
 #define INA_MEM_SHARED_OWNER    (128)
 /* Open shared memory exclusive */
 #define INA_MEM_SHARED_EXCL    (256)
+/* Do not fill zero on creation */
+#define INA_MEM_NOZEROFILL     (512)
 
 /* Opaque emory pool handle */
 typedef struct ina_mempool_s ina_mempool_t;
@@ -190,7 +192,7 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool);
+INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t **pool);
 
 /*
  * Shrink a memory pool.
@@ -206,6 +208,17 @@ INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool);
 INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool,
                                      size_t chunks,
                                      ina_mempool_info_t *info);
+
+/*
+ * Clear a memory pool, fill all chunks with 0.
+ *
+ * Parameters
+ *  pool  Memory pool to clear.
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_mempool_clear(ina_mempool_t *pool);
 
 /*
  * Reset a memory pool.
