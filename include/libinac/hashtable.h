@@ -133,6 +133,7 @@ extern "C" {
  *
  *
  */
+#define INA_HASHTABLE_MAX_KEY_LEN 16
 
 #define INA_HASHTABLE_CF_GROWABLE         (1UL)
 #define INA_HASHTABLE_CF_SHRINKABLE       (2UL)
@@ -183,96 +184,113 @@ INA_API(ina_rc_t) ina_hashtable_destroy(ina_hashtable_ctx_t **ctx);
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
                                     int capacity,
                                     uint32_t  cf,
-                                    ina_hashtable_t **t);
+                                    ina_hashtable_t **ht);
 
 
-INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **t);
+INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht);
 
-INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key,  const void *data);
+INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *ht, const void *key, size_t key_len,  const void *data);
 
-INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key,  void **data);
+INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *ht, const void *key, size_t key_len,  void **data);
 
-INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key,  void **data);
+INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *ht,  const void *key, size_t key_len, void **data);
 
 INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t *ht, ina_hashtable_foreach_fn foreach_fn);
 
 
-INA_INLINE ina_rc_t ina_hashtable_set_i32(ina_hashtable_t *t, int32_t key, const void *data)
+INA_INLINE ina_rc_t ina_hashtable_set_i32(ina_hashtable_t *ht, int32_t key, const void *data)
 {
-    return ina_hashtable_set(t, &key,  data);
+    return ina_hashtable_set(ht, &key, sizeof(int32_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_i32(const ina_hashtable_t *t, int32_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_get_i32(const ina_hashtable_t *ht, int32_t key, void **data)
 {
-    return ina_hashtable_get(t, &key, data);
+    return ina_hashtable_get(ht, &key, sizeof(int32_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_remove_i32(ina_hashtable_t *t, int32_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_remove_i32(ina_hashtable_t *ht, int32_t key, void **data)
 {
-    return ina_hashtable_remove(t, &key, data);
+    return ina_hashtable_remove(ht, &key, sizeof(int32_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_set_u32(ina_hashtable_t *t, uint32_t key, const void *data)
+INA_INLINE ina_rc_t ina_hashtable_set_u32(ina_hashtable_t *ht, uint32_t key, const void *data)
 {
-    return ina_hashtable_set(t, &key,  data);
+    return ina_hashtable_set(ht, &key, sizeof(uint32_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_u32(const ina_hashtable_t *t, uint32_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_get_u32(const ina_hashtable_t *ht, uint32_t key, void **data)
 {
-    return ina_hashtable_get(t, &key, data);
+    return ina_hashtable_get(ht, &key, sizeof(uint32_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_remove_u32(ina_hashtable_t *t, uint32_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_remove_u32(ina_hashtable_t *ht, uint32_t key, void **data)
 {
-    return ina_hashtable_remove(t, &key, data);
+    return ina_hashtable_remove(ht, &key, sizeof(uint32_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_set_i64(ina_hashtable_t *t, int64_t key, const void *data)
+INA_INLINE ina_rc_t ina_hashtable_set_i64(ina_hashtable_t *ht, int64_t key, const void *data)
 {
-    return ina_hashtable_set(t, &key,  data);
+    return ina_hashtable_set(ht, &key,  sizeof(int64_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_i64(const ina_hashtable_t *t, int64_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_get_i64(const ina_hashtable_t *ht, int64_t key, void **data)
 {
-    return ina_hashtable_get(t, &key, data);
+    return ina_hashtable_get(ht, &key, sizeof(int64_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_remove_i64(ina_hashtable_t *t, int64_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_remove_i64(ina_hashtable_t *ht, int64_t key, void **data)
 {
-    return ina_hashtable_remove(t, &key, data);
+    return ina_hashtable_remove(ht, &key, sizeof(int64_t), data);
 }
 
 INA_INLINE ina_rc_t ina_hashtable_set_u64(ina_hashtable_t *t, uint64_t key, const void *data)
 {
-    return ina_hashtable_set(t, &key,  data);
+    return ina_hashtable_set(t, &key, sizeof(uint64_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_u64(const ina_hashtable_t *t, uint64_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_get_u64(const ina_hashtable_t *ht, uint64_t key, void **data)
 {
-    return ina_hashtable_get(t, &key, data);
+    return ina_hashtable_get(ht, &key, sizeof(uint64_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_remove_u64(ina_hashtable_t *t, uint64_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_remove_u64(ina_hashtable_t *ht, uint64_t key, void **data)
 {
-    return ina_hashtable_remove(t, &key, data);
+    return ina_hashtable_remove(ht, &key, sizeof(uint64_t), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_set_str(ina_hashtable_t *t, const char* key, const void *data)
+INA_INLINE ina_rc_t ina_hashtable_set_str(ina_hashtable_t *ht, const char* key, const void *data)
 {
-    return ina_hashtable_set(t, key,  data);
+    size_t key_len = INA_MIN(INA_HASHTABLE_MAX_KEY_LEN, strlen(key));
+    return ina_hashtable_set(ht, key, key_len, data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_str(const ina_hashtable_t *t, const char* key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_get_str(const ina_hashtable_t *ht, const char* key, void **data)
 {
-    return ina_hashtable_get(t, key, data);
+    return ina_hashtable_get(ht, key, strlen(key), data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_remove_str(ina_hashtable_t *t, const char* key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_remove_str(ina_hashtable_t *ht, const char* key, void **data)
 {
-    return ina_hashtable_remove(t, key, data);
+    return ina_hashtable_remove(ht, key, strlen(key), data);
 }
 
+INA_INLINE ina_rc_t ina_hashtable_set_ptr(ina_hashtable_t *ht, const void* key, const void *data)
+{
+    uintptr_t p = (uintptr_t )key;
+    return ina_hashtable_set(ht, &p, sizeof(uintptr_t), data);
+}
 
+INA_INLINE ina_rc_t ina_hashtable_get_ptr(const ina_hashtable_t *ht, const void* key, void **data)
+{
+    uintptr_t p = (uintptr_t )key;
+    return ina_hashtable_get(ht, &p, sizeof(uintptr_t), data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_remove_ptr(ina_hashtable_t *ht, const void * key, void **data)
+{
+    uintptr_t p = (uintptr_t )key;
+    return ina_hashtable_remove(ht, &p, sizeof(uintptr_t), data);
+}
 
 #ifdef __cplusplus
 }
