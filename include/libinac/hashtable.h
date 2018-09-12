@@ -85,7 +85,7 @@ extern "C" {
  *   process looks for uthash structures and reads its content to analyze stats? can we do this 
  *   efficiently without impacting the running process?
  *   Another idea would be to use mmap backed memory-pools instead of shared-memory 
- *   this would simmplify the operational handling.
+ *   this would simplify the operational handling.
  *
  * + Maybe we could also record the collisions or is that the dup%?
  *
@@ -146,6 +146,7 @@ typedef enum ina_hashtable_type_e {
 
 typedef enum ina_hashtable_key_type_e {
      INA_HASHTABLE_STR_KEY,
+     INA_HASHTABLE_PTR_KEY,
      INA_HASHTABL_UINT32_KEY,
      INA_HASHTABLE_UINT64_KEY,
      INA_HASHTABL_INT32_KEY,
@@ -160,15 +161,14 @@ typedef enum ina_hashtable_growth_strategy_e {
 
 typedef enum ina_hashtable_hash_type_e {
      INA_HASHTABLE_HASH_CRC,
-     INA_HASHTABLE_HASH_JEKINS,
-     INA_HASHTABLE_HASH_WANG,
+     INA_HASHTABLE_HASH_SDBM,
+     INA_HASHTABLE_HASH_SPOOKY32,
+     INA_HASHTABLE_HASH_SPOOKY64
 } ina_hashtable_hash_type_t;
 
 /* opaque hashtable types */
 typedef struct ina_hashtable_ctx_s   ina_hashtable_ctx_t;
 typedef struct ina_hashtable_s       ina_hashtable_t;
-typedef struct ina_hashtable_iter_s  ina_hashtable_iter_t;
-
 
 INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
                                      ina_hashtable_hash_type_t hash_type,
@@ -188,30 +188,89 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
 
 INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **t);
 
-
 INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key,  const void *data);
 
 INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key,  void **data);
 
 INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key,  void **data);
 
+INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t *ht, ina_hashtable_foreach_fn foreach_fn);
 
-INA_INLINE ina_rc_t ina_hashtable_set_int32(ina_hashtable_t *t, int32_t key, const void *data)
+
+INA_INLINE ina_rc_t ina_hashtable_set_i32(ina_hashtable_t *t, int32_t key, const void *data)
 {
     return ina_hashtable_set(t, &key,  data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_int32(ina_hashtable_t *t, int32_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_get_i32(const ina_hashtable_t *t, int32_t key, void **data)
 {
     return ina_hashtable_get(t, &key, data);
 }
 
-INA_INLINE ina_rc_t ina_hashtable_get_remove32(ina_hashtable_t *t, int32_t key, void **data)
+INA_INLINE ina_rc_t ina_hashtable_remove_i32(ina_hashtable_t *t, int32_t key, void **data)
 {
     return ina_hashtable_remove(t, &key, data);
 }
 
-INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t *ht, ina_hashtable_foreach_fn foreach_fn);
+INA_INLINE ina_rc_t ina_hashtable_set_u32(ina_hashtable_t *t, uint32_t key, const void *data)
+{
+    return ina_hashtable_set(t, &key,  data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_get_u32(const ina_hashtable_t *t, uint32_t key, void **data)
+{
+    return ina_hashtable_get(t, &key, data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_get_remove_u32(ina_hashtable_t *t, uint32_t key, void **data)
+{
+    return ina_hashtable_remove(t, &key, data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_set_i64(ina_hashtable_t *t, int64_t key, const void *data)
+{
+    return ina_hashtable_set(t, &key,  data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_get_i64(const ina_hashtable_t *t, int64_t key, void **data)
+{
+    return ina_hashtable_get(t, &key, data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_get_remove_i64(ina_hashtable_t *t, int64_t key, void **data)
+{
+    return ina_hashtable_remove(t, &key, data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_set_u64(ina_hashtable_t *t, uint64_t key, const void *data)
+{
+    return ina_hashtable_set(t, &key,  data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_get_u64(const ina_hashtable_t *t, uint64_t key, void **data)
+{
+    return ina_hashtable_get(t, &key, data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_remove_u64(ina_hashtable_t *t, uint64_t key, void **data)
+{
+    return ina_hashtable_remove(t, &key, data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_set_str(ina_hashtable_t *t, const char* key, const void *data)
+{
+    return ina_hashtable_set(t, key,  data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_get_str(const ina_hashtable_t *t, const char* key, void **data)
+{
+    return ina_hashtable_get(t, key, data);
+}
+
+INA_INLINE ina_rc_t ina_hashtable_get_remove_str(ina_hashtable_t *t, const char* key, void **data)
+{
+    return ina_hashtable_remove(t, key, data);
+}
 
 
 

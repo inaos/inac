@@ -56,7 +56,7 @@ INA_TEST(hashtable, simple)
     ina_data_t *data;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABL_INT32_KEY,
-            INA_HASHTABLE_HASH_CRC,
+            INA_HASHTABLE_HASH_SPOOKY32,
             INA_HASHTABLE_TYPE_CHAINED,
             INA_HASHTABLE_GROW_LINEAR, 0, &ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -66,32 +66,33 @@ INA_TEST(hashtable, simple)
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data = new_data(1, "Name 1");
-    ina_hashtable_set_int32(ht, data->id, data);
+    ina_hashtable_set_i32(ht, data->id, data);
     data = new_data(2, "Name 2");
-    ina_hashtable_set_int32(ht, data->id, data);
+    ina_hashtable_set_i32(ht, data->id, data);
 
 
     data = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_int32(ht, 1, (void**)&data));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 1, (void**)&data));
     INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_int32(ht, 2, (void**)&data));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 2, (void**)&data));
     INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
-    INA_TEST_ASSERT_FAILED(ina_hashtable_get_int32(ht, 3, (void**)&data));
+    INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 3, (void**)&data));
     data = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_remove32(ht, 1, (void**)&data));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_i32(ht, 1, (void**)&data));
     INA_TEST_ASSERT_NOT_NULL(data);
     INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-    INA_TEST_ASSERT_FAILED(ina_hashtable_get_int32(ht, 1, (void**)&data));
+    INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 1, (void**)&data));
     data = new_data(10, "Name 10");
-    ina_hashtable_set_int32(ht, data->id, data);
+    ina_hashtable_set_i32(ht, data->id, data);
     data = new_data(20, "Name 20");
-    ina_hashtable_set_int32(ht, data->id, data);
+    ina_hashtable_set_i32(ht, data->id, data);
     data = new_data(30, "Name 30");
-    ina_hashtable_set_int32(ht, data->id, data);
+    ina_hashtable_set_i32(ht, data->id, data);
     data = NULL;
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_int32(ht, 10, (void**)&data));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 10, (void**)&data));
     INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
 
     ina_hashtable_foreach(ht, print_data);
-
+    ina_hashtable_free(&ht);
+    ina_hashtable_destroy(&ctx);
 }
