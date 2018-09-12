@@ -46,12 +46,18 @@ typedef struct ina_hashtable_node_s {
     void *data;
 } ina_hashtable_node_t;
 
+typedef struct in_hashtable_bucket_s {
+    ina_hashtable_node_t *nodes;
+    int32_t               count;
+    int32_t               free;
+} ina_hashtable_bucket_t;
 
 struct ina_hashtable_s {
     ina_hashtable_ctx_t *ctx;
     ina_mempool_t *mp;
     int capacity;
-    ina_hashtable_node_t *buckets;
+    int key_len;
+    ina_hashtable_bucket_t *buckets;
 };
 
 INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
@@ -97,24 +103,32 @@ INA_API(ina_rc_t) ina_hashtable_destroy(ina_hashtable_ctx_t **ctx)
 }
 
 
-
-
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
                                     int capacity,
                                     uint32_t  cf,
                                     ina_hashtable_t **t)
 {
+    int i;
+    ina_hashtable_bucket_t *b;
     INA_VERIFY_NOT_NULL(ctx);
     *t = ina_mem_alloc(sizeof(ina_hashtable_t));
     INA_RETURN_IF_NULL(*t);
     (*t)->ctx = ctx;
     (*t)->capacity = capacity;
-    if (INA_FAILED(ina_mempool_new(&(*t)->mp, (sizeof(ina_hashtable_node_t) * (*t)->capacity),
+    (*t)->key_len = ctx->key_len;
+    if (INA_FAILED(ina_mempool_new(&(*t)->mp, (sizeof(ina_hashtable_node_t) * (*t)->capacity * INA_HASHTABLE_BUCKET_SIZE *2),
             0, NULL))) {
         ina_hashtable_free(t);
         return ina_err_get_last_rc();
     }
-    (*t)->buckets = ina_mempool_dalloc((*t)->mp, sizeof(ina_hashtable_node_t) * (*t)->capacity);
+    (*t)->buckets = ina_mempool_dalloc((*t)->mp, sizeof(ina_hashtable_bucket_t) * (*t)->capacity);
+    INA_RETURN_IF_NULL((*t)->buckets);
+
+    for (i = 0; i<(*t)->capacity; ++i) {
+        b = (*t)->buckets + i;
+        b->nodes = ina_mempool_dalloc((*t)->mp, sizeof(ina_hashtable_node_t) * INA_HASHTABLE_BUCKET_SIZE);
+
+    }
     return INA_SUCCESS;
 }
 
@@ -127,59 +141,120 @@ INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **t)
     *t = NULL;
     return INA_SUCCESS;
 }
-INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key, int key_len, const void *data)
+
+INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *t, const void *key,  const void *data)
 {
+    ina_hashtable_bucket_t *bucket;
     ina_hashtable_node_t *next;
+    ina_hashtable_node_t *free;
 
     INA_VERIFY_NOT_NULL(t);
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(data);
 
-    printf("%s\n", "OK");
-    fflush(stdout);
-
-    uint32_t hash = ina_hash_32_sdbm(0, key , key_len) % t->capacity;
+    uint32_t hash = ina_hash_32_sdbm(0, key , t->key_len) % t->capacity;
     printf("hash: %u\n", hash);
-    fflush(stdout);
-    next = t->buckets+hash;
-    ina_mem_cpy(&next->key, key, (size_t)key_len);
-    next->data = (void*)data;
+    bucket = t->buckets+hash;
+    next = bucket->nodes;
+    free = NULL;
+    while (next->key.u32 && (next-bucket->nodes) <  bucket->count) {
+        if ((0 == ina_mem_cmp(&next->key, key, t->key_len))) {
+            next->data =(void*)data;
+            return INA_SUCCESS;
+        }
+        if (next->data == NULL) {
+            free = next;
+        }
+        next++;
+    }
+    if (free == NULL) {
+        free = bucket->nodes+bucket->count;
+        bucket->count++;
+    }
+    ina_mem_cpy(&free->key, key, (size_t) t->key_len);
+    free->data = (void*)data;
+
+    if ((bucket->count%INA_HASHTABLE_BUCKET_SIZE) == 0) {
+        void *nodes = bucket->nodes;
+        bucket->nodes = ina_mempool_dalloc(t->mp, INA_HASHTABLE_BUCKET_SIZE*bucket->count*2* sizeof(ina_hashtable_node_t));
+        ina_mem_cpy(bucket->nodes, nodes, bucket->count* sizeof(ina_hashtable_node_t));
+    }
+
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key, int key_len, void **data)
+INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *t, const void *key, void **data)
 {
+    ina_hashtable_bucket_t *bucket;
     ina_hashtable_node_t *next;
 
     INA_VERIFY_NOT_NULL(t);
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(data);
-    uint32_t hash = ina_hash_32_sdbm(0, key ,key_len) % t->capacity;
+
+    uint32_t hash = ina_hash_32_sdbm(0, key, t->key_len) % t->capacity;
+
     printf("hash: %u\n", hash);
-    fflush(stdout);
-    next = t->buckets+hash;
-    if (NULL == next->data) {
-        return INA_ERROR(INA_ERR_NOT_FOUND);
+    bucket = t->buckets+hash;
+    next = bucket->nodes;
+    while (next->key.u32 && (next-bucket->nodes) <  bucket->count) {
+        if (next->data != NULL && (0 == ina_mem_cmp(&next->key, key, t->key_len))) {
+            *data = next->data;
+            return INA_SUCCESS;
+        }
+        next++;
     }
-    *data = next->data;
-    return  INA_SUCCESS;
+    return INA_ERROR(INA_ERR_NOT_FOUND);
 
 }
 
-INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key, void **data)
+INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *t,  const void *key,  void **data)
 {
+    ina_hashtable_bucket_t *bucket;
     ina_hashtable_node_t *next;
 
     INA_VERIFY_NOT_NULL(t);
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(data);
+
     uint32_t hash = ina_hash_32_sdbm(0, key , sizeof(uint32_t)) % t->capacity;
-    next = t->buckets+hash;
-    if (NULL != next->data) {
-        return INA_ERROR(INA_ERR_NOT_FOUND);
+    bucket = t->buckets+hash;
+    next = bucket->nodes;
+    while (next->key.u32 && (next-bucket->nodes) <  bucket->count) {
+        if (next->data != NULL && (0 == ina_mem_cmp(&next->key, key, t->key_len))) {
+            *data = next->data;
+            next->data = NULL;
+            bucket->free++;
+            return INA_SUCCESS;
+        }
+        next++;
     }
-    *data = next->data;
-    ina_mem_set(next, 0, sizeof(ina_hashtable_node_t));
-    return INA_SUCCESS;
+    return INA_ERROR(INA_ERR_NOT_FOUND);
 
+}
+
+INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t* ht, ina_hashtable_foreach_fn foreach_fn)
+{
+    ina_hashtable_bucket_t *bucket;
+    ina_hashtable_node_t *next;
+
+    INA_VERIFY_NOT_NULL(ht);
+    INA_VERIFY_NOT_NULL(foreach_fn);
+
+    bucket = ht->buckets;
+    while (bucket-ht->buckets < ht->capacity) {
+        if (bucket->count > 0) {
+            next = bucket->nodes;
+            while (next-bucket->nodes < bucket->count) {
+                if (next->data) {
+                    if (INA_FAILED(foreach_fn(next->data))) {
+                        return ina_err_get_last_rc();
+                    }
+                }
+                next++;
+            }
+        }
+        bucket++;
+    }
+    return INA_SUCCESS;
 }
