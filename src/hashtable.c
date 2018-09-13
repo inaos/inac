@@ -70,9 +70,10 @@ struct ina_hashtable_s {
 };
 
 struct ina_hashtable_iter_s {
-    ina_hashtable_bucket_t *head;
+    ina_hashtable_t *ht;
     ina_hashtable_bucket_t *bucket;
     ina_hashtable_node_t   *node;
+    int checksum;
 };
 
 INA_INLINE ina_hashtable_bucket_t* __ina_bucket(const ina_hashtable_t *ht, const void* key, size_t key_len)
@@ -256,7 +257,6 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
     INA_RETURN_IF_NULL((*ht)->buckets);
 
     if ((*ht)->cf&INA_HASHTABLE_CF_PREALLOCATED) {
-        printf("Pre-allocated buckets");
         for (i = 0; i<(*ht)->capacity; ++i) {
             b = (*ht)->buckets + i;
             b->nodes = ina_mempool_dalloc((*ht)->mp, sizeof(ina_hashtable_node_t) * INA_HASHTABLE_BUCKET_SIZE);
@@ -273,6 +273,21 @@ INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht)
     ina_mempool_free(&(*ht)->mp);
     ina_mem_free((*ht));
     *ht = NULL;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_hashtable_clear(ina_hashtable_t *ht)
+{
+    ina_hashtable_bucket_t *bucket;
+
+    INA_VERIFY_NOT_NULL(ht);
+    bucket = ht->buckets;
+    while (bucket-ht->buckets < ht->capacity) {
+        bucket->count = 0;
+        bucket->free = 0;
+        bucket++;
+    }
+    ht->count = 0;
     return INA_SUCCESS;
 }
 
@@ -416,8 +431,8 @@ INA_API(ina_rc_t) ina_hashtable_iter_new(ina_hashtable_t *ht, ina_hashtable_iter
     *iter = ina_mem_alloc(sizeof(ina_hashtable_iter_t));
     INA_RETURN_IF_NULL(*iter);
     ina_mem_set(*iter, 0, sizeof(ina_hashtable_iter_t));
-    (*iter)->head = ht->buckets;
-    return INA_SUCCESS;
+    (*iter)->ht = ht;
+    return ina_hashtable_iter_reset(*iter);
 
 }
 
@@ -428,19 +443,38 @@ INA_API(ina_rc_t) ina_hashtable_iter_free(ina_hashtable_iter_t **iter)
     ina_mem_free(*iter);
     *iter = NULL;
     return INA_SUCCESS;
-
 }
 
 INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **data)
 {
     INA_VERIFY_NOT_NULL(iter);
     INA_VERIFY_NOT_NULL(data);
-    return INA_SUCCESS;
+
+    if (iter->checksum != iter->ht->count) {
+        return INA_ERROR(INA_NN_STATE|INA_ERR_INVALID);
+    }
+
+    while (iter->bucket-iter->ht->buckets < iter->ht->capacity) {
+        while (iter->node && iter->node-iter->bucket->nodes < iter->bucket->count) {
+            if (iter->node->data != NULL) {
+                *data = iter->node->data;
+                iter->node++;
+                return INA_SUCCESS;
+            }
+            iter->node++;
+        }
+        iter->bucket++;
+        iter->node = iter->bucket->nodes;
+    }
+    return INA_ERROR(INA_ERR_END_OF);
 }
 
 INA_API(ina_rc_t) ina_hashtable_iter_reset(ina_hashtable_iter_t *iter)
 {
     INA_VERIFY_NOT_NULL(iter);
-    iter->bucket = iter->head;
+    iter->bucket = iter->ht->buckets;
+    iter->node = iter->bucket->nodes;
+    iter->checksum = iter->ht->count;
+    iter->node = NULL;
     return INA_SUCCESS;
 }

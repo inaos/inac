@@ -171,3 +171,95 @@ INA_TEST(hashtable, str_key)
     ina_hashtable_destroy(&ctx);
 }
 
+INA_TEST(hashtable, iter)
+{
+    ina_hashtable_ctx_t *ctx = NULL;
+    ina_hashtable_t *ht = NULL;
+    ina_data_t *data;
+    void *d = NULL;
+    ina_hashtable_iter_t *iter = NULL;
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_STR_KEY,
+                                               INA_HASHTABLE_HASH32_SPOOKY,
+                                               INA_HASHTABLE_TYPE_CHAINED,
+                                               INA_HASHTABLE_GROW_LINEAR, 0, &ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, 256, 0, &ht));
+    INA_TEST_ASSERT_NOT_NULL(ht);
+
+    ina_hashtable_set_str(ht, "n1", new_data(1, "Name 1"));
+    ina_hashtable_set_str(ht, "n2", new_data(2, "Name 2"));
+    ina_hashtable_set_str(ht, "n3", new_data(3, "Name 3"));
+    ina_hashtable_set_str(ht, "n4", new_data(4, "Name 4"));
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_new(ht, &iter));
+    INA_TEST_ASSERT_NOT_NULL(ht);
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_FAILED(ina_hashtable_iter_next(iter, &d));
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_reset(iter));
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_FAILED(ina_hashtable_iter_next(iter, &d));
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_reset(iter));
+
+
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+
+    ina_hashtable_set_str(ht, "n5", new_data(4, "Name 5"));
+
+    d = NULL;
+    INA_TEST_ASSERT_FAILED(ina_hashtable_iter_next(iter, &d));
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_reset(iter));
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
+    INA_TEST_ASSERT_NOT_NULL(&d);
+    d = NULL;
+    INA_TEST_ASSERT_FAILED(ina_hashtable_iter_next(iter, &d));
+
+    ina_hashtable_foreach(ht, print_data);
+    ina_hashtable_iter_free(&iter);
+    ina_hashtable_free(&ht);
+    ina_hashtable_destroy(&ctx);
+}
+

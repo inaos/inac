@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, INAOS GmbH
+ * Copyright (c) 2016-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -214,6 +214,8 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
 
 
 INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht);
+
+INA_API(ina_rc_t) ina_hashtable_clear(ina_hashtable_t *ht);
 
 INA_API(ina_rc_t) ina_hashtable_count(ina_hashtable_t *ht, int *count);
 
