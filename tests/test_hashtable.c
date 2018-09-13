@@ -34,7 +34,7 @@ typedef struct data {
 
 static ina_rc_t print_data(const void* data)
 {
-    INA_TEST_MSG("[%d] - %s\n",
+    INA_TEST_MSG("[%d] - %s",
             ((const ina_data_t*)data)->id,
            ((const ina_data_t*)data)->name);
     return INA_SUCCESS;
@@ -54,21 +54,23 @@ INA_TEST(hashtable, simple)
     ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     ina_data_t *data;
+    int count;
+    size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABL_INT32_KEY,
-            INA_HASHTABLE_HASH_SPOOKY32,
+            INA_HASHTABLE_HASH32_SPOOKY,
             INA_HASHTABLE_TYPE_CHAINED,
             INA_HASHTABLE_GROW_LINEAR, 0, &ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, 5, 0, &ht));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, 256, 0, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data = new_data(1, "Name 1");
-    ina_hashtable_set_i32(ht, data->id, data);
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
     data = new_data(2, "Name 2");
-    ina_hashtable_set_i32(ht, data->id, data);
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
 
 
     data = NULL;
@@ -92,6 +94,11 @@ INA_TEST(hashtable, simple)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 10, (void**)&data));
     INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
 
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
+    INA_TEST_MSG("count: %d", count);
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_usage(ht, &usage));
+    INA_TEST_MSG("usage in bytes: %d", usage);
+
     ina_hashtable_foreach(ht, print_data);
     ina_hashtable_free(&ht);
     ina_hashtable_destroy(&ctx);
@@ -104,7 +111,7 @@ INA_TEST(hashtable, ptr_key)
     ina_data_t *data1, *data2, *data3, *data;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_PTR_KEY,
-                                               INA_HASHTABLE_HASH_SPOOKY32,
+                                               INA_HASHTABLE_HASH32_SPOOKY,
                                                INA_HASHTABLE_TYPE_CHAINED,
                                                INA_HASHTABLE_GROW_LINEAR, 0, &ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -138,7 +145,7 @@ INA_TEST(hashtable, str_key)
     ina_data_t *data1, *data2, *data;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_STR_KEY,
-                                               INA_HASHTABLE_HASH_SPOOKY32,
+                                               INA_HASHTABLE_HASH32_SPOOKY,
                                                INA_HASHTABLE_TYPE_CHAINED,
                                                INA_HASHTABLE_GROW_LINEAR, 0, &ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
