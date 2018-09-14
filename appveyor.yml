@@ -93,6 +93,10 @@ matrix:
 init:
   - cmd: C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
 
+cache:
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml # on Ubuntu builds this path will not be found
+  - /var/cache/apt/archives/inaos-dev-quality-tools_1.0-1.deb # on VS builds this path will not be found
+
 install:
   - sh:  |
          sudo sh -c "echo 'deb https://appveyor:N9z6j8yVukyeLcfE@inaos.jfrog.io/inaos/debian-local xenial main' >> /etc/apt/sources.list"
