@@ -20,51 +20,57 @@
  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT,
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-#ifndef _LIBINAC_LIST_H_
-#define _LIBINAC_LIST_H_
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include <stdio.h>
 #include <libinac/lib.h>
-#include "lib.h"
 
-typedef ina_rc_t (*ina_foreach_fn_t)(const void *data);
-typedef ina_rc_t (*ina_foreach_arg_fn_t)(const void *data, void *arg);
+static ina_file_ctx_t *file_ctx = NULL;
+static ina_ullc_ctx_t *ullc_ctx = NULL;
 
-typedef struct ina_list_node_s ina_list_node_t;
-struct ina_list_node_s {
-    ina_list_node_t *next;
-    ina_list_node_t *prev;
-    void *data;
-};
-typedef ina_list_node_t* ina_list_t;
-
-INA_API(ina_rc_t) ina_list_new(ina_list_t *list);
-INA_API(ina_rc_t) ina_list_free(ina_list_t *list);
-
-INA_API(ina_rc_t) ina_list_count(ina_list_t *list, size_t *count);
-
-INA_API(ina_rc_t) ina_list_head(ina_list_t *list, ina_list_node_t **node);
-INA_API(ina_rc_t) ina_list_tail(ina_list_t *list, ina_list_node_t **node);
-
-INA_API(ina_rc_t) ina_list_insert_head(ina_list_t *list, void *data);
-INA_API(ina_rc_t) ina_list_insert_tail(ina_list_t *list, void *data);
-
-INA_API(ina_rc_t) ina_list_remove(ina_list_t *list, ina_list_node_t *node);
-
-INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
-
-
-#ifdef __cplusplus
+static void ina_cleanup_handler(int error, int *exitcode)
+{
+    if (ullc_ctx != NULL) {
+        ina_ullc_consumer_destroy(&ullc_ctx);
+    }
+    if (file_ctx != NULL) {
+        ina_file_destroy(&file_ctx);
+    }
 }
-#endif
 
-#endif
+int main(int argc,  char** argv)
+{
+
+    ina_hashtable_event_t *event;
+
+    INA_OPTS(opt,
+             INA_OPT_STRING("s", "source", "t", "Source file")
+    );
+
+    if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
+        return EXIT_FAILURE;
+    }
+    ina_set_cleanup_handler(ina_cleanup_handler);
+
+    ina_err_set_log_file(">2");
+
+    printf("try to connect...\n");
+    while (!INA_SUCCEED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t, 1, 4096, 32, 32, "/ina_htmon", &ullc_ctx))){
+        ina_time_sleep(5);
+    }
+    printf("connected!\n");
+    printf("press CTRL-C to stop");
+    fflush(stdout);
+
+    while (1) {
+        event = INA_ULLC_GET(ina_hashtable_event_t, ullc_ctx);
+        if (event != NULL) {
+            printf("table: %u  event: %d  data: %lu\n", event->hashtable_id, event->event_id, event->data);
+            fflush(stdout);
+        }
+    }
+    return EXIT_SUCCESS;
+}

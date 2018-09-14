@@ -36,6 +36,7 @@ struct ina_hashtable_ctx_s {
     ina_hash_func_32_t hash32_fn;
     ina_hash_func_64_t hash64_fn;
     uint32_t           cf;
+    ina_ullc_ctx_t     *ullc_ctx;
 };
 
 typedef struct ina_hashtable_node_s {
@@ -55,9 +56,11 @@ typedef struct in_hashtable_bucket_s {
     int32_t               count;
     int32_t               max;
     int32_t               free;
+    uint64_t              hash;
 } ina_hashtable_bucket_t;
 
 struct ina_hashtable_s {
+    ina_hashtable_ctx_t *ctx;
     ina_mempool_t *mp;
     int capacity;
     size_t key_len;
@@ -67,6 +70,7 @@ struct ina_hashtable_s {
     ina_hash_func_64_t hash64_fn;
     uint32_t cf;
     int32_t count;
+    ina_ullc_ctx_t *ullc_ctx;
 };
 
 struct ina_hashtable_iter_s {
@@ -78,15 +82,38 @@ struct ina_hashtable_iter_s {
 
 INA_INLINE ina_hashtable_bucket_t* __ina_bucket(const ina_hashtable_t *ht, const void* key, size_t key_len)
 {
+    ina_hashtable_bucket_t *bucket;
     if (ht->hash32_fn) {
         uint32_t h = ht->hash32_fn(0, key, key_len) % ht->capacity;
-        return ht->buckets + h;
+        bucket = ht->buckets + h;
+        bucket->hash = h;
     } else {
         uint64_t h = ht->hash64_fn(0, key, key_len) % ht->capacity;
-        return ht->buckets + h;
+        bucket = ht->buckets + h;
+        bucket->hash = h;
+    }
+    return bucket;
+}
+
+INA_INLINE void __ina_push_event(const ina_hashtable_t *ht, uint32_t event, uint32_t subject, uint64_t data)
+{
+    ina_ullc_ctx_t *ullc_ctx = ht->ullc_ctx;
+    if (ullc_ctx) {
+        ina_hashtable_event_t *e = INA_ULLC_CLAIM(ina_hashtable_event_t, ullc_ctx);
+        e->event_id = event;
+        e->hashtable_id = subject;
+        e->data = data;
+        INA_ULLC_COMMIT(ullc_ctx);
+        INA_ULLC_SIGNAL_RELEASE(ullc_ctx);
     }
 }
 
+#define __INA_SET_BEGIN(ht) __ina_push_event(ht, INA_HASHTABLE_EVENT_SET_BEGIN, 1, 0)
+#define __INA_SET_END(ht) __ina_push_event(ht, INA_HASHTABLE_EVENT_SET_END, 1, 0)
+#define __INA_GET_BEGIN(ht) __ina_push_event(ht, INA_HASHTABLE_EVENT_GET_BEGIN, 1, 0)
+#define __INA_GET_END(ht) __ina_push_event(ht, INA_HASHTABLE_EVENT_GET_END, 1, 0)
+#define __INA_REMOVE_BEGIN(ht) __ina_push_event(ht, INA_HASHTABLE_EVENT_SET_BEGIN, 1, 0)
+#define __INA_REMOVE_END(ht) __ina_push_event(ht, INA_HASHTABLE_EVENT_SET_END, 1, 0)
 
 INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
                                      ina_hashtable_hash_type_t hash_type,
@@ -99,7 +126,6 @@ INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
     *ctx = ina_mem_alloc(sizeof(ina_hashtable_ctx_t));
     INA_RETURN_IF_NULL(*ctx);
     ina_mem_set(*ctx, 0, sizeof(ina_hashtable_ctx_t));
-
     (*ctx)->cf = cf;
     (*ctx)->key_type = key_type;
 
@@ -208,12 +234,22 @@ INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
             break;
 #endif
     }
+    if ((*ctx)->cf&INA_HASHTABLE_CF_STAT) {
+        INA_RETURN_IF_FAILED(INA_ULLC_PRODUCER_CREATE(ina_hashtable_event_t,
+                1, 4096, 32, 32, "/ina_htmon",
+                INA_ULLC_WS_SIGNAL_WAIT,
+                &(*ctx)->ullc_ctx));
+    }
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_hashtable_destroy(ina_hashtable_ctx_t **ctx)
 {
+    INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(*ctx);
+    if ((*ctx)->ullc_ctx != NULL) {
+        ina_ullc_producer_destroy(&(*ctx)->ullc_ctx);
+    }
     ina_mem_free(*ctx);
     return INA_SUCCESS;
 }
@@ -233,7 +269,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
     *ht = ina_mem_alloc(sizeof(ina_hashtable_t));
     INA_RETURN_IF_NULL(*ht);
     ina_mem_set((*ht), 0, sizeof(ina_hashtable_t));
-
+    (*ht)->ctx = ctx;
     (*ht)->capacity = capacity;
     (*ht)->key_len = ctx->key_len;
     (*ht)->key_type = ctx->key_type;
@@ -262,6 +298,10 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
             b->nodes = ina_mempool_dalloc((*ht)->mp, sizeof(ina_hashtable_node_t) * INA_HASHTABLE_BUCKET_SIZE);
             b->max = INA_HASHTABLE_BUCKET_SIZE;
         }
+    }
+
+    if ((*ht)->cf&INA_HASHTABLE_CF_STAT) {
+        (*ht)->ullc_ctx = ctx->ullc_ctx;
     }
     return INA_SUCCESS;
 }
@@ -314,6 +354,7 @@ INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *ht, const void *key, size_t
     ina_hashtable_node_t *next;
     ina_hashtable_node_t *free;
 
+    __INA_SET_BEGIN(ht);
     INA_VERIFY_NOT_NULL(ht);
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(data);
@@ -332,9 +373,10 @@ INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *ht, const void *key, size_t
     next = bucket->nodes;
     free = NULL;
 
-    while (next && next->key.u32 && (next-bucket->nodes) <  bucket->count) {
+    while (next->key.u32 && (next-bucket->nodes) <  bucket->count) {
         if ((0 == ina_mem_cmp(&next->key, key, key_len))) {
             next->data =(void*)data;
+            __INA_SET_END(ht);
             return INA_SUCCESS;
         }
         if (next->data == NULL) {
@@ -349,6 +391,7 @@ INA_API(ina_rc_t) ina_hashtable_set(ina_hashtable_t *ht, const void *key, size_t
     ina_mem_cpy(&free->key, key, key_len);
     free->data = (void*)data;
     ++ht->count;
+    __INA_SET_END(ht);
 
     return INA_SUCCESS;
 }
@@ -358,6 +401,7 @@ INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *ht, const void *key, 
     ina_hashtable_bucket_t *bucket;
     ina_hashtable_node_t *next;
 
+    __INA_GET_BEGIN(ht);
     INA_VERIFY_NOT_NULL(ht);
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(data);
@@ -367,10 +411,12 @@ INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *ht, const void *key, 
     while (next && next->key.u32 && (next-bucket->nodes) <  bucket->count) {
         if (next->data != NULL && (0 == ina_mem_cmp(&next->key, key, key_len))) {
             *data = next->data;
+            __INA_GET_END(ht);
             return INA_SUCCESS;
         }
         next++;
     }
+    __INA_GET_END(ht);
     return INA_ERROR(INA_ERR_NOT_FOUND);
 }
 
@@ -379,6 +425,7 @@ INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *ht,  const void *key, si
     ina_hashtable_bucket_t *bucket;
     ina_hashtable_node_t *next;
 
+    __INA_REMOVE_BEGIN(ht);
     INA_VERIFY_NOT_NULL(ht);
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(data);
@@ -391,14 +438,16 @@ INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *ht,  const void *key, si
             next->data = NULL;
             ++bucket->free;
             --ht->count;
+            __INA_REMOVE_END(ht);
             return INA_SUCCESS;
         }
         next++;
     }
+    __INA_REMOVE_END(ht);
     return INA_ERROR(INA_ERR_NOT_FOUND);
 }
 
-INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t* ht, ina_hashtable_foreach_fn_t foreach_fn)
+INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t* ht, ina_foreach_fn_t foreach_fn)
 {
     ina_hashtable_bucket_t *bucket;
     ina_hashtable_node_t *next;

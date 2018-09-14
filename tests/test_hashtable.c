@@ -144,14 +144,16 @@ INA_TEST(hashtable, str_key)
     ina_hashtable_t *ht = NULL;
     ina_data_t *data1, *data2, *data;
 
+
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_STR_KEY,
                                                INA_HASHTABLE_HASH32_SPOOKY,
                                                INA_HASHTABLE_TYPE_CHAINED,
-                                               INA_HASHTABLE_GROW_LINEAR, 0, &ctx));
+                                               INA_HASHTABLE_GROW_LINEAR,
+                                               INA_HASHTABLE_CF_STAT, &ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
+    sleep(10);
 
-
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, 256, 0, &ht));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, 256, INA_HASHTABLE_CF_STAT, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data1 = new_data(1, "Name 1");

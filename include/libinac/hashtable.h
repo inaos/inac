@@ -35,6 +35,7 @@ extern "C" {
 #endif
 
 #include <libinac/lib.h>
+#include "lib.h"
 
 /*
  * DESIGN:
@@ -135,11 +136,10 @@ extern "C" {
  */
 #define INA_HASHTABLE_MAX_KEY_LEN 16
 
-#define INA_HASHTABLE_CF_GROWABLE         (1UL)
-#define INA_HASHTABLE_CF_SHRINKABLE       (2UL)
-#define INA_HASHTABLE_CF_PREALLOCATED     (4UL)
-
-typedef ina_rc_t (*ina_hashtable_foreach_fn_t)(const void *data);
+#define INA_HASHTABLE_CF_GROWABLE          (1UL)
+#define INA_HASHTABLE_CF_SHRINKABLE        (2UL)
+#define INA_HASHTABLE_CF_PREALLOCATED      (4UL)
+#define INA_HASHTABLE_CF_STAT             (16UL)
 
 typedef enum ina_hashtable_type_e {
     INA_HASHTABLE_TYPE_CHAINED,
@@ -196,6 +196,24 @@ typedef struct ina_hashtable_ctx_s   ina_hashtable_ctx_t;
 typedef struct ina_hashtable_s       ina_hashtable_t;
 typedef struct ina_hashtable_iter_s  ina_hashtable_iter_t;
 
+typedef enum ina_hashtable_event_id_e {
+    INA_HASHTABLE_EVENT_SET_BEGIN,
+    INA_HASHTABLE_EVENT_SET_END,
+    INA_HASHTABLE_EVENT_GET_BEGIN,
+    INA_HASHTABLE_EVENT_GET_END,
+    INA_HASHTABLE_EVENT_REMOVE_BEGIN,
+    INA_HASHTABLE_EVENT_REMOVE_END,
+    INA_HASHTABLE_EVENT_HASH,
+    INA_HASHTABLE_EVENT_COLLISION,
+    INA_HASHTABLE_EVENT_EXPANSION
+} ina_hashtable_event_id_t;
+
+/* stat event */
+typedef struct ina_hashtable_event_s {
+    uint32_t event_id;
+    uint32_t hashtable_id;
+    uint64_t data;
+} ina_hashtable_event_t;
 
 INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
                                      ina_hashtable_hash_type_t hash_type,
@@ -227,7 +245,7 @@ INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *ht, const void *key, 
 
 INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *ht,  const void *key, size_t key_len, void **data);
 
-INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t *ht, ina_hashtable_foreach_fn_t foreach_fn);
+INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t *ht, ina_foreach_fn_t foreach_fn);
 
 INA_API(ina_rc_t) ina_hashtable_iter_new(ina_hashtable_t *ht, ina_hashtable_iter_t **iter);
 

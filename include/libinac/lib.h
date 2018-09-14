@@ -96,6 +96,7 @@
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
 #include <libinac/uthash.h>
+#include <libinac/list.h>
 #include <libinac/hashtable.h>
 #include <libinac/debug.h>
 #include <libinac/test.h>
@@ -105,6 +106,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 #define INA_EINVAL INA_NN_ARGUMENT|INA_ERR_INVALID
 
