@@ -197,22 +197,24 @@ typedef struct ina_hashtable_s       ina_hashtable_t;
 typedef struct ina_hashtable_iter_s  ina_hashtable_iter_t;
 
 typedef enum ina_hashtable_event_id_e {
+    INA_HASHTABLE_EVENT_NEW,
     INA_HASHTABLE_EVENT_SET_BEGIN,
     INA_HASHTABLE_EVENT_SET_END,
     INA_HASHTABLE_EVENT_GET_BEGIN,
     INA_HASHTABLE_EVENT_GET_END,
     INA_HASHTABLE_EVENT_REMOVE_BEGIN,
     INA_HASHTABLE_EVENT_REMOVE_END,
-    INA_HASHTABLE_EVENT_HASH,
-    INA_HASHTABLE_EVENT_COLLISION,
-    INA_HASHTABLE_EVENT_EXPANSION
+    INA_HASHTABLE_EVENT_EXPANSION,
+    INA_HASHTABLE_EVENT_FREE,
 } ina_hashtable_event_id_t;
 
 /* stat event */
 typedef struct ina_hashtable_event_s {
+    uint64_t ts;
     uint32_t event_id;
     uint32_t hashtable_id;
-    uint64_t data;
+    uint64_t data1;
+    uint64_t data2;
 } ina_hashtable_event_t;
 
 INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
