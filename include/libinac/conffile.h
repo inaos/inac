@@ -28,11 +28,13 @@
 #ifndef _LIBINAC_CONFFILE_H_
 #define _LIBINAC_CONFFILE_H_
 
-#include <libinac/lib.h>
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+    #include <libinac/lib.h>
 
 /* Availables value types */
 typedef enum ina_conffile_value_type_e {
@@ -41,18 +43,11 @@ typedef enum ina_conffile_value_type_e {
 } ina_conffile_value_type_t;
 
 /* Configuration file entry */
-typedef struct ina_conffile_entry_s ina_conffile_entry_t;
+typedef struct ina_conffile_entries_s ina_conffile_entries_t;
 /* Configuration file section, can be named or unnamed */
 typedef struct ina_conffile_section_s ina_conffile_section_t;
-
 /* Configuration file data */
-typedef struct ina_conffile_s {
-    ina_str_t filepath;                /* Filepath */
-    ina_ljit_ctx_t *lctx;              /* LuaJIT context */
-    ina_conffile_section_t *sections;  /* Holds all sections  */
-    int prepared;                      /* INA_YES if prepared */
-    ina_mempool_t *mempool;            /* Memory pool */
-} ina_conffile_t;
+typedef struct ina_conffile_s ina_conffile_t;
 
 /* 
  * Callback for section procession, called by ina_conffile_processs() 
@@ -71,7 +66,7 @@ typedef struct ina_conffile_s {
  */
 typedef ina_rc_t (*ina_conffile_section_cb_t)(const char *section_name, 
                                               const char *section_key,
-                                              ina_conffile_entry_t *entries);
+                                              ina_conffile_entries_t *entries);
 
 /*
  * Initialize a configuration file.
@@ -191,7 +186,7 @@ INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf,
  *  INA_SUCCESS  Value exists
  *  INA_FAILURE  Value doesn't exists
  */
-INA_API(ina_rc_t) ina_conffile_has_value_in_entries(ina_conffile_entry_t *entries,
+INA_API(ina_rc_t) ina_conffile_has_value_in_entries(ina_conffile_entries_t *entries,
                                                     const char* key);
 
 /*
@@ -208,7 +203,7 @@ INA_API(ina_rc_t) ina_conffile_has_value_in_entries(ina_conffile_entry_t *entrie
  *  INA_FAILURE  Value not found
  */
 INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
-                                                ina_conffile_entry_t *entries,
+        ina_conffile_entries_t *entries,
                                                 const char* key,
                                                 const ina_str_t *value);
 /*
@@ -225,7 +220,7 @@ INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
  *  INA_FAILURE  Value not found
  */
 INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
-                                ina_conffile_entry_t *entries,
+        ina_conffile_entries_t *entries,
                                 const char* key,
                                 double *value);
 

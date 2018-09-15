@@ -95,23 +95,19 @@ static ina_htdata_i64_t* new_data_i64(int64_t id, const char* name)
 
 INA_TEST(hashtable, int_key)
 {
-    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data;
     int count;
     size_t usage;
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_INT32_KEY,
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_DEFAULT, &ctx));
+                                               INA_HASHTABLE_CF_DEFAULT, &ht));
 
-
-    INA_TEST_ASSERT_NOT_NULL(ctx);
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, INA_HASHTABLE_DEFAULT_CAPACITY, 0, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data = new_data(1, "Name 1");
@@ -148,29 +144,23 @@ INA_TEST(hashtable, int_key)
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_foreach(ht, print_data));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_destroy(&ctx));
 }
 
 INA_TEST(hashtable, uint32_key)
 {
-    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     ina_htdata_u32_t *data;
     int count;
     size_t usage;
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_UINT32_KEY,
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT32_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_DEFAULT, &ctx));
+                                               INA_HASHTABLE_CF_DEFAULT, &ht));
 
-    INA_TEST_ASSERT_NOT_NULL(ctx);
-
-
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, INA_HASHTABLE_DEFAULT_CAPACITY, 0, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data = new_data_u32(1, "Name 1");
@@ -206,29 +196,24 @@ INA_TEST(hashtable, uint32_key)
     INA_TEST_MSG("usage in bytes: %d", usage);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_destroy(&ctx));
 }
 
 INA_TEST(hashtable, uint64_key)
 {
-    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     ina_htdata_u64_t *data;
     int count;
     size_t usage;
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_UINT64_KEY,
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT64_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_DEFAULT, &ctx));
-
-    INA_TEST_ASSERT_NOT_NULL(ctx);
+                                               INA_HASHTABLE_CF_DEFAULT, &ht));
 
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, INA_HASHTABLE_DEFAULT_CAPACITY, 0, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data = new_data_u64(1, "Name 1");
@@ -264,29 +249,23 @@ INA_TEST(hashtable, uint64_key)
     INA_TEST_MSG("usage in bytes: %d", usage);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_destroy(&ctx));
 }
 
 INA_TEST(hashtable, int64_key)
 {
-    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     ina_htdata_i64_t *data;
     int count;
     size_t usage;
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_INT64_KEY,
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT64_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_DEFAULT, &ctx));
+                                               INA_HASHTABLE_CF_DEFAULT, &ht));
 
-    INA_TEST_ASSERT_NOT_NULL(ctx);
-
-
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, INA_HASHTABLE_DEFAULT_CAPACITY, 0, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data = new_data_i64(1, "Name 1");
@@ -322,28 +301,22 @@ INA_TEST(hashtable, int64_key)
     INA_TEST_MSG("usage in bytes: %d", usage);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_destroy(&ctx));
 }
 
 
 INA_TEST(hashtable, ptr_key)
 {
-    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data1, *data2, *data3, *data;
     int count;
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_PTR_KEY,
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_DEFAULT, &ctx));
-    INA_TEST_ASSERT_NOT_NULL(ctx);
-
-
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, INA_HASHTABLE_DEFAULT_CAPACITY, 0, &ht));
+                                               INA_HASHTABLE_CF_DEFAULT, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data1 = new_data(1, "Name 1");
@@ -367,29 +340,25 @@ INA_TEST(hashtable, ptr_key)
     INA_TEST_ASSERT_EQUAL_INT(1, count);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_destroy(&ctx));
 }
 
 INA_TEST(hashtable, str_key)
 {
-    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data1, *data2, *data;
     int count;
 
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_STR_KEY,
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_STAT, &ctx));
-    INA_TEST_ASSERT_NOT_NULL(ctx);
+                                               INA_HASHTABLE_CF_STAT, &ht));
+    INA_TEST_ASSERT_NOT_NULL(ht);
     sleep(10);
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, INA_HASHTABLE_DEFAULT_CAPACITY, INA_HASHTABLE_CF_STAT, &ht));
-    INA_TEST_ASSERT_NOT_NULL(ht);
 
     data1 = new_data(1, "Name 1");
     data2 = new_data(2, "Name 2");
@@ -411,29 +380,23 @@ INA_TEST(hashtable, str_key)
     INA_TEST_ASSERT_EQUAL_INT(1, count);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_destroy(&ctx));
 }
 
 
 
 INA_TEST(hashtable, iter)
 {
-    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     void *d = NULL;
     ina_hashtable_iter_t *iter = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_STR_KEY,
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_DEFAULT, &ctx));
-    INA_TEST_ASSERT_NOT_NULL(ctx);
-
-
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, INA_HASHTABLE_DEFAULT_CAPACITY, 0, &ht));
+                                               INA_HASHTABLE_CF_DEFAULT, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     ina_hashtable_set_str(ht, "n1", new_data(1, "Name 1"));
@@ -508,28 +471,24 @@ INA_TEST(hashtable, iter)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_free(&iter));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_foreach(ht, print_data));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_destroy(&ctx));
 }
 
 INA_TEST(hashtable, clear)
 {
-    ina_hashtable_ctx_t *ctx = NULL;
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data;
     int count;
     size_t usage;
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_init(INA_HASHTABLE_INT32_KEY,
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_DEFAULT, &ctx));
+                                               INA_HASHTABLE_CF_DEFAULT, &ht));
 
 
-    INA_TEST_ASSERT_NOT_NULL(ctx);
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(ctx, INA_HASHTABLE_DEFAULT_CAPACITY, 0, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
     data = new_data(1, "Name 1");
@@ -542,5 +501,4 @@ INA_TEST(hashtable, clear)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
     INA_TEST_ASSERT_EQUAL_INT(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_destroy(&ctx));
 }

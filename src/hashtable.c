@@ -30,19 +30,6 @@
 
 #define INA_HASHTABLE_BUCKET_SIZE 32
 
-struct ina_hashtable_ctx_s {
-    size_t                    key_len;
-    ina_hashtable_key_type_t  key_type;
-    ina_hashtable_hash_type_t hash_type;
-    ina_hash_func_32_t        hash32_fn;
-    ina_hash_func_64_t        hash64_fn;
-    uint32_t                  cf;
-    ina_ullc_ctx_t           *ullc_ctx;
-    ina_time_tsc_t           *time;
-    int                       hc;
-    int                       capacity;
-};
-
 typedef struct ina_hashtable_node_s {
     union {
         uint32_t  u32;
@@ -64,7 +51,7 @@ typedef struct in_hashtable_bucket_s {
 } ina_hashtable_bucket_t;
 
 struct ina_hashtable_s {
-    ina_hashtable_ctx_t *ctx;
+    ina_hashtable_hash_type_t hash_type;
     ina_mempool_t *mp;
     int capacity;
     size_t key_len;
@@ -128,173 +115,12 @@ INA_INLINE void __ina_push_event(const ina_hashtable_t *ht, uint32_t event, uint
 #define __INA_NEW(ht, hash_type, buckets) __ina_push_event(ht, INA_HASHTABLE_EVENT_NEW, (hash_type), (buckets))
 #define __INA_EXPAND(ht, count) __ina_push_event(ht, INA_HASHTABLE_EVENT_EXPANSION, 0, (count))
 
-INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
-                                     ina_hashtable_hash_type_t hash_type,
-                                     ina_hashtable_type_t type,
-                                     ina_hashtable_growth_strategy_t growth_strategy,
-                                     ina_hashtable_shrink_strategy_t shrink_strategy,
-                                     int capactity,
-                                     uint32_t  cf,
-                                     ina_hashtable_ctx_t **ctx)
-{
-    INA_UNUSED(type);
-    INA_UNUSED(growth_strategy);
-    INA_UNUSED(shrink_strategy);
 
-    INA_VERIFY_NOT_NULL(ctx);
-    *ctx = ina_mem_alloc(sizeof(ina_hashtable_ctx_t));
-    INA_RETURN_IF_NULL(*ctx);
-    ina_mem_set(*ctx, 0, sizeof(ina_hashtable_ctx_t));
-    if (INA_FAILED(ina_time_tsc_new(&(*ctx)->time))) {
-        ina_mem_free(*ctx);
-        return ina_err_get_last_rc();
-    }
-    (*ctx)->cf = cf;
-    (*ctx)->key_type = key_type;
-    (*ctx)->hash_type = hash_type;
-
-    if (capactity <= 0) {
-        capactity = 256;
-    }
-    (*ctx)->capacity = capactity;
-
-    switch ((*ctx)->key_type) {
-        case INA_HASHTABLE_UINT32_KEY: {
-            (*ctx)->key_len = sizeof(uint32_t);
-            break;
-        }
-        case INA_HASHTABLE_INT32_KEY:  {
-            (*ctx)->key_len = sizeof(int32_t);
-            break;
-        }
-        case INA_HASHTABLE_INT64_KEY: {
-            (*ctx)->key_len = sizeof(int64_t);
-            break;
-        }
-        case INA_HASHTABLE_UINT64_KEY: {
-            (*ctx)->key_len = sizeof(uint64_t);
-            break;
-        }
-        case INA_HASHTABLE_STR_KEY: {
-            (*ctx)->key_len = INA_HASHTABLE_MAX_KEY_LEN;
-            break;
-        }
-        case INA_HASHTABLE_PTR_KEY: {
-            (*ctx)->key_len = sizeof(void*);
-            break;
-        }
-    }
-
-
-    switch ((*ctx)->hash_type) {
-        case INA_HASHTABLE_HASH_DEFAULT:
-            (*ctx)->hash_type++;
-        case INA_HASHTABLE_HASH32_CRC:
-            (*ctx)->hash32_fn = ina_hash_crc32;
-            break;
-        case INA_HASHTABLE_HASH32_LOOKUP3:
-            (*ctx)->hash32_fn = ina_hash_32_lookup3;
-            break;
-        case INA_HASHTABLE_HASH32_DJB:
-            (*ctx)->hash32_fn = ina_hash_32_djb;
-            break;
-        case INA_HASHTABLE_HASH32_JENKINS_OOAT:
-            (*ctx)->hash32_fn = ina_hash_32_jenkins_ooat;
-            break;
-        case INA_HASHTABLE_HASH32_FNV:
-            (*ctx)->hash32_fn = ina_hash_32_fnv;
-            break;
-        case INA_HASHTABLE_HASH32_SUPERFAST:
-            (*ctx)->hash32_fn = ina_hash_32_superfast;
-            break;
-        case INA_HASHTABLE_HASH32_SDBM:
-            (*ctx)->hash32_fn = ina_hash_sdbm;
-            break;
-        case INA_HASHTABLE_HASH32_FNV_YOSHIMITSU:
-            (*ctx)->hash32_fn = ina_hash_32_fnv_yoshimitsu;
-            break;
-        case INA_HASHTABLE_HASH32_MURMUR3:
-            (*ctx)->hash32_fn = ina_hash_32_memhash;
-            break;
-        case INA_HASHTABLE_HASH32_SPOOKY:
-            (*ctx)->hash32_fn = ina_hash_32_spooky;
-            break;
-        case INA_HASHTABLE_HASH32_XXHASH:
-            (*ctx)->hash32_fn = ina_hash_32_xxhash;
-            break;
-        case INA_HASHTABLE_HASH32_CRC_HW:
-            (*ctx)->hash32_fn = ina_hash_32_crc_hw;
-            break;
-        case INA_HASHTABLE_HASH32_MEMMASH:
-            (*ctx)->hash32_fn = ina_hash_32_memhash;
-            break;
-        case INA_HASHTABLE_HASH32_FALKHASH:
-            (*ctx)->hash32_fn = ina_hash_32_falkhash;
-            break;
-        case INA_HASHTABLE_HASH32_T1HA0:
-            (*ctx)->hash32_fn = ina_hash_32_t1ha0;
-            break;
-        case INA_HASHTABLE_HASH32_T1HA1:
-            (*ctx)->hash32_fn = ina_hash_32_t1ha1;
-            break;
-#ifdef INA_CPU_X86_64
-        case INA_HASHTABLE_HASH64_LOCKUP3:
-            (*ctx)->hash64_fn = ina_hash_64_lookup3;
-            break;
-        case INA_HASHTABLE_HASH64_FNV:
-            (*ctx)->hash64_fn = ina_hash_64_fnv;
-            break;
-        case INA_HASHTABLE_HASH64_SPOOKY:
-            (*ctx)->hash64_fn = ina_hash_64_spooky;
-            break;
-        case INA_HASHTABLE_HASH64_XXHASH:
-            (*ctx)->hash64_fn = ina_hash_64_xxhash;
-            break;
-        case INA_HASHTABLE_HASH64_CRC_HW:
-            (*ctx)->hash64_fn = ina_hash_64_crc_hw;
-            break;
-        case INA_HASHTABLE_HASH64_MEMMASH:
-            (*ctx)->hash64_fn = ina_hash_64_memhash;
-            break;
-        case INA_HASHTABLE_HASH64_FALKHASH:
-            (*ctx)->hash64_fn = ina_hash_64_falkhash;
-            break;
-        case INA_HASHTABLE_HASH64_T1HA0:
-            (*ctx)->hash64_fn = ina_hash_64_t1ha0;
-            break;
-        case INA_HASHTABLE_HASH64_T1HA1:
-            (*ctx)->hash64_fn = ina_hash_64_t1ha1;
-            break;
-#endif
-    }
-    if ((*ctx)->cf&INA_HASHTABLE_CF_STAT) {
-        INA_RETURN_IF_FAILED(INA_ULLC_PRODUCER_CREATE(ina_hashtable_event_t,
-                1, 4096, INA_HASHTABLE_MAX_STAT_TABLES,
-                INA_HASHTABLE_MAX_STAT_TABLES, "/ina_htmon",
-                INA_ULLC_WS_SIGNAL_WAIT,
-                &(*ctx)->ullc_ctx));
-    }
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_hashtable_destroy(ina_hashtable_ctx_t **ctx)
-{
-    INA_VERIFY_NOT_NULL(ctx);
-    INA_VERIFY_NOT_NULL(*ctx);
-    if ((*ctx)->hc > 0) {
-        return INA_ERROR(INA_ERR_NOT_ALLOWED);
-    }
-    if ((*ctx)->ullc_ctx != NULL) {
-        ina_ullc_producer_destroy(&(*ctx)->ullc_ctx);
-    }
-    if ((*ctx)->time != NULL) {
-        ina_time_tsc_free(&(*ctx)->time);
-    }
-    ina_mem_free(*ctx);
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
+INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
+                                    ina_hashtable_hash_type_t hash_type,
+                                    ina_hashtable_type_t type,
+                                    ina_hashtable_growth_strategy_t growth_strategy,
+                                    ina_hashtable_shrink_strategy_t shrink_strategy,
                                     int capacity,
                                     uint32_t  cf,
                                     ina_hashtable_t **ht)
@@ -303,23 +129,134 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
     ina_hashtable_bucket_t *b;
     size_t size;
 
-    INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(ht);
+
+    INA_UNUSED(type);
+    INA_UNUSED(growth_strategy);
+    INA_UNUSED(shrink_strategy);
 
     *ht = ina_mem_alloc(sizeof(ina_hashtable_t));
     INA_RETURN_IF_NULL(*ht);
     ina_mem_set((*ht), 0, sizeof(ina_hashtable_t));
-    (*ht)->ctx = ctx;
+
+
     if (capacity > 0) {
         (*ht)->capacity = capacity;
     } else {
-        (*ht)->capacity = ctx->capacity;
+        (*ht)->capacity = 256;
     }
-    (*ht)->key_len = ctx->key_len;
-    (*ht)->key_type = ctx->key_type;
-    (*ht)->hash32_fn = ctx->hash32_fn;
-    (*ht)->hash64_fn = ctx->hash64_fn;
-    (*ht)->cf = ctx->cf|cf;
+    (*ht)->key_type = key_type;
+    switch ((*ht)->key_type) {
+        case INA_HASHTABLE_UINT32_KEY: {
+            (*ht)->key_len = sizeof(uint32_t);
+            break;
+        }
+        case INA_HASHTABLE_INT32_KEY:  {
+            (*ht)->key_len = sizeof(int32_t);
+            break;
+        }
+        case INA_HASHTABLE_INT64_KEY: {
+            (*ht)->key_len = sizeof(int64_t);
+            break;
+        }
+        case INA_HASHTABLE_UINT64_KEY: {
+            (*ht)->key_len = sizeof(uint64_t);
+            break;
+        }
+        case INA_HASHTABLE_STR_KEY: {
+            (*ht)->key_len = INA_HASHTABLE_MAX_KEY_LEN;
+            break;
+        }
+        case INA_HASHTABLE_PTR_KEY: {
+            (*ht)->key_len = sizeof(void*);
+            break;
+        }
+    }
+
+
+    switch ((*ht)->hash_type) {
+        case INA_HASHTABLE_HASH_DEFAULT:
+            (*ht)->hash_type++;
+        case INA_HASHTABLE_HASH32_CRC:
+            (*ht)->hash32_fn = ina_hash_crc32;
+            break;
+        case INA_HASHTABLE_HASH32_LOOKUP3:
+            (*ht)->hash32_fn = ina_hash_32_lookup3;
+            break;
+        case INA_HASHTABLE_HASH32_DJB:
+            (*ht)->hash32_fn = ina_hash_32_djb;
+            break;
+        case INA_HASHTABLE_HASH32_JENKINS_OOAT:
+            (*ht)->hash32_fn = ina_hash_32_jenkins_ooat;
+            break;
+        case INA_HASHTABLE_HASH32_FNV:
+            (*ht)->hash32_fn = ina_hash_32_fnv;
+            break;
+        case INA_HASHTABLE_HASH32_SUPERFAST:
+            (*ht)->hash32_fn = ina_hash_32_superfast;
+            break;
+        case INA_HASHTABLE_HASH32_SDBM:
+            (*ht)->hash32_fn = ina_hash_sdbm;
+            break;
+        case INA_HASHTABLE_HASH32_FNV_YOSHIMITSU:
+            (*ht)->hash32_fn = ina_hash_32_fnv_yoshimitsu;
+            break;
+        case INA_HASHTABLE_HASH32_MURMUR3:
+            (*ht)->hash32_fn = ina_hash_32_memhash;
+            break;
+        case INA_HASHTABLE_HASH32_SPOOKY:
+            (*ht)->hash32_fn = ina_hash_32_spooky;
+            break;
+        case INA_HASHTABLE_HASH32_XXHASH:
+            (*ht)->hash32_fn = ina_hash_32_xxhash;
+            break;
+        case INA_HASHTABLE_HASH32_CRC_HW:
+            (*ht)->hash32_fn = ina_hash_32_crc_hw;
+            break;
+        case INA_HASHTABLE_HASH32_MEMMASH:
+            (*ht)->hash32_fn = ina_hash_32_memhash;
+            break;
+        case INA_HASHTABLE_HASH32_FALKHASH:
+            (*ht)->hash32_fn = ina_hash_32_falkhash;
+            break;
+        case INA_HASHTABLE_HASH32_T1HA0:
+            (*ht)->hash32_fn = ina_hash_32_t1ha0;
+            break;
+        case INA_HASHTABLE_HASH32_T1HA1:
+            (*ht)->hash32_fn = ina_hash_32_t1ha1;
+            break;
+#ifdef INA_CPU_X86_64
+        case INA_HASHTABLE_HASH64_LOCKUP3:
+            (*ht)->hash64_fn = ina_hash_64_lookup3;
+            break;
+        case INA_HASHTABLE_HASH64_FNV:
+            (*ht)->hash64_fn = ina_hash_64_fnv;
+            break;
+        case INA_HASHTABLE_HASH64_SPOOKY:
+            (*ht)->hash64_fn = ina_hash_64_spooky;
+            break;
+        case INA_HASHTABLE_HASH64_XXHASH:
+            (*ht)->hash64_fn = ina_hash_64_xxhash;
+            break;
+        case INA_HASHTABLE_HASH64_CRC_HW:
+            (*ht)->hash64_fn = ina_hash_64_crc_hw;
+            break;
+        case INA_HASHTABLE_HASH64_MEMMASH:
+            (*ht)->hash64_fn = ina_hash_64_memhash;
+            break;
+        case INA_HASHTABLE_HASH64_FALKHASH:
+            (*ht)->hash64_fn = ina_hash_64_falkhash;
+            break;
+        case INA_HASHTABLE_HASH64_T1HA0:
+            (*ht)->hash64_fn = ina_hash_64_t1ha0;
+            break;
+        case INA_HASHTABLE_HASH64_T1HA1:
+            (*ht)->hash64_fn = ina_hash_64_t1ha1;
+            break;
+#endif
+    }
+    (*ht)->cf = cf;
+
 
     if ((*ht)->cf&INA_HASHTABLE_CF_PREALLOCATED) {
         size = (sizeof(ina_hashtable_bucket_t) * (*ht)->capacity) +
@@ -344,10 +281,17 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
         }
     }
 
-    if ((*ht)->ctx->cf&INA_HASHTABLE_CF_STAT && (*ht)->cf&INA_HASHTABLE_CF_STAT) {
-        (*ht)->ullc_ctx = ctx->ullc_ctx;
-        (*ht)->time = ctx->time;
-        (*ht)->id = ++(*ht)->ctx->hc;
+
+    if ((*ht)->cf&INA_HASHTABLE_CF_STAT) {
+        INA_RETURN_IF_FAILED(INA_ULLC_PRODUCER_CREATE(ina_hashtable_event_t,
+                                                          1, 4096, INA_HASHTABLE_MAX_STAT_TABLES,
+                                                          INA_HASHTABLE_MAX_STAT_TABLES, "/ina_htmon",
+                                                          INA_ULLC_WS_SIGNAL_WAIT,
+                                                          &(*ht)->ullc_ctx));
+        if (INA_FAILED(ina_time_tsc_new(&(*ht)->time))) {
+            ina_mem_free(*ht);
+            return ina_err_get_last_rc();
+        }
         __INA_NEW(*ht, (*ht)->key_type, (*ht)->capacity);
     }
     return INA_SUCCESS;
@@ -358,8 +302,11 @@ INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht)
     INA_VERIFY_NOT_NULL(ht);
     INA_VERIFY_NOT_NULL(*ht);
     __INA_FREE(*ht);
-    if ((*ht)->ctx->cf&INA_HASHTABLE_CF_STAT && (*ht)->cf&INA_HASHTABLE_CF_STAT) {
-        --(*ht)->ctx->hc;
+    if ((*ht)->ullc_ctx != NULL) {
+        ina_ullc_producer_destroy(&(*ht)->ullc_ctx);
+    }
+    if ((*ht)->time != NULL) {
+        ina_time_tsc_free(&(*ht)->time);
     }
     ina_mempool_free(&(*ht)->mp);
     ina_mem_free(*ht);

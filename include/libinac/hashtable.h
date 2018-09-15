@@ -104,7 +104,6 @@ typedef enum ina_hashtable_hash_type_e {
 } ina_hashtable_hash_type_t;
 
 /* opaque hashtable types */
-typedef struct ina_hashtable_ctx_s   ina_hashtable_ctx_t;
 typedef struct ina_hashtable_s       ina_hashtable_t;
 typedef struct ina_hashtable_iter_s  ina_hashtable_iter_t;
 
@@ -129,19 +128,13 @@ typedef struct ina_hashtable_event_s {
     uint64_t data2;
 } ina_hashtable_event_t;
 
-INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
-                                     ina_hashtable_hash_type_t hash_type,
-                                     ina_hashtable_type_t type,
-                                     ina_hashtable_growth_strategy_t growth_strategy,
-                                     ina_hashtable_shrink_strategy_t shrink_strategy,
-                                     int capacity,
-                                     uint32_t  cf,
-                                     ina_hashtable_ctx_t **ctx);
-
-INA_API(ina_rc_t) ina_hashtable_destroy(ina_hashtable_ctx_t **ctx);
 
 
-INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_ctx_t *ctx,
+INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
+                                    ina_hashtable_hash_type_t hash_type,
+                                    ina_hashtable_type_t type,
+                                    ina_hashtable_growth_strategy_t growth_strategy,
+                                    ina_hashtable_shrink_strategy_t shrink_strategy,
                                     int capacity,
                                     uint32_t  cf,
                                     ina_hashtable_t **ht);

@@ -28,6 +28,10 @@
 #ifndef _LIBINAC_LIB_H_
 #define _LIBINAC_LIB_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef _WIN32
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -70,7 +74,6 @@
 
 #include <libinac/version.h>
 #include <libinac/portable.h>
-#include <libinac/uthash.h>
 #include <libinac/error.h>
 #include <libinac/memory.h>
 #include <libinac/mempool.h>
@@ -95,17 +98,11 @@
 #include <libinac/file.h>
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
-#include <libinac/uthash.h>
 #include <libinac/list.h>
 #include <libinac/hashtable.h>
 #include <libinac/debug.h>
 #include <libinac/test.h>
 #include <libinac/bench.h>
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 #define INA_EINVAL INA_NN_ARGUMENT|INA_ERR_INVALID

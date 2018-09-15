@@ -46,14 +46,9 @@ struct ina_file_s {
 	ina_file_share_mode_t share;
 };
 
-typedef struct ina_file_entry_s {
-    ina_file_t *file;
-    UT_hash_handle hh;
-} ina_file_entry_t;
-
 struct ina_file_ctx_s {
     mode_t default_mode;
-    ina_file_entry_t *files;
+    ina_hashtable_t *files;
 };
 
 struct ina_file_stat_s {
@@ -194,17 +189,32 @@ INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode)
     INA_VERIFY_NOT_NULL(ctx);
     *ctx = (ina_file_ctx_t*)ina_mem_alloc(sizeof(ina_file_ctx_t));
     INA_RETURN_IF_NULL(ctx);
+    ina_mem_set(*ctx, 0, sizeof(ina_file_ctx_t));
+
     (*ctx)->default_mode = default_mode;
     if ((*ctx)->default_mode == 0) {
         (*ctx)->default_mode =  S_IWUSR | S_IRUSR | S_IRGRP | S_IWGRP | S_IROTH;
     }
+    if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
+                      INA_HASHTABLE_HASH_DEFAULT,
+                      INA_HASHTABLE_TYPE_DEFAULT,
+                      INA_HASHTABLE_GROW_DEFAULT,
+                      INA_HASHTABLE_SHRINK_DEFAULT,
+                      128,
+                      INA_HASHTABLE_CF_DEFAULT, &(*ctx)->files))) {
+        ina_mem_free(*ctx);
+        *ctx = NULL;
+        return ina_err_get_last_rc();
+    }
+
     return INA_SUCCESS;
 }
 
 
 INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx)
 {
-    ina_file_entry_t *fe, *fetmp;
+    ina_file_t *f;
+    ina_hashtable_iter_t *iter;
 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(*ctx);
@@ -212,11 +222,12 @@ INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx)
     /*
      * close files that are still open
      */
-    HASH_ITER(hh, (*ctx)->files, fe, fetmp) {
-        INA_MUST_SUCCEED(ina_file_free(&fe->file));
+    ina_hashtable_iter_new((*ctx)->files, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&f))) {
+        INA_MUST_SUCCEED(ina_file_free(&f));
     }
-    HASH_CLEAR(hh, (*ctx)->files);
-
+    ina_hashtable_iter_free(&iter);
+    ina_hashtable_free(&(*ctx)->files);
     ina_mem_free(*ctx);
     *ctx = NULL;
     return INA_SUCCESS;
@@ -226,8 +237,6 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
                                ina_file_access_mode_t access, ina_file_create_mode_t create, 
                                ina_file_share_mode_t share, int flags, ina_file_t **file)
 {
-    ina_file_entry_t *fe;
-
     #ifdef INA_OS_WIN32
 	DWORD dwDesiredAccess;
 	DWORD dwShareMode;
@@ -279,22 +288,18 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
     (*file)->fh = fhandle;
     (*file)->file_path = ina_str_new_fromcstr(file_fqn);
     (*file)->ctx = ctx;
-    fe = (ina_file_entry_t*)ina_mem_alloc(sizeof(ina_file_entry_t));
-    INA_RETURN_IF_NULL(fe);
-    fe->file = *file;
-    HASH_ADD_PTR(ctx->files, file, fe);
+    ina_hashtable_set_ptr(ctx->files, file, file);
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_free(ina_file_t **file)
 {
-    ina_file_entry_t *fe;
+    ina_file_t *f;
     INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(*file);
 
-    HASH_FIND_PTR((*file)->ctx->files, file, fe);
-    INA_ASSERT_NOTNULL(fe);
-    HASH_DEL((*file)->ctx->files, fe);
+    ina_hashtable_remove_ptr((*file)->ctx->files, *file, (void**)&f);
+    INA_ASSERT_NOTNULL(f);
 
     if ((*file)->stream) {
         fclose((*file)->stream);
