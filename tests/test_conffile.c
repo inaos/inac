@@ -30,8 +30,9 @@
 static int __section_count = 0;
 static int __named_section_count = 0;
  
-static ina_rc_t __ina_section_handler(const char* section_name, const char* section_key, ina_conffile_entries_t *entries)
+static ina_rc_t __ina_section_handler(const char* section_name, const char* section_key, ina_conffile_entries_t *entries, void* user_data)
 {
+    INA_UNUSED(user_data);
     double command_latency = 0;
     INA_TEST_ASSERT_NOT_NULL(section_name);
     INA_TEST_ASSERT_NULL(section_key);
@@ -44,8 +45,9 @@ static ina_rc_t __ina_section_handler(const char* section_name, const char* sect
     return INA_SUCCESS;
 }
 
-static ina_rc_t __ina_named_section_handler(const char *section_name, const char* section_key, ina_conffile_entries_t *entries)
+static ina_rc_t __ina_named_section_handler(const char *section_name, const char* section_key, ina_conffile_entries_t *entries, void* user_data)
 {
+    INA_UNUSED(user_data);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "ip"));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "mask"));
 
@@ -63,7 +65,7 @@ INA_TEST(conffile , using_macros_with_filepath)
     __section_count = 0;
     __named_section_count = 0;       
     
-    INA_CONFFILE(cf, "test_filepath.conf",
+    INA_CONFFILE(cf, "test_filepath.conf", NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
             INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
             INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO),
@@ -83,7 +85,7 @@ INA_TEST(conffile , using_macros)
     __section_count = 0;
     __named_section_count = 0;   
 
-    INA_CONFFILE(cf, NULL,
+    INA_CONFFILE(cf, NULL, NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
             INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
             INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO),
@@ -102,7 +104,7 @@ INA_TEST(conffile , using_macros_without_section_handler)
     ina_str_t value = NULL;
     double dbl_value = 0.0;
 
-    INA_CONFFILE(cf, NULL,
+    INA_CONFFILE(cf, NULL, NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, NULL,
             INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
             INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO),
@@ -170,7 +172,7 @@ INA_TEST(conffile, try_anonymous_section)
                                 INA_CONFFILE_VALUE_TYPE_STRING, INA_YES));
 
     INA_TEST_ASSERT_FAILED(ina_conffile_process(cf,
-                                "test_conffile_anonymous_section.conf"));
+                                "test_conffile_anonymous_section.conf", NULL));
 }
 
 
@@ -198,7 +200,7 @@ INA_TEST(conffile, process_with_filepath)
     __section_count = 0;
     __named_section_count = 0;
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL, NULL));
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     
@@ -249,7 +251,7 @@ INA_TEST(conffile, process_without_filepath)
     __section_count = 0;
     __named_section_count = 0;
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL, NULL));
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     

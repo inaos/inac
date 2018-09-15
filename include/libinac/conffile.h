@@ -56,9 +56,10 @@ typedef struct ina_conffile_s ina_conffile_t;
  *  section_name  Name of the current processing section.
  *  section_key   Key of current named section, NULL for unamed sections.
  *  entries       Section entries, see ina_conffile_has_value_in_entries(),
- *               ina_conffile_get_string_from_section() or
- *               ina_conffile_get_number_from_section() for retrieve values
- *               from section entries.
+ *                ina_conffile_get_string_from_section() or
+ *                ina_conffile_get_number_from_section() for retrieve values
+ *                from section entries.
+ *  user_data     Pointer to user data passed in ina_conffile_process()
  *
  * Return
  *  Returning other than INA_SUCCESS will stop the configuration file
@@ -66,7 +67,8 @@ typedef struct ina_conffile_s ina_conffile_t;
  */
 typedef ina_rc_t (*ina_conffile_section_cb_t)(const char *section_name, 
                                               const char *section_key,
-                                              ina_conffile_entries_t *entries);
+                                              ina_conffile_entries_t *entries,
+                                              void *user_data);
 
 /*
  * Initialize a configuration file.
@@ -232,11 +234,13 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
  *  filepath   Absolute or relative file path. If filepath is NULL the config-
  *             uration file must be located in the working directory and named
  *             [binary-name].conf.
+ *  user_data  Pointer to user defined data. this pointer is passed as third argument
+ *             ib the section callback.
  *
  * Return
- *  INA_SUCCESS if no error occured.
+ *  INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath);
+INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath, void *user_data);
 
 /*
  * Destroy a confiuration file.
@@ -305,8 +309,10 @@ __VA_ARGS__
  *      the configuration values after processing the configuration file
  *      Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add
  *      named or unnamed section to the configuration file.
+ *  fp  Path to the configfile or NULL
+ *  ud  Pointer to user data or NULL
  */
-#define INA_CONFFILE(cf, fp, ...)                         \
+#define INA_CONFFILE(cf, fp, ud, ...)                     \
 do                                                        \
 {                                                         \
     ina_conffile_t *__cf = NULL;                          \
@@ -316,7 +322,7 @@ do                                                        \
         exit(EXIT_FAILURE);                               \
     }                                                     \
     __VA_ARGS__;                                          \
-    if (!INA_SUCCEED(ina_conffile_process(__cf, fp)))   { \
+    if (!INA_SUCCEED(ina_conffile_process(__cf, fp,(ud))))   { \
         exit(EXIT_FAILURE);                               \
     }                                                     \
     if (cf == NULL) {                                     \

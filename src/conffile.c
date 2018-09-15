@@ -353,7 +353,7 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
 }
 
                     
-INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
+INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath, void *user_data)
 {
     ina_conffile_section_t *s;
     ina_hashtable_iter_t *iter;
@@ -413,7 +413,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
             ina_hashtable_iter_new(s->entries, &iter2);
             while INA_SUCCEED(ina_hashtable_iter_next(iter2, (void**)&entries)) {
                 const char *key = (s->named?entries->key:NULL);
-                if (INA_FAILED((s->section_cb(s->name, key, entries)))) {
+                if (INA_FAILED((s->section_cb(s->name, key, entries, user_data)))) {
                     return ina_err_get_last_rc();
                 }
             }
