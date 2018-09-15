@@ -196,6 +196,13 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
                       INA_HASHTABLE_DEFAULT_CAPACITY,
                       INA_HASHTABLE_CF_DEFAULT, &sp->keys);
 
+    ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                      INA_HASHTABLE_HASH_DEFAULT,
+                      INA_HASHTABLE_TYPE_DEFAULT,
+                      INA_HASHTABLE_GROW_DEFAULT,
+                      INA_HASHTABLE_SHRINK_DEFAULT,
+                      INA_HASHTABLE_DEFAULT_CAPACITY,
+                      INA_HASHTABLE_CF_DEFAULT, &sp->entries);
     return ina_hashtable_set_str(cf->sections, sp->name, sp);;
 }
 
@@ -373,9 +380,9 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath)
     if (cf->filepath == NULL) {
         cf->filepath = ina_str_new(128);
         if (ina_str_snprintf(&cf->filepath, 128, "%s.conf", ina_app_get_name()) > 128) {
-            ina_str_t filepath = ina_str_dup_using_pool(cf->filepath, cf->mempool);
+            ina_str_t fp = ina_str_dup_using_pool(cf->filepath, cf->mempool);
             ina_str_free(cf->filepath);
-            cf->filepath = filepath;
+            cf->filepath = fp;
         }
     }
 
@@ -636,15 +643,16 @@ __ina_get_value(ina_conffile_t *cf, const char* section_name,
                 const char *section_key, const char *key, 
                 ina_conffile_entry_t **entry)
 {
+    const char* k = (section_key?section_key:__INA_ATTR_DEFAULT);
     ina_conffile_section_t *section = NULL;
     ina_conffile_entries_t *entries = NULL;
     ina_conffile_entry_t *e = NULL;
 
     /* First section lookup */
-    if (INA_FAILED(ina_hashtable_get_str(cf->sections, section_key, (void**)&section))) {
+    if (INA_FAILED(ina_hashtable_get_str(cf->sections, section_name, (void**)&section))) {
         return INA_ERROR(INA_NN_SECTION|INA_ERR_NOT_EXISTS);
     }
-    
+
     /* Second section lockup for named sections */
     if (section->named) {
         ina_hashtable_get_str(section->entries, section_key, (void**)&entries);
@@ -654,7 +662,6 @@ __ina_get_value(ina_conffile_t *cf, const char* section_name,
     if (entries == NULL || entries->entries == NULL) {
         return INA_ERROR(INA_NN_SECTION|INA_ERR_EMPTY);
     }
-
     /* Lookup value */
     ina_hashtable_get_str(entries->entries, key, (void**)&e);
     if (e == NULL) {
