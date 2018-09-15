@@ -37,131 +37,43 @@ extern "C" {
 #include <libinac/lib.h>
 #include "lib.h"
 
-/*
- * DESIGN:
- * -------
- *
- * Following the creation flags:
- * - INA_HASHTBL_STATIC:          fixed size hashtable, no growing no shrinking 
- * - INA_HASHTBL_GROWABLE:        enable growing
- * - INA_HASHTBL_SHRINKABLE:      enable shrinking
- * - INA_HASHTBL_PROBE_LINEAR:    when growing use linar growth strategy
- * - INA_HASHTBL_PROBE_QUADRATIC: when growing use quadratic probing strategy 
- * - INA_HASHTBL_DOUBLE_HASHING:  use double hashing as growth strategy
- * Note: INA_HASHTBL_STATIC can NOT be combined with GROWABLE or SHRINKABLE
- *
- *
- *
- * ------- 
- * 
- * Libraries to consider with regard to features or design:
- * - tommyds (https://github.com/amadvance/tommyds)
- * - https://probablydance.com/2017/02/26/i-wrote-the-fastest-hashtable/#more-6655
- * - khash (https://github.com/attractivechaos/klib/blob/master/khash.h)
- * - gcc hashtable libiberty (https://gcc.gnu.org/svn/gcc/trunk/libiberty/hashtab.c)
- * - judy ?
- * - google dense hash (https://github.com/sparsehash/sparsehash)
- * - libdynamic (https://github.com/fredrikwidlund/libdynamic)
- * - ulib (https://github.com/stefanocasazza/ULib)
- * - uthash
- *
- * From an API perspective we should only support to have, integer and string keys.
- *
- * Must have feature -  as seen in uthash (keystats):
- * 
- * fcn  ideal%     #items   #buckets  dup%  fl   add_usec  find_usec  del-all usec
- * ---  ------ ---------- ---------- -----  -- ---------- ----------  ------------
- * SFH   91.6%       1219        256    0%  ok         92        131            25
- * FNV   90.3%       1219        512    0%  ok        107         97            31
- * SAX   88.7%       1219        512    0%  ok        111        109            32
- * OAT   87.2%       1219        256    0%  ok         99        138            26
- * JEN   86.7%       1219        256    0%  ok         87        130            27
- * BER   86.2%       1219        256    0%  ok        121        129            27
- *
- * + This feature in uthash is compile-time, it would be great if we could make it a runtime
- *   feature with zero performance impact - e.g. by using ULLC.
- *   Either this means that we have to store the entire hash-map in shared-memory or 
- *   push off all the keys to an ULLC ring? Or we do something similar then uthash with their
- *   hashscan utility where the memory of the process is scanned by a different process, this 
- *   process looks for uthash structures and reads its content to analyze stats? can we do this 
- *   efficiently without impacting the running process?
- *   Another idea would be to use mmap backed memory-pools instead of shared-memory 
- *   this would simplify the operational handling.
- *
- * + Maybe we could also record the collisions or is that the dup%?
- *
- * Thoughs about refactoring:
- * - Currently in some places we do double hashing by first hashing the string with sdbm and then adding it to uthash 
- *   which involves a lookup3 hash
- * - Insert compiler error into uthash
- *
- * TODO:
- * -----
- *
- * 1. Investigate open questions:
- *    - Should we use chaining or open addressing? or both by choice and use-case?
- *      Here a post which contains some input in that regard: http://preshing.com/20110603/hash-table-performance-tests/
- *    - https://en.wikipedia.org/wiki/Hopscotch_hashing?
- *    - What should be a macro and what can be typed c-code?
- *    - We should probably have some fixed size variants and dynamic ones.. if dynamic how to grow:
- *      Quadratic probing, double hashing, linear probing etc. is it a concern at all if we use our mempools wisely?
- *      Or we could support all sorts of different growth strategies via different functors and then analyse with 
- *      which strategy is the best for the given use-case.
- *    - Should we allow shrikning, in terms of memory? maybe as a special case when space is more 
- *      critical then performance
- *    - How to use the inac mempools? one big pool, one pool per bucket
- *    - How to support shrinking? ina_mempool_realloc?
- *    - How to support perfect hashing for lookup-tables and such
- *      -> http://burtleburtle.net/bob/hash/perfect.html
- *      -> https://gist.github.com/alnsn/68f599bc9358fcee122d6175392d779f
- *   	-> https://github.com/alnsn/rgph (looks interesting because its seems to generate the hashtable at runtime)
- *      -> http://www.theiling.de/projects/lookuptable.html
- *      -> https://github.com/rurban/Perfect-Hash
- *      -> https://github.com/inaos/inac/blob/8bd27379b3f9a737de07c0499ac4555680134afc/contribs/luajit/src/host/buildvm_fold.c
- *      -> https://gist.github.com/alnsn/68f599bc9358fcee122d6175392d779f
- *      -> https://github.com/alnsn/rgph
- *      -> http://zola.di.unipi.it/rossano/wp-content/papercite-data/pdf/dcc14.pdf
- *      -> http://cmph.sourceforge.net/bdz.html
- *      -> https://www.snellman.net/blog/archive/2017-03-19-parallel-hashing-with-avx2/
- *    - Do we need to store data in our nodes or do we store it externally? in other words do we need handles in 
- *      hash nodes. What are the pros and cons?
- *    - How to select hash-buckets: https://probablydance.com/2018/06/16/fibonacci-hashing-the-optimization-that-the-world-forgot-or-a-better-alternative-to-integer-modulo/?		
- *
- * 2. How to benchmark
- *    - must be simple because the real benchmark is alwayls the application
- *    - benchmark can be kept outside if it grows too big.. ideally we want to compare our 
- *      implementation against the above contenders.
- *
- *
- */
-#define INA_HASHTABLE_MAX_KEY_LEN 16
 
-#define INA_HASHTABLE_CF_GROWABLE          (1UL)
-#define INA_HASHTABLE_CF_SHRINKABLE        (2UL)
-#define INA_HASHTABLE_CF_PREALLOCATED      (4UL)
-#define INA_HASHTABLE_CF_STAT             (16UL)
+#define INA_HASHTABLE_DEFAULT_CAPACITY     (0)
+#define INA_HASHTABLE_MAX_KEY_LEN          16
+#define INA_HASHTABLE_MAX_STAT_TABLES      16
+#define INA_HASHTABLE_CF_PREALLOCATED    (4UL)
+#define INA_HASHTABLE_CF_STAT           (16UL)
+#define INA_HASHTABLE_CF_DEFAULT         (0UL)
+
+
 
 typedef enum ina_hashtable_type_e {
+    INA_HASHTABLE_TYPE_DEFAULT = -1,
     INA_HASHTABLE_TYPE_CHAINED,
-    INA_HASHTABL_TYPE_OPENADR
 } ina_hashtable_type_t;
 
 typedef enum ina_hashtable_key_type_e {
-     INA_HASHTABLE_STR_KEY,
-     INA_HASHTABLE_PTR_KEY,
-     INA_HASHTABL_UINT32_KEY,
-     INA_HASHTABLE_UINT64_KEY,
-     INA_HASHTABL_INT32_KEY,
-     INA_HASHTABLE_INT64_KEY
+    INA_HASHTABLE_INT32_KEY,
+    INA_HASHTABLE_UINT32_KEY,
+    INA_HASHTABLE_INT64_KEY,
+    INA_HASHTABLE_UINT64_KEY,
+    INA_HASHTABLE_STR_KEY,
+    INA_HASHTABLE_PTR_KEY,
 } ina_hashtable_key_type_t;
 
 typedef enum ina_hashtable_growth_strategy_e {
-    INA_HASHTABLE_GROW_LINEAR,
-    INA_HASHTABLE_GROW_QUADRATIC,
-    INA_HASHTABLE_GROW_DOUBLE_HASH,
+    INA_HASHTABLE_GROW_DEFAULT = -1,
+    INA_HASHTABLE_GROW_NEVER,
 } ina_hashtable_growth_strategy_t;
 
+
+typedef enum ina_hashtable_shrink_strategy_e {
+    INA_HASHTABLE_SHRINK_DEFAULT = -1,
+    INA_HASHTABLE_SHRINK_NEVER,
+} ina_hashtable_shrink_strategy_t;
+
 typedef enum ina_hashtable_hash_type_e {
+     INA_HASHTABLE_HASH_DEFAULT = -1,
      INA_HASHTABLE_HASH32_CRC,
      INA_HASHTABLE_HASH32_LOOKUP3,
      INA_HASHTABLE_HASH32_DJB,
@@ -212,7 +124,7 @@ typedef enum ina_hashtable_event_id_e {
 typedef struct ina_hashtable_event_s {
     uint64_t ts;
     uint32_t event_id;
-    uint32_t hashtable_id;
+    int32_t  hashtable_id;
     uint64_t data1;
     uint64_t data2;
 } ina_hashtable_event_t;
@@ -221,6 +133,8 @@ INA_API(ina_rc_t) ina_hashtable_init(ina_hashtable_key_type_t key_type,
                                      ina_hashtable_hash_type_t hash_type,
                                      ina_hashtable_type_t type,
                                      ina_hashtable_growth_strategy_t growth_strategy,
+                                     ina_hashtable_shrink_strategy_t shrink_strategy,
+                                     int capacity,
                                      uint32_t  cf,
                                      ina_hashtable_ctx_t **ctx);
 

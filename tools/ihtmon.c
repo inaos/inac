@@ -37,15 +37,18 @@ typedef struct ina_ht_info_s {
     uint64_t del_ops;
     uint64_t del_low_ns;
     uint64_t del_hig_ns;
+    uint64_t del_tot_ns;
     uint64_t del_lst_ns;
     uint64_t del_ts1_ns;
     uint64_t set_low_ns;
     uint64_t set_hig_ns;
+    uint64_t set_tot_ns;
     uint64_t set_lst_ns;
     uint64_t set_ts1_ns;
     uint64_t set_ops;
     uint64_t get_low_ns;
     uint64_t get_hig_ns;
+    uint64_t get_tot_ns;
     uint64_t get_lst_ns;
     uint64_t get_ts1_ns;
     uint64_t get_ops;
@@ -56,7 +59,7 @@ typedef struct ina_ht_info_s {
     int      ex;
 } ina_ht_info_t;
 
-static ina_ht_info_t info[32];
+static ina_ht_info_t info[INA_HASHTABLE_MAX_STAT_TABLES];
 
 static ina_file_ctx_t *file_ctx = NULL;
 static ina_ullc_ctx_t *ullc_ctx = NULL;
@@ -108,8 +111,8 @@ static void ihtm_update(int ht)
     nc = ihtm_format_number((int)info[ht].collisions);
     ne = ihtm_format_number(info[ht].ex);
 
-    ina_cio_printf(ht+1, 0, INA_CIO_COLOR_BLACK, INA_CIO_COLOR_WHITE,
-            "[%02d] %s    %02d%%    %5s    %5s   %5s   %5s   %2d%%  %3u %u3  %3u  %3u  %3u  %du",
+    ina_cio_printf(ht+2, 0, INA_CIO_COLOR_BLUE,INA_CIO_COLOR_WHITE ,
+                   "[%02d] %s    %#2d%%  %5s    %5s   %5s   %5s   %#2d%%  %3u %3u  %3u  %3u  %3u  %3u",
                    ht, state, ideal, nb, ni, nc, ne,
                    misses,
                    (uint32_t)info[ht].set_low_ns,
@@ -128,15 +131,22 @@ static void ihtm_update(int ht)
 static void ihtm_init(void)
 {
     int i;
-    ina_mem_set(&info, 0, sizeof(ina_ht_info_t)*32);
+    ina_mem_set(&info, 0, sizeof(ina_ht_info_t)*INA_HASHTABLE_MAX_STAT_TABLES);
     ina_cio_clear();
 
     ina_cio_printf(0, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
-         "     A  ideal   #bkt   #items    #cln    #ex   miss   sl   sh   gl   gh   dl   dh");
+            "IHTMON                                                                          ");
+    ina_cio_printf(1, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
+            "     A  ideal   #bkt   #items     #cln     #ex  miss   sl   sh   gl   gh   dl dh");
 
-    for (i = 0; i < 32; ++i) {
+    for (i = 0; i < 16; ++i) {
         ihtm_update(i);
     }
+    ina_cio_printf(18, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
+            "  CTRL-C = end  t= time on/off                                                  ");
+    ina_cio_printf(19, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
+            "> connecting...                                                                 ");
+    fflush(stdout);
 }
 
 
@@ -161,21 +171,19 @@ int main(int argc,  char** argv)
         return EXIT_FAILURE;
     }
 
-    ina_err_set_log_file(">2");
+    ihtm_init();
 
-    printf("try to connect...\n");
-    while (INA_FAILED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t, 1, 4096, 32, 32, "/ina_htmon", &ullc_ctx))){
+    while (INA_FAILED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t, 1, 4096, INA_HASHTABLE_MAX_STAT_TABLES, INA_HASHTABLE_MAX_STAT_TABLES, "/ina_htmon", &ullc_ctx))){
         ina_time_sleep(10);
     }
-    printf("connected!\n");
-    fflush(stdout);
 
-    ihtm_init();
+    ina_cio_printf(19, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
+                   ">connected!                                                              ");
 
     while (1) {
         event = INA_ULLC_GET(ina_hashtable_event_t, ullc_ctx);
         if (event != NULL) {
-            int ht = (int)event->hashtable_id;
+            int ht = (int)event->hashtable_id - 1;
             switch (event->event_id) {
                 case INA_HASHTABLE_EVENT_NEW: {
                     info[ht].active = 1;
@@ -192,11 +200,12 @@ int main(int argc,  char** argv)
                     if (info[ht].set_hig_ns < info[ht].set_lst_ns) {
                         info[ht].set_hig_ns = info[ht].set_lst_ns;
                     }
-                    if (info[ht].set_low_ns > info[ht].set_lst_ns) {
+                    if (info[ht].set_low_ns > info[ht].set_lst_ns || info[ht].set_low_ns == 0) {
                         info[ht].set_low_ns = info[ht].set_lst_ns;
                     }
                     info[ht].items = (int)event->data2;
                     ++info[ht].set_ops;
+                    info[ht].set_tot_ns += info[ht].set_lst_ns;
                     break;
                 }
                 case INA_HASHTABLE_EVENT_GET_BEGIN: {
@@ -208,11 +217,12 @@ int main(int argc,  char** argv)
                     if (info[ht].get_hig_ns < info[ht].get_lst_ns) {
                         info[ht].get_hig_ns = info[ht].get_lst_ns;
                     }
-                    if (info[ht].get_low_ns > info[ht].get_lst_ns) {
+                    if (info[ht].get_low_ns > info[ht].get_lst_ns || info[ht].get_low_ns == 0) {
                         info[ht].get_low_ns = info[ht].get_lst_ns;
                     }
                     info[ht].get_misses += event->data2;
                     ++info[ht].get_ops;
+                    info[ht].get_tot_ns += info[ht].get_lst_ns;
                     break;
                 }
                 case INA_HASHTABLE_EVENT_REMOVE_BEGIN: {
@@ -224,12 +234,13 @@ int main(int argc,  char** argv)
                     if (info[ht].del_hig_ns < info[ht].del_lst_ns) {
                         info[ht].del_hig_ns = info[ht].del_lst_ns;
                     }
-                    if (info[ht].del_low_ns > info[ht].del_lst_ns) {
+                    if (info[ht].del_low_ns > info[ht].del_lst_ns || info[ht].del_low_ns == 0) {
                         info[ht].del_low_ns = info[ht].del_lst_ns;
                     }
                     info[ht].get_misses += event->data1;
                     info[ht].items = (int)event->data2;
                     ++info[ht].del_ops;
+                    info[ht].del_tot_ns += info[ht].del_lst_ns;
                     break;
                 }
                 case INA_HASHTABLE_EVENT_EXPANSION: {
@@ -247,8 +258,8 @@ int main(int argc,  char** argv)
                     event->hashtable_id,
                     event->event_id,
                     event->data1,
-                    event->data2);
-            fflush(stdout);*/
+                    event->data2);*/
+            fflush(stdout);
         }
     }
     return EXIT_SUCCESS;
