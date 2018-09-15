@@ -54,8 +54,8 @@ INA_TEST_SKIP(test, handle_sigabrt) {
 }
 
 INA_TEST_SKIP(test, handle_sigfault) {
-    ina_conffile_t *cf = NULL;
-    INA_TEST_ASSERT_NOT_NULL(cf->filepath);
+    ina_time_tsc_t *t = NULL;
+    t->ref;
 }
 
 INA_TEST(test_asserts, assert_equal_str) {

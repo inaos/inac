@@ -95,7 +95,11 @@ INA_INLINE void __ina_push_event(const ina_hashtable_t *ht, uint32_t event, uint
         ina_hashtable_event_t *e;
         ina_time_read_tsc_clock(ht->time);
         e =INA_ULLC_CLAIM(ina_hashtable_event_t, ullc_ctx);
+#ifdef INA_OS_OSX
         e->ts = ht->time->tp;
+#else
+        e->ts = (ht->time->tp.tv_sec*1000*1000*1000) +ht->time->tp.tv_nsec;
+#endif
         e->event_id = event;
         e->hashtable_id = ht->id;
         e->data1 = data1;

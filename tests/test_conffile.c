@@ -30,7 +30,7 @@
 static int __section_count = 0;
 static int __named_section_count = 0;
  
-static ina_rc_t __ina_section_handler(const char* section_name, const char* section_key, ina_conffile_entry_t *entries)
+static ina_rc_t __ina_section_handler(const char* section_name, const char* section_key, ina_conffile_entries_t *entries)
 {
     double command_latency = 0;
     INA_TEST_ASSERT_NOT_NULL(section_name);
@@ -44,7 +44,7 @@ static ina_rc_t __ina_section_handler(const char* section_name, const char* sect
     return INA_SUCCESS;
 }
 
-static ina_rc_t __ina_named_section_handler(const char *section_name, const char* section_key, ina_conffile_entry_t *entries)
+static ina_rc_t __ina_named_section_handler(const char *section_name, const char* section_key, ina_conffile_entries_t *entries)
 {
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "ip"));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_has_value_in_entries(entries, "mask"));
@@ -199,11 +199,6 @@ INA_TEST(conffile, process_with_filepath)
     __named_section_count = 0;
     
     INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
-#ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_EQUAL_INT(0, strcmp(ina_str_cstr(cf->filepath), "tests.exe.conf"));
-#else
-    INA_TEST_ASSERT_EQUAL_INT(0, strcmp(ina_str_cstr(cf->filepath), "tests.conf"));
-#endif
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     
@@ -255,11 +250,6 @@ INA_TEST(conffile, process_without_filepath)
     __named_section_count = 0;
     
     INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL));
-#ifdef INA_OS_WIN32
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "tests.exe.conf"));
-#else
-    INA_TEST_ASSERT_EQUAL_FLOATING(0, strcmp(ina_str_cstr(cf->filepath), "tests.conf"));
-#endif
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     
