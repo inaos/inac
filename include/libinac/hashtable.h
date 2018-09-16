@@ -109,6 +109,8 @@ typedef struct ina_hashtable_s       ina_hashtable_t;
 typedef struct ina_hashtable_iter_s  ina_hashtable_iter_t;
 
 typedef enum ina_hashtable_event_id_e {
+    INA_HASHTABLE_EVENT_IDLE,
+    INA_HASHTABLE_EVENT_META,
     INA_HASHTABLE_EVENT_NEW,
     INA_HASHTABLE_EVENT_SET_BEGIN,
     INA_HASHTABLE_EVENT_SET_END,

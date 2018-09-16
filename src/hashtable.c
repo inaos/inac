@@ -166,6 +166,7 @@ INA_INLINE void __ina_push_event(const ina_hashtable_t *ht, uint32_t event, uint
 #define __INA_FREE(ht) __ina_push_event(ht, INA_HASHTABLE_EVENT_FREE, 0, 0)
 #define __INA_NEW(ht, hash_type, buckets) __ina_push_event(ht, INA_HASHTABLE_EVENT_NEW, (hash_type), (buckets))
 #define __INA_EXPAND(ht, count) __ina_push_event(ht, INA_HASHTABLE_EVENT_EXPANSION, 0, (count))
+#define __INA_META(ht, type, value) __ina_push_event(ht, INA_HASHTABLE_EVENT_META, (type), (value))
 
 
 INA_API(ina_rc_t) ina_hashtable_init(const char* cfg_filepath)
@@ -419,6 +420,10 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                 return ina_err_get_last_rc();
             }
             __INA_NEW(*ht, (*ht)->key_type, (*ht)->capacity);
+            __INA_META(*ht, 1, (*ht)->hash_type);
+            __INA_META(*ht, 2, (*ht)->key_len);
+            __INA_META(*ht, 3, INA_HASHTABLE_TYPE_CHAINED);
+            __INA_META(*ht, 4, (*ht)->cf);
         }
     }
     return INA_SUCCESS;

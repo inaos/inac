@@ -493,7 +493,6 @@ INA_TEST(hashtable, clear)
 
 
     INA_TEST_ASSERT_NOT_NULL(ht);
-
     data = new_data(1, "Name 1");
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
     data = new_data(2, "Name 2");
@@ -531,18 +530,21 @@ INA_TEST_SKIP(hashtable, new_from_cfg)
 INA_TEST(hashtable, stats)
 {
     ina_hashtable_t *ht1, *ht2, *ht3, *ht4;
-    const int data = 1;
+    int *data;
     int j = 0;
+    time_t t;
 
-
+    data = ina_mem_alloc(sizeof(int));
+    *data = 1;
+    srand((unsigned) time(&t));
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
-                                              INA_HASHTABLE_HASH_DEFAULT,
+                                              INA_HASHTABLE_HASH32_SDBM,
                                               INA_HASHTABLE_TYPE_DEFAULT,
                                               INA_HASHTABLE_GROW_DEFAULT,
                                               INA_HASHTABLE_SHRINK_DEFAULT,
-                                              INA_HASHTABLE_DEFAULT_CAPACITY,
-                                              INA_HASHTABLE_CF_STAT, &ht1));
+                                              1024,
+                                              INA_HASHTABLE_CF_STAT|INA_HASHTABLE_CF_PREALLOCATED, &ht1));
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                               INA_HASHTABLE_HASH_DEFAULT,
@@ -567,19 +569,50 @@ INA_TEST(hashtable, stats)
                                               INA_HASHTABLE_GROW_DEFAULT,
                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                               INA_HASHTABLE_DEFAULT_CAPACITY,
-                                              INA_HASHTABLE_CF_STAT, &ht4));
+                                              INA_HASHTABLE_CF_STAT|INA_HASHTABLE_CF_PREALLOCATED, &ht4));
 
     INA_TEST_ASSERT_NOT_NULL(ht1);
     INA_TEST_ASSERT_NOT_NULL(ht2);
     INA_TEST_ASSERT_NOT_NULL(ht3);
     INA_TEST_ASSERT_NOT_NULL(ht4);
-    for (j=0;j<100*3;j++) {
-        INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht1, j, &data));
-        INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht2, j, &data));
-        INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht3, j, &data));
-        INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht4, j, &data));
+    for (j=1;j<100*3;j++) {
+        INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht1, j, data));
+        INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht2, j, data));
+        INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht3, j, data));
+        INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht4, j, data));
     }
 
+
+    for (j = 0; j < 1000; j++) {
+        int key = (rand()%1000);
+        int ht = (rand() % 20);
+        int *d = NULL;
+        ++key;
+        switch (ht) {
+            case 15:
+            case 10:
+            case 20:
+            case 17:
+            case 0: {
+                ina_hashtable_get_i32(ht1, key, (void **) &d);
+                break;
+            }
+            case 1: {
+                ina_hashtable_get_i32(ht2, key, (void **) &d);
+                break;
+            }
+            case 2: {
+                ina_hashtable_get_i32(ht3, key, (void **) &d);
+                break;
+            }
+            case 3: {
+                ina_hashtable_get_i32(ht4, key, (void **) &d);
+                break;
+            }
+            default: {
+            }
+        }
+    }
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht1));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht2));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht3));
