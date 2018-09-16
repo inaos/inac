@@ -574,7 +574,6 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
     ina_str_t *cmd_parts;
     ina_process_descriptor_t *descriptor;
 	ina_cron_task_t *task = NULL;
-    ina_str_t skey;
 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(id);
