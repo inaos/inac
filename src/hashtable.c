@@ -141,13 +141,12 @@ INA_INLINE void __ina_push_event(const ina_hashtable_t *ht, uint32_t event, uint
     ina_ullc_ctx_t *ullc_ctx = ht->ullc_ctx;
     if (ullc_ctx) {
         ina_hashtable_event_t *e;
+		time_t secs = 0;
+		long nanos = 0;
         ina_time_read_tsc_clock(ht->time);
+		ina_time_tsc_seconds_nanos(ht->time, &secs, &nanos);
         e =INA_ULLC_CLAIM(ina_hashtable_event_t, ullc_ctx);
-#ifdef INA_OS_OSX
-        e->ts = ht->time->tp;
-#else
-        e->ts = (ht->time->tp.tv_sec*1000*1000*1000) +ht->time->tp.tv_nsec;
-#endif
+        e->ts = (secs*1000*1000*1000)+nanos;
         e->event_id = event;
         e->hashtable_id = ht->id;
         e->data1 = data1;
