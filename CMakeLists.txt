@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.1)
 project(inac)
 include("inac.cmake")
-inac_version("0.9.0" HEADER include/libinac/version.h)
+inac_version("1.0.0" HEADER include/libinac/version.h)
 inac_enable_aes()
 inac_enable_sse4()
 
@@ -66,6 +66,7 @@ inac_add_tests(inac)
 inac_add_benchmarks(inac)
 inac_add_tools(inac)
 
+inac_post_copy_file(tests hashtable.conf)
 inac_post_copy_file(tests test_filepath.conf)
 inac_post_copy_file(tests test_conffile_anonymous_section.conf)
 inac_post_copy_file(tests test_ljit.lua)
