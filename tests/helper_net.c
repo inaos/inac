@@ -38,8 +38,8 @@
  */
 INA_TEST_HELPER(net, non_blocking_echo_server) {
 
-    int fd = -1;
-    int cfd = -1;
+    ina_fd_t fd = -1;
+    ina_fd_t cfd = -1;
     const char *addr;
     int port;
     unsigned char buffer[4096];
@@ -98,8 +98,9 @@ INA_TEST_HELPER(net, udp_sender) {
     int port;
 
     char buf[512];
+	ina_fd_t s;
     struct sockaddr_in si_other;
-    int s, i, slen=sizeof(si_other);
+    int i, slen=sizeof(si_other);
  
     INA_TEST_HELPER_CHECK_ARGC(2);
     addr = INA_TEST_HELPER_CARG(0);

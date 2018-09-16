@@ -55,15 +55,15 @@ typedef ULONG nfds_t;
 /* POSIX Vectored I/O for Windows */
 struct iovec {
     void  *iov_base;    /* Starting address */
-    size_t iov_len;     /* Number of bytes to transfer */
+    ULONG  iov_len;     /* Number of bytes to transfer */
 };
 struct msghdr {
     void         *msg_name;       /* optional address */
     int           msg_namelen;    /* size of address */
     struct iovec *msg_iov;        /* scatter/gather array */
-    size_t        msg_iovlen;     /* # elements in msg_iov */
+    ULONG         msg_iovlen;     /* # elements in msg_iov */
     void         *msg_control;    /* ancillary data, see below */
-    size_t        msg_controllen; /* ancillary data buffer len */
+    ULONG         msg_controllen; /* ancillary data buffer len */
     int           msg_flags;      /* flags on received message */
 };
 #endif
@@ -119,7 +119,7 @@ INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len);
  *  port      Port for listening
  *  bindaddr  Bind address
  */
-INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr);
+INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bindaddr);
 
 /*
  * Accept a new connection on a socket.
@@ -133,7 +133,7 @@ INA_API(ina_rc_t) ina_net_tcp_server(int *fd, int port, const char *bindaddr);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port);
+INA_API(ina_rc_t) ina_net_tcp_accept(ina_fd_t *fd, ina_fd_t sfd, char *ip, int *port);
 
 /*
  * Creates a tcp client socket.
@@ -142,7 +142,7 @@ INA_API(ina_rc_t) ina_net_tcp_accept(int *fd, int sfd, char *ip, int *port);
  *  fd    Where to store the created socket
  *  addr  Where t
  */
-INA_API(ina_rc_t) ina_net_tcp_connect(int *fd,
+INA_API(ina_rc_t) ina_net_tcp_connect(ina_fd_t *fd,
                                       const char *addr,
                                       int port,
                                       int timeout_sec);
@@ -159,7 +159,7 @@ INA_API(ina_rc_t) ina_net_tcp_connect(int *fd,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_read(int fd,
+INA_API(ina_rc_t) ina_net_read(ina_fd_t fd,
                                unsigned char *buf,
                                int nb,
                                int *nb_read);
@@ -176,7 +176,7 @@ INA_API(ina_rc_t) ina_net_read(int fd,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_write(int fd,
+INA_API(ina_rc_t) ina_net_write(ina_fd_t fd,
                                 const unsigned char *buf,
                                 int nb,
                                 int *nb_write);
@@ -194,7 +194,7 @@ INA_API(ina_rc_t) ina_net_write(int fd,
  *  INA_SUCCESS if all went well
  *
  */
-INA_API(ina_rc_t) ina_net_readv(int fd,
+INA_API(ina_rc_t) ina_net_readv(ina_fd_t fd,
                                 const struct iovec *iov,
                                 int iovcnt,
                                 int *nb_read);
@@ -211,7 +211,7 @@ INA_API(ina_rc_t) ina_net_readv(int fd,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_writev(int fd,
+INA_API(ina_rc_t) ina_net_writev(ina_fd_t fd,
                                  const struct iovec *iov,
                                  int iovcnt,
                                  int *nb_write);
@@ -228,7 +228,7 @@ INA_API(ina_rc_t) ina_net_writev(int fd,
  * Return
  *  INA_SUCCESS id all went well
  */
-INA_API(ina_rc_t) ina_net_sendmsg(int fd,
+INA_API(ina_rc_t) ina_net_sendmsg(ina_fd_t fd,
                                   const struct msghdr *msg,
                                   int flags,
                                   int *nb_send);
@@ -242,7 +242,7 @@ INA_API(ina_rc_t) ina_net_sendmsg(int fd,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_nonblock(int fd);
+INA_API(ina_rc_t) ina_net_nonblock(ina_fd_t fd);
 
 /*
  * Set blocking mode on a socket.
@@ -253,7 +253,7 @@ INA_API(ina_rc_t) ina_net_nonblock(int fd);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_block(int fd);
+INA_API(ina_rc_t) ina_net_block(ina_fd_t fd);
 
 /*
  * Set read timeout on a socket.
@@ -265,7 +265,7 @@ INA_API(ina_rc_t) ina_net_block(int fd);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_set_read_timeout(int fd, int msec);
+INA_API(ina_rc_t) ina_net_set_read_timeout(ina_fd_t fd, int msec);
 
 /*
  * Set write timeout on a socket.
@@ -277,7 +277,7 @@ INA_API(ina_rc_t) ina_net_set_read_timeout(int fd, int msec);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_set_write_timeout(int fd, int msec);
+INA_API(ina_rc_t) ina_net_set_write_timeout(ina_fd_t fd, int msec);
 
 /*
  * Close a socket.
@@ -288,7 +288,7 @@ INA_API(ina_rc_t) ina_net_set_write_timeout(int fd, int msec);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_net_close(int fd);
+INA_API(ina_rc_t) ina_net_close(ina_fd_t fd);
 
 /*
  * Creates a UPD socket bind to port and address.
@@ -301,7 +301,7 @@ INA_API(ina_rc_t) ina_net_close(int fd);
  * Return
  *  INA_SUCCESS if all wen well
  */
-INA_API(ina_rc_t) ina_net_udp_bind(int* fd, const char *addr, int port);
+INA_API(ina_rc_t) ina_net_udp_bind(ina_fd_t* fd, const char *addr, int port);
 
 /*
  * Creates a UDP client socket.
@@ -312,7 +312,7 @@ INA_API(ina_rc_t) ina_net_udp_bind(int* fd, const char *addr, int port);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_udp_socket(int* fd);
+INA_API(ina_rc_t) ina_net_udp_socket(ina_fd_t* fd);
 
 /*
  * Creates a new UPD receiver.
@@ -359,7 +359,7 @@ INA_API(ina_rc_t) ina_net_udp_receiver_free(const char *address,
  * Return
  *  INA_SUCCESS if all went well.
  */
-INA_API(ina_rc_t) ina_net_udp_send(int fd,
+INA_API(ina_rc_t) ina_net_udp_send(ina_fd_t fd,
                                    ina_net_udp_receiver_t *receiver,
                                    unsigned char *buf,
                                    int nb,
@@ -377,7 +377,7 @@ INA_API(ina_rc_t) ina_net_udp_send(int fd,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_join_group(int fd,
+INA_API(ina_rc_t) ina_net_join_group(ina_fd_t fd,
                                      const char *localif,
                                      const char *source);
 
@@ -392,7 +392,7 @@ INA_API(ina_rc_t) ina_net_join_group(int fd,
  * Return
  *  INA_SUCCESS if all wen well
  */
-INA_API(ina_rc_t) ina_net_leave_group(int fd,
+INA_API(ina_rc_t) ina_net_leave_group(ina_fd_t fd,
                                       const char *localif,
                                       const char *source);
 

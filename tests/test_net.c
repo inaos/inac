@@ -28,6 +28,7 @@
 
 #ifdef INA_OS_WIN32
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <iphlpapi.h>
 #endif
 
@@ -45,9 +46,9 @@
 
 INA_TEST_DATA(net) {
     ina_test_hid_t hid;
-    int server_fd;
-    int client_fd;
-    int fd;
+    ina_fd_t server_fd;
+    ina_fd_t client_fd;
+    ina_fd_t fd;
 };
 
 INA_TEST_SETUP(net) {
@@ -97,7 +98,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read) {
     INA_TEST_MSG("write %s", buffer);    
     INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
                             (const unsigned char*)buffer,
-                            strlen(buffer), &nb_write));
+                            (int)strlen(buffer), &nb_write));
 
     ina_mem_set(buffer, 0, 1024);
     INA_TEST_ASSERT_SUCCEED(ina_net_read(data->client_fd, 
@@ -126,7 +127,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
         strcpy(buffer, "hello");
         INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
                                 (const unsigned char*)buffer,
-                                strlen(buffer), &nb_write));
+                                (int)strlen(buffer), &nb_write));
 
         ina_mem_set(buffer, 0, 1024);
         INA_TEST_ASSERT_SUCCEED(ina_net_read(data->client_fd, 
@@ -186,10 +187,11 @@ INA_TEST(net_local, mac_addr)
             if (pUnicast != NULL) {
                 for (i = 0; pUnicast != NULL; i++) {
                     if (pUnicast->Address.lpSockaddr->sa_family == AF_INET) {
-                        struct sockaddr_in *sin = (struct sockaddr_in*)pUnicast->Address.lpSockaddr;
-                        char *ip = inet_ntoa(sin->sin_addr);
-                        if (!found && strncmp("127.", ip, 4) != 0) {
-                            test_ip = _strdup(ip);
+						char ipbuf[128];
+						struct sockaddr_in *sin = (struct sockaddr_in*)pUnicast->Address.lpSockaddr;
+						inet_ntop(AF_INET, &sin->sin_addr, ipbuf, 128);
+                        if (!found && strncmp("127.", ipbuf, 4) != 0) {
+                            test_ip = _strdup(ipbuf);
                             found = 1;
                         }
                     }

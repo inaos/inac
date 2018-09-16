@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
+ * Copyright (c) 2014-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 #define MSGBUFSIZE 1024*1024
 
-static int __fd = 0;
+static ina_fd_t __fd = 0;
 static ina_str_t __address = NULL, __group = NULL;
 
 static void 

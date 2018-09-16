@@ -1182,6 +1182,13 @@ typedef int ina_handle_t;
 typedef int ina_semkey_t;
 #endif
 
+/* FD for net.h */
+#ifdef INA_OS_WIN32
+typedef SOCKET ina_fd_t;
+#else
+typedef int ina_fd_t;
+#endif
+
 #ifdef INA_OS_WIN32
 typedef int mode_t;
 
