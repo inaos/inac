@@ -55,7 +55,7 @@ INA_TEST_SKIP(test, handle_sigabrt) {
 
 INA_TEST_SKIP(test, handle_sigfault) {
     ina_time_tsc_t *t = NULL;
-    t->ref;
+    t->ref = 0;
 }
 
 INA_TEST(test_asserts, assert_equal_str) {
