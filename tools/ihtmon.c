@@ -142,9 +142,10 @@ static void ihtm_init(void)
     for (i = 0; i < 16; ++i) {
         ihtm_update(i);
     }
-    ina_cio_printf(18, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
+
+    ina_cio_printf(18, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLACK, "%s",
             "  CTRL-C = end  t= time on/off                                                  ");
-    ina_cio_printf(19, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
+    ina_cio_printf(19, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLACK, "%s",
             "> connecting...                                                                 ");
     fflush(stdout);
 }
@@ -167,7 +168,7 @@ int main(int argc,  char** argv)
 
     ina_opt_get_int("c", &core);
     if (INA_FAILED(ina_cpu_pin_to_core(core))) {
-        printf("failed to pint on core %d", core);
+        printf("failed to pin on core %d", core);
         return EXIT_FAILURE;
     }
 

@@ -73,6 +73,8 @@ struct ina_hashtable_iter_s {
     int checksum;
 };
 
+static int __hashtable_id = 0;
+
 INA_INLINE ina_hashtable_bucket_t* __ina_bucket(const ina_hashtable_t *ht, const void* key, size_t key_len)
 {
     ina_hashtable_bucket_t *bucket;
@@ -296,6 +298,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
             ina_mem_free(*ht);
             return ina_err_get_last_rc();
         }
+        (*ht)->id = ++__hashtable_id;
         __INA_NEW(*ht, (*ht)->key_type, (*ht)->capacity);
     }
     return INA_SUCCESS;
