@@ -424,7 +424,6 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                   ina_process_t **process)
 {
     int count = 0;
-    ina_mempool_t *mp;
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(descriptor);
     INA_VERIFY_NOT_NULL(process);
