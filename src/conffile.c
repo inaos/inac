@@ -156,7 +156,6 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
             ina_conffile_section_cb_t cb, 
             ina_conffile_section_t **section)
 {
-    unsigned long key;
     ina_conffile_section_t *sp;
     ina_conffile_section_t *check;
 
@@ -211,7 +210,6 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
                             ina_conffile_value_type_t value_type, 
                             int required)
 {
-    unsigned long k;
     ina_conffile_section_key_t *key;
 
     INA_VERIFY_NOT_NULL(section);
@@ -567,8 +565,7 @@ __ina_process_section_table(ina_conffile_t *cf)
                 lua_pushnil(lstate);
                 while(lua_next(lstate, -2)) {
                     const char *rk;
-                    unsigned long rki;
-
+                    
                     rk = lua_tostring(lstate, -2);
 
                     e = (ina_conffile_entries_t*)ina_mempool_dalloc(
