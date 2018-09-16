@@ -437,7 +437,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     }
 
     /* Search for a recyclable process */
-    if (INA_SUCCEED(ina_hashtable_count(ctx->processes, &count) && count > 0)) {
+    if (INA_SUCCEED(ina_hashtable_count(ctx->processes, &count)) && count > 0) {
         ina_process_t *p;
         ina_hashtable_iter_t *iter;
         ina_hashtable_iter_new(ctx->processes, &iter);
