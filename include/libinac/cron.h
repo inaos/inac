@@ -28,11 +28,11 @@
 #ifndef _LIBINAC_CRON_H_
 #define _LIBINAC_CRON_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* forward decl */
 struct ina_cron_ctx_s;
@@ -55,17 +55,7 @@ typedef ina_rc_t (*ina_cron_func_cb)(struct ina_cron_ctx_s *ctx,
                                      void *user_data);
 
 /* cron context */
-typedef struct ina_cron_ctx_s {
-    ina_process_ctx_t *process_ctx;
-    ina_cron_load_cb load_cb;     /* load callback */
-    ina_cron_save_cb save_cb;     /* save callback */
-    void *data;                   /* user data attached per context */
-    ina_cron_task_t *task_head;   /* first task */
-    ina_cron_func_t *func_head;   /* first cron function */
-    time_t t1;                    /* ? */
-    time_t t2;                    /* ? */
-    short stime;                  /* ? */
-} ina_cron_ctx_t;
+typedef struct ina_cron_ctx_s ina_cron_ctx_t;
 
 
 /*

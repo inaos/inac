@@ -74,7 +74,7 @@ struct ina_file_cursor_s {
 static ina_rc_t ina_file_cursor_fileio_free(ina_file_cursor_t **cursor)
 {
     if ((*cursor)->ext.f.lmp != NULL) {
-        ina_mempool_free((*cursor)->ext.f.lmp);
+        ina_mempool_free(&(*cursor)->ext.f.lmp);
     }
     if ((*cursor)->ext.f.line != NULL) {
         ina_str_free((*cursor)->ext.f.line);

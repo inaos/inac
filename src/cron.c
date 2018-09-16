@@ -30,7 +30,7 @@
 #define arysize(ary)	(sizeof(ary)/sizeof((ary)[0]))
 
 struct ina_cron_task_s {
-    unsigned long key;
+    ina_str_t key;
 	ina_str_t cmd;
 	ina_str_t working_dir;
 	ina_str_t pattern;
@@ -42,11 +42,10 @@ struct ina_cron_task_s {
     char days[32]; /* 1-31 */
     char mons[12]; /* 0-11 */
     char dow[7]; /* 0-6, beginning sunday */
-	UT_hash_handle hh;
 } ina_cron_task_s;
 
 struct ina_cron_task_itr_s {
-    ina_cron_task_t *cursor;
+    ina_hashtable_iter_t *iter;
 } ina_cron_task_itr_s;
 
 typedef enum __ina_cron_function_type_e {
@@ -55,7 +54,7 @@ typedef enum __ina_cron_function_type_e {
 } __ina_cron_function_type_t;
 
 struct ina_cron_func_s {
-    unsigned long key;
+    ina_str_t key;
     __ina_cron_function_type_t func_type;
     char mins[60]; /* 0-59 */
     char hours[24];	/* 0-23 */
@@ -65,7 +64,6 @@ struct ina_cron_func_s {
     ina_cron_func_cb cb;
     void *user_data;
     int callable;
-    UT_hash_handle hh;
 } ina_cron_func_s;
 
 typedef enum __ina_cron_schedulable_item_e {
@@ -80,6 +78,19 @@ typedef struct __ina_cron_schedulable_s {
         ina_cron_func_t *func;
     };
 } __ina_cron_schedulable_t;
+
+/* cron context */
+struct ina_cron_ctx_s {
+    ina_process_ctx_t *process_ctx;
+    ina_cron_load_cb load_cb;     /* load callback */
+    ina_cron_save_cb save_cb;     /* save callback */
+    void *data;                   /* user data attached per context */
+    ina_hashtable_t *tasks;
+    ina_hashtable_t *func;
+    time_t t1;                    /* ? */
+    time_t t2;                    /* ? */
+    short stime;                  /* ? */
+};
 
 const char *dow_array[] = {
     "sun",
@@ -344,6 +355,7 @@ static ina_rc_t __parse_cron_pattern(char *pattern_buf, __ina_cron_schedulable_t
  */
 static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
 {
+
     short njobs = 0;
     time_t t;
 
@@ -352,8 +364,9 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
      */
     for (t = t1 - t1 % 60; t <= t2; t += 60) {
 		if (t > t1) {
-			ina_cron_task_t *task, *ttmp;
-            ina_cron_func_t *func, *ftmp;
+            ina_hashtable_iter_t *iter;
+			ina_cron_task_t *task;
+            ina_cron_func_t *func;
 			struct tm *tp = localtime(&t);
 
             if (tp == NULL) {
@@ -361,7 +374,8 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
             }
 	    
 			/* iterate through tasks */
-			HASH_ITER(hh, ctx->task_head, task, ttmp) {
+			ina_hashtable_iter_new(ctx->tasks, &iter);
+			while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&task))) {
 				if (task->mins[tp->tm_min] && task->hours[tp->tm_hour] &&
 						(task->days[tp->tm_mday] || task->dow[tp->tm_wday]) &&
 						task->mons[tp->tm_mon]) {
@@ -371,9 +385,11 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
 					}
 				}
 			}
+			ina_hashtable_iter_free(&iter);
 
             /* iterate through function callbacks */
-            HASH_ITER(hh, ctx->func_head, func, ftmp) {
+            ina_hashtable_iter_new(ctx->func, &iter);
+            while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&func))) {
                 if (func->mins[tp->tm_min] && func->hours[tp->tm_hour] &&
 						(func->days[tp->tm_mday] || func->dow[tp->tm_wday]) &&
 						func->mons[tp->tm_mon]) {
@@ -386,6 +402,7 @@ static int __test_jobs(ina_cron_ctx_t *ctx, time_t t1, time_t t2)
                     }
                 }
             }
+            ina_hashtable_iter_free(&iter);
 		}
 	}
     return(njobs);
@@ -402,17 +419,20 @@ static void __run_job(ina_cron_task_t* task)
  */
 static void __run_jobs(ina_cron_ctx_t *ctx)
 {
-    ina_cron_task_t *task, *ttmp;
+    ina_hashtable_iter_t *iter;
+    ina_cron_task_t *task;
     ina_fsm_state_t  state;
 	
 	/* iterate through tasks */
-	HASH_ITER(hh, ctx->task_head, task, ttmp) {
+    ina_hashtable_iter_new(ctx->tasks, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&task))) {
 		if (task->ready && INA_SUCCEED(ina_process_query_state(task->process, &state)) && state != INA_PROCESS_RUNNING) {
 			task->ready = 0;
             __run_job(task);
 		    task->ready = 1;
 		}
 	}
+	ina_hashtable_iter_free(&iter);
 }
 /*
  * Check for job completion, return number of jobs still running after
@@ -420,19 +440,22 @@ static void __run_jobs(ina_cron_ctx_t *ctx)
  */
 static int __check_jobs(ina_cron_ctx_t *ctx)
 {
-    ina_cron_task_t *t, *ttmp;
+    ina_hashtable_iter_t *iter;
+    ina_cron_task_t *task;
     int still_running = 0;
     ina_fsm_state_t  state;
 
     /* iterate through tasks */
-	HASH_ITER(hh, ctx->task_head, t, ttmp) {
-        if (INA_SUCCEED(ina_process_query_state(t->process, &state)) &&
+    ina_hashtable_iter_new(ctx->tasks, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&task))) {
+        if (INA_SUCCEED(ina_process_query_state(task->process, &state)) &&
             state == INA_PROCESS_RUNNING) {
             ++still_running;
         }
     }
     return still_running;
 }
+
 
 static void __free_task(ina_cron_task_t **task)
 {
@@ -453,6 +476,18 @@ static void __free_task(ina_cron_task_t **task)
     ina_mem_free(*task);
 }
 
+static ina_rc_t __ina_free_task(const void *data)
+{
+    __free_task((ina_cron_task_t**)&data);
+    return INA_SUCCESS;
+}
+
+static ina_rc_t __ina_free_func(const void *data)
+{
+    ina_mem_free((void*)data);
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
                                     ina_cron_load_cb load_cb,
                                     ina_cron_save_cb save_cb,
@@ -462,6 +497,7 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
 
 	*ctx = (ina_cron_ctx_t*)ina_mem_alloc(sizeof(ina_cron_ctx_t));
     INA_RETURN_IF_NULL(ctx);
+    ina_mem_set(*ctx, 0, sizeof(ina_cron_ctx_t));
 
     if (load_cb) {
 		(*ctx)->load_cb = load_cb;
@@ -472,14 +508,38 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
 		(*ctx)->save_cb = save_cb;
 	}
 	(*ctx)->data = NULL;
-	(*ctx)->task_head = NULL;
-    (*ctx)->func_head = NULL;
+    if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                                     INA_HASHTABLE_HASH_DEFAULT,
+                                     INA_HASHTABLE_TYPE_DEFAULT,
+                                     INA_HASHTABLE_GROW_DEFAULT,
+                                     INA_HASHTABLE_SHRINK_DEFAULT,
+                                     INA_HASHTABLE_DEFAULT_CAPACITY,
+                                     INA_HASHTABLE_CF_DEFAULT, &(*ctx)->tasks))) {
+        ina_mem_free(*ctx);
+        *ctx = NULL;
+        return ina_err_get_last_rc();
+    }
+    if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                                     INA_HASHTABLE_HASH_DEFAULT,
+                                     INA_HASHTABLE_TYPE_DEFAULT,
+                                     INA_HASHTABLE_GROW_DEFAULT,
+                                     INA_HASHTABLE_SHRINK_DEFAULT,
+                                     INA_HASHTABLE_DEFAULT_CAPACITY,
+                                     INA_HASHTABLE_CF_DEFAULT, &(*ctx)->func))) {
+        ina_hashtable_free(&(*ctx)->tasks);
+        ina_mem_free(*ctx);
+        *ctx = NULL;
+        return ina_err_get_last_rc();
+    }
+
 	(*ctx)->t1 = time(NULL);
 	(*ctx)->t2 = 0;
 	(*ctx)->stime = 60;
 
     if (process_ctx == NULL) {
         if (INA_FAILED(ina_process_init(&process_ctx))) {
+            ina_hashtable_free(&(*ctx)->tasks);
+            ina_hashtable_free(&(*ctx)->func);
             ina_mem_free(*ctx);
             return ina_err_get_last_rc();
         }
@@ -490,21 +550,13 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
 
 INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
 {
-    ina_cron_task_t *t, *ttmp;
-    ina_cron_func_t *f, *ftmp;
-
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(*ctx);
 
-    HASH_ITER(hh, (*ctx)->task_head, t, ttmp) {
-		HASH_DELETE(hh, (*ctx)->task_head, t);
-		__free_task(&t);
-	}
-
-    HASH_ITER(hh, (*ctx)->func_head, f, ftmp) {
-        HASH_DELETE(hh, (*ctx)->func_head, f);
-        ina_mem_free(f);
-    }
+    ina_hashtable_foreach((*ctx)->tasks, __ina_free_task);
+    ina_hashtable_foreach((*ctx)->func, __ina_free_func);
+    ina_hashtable_free(&(*ctx)->tasks);
+    ina_hashtable_free(&(*ctx)->func);
 
     /*if ((*ctx)->process_ctx != NULL) {
         ina_process_destroy(&(*ctx)->process_ctx);
@@ -523,23 +575,15 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
     ina_process_descriptor_t *descriptor;
 	ina_cron_task_t *task = NULL;
     ina_str_t skey;
-    unsigned long key;
-    
+
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(id);
     INA_VERIFY_NOT_NULL(pattern);
     INA_VERIFY_NOT_NULL(cmd);
     INA_VERIFY_NOT_NULL(working_dir);
 
-    skey = ina_str_new_fromcstr(id);
-    key = INA_HASH_STR_TO_SDBM(skey);
-    ina_str_free(skey);
-
-	/* check if we already have this task - by using the ID */
-	HASH_FIND_ULONG(ctx->task_head, &key, task);
-	
 	/* create a new task */
-	if (task == NULL) {
+	if (INA_FAILED(ina_hashtable_get_str(ctx->tasks, id, (void**)task))) {
         __ina_cron_schedulable_t sched;
         size_t slen = strlen(pattern);
 		char *buf;
@@ -555,7 +599,6 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
         cmdstr = ina_str_new_fromcstr(cmd);
         cmd_parts = ina_str_split(cmdstr," ", &cmd_parts_count);
 
-    	task->key = key;
         task->cmd = ina_str_new_fromcstr(cmd);
 		task->working_dir = ina_str_new_fromcstr(working_dir);
         task->pattern = ina_str_new_fromcstr(pattern);
@@ -590,7 +633,7 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
 			ctx->save_cb(ctx, task, INA_NO);
 		}
 
-        HASH_ADD_ULONG(ctx->task_head, key, task);
+        return ina_hashtable_set_str(ctx->tasks, id, task);
 	}
 	
 	return INA_SUCCESS;
@@ -603,7 +646,7 @@ INA_API(ina_rc_t) ina_cron_task_free(ina_cron_ctx_t *ctx, ina_cron_task_t **task
     INA_VERIFY_NOT_NULL(*task);
 
     if (INA_FAILED(ina_cron_task_is_running(*task))) {
-        HASH_DEL(ctx->task_head, *task);
+        ina_hashtable_remove_str(ctx->tasks, (*task)->key, (void**)&task);
         if (ctx->save_cb && (*task)->persistent) {
             ctx->save_cb(ctx, *task, INA_YES);
         }
@@ -661,14 +704,14 @@ INA_API(ina_rc_t) ina_cron_task_iter_new(ina_cron_ctx_t *ctx, ina_cron_task_itr_
 
     *iter = (ina_cron_task_itr_t*)ina_mem_alloc(sizeof(ina_cron_task_itr_t));
     INA_RETURN_IF_NULL(*iter);
-    (*iter)->cursor = ctx->task_head;
-    return INA_SUCCESS;
+    return ina_hashtable_iter_new(ctx->tasks, &(*iter)->iter);
 }
 
 INA_API(ina_rc_t) ina_cron_task_iter_free(ina_cron_task_itr_t **iter)
 {
     INA_VERIFY_NOT_NULL(iter);
     INA_VERIFY_NOT_NULL(*iter);
+    ina_hashtable_iter_free(&(*iter)->iter);
     ina_mem_free(*iter);
     *iter = NULL;
     return INA_SUCCESS;
@@ -678,32 +721,16 @@ INA_API(ina_rc_t) ina_cron_task_next(ina_cron_task_itr_t *iter, ina_cron_task_t 
 {
     INA_VERIFY_NOT_NULL(iter);
     INA_VERIFY_NOT_NULL(task);
-    iter->cursor = (ina_cron_task_t*)iter->cursor->hh.next;
-    *task = iter->cursor;
-    return INA_SUCCESS;
+    return ina_hashtable_iter_next(iter->iter, (void**)task);
 }
 
 INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx, const char *id, ina_cron_task_t **task)
 {
-    ina_cron_task_t *t;
-    ina_str_t skey;
-    unsigned long key;
-    
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(id);
     INA_VERIFY_NOT_NULL(task);
 
-    *task = NULL;
-
-    skey = ina_str_new_fromcstr(id);
-    key = INA_HASH_STR_TO_SDBM(skey);
-    HASH_FIND_ULONG(ctx->task_head, &key, t);
-
-    if (t != NULL) {
-        *task = t;
-    }
-    ina_str_free(skey);
-    return INA_SUCCESS;
+    return ina_hashtable_get_str(ctx->tasks, id, (void**)task);
 }
 
 INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task)
@@ -730,23 +757,15 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
                                              ina_cron_func_cb cb)
 {
     ina_cron_func_t *func = NULL;
-    ina_str_t skey;
-    unsigned long key;
-  
+
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(id);
     INA_VERIFY_NOT_NULL(pattern);
-    
-    skey = ina_str_new_fromcstr(id);
-    key = INA_HASH_STR_TO_SDBM(skey);
 
-    ina_str_free(skey);
-	
+
 	/* check if we already have this function - by using the ID */
-	HASH_FIND_ULONG(ctx->func_head, &key, func);
-
     /* create a function callback */
-	if (func == NULL) {
+    if (INA_FAILED(ina_hashtable_get_str(ctx->tasks, id, (void**)func))) {
         __ina_cron_schedulable_t sched;
         size_t slen = strlen(pattern);
 		char *buf;
@@ -759,7 +778,7 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
         buf = strcpy(buf, pattern);
         buf[slen] = '\n';
 
-		func->key = key;
+		func->key = ina_str_new_fromcstr(id);
         func->func_type = __INA_CRON_FUNCTION_TYPE_PUSH;
         func->callable = 0;
         func->user_data = user_data;
@@ -767,14 +786,14 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
 		
         sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
         sched.func = func;
-        if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
+        if (INA_FAILED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
             return ina_err_get_last_rc();
         }
 		
 		ina_mem_free(buf);
 
-        HASH_ADD_ULONG(ctx->func_head, key, func);
+        return ina_hashtable_set_str(ctx->func, func->key, func);
 	}
 	
     return INA_SUCCESS;
@@ -783,24 +802,15 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
 INA_API(ina_rc_t) ina_cron_unregister_function(ina_cron_ctx_t *ctx, const char *id)
 {
 	ina_cron_func_t *func = NULL;
-	ina_str_t skey;
-    unsigned long key;
 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(id);
 
-    skey = ina_str_new_fromcstr(id);
-    key = INA_HASH_STR_TO_SDBM(skey);
-    ina_str_free(skey);
-	
+
 	/* check if we already have this function - by using the ID */
-	HASH_FIND_ULONG(ctx->func_head, &key, func);
-	
-	if (func != NULL) {
-		HASH_DELETE(hh, ctx->func_head, func);
-		ina_mem_free(func);
+	if (INA_SUCCEED(ina_hashtable_get_str(ctx->func, id, (void**)func))) {
+	    ina_mem_free(func);
 	}
-	
 	return INA_SUCCESS;
 }
 
@@ -847,23 +857,14 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
 INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, const char *pattern, unsigned long *key_out)
 {
     ina_cron_func_t *func = NULL;
-    ina_str_t skey;
-    unsigned long key;
-    
+
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(id);
     INA_VERIFY_NOT_NULL(pattern);
     INA_VERIFY_NOT_NULL(key_out);
 
-    skey = ina_str_new_fromcstr(id);
-    key = INA_HASH_STR_TO_SDBM(skey);
-    ina_str_free(skey);
-	
-	/* check if we already have this function - by using the ID */
-	HASH_FIND_ULONG(ctx->func_head, &key, func);
-
     /* create a function callback */
-	if (func == NULL) {
+	if (INA_FAILED(ina_hashtable_get_str(ctx->func, id, (void**)func))) {
         __ina_cron_schedulable_t sched;
         size_t slen = strlen(pattern);
 		char *buf;
@@ -875,7 +876,7 @@ INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, co
         buf = (char*)ina_mem_alloc(slen+2);
         buf = strcpy(buf, pattern);
         buf[slen] = '\n';
-        func->key = key;
+        func->key = ina_str_new_fromcstr(id);
         func->func_type = __INA_CRON_FUNCTION_TYPE_PULL;
         func->callable = 0;
         func->user_data = NULL;
@@ -888,29 +889,31 @@ INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, co
             return ina_err_get_last_rc();
         }
 		ina_mem_free(buf);
-
-        HASH_ADD_ULONG(ctx->func_head, key, func);
+        return ina_hashtable_set_str(ctx->func, func->key, func);
 	}
 
-    *key_out = key;
+    *key_out = ina_hash_sdbm(0, id, ina_str_len(id));
 	
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx, unsigned long *key)
 {
-    ina_cron_func_t *func, *ftmp;
+    ina_cron_func_t *func;
+    ina_hashtable_iter_t *iter;
 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(key);
-    *key = 0;
 
-    HASH_ITER(hh, ctx->func_head, func, ftmp) {
+    *key = 0;
+    ina_hashtable_iter_new(ctx->func, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&func))) {
         if (func->func_type == __INA_CRON_FUNCTION_TYPE_PULL && func->callable) {
             func->callable = 0;
-            *key = func->key;
+            *key = ina_hash_sdbm(0, func->key, ina_str_len(func->key));
             break;
         }
     }
+    ina_hashtable_iter_free(&iter);
     return INA_SUCCESS;
 }

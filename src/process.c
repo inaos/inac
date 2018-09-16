@@ -37,12 +37,11 @@
 struct ina_process_ctx_s {
     ina_cron_ctx_t *cron_ctx;
     ina_time_t *systime;
-    ina_process_t *processes;
+    ina_hashtable_t *processes;
     ina_mempool_t *mempool;
 };
 
 struct ina_process_s {
-    unsigned long key;
     int init;
     ina_process_ctx_t *ctx;
     ina_process_descriptor_t *descriptor;
@@ -54,7 +53,6 @@ struct ina_process_s {
 #else
      pid_t pid;
 #endif
-    UT_hash_handle hh;
 };
 
 struct ina_process_stat_s {
@@ -178,22 +176,34 @@ INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx)
                                            INA_MEM_DYNAMIC,
                                            NULL));
     INA_RETURN_IF_FAILED(ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL, *ctx));
+    ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
+                      INA_HASHTABLE_HASH_DEFAULT,
+                      INA_HASHTABLE_TYPE_DEFAULT,
+                      INA_HASHTABLE_GROW_DEFAULT,
+                      INA_HASHTABLE_SHRINK_DEFAULT,
+                      INA_HASHTABLE_DEFAULT_CAPACITY,
+                      INA_HASHTABLE_CF_DEFAULT, &(*ctx)->processes);
 
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx)
 {
+    int count = 0;
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(*ctx);
 
-    if (HASH_COUNT((*ctx)->processes) > 0) {
-        ina_process_t *p, *pt;
-        HASH_ITER(hh, (*ctx)->processes, p, pt) {
-            HASH_DELETE(hh, (*ctx)->processes, p);
+    if (INA_SUCCEED(ina_hashtable_count((*ctx)->processes, &count)) && count > 0) {
+        ina_hashtable_iter_t *iter;
+        ina_process_t *p;
+        ina_hashtable_iter_new((*ctx)->processes, &iter);
+        while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&p))) {
             INA_MUST_SUCCEED(ina_process_free(&p));
         }
+        ina_hashtable_iter_free(&iter);
     }
+    INA_MUST_SUCCEED(ina_hashtable_free(&(*ctx)->processes));
+
     if ((*ctx)->cron_ctx != NULL) {
         INA_MUST_SUCCEED(ina_cron_destroy(&(*ctx)->cron_ctx));
     }
@@ -201,7 +211,7 @@ INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx)
         INA_MUST_SUCCEED(ina_time_sys_free(&(*ctx)->systime));
     }
     if ((*ctx)->mempool != NULL) {
-        INA_MUST_SUCCEED(ina_mempool_free((*ctx)->mempool));
+        INA_MUST_SUCCEED(ina_mempool_free(&(*ctx)->mempool));
     }
     ina_mem_free(*ctx);
     *ctx = NULL;
@@ -210,7 +220,8 @@ INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx)
 
 INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx)
 {
-    ina_process_t *p, *pt;
+    ina_hashtable_iter_t *iter;
+    ina_process_t *p;
     time_t curr_time_sec;
     long curr_time_micros;
     int suggested_next_time;
@@ -225,7 +236,8 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx)
                                 &curr_time_sec,
                                 &curr_time_micros);
 
-    HASH_ITER(hh, ctx->processes, p, pt) {
+    ina_hashtable_iter_new(ctx->processes, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&p))) {
         /* if we need to perform init checks */
         if (p->init && p->descriptor->lifecycle ==
             INA_PROCESS_LIFECYCLE_TYPE_MANAGED) {
@@ -265,6 +277,7 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx)
             }
         }
     }
+    ina_hashtable_iter_free(&iter);
     /* let cron decide whether its time to do something on a managed process */
     return ina_cron_process(ctx->cron_ctx, curr_time_sec, &suggested_next_time);
 }
@@ -410,6 +423,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                   ina_process_descriptor_t *descriptor,
                                   ina_process_t **process)
 {
+    int count = 0;
     ina_mempool_t *mp;
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(descriptor);
@@ -423,9 +437,11 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     }
 
     /* Search for a recyclable process */
-    if (HASH_COUNT(ctx->processes) > 0) {
-        ina_process_t *p, *pt;
-        HASH_ITER(hh, ctx->processes, p, pt) {
+    if (INA_SUCCEED(ina_hashtable_count(ctx->processes, &count)) && count > 0) {
+        ina_process_t *p;
+        ina_hashtable_iter_t *iter;
+        ina_hashtable_iter_new(ctx->processes, &iter);
+        while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&p))) {
             if (p->descriptor == NULL) {
                 *process = p;
                 ina_mem_set(*process, 0, sizeof(ina_process_t));
@@ -437,45 +453,39 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     if (*process == NULL) {
         *process = ina_mempool_dalloc(ctx->mempool, sizeof(ina_process_t));
     }
-    INA_RETURN_IF(*process == NULL);
+    INA_RETURN_IF_NULL(*process);
 
     /* copy descriptor if not allocated from context pool */
-    if (INA_SUCCEED(ina_mempool_getbypointer(descriptor, &mp)) &&
-        mp == ctx->mempool) {
-        (*process)->descriptor = descriptor;
-    } else {
-        (*process)->descriptor = (ina_process_descriptor_t*)ina_mempool_dalloc(
-                                        ctx->mempool,
-                                        sizeof(ina_process_descriptor_t));
-        if ((*process)->descriptor == NULL) {
-            *process = NULL;
-            return ina_err_get_last_rc();
-        }
-
-        (*process)->descriptor->full_path = ina_str_dup_using_pool(
-                                                    descriptor->full_path,
-                                                    ctx->mempool);
-        (*process)->descriptor->working_dir = ina_str_dup_using_pool(
-                                                    descriptor->working_dir,
-                                                    ctx->mempool);
-        (*process)->descriptor->startup_args = ina_str_dup_using_pool(
-                                                    descriptor->startup_args,
-                                                    ctx->mempool);
-        (*process)->descriptor->scheduled_start_pattern = ina_str_dup_using_pool(
-                                        descriptor->scheduled_start_pattern,
-                                        ctx->mempool);
-
-        (*process)->descriptor->scheduled_stop_pattern = ina_str_dup_using_pool(
-                                        descriptor->scheduled_stop_pattern,
-                                        ctx->mempool);
-        (*process)->descriptor->stop_wait_time_ms = descriptor->stop_wait_time_ms;
-        (*process)->descriptor->start_flags = descriptor->start_flags;
-        (*process)->descriptor->lifecycle = descriptor->lifecycle;
-        (*process)->descriptor->managed_type = descriptor->managed_type;
+    (*process)->descriptor = (ina_process_descriptor_t*)ina_mempool_dalloc(
+                                    ctx->mempool,
+                                    sizeof(ina_process_descriptor_t));
+    if ((*process)->descriptor == NULL) {
+        *process = NULL;
+        return ina_err_get_last_rc();
     }
+
+    (*process)->descriptor->full_path = ina_str_dup_using_pool(
+                                                descriptor->full_path,
+                                                ctx->mempool);
+    (*process)->descriptor->working_dir = ina_str_dup_using_pool(
+                                                descriptor->working_dir,
+                                                ctx->mempool);
+    (*process)->descriptor->startup_args = ina_str_dup_using_pool(
+                                                descriptor->startup_args,
+                                                ctx->mempool);
+    (*process)->descriptor->scheduled_start_pattern = ina_str_dup_using_pool(
+                                    descriptor->scheduled_start_pattern,
+                                    ctx->mempool);
+
+    (*process)->descriptor->scheduled_stop_pattern = ina_str_dup_using_pool(
+                                    descriptor->scheduled_stop_pattern,
+                                    ctx->mempool);
+    (*process)->descriptor->stop_wait_time_ms = descriptor->stop_wait_time_ms;
+    (*process)->descriptor->start_flags = descriptor->start_flags;
+    (*process)->descriptor->lifecycle = descriptor->lifecycle;
+    (*process)->descriptor->managed_type = descriptor->managed_type;
     (*process)->descriptor->c_ref = 1;
     (*process)->exit_code = -1;
-    (*process)->key = INA_HASH_STR_TO_SDBM(descriptor->full_path);
     (*process)->init = INA_YES;
     (*process)->ctx = ctx;
 
@@ -521,7 +531,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
         }
     }
 
-    HASH_ADD_ULONG(ctx->processes, key, (*process));
+    ina_hashtable_set_ptr(ctx->processes, *process, *process);
     return INA_SUCCESS;
 }
 

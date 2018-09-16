@@ -28,6 +28,10 @@
 #ifndef _LIBINAC_LIB_H_
 #define _LIBINAC_LIB_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef _WIN32
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -70,7 +74,6 @@
 
 #include <libinac/version.h>
 #include <libinac/portable.h>
-#include <libinac/uthash.h>
 #include <libinac/error.h>
 #include <libinac/memory.h>
 #include <libinac/mempool.h>
@@ -95,16 +98,16 @@
 #include <libinac/file.h>
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
-#include <libinac/uthash.h>
-#include <libinac/utlist.h>
+#include <libinac/list.h>
+#include <libinac/hashtable.h>
 #include <libinac/debug.h>
 #include <libinac/test.h>
 #include <libinac/bench.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define INA_EINVAL INA_NN_ARGUMENT|INA_ERR_INVALID
+
+#define INA_UNUSED(x) (void)(x)
 
 #define INA_YES (1)
 #define INA_NO  (0)
@@ -225,7 +228,7 @@ INA_API(const char*) ina_app_get_path(void);
  * Return
  *  INA_SUCCESS  if no error occurred
  */
-INA_API(ina_rc_t) ina_app_init(const int argc,
+INA_API(ina_rc_t) ina_app_init(int argc,
                                char **argv,
                                ina_opt_t *opt);
 

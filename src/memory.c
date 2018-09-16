@@ -28,12 +28,6 @@
 #include <sys/stat.h>
 #include <libinac/lib.h>
 #include "config.h"
-
-typedef struct __ina_mplist_s {
-    ina_mempool_t *pool;
-    int     active;
-    struct __ina_mplist_s *next;
-} __ina_mplist_t;
  
 struct ina_mempool_s  {
     ina_handle_t shm_handle;
@@ -51,8 +45,6 @@ struct ina_mempool_s  {
     ina_mempool_event_handler_t event_handler;
 };
 
-static __ina_mplist_t *__pools = NULL;
-
 static ina_rc_t __ina_shm_open(ina_mempool_t *);
 static ina_rc_t __ina_shm_close(ina_mempool_t *);
 
@@ -69,15 +61,7 @@ static ina_memset_t  __ina_memset  = INA_MEM_MEMSET;
 
 INA_API(void *) ina_mem_alloc(size_t size)
 {
-    void *p = NULL;
-    p = __ina_malloc(size);
-    if (p == NULL) {
-        INA_OS_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
-        return NULL;
-    }
-    INA_TRACE3("Alloc %p", p);
-    ina_mem_set(p, 0, size);
-    return p;
+    return ina_mem_alloc_aligned(sizeof(void*), size);
 }
 
 INA_API(ina_rc_t) ina_mem_get_aligned_size(size_t query, size_t *aligned)
@@ -88,14 +72,27 @@ INA_API(ina_rc_t) ina_mem_get_aligned_size(size_t query, size_t *aligned)
 }
 
 INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
-{     
+{
+    /*
+     * Same behavior as in c-runtime
+     */
+    if (size == 0) {
+        ina_err_reset();
+        return NULL;
+    }
+
+    if (alignment == 0) {
+        INA_ERROR(INA_EINVAL);
+        return NULL;
+    }
+
     /* Allocate necessary memory area
      * client request - size parameter -
      * plus area to store the address
      * of the memory returned by standard
      * malloc().
      */
-    void *p = ina_mem_alloc(size + alignment - 1 + sizeof(void*));
+    void *p = __ina_malloc(size + alignment - 1 + sizeof(void*));
      
     if (p != NULL) {
         void *ptr;
@@ -110,18 +107,12 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
         /* Return the address of aligned memory */
         return ptr;
     }
-    INA_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
+    INA_ERROR(INA_ENOMEM);
     return NULL;
 }
 
-INA_API(void) ina_mem_free(void *ptr)
-{
-    INA_VERIFY_NOT_NULL(ptr);
-    INA_TRACE3("Free %p", ptr);
-    __ina_free(ptr);
-}
 
-INA_API(void) ina_mem_free_aligned(void *ptr)
+INA_API(void) ina_mem_free(void *ptr)
 {
     /* Get the address of the memory, stored at the
      * start of our total memory area. Alternatively,
@@ -129,7 +120,7 @@ INA_API(void) ina_mem_free_aligned(void *ptr)
      * of the one below.
      */
     void *p = *((void**)((size_t)ptr - sizeof(void*)));
-    ina_mem_free(p);
+    __ina_free(p);
 }
 
 INA_API(void *) ina_mem_realloc(void *ptr, size_t nb)
@@ -192,12 +183,6 @@ INA_API(ina_rc_t) ina_mempool_init(void)
 
 INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf, const char *label)
 {
-    __ina_mplist_t *last;
-    __ina_mplist_t *next;
-
-    last = NULL;
-    next = NULL;
-
     INA_VERIFY_NOT_NULL(pool);
     INA_VERIFY(size > 0);
 
@@ -208,6 +193,7 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
 
     *pool = (ina_mempool_t*)ina_mem_alloc(sizeof(ina_mempool_t));
     INA_RETURN_IF_NULL(*pool);
+    ina_mem_set(*pool, 0, sizeof(ina_mempool_t));
     (*pool)->cf = cf;
     (*pool)->pos = 0;
     (*pool)->size = size;
@@ -231,6 +217,9 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
     } else {
         (*pool)->shm_handle = 0;
         (*pool)->m = (unsigned char*)ina_mem_alloc(size);
+         if (0 == (cf&INA_MEM_NOZEROFILL)) {
+            ina_mem_set((*pool)->m, 0, (*pool)->size);
+         }
     }
 
     if ((*pool)->m == NULL) {
@@ -239,66 +228,28 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
             ina_str_free((*pool)->label);
         }
         *pool = NULL;
-        return INA_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
-    }
-
-    if (!(cf&INA_MEM_CHILD)) {
-        last = __pools;
-        while (last != NULL && last->next != NULL) {
-            last = last->next;
-        }
-
-        next = (__ina_mplist_t*)ina_mem_alloc(sizeof(__ina_mplist_t));
-        if (next == NULL) {
-            ina_mem_free((*pool)->label);
-            ina_mem_free((*pool)->m);
-            ina_mem_free(*pool);
-            *pool = NULL;
-           return INA_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
-        }
-        if (last != NULL) {
-            last->next = next;
-            next->next = NULL;
-            next->pool = *pool;
-            next->active = 1;
-        }
-        if (__pools == NULL) {
-            __pools = next;
-        }
+        return INA_ERROR(INA_ENOMEM);
     }
     INA_TRACE3("New memory pool: %p->%p size = %ld", *pool, (*pool)->m, (*pool)->size);
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool)
+INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t **pool)
 {
     ina_mempool_t *pm;
     ina_mempool_t *pn;
-    __ina_mplist_t *ref;
 
     INA_VERIFY_NOT_NULL(pool);
-
-    INA_TRACE3("Free pool: %p->%p", pool, pool->m);
-
+    INA_VERIFY_NOT_NULL(*pool);
 
     /* Unlink parent */
-    if (pool->parent != NULL) {
-        pool->parent->child = NULL;
-    } else {
-        ref = __pools;
-        while (ref != NULL && ref->pool != pool) {
-            ref = ref->next;
-        }
-        if (ref != NULL) {
-            ref->active = 0;
-            ref->pool = NULL;
-        }
+    if ((*pool)->parent != NULL) {
+        (*pool)->parent->child = NULL;
     }
 
-    pool->current = pool;
+    (*pool)->current = *pool;
 
-    pn = pool;
-    pm = NULL;
+    pn = *pool;
     while (pn != NULL) {
         pm = pn;
         if (pn != pn->child) {
@@ -347,10 +298,30 @@ INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool, size_t chunks,
             ina_mem_free(pm);
         } else {
             pm->pos = 0;
-            ina_mem_set(pm->m, 0, pm->end);
         }
         --c;
     }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_mempool_clear(ina_mempool_t *pool)
+{
+    ina_mempool_t *pm;
+    ina_mempool_t *pn;
+
+    INA_VERIFY_NOT_NULL(pool);
+
+    pn = pool;
+    pm = NULL;
+    while (pn != NULL) {
+        pm = pn;
+        if (pn != pn->child) {
+            pn = pn->child;
+        }
+        pm->pos = 0;
+        ina_mem_set(pm->m, 0, pm->size);
+    }
+    pool->current = pool;
     return INA_SUCCESS;
 }
 
@@ -369,60 +340,11 @@ INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool)
             pn = pn->child;
         }
         pm->pos = 0;
-        ina_mem_set(pm->m, 0, pm->end);
     }
+    pool->current = pool;
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label, ina_mempool_t **pool)
-{
-    __ina_mplist_t *next;
-
-    INA_VERIFY_NOT_NULL(label);
-    INA_VERIFY_NOT_NULL(*pool);
-    *pool = NULL;
-
-     if (__pools == NULL) {
-         return INA_ERROR(INA_NN_POOL|INA_ERR_NOT_INITIALIZED);
-     }
-
-     next = __pools;
-     while (next != NULL) {
-         if (next->active == 1) {
-             if (next->pool->label != NULL && strcmp(next->pool->label, label) == 0) {
-                 *pool = next->pool;
-                 return INA_SUCCESS;
-             }
-         }
-         next = next->next;
-     }
-     return INA_ERROR(INA_ERR_NOT_FOUND);
-}
-
-INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr, ina_mempool_t **pool)
-{
-    __ina_mplist_t *next;
-
-    INA_VERIFY_NOT_NULL(ptr);
-    INA_VERIFY_NOT_NULL(pool);
-    *pool = NULL;
-
-     if (__pools == NULL) {
-         return INA_ERROR(INA_NN_POOL|INA_ERR_NOT_INITIALIZED);
-     }
-
-     next = __pools;
-     while (next != NULL) {
-         if (next->active == 1) {
-             if (next->pool->m >= (unsigned char*)ptr || (next->pool->m + next->pool->end) > (unsigned char*)ptr) {
-                 *pool = next->pool;
-                 return INA_SUCCESS;
-             }
-         }
-         next = next->next;
-     }
-     return INA_ERROR(INA_ERR_NOT_FOUND);
-}
 
 INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info)
 {
@@ -644,32 +566,6 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
 
 INA_API(ina_rc_t) ina_mempool_destroy(void)
 {
-    __ina_mplist_t *ref;
-    __ina_mplist_t *next;
-
-    if (__pools == NULL) {
-        return INA_SUCCESS;
-    }
-
-    next = __pools;
-    ref = NULL;
-    while (next != NULL) {
-        if (next->active == 1) {
-            /* FIXME: error handling */
-            ina_mempool_free(next->pool);
-            next->active = 0;
-        }
-        next = next->next;
-    }
-
-    ref = __pools;
-    next = NULL;
-    while (ref != NULL) {
-        next = ref->next;
-        ina_mem_free(ref);
-        ref = next;
-    }
-    __pools = NULL;
     return INA_SUCCESS;
 }
 

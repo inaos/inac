@@ -37,14 +37,12 @@ typedef struct __ina_sopt_s {
     ina_str_t value;
     ina_str_t desc;
     ina_opt_type_t type;
-    UT_hash_handle hh;
 } __ina_sopt_t;
 
 /* Internal registry long option */
 typedef struct __ina_lopt_s {
     ina_str_t opt;
     __ina_sopt_t *short_opt;
-    UT_hash_handle hh;
 } __ina_lopt_t;
 
 /* internal signal handler */
@@ -58,15 +56,19 @@ static __ina_sopt_t *__ina_opt_get(const char*);
 static void __ina_opt_usage(void);
 /* get absolute path */
 static ina_rc_t __ina_get_binpath(ina_str_t path);
+/* free short options */
+static ina_rc_t __ina_free_sopt(const void *data);
+/* free long options */
+static ina_rc_t __ina_free_lopt(const void *data);
 
 /* initialization flag, > 0 lib/app initialized */
 static int32_t __initialized = 0;
 /* function pointer to a custom cleanup routine */
 static ina_cleanup_handler_t  __cleanup = NULL;
 /* short command line options */
-static __ina_sopt_t *__sopt = NULL;
+static ina_hashtable_t *__sopt = NULL;
 /* long command line options */
-static __ina_lopt_t *__lopt = NULL;
+static ina_hashtable_t *__lopt = NULL;
 /* that's our program name */
 static ina_str_t __appname = NULL;
 /* That's our app path */
@@ -104,7 +106,7 @@ INA_API(const char*) ina_app_get_path(void)
     return ina_str_cstr(__apppath);
 }
 
-INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, ina_opt_t *opt)
+INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
 {
     
 #ifdef INA_OS_WIN32
@@ -132,11 +134,26 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, ina_opt_t *opt)
 
     if (opt != NULL) {
         __ina_sopt_t *so = NULL;
-        __ina_sopt_t *tmp_so =  NULL;
+        ina_hashtable_iter_t *iter;
+        ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                          INA_HASHTABLE_HASH_DEFAULT,
+                          INA_HASHTABLE_TYPE_DEFAULT,
+                          INA_HASHTABLE_GROW_DEFAULT,
+                          INA_HASHTABLE_SHRINK_DEFAULT,
+                          INA_HASHTABLE_DEFAULT_CAPACITY,
+                          INA_HASHTABLE_CF_DEFAULT, &__sopt);
+        ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                          INA_HASHTABLE_HASH_DEFAULT,
+                          INA_HASHTABLE_TYPE_DEFAULT,
+                          INA_HASHTABLE_GROW_DEFAULT,
+                          INA_HASHTABLE_SHRINK_DEFAULT,
+                          INA_HASHTABLE_DEFAULT_CAPACITY,
+                          INA_HASHTABLE_CF_DEFAULT, &__lopt);
 
         while (opt->long_opt) {
             __ina_lopt_t *lo;
-            __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
+            so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
+            ina_mem_set(so, 0, sizeof(__ina_sopt_t));
             if (so == NULL) {
                 return ina_err_get_last_rc();
             }
@@ -148,7 +165,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, ina_opt_t *opt)
             so->type = opt->type;
             
             if (strlen(so->opt)) {
-                HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
+                ina_hashtable_set_str(__sopt, so->opt, so);
             }
 
             lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
@@ -157,7 +174,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, ina_opt_t *opt)
             }
             lo->opt = ina_str_new_fromcstr(opt->long_opt);
             lo->short_opt = so;
-            HASH_ADD_KEYPTR(hh, __lopt, ina_str_cstr(lo->opt), ina_str_len(lo->opt), lo);
+            ina_hashtable_set_str(__lopt, lo->opt, lo);
             opt++;
         }
         
@@ -229,12 +246,15 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, ina_opt_t *opt)
             }
             
             /* Validate, any options must have a value except flags */
-            HASH_ITER(hh, __sopt, so, tmp_so) {
+            ina_hashtable_iter_new(__sopt, &iter);
+            while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&so))) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
+                    ina_hashtable_iter_free(&iter);
                     __ina_opt_usage();
                     return INA_ERROR(INA_NN_OPTION|INA_ERR_INVALID);
                 }
             }
+            ina_hashtable_iter_free(&iter);
         }
     }
     return INA_SUCCESS;
@@ -273,6 +293,9 @@ INA_API(ina_rc_t) ina_init(void)
     /* Set unhandled exception handler for windows */
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
+
+    /* initailize hashtable */
+    INA_RETURN_IF_FAILED(ina_hashtable_init("hashtable.conf"));
 
     /* initailized console */
     INA_RETURN_IF_FAILED(ina_cio_init());
@@ -316,25 +339,12 @@ INA_API(void) ina_exit(void)
     /* destroy cpu module */
     ina_cpu_destroy();
 
-    /* destroy memory pool */
-    ina_mempool_destroy();
-
     /* free allocated memory  */
     if (__lopt != NULL) {
-        __ina_lopt_t *lo = NULL;
-        __ina_lopt_t *tmp_lo =  NULL;    
-        HASH_ITER(hh, __lopt, lo, tmp_lo) {
-            HASH_DEL(__lopt, lo);
-            ina_mem_free(lo);
-        }
+        ina_hashtable_foreach(__sopt, __ina_free_sopt);
     }
     if (__sopt != NULL) {
-        __ina_sopt_t *so = NULL;
-        __ina_sopt_t *tmp_so =  NULL;    
-        HASH_ITER(hh, __sopt, so, tmp_so) {
-            HASH_DEL(__sopt, so);
-            ina_mem_free(so);
-        }
+        ina_hashtable_foreach(__lopt, __ina_free_lopt);
     }
     if (__appname != NULL) {
         ina_str_free(__appname);
@@ -343,7 +353,11 @@ INA_API(void) ina_exit(void)
         ina_str_free(__apppath);
     }
 
-    ina_err_reset();
+    ina_hashtable_destroy();
+
+    /* destroy memory pool */
+    ina_mempool_destroy();;
+
 
 #ifdef INA_OS_WIN32
     timeEndPeriod(1);
@@ -388,6 +402,7 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
                                          ina_str_t *value)
 {
     __ina_lopt_t *lo = NULL;
+    ina_hashtable_iter_t *iter;
 
     INA_VERIFY_NOT_NULL(key);
     INA_VERIFY_NOT_NULL(value);
@@ -396,9 +411,11 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
     *key = NULL;
     *value = NULL;
 
-    for (lo = __lopt; lo != NULL && index > 0; lo=lo->hh.next) {
+    ina_hashtable_iter_new(__lopt, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&lo)) && index > 0) {
         --index;
     }
+    ina_hashtable_iter_free(&iter);
 
     if (lo == NULL) {
         return INA_ERROR(INA_NN_OPTION|INA_ERR_NOT_EXISTS);
@@ -459,10 +476,10 @@ __ina_opt_get(const char *opt)
 
     INA_ASSERT_NOTNULL(opt);
 
-    HASH_FIND_STR(__sopt, opt, so);
+    ina_hashtable_get_str(__sopt, opt, (void**)&so);
     if (so == NULL) {
         __ina_lopt_t *lo = NULL;
-        HASH_FIND_STR(__lopt, opt, lo);
+        ina_hashtable_get_str(__lopt, opt, (void**)&lo);
         if (lo != NULL) {
             so = lo->short_opt;
         }
@@ -473,13 +490,15 @@ __ina_opt_get(const char *opt)
 static void 
 __ina_opt_usage(void)
 {
+    ina_hashtable_iter_t *iter;
     __ina_lopt_t *lo = NULL;
     __ina_lopt_t *tmp_lo =  NULL;
     __ina_sopt_t *so = NULL;
 
     printf("USAGE: %s ", ina_str_cstr(__appname));
-    
-    HASH_ITER(hh, __lopt, lo, tmp_lo) {
+
+    ina_hashtable_iter_new(__lopt, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&lo))) {
         so = lo->short_opt;
         if (strlen(so->opt) > 0) {
             printf(" -%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
@@ -496,7 +515,9 @@ __ina_opt_usage(void)
         }
     }
     printf("%s", "\n\n");
-    HASH_ITER(hh, __lopt, lo, tmp_lo) {
+    ina_hashtable_iter_reset(iter);
+
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&lo))) {
         so = lo->short_opt;
         if (strlen(so->opt) > 0) {
             printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), 
@@ -561,6 +582,34 @@ __ina_get_binpath(ina_str_t path)
     buf[ret] = 0;
 #endif
     return INA_SUCCESS;   
+}
+
+static ina_rc_t
+__ina_free_sopt(const void *data)
+{
+    __ina_sopt_t *opt = (__ina_sopt_t*)data;
+    if (opt->desc !=  NULL) {
+        ina_str_free(opt->desc);
+    }
+    if (opt->opt != NULL) {
+        ina_str_free(opt->opt);
+    }
+    if (opt->value != NULL) {
+        ina_str_free(opt->value);
+    }
+    ina_mem_free(opt);
+    return INA_SUCCESS;
+}
+
+static ina_rc_t
+__ina_free_lopt(const void *data)
+{
+    __ina_lopt_t *opt = (__ina_lopt_t*)data;
+    if (opt->opt != NULL) {
+        ina_str_free(opt->opt);
+    }
+    ina_mem_free(opt);
+    return INA_SUCCESS;
 }
 
 

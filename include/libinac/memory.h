@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014,2016 INAOS GmbH
+ * Copyright (c) 2012-2014,2018 INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,13 @@
 #ifndef _LIBINAC_MEMORY_H_
 #define _LIBINAC_MEMORY_H_
 
-#include <libinac/lib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <libinac/lib.h>
+
+#define INA_ENOMEM   INA_NN_MEMORY|INA_ERR_OUT_OF
 
 
 /* Align to 2x word size (as GNU libc does). */
@@ -292,23 +294,7 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
  */
 
 INA_API(void) ina_mem_free(void *ptr);
-/*
- * Deallocate space in memory. A block of memory previously allocated using a
- * call to ina_mem_alloc_aligned() making it available again
- * for further allocations.
- *
- * If ptr does not point to a block of memory allocated with the above
- * functions, the behavior is undefined.
- *
- * If ptr is a null pointer, the function does nothing.
- *
- * Notice that this function does not change the value of ptr itself, hence it
- * still points to the same (now invalid) location.
- *
- * Parameters
- *  ptr   pointer to a memory block prevously allocated with ina_mem_alloc()
- */
-INA_API(void) ina_mem_free_aligned(void *ptr);
+
 
 #ifdef __cplusplus
 }

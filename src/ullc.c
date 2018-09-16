@@ -37,7 +37,7 @@
 #endif
 
 /* ullc context */
-typedef struct ina_ullc_ctx_s {
+struct ina_ullc_ctx_s {
     int id;                         /* id of consumer or producer */
     ina_mempool_t *pool;            /* memory-pool */
     ina_ullc_ctx_type_t type;       /* type of context */
@@ -50,7 +50,7 @@ typedef struct ina_ullc_ctx_s {
 };
 
 /* ring buffer (shared mem) */
-typedef struct ina_ullc_rb_s {
+struct ina_ullc_rb_s {
     char magic;
     int32_t version;
     int32_t num_consumers;
@@ -66,7 +66,7 @@ typedef struct ina_ullc_rb_s {
 };
 
 /* ULLC ring cursor */
-typedef struct ina_ullc_cursor_s {
+struct ina_ullc_cursor_s {
     INA_VOLATILE int64_t alive;
     INA_VOLATILE int64_t cursor;
 };
@@ -99,7 +99,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
     if (rb == NULL) {
-        ina_mempool_free(m);
+        ina_mempool_free(&m);
         return ina_err_get_last_rc();
     }
 
@@ -127,7 +127,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
         }
     }*/
 
-    ina_mempool_free(m);
+    ina_mempool_free(&m);
     return INA_SUCCESS;
 }
 
@@ -214,11 +214,11 @@ INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
     if (rb == NULL) {
-        ina_mempool_free(m);
+        ina_mempool_free(&m);
         return ina_err_get_last_rc();
     }
     rb->magic = 0;
-    ina_mempool_free(m);
+    ina_mempool_free(&m);
     return INA_SUCCESS;
 }
 
@@ -264,7 +264,7 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
         return ina_err_get_last_rc();
     }
 
-    if (INA_FAILED(ina_mempool_free((*ctx)->pool))) {
+    if (INA_FAILED(ina_mempool_free(&(*ctx)->pool))) {
         return ina_err_get_last_rc();
     }
 
@@ -343,15 +343,20 @@ INA_API(ina_rc_t) ina_ullc_consumer_create(int version, size_t size,
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
     INA_RETURN_IF_NULL(*ctx);
+    ina_mem_set(*ctx, 0, sizeof(ina_ullc_ctx_t));
 
     ccxt = *ctx;
-
+    ccxt->type = INA_ULLC_CTX_CONSUMER;
     if (INA_FAILED(__ina_ullc_ring_create(&ccxt->ring, ccxt, version, size,
             slots, num_producers, num_consumers, name, 0))) {
+        ina_mem_free(*ctx);
+        *ctx = NULL;
         return ina_err_get_last_rc();
     }
 
     if (ccxt->ring->version != version) {
+        ina_mem_free(*ctx);
+        *ctx = NULL;
         return INA_ERROR(INA_NN_VERSION|INA_ERR_INVALID);
     }
 
@@ -393,7 +398,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
         return ina_err_get_last_rc();
     }
 
-    if (INA_FAILED(ina_mempool_free((*ctx)->pool))) {
+    if (INA_FAILED(ina_mempool_free(&(*ctx)->pool))) {
         return ina_err_get_last_rc();
     }
 
