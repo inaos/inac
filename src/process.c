@@ -456,39 +456,34 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     INA_RETURN_IF_NULL(*process);
 
     /* copy descriptor if not allocated from context pool */
-    if (INA_SUCCEED(ina_mempool_getbypointer(descriptor, &mp)) &&
-        mp == ctx->mempool) {
-        (*process)->descriptor = descriptor;
-    } else {
-        (*process)->descriptor = (ina_process_descriptor_t*)ina_mempool_dalloc(
-                                        ctx->mempool,
-                                        sizeof(ina_process_descriptor_t));
-        if ((*process)->descriptor == NULL) {
-            *process = NULL;
-            return ina_err_get_last_rc();
-        }
-
-        (*process)->descriptor->full_path = ina_str_dup_using_pool(
-                                                    descriptor->full_path,
-                                                    ctx->mempool);
-        (*process)->descriptor->working_dir = ina_str_dup_using_pool(
-                                                    descriptor->working_dir,
-                                                    ctx->mempool);
-        (*process)->descriptor->startup_args = ina_str_dup_using_pool(
-                                                    descriptor->startup_args,
-                                                    ctx->mempool);
-        (*process)->descriptor->scheduled_start_pattern = ina_str_dup_using_pool(
-                                        descriptor->scheduled_start_pattern,
-                                        ctx->mempool);
-
-        (*process)->descriptor->scheduled_stop_pattern = ina_str_dup_using_pool(
-                                        descriptor->scheduled_stop_pattern,
-                                        ctx->mempool);
-        (*process)->descriptor->stop_wait_time_ms = descriptor->stop_wait_time_ms;
-        (*process)->descriptor->start_flags = descriptor->start_flags;
-        (*process)->descriptor->lifecycle = descriptor->lifecycle;
-        (*process)->descriptor->managed_type = descriptor->managed_type;
+    (*process)->descriptor = (ina_process_descriptor_t*)ina_mempool_dalloc(
+                                    ctx->mempool,
+                                    sizeof(ina_process_descriptor_t));
+    if ((*process)->descriptor == NULL) {
+        *process = NULL;
+        return ina_err_get_last_rc();
     }
+
+    (*process)->descriptor->full_path = ina_str_dup_using_pool(
+                                                descriptor->full_path,
+                                                ctx->mempool);
+    (*process)->descriptor->working_dir = ina_str_dup_using_pool(
+                                                descriptor->working_dir,
+                                                ctx->mempool);
+    (*process)->descriptor->startup_args = ina_str_dup_using_pool(
+                                                descriptor->startup_args,
+                                                ctx->mempool);
+    (*process)->descriptor->scheduled_start_pattern = ina_str_dup_using_pool(
+                                    descriptor->scheduled_start_pattern,
+                                    ctx->mempool);
+
+    (*process)->descriptor->scheduled_stop_pattern = ina_str_dup_using_pool(
+                                    descriptor->scheduled_stop_pattern,
+                                    ctx->mempool);
+    (*process)->descriptor->stop_wait_time_ms = descriptor->stop_wait_time_ms;
+    (*process)->descriptor->start_flags = descriptor->start_flags;
+    (*process)->descriptor->lifecycle = descriptor->lifecycle;
+    (*process)->descriptor->managed_type = descriptor->managed_type;
     (*process)->descriptor->c_ref = 1;
     (*process)->exit_code = -1;
     (*process)->init = INA_YES;

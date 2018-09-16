@@ -141,32 +141,6 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool,
                                       ina_mempool_info_t *info);
 
 /* 
- * Get a memory pool by label.
- *
- * Parameters
- *  label    Pool label.
- *  pool     Pointer to a memory pool pointer. Hold the memory pool.
- *
- * Return
- *  INA_SUCCESS if pool was found otherwise INA_FAILURE
- */
-INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label,
-                                         ina_mempool_t **pool);
-
-/* 
- * Get a memory pool by pointer.
- *
- * Parameters
- *  ptr   Pointer to find.
- *  pool  Pointer to a memory pool pointer. Hold the memory pool.
- *
- * Return
- *  INA_SUCCESS if pool was found otherwise INA_FAILURE
- */
-INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr,
-                                           ina_mempool_t **pool);
-
-/* 
  * Creates a memory pool.
  *
  * Parameters
