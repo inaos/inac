@@ -30,8 +30,11 @@
 
 typedef struct ina_ht_info_s {
     int active;
+    ina_hashtable_type_t type;
     ina_hashtable_hash_type_t hash_type;
     ina_hashtable_key_type_t  key_type;
+    size_t key_len;
+    uint32_t cf;
     int buckets;
     int items;
     uint64_t del_ops;
@@ -63,11 +66,15 @@ static ina_ht_info_t info[INA_HASHTABLE_MAX_STAT_TABLES];
 
 static ina_file_ctx_t *file_ctx = NULL;
 static ina_ullc_ctx_t *ullc_ctx = NULL;
+static ina_ullc_ctx_t *ullc_ctx2 = NULL;
 
 static void ina_cleanup_handler(int error, int *exitcode)
 {
     ina_cio_clear();
     ina_cio_reset();
+    if (ullc_ctx2 != NULL) {
+        ina_ullc_producer_destroy(&ullc_ctx2);
+    }
     if (ullc_ctx != NULL) {
         ina_ullc_consumer_destroy(&ullc_ctx);
     }
@@ -219,6 +226,14 @@ int main(int argc,  char** argv)
 
     ihtm_init();
 
+    while (INA_FAILED(INA_ULLC_PRODUCER_CREATE(ina_hashtable_event_t,
+                                               1, 4096,
+                                               INA_HASHTABLE_MAX_STAT_TABLES,
+                                               INA_HASHTABLE_MAX_STAT_TABLES,
+                                               "/ina_htmon", INA_ULLC_WS_SIGNAL_WAIT,
+                                               &ullc_ctx2))){
+        ina_time_sleep(10);
+    }
     while (INA_FAILED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t,
             1, 4096,
             INA_HASHTABLE_MAX_STAT_TABLES,
@@ -236,6 +251,32 @@ int main(int argc,  char** argv)
         if (event != NULL) {
             int ht = (int)event->hashtable_id - 1;
             switch (event->event_id) {
+                case INA_HASHTABLE_EVENT_IDLE:
+                    continue;
+                case INA_HASHTABLE_EVENT_META: {
+                    switch (event->data1) {
+                        case 1: {
+                            info[ht].hash_type = (ina_hashtable_hash_type_t) event->data2;
+                            break;
+                        }
+                        case 2: {
+                            info[ht].key_len = (size_t) event->data2;
+                            break;
+                        }
+                        case 3: {
+                            info[ht].type = (ina_hashtable_type_t) event->data2;
+                            break;
+                        }
+                        case 4: {
+                            info[ht].cf = (uint32_t )event->data2;
+                            break;
+                        }
+                        default:
+                            continue;
+                    }
+                    break;
+
+                }
                 case INA_HASHTABLE_EVENT_NEW: {
                     ina_mem_set(&info[ht], 0, sizeof(ina_ht_info_t));
                     info[ht].active = 1;
@@ -308,10 +349,15 @@ int main(int argc,  char** argv)
             ihtm_update_stats(ht);
             ihtm_update_event(event);
         } else {
+            char c = 0;
             ina_time_sleep(5);
             if (!(ilde_count % 1000)) {
                 ilde_count = 0;
                 ihtm_update_status("waiting for data...");
+            }
+            ina_cio_read_char_non_block(&c);
+            if (c == 'q') {
+                break;
             }
         }
     }
