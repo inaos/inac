@@ -78,7 +78,9 @@ static void ina_cleanup_handler(int error, int *exitcode)
 
 static ina_str_t ihtm_format_number(int number)
 {
-    if (number < 10000) {
+    if (number == 0) {
+        return ina_str_new_fromcstr("n/a");
+    } else if (number < 1000) {
         return ina_str_sprintf("%d", number);
     } else if (number < 10000000) {
         number = number / 1000;
@@ -88,13 +90,33 @@ static ina_str_t ihtm_format_number(int number)
         return ina_str_sprintf("%dM", number);
     }
 }
-static void ihtm_update(int ht)
+
+static ina_str_t ihtm_format_time(int number)
+{
+    if (number == 0) {
+        return ina_str_new_fromcstr("n/a");
+    } else if (number < 1000) {
+        return ina_str_sprintf("%n", number);
+    } else if (number < 10000000) {
+        number = number / 1000;
+        return ina_str_sprintf("%du", number);
+    } else {
+        number = number / 1000000;
+        return ina_str_sprintf("%dm", number);
+    }
+}
+
+static void ihtm_update_stats(int ht)
 {
     ina_str_t state;
     ina_str_t nb;
     ina_str_t ni;
     ina_str_t nc;
     ina_str_t ne;
+    ina_str_t st;
+    ina_str_t gt;
+    ina_str_t dt;
+
     int ideal = 0;
     int misses = 0;
 
@@ -110,24 +132,49 @@ static void ihtm_update(int ht)
     ni = ihtm_format_number(info[ht].items);
     nc = ihtm_format_number((int)info[ht].collisions);
     ne = ihtm_format_number(info[ht].ex);
+    st = ihtm_format_number((int)info[ht].set_ops),
+    gt = ihtm_format_number((int)info[ht].get_ops),
+    dt = ihtm_format_number((int)info[ht].del_ops),
 
     ina_cio_printf(ht+2, 0, INA_CIO_COLOR_BLUE,INA_CIO_COLOR_WHITE ,
-                   "[%02d] %s    %#2d%%  %5s    %5s   %5s   %5s   %#2d%%  %3u %3u  %3u  %3u  %3u  %3u",
+                   "[%02d] %s      %#2d%%  %5s    %5s    %5s   %5s   %#2d%%        %3s    %3s     %3s",
                    ht, state, ideal, nb, ni, nc, ne,
                    misses,
-                   (uint32_t)info[ht].set_low_ns,
-                   (uint32_t)info[ht].set_hig_ns,
-                   (uint32_t)info[ht].get_low_ns,
-                   (uint32_t)info[ht].get_hig_ns,
-                   (uint32_t)info[ht].del_low_ns,
-                   (uint32_t)info[ht].del_hig_ns);
+                   st,
+                   gt,
+                   dt);
 
     ina_str_free(nb);
     ina_str_free(ni);
     ina_str_free(nc);
     ina_str_free(ne);
+    ina_str_free(st);
+    ina_str_free(gt);
+    ina_str_free(dt);
 }
 
+static void ihtm_update_status(const char* status_msg)
+{
+    ina_cio_printf(18, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLACK, "> %-78s", status_msg);
+    fflush(stdout);
+}
+
+static void ihtm_update_menu(const char* commands)
+{
+    ina_cio_printf(19, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLACK, "  %-78s", commands);
+    fflush(stdout);
+}
+static void ihtm_update_event(ina_hashtable_event_t *event)
+{
+    ina_cio_printf(18, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLACK,
+            "> ts: %llu table: %u  event: %d  data: %llu:%llu                             ",
+                   event->ts,
+                   event->hashtable_id,
+                   event->event_id,
+                   event->data1,
+                   event->data2);
+    fflush(stdout);
+}
 
 static void ihtm_init(void)
 {
@@ -138,17 +185,13 @@ static void ihtm_init(void)
     ina_cio_printf(0, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
             "IHTMON                                                                          ");
     ina_cio_printf(1, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
-            "     A  ideal   #bkt   #items     #cln     #ex  miss   sl   sh   gl   gh   dl dh");
+                   "     A |  ideal   #bkt   #items     #cln     #ex  miss  |    #set   #get    #del");
 
     for (i = 0; i < 16; ++i) {
-        ihtm_update(i);
+        ihtm_update_stats(i);
     }
-
-    ina_cio_printf(18, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLACK, "%s",
-            "  CTRL-C = end  t= time on/off                                                  ");
-    ina_cio_printf(19, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLACK, "%s",
-            "> connecting...                                                                 ");
-    fflush(stdout);
+    ihtm_update_status("connecting...");
+    ihtm_update_menu("CTRL-C to quit");
 }
 
 
@@ -156,6 +199,7 @@ int main(int argc,  char** argv)
 {
 
     int core;
+    int ilde_count = 0;
     ina_hashtable_event_t *event;
 
     INA_OPTS(opt,
@@ -183,15 +227,17 @@ int main(int argc,  char** argv)
         ina_time_sleep(10);
     }
 
-    ina_cio_printf(19, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
-                   ">connected!                                                              ");
+    ihtm_update_status("connected! waiting for data...");
+    ihtm_update_menu("CTRL-C to quit");
 
     while (1) {
+        ++ilde_count;
         event = INA_ULLC_GET(ina_hashtable_event_t, ullc_ctx);
         if (event != NULL) {
             int ht = (int)event->hashtable_id - 1;
             switch (event->event_id) {
                 case INA_HASHTABLE_EVENT_NEW: {
+                    ina_mem_set(&info[ht], 0, sizeof(ina_ht_info_t));
                     info[ht].active = 1;
                     info[ht].hash_type = event->data1;
                     info[ht].buckets = event->data2;
@@ -259,16 +305,15 @@ int main(int argc,  char** argv)
                     break;
                 }
             }
-            ihtm_update(ht);
-            /*printf("ts: %llu table: %u  event: %d  data: %llu:%llu\n",
-                    event->ts,
-                    event->hashtable_id,
-                    event->event_id,
-                    event->data1,
-                    event->data2);*/
-            fflush(stdout);
+            ihtm_update_stats(ht);
+            ihtm_update_event(event);
+        } else {
+            ina_time_sleep(5);
+            if (!(ilde_count % 1000)) {
+                ilde_count = 0;
+                ihtm_update_status("waiting for data...");
+            }
         }
-        ina_time_sleep(5);
     }
     return EXIT_SUCCESS;
 }
