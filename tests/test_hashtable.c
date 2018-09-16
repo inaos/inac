@@ -510,16 +510,19 @@ INA_TEST(hashtable, new_from_cfg)
 {
     ina_hashtable_t *ht;
     const char* names[] = {"h1", "h2", "h3", NULL};
-    int i = 0;
+    int i = -1;
+    int count = 0;
     const int data = 1;
 
-    while (names[i++]) {
+    while (names[++i] != NULL) {
         int j;
         INA_TEST_ASSERT_SUCCEED(ina_hashtable_new_from_cfg(INA_HASHTABLE_INT32_KEY, names[i], &ht));
         INA_TEST_ASSERT_NOT_NULL(ht);
-        for (j=0;j<100;j++) {
-            INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, i, &data));
+        for (j=0;j<100*i;j++) {
+            INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, j, &data));
         }
+        ina_hashtable_count(ht, &count);
+        INA_TEST_ASSERT_EQUAL_INT(100*i, count);
         INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
         INA_TEST_ASSERT_NULL(ht);
     }

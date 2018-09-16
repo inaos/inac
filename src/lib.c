@@ -616,8 +616,8 @@ __ina_free_lopt(const void *data)
 static void
 __ina_signal_handler(int sig)
 {
-    static INA_VOLATILE int exitcode = EXIT_SUCCESS;
-    static INA_VOLATILE int signaled = 0;
+    static int exitcode = EXIT_SUCCESS;
+    static int signaled = 0;
     ina_signal_t isig;
     ina_signal_handler_t sh = NULL;
     ina_signal_behavior_t sb = INA_SIGNAL_BEHAVIOR_DFT;

@@ -205,10 +205,9 @@ INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, 
                     INA_CONFFILE_NUMBER_KEY("preallocated", INA_NO),
                     INA_CONFFILE_NUMBER_KEY("stats_enabled", INA_NO)));
 
-    printf("OK");
     if (INA_SUCCEED(ina_conffile_get_string(cf, "hashtable", name, "hash_func", &value))) {
-        int i = 0;
-        while (__hash_fn_name[i]) {
+        int i = -1;
+        while (__hash_fn_name[++i]) {
             if (strcmp(value, __hash_fn_name[i]) == 0) {
                 htc.hash_type = (ina_hashtable_hash_type_t)i;
                 break;
@@ -230,6 +229,8 @@ INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, 
             htc.cf |= INA_HASHTABLE_CF_STAT;
         }
     }
+    ina_conffile_free(&cf);
+
     return ina_hashtable_new(key_type,
             htc.hash_type,
             INA_HASHTABLE_TYPE_DEFAULT,
