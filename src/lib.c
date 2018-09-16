@@ -294,6 +294,9 @@ INA_API(ina_rc_t) ina_init(void)
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
 
+    /* initailize hashtable */
+    INA_RETURN_IF_FAILED(ina_hashtable_init("hashtable.conf"));
+
     /* initailized console */
     INA_RETURN_IF_FAILED(ina_cio_init());
 
@@ -336,9 +339,6 @@ INA_API(void) ina_exit(void)
     /* destroy cpu module */
     ina_cpu_destroy();
 
-    /* destroy memory pool */
-    ina_mempool_destroy();
-
     /* free allocated memory  */
     if (__lopt != NULL) {
         ina_hashtable_foreach(__sopt, __ina_free_sopt);
@@ -353,7 +353,11 @@ INA_API(void) ina_exit(void)
         ina_str_free(__apppath);
     }
 
-    ina_err_reset();
+    ina_hashtable_destroy();
+
+    /* destroy memory pool */
+    ina_mempool_destroy();;
+
 
 #ifdef INA_OS_WIN32
     timeEndPeriod(1);
@@ -612,8 +616,8 @@ __ina_free_lopt(const void *data)
 static void
 __ina_signal_handler(int sig)
 {
-    static int exitcode = EXIT_SUCCESS;
-    static int signaled = 0;
+    static INA_VOLATILE int exitcode = EXIT_SUCCESS;
+    static INA_VOLATILE int signaled = 0;
     ina_signal_t isig;
     ina_signal_handler_t sh = NULL;
     ina_signal_behavior_t sb = INA_SIGNAL_BEHAVIOR_DFT;

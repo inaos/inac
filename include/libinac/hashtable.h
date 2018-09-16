@@ -38,7 +38,7 @@ extern "C" {
 #include "lib.h"
 
 
-#define INA_HASHTABLE_DEFAULT_CAPACITY     (0)
+#define INA_HASHTABLE_DEFAULT_CAPACITY     (32)
 #define INA_HASHTABLE_MAX_KEY_LEN          16
 #define INA_HASHTABLE_MAX_STAT_TABLES      16
 #define INA_HASHTABLE_CF_PREALLOCATED    (4UL)
@@ -53,6 +53,7 @@ typedef enum ina_hashtable_type_e {
 } ina_hashtable_type_t;
 
 typedef enum ina_hashtable_key_type_e {
+    INA_HASHTABLE_UNDEFINED_KEY = -1,
     INA_HASHTABLE_INT32_KEY,
     INA_HASHTABLE_UINT32_KEY,
     INA_HASHTABLE_INT64_KEY,
@@ -129,6 +130,10 @@ typedef struct ina_hashtable_event_s {
 } ina_hashtable_event_t;
 
 
+INA_API(ina_rc_t) ina_hashtable_init(const char *cfg_filepath);
+
+INA_API(ina_rc_t) ina_hashtable_destroy(void);
+
 
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                     ina_hashtable_hash_type_t hash_type,
@@ -139,10 +144,14 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                     uint32_t  cf,
                                     ina_hashtable_t **ht);
 
+INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, const char *name, ina_hashtable_t **ht);
+
 
 INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht);
 
 INA_API(ina_rc_t) ina_hashtable_clear(ina_hashtable_t *ht);
+
+INA_API(ina_rc_t) ina_hashtable_dump(ina_hashtable_t *ht);
 
 INA_API(ina_rc_t) ina_hashtable_count(ina_hashtable_t *ht, int *count);
 

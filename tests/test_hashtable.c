@@ -350,16 +350,14 @@ INA_TEST(hashtable, str_key)
 
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                                               INA_HASHTABLE_HASH_DEFAULT,
+                                               INA_HASHTABLE_HASH32_SPOOKY,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_STAT, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
-    sleep(10);
-
-
+    /*sleep(10);*/
     data1 = new_data(1, "Name 1");
     data2 = new_data(2, "Name 2");
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_str(ht, "n1", data1));
@@ -389,6 +387,7 @@ INA_TEST(hashtable, iter)
     ina_hashtable_t *ht = NULL;
     void *d = NULL;
     ina_hashtable_iter_t *iter = NULL;
+    int count;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,
@@ -399,10 +398,13 @@ INA_TEST(hashtable, iter)
                                                INA_HASHTABLE_CF_DEFAULT, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
 
-    ina_hashtable_set_str(ht, "n1", new_data(1, "Name 1"));
-    ina_hashtable_set_str(ht, "n2", new_data(2, "Name 2"));
-    ina_hashtable_set_str(ht, "n3", new_data(3, "Name 3"));
-    ina_hashtable_set_str(ht, "n4", new_data(4, "Name 4"));
+
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_str(ht, "n1", new_data(1, "Name 1")));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_str(ht, "n2", new_data(2, "Name 2")));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_str(ht, "n3", new_data(3, "Name 3")));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_str(ht, "n4", new_data(4, "Name 4")));
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
+    INA_TEST_ASSERT_EQUAL_INT(4, count);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_new(ht, &iter));
     INA_TEST_ASSERT_NOT_NULL(ht);
@@ -418,6 +420,7 @@ INA_TEST(hashtable, iter)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_next(iter, &d));
     INA_TEST_ASSERT_NOT_NULL(&d);
     d = NULL;
+
     INA_TEST_ASSERT_FAILED(ina_hashtable_iter_next(iter, &d));
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_reset(iter));
@@ -501,4 +504,23 @@ INA_TEST(hashtable, clear)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
     INA_TEST_ASSERT_EQUAL_INT(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+}
+
+INA_TEST(hashtable, new_from_cfg)
+{
+    ina_hashtable_t *ht;
+    const char* names[] = {"h1", "h2", "h3", NULL};
+    int i = 0;
+    const int data = 1;
+
+    while (names[i++]) {
+        int j;
+        INA_TEST_ASSERT_SUCCEED(ina_hashtable_new_from_cfg(INA_HASHTABLE_INT32_KEY, names[i], &ht));
+        INA_TEST_ASSERT_NOT_NULL(ht);
+        for (j=0;j<100;j++) {
+            INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, i, &data));
+        }
+        INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+        INA_TEST_ASSERT_NULL(ht);
+    }
 }

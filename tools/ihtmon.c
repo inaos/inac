@@ -128,6 +128,7 @@ static void ihtm_update(int ht)
     ina_str_free(ne);
 }
 
+
 static void ihtm_init(void)
 {
     int i;
@@ -174,7 +175,11 @@ int main(int argc,  char** argv)
 
     ihtm_init();
 
-    while (INA_FAILED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t, 1, 4096, INA_HASHTABLE_MAX_STAT_TABLES, INA_HASHTABLE_MAX_STAT_TABLES, "/ina_htmon", &ullc_ctx))){
+    while (INA_FAILED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t,
+            1, 4096,
+            INA_HASHTABLE_MAX_STAT_TABLES,
+            INA_HASHTABLE_MAX_STAT_TABLES,
+            "/ina_htmon", &ullc_ctx))){
         ina_time_sleep(10);
     }
 
@@ -247,6 +252,7 @@ int main(int argc,  char** argv)
                 case INA_HASHTABLE_EVENT_EXPANSION: {
                     ++info[ht].ex;
                     break;
+
                 }
                 case INA_HASHTABLE_EVENT_FREE: {
                     info[ht].active = 0;
@@ -262,6 +268,7 @@ int main(int argc,  char** argv)
                     event->data2);*/
             fflush(stdout);
         }
+        ina_time_sleep(5);
     }
     return EXIT_SUCCESS;
 }
