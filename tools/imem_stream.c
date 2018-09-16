@@ -241,7 +241,7 @@ static double	avgtime[4] = {0}, maxtime[4] = {0},
 static char	*label[4] = {"Copy:      ", "Scale:     ",
     "Add:       ", "Triad:     "};
 
-static double	bytes[4];/* = {
+static size_t	bytes[4];/* = {
     2 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     2 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     3 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
@@ -560,7 +560,7 @@ void checkSTREAMresults ()
 		epsilon = 1.e-13;
 	}
 	else {
-		printf("WEIRD: sizeof(STREAM_TYPE) = %lu\n",sizeof(STREAM_TYPE));
+		printf("WEIRD: sizeof(STREAM_TYPE) = %zu\n",sizeof(STREAM_TYPE));
 		epsilon = 1.e-6;
 	}
 
