@@ -663,7 +663,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 }
 #else
 static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
-                                    size_t *nb_buf_len, size_t *nb_buf_pos)
+                                    size_t *nb_buf_len, size_t *nb_buf_pos, int rcv)
 {
     ina_rc_t rc = INA_SUCCESS;
     char *buf = NULL;
@@ -671,10 +671,13 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
     struct termios new_termios;
     struct termios old_termios;
     
-    tcgetattr(0, &old_termios);
+    tcgetattr(STDIN_FILENO, &old_termios);
     memcpy(&new_termios, &old_termios, sizeof(new_termios));
     cfmakeraw(&new_termios);
-    tcsetattr(0, TCSANOW, &new_termios);
+    if (rcv) {
+        new_termios.c_lflag &= ~(ECHO);
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
 
     while (1) {
         struct timeval tv = { 0L, 0L };
@@ -735,8 +738,19 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 buf = *nb_buf;
                 buf[*nb_buf_pos] = (char)c;
                 *nb_buf_pos += 1;
-                fprintf(stdout, "%c", c);
-                fflush(stdout);
+                if (!rcv) {
+                    fprintf(stdout, "%c", c);
+                    fflush(stdout);
+                } else {
+                    *line = ina_str_new_fromcstr(*nb_buf);
+                    ina_mem_free(*nb_buf);
+                    *nb_buf = NULL;
+                    *nb_buf_pos = 0;
+                    *nb_buf_len = 0;
+                    fprintf(stdout, "\b \b");
+                    fflush(stdout);
+                    break;
+                }
             }
 
             if (blocking == INA_NO) {
@@ -748,7 +762,8 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             ina_time_sleep(10);
         }
     }
-    tcsetattr(0, TCSANOW, &old_termios);
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_termios);
     return rc;
 } 
 #endif
@@ -758,7 +773,7 @@ INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
     size_t buf_len = 0;
     size_t buf_pos = 0;
     INA_VERIFY_NOT_NULL(line);
-    return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos);
+    return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos, INA_NO);
 }
 
 INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
@@ -768,5 +783,20 @@ INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf,
     INA_VERIFY_NOT_NULL(buf);
     INA_VERIFY_NOT_NULL(buf_len);
     INA_VERIFY_NOT_NULL(buf_pos);
-    return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos);
+    return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos, INA_NO);
+}
+
+INA_API(ina_rc_t) ina_cio_read_char_non_block(char *ch)
+{
+    ina_str_t line;
+    char *buf = NULL;
+    size_t buf_len = 0;
+    size_t buf_pos = 0;
+    if (INA_SUCCESS == (__ina_cio_read_line(&line, INA_NO, &buf, &buf_len, &buf_pos, INA_YES))) {
+        const char * cstr = ina_str_cstr(line);
+        *ch = cstr[0];
+        ina_str_free(line);
+        return INA_SUCCESS;
+    }
+    return INA_ERR_TRY_AGAIN;
 }

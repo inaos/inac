@@ -237,6 +237,8 @@ INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line);
 INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
                                               size_t *buf_len, size_t *buf_cur);
 
+INA_API(ina_rc_t) ina_cio_read_char_non_block(char *ch);
+
 #ifdef __cplusplus
 }
 #endif
