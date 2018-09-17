@@ -232,7 +232,12 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
 INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
 {
     INA_VERIFY_NOT_NULL(host);
-    if (gethostname(host, len) != 0) {
+#ifdef INA_OS_WIN32
+	INA_VERIFY(len < INT_MAX);
+    if (gethostname(host, (int)len) != 0) {
+#else
+	if (gethostname(host, len) != 0) {
+#endif
         return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);
     }
     return INA_SUCCESS;
