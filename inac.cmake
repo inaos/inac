@@ -38,6 +38,13 @@ if (MSVC)
     SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "/INCREMENTAL:NO ${replacementFlags3}" )
 endif()
 
+if (APPLE)
+    set(CMAKE_EXE_LINKER_FLAGS "-undefined dynamic_lookup -pagezero_size 10000 -image_base 100000000")
+endif()
+
+if ("${CMAKE_SYSTEM}" MATCHES "Linux")
+    set(CMAKE_EXE_LINKER_FLAGS "-rdynamic -Wl,-E")
+endif()
 
 include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include"
         "${CMAKE_SOURCE_DIR}/include"
