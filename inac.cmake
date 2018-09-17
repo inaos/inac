@@ -80,6 +80,12 @@ if (INAC_COVERAGE_ENABLED)
             message(FATAL_ERROR "gcovr not found! Aborting...")
         endif()
     endif()
+    if(MSVC)
+        find_program(OPENCPPCOVERAGE_PATH opencppcoverage.exe  PATHS)
+        if(NOT OPENCPPCOVERAGE_PATH)
+            message(FATAL_ERROR "OpenCppCoverage not found! Aborting...")
+        endif()
+    endif()
 
     set(COVERAGE_EXCLUDE "")
     if (EXISTS ${PROJECT_SOURCE_DIR}/tests/coverage.ignore)
@@ -249,7 +255,7 @@ function(inac_version VERSION)
 
     project("${CMAKE_PROJECT_NAME}" VERSION "${PRJ_MAJOR}.${PRJ_MINOR}.${PRJ_PATCH}")
     if (PRJ_HEADER AND EXISTS ${CMAKE_SOURCE_DIR}/${PRJ_HEADER}.in)
-        message(STATUS "Versin header ${PRJ_HEADER}")
+        message(STATUS "Version header ${PRJ_HEADER}")
         configure_file(${CMAKE_SOURCE_DIR}/${PRJ_HEADER}.in ${PRJ_HEADER})
     endif()
     message(STATUS Major: ${CMAKE_PROJECT_VERSION_MAJOR})
@@ -395,8 +401,7 @@ endmacro()
 #
 function(inac_add_tests)
     if(WIN32)
-		file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/src COV_SRC_PATH)
-        set(CMD opencppcoverage.exe --sources=${COV_SRC_PATH} --export_type=cobertura -- tests.exe --format=junit>junit.xml)
+        set(CMD ".\\tests.exe --format=junit>junit.xml")
     else()
         set(CMD "./tests --format=junit>junit.xml")
     endif()
@@ -423,7 +428,7 @@ function(inac_add_tests)
     endif ()
     add_executable(tests ${src})
     target_link_libraries(tests ${ARGN} ${INAC_DEPENDENCY_LIBS} ${PLATFORM_LIBS})
-    #inac_coverage(coverage tests inac)
+    inac_coverage(coverage tests tests-coverage)
     add_custom_target(runtests DEPENDS tests COMMAND ${CMD} WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runtests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_tests)
@@ -920,12 +925,20 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             COMMENT "Running gcovr to produce Cobertura code coverage report."
-    )
+        )
     endif()
-    ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
-        COMMAND ;
-        COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
-    )
+    if(MSVC)
+        set(CMD opencppcoverage.exe  tests.exe --format=junit>junit.xml)
+        ADD_CUSTOM_TARGET(${TARGET}
+                ${RUNNER} ${ARGV3}
+                COMMAND ${OPENCPPCOVERAGEPATH} --working_dir=${CMAKE_SOURCE_DIR} ${COVERAGE_EXCLUDE} --export_type=cobertura -- ${RUNNER}.exe ${ARGV4}
+                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                COMMENT "Running OppCppCoverage to produce Cobertura code coverage report.")
+        ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
+            COMMAND ;
+            COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
+        )
+    endif()
 endfunction()
 
 inac_detect_host_arch()
