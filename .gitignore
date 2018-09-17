@@ -20,4 +20,4 @@ include/libinac/contribs
 .scannerwork/
 bw-output/
 cmake-build-*
-
+build*/
