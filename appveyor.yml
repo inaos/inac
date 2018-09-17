@@ -171,6 +171,6 @@ deploy_script:
           Write-Host "curl.exe -u${user}:${pwd}  -T $src $url"
           $ret = curl.exe "-u${user}:${pwd}" "-T" $src $url 2>1
         } else {
-          $ret = /usr/bin/curl "-u${user}:${pwd}" "-T" $src 2>1
+          $ret = /usr/bin/curl "-u${user}:${pwd}" "-T" $src $url 2>1
         }
         $LastExitCode = 0
