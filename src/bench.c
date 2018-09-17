@@ -39,7 +39,6 @@
 typedef int (*ina_bench_filter_fn_t)(ina_bench_benchmark_t*);
 
 static const char* __bench_name = NULL;
-static const char* __binpath = NULL;
 static ina_bench_benchmark_t *__current = NULL;
 static ina_str_t __scale_label = NULL;
 static ina_time_tsc_t *__time1 = NULL;
@@ -66,6 +65,7 @@ INA_BENCH_END(bench , series) {}
 INA_BENCH(bench, series, 0) { }
 
 static int __ina_bench_all(ina_bench_benchmark_t* b) {
+    INA_UNUSED(b);
     return 1;
 }
 
@@ -177,8 +177,6 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
     ina_bench_benchmark_t* begin;
     ina_bench_benchmark_t* end;
     ina_str_t report_path = NULL;
-
-    __binpath = argv[0];
 
     INA_MUST_SUCCEED(ina_init());
 
