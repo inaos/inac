@@ -148,6 +148,7 @@ static void __ina_process_fsm_event_error(void *user_data)
 
 ina_rc_t __ina_process_cron_start_cb(ina_cron_ctx_t *ctx, void *user_data)
 {
+    INA_UNUSED(ctx);
     ina_process_t *p = (ina_process_t*)user_data;
     if (INA_FSM_GET_STATE(process_fsm, p->state) == INA_PROCESS_STARTABLE) {
         INA_FSM_FIRE_EVENT(process_fsm, p->state, INA_PROCESS_START, p);
@@ -157,6 +158,8 @@ ina_rc_t __ina_process_cron_start_cb(ina_cron_ctx_t *ctx, void *user_data)
 
 ina_rc_t __ina_process_cron_stop_cb(ina_cron_ctx_t *ctx, void *user_data)
 {
+    INA_UNUSED(ctx);
+
     ina_process_t *p = (ina_process_t*)user_data;
     if (INA_FSM_GET_STATE(process_fsm, p->state) == INA_PROCESS_RUNNING) {
         INA_FSM_FIRE_EVENT(process_fsm, p->state, INA_PROCESS_STOP, p);
@@ -177,7 +180,7 @@ INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx)
                                            NULL));
     INA_RETURN_IF_FAILED(ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL, *ctx));
     ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
-                      INA_HASHTABLE_HASH_DEFAULT,
+                      INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
                       INA_HASHTABLE_GROW_DEFAULT,
                       INA_HASHTABLE_SHRINK_DEFAULT,

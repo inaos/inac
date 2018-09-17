@@ -133,6 +133,64 @@ static uint32_t crc32_tab[] = {
 		0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
+static const char* __hash_names[] = {
+		"crc32",
+		"lockup332",
+		"djb",
+		"jenkins_ooat",
+		"fnv32",
+		"superfast",
+		"sdbm",
+		"fnv_yoshimitsu",
+		"murmur3",
+		"spooky32",
+		"xxhash32",
+		"crc_hw32",
+		"memmash32",
+		"falkhash32",
+		"t1ha032",
+		"t1ha132",
+#ifdef INA_CPU_X86_64
+		"lockup364",
+		"fnv64",
+		"spooky64",
+		"xxhash64",
+		"crc_hw64",
+		"memmash64",
+		"falkhash64",
+		"t1ha064",
+		"t1ha164",
+		NULL
+#endif
+};
+
+INA_API(const char*) ina_hash_name(ina_hash_type_t hash_type)
+{
+	static const char* unknown = "unknown";
+
+	if (hash_type < 0 || hash_type > INA_HASH64_T1HA1) {
+		return unknown;
+	}
+	return __hash_names[hash_type];
+}
+
+INA_API(ina_rc_t) ina_hash_type(const char *hash_name, ina_hash_type_t *hash_type)
+{
+	int i = -1;
+	INA_VERIFY_NOT_NULL(hash_name);
+	INA_VERIFY_NOT_NULL(hash_type);
+	*hash_type = INA_HASH_DEFAULT;
+	while (__hash_names[++i]) {
+		if (strcmp(hash_name, __hash_names[i]) == 0) {
+			*hash_type = (ina_hash_type_t)i;
+			break;
+		}
+	}
+	if (*hash_type == INA_HASH_DEFAULT) {
+		return INA_ERROR(INA_ERR_NOT_EXISTS);
+	}
+	return INA_SUCCESS;
+}
 
 INA_API(uint32_t) ina_hash_crc32(uint32_t hash, const void *data, size_t size)
 {
@@ -1081,7 +1139,7 @@ INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t siz
 INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t size)
 {
     uint32_t crc = hash;
-    const char* buf = (const char*)data;
+    const unsigned char* buf = (const unsigned char*)data;
     INA_ASSERT_NOTNULL(data);
 
     /* XOR the initial CRC with INT_MAX */

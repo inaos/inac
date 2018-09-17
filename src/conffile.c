@@ -116,13 +116,13 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
                                         4094, 
                                         INA_MEM_DYNAMIC, 
                                         NULL))) {
-        ina_ljit_destroy(&(*cf)->lctx);
+        ina_ljit_destroy((&(*cf)->lctx));
         ina_mem_free(*cf);
         *cf = NULL;
         return ina_err_get_last_rc();
     }
     if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                      INA_HASHTABLE_HASH_DEFAULT,
+                      INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
                       INA_HASHTABLE_GROW_DEFAULT,
                       INA_HASHTABLE_SHRINK_DEFAULT,
@@ -130,7 +130,6 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
                       INA_HASHTABLE_CF_DEFAULT, &(*cf)->sections))) {
 
         ina_mempool_free(&(*cf)->mempool);
-        ina_ljit_destroy(&(*cf)->lctx);
         ina_mem_free(*cf);
         *cf = NULL;
         return ina_err_get_last_rc();
@@ -188,7 +187,7 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
     sp->required = required;
 
     ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                      INA_HASHTABLE_HASH_DEFAULT,
+                      INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
                       INA_HASHTABLE_GROW_DEFAULT,
                       INA_HASHTABLE_SHRINK_DEFAULT,
@@ -196,7 +195,7 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
                       INA_HASHTABLE_CF_DEFAULT, &sp->keys);
 
     ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                      INA_HASHTABLE_HASH_DEFAULT,
+                      INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
                       INA_HASHTABLE_GROW_DEFAULT,
                       INA_HASHTABLE_SHRINK_DEFAULT,
@@ -362,11 +361,9 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath,
     if (cf->sections == NULL) {
         return INA_ERROR(INA_NN_CONFIGURATION|INA_ERR_EMPTY);
     }
-    
-    if (cf->prepared != INA_YES) {
-        if (INA_FAILED(__ina_prepare(cf))) {
-            return ina_err_get_last_rc();
-        }
+
+    if (INA_FAILED(__ina_prepare(cf))) {
+        return ina_err_get_last_rc();
     }
 
     lua_getglobal(cf->lctx->lstate, __INA_ENUM_SECTIONS);
@@ -392,6 +389,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath,
         "local cf = require('lconffile')\n cf.process(sections, conf_file)\n") 
 		    != 0) {
         /*INA_ERRMSG(INA_EEXCALL, lua_tostring(cf->lctx->lstate, -1), NULL);*/
+        printf("%s\n", lua_tostring(cf->lctx->lstate, -1));
         INA_ERROR(INA_NN_SCRIPT|INA_ERR_FAILED);
         lua_pop(cf->lctx->lstate, 1);
         return ina_err_get_last_rc();
@@ -423,9 +421,6 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath,
 static ina_rc_t 
 __ina_prepare(ina_conffile_t *cf)
 {
-    if (INA_FAILED(ina_ljit_init(&cf->lctx))) {
-        return ina_err_get_last_rc();
-    }
     if (cf->prepared == INA_YES) {
         return INA_SUCCESS;
     }
@@ -542,14 +537,13 @@ __ina_process_section_table(ina_conffile_t *cf)
 
             if (!named) {
                 const char *rk = __INA_ATTR_DEFAULT;
-                unsigned long rki = INA_HASH_CSTR_TO_SDBM(rk);
 
                 e = (ina_conffile_entries_t*)ina_mempool_dalloc(
                                         cf->mempool,
                                         sizeof(ina_conffile_entries_t));
                 e->key = ina_str_new_fromcstr_using_pool(rk, cf->mempool);
                 ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                                  INA_HASHTABLE_HASH_DEFAULT,
+                                  INA_HASH_DEFAULT,
                                   INA_HASHTABLE_TYPE_DEFAULT,
                                   INA_HASHTABLE_GROW_DEFAULT,
                                   INA_HASHTABLE_SHRINK_DEFAULT,
@@ -573,7 +567,7 @@ __ina_process_section_table(ina_conffile_t *cf)
                                         sizeof(ina_conffile_entries_t));
                     e->key = ina_str_new_fromcstr_using_pool(rk, cf->mempool);
                     ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                                      INA_HASHTABLE_HASH_DEFAULT,
+                                      INA_HASH_DEFAULT,
                                       INA_HASHTABLE_TYPE_DEFAULT,
                                       INA_HASHTABLE_GROW_DEFAULT,
                                       INA_HASHTABLE_SHRINK_DEFAULT,
@@ -650,12 +644,8 @@ __ina_get_value(ina_conffile_t *cf, const char* section_name,
         return INA_ERROR(INA_NN_SECTION|INA_ERR_NOT_EXISTS);
     }
 
-    /* Second section lockup for named sections */
-    if (section->named) {
-        ina_hashtable_get_str(section->entries, section_key, (void**)&entries);
-    } else {
-        ina_hashtable_get_str(section->entries, __INA_ATTR_DEFAULT, (void**)&entries);
-    }
+    ina_hashtable_get_str(section->entries, k, (void**)&entries);
+
     if (entries == NULL || entries->entries == NULL) {
         return INA_ERROR(INA_NN_SECTION|INA_ERR_EMPTY);
     }

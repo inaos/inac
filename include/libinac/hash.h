@@ -39,6 +39,41 @@ extern "C" {
 #define INA_HASH_STR_TO_CRC32(s) ina_hash_crc32(0, ina_str_cstr(s), ina_str_len(s))
 #define INA_HASH_STR_TO_SDBM(s)  ina_hash_sdbm(0, ina_str_cstr(s), ina_str_len(s))
 
+typedef enum ina_hash_type_e {
+    INA_HASH_DEFAULT = -1,
+    INA_HASH32_CRC,
+    INA_HASH32_LOOKUP3,
+    INA_HASH32_DJB,
+    INA_HASH32_JENKINS_OOAT,
+    INA_HASH32_FNV,
+    INA_HASH32_SUPERFAST,
+    INA_HASH32_SDBM,
+    INA_HASH32_FNV_YOSHIMITSU,
+    INA_HASH32_MURMUR3,
+    INA_HASH32_SPOOKY,
+    INA_HASH32_XXHASH,
+    INA_HASH32_CRC_HW,
+    INA_HASH32_MEMMASH,
+    INA_HASH32_FALKHASH,
+    INA_HASH32_T1HA0,
+    INA_HASH32_T1HA1,
+#ifdef INA_CPU_X86_64
+    INA_HASH64_LOCKUP3,
+    INA_HASH64_FNV,
+    INA_HASH64_SPOOKY,
+    INA_HASH64_XXHASH,
+    INA_HASH64_CRC_HW,
+    INA_HASH64_MEMMASH,
+    INA_HASH64_FALKHASH,
+    INA_HASH64_T1HA0,
+    INA_HASH64_T1HA1
+#endif
+} ina_hash_type_t;
+
+INA_API(const char*) ina_hash_name(ina_hash_type_t hash_type);
+
+INA_API(ina_rc_t) ina_hash_type(const char *hash_name, ina_hash_type_t *hash_type);
+
 /*
  * Calculate 32bit CRC hash
  *

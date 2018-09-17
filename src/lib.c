@@ -136,14 +136,14 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
         __ina_sopt_t *so = NULL;
         ina_hashtable_iter_t *iter;
         ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                          INA_HASHTABLE_HASH_DEFAULT,
+                          INA_HASH_DEFAULT,
                           INA_HASHTABLE_TYPE_DEFAULT,
                           INA_HASHTABLE_GROW_DEFAULT,
                           INA_HASHTABLE_SHRINK_DEFAULT,
                           INA_HASHTABLE_DEFAULT_CAPACITY,
                           INA_HASHTABLE_CF_DEFAULT, &__sopt);
         ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                          INA_HASHTABLE_HASH_DEFAULT,
+                          INA_HASH_DEFAULT,
                           INA_HASHTABLE_TYPE_DEFAULT,
                           INA_HASHTABLE_GROW_DEFAULT,
                           INA_HASHTABLE_SHRINK_DEFAULT,
@@ -152,7 +152,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
 
         while (opt->long_opt) {
             __ina_lopt_t *lo;
-            so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
+            __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             ina_mem_set(so, 0, sizeof(__ina_sopt_t));
             if (so == NULL) {
                 return ina_err_get_last_rc();
@@ -476,11 +476,9 @@ __ina_opt_get(const char *opt)
 
     INA_ASSERT_NOTNULL(opt);
 
-    ina_hashtable_get_str(__sopt, opt, (void**)&so);
-    if (so == NULL) {
+    if (INA_FAILED(ina_hashtable_get_str(__sopt, opt, (void**)&so))) {
         __ina_lopt_t *lo = NULL;
-        ina_hashtable_get_str(__lopt, opt, (void**)&lo);
-        if (lo != NULL) {
+        if (INA_SUCCEED(ina_hashtable_get_str(__lopt, opt, (void**)&lo))) {
             so = lo->short_opt;
         }
     }
@@ -492,7 +490,6 @@ __ina_opt_usage(void)
 {
     ina_hashtable_iter_t *iter;
     __ina_lopt_t *lo = NULL;
-    __ina_lopt_t *tmp_lo =  NULL;
     __ina_sopt_t *so = NULL;
 
     printf("USAGE: %s ", ina_str_cstr(__appname));
@@ -708,7 +705,6 @@ __ina_signal_handler(int sig)
                 ina_err_backtrace(NULL);
 #endif
                 exit(EXIT_FAILURE);
-                break;
             }
         case SIGTERM:
         case SIGINT:
@@ -725,8 +721,6 @@ __ina_signal_handler(int sig)
         case SIGKILL:
 #endif
             break;
-        default:
-            INA_TRACE("Unknown signal received!");
     }
 }
 

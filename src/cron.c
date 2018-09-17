@@ -164,17 +164,15 @@ static char *__parse_field(char *ary, int modvalue, int off, const char **names,
 			n2 = modvalue - 1;
             skip = 1;
 			++ptr;
-		} 
-		else if (*ptr >= '0' && *ptr <= '9') {
+		} else if (*ptr >= '0' && *ptr <= '9') {
 			if (n1 < 0) {
-				n1 = strtol(ptr, &ptr, 10) + off;
+				n1 = (int)strtol(ptr, &ptr, 10) + off;
 			}
 			else {
-				n2 = strtol(ptr, &ptr, 10) + off;
+				n2 = (int)strtol(ptr, &ptr, 10) + off;
 			}
 			skip = 1;
-		}
-        else if (names) {
+		} else if (names) {
 			int i;
 			for (i = 0; names[i]; ++i) {
 				if (strncmp(ptr, names[i], strlen(names[i])) == 0) {
@@ -213,7 +211,7 @@ static char *__parse_field(char *ary, int modvalue, int off, const char **names,
 		}
 
 		if (*ptr == '/') {
-			skip = strtol(ptr + 1, &ptr, 10);
+			skip = (int)strtol(ptr + 1, &ptr, 10);
 		}
 
 		/*
@@ -509,7 +507,7 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
 	}
 	(*ctx)->data = NULL;
     if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                                     INA_HASHTABLE_HASH_DEFAULT,
+                                     INA_HASH_DEFAULT,
                                      INA_HASHTABLE_TYPE_DEFAULT,
                                      INA_HASHTABLE_GROW_DEFAULT,
                                      INA_HASHTABLE_SHRINK_DEFAULT,
@@ -520,7 +518,7 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
         return ina_err_get_last_rc();
     }
     if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                                     INA_HASHTABLE_HASH_DEFAULT,
+                                     INA_HASH_DEFAULT,
                                      INA_HASHTABLE_TYPE_DEFAULT,
                                      INA_HASHTABLE_GROW_DEFAULT,
                                      INA_HASHTABLE_SHRINK_DEFAULT,

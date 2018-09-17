@@ -196,7 +196,7 @@ INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode)
         (*ctx)->default_mode =  S_IWUSR | S_IRUSR | S_IRGRP | S_IWGRP | S_IROTH;
     }
     if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
-                      INA_HASHTABLE_HASH_DEFAULT,
+                      INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
                       INA_HASHTABLE_GROW_DEFAULT,
                       INA_HASHTABLE_SHRINK_DEFAULT,

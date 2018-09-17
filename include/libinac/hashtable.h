@@ -73,36 +73,6 @@ typedef enum ina_hashtable_shrink_strategy_e {
     INA_HASHTABLE_SHRINK_NEVER,
 } ina_hashtable_shrink_strategy_t;
 
-typedef enum ina_hashtable_hash_type_e {
-     INA_HASHTABLE_HASH_DEFAULT = -1,
-     INA_HASHTABLE_HASH32_CRC,
-     INA_HASHTABLE_HASH32_LOOKUP3,
-     INA_HASHTABLE_HASH32_DJB,
-     INA_HASHTABLE_HASH32_JENKINS_OOAT,
-     INA_HASHTABLE_HASH32_FNV,
-     INA_HASHTABLE_HASH32_SUPERFAST,
-     INA_HASHTABLE_HASH32_SDBM,
-     INA_HASHTABLE_HASH32_FNV_YOSHIMITSU,
-     INA_HASHTABLE_HASH32_MURMUR3,
-     INA_HASHTABLE_HASH32_SPOOKY,
-     INA_HASHTABLE_HASH32_XXHASH,
-     INA_HASHTABLE_HASH32_CRC_HW,
-     INA_HASHTABLE_HASH32_MEMMASH,
-     INA_HASHTABLE_HASH32_FALKHASH,
-     INA_HASHTABLE_HASH32_T1HA0,
-     INA_HASHTABLE_HASH32_T1HA1,
-#ifdef INA_CPU_X86_64
-     INA_HASHTABLE_HASH64_LOCKUP3,
-     INA_HASHTABLE_HASH64_FNV,
-     INA_HASHTABLE_HASH64_SPOOKY,
-     INA_HASHTABLE_HASH64_XXHASH,
-     INA_HASHTABLE_HASH64_CRC_HW,
-     INA_HASHTABLE_HASH64_MEMMASH,
-     INA_HASHTABLE_HASH64_FALKHASH,
-     INA_HASHTABLE_HASH64_T1HA0,
-     INA_HASHTABLE_HASH64_T1HA1
-#endif
-} ina_hashtable_hash_type_t;
 
 /* opaque hashtable types */
 typedef struct ina_hashtable_s       ina_hashtable_t;
@@ -138,7 +108,7 @@ INA_API(ina_rc_t) ina_hashtable_destroy(void);
 
 
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
-                                    ina_hashtable_hash_type_t hash_type,
+                                    ina_hash_type_t hash_type,
                                     ina_hashtable_type_t type,
                                     ina_hashtable_growth_strategy_t growth_strategy,
                                     ina_hashtable_shrink_strategy_t shrink_strategy,
@@ -147,7 +117,6 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                     ina_hashtable_t **ht);
 
 INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, const char *name, ina_hashtable_t **ht);
-
 
 INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht);
 
@@ -245,13 +214,13 @@ INA_INLINE ina_rc_t ina_hashtable_set_str(ina_hashtable_t *ht, const char* key, 
 INA_INLINE ina_rc_t ina_hashtable_get_str(const ina_hashtable_t *ht, const char* key, void **data)
 {
     size_t key_len = INA_MIN(INA_HASHTABLE_MAX_KEY_LEN, strlen(key));
-    return ina_hashtable_get(ht, key, strlen(key), data);
+    return ina_hashtable_get(ht, key, key_len, data);
 }
 
 INA_INLINE ina_rc_t ina_hashtable_remove_str(ina_hashtable_t *ht, const char* key, void **data)
 {
     size_t key_len = INA_MIN(INA_HASHTABLE_MAX_KEY_LEN, strlen(key));
-    return ina_hashtable_remove(ht, key, strlen(key), data);
+    return ina_hashtable_remove(ht, key, key_len, data);
 }
 
 INA_INLINE ina_rc_t ina_hashtable_set_ptr(ina_hashtable_t *ht, const void* key, const void *data)

@@ -101,7 +101,7 @@ INA_TEST(hashtable, int_key)
     size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
-                                               INA_HASHTABLE_HASH_DEFAULT,
+                                               INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
@@ -154,7 +154,7 @@ INA_TEST(hashtable, uint32_key)
     size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT32_KEY,
-                                               INA_HASHTABLE_HASH_DEFAULT,
+                                               INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
@@ -206,7 +206,7 @@ INA_TEST(hashtable, uint64_key)
     size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT64_KEY,
-                                               INA_HASHTABLE_HASH_DEFAULT,
+                                               INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
@@ -259,7 +259,7 @@ INA_TEST(hashtable, int64_key)
     size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT64_KEY,
-                                               INA_HASHTABLE_HASH_DEFAULT,
+                                               INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
@@ -311,7 +311,7 @@ INA_TEST(hashtable, ptr_key)
     int count;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
-                                               INA_HASHTABLE_HASH_DEFAULT,
+                                               INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
@@ -350,7 +350,7 @@ INA_TEST(hashtable, str_key)
 
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                                               INA_HASHTABLE_HASH32_SPOOKY,
+                                               INA_HASH32_SPOOKY,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
@@ -390,7 +390,7 @@ INA_TEST(hashtable, iter)
     int count;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
-                                               INA_HASHTABLE_HASH_DEFAULT,
+                                               INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
@@ -483,7 +483,7 @@ INA_TEST(hashtable, clear)
     int count;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
-                                               INA_HASHTABLE_HASH_DEFAULT,
+                                               INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
@@ -538,7 +538,7 @@ INA_TEST(hashtable, stats)
     srand((unsigned) time(&t));
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
-                                              INA_HASHTABLE_HASH32_SDBM,
+                                              INA_HASH32_SDBM,
                                               INA_HASHTABLE_TYPE_DEFAULT,
                                               INA_HASHTABLE_GROW_DEFAULT,
                                               INA_HASHTABLE_SHRINK_DEFAULT,
@@ -546,7 +546,7 @@ INA_TEST(hashtable, stats)
                                               INA_HASHTABLE_CF_STAT|INA_HASHTABLE_CF_PREALLOCATED, &ht1));
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
-                                              INA_HASHTABLE_HASH_DEFAULT,
+                                              INA_HASH_DEFAULT,
                                               INA_HASHTABLE_TYPE_DEFAULT,
                                               INA_HASHTABLE_GROW_DEFAULT,
                                               INA_HASHTABLE_SHRINK_DEFAULT,
@@ -554,7 +554,7 @@ INA_TEST(hashtable, stats)
                                               INA_HASHTABLE_CF_STAT, &ht2));
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
-                                              INA_HASHTABLE_HASH_DEFAULT,
+                                              INA_HASH32_MEMMASH,
                                               INA_HASHTABLE_TYPE_DEFAULT,
                                               INA_HASHTABLE_GROW_DEFAULT,
                                               INA_HASHTABLE_SHRINK_DEFAULT,
@@ -563,7 +563,7 @@ INA_TEST(hashtable, stats)
 
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
-                                              INA_HASHTABLE_HASH_DEFAULT,
+                                              INA_HASH32_LOOKUP3,
                                               INA_HASHTABLE_TYPE_DEFAULT,
                                               INA_HASHTABLE_GROW_DEFAULT,
                                               INA_HASHTABLE_SHRINK_DEFAULT,
