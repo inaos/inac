@@ -321,6 +321,8 @@ INA_API(uint32_t) ina_hash_32_sdbm(uint32_t hash, const void *data, size_t size)
  *
  * Source: www.sanmayce.com/Fastest_Hash/index.html
  *
+ * Limitations: This hash function could behave undefined in case 'size' is > 32bit
+ *
  * Parameters
  *  hash   starting hash
  *  data   data to hash
@@ -334,6 +336,8 @@ INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, si
  * Calculate 32bit Murmur3 hash from Austin Appleby
  *
  * Source: C port by Shane Day
+ *
+ * Limitations: This hash function could behave undefined in case 'size' is > 32bit
  *
  * Parameters
  *  hash   starting hash
@@ -461,6 +465,8 @@ INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t si
  *
  * Source: see 64bit version
  *
+ * Limitations: If CPU does not support AES instruction hash always returns 0
+ *
  * Parameters
  *  hash   starting hash
  *  data   data to hash
@@ -474,6 +480,8 @@ INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t s
  * Calculate 64bit falkhash
  *
  * Source: https://github.com/gamozolabs/falkhash
+ *
+ * Limitations: If CPU does not support AES instruction hash always returns 0
  *
  * Parameters
  *  hash   starting hash

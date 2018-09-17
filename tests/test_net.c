@@ -257,11 +257,10 @@ INA_TEST(net_local, system_lookup)
 {
     ina_str_t *addresses;
     short      address_count;
-    size_t     n;
 
     INA_TEST_ASSERT_SUCCEED(ina_net_system_lookup("localhost", &address_count, &addresses));
     INA_TEST_ASSERT_TRUE(address_count > 0);
-    for (n = 0; n < address_count; ++n) {
+    for (int n = 0; n < address_count; ++n) {
        INA_TEST_MSG("address %d: %s", n, addresses[n]);
        ina_str_free(addresses[n]);
     }

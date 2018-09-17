@@ -113,8 +113,8 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     info->num_consumers = rb->num_consumers;
     info->num_consumers_alive = 0;
     /*info->mem_size = m->size;*/
-    info->slot_size = rb->size;
-    info->num_slots = rb->slots;
+    info->slot_size = (size_t)rb->size;
+    info->num_slots = (size_t)rb->slots;
     info->current_slot = rb->cursor;
     /*for (c = 0; c < info->num_producers; ++c) {
         if (p->alive) {
@@ -290,7 +290,7 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
     while (slow_consumer > like_to_write) {
         slow_consumer = -1;
         for (i = 0; i < num; ++i) {
-            int read_cur;
+            int64_t read_cur;
             if (ctx->c_offset[i].alive) {
                 read_cur = ctx->c_offset[i].cursor % ctx->ring->slots;
                 INA_TRACE3("wait consumer(%ld) %ld at position %d for %ld", i, slow_consumer, read_cur, like_to_write);
@@ -468,7 +468,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_swait_end(ina_ullc_ctx_t *ctx)
 
 INA_API(void *) ina_ullc_consumer_get(ina_ullc_ctx_t *ctx)
 {
-    int idx;
+    int64_t idx;
     void *item;
     int64_t wait_for;
 

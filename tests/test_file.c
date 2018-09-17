@@ -95,10 +95,10 @@ INA_TEST(file, stat)
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_file_size(stat, &file_size));
     INA_TEST_ASSERT_EQUAL_INT64(180LL, file_size);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_atime(stat, &t));
-    INA_TEST_ASSERT_NOT_EQUAL_SIZE_T(0, t);
+    INA_TEST_ASSERT_NOT_EQUAL_TIME_T(0, t);
     t = 0;
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_mtime(stat, &t));
-    INA_TEST_ASSERT_NOT_EQUAL_SIZE_T(0, t);
+    INA_TEST_ASSERT_NOT_EQUAL_TIME_T(0, t);
     INA_TEST_ASSERT_FAILED(ina_file_stat_is_dir(stat));
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_free(&stat));
     INA_ASSERT_NULL(stat);

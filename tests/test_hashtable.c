@@ -481,7 +481,6 @@ INA_TEST(hashtable, clear)
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data;
     int count;
-    size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                                INA_HASHTABLE_HASH_DEFAULT,

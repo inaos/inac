@@ -73,7 +73,7 @@ INA_TEST(time,time_stamp)
         INA_TEST_ASSERT_TRUE(msec_duration < w->ts->msec_duration);
         ++c;
     }
-    INA_TEST_ASSERT_EQUAL_SIZE_T(10, c);
+    INA_TEST_ASSERT_EQUAL_TIME_T(10, c);
     INA_TEST_ASSERT_SUCCEED(ina_time_stopwatch_free(&w));
 }
 

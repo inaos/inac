@@ -211,6 +211,11 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
     ina_test_assert_not_equal_int64(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NOT_EQUAL_UINT64(exp, real)                         \
     ina_test_assert_not_equal_uint64(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_EQUAL_TIME_T(exp, real)                             \
+    ina_test_assert_equal_uint64(exp, real, __FILE__, __LINE__)
+#define INA_TEST_ASSERT_NOT_EQUAL_TIME_T(exp, real)                         \
+    ina_test_assert_not_equal_uint64(exp, real, __FILE__, __LINE__)
+
 #ifdef INA_CPU_X86_64
 #define INA_TEST_ASSERT_EQUAL_SIZE_T(exp, real)                             \
     ina_test_assert_equal_uint64(exp, real, __FILE__, __LINE__)

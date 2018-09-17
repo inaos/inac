@@ -398,7 +398,7 @@ INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, si
     const uint8_t  *p = (const uint8_t*)data;
     const uint32_t  PRIME = 709607;
     uint32_t hash32A = hash ^ 2166136261;
-    uint32_t hash32B = 2166136261 + size;
+    uint32_t hash32B = 2166136261 + (uint32_t)size;
     uint32_t hash32C = 2166136261;
     INA_ASSERT_NOTNULL(data);
     
@@ -603,7 +603,7 @@ uint32_t __ina_hash_PMurHash32_Result(uint32_t h, uint32_t carry, uint32_t total
 /*---------------------------------------------------------------------------*/
 
 /* Murmur3A compatable all-at-once */
-uint32_t __ina_hash_PMurHash32(uint32_t seed, const void *key, int len)
+uint32_t __ina_hash_PMurHash32(uint32_t seed, const void *key, uint32_t len)
 {
   uint32_t h1=seed, carry=0;
   __ina_hash_PMurHash32_Process(&h1, &carry, key, len);
@@ -615,7 +615,7 @@ uint32_t __ina_hash_PMurHash32(uint32_t seed, const void *key, int len)
 INA_API(uint32_t) ina_hash_32_murmur3(uint32_t hash, const void *data, size_t size)
 {
     INA_ASSERT_NOTNULL(data);
-    return __ina_hash_PMurHash32(hash, data, size);
+    return __ina_hash_PMurHash32(hash, data, (uint32_t)size);
 }
 
 /* BEGIN SPOOKY hash support code */
@@ -1093,9 +1093,6 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
     }
 
     /* Blast off the CRC32 calculation */
-#ifdef INA_CPU_X86_64
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u64, crc, uint64_t, buf, size);
-#endif
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, buf, size);
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, buf, size);
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8,  crc, uint8_t, buf, size);

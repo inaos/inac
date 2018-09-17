@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, INAOS GmbH
+ * Copyright (c) 2013-2018, INAOS GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

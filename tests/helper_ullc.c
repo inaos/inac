@@ -46,8 +46,8 @@ static void ina_test_helper_cleanup_consumer(int error, int *exitcode) {
 /* Create a single */
 INA_TEST_HELPER(ullc, create_fast_producer) {
     const char* name;
-    size_t consumers;
-    size_t producers;
+    int consumers;
+    int producers;
     size_t slots;
     int16_t version;
     ina_test_ullc_t *v = NULL;
@@ -58,8 +58,8 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
     INA_TEST_HELPER_CHECK_ARGC(5);
     version = (int16_t)INA_TEST_HELPER_IARG(0);
     slots = (size_t)INA_TEST_HELPER_IARG(1);
-    producers = (size_t)INA_TEST_HELPER_IARG(2);
-    consumers = (size_t)INA_TEST_HELPER_IARG(3);
+    producers = INA_TEST_HELPER_IARG(2);
+    consumers = INA_TEST_HELPER_IARG(3);
     name = INA_TEST_HELPER_CARG(4);
 
   
@@ -96,8 +96,8 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
 /* Create a single */
 INA_TEST_HELPER(ullc, create_consumer) {
     const char* name;
-    size_t consumers;
-    size_t producers;
+    int consumers;
+    int producers;
     size_t slots;
     int16_t version;
     ina_ullc_ctx_t *ullc_ctx = NULL;
@@ -108,8 +108,8 @@ INA_TEST_HELPER(ullc, create_consumer) {
     INA_TEST_HELPER_CHECK_ARGC(5);
     version = (int16_t)INA_TEST_HELPER_IARG(0);
     slots = (size_t)INA_TEST_HELPER_IARG(1);
-    producers = (size_t)INA_TEST_HELPER_IARG(2);
-    consumers = (size_t)INA_TEST_HELPER_IARG(3);
+    producers = INA_TEST_HELPER_IARG(2);
+    consumers = INA_TEST_HELPER_IARG(3);
     name = INA_TEST_HELPER_CARG(4);
 
 

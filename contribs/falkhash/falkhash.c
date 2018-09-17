@@ -105,7 +105,7 @@ falkhash(
 	return hash;
 }
 
-uint64_t falkhash64(const void * key, int len, uint64_t seed)
+uint64_t falkhash64(const void * key, size_t len, uint64_t seed)
 {
 	uint64_t hash[2];
     __m128i val;
@@ -117,7 +117,7 @@ uint64_t falkhash64(const void * key, int len, uint64_t seed)
     return hash[0];
 }
 #else
-uint64_t falkhash64(const void * key, int len, uint64_t seed)
+uint64_t falkhash64(const void * key, size_t len, uint64_t seed)
 {
     return 0;
 }

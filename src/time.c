@@ -546,7 +546,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch, 
 			const char* user_data1, const char* user_data2)
 {
-    size_t si = 0;
+    uint64_t si = 0;
     ina_stopwatch_ts_t *ts = NULL;
 
     INA_VERIFY_NOT_NULL(stopwatch);
