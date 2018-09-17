@@ -395,9 +395,10 @@ endmacro()
 #
 function(inac_add_tests)
     if(WIN32)
-        set(CMD ".\\tests.exe")
+		file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/src COV_SRC_PATH)
+        set(CMD opencppcoverage.exe --sources=${COV_SRC_PATH} --export_type=cobertura -- tests.exe --format=junit>junit.xml)
     else()
-        set(CMD "./tests")
+        set(CMD "./tests --format=junit>junit.xml")
     endif()
     remove_definitions(-DINA_LIB)
     message(STATUS "Platform libs: ${PLATFORM_LIBS}")
@@ -422,8 +423,8 @@ function(inac_add_tests)
     endif ()
     add_executable(tests ${src})
     target_link_libraries(tests ${ARGN} ${INAC_DEPENDENCY_LIBS} ${PLATFORM_LIBS})
-    inac_coverage(INAC_COVERAGE tests inac)
-    add_custom_target(runtests DEPENDS tests COMMAND "${CMD}" "--format=junit>junit.xml"  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    #inac_coverage(coverage tests inac)
+    add_custom_target(runtests DEPENDS tests COMMAND ${CMD} WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runtests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_tests)
 
@@ -909,6 +910,24 @@ function(inac_artifact_name name version output_var)
     set("${output_var}" ${ARTIFACT_NAME} PARENT_SCOPE)
 endfunction()
 
+
+function(inac_coverage TARGET RUNNER OUTPUT)
+    if(UNIX)
+        TARGET_LINK_LIBRARIES(${RUNNER} gcov)
+        set_target_properties(${RUNNER} PROPERTIES COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
+        ADD_CUSTOM_TARGET(${TARGET}
+            ${RUNNER} ${ARGV3}
+            COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Running gcovr to produce Cobertura code coverage report."
+    )
+    endif()
+    ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
+        COMMAND ;
+        COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
+    )
+endfunction()
+
 inac_detect_host_arch()
 if (NOT INAC_TARGET_ARCH)
     inac_set_target_arch(${INAC_HOST_ARCH})
@@ -917,6 +936,8 @@ endif()
 if (NOT INAC_REPOSITORY)
     set(INAC_REPOSITORY repository)
 endif()
+
+
 inac_load_config_file("${INAC_REPOSITORY_PATH}/${INAC_REPOSITORY}.txt" FALSE)
 inac_enable_trace(Debug 1)
 inac_enable_log(Debug 4)
@@ -928,29 +949,6 @@ inac_platform_libs_for_osx("-ldl -lm")
 
 
 
-function(inac_coverage TARGET RUNNER OUTPUT)
-    TARGET_LINK_LIBRARIES(${RUNNER} gcov)
-    set_target_properties(${RUNNER} PROPERTIES
-            COMPILE_FLAGS "-fprofile-arcs -ftest-coverage"
-            )
-
-    ADD_CUSTOM_TARGET(${TARGET}
-
-            # Run tests
-            ${RUNNER} ${ARGV3}
-
-            # Running gcovr
-            COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            COMMENT "Running gcovr to produce Cobertura code coverage report."
-            )
-
-    # Show info where to find the report
-    ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
-            COMMAND ;
-            COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
-            )
-endfunction()
 
 
 
