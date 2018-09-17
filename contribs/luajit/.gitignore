@@ -1,0 +1,3 @@
+*.exp
+*.exe
+src/jit/vmdef.lua
