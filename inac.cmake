@@ -63,6 +63,35 @@ endif (WIN32)
 
 add_definitions(-DINA_OSTIME_ENABLED -DINA_TIME_DEFINED)
 
+if (INAC_COVERAGE_ENABLED)
+    if(UNIX)
+        find_program(GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/scripts)
+
+        if (NOT (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+            MESSAGE( WARNING "Code coverage results with an optimised (non-Debug) build may be misleading")
+        endif()
+
+        find_program(PYTHON_EXECUTABLE python)
+        if(NOT PYTHON_EXECUTABLE)
+            message(FATAL_ERROR "Python not found! Aborting...")
+        endif()
+
+        if(NOT GCOVR_PATH)
+            message(FATAL_ERROR "gcovr not found! Aborting...")
+        endif()
+    endif()
+
+    set(COVERAGE_EXCLUDE "")
+    if (EXISTS ${PROJECT_SOURCE_DIR}/tests/coverage.ignore)
+        file(READ ${PROJECT_SOURCE_DIR}/tests/coverage.ignore CONTENT)
+        string(REGEX REPLACE "\n" ";" CONTENT "${CONTENT}")
+        foreach(LINE ${CONTENT})
+            set(COVERAGE_EXCLUDE -e '${LINE}' ${COVERAGE_EXCLUDE})
+        endforeach(LINE)
+    endif()
+endif()
+
+
 function(inac_enable_verbose)
     set(CMAKE_VERBOSE_MAKEFILE ON PARENT_SCOPE)
     message(STATUS "Verbose output enabled")
@@ -393,7 +422,7 @@ function(inac_add_tests)
     endif ()
     add_executable(tests ${src})
     target_link_libraries(tests ${ARGN} ${INAC_DEPENDENCY_LIBS} ${PLATFORM_LIBS})
-
+    inac_coverage(INAC_COVERAGE tests inac)
     add_custom_target(runtests DEPENDS tests COMMAND "${CMD}" "--format=junit>junit.xml"  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runtests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_tests)
@@ -896,3 +925,32 @@ inac_enable_log(Release 3)
 inac_platform_libs_for_win("Ws2_32.lib;Psapi.lib;Iphlpapi.lib;winmm.lib;DbgHelp.lib")
 inac_platform_libs_for_linux("-lrt -ldl -lm")
 inac_platform_libs_for_osx("-ldl -lm")
+
+
+
+function(inac_coverage TARGET RUNNER OUTPUT)
+    TARGET_LINK_LIBRARIES(${RUNNER} gcov)
+    set_target_properties(${RUNNER} PROPERTIES
+            COMPILE_FLAGS "-fprofile-arcs -ftest-coverage"
+            )
+
+    ADD_CUSTOM_TARGET(${TARGET}
+
+            # Run tests
+            ${RUNNER} ${ARGV3}
+
+            # Running gcovr
+            COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Running gcovr to produce Cobertura code coverage report."
+            )
+
+    # Show info where to find the report
+    ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
+            COMMAND ;
+            COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
+            )
+endfunction()
+
+
+
