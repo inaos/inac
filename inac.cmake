@@ -82,7 +82,7 @@ if (INAC_COVERAGE_ENABLED)
         endif()
     endif()
     if(MSVC)
-        find_program(OPENCPPCOVERAGE_PATH opencppcoverage.exe  PATHS)
+        find_program(OPENCPPCOVERAGE_PATH opencppcoverage.exe PATHS)
         if(NOT OPENCPPCOVERAGE_PATH)
             message(FATAL_ERROR "OpenCppCoverage not found! Aborting...")
         endif()
@@ -402,9 +402,9 @@ endmacro()
 #
 function(inac_add_tests)
     if(WIN32)
-        set(CMD ".\\tests.exe --format=junit>junit.xml")
+        set(CMD ".\\tests.exe")
     else()
-        set(CMD "./tests --format=junit>junit.xml")
+        set(CMD "./tests")
     endif()
     remove_definitions(-DINA_LIB)
     message(STATUS "Platform libs: ${PLATFORM_LIBS}")
@@ -429,8 +429,8 @@ function(inac_add_tests)
     endif ()
     add_executable(tests ${src})
     target_link_libraries(tests ${ARGN} ${INAC_DEPENDENCY_LIBS} ${PLATFORM_LIBS})
-    inac_coverage(coverage tests tests-coverage)
-    add_custom_target(runtests DEPENDS tests COMMAND ${CMD} WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    inac_coverage(coverage tests tests-coverage "--format=junit>junit.xml")
+    add_custom_target(runtests DEPENDS tests COMMAND ${CMD} "--format=junit>junit.xml" WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_target_properties(runtests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endfunction(inac_add_tests)
 
@@ -493,38 +493,38 @@ endfunction(inac_add_tools)
 #
 function(inac_post_copy_file TARGET FILE)
     cmake_parse_arguments(PARSE_ARGV 2 CPY "" "DEST" "")
-    if (NOT CPY_DEST)
+	if (NOT CPY_DEST)
         set(CPY_DEST ${FILE})
     endif()
 
     message(STATUS "Post copy file '${FILE} for target ${TARGET}")
     add_custom_command(TARGET ${TARGET} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${PROJECT_SOURCE_DIR}/${TARGET}/${CPY_DEST}"
-            $<TARGET_FILE_DIR:${TARGET}>)
+            "${PROJECT_SOURCE_DIR}/${TARGET}/${FILE}"
+            $<TARGET_FILE_DIR:${TARGET}>/${CPY_DEST})
 endfunction()
 
 macro(inac_post_copy_file_win32 TARGET FILE)
     if (WIN32)
-        inac_post_copy_file(${TARGET} ${FILE})
+        inac_post_copy_file(${TARGET} ${FILE} ${ARGN})
     endif()
 endmacro()
 
 macro(inac_post_copy_file_unix TARGET FILE)
     if (UNIX)
-        inac_post_copy_file(${TARGET} ${FILE})
+        inac_post_copy_file(${TARGET} ${FILE} ${ARGN})
     endif()
 endmacro()
 
 macro(inac_post_copy_file_osx TARGET FILE)
     if (APPLE)
-        inac_post_copy_file(${TARGET} ${FILE})
+        inac_post_copy_file(${TARGET} ${FILE} ${ARGN})
     endif()
 endmacro()
 
 macro(inac_post_copy_file_linux TARGET FILE)
     if ("${CMAKE_SYSTEM}" MATCHES "Linux")
-        inac_post_copy_file(${TARGET} ${FILE})
+        inac_post_copy_file(${TARGET} ${FILE} ${ARGN})
     endif()
 endmacro()
 
@@ -930,10 +930,9 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             )
         endif()
         if(MSVC)
-            set(CMD opencppcoverage.exe  tests.exe --format=junit>junit.xml)
+			file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/src COV_SRC_PATH)
             ADD_CUSTOM_TARGET(${TARGET}
-                    ${RUNNER} ${ARGV3}
-                    COMMAND ${OPENCPPCOVERAGEPATH} --working_dir=${CMAKE_SOURCE_DIR} ${COVERAGE_EXCLUDE} --export_type=cobertura -- ${RUNNER}.exe ${ARGV4}
+                    COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura -- ${RUNNER}.exe ${ARGV3}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     COMMENT "Running OppCppCoverage to produce Cobertura code coverage report.")
             ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
