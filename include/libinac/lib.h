@@ -140,6 +140,13 @@ extern "C" {
 	if (*ptrptr == NULL) { return; }   \
 } while(0) 
 
+#define INA_INIT_GUARD() do {               \
+    static int __initialized = 0;           \
+    INA_ASSERT_FALSE(__initialized);        \
+    if (__initialized) return INA_SUCCESS;  \
+    __initialized = 1;                      \
+} while(0)
+
 /* Source location */
 #define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
 
