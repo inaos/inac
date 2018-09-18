@@ -337,8 +337,8 @@ static void ihtm_update_stats(int ht)
     } else if (panel == 3) {
         ina_str_t ms;
         ina_str_t mu;
-        size_t used;
-        size_t size;
+        uint64_t used;
+        uint64_t size;
         double waste = 0;
         ina_str_t nb;
         ina_str_t ni;

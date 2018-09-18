@@ -168,7 +168,11 @@ INA_API(const char*) ina_hash_name(ina_hash_type_t hash_type)
 {
 	static const char* unknown = "unknown";
 
+#ifdef INA_CPU_X86_64
 	if (hash_type < 0 || hash_type > INA_HASH64_T1HA1) {
+#else
+	if (hash_type < 0 || hash_type > INA_HASH32_T1HA1) {
+#endif
 		return unknown;
 	}
 	return __hash_names[hash_type];
