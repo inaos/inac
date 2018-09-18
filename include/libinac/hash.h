@@ -296,7 +296,7 @@ INA_API(uint32_t) ina_hash_32_djb(uint32_t hash, const void *data, size_t size);
  */
 INA_API(uint32_t) ina_hash_32_jenkins_ooat(uint32_t hash, const void *data, size_t size);
 /*
- * Calculate 32bit FNV (Fowler�Noll�Vo) hash
+ * Calculate 32bit FNV (Fowler-Noll-Vo) hash
  *
  * Source: Wikipedia
  *
@@ -310,7 +310,7 @@ INA_API(uint32_t) ina_hash_32_jenkins_ooat(uint32_t hash, const void *data, size
  */
 INA_API(uint32_t) ina_hash_32_fnv(uint32_t hash, const void *data, size_t size);
 /*
- * Calculate 64bit FNV (Fowler�Noll�Vo) hash
+ * Calculate 64bit FNV (Fowler-Noll-Vo) hash
  *
  * Source: Wikipedia
  *
