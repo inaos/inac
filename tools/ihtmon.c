@@ -72,6 +72,7 @@ static ina_hashtable_event_consumer_t *event_consumer = NULL;
 static ina_hashtable_event_t  *records = NULL;
 static ina_hashtable_event_t  *current_record = NULL;
 static int max_records = 1024*10;
+static int interactive = 1;
 
 static int panel = -1;
 
@@ -82,8 +83,11 @@ static void ina_cleanup_handler(int error, int *exitcode)
     INA_UNUSED(error);
     INA_UNUSED(exitcode);
 
-    ina_cio_clear();
-    ina_cio_reset();
+    if (interactive) {
+        ina_cio_clear();
+        ina_cio_reset();
+    }
+
     ihtm_write_stats(1);
     if (records != NULL) {
         ina_mem_free(records);
@@ -460,6 +464,7 @@ int main(int argc,  char** argv)
     ina_hashtable_event_t *event;
 
     INA_OPTS(opt,
+             INA_OPT_FLAG("b", "batch", "batch mode, only record data"),
              INA_OPT_INT("c", "core", 0, "core to pin"),
              INA_OPT_STRING("o", "output", "-", "file path for stats event data")
     );
@@ -494,149 +499,164 @@ int main(int argc,  char** argv)
                                     &file))) {
             return EXIT_FAILURE;
         }
-        size = (max_records+1)* sizeof(ina_hashtable_event_t);
+        size = (max_records + 1) * sizeof(ina_hashtable_event_t);
         records = ina_mem_alloc(size);
         ina_mem_set(records, 0, size);
         current_record = records;
     }
 
-    ihtm_init();
-    ihtm_update_status("connected! waiting for data...");
-    ihtm_update_menu("   [q] quit [s] panel switch ");
+    if (INA_SUCCEED(ina_opt_isset("b"))) {
+        interactive = 0;
+        if (records == NULL) {
+            printf("invalid option. batch mode requires -o option\n");
+            return EXIT_FAILURE;
+        }
+        printf("recording, press CTRL-C to stop\n");
+    }
+
+    if (interactive) {
+        ihtm_init();
+        ihtm_update_status("connected! waiting for data...");
+        ihtm_update_menu("   [q] quit [s] panel switch ");
+    }
 
     while (1) {
-        ++ilde_count;
+        ilde_count += interactive;
         if (INA_SUCCEED(ina_hashtable_event_consumer_next(event_consumer, &event))) {
-            int ht = (int)event->hashtable_id - 1;
             if (records != NULL) {
                 ina_mem_cpy(current_record, event, sizeof(ina_hashtable_event_t));
                 current_record++;
                 ihtm_write_stats(0);
             }
-            switch (event->event_id) {
-                case INA_HASHTABLE_EVENT_IDLE:
-                    continue;
-                case INA_HASHTABLE_EVENT_META: {
-                    switch (event->data1) {
-                        case 1: {
-                            info[ht].hash_type = (ina_hash_type_t) event->data2;
-                            break;
+            if (interactive) {
+                int ht = (int)event->hashtable_id - 1;
+                switch (event->event_id) {
+                    case INA_HASHTABLE_EVENT_IDLE:
+                        continue;
+                    case INA_HASHTABLE_EVENT_META: {
+                        switch (event->data1) {
+                            case 1: {
+                                info[ht].hash_type = (ina_hash_type_t) event->data2;
+                                break;
+                            }
+                            case 2: {
+                                info[ht].key_len = (size_t) event->data2;
+                                break;
+                            }
+                            case 3: {
+                                info[ht].type = (ina_hashtable_type_t) event->data2;
+                                break;
+                            }
+                            case 4: {
+                                info[ht].cf = (uint32_t) event->data2;
+                                break;
+                            }
+                            case 5: {
+                                info[ht].nb_bucket = event->data2;
+                                break;
+                            }
+                            case 6: {
+                                info[ht].nb_node = event->data2;
+                                break;
+                            }
+                            default:
+                                continue;
                         }
-                        case 2: {
-                            info[ht].key_len = (size_t) event->data2;
-                            break;
-                        }
-                        case 3: {
-                            info[ht].type = (ina_hashtable_type_t) event->data2;
-                            break;
-                        }
-                        case 4: {
-                            info[ht].cf = (uint32_t )event->data2;
-                            break;
-                        }
-                        case 5: {
-                            info[ht].nb_bucket = event->data2;
-                            break;
-                        }
-                        case 6: {
-                            info[ht].nb_node = event->data2;
-                            break;
-                        }
-                        default:
-                            continue;
-                    }
-                    break;
+                        break;
 
-                }
-                case INA_HASHTABLE_EVENT_NEW: {
-                    ina_mem_set(&info[ht], 0, sizeof(ina_ht_info_t));
-                    info[ht].active = 1;
-                    info[ht].hash_type = (ina_hash_type_t)event->data1;
-                    info[ht].buckets =  (int)event->data2;
-                    break;
-                }
-                case INA_HASHTABLE_EVENT_SET_BEGIN: {
-                    info[ht].set_ts1_ns = event->ts;
-                    break;
-                }
-                case INA_HASHTABLE_EVENT_SET_END: {
-                    info[ht].set_lst_ns = event->ts - info[ht].set_ts1_ns;
-                    if (info[ht].set_hig_ns < info[ht].set_lst_ns) {
-                        info[ht].set_hig_ns = info[ht].set_lst_ns;
                     }
-                    if (info[ht].set_low_ns > info[ht].set_lst_ns || info[ht].set_low_ns == 0) {
-                        info[ht].set_low_ns = info[ht].set_lst_ns;
+                    case INA_HASHTABLE_EVENT_NEW: {
+                        ina_mem_set(&info[ht], 0, sizeof(ina_ht_info_t));
+                        info[ht].active = 1;
+                        info[ht].hash_type = (ina_hash_type_t) event->data1;
+                        info[ht].buckets = (int) event->data2;
+                        break;
                     }
-                    info[ht].items = (int)event->data2;
-                    ++info[ht].set_ops;
-                    info[ht].set_tot_ns += info[ht].set_lst_ns;
-                    break;
-                }
-                case INA_HASHTABLE_EVENT_GET_BEGIN: {
-                    info[ht].get_ts1_ns = event->ts;
-                    break;
-                }
-                case INA_HASHTABLE_EVENT_GET_END: {
-                    info[ht].get_lst_ns = event->ts - info[ht].get_ts1_ns;
-                    if (info[ht].get_hig_ns < info[ht].get_lst_ns) {
-                        info[ht].get_hig_ns = info[ht].get_lst_ns;
+                    case INA_HASHTABLE_EVENT_SET_BEGIN: {
+                        info[ht].set_ts1_ns = event->ts;
+                        break;
                     }
-                    if (info[ht].get_low_ns > info[ht].get_lst_ns || info[ht].get_low_ns == 0) {
-                        info[ht].get_low_ns = info[ht].get_lst_ns;
+                    case INA_HASHTABLE_EVENT_SET_END: {
+                        info[ht].set_lst_ns = event->ts - info[ht].set_ts1_ns;
+                        if (info[ht].set_hig_ns < info[ht].set_lst_ns) {
+                            info[ht].set_hig_ns = info[ht].set_lst_ns;
+                        }
+                        if (info[ht].set_low_ns > info[ht].set_lst_ns || info[ht].set_low_ns == 0) {
+                            info[ht].set_low_ns = info[ht].set_lst_ns;
+                        }
+                        info[ht].items = (int) event->data2;
+                        ++info[ht].set_ops;
+                        info[ht].set_tot_ns += info[ht].set_lst_ns;
+                        break;
                     }
-                    info[ht].get_misses += event->data2;
-                    ++info[ht].get_ops;
-                    info[ht].get_tot_ns += info[ht].get_lst_ns;
-                    break;
-                }
-                case INA_HASHTABLE_EVENT_REMOVE_BEGIN: {
-                    info[ht].del_ts1_ns = event->ts;
-                    break;
-                }
-                case INA_HASHTABLE_EVENT_REMOVE_END: {
-                    info[ht].del_lst_ns = event->ts - info[ht].del_ts1_ns;
-                    if (info[ht].del_hig_ns < info[ht].del_lst_ns) {
-                        info[ht].del_hig_ns = info[ht].del_lst_ns;
+                    case INA_HASHTABLE_EVENT_GET_BEGIN: {
+                        info[ht].get_ts1_ns = event->ts;
+                        break;
                     }
-                    if (info[ht].del_low_ns > info[ht].del_lst_ns || info[ht].del_low_ns == 0) {
-                        info[ht].del_low_ns = info[ht].del_lst_ns;
+                    case INA_HASHTABLE_EVENT_GET_END: {
+                        info[ht].get_lst_ns = event->ts - info[ht].get_ts1_ns;
+                        if (info[ht].get_hig_ns < info[ht].get_lst_ns) {
+                            info[ht].get_hig_ns = info[ht].get_lst_ns;
+                        }
+                        if (info[ht].get_low_ns > info[ht].get_lst_ns || info[ht].get_low_ns == 0) {
+                            info[ht].get_low_ns = info[ht].get_lst_ns;
+                        }
+                        info[ht].get_misses += event->data2;
+                        ++info[ht].get_ops;
+                        info[ht].get_tot_ns += info[ht].get_lst_ns;
+                        break;
                     }
-                    info[ht].get_misses += event->data1;
-                    info[ht].items = (int)event->data2;
-                    ++info[ht].del_ops;
-                    info[ht].del_tot_ns += info[ht].del_lst_ns;
-                    break;
-                }
-                case INA_HASHTABLE_EVENT_EXPANSION: {
-                    ++info[ht].ex;
-                    break;
+                    case INA_HASHTABLE_EVENT_REMOVE_BEGIN: {
+                        info[ht].del_ts1_ns = event->ts;
+                        break;
+                    }
+                    case INA_HASHTABLE_EVENT_REMOVE_END: {
+                        info[ht].del_lst_ns = event->ts - info[ht].del_ts1_ns;
+                        if (info[ht].del_hig_ns < info[ht].del_lst_ns) {
+                            info[ht].del_hig_ns = info[ht].del_lst_ns;
+                        }
+                        if (info[ht].del_low_ns > info[ht].del_lst_ns || info[ht].del_low_ns == 0) {
+                            info[ht].del_low_ns = info[ht].del_lst_ns;
+                        }
+                        info[ht].get_misses += event->data1;
+                        info[ht].items = (int) event->data2;
+                        ++info[ht].del_ops;
+                        info[ht].del_tot_ns += info[ht].del_lst_ns;
+                        break;
+                    }
+                    case INA_HASHTABLE_EVENT_EXPANSION: {
+                        ++info[ht].ex;
+                        break;
 
+                    }
+                    case INA_HASHTABLE_EVENT_FREE: {
+                        info[ht].active = 0;
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                case INA_HASHTABLE_EVENT_FREE: {
-                    info[ht].active = 0;
-                    break;
-                }
-                default:
-                    break;
+                ihtm_update_stats(ht);
+                ihtm_update_event(event);
             }
-            ihtm_update_stats(ht);
-            ihtm_update_event(event);
         } else {
-            char c = 0;
             ina_time_sleep(5);
-            if (!(ilde_count % 1000)) {
-                ilde_count = 0;
-                ihtm_update_status("waiting for data...");
-            }
-            ina_cio_read_char_non_block(&c);
-            if (c == 'q') {
-                break;
-            } else if (c == 's') {
-                int p = panel;
-                if (++p > 3) {
-                    p = 0;
+            if (interactive) {
+                char c = 0;
+                if (!(ilde_count % 1000)) {
+                    ilde_count = 0;
+                    ihtm_update_status("waiting for data...");
                 }
-                ihtm_switch_panel(p);
+                ina_cio_read_char_non_block(&c);
+                if (c == 'q') {
+                    break;
+                } else if (c == 's') {
+                    int p = panel;
+                    if (++p > 3) {
+                        p = 0;
+                    }
+                    ihtm_switch_panel(p);
+                }
             }
         }
     }
