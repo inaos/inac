@@ -10,6 +10,8 @@ environment:
     secure: 2xpsiuGNHwFPtxdh8pA/Mm0I1bC1EfC8NBSoxOEiNco=
   sonarqube_api_key:
     secure: RlnPXWhYdsxFHT00b5GOyOJINCQ0WLfhj5Rg4NukSRk6m1OSH4sGLJxA1996T6sM
+  codecov_api_key:
+    secure: ZrEItXMy94JPSq3RiTrMMU1fSsA0+QkO43E/37WRNP8dAINuksOqByk9aVnzUbNZ
     
   matrix:
     - MY_NAME: Linux Debug 64bit
@@ -137,16 +139,21 @@ test_script:
   #       nmake runtests & exit 0
 
 after_test:
-  #- ps: |
-  #      $wc = New-Object 'System.Net.WebClient'
-  #      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml))
+  - ps: |
+        $wc = New-Object 'System.Net.WebClient'
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml))
+     
+        # Code coverage
+        $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+        Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+        bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/testCoverage.xml" -t $env:codecov_api_key
         
         # Detect if there are any failure nodes in the junit results
-  #      [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml
-  #      $failure = $results.SelectSingleNode("//failure")
-  #      if ($failure -ne $null) { 
-  #          throw "Forcing build failure due to unit test failure(s)"
-  #      }
+    #    [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml
+    #    $failure = $results.SelectSingleNode("//failure")
+    #    if ($failure -ne $null) { 
+    #        throw "Forcing build failure due to unit test failure(s)"
+    #    }
 artifacts:
   - path: cmake-build-*/*.zip
     name: INAC
