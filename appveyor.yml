@@ -133,10 +133,10 @@ after_build:
          cpack
 
 test_script:
-  #- sh: |
-  #      make runtests || true
-  #- cmd: |
-  #       nmake runtests & exit 0
+  - sh: |
+        make runtests || true
+  - cmd: |
+         nmake coverage & exit 0
 
 after_test:
   - ps: |
