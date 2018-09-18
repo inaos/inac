@@ -122,7 +122,7 @@ build_script:
          mkdir cmake-build-%BUILD_CONFIGURATION%
          7z e build-wrapper-win-x86.zip -ocmake-build-%BUILD_CONFIGURATION%
          cd cmake-build-%BUILD_CONFIGURATION%
-         cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH%
+         cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH% -DINAC_COVERAGE_ENABLED=1
          build-wrapper-win-x86-64.exe --out-dir bw-output nmake
 after_build:
   - sh: |
