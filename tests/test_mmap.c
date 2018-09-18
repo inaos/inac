@@ -44,7 +44,7 @@ INA_TEST(mmap, test_new_free)
 	ina_mmap_mapping_t *m = NULL;
 	ina_file_t *file;
 	ina_file_ctx_t *file_ctx;
-	INA_TEST_ASSERT_SUCCEED(ina_file_init(&file_ctx, 0));
+	INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&file_ctx, 0));
 	INA_TEST_ASSERT_SUCCEED(ina_file_new(file_ctx,
 			"tests.mem",
 			INA_FILE_ACCESS_MODE_READWRITE,
@@ -67,7 +67,7 @@ INA_TEST(mmap, test_new_free)
 	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
 	INA_TEST_ASSERT_NULL(ctx);
 	INA_TEST_ASSERT_SUCCEED(ina_file_free(&file));
-	INA_TEST_ASSERT_SUCCEED(ina_file_destroy(&file_ctx));
+	INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&file_ctx));
 }
 
 INA_TEST_SKIP(mmap, synch)

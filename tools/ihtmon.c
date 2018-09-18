@@ -96,13 +96,13 @@ static void ina_cleanup_handler(int error, int *exitcode)
         ina_file_free(&file);
     }
     if (file_ctx != NULL) {
-        ina_file_destroy(&file_ctx);
+        ina_file_ctx_free(&file_ctx);
     }
     if (event_consumer != NULL) {
         ina_hashtable_event_consumer_free(&event_consumer);
     }
     if (file_ctx != NULL) {
-        ina_file_destroy(&file_ctx);
+        ina_file_ctx_free(&file_ctx);
     }
 }
 
@@ -488,7 +488,7 @@ int main(int argc,  char** argv)
     if (strcmp(filepath, "-") != 0) {
 
         size_t size;
-        if (INA_FAILED(ina_file_init(&file_ctx, 0))) {
+        if (INA_FAILED(ina_file_ctx_new(&file_ctx, 0))) {
             return EXIT_FAILURE;
         }
         if (INA_FAILED(ina_file_new(file_ctx, filepath,

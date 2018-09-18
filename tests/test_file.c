@@ -37,7 +37,7 @@ INA_TEST(file, test_open_close)
     ina_str_t file_path = NULL;
     mode_t mode = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file1,
                                          INA_FILE_ACCESS_MODE_READ,
@@ -69,7 +69,7 @@ INA_TEST(file, test_open_close)
                                         &f));
     INA_TEST_ASSERT_NULL(f);
 
-    INA_TEST_ASSERT_SUCCEED(ina_file_destroy(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&ctx));
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -83,7 +83,7 @@ INA_TEST(file, stat)
 
     const char *test_file = "tests.conf";
 
-    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
                                          INA_FILE_ACCESS_MODE_READ,
                                          INA_FILE_CREATE_MODE_OPEN,
@@ -103,7 +103,7 @@ INA_TEST(file, stat)
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_free(&stat));
     INA_ASSERT_NULL(stat);
     INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
-    INA_TEST_ASSERT_SUCCEED(ina_file_destroy(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&ctx));
 
 }
 
@@ -117,7 +117,7 @@ INA_TEST(file, os_handle)
 #ifdef INA_OS_WIN32
     DWORD nread;
 #endif
-    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
                                          INA_FILE_ACCESS_MODE_READ,
@@ -138,7 +138,7 @@ INA_TEST(file, os_handle)
 #endif
     INA_TEST_ASSERT_EQUAL_STR("debug {", buf);
     INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
-    INA_TEST_ASSERT_SUCCEED(ina_file_destroy(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&ctx));
 }
 
 INA_TEST(file, stream)
@@ -149,7 +149,7 @@ INA_TEST(file, stream)
     FILE *fp;
     char buf[10];
 
-    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
                                          INA_FILE_ACCESS_MODE_READ,
@@ -164,7 +164,7 @@ INA_TEST(file, stream)
     fread(buf, 7, 1, fp);
     INA_TEST_ASSERT_EQUAL_STR("debug {", buf);
     INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
-    INA_TEST_ASSERT_SUCCEED(ina_file_destroy(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&ctx));
 }
 
 INA_TEST(file, mode)
@@ -173,7 +173,7 @@ INA_TEST(file, mode)
     ina_file_t *f = NULL;
     const char *test_file = "tests.conf";
 
-    INA_TEST_ASSERT_SUCCEED(ina_file_init(&ctx, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
                                          INA_FILE_ACCESS_MODE_READ,

@@ -117,7 +117,7 @@ typedef struct ina_file_stat_s ina_file_stat_t;
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode);
+INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode);
 
 /*
  * Free a file context.
@@ -130,7 +130,7 @@ INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode);
  *
  * FIXME: See #479
  */
-INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx);
+INA_API(ina_rc_t) ina_file_ctx_free(ina_file_ctx_t **ctx);
 
 /*
  * Create a new file handle.

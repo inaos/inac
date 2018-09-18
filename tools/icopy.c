@@ -33,7 +33,7 @@ static ina_file_ctx_t *file_ctx = NULL;
 static void ina_cleanup_handler(int error, int *exitcode)
 {
     if (file_ctx != NULL) {
-        ina_file_destroy(&file_ctx);
+        ina_file_ctx_free(&file_ctx);
     }
 }
 
@@ -65,7 +65,7 @@ int main(int argc,  char** argv)
     ina_opt_get_string("d", &dst);
     ina_opt_get_int("m", &mode);
 
-    if (INA_FAILED(ina_file_init(&file_ctx, 0))) {
+    if (INA_FAILED(ina_file_ctx_new(&file_ctx, 0))) {
         return EXIT_FAILURE;
     }
 

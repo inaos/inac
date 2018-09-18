@@ -181,7 +181,7 @@ static void __ina_file_posix_map_flags(ina_file_access_mode_t access,
 }
 #endif
 
-INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode)
+INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode)
 {
     /*
      * - keep track of all the open files
@@ -211,7 +211,7 @@ INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode)
 }
 
 
-INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx)
+INA_API(ina_rc_t) ina_file_ctx_free(ina_file_ctx_t **ctx)
 {
     ina_file_t *f;
     ina_hashtable_iter_t *iter;
