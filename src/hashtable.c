@@ -155,9 +155,8 @@ INA_API(ina_rc_t) ina_hashtable_init(const char* cfg_filepath)
 
 INA_API(ina_rc_t) ina_hashtable_destroy(void)
 {
-    if (__cfg_filepath != NULL) {
-        ina_str_free(__cfg_filepath);
-    }
+    INA_DESTROY_GUARD();
+    INA_STR_FREE_SAFE(__cfg_filepath);
     return INA_SUCCESS;
 }
 
