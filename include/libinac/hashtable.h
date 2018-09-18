@@ -105,7 +105,7 @@ typedef struct ina_hashtable_event_s {
 
 INA_API(ina_rc_t) ina_hashtable_init(const char *cfg_filepath);
 
-INA_API(ina_rc_t) ina_hashtable_destroy(void);
+INA_API(void) ina_hashtable_destroy(void);
 
 
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,

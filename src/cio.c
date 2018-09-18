@@ -117,10 +117,9 @@ INA_API(ina_rc_t) ina_cio_init(void)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cio_destroy(void)
+INA_API(void) ina_cio_destroy(void)
 {
     INA_DESTROY_GUARD();
-    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_cio_clear(void)

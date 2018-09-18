@@ -150,7 +150,7 @@ extern "C" {
 #define INA_DESTROY_GUARD() do {          \
     static int __destroyed = 0;           \
     INA_ASSERT_FALSE(__destroyed);        \
-    if (__destroyed) return INA_SUCCESS;  \
+    if (__destroyed) return;              \
     __destroyed = 1;                      \
 } while(0)
 

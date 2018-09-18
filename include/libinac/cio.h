@@ -82,7 +82,7 @@ INA_API(ina_rc_t) ina_cio_init(void);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_cio_destroy(void);
+INA_API(void) ina_cio_destroy(void);
 
 /*
  * Clear screen and reset the cursor in the uppper left corner.
