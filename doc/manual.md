@@ -110,7 +110,7 @@ keyword need not be used.
 
 ## Starting to code
 
-Start by including the INOAS library header in your code:
+Start by including the INAOS library header in your code:
 
 	#include <libinac/lib.h>;
 
