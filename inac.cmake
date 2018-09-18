@@ -64,11 +64,12 @@ endif (WIN32)
 add_definitions(-DINA_OSTIME_ENABLED -DINA_TIME_DEFINED)
 
 if (INAC_COVERAGE_ENABLED)
+    message(STATUS "Coverage reports enabled")
     if(UNIX)
         find_program(GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/scripts)
 
         if (NOT (CMAKE_BUILD_TYPE STREQUAL "Debug"))
-            MESSAGE( WARNING "Code coverage results with an optimised (non-Debug) build may be misleading")
+            message( WARNING "Code coverage results with an optimised (non-Debug) build may be misleading")
         endif()
 
         find_program(PYTHON_EXECUTABLE python)
@@ -917,27 +918,29 @@ endfunction()
 
 
 function(inac_coverage TARGET RUNNER OUTPUT)
-    if(UNIX)
-        TARGET_LINK_LIBRARIES(${RUNNER} gcov)
-        set_target_properties(${RUNNER} PROPERTIES COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
-        ADD_CUSTOM_TARGET(${TARGET}
-            ${RUNNER} ${ARGV3}
-            COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            COMMENT "Running gcovr to produce Cobertura code coverage report."
-        )
-    endif()
-    if(MSVC)
-        set(CMD opencppcoverage.exe  tests.exe --format=junit>junit.xml)
-        ADD_CUSTOM_TARGET(${TARGET}
+    if(INAC_COVERAGE_ENABLED)
+        if(UNIX)
+            TARGET_LINK_LIBRARIES(${RUNNER} gcov)
+            set_target_properties(${RUNNER} PROPERTIES COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
+            ADD_CUSTOM_TARGET(${TARGET}
                 ${RUNNER} ${ARGV3}
-                COMMAND ${OPENCPPCOVERAGEPATH} --working_dir=${CMAKE_SOURCE_DIR} ${COVERAGE_EXCLUDE} --export_type=cobertura -- ${RUNNER}.exe ${ARGV4}
+                COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                COMMENT "Running OppCppCoverage to produce Cobertura code coverage report.")
-        ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
-            COMMAND ;
-            COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
-        )
+                COMMENT "Running gcovr to produce Cobertura code coverage report."
+            )
+        endif()
+        if(MSVC)
+            set(CMD opencppcoverage.exe  tests.exe --format=junit>junit.xml)
+            ADD_CUSTOM_TARGET(${TARGET}
+                    ${RUNNER} ${ARGV3}
+                    COMMAND ${OPENCPPCOVERAGEPATH} --working_dir=${CMAKE_SOURCE_DIR} ${COVERAGE_EXCLUDE} --export_type=cobertura -- ${RUNNER}.exe ${ARGV4}
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    COMMENT "Running OppCppCoverage to produce Cobertura code coverage report.")
+            ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
+                COMMAND ;
+                COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
+            )
+        endif()
     endif()
 endfunction()
 
