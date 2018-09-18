@@ -37,7 +37,7 @@ extern "C" {
 #define INA_ENOMEM   INA_NN_MEMORY|INA_ERR_OUT_OF
 
 
-/* Align to 2x word size (as GNU libc does). */
+	/* Align to 2x word size (as GNU libc does). */
 #define INA_MEM_ALIGN_SIZE (2 * sizeof(void*))
 
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
@@ -45,6 +45,11 @@ extern "C" {
 
 #define INA_MEM_IS_ALIGNED(ptr, alignment) \
     (((uintptr_t)(const void *)(ptr)) % (alignment) == 0)
+
+#define INA_MEM_FREE_SAFE(ptr) do {          \
+	if (ptr != NULL) { ina_mem_free(ptr); }  \
+	ptr = NULL;                              \
+} while(0)
 
 /* Function pointer with malloc()‘s signature */
 typedef void *(*ina_malloc_t)(size_t);

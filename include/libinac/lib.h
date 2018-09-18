@@ -134,6 +134,12 @@ extern "C" {
 #define INA_REVISION_HEX ((INA_MINOR_VERSION << 8)  |   \
                           (INA_PATCH_VERSION << 0))
 
+  /* Handle free, destroy arg checking */
+#define INA_FREE_CHECK(ptrptr) do {    \
+	INA_VERIFY_NOT_NULL(ptrptr);       \
+	if (*ptrptr == NULL) { return; }   \
+} while(0) 
+
 /* Source location */
 #define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
 

@@ -143,7 +143,7 @@ INA_TEST(hashtable, int_key)
     INA_TEST_MSG("usage in bytes: %d", usage);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_foreach(ht, print_data));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+    ina_hashtable_free(&ht);
 }
 
 INA_TEST(hashtable, uint32_key)
@@ -195,7 +195,7 @@ INA_TEST(hashtable, uint32_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_usage(ht, &usage));
     INA_TEST_MSG("usage in bytes: %d", usage);
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+    ina_hashtable_free(&ht);
 }
 
 INA_TEST(hashtable, uint64_key)
@@ -248,7 +248,7 @@ INA_TEST(hashtable, uint64_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_usage(ht, &usage));
     INA_TEST_MSG("usage in bytes: %d", usage);
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+    ina_hashtable_free(&ht);
 }
 
 INA_TEST(hashtable, int64_key)
@@ -300,7 +300,7 @@ INA_TEST(hashtable, int64_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_usage(ht, &usage));
     INA_TEST_MSG("usage in bytes: %d", usage);
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+    ina_hashtable_free(&ht);
 }
 
 
@@ -339,7 +339,7 @@ INA_TEST(hashtable, ptr_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
     INA_TEST_ASSERT_EQUAL_INT(1, count);
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+    ina_hashtable_free(&ht);
 }
 
 INA_TEST(hashtable, str_key)
@@ -377,7 +377,7 @@ INA_TEST(hashtable, str_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
     INA_TEST_ASSERT_EQUAL_INT(1, count);
 
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+    ina_hashtable_free(&ht);
 }
 
 
@@ -473,7 +473,7 @@ INA_TEST(hashtable, iter)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_foreach(ht, print_data));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_free(&iter));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_foreach(ht, print_data));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+    ina_hashtable_free(&ht);
 }
 
 INA_TEST(hashtable, clear)
@@ -501,7 +501,7 @@ INA_TEST(hashtable, clear)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_clear(ht));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
     INA_TEST_ASSERT_EQUAL_INT(0, count);
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+    ina_hashtable_free(&ht);
 }
 
 
@@ -592,10 +592,10 @@ INA_TEST(hashtable, stats)
             }
         }
     }
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht1));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht2));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht3));
-    INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht4));
+    ina_hashtable_free(&ht1);
+    ina_hashtable_free(&ht2);
+    ina_hashtable_free(&ht3);
+    ina_hashtable_free(&ht4);
 
 }
 
@@ -616,7 +616,7 @@ INA_TEST_SKIP(hashtable, new_from_cfg)
         }
         ina_hashtable_count(ht, &count);
         INA_TEST_ASSERT_EQUAL_INT(100*i, count);
-        INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+        ina_hashtable_free(&ht);
         INA_TEST_ASSERT_NULL(ht);
     }
 }

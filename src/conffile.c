@@ -144,7 +144,7 @@ INA_API(ina_rc_t) ina_conffile_free(ina_conffile_t **cf)
 
     INA_MUST_SUCCEED(ina_ljit_destroy(&(*cf)->lctx));
     INA_MUST_SUCCEED(ina_mempool_free(&(*cf)->mempool));
-    INA_MUST_SUCCEED(ina_hashtable_free(&(*cf)->sections));
+    ina_hashtable_free(&(*cf)->sections);
     ina_mem_free(*cf);
     *cf = NULL;
     return INA_SUCCESS;

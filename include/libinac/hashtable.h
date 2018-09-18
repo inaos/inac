@@ -119,7 +119,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 
 INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, const char *name, ina_hashtable_t **ht);
 
-INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht);
+INA_API(void) ina_hashtable_free(ina_hashtable_t **ht);
 
 INA_API(ina_rc_t) ina_hashtable_clear(ina_hashtable_t *ht);
 

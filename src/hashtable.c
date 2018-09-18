@@ -400,24 +400,15 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht)
+INA_API(void) ina_hashtable_free(ina_hashtable_t **ht)
 {
-    INA_VERIFY_NOT_NULL(ht);
-    INA_VERIFY_NOT_NULL(*ht);
-    __INA_FREE(*ht);
-    if ((*ht)->ullc_ctx != NULL) {
-        ina_ullc_producer_destroy(&(*ht)->ullc_ctx);
-    }
-    if ((*ht)->time != NULL) {
-        ina_time_tsc_free(&(*ht)->time);
-    }
-    if ((*ht)->id) {
-        __hashtable_id[(*ht)->id] = 0;
-    }
-    ina_mempool_free(&(*ht)->mp);
-    ina_mem_free(*ht);
-    *ht = NULL;
-    return INA_SUCCESS;
+	INA_FREE_CHECK(ht);
+	__INA_FREE(*ht);
+	ina_ullc_producer_destroy(&(*ht)->ullc_ctx);
+	ina_time_tsc_free(&(*ht)->time);
+	__hashtable_id[(*ht)->id] = 0;
+	ina_mempool_free(&(*ht)->mp);
+	INA_MEM_FREE_SAFE(*ht);
 }
 
 INA_API(ina_rc_t) ina_hashtable_clear(ina_hashtable_t *ht)

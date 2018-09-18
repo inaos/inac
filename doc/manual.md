@@ -67,7 +67,33 @@ Describes the approach for API and ABI compatibility when INAC is used as binary
 * CMake macro will compile full path
 * On Windows we use environment variable: ${ENV:VisualStudioVersion} for version info
 * Unpacking should happen in user home e.g. %USERPROFILE%\.ina\cmake\...
-* Transitive dependencies must be managed by the User. CMake will only throw and error if a library is not present	
+* Transitive dependencies must be managed by the User. CMake will only throw and error if a library is not present
+
+
+## Guidelines
+
+### Resource management
+
+### General function argument structure and behavior
+
+* Output parameters to function are always after input parameters
+* Structure/Object creation follows the pattern: Output parameter pointer-to-pointer. Functions  always return error-codes expect `free()` and `destroy()` which are void.
+* Modules that require static resources provide `init()` and `destroy()` methods that have to be called by the user exactly once per process-lifetime. In debug mode the application will crash if `init()` or `destroy()` are executed more than once.
+* For every `_new` function call in a module the user has to issue a `_free` function call.
+* 
+
+### Initialization and destruction
+
+* For modules we should have only ```init()```and ```destroy()```. if we have a `init()` we must have a `destroy()` also.
+* For allocation we should have only ```new()```and ```free()```. if we have a `new()` we must have a `free()`
+* `init()` and `new()` must return always a valid RC for error handling
+* `destroy()` and `free` must always succeed. They are therefore exceptionally defined as INA_API(void). 
+* Errors during `destroy()` and `free()` must be logged
+* Errors in `destroy()` and `free()` should abort execution.
+* Output parameters for `init()` and `new()`  must be after input parameters.
+* Output parameters must be properly initialized by `init()` and `new()`. They should be set to NULL on failure 
+- `destroy()` and `free()` must set the pointer to NULL after releasing the resources.
+- Every `destroy()` and `free()` must check if the pointer-pointer argument can be dereferenced and should return if the pointer is already NULL.
 
 
 ## Compile time configuration
@@ -76,7 +102,6 @@ Describes the approach for API and ABI compatibility when INAC is used as binary
  * `INA_LOG_ENABLED`    : Enable/disable logging. Default enabled.
  * `INA_LOG_LEVEL`      : Set log level from 1 (errors) to 4(debug). 
                           Default 3 (info).
- 
 
 
 All constants are prefaced with `INA_` . Other identifiers are prefaced with
@@ -609,7 +634,7 @@ Define section and keys
     /* Add a unamed section */
     ina_conffile_add_section(cf, &section, "iface", INA_YES);
 
-Sample processor written un LUA
+Sample processor written in Lua
 
     -- sample processor
     for sk,s in pairs(sections) do

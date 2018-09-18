@@ -205,7 +205,7 @@ INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx)
         }
         ina_hashtable_iter_free(&iter);
     }
-    INA_MUST_SUCCEED(ina_hashtable_free(&(*ctx)->processes));
+	ina_hashtable_free(&(*ctx)->processes);
 
     if ((*ctx)->cron_ctx != NULL) {
         INA_MUST_SUCCEED(ina_cron_destroy(&(*ctx)->cron_ctx));
