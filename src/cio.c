@@ -106,18 +106,14 @@ static void __ina_init_colors(void)
 #endif
 
 static ina_cio_attribs_t __attribs;
-static int               __initialized = INA_NO;
 
 INA_API(ina_rc_t) ina_cio_init(void)
 {
-    if (__initialized != INA_YES) {
-
-        __ina_init_colors();
-        __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
-        __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
-        __attribs.flags = 0;
-	    __initialized = INA_YES;
-    }
+    INA_INIT_GUARD();
+    __ina_init_colors();
+    __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
+    __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
+    __attribs.flags = 0;
     return INA_SUCCESS;
 }
 
@@ -155,7 +151,6 @@ INA_API(ina_rc_t) ina_cio_clear(void)
         );
     }
 #else
-    INA_ASSERT(__initialized);
     strcpy(__cmd, (char*)__CSI);
     strcat(__cmd, (char*)__cmd_clear);
     printf( "%s", __cmd);
@@ -180,7 +175,6 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 #endif
    __INA_CHECK_TTTY;
 
-    INA_ASSERT(__initialized);
     INA_VERIFY_NOT_NULL(pos);
     pos->row = pos->col = 0;
 
@@ -216,7 +210,6 @@ INA_API(ina_rc_t) ina_cio_show_cursor(int show)
  */
 INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
 {
-    INA_ASSERT(__initialized);
     INA_VERIFY_NOT_NULL(attribs);
 
    __INA_CHECK_TTTY;
@@ -251,7 +244,6 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
  */
 INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 {
-    INA_ASSERT(__initialized);
     INA_VERIFY_NOT_NULL(attribs);
 
     attribs->bg_color = __attribs.bg_color;
@@ -262,7 +254,6 @@ INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 
 INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 {
-    INA_ASSERT(__initialized);
     INA_VERIFY_NOT_NULL(pos);
     __INA_CHECK_TTTY;
     
@@ -272,7 +263,6 @@ INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 
 INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos)
 {
-    INA_ASSERT(__initialized);
     INA_VERIFY_NOT_NULL(pos);
     return ina_cio_move_to_row_and_col(pos->row, pos->col);
 }
@@ -281,9 +271,7 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
 {
 #ifdef INA_OS_WIN32
     COORD pos;
-#endif    
-    INA_ASSERT(__initialized);
-
+#endif
    __INA_CHECK_TTTY;
 
     if (col < 0 && row < 0) {
@@ -322,7 +310,6 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     int setattribs = INA_NO;
     int setpos = INA_NO;
 
-    INA_ASSERT(__initialized);
     INA_VERIFY_NOT_NULL(fmt);
 
     pos.col = 0;
