@@ -77,6 +77,14 @@ typedef struct ina_cio_attribs_s {
 INA_API(ina_rc_t) ina_cio_init(void);
 
 /*
+ * Initialization. This function is called by ina_init()
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_cio_destroy(void);
+
+/*
  * Clear screen and reset the cursor in the uppper left corner.
  *
  * Return

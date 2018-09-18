@@ -147,6 +147,13 @@ extern "C" {
     __initialized = 1;                      \
 } while(0)
 
+#define INA_DESTROY_GUARD() do {          \
+    static int __destroyed = 0;           \
+    INA_ASSERT_FALSE(__destroyed);        \
+    if (__destroyed) return INA_SUCCESS;  \
+    __destroyed = 1;                      \
+} while(0)
+
 /* Source location */
 #define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
 
