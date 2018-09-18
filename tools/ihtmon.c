@@ -58,6 +58,8 @@ typedef struct ina_ht_info_s {
     uint64_t get_misses;
     uint64_t del_misses;
     uint64_t collisions;
+    uint64_t nb_bucket;
+    uint64_t nb_node;
     int      mc;
     int      ex;
 } ina_ht_info_t;
@@ -133,6 +135,20 @@ static ina_str_t ihtm_format_time(int number)
     }
 }
 
+static ina_str_t ihtm_format_msize(int number)
+{
+    if (number == 0) {
+        return ina_str_new_fromcstr("n/a");
+    } else if (number < 1024) {
+        return ina_str_sprintf("%dB", number);
+    } else if (number < 1024*1000*1000) {
+        number = number / 1024;
+        return ina_str_sprintf("%dKB", number);
+    } else {
+        number = number / 1024*1000;
+        return ina_str_sprintf("%dMB", number);
+    }
+}
 static void ihtm_write_stats(int force)
 {
     static char buf[1024];
@@ -147,7 +163,7 @@ static void ihtm_write_stats(int force)
     }
     next = records;
     while (next != current_record+1) {
-        sprintf(buf, "%llu,%d,%d,%llu,%llu\n",
+        sprintf(buf, "%lu,%d,%d,%lu,%lu\n",
                 next->ts,
                 next->hashtable_id,
                 next->event_id,
@@ -318,6 +334,43 @@ static void ihtm_update_stats(int ht)
         ina_str_free(da);
         ina_str_free(dt);
 
+    } else if (panel == 3) {
+        ina_str_t ms;
+        ina_str_t mu;
+        size_t used;
+        size_t size;
+        double waste = 0;
+        ina_str_t nb;
+        ina_str_t ni;
+
+        nb = ihtm_format_number(info[ht].buckets);
+        ni = ihtm_format_number(info[ht].items);
+
+        size = (info[ht].buckets+1)*info[ht].nb_bucket;
+        if (info[ht].cf&INA_HASHTABLE_CF_PREALLOCATED) {
+            size += (info[ht].buckets+1)*info[ht].nb_node*32;
+        } else {
+            size += (info[ht].ex)*info[ht].nb_node*32;
+        }
+        used = (info[ht].buckets+1)*info[ht].nb_bucket;
+        used += (info[ht].items*info[ht].nb_node);
+        if (size > 0) {
+            waste = 100 - ((double)used)/((double)size)*100;
+        }
+
+        mu = ihtm_format_msize((int)used);
+        ms = ihtm_format_msize((int)size);
+
+
+        ina_cio_printf(ht + 2, 0, INA_CIO_COLOR_BLUE, INA_CIO_COLOR_WHITE,
+                       "[%02d] %s      %#2d%%  %5s    %5s         %10s        %10s       %#2d%% ",
+                       ht, state, ideal, nb, ni, ms, mu, (int)waste);
+
+        ina_str_free(nb);
+        ina_str_free(ni);
+        ina_str_free(mu);
+        ina_str_free(ms);
+
     }
     ina_str_free(state);
 }
@@ -371,6 +424,12 @@ static void ihtm_switch_panel(int p)
             ina_cio_printf(0, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%-80s", "IHTMON - Time measurements");
             ina_cio_printf(1, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
                            "    |S: hig   low   avg   tot|G: hig   low   avg   tot|D: hig   low   avg   tot");
+            break;
+        }
+        case 3: {
+            ina_cio_printf(0, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%-80s", "IHTMON - Memory");
+            ina_cio_printf(1, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
+                           "     A |  ideal   #bkt   #items   |           size              used    free % ");
             break;
         }
         default:
@@ -475,6 +534,14 @@ int main(int argc,  char** argv)
                             info[ht].cf = (uint32_t )event->data2;
                             break;
                         }
+                        case 5: {
+                            info[ht].nb_bucket = event->data2;
+                            break;
+                        }
+                        case 6: {
+                            info[ht].nb_node = event->data2;
+                            break;
+                        }
                         default:
                             continue;
                     }
@@ -566,7 +633,7 @@ int main(int argc,  char** argv)
                 break;
             } else if (c == 's') {
                 int p = panel;
-                if (++p > 2) {
+                if (++p > 3) {
                     p = 0;
                 }
                 ihtm_switch_panel(p);

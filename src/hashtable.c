@@ -395,6 +395,8 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
             __INA_META(*ht, 2, (*ht)->key_len);
             __INA_META(*ht, 3, INA_HASHTABLE_TYPE_CHAINED);
             __INA_META(*ht, 4, (*ht)->cf);
+            __INA_META(*ht, 5, sizeof(ina_hashtable_bucket_t));
+            __INA_META(*ht, 6, sizeof(ina_hashtable_node_t));
         }
     }
     return INA_SUCCESS;
