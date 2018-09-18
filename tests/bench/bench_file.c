@@ -47,7 +47,7 @@ INA_BENCH_SETUP(file) {
     ina_bench_set_precision(2);
     ina_mem_set(data, 0, sizeof(struct file_data));
     INA_MUST_SUCCEED(ina_file_ctx_new(&data->file_ctx, 0));
-    INA_MUST_SUCCEED(ina_mmap_init(&data->mmap_ctx));
+    INA_MUST_SUCCEED(ina_mmap_ctx_new(&data->mmap_ctx));
 
     int i;
     FILE *fp;
@@ -78,7 +78,7 @@ INA_BENCH_TEARDOWN(file) {
         ina_file_ctx_free(&data->file_ctx);
     }
     if (data->mmap_ctx != NULL) {
-        ina_mmap_destroy(&data->mmap_ctx);
+        ina_mmap_ctx_free(&data->mmap_ctx);
     }
 }
 

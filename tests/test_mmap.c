@@ -32,9 +32,9 @@ INA_TEST(mmap, test_init_destroy)
 {
 	ina_mmap_ctx_t *ctx = NULL;
 
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_init(&ctx));
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_ctx_new(&ctx));
 	INA_TEST_ASSERT_NOT_NULL(ctx);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_ctx_free(&ctx));
 	INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -53,7 +53,7 @@ INA_TEST(mmap, test_new_free)
 			0,
 			&file));
 	INA_TEST_ASSERT_NOT_NULL(file);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_init(&ctx));
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_ctx_new(&ctx));
 	INA_TEST_ASSERT_NOT_NULL(ctx);
 	INA_TEST_ASSERT_SUCCEED(ina_mmap_new(ctx, file,
 			INA_MMAP_MEM_PROT_READ,
@@ -64,7 +64,7 @@ INA_TEST(mmap, test_new_free)
 	INA_TEST_ASSERT_NOT_NULL(m);
 	INA_TEST_ASSERT_SUCCEED(ina_mmap_free(ctx, &m));
 	INA_TEST_ASSERT_NULL(m);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_ctx_free(&ctx));
 	INA_TEST_ASSERT_NULL(ctx);
 	INA_TEST_ASSERT_SUCCEED(ina_file_free(&file));
 	INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&file_ctx));

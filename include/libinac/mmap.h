@@ -80,7 +80,7 @@ typedef struct ina_mmap_mapping_s ina_mmap_mapping_t;
  *  Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mmap_init(ina_mmap_ctx_t **ctx);
+INA_API(ina_rc_t) ina_mmap_ctx_new(ina_mmap_ctx_t **ctx);
 
 /*
  * Destroy a MMAP context.
@@ -91,7 +91,7 @@ INA_API(ina_rc_t) ina_mmap_init(ina_mmap_ctx_t **ctx);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mmap_destroy(ina_mmap_ctx_t **ctx);
+INA_API(ina_rc_t) ina_mmap_ctx_free(ina_mmap_ctx_t **ctx);
 
 /*
  * Creates a new mapping in the virtual address space of the calling process.
