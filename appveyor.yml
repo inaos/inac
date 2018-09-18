@@ -108,7 +108,7 @@ install:
          appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
   - cmd: |
          choco source add -n "inaos" -s "https://inaos.jfrog.io/inaos/api/nuget/nuget-release-local/" -u %jfrog_artifactory_uid% -p %jfrog_artifactory_pwd%
-         choco install inaos-dev-quality-tools -y
+         choco install inaos-dev-quality-tools --version 1.0.2 -y
          appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-win-x86.zip
 
 build_script:
