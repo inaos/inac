@@ -543,7 +543,7 @@ __ina_get_cursor_pos(ina_cio_pos_t *const pos)
 #define __INA_CIO_READ_BUFFER_CHUNK_SIZE 128
 #ifdef INA_OS_WIN32
 static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_buffer, 
-                                     size_t *buf_cur, size_t *buf_len, int *finished)
+                                     size_t *buf_cur, size_t *buf_len, int *finished, int rcv)
 {
     INPUT_RECORD *irInBuf;
     DWORD dw_event_count;
@@ -581,7 +581,7 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
                         *finished = 1;
                     }
 					else {
-						size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE+(1*rep)+1;
+						size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE + (1 * rep) + 1;
 						cur = buffer + (*buf_cur)++;
 						/* check if there is space for another char, otherwise extend */
 						if (*buf_cur >= check_size) {
@@ -589,11 +589,17 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
 							*ptr_buffer = (char*)ina_mem_realloc(buffer, *buf_len);
 						}
 						memset(cur, cta, rep);
+						if (rcv) {
+							*finished = 1;
+						}
                     }
-                    printf("%c", cta);
+					if (!rcv) {
+						printf("%c", cta);
+					}
                 }
             }
         }
+
     }
 
     if (*finished == 1) {
@@ -607,7 +613,7 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
     }
 }
 static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
-                                    size_t *nb_buf_len, size_t *nb_buf_cur)
+                                    size_t *nb_buf_len, size_t *nb_buf_cur, int rcv)
 {
     ina_rc_t ret = INA_SUCCESS;
     HANDLE hStdin;
@@ -634,7 +640,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         
         while (1) {
             if (dw_wait_ret == WAIT_OBJECT_0) {
-                __ina_cio_w32_read_input(line, hStdin, &buffer, &buf_cur, &buf_len, &finished);
+                __ina_cio_w32_read_input(line, hStdin, &buffer, &buf_cur, &buf_len, &finished, rcv);
                 if (finished) {
                     break;
                 }
@@ -649,10 +655,10 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             ret = INA_ERR_TRY_AGAIN;
         }
         else {
-            if (nb_buf == NULL) {
+            if (*nb_buf == NULL) {
                 *nb_buf = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
             }
-            __ina_cio_w32_read_input(line, hStdin, nb_buf, nb_buf_cur, nb_buf_len, &finished);
+            __ina_cio_w32_read_input(line, hStdin, nb_buf, nb_buf_cur, nb_buf_len, &finished, rcv);
         }
         if (!finished) {
             ret = INA_ERR_TRY_AGAIN;
