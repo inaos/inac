@@ -423,7 +423,7 @@ INA_API(ina_rc_t) ina_time_stopwatch_free(ina_stopwatch_t **stopwatch)
     INA_VERIFY_NOT_NULL(*stopwatch);
 
     if ((*stopwatch)->shared_mem != NULL) {
-        INA_MUST_SUCCEED(ina_mempool_free(&(*stopwatch)->shared_mem));
+        ina_mempool_free(&(*stopwatch)->shared_mem);
     }
     ina_mem_free(*stopwatch);
     *stopwatch = NULL;

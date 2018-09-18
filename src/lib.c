@@ -300,8 +300,6 @@ INA_API(ina_rc_t) ina_init(void)
     /* initailized console */
     INA_RETURN_IF_FAILED(ina_cio_init());
 
-   /* initialize internal structures */
-    INA_RETURN_IF_FAILED(ina_mempool_init());
 
 #ifdef INA_OS_WIN32
     /* Make sure to use high-accuracy multimedia-timers for windows */
@@ -354,10 +352,6 @@ INA_API(void) ina_exit(void)
     }
 
     ina_hashtable_destroy();
-
-    /* destroy memory pool */
-    ina_mempool_destroy();;
-
 
 #ifdef INA_OS_WIN32
     timeEndPeriod(1);

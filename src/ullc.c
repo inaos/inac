@@ -264,9 +264,7 @@ INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx)
         return ina_err_get_last_rc();
     }
 
-    if (INA_FAILED(ina_mempool_free(&(*ctx)->pool))) {
-        return ina_err_get_last_rc();
-    }
+    ina_mempool_free(&(*ctx)->pool);
 
     *ctx = NULL;
     return INA_SUCCESS;
@@ -398,9 +396,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx)
         return ina_err_get_last_rc();
     }
 
-    if (INA_FAILED(ina_mempool_free(&(*ctx)->pool))) {
-        return ina_err_get_last_rc();
-    }
+    ina_mempool_free(&(*ctx)->pool);
 
     *ctx = NULL;
     return INA_SUCCESS;

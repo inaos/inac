@@ -176,10 +176,6 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mempool_init(void)
-{
-    return INA_SUCCESS;
-}
 
 INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf, const char *label)
 {
@@ -234,13 +230,12 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t **pool)
+INA_API(void) ina_mempool_free(ina_mempool_t **pool)
 {
     ina_mempool_t *pm;
     ina_mempool_t *pn;
 
-    INA_VERIFY_NOT_NULL(pool);
-    INA_VERIFY_NOT_NULL(*pool);
+    INA_FREE_CHECK(pool);
 
     /* Unlink parent */
     if ((*pool)->parent != NULL) {
@@ -262,7 +257,6 @@ INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t **pool)
         }
         ina_mem_free(pm);
     }
-    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool, size_t chunks, 
@@ -564,10 +558,6 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_mempool_destroy(void)
-{
-    return INA_SUCCESS;
-}
 
 #ifndef INA_OS_WIN32
 

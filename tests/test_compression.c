@@ -98,7 +98,7 @@ INA_TEST(compression, deflate_pool_string)
 
     __ina_test_compression(pool, INA_COMPRESSION_TYPE_DEFLATE, INA_COMPRESSION_MODE_TRUSTED_FAST);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(compression, lz4_safe_string)
@@ -114,7 +114,7 @@ INA_TEST(compression, lz4_safe_pool_string)
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4, INA_COMPRESSION_MODE_TRUSTED_SAFE);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(compression, lz4_fast_string)
@@ -130,7 +130,7 @@ INA_TEST(compression, lz4_fast_pool_string)
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4, INA_COMPRESSION_MODE_TRUSTED_FAST);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(compression, lz4hc_safe_string)
@@ -146,7 +146,7 @@ INA_TEST(compression, lz4hc_safe_pool_string)
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4HC, INA_COMPRESSION_MODE_TRUSTED_SAFE);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(compression, lz4hc_fast_string)
@@ -162,6 +162,6 @@ INA_TEST(compression, lz4hc_fast_pool_string)
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4HC, INA_COMPRESSION_MODE_TRUSTED_FAST);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 

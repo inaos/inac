@@ -406,8 +406,12 @@ INA_API(void) ina_hashtable_free(ina_hashtable_t **ht)
 {
 	INA_FREE_CHECK(ht);
 	__INA_FREE(*ht);
-	ina_ullc_producer_destroy(&(*ht)->ullc_ctx);
-	ina_time_tsc_free(&(*ht)->time);
+	if ((*ht)->ullc_ctx) {
+        ina_ullc_producer_destroy(&(*ht)->ullc_ctx);
+    }
+    if ((*ht)->time) {
+        ina_time_tsc_free(&(*ht)->time);
+    }
 	__hashtable_id[(*ht)->id] = 0;
 	ina_mempool_free(&(*ht)->mp);
 	INA_MEM_FREE_SAFE(*ht);

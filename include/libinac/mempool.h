@@ -108,26 +108,6 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
                                  ina_realloc_t realloc_fn);
 
 /* 
- * Initialize internal structures.
- *
- * Return
- *  INA_SUCCESS if all went well
- *  INA_FAILURE if an error  occurred
- */
-INA_API(ina_rc_t) ina_mempool_init(void);
-
-/*
- * Destroy all memory pools.
- *
- * Release and destroy all memory pools and internal structures. Once called, 
- * ina_mempool_init() must be called to reuse memory pools.
- *
- * Return
- *  INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_mempool_destroy(void);
-
-/* 
  * Get runtime imformations about a memory pool.
  *
  * Parameters
@@ -162,11 +142,8 @@ INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool,
  *
  * Parameters
  *  pool     Memory pool to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t **pool);
+INA_API(void) ina_mempool_free(ina_mempool_t **pool);
 
 /*
  * Shrink a memory pool.

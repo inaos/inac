@@ -41,7 +41,7 @@ INA_TEST(mempool, create_fixed)
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, info.children);
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, info.used);
     INA_TEST_ASSERT_EQUAL_SIZE_T(4096, info.size);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(mempool, create_fixed_bestfit)
@@ -56,7 +56,7 @@ INA_TEST(mempool, create_fixed_bestfit)
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, info.children);
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, info.used);
     INA_TEST_ASSERT_EQUAL_SIZE_T(4096, info.size);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(mempool, bestfit)
@@ -75,7 +75,7 @@ INA_TEST(mempool, bestfit)
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_SIZE_T(34, info.used);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 
 
@@ -95,7 +95,7 @@ INA_TEST(mempool, aligned)
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool, &info));
     INA_TEST_ASSERT_EQUAL_SIZE_T(64, info.used);
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
 }
 
 INA_TEST(mempool, nalloc_fixed)
@@ -432,7 +432,7 @@ INA_TEST(mempool, auto_resize) {
     INA_TEST_ASSERT_EQUAL_SIZE_T(7168, mi.size);
     INA_TEST_ASSERT_EQUAL_SIZE_T(7168, mi.used);
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_free(&pool));
+    ina_mempool_free(&pool);
     
     /* Allocate pool with initial site 2KB dynamic */
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 2048, INA_MEM_DYNAMIC, NULL));
@@ -481,7 +481,6 @@ INA_TEST(mempool, bad_dalloc)
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 
     /* create a fixed size pool of 1KB and try to allocate 2KB */
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_init());
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024, 0, NULL));
     INA_TEST_ASSERT_NOT_NULL(pool);
     ptr = ina_mempool_dalloc(pool, 2048);

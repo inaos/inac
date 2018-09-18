@@ -275,8 +275,8 @@ INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker) {
     INA_VERIFY_NOT_NULL(walker);
     INA_VERIFY_NOT_NULL(*walker);
 
-    INA_MUST_SUCCEED(ina_mempool_free(&(*walker)->mp));
-    INA_MUST_SUCCEED(ina_mempool_free(&(*walker)->smp));
+    ina_mempool_free(&(*walker)->mp);
+    ina_mempool_free(&(*walker)->smp);
 
     if ((*walker)->basedir != NULL) {
         ina_str_free((*walker)->basedir);

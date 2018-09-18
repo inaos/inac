@@ -134,7 +134,7 @@ INA_API(ina_rc_t) ina_ipc_flags_free(ina_ipc_flags_t **flags)
         INA_MUST_SUCCEED(ina_timer_free(&(*flags)->timer));
     }
     if ((*flags)->m != NULL) {
-        INA_MUST_SUCCEED(ina_mempool_free(&(*flags)->m));
+        ina_mempool_free(&(*flags)->m);
     }
     ina_mem_free(*flags);
     *flags = NULL;
@@ -297,7 +297,7 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
     }
     (*counter)->data = (ina_ipc_counter_data_t*)ina_mempool_dalloc((*counter)->m, sizeof(ina_ipc_counter_data_t));
     if ((*counter)->data == NULL) {
-        INA_MUST_SUCCEED(ina_mempool_free(&(*counter)->m));
+        ina_mempool_free(&(*counter)->m);
         ina_mem_free(*counter);
         *counter = NULL;
         return ina_err_get_last_rc();
@@ -328,7 +328,7 @@ INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **cou
     }
     (*counter)->data = (ina_ipc_counter_data_t*)ina_mempool_dalloc((*counter)->m, sizeof(ina_ipc_counter_data_t));
     if ((*counter)->data == NULL) {
-        INA_MUST_SUCCEED(ina_mempool_free(&(*counter)->m));
+        ina_mempool_free(&(*counter)->m);
         ina_mem_free(*counter);
         *counter = NULL;
         return ina_err_get_last_rc();
@@ -342,7 +342,7 @@ INA_API(ina_rc_t) ina_ipc_counter_free(ina_ipc_counter_t **counter)
     INA_VERIFY_NOT_NULL(*counter);
 
     if ((*counter)->m != NULL) {
-        INA_MUST_SUCCEED(ina_mempool_free(&(*counter)->m));
+        ina_mempool_free(&(*counter)->m);
     }
     ina_mem_free(*counter);
     *counter = NULL;
