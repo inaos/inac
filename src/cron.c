@@ -535,7 +535,7 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
 	(*ctx)->stime = 60;
 
     if (process_ctx == NULL) {
-        if (INA_FAILED(ina_process_init(&process_ctx))) {
+        if (INA_FAILED(ina_process_ctx_new(&process_ctx))) {
             ina_hashtable_free(&(*ctx)->tasks);
             ina_hashtable_free(&(*ctx)->func);
             ina_mem_free(*ctx);
@@ -557,7 +557,7 @@ INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
     ina_hashtable_free(&(*ctx)->func);
 
     /*if ((*ctx)->process_ctx != NULL) {
-        ina_process_destroy(&(*ctx)->process_ctx);
+        ina_process_ctx_free(&(*ctx)->process_ctx);
     }*/
     ina_mem_free(*ctx);
     *ctx = NULL;

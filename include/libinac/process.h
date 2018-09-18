@@ -97,7 +97,7 @@ INA_FSM_EVENTS(process_fsm,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx);
+INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx);
 
 /*
  *  Destroy a process context
@@ -108,7 +108,7 @@ INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx);
  *  Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx);
+INA_API(ina_rc_t) ina_process_ctx_free(ina_process_ctx_t **ctx);
 
 /*
  * Manage all process registered on a context.

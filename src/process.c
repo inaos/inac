@@ -168,7 +168,7 @@ ina_rc_t __ina_process_cron_stop_cb(ina_cron_ctx_t *ctx, void *user_data)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx)
+INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
 {
     INA_VERIFY_NOT_NULL(ctx);
     *ctx = (ina_process_ctx_t*)ina_mem_alloc(sizeof(ina_process_ctx_t));
@@ -190,7 +190,7 @@ INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx)
+INA_API(ina_rc_t) ina_process_ctx_free(ina_process_ctx_t **ctx)
 {
     int count = 0;
     INA_VERIFY_NOT_NULL(ctx);
