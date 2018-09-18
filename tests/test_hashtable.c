@@ -504,27 +504,6 @@ INA_TEST(hashtable, clear)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
 }
 
-INA_TEST_SKIP(hashtable, new_from_cfg)
-{
-    ina_hashtable_t *ht;
-    const char* names[] = {"h1", "h2", "h3", NULL};
-    int i = -1;
-    int count = 0;
-    const int data = 1;
-
-    while (names[++i] != NULL) {
-        int j;
-        INA_TEST_ASSERT_SUCCEED(ina_hashtable_new_from_cfg(INA_HASHTABLE_INT32_KEY, names[i], &ht));
-        INA_TEST_ASSERT_NOT_NULL(ht);
-        for (j=0;j<100*i;j++) {
-            INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, j, &data));
-        }
-        ina_hashtable_count(ht, &count);
-        INA_TEST_ASSERT_EQUAL_INT(100*i, count);
-        INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
-        INA_TEST_ASSERT_NULL(ht);
-    }
-}
 
 INA_TEST(hashtable, stats)
 {
@@ -536,6 +515,7 @@ INA_TEST(hashtable, stats)
     data = ina_mem_alloc(sizeof(int));
     *data = 1;
     srand((unsigned) time(&t));
+
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                               INA_HASH32_SDBM,
@@ -583,7 +563,7 @@ INA_TEST(hashtable, stats)
 
 
     for (j = 0; j < 1000; j++) {
-        int key = (rand()%1000);
+        int key = (rand()%100000);
         int ht = (rand() % 20);
         int *d = NULL;
         ++key;
@@ -617,4 +597,26 @@ INA_TEST(hashtable, stats)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht3));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht4));
 
+}
+
+INA_TEST_SKIP(hashtable, new_from_cfg)
+{
+    ina_hashtable_t *ht;
+    const char* names[] = {"h1", "h2", "h3", NULL};
+    int i = -1;
+    int count = 0;
+    const int data = 1;
+
+    while (names[++i] != NULL) {
+        int j;
+        INA_TEST_ASSERT_SUCCEED(ina_hashtable_new_from_cfg(INA_HASHTABLE_INT32_KEY, names[i], &ht));
+        INA_TEST_ASSERT_NOT_NULL(ht);
+        for (j=0;j<100*i;j++) {
+            INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, j, &data));
+        }
+        ina_hashtable_count(ht, &count);
+        INA_TEST_ASSERT_EQUAL_INT(100*i, count);
+        INA_TEST_ASSERT_SUCCEED(ina_hashtable_free(&ht));
+        INA_TEST_ASSERT_NULL(ht);
+    }
 }

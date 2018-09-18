@@ -74,6 +74,11 @@ struct ina_hashtable_iter_s {
     int checksum;
 };
 
+struct ina_hashtable_event_consumer_s {
+    ina_ullc_ctx_t *p_ctx;
+    ina_ullc_ctx_t *c_ctx;
+};
+
 static int __hashtable_id[INA_HASHTABLE_MAX_STAT_TABLES] = {0};
 static ina_str_t __cfg_filepath = NULL;
 
@@ -627,26 +632,53 @@ INA_API(ina_rc_t) ina_hashtable_iter_reset(ina_hashtable_iter_t *iter)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_hashtable_dump(ina_hashtable_t *ht)
+INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_t **event_consumer, uint32_t flags)
 {
-    int slot = 0;
-    ina_hashtable_bucket_t *bucket = ht->buckets;
-    ina_hashtable_node_t *node = bucket->nodes;
+    INA_UNUSED(flags);
+    INA_VERIFY_NOT_NULL(event_consumer);
 
-    printf("\n");
-    while (bucket-ht->buckets < ht->capacity) {
-        printf("%5d [%zd] :", slot++, bucket->hash);
-        while (node && node-bucket->nodes < bucket->count) {
-            if (node->data != NULL) {
-                printf(" * ");
-            } else {
-                printf(" - ");
-            }
-            node++;
-        }
-        printf("\n");
-        bucket++;
-        node = bucket->nodes;
+    *event_consumer = ina_mem_alloc(sizeof(ina_hashtable_event_consumer_t));
+    INA_RETURN_IF_NULL(*event_consumer);
+
+    if INA_FAILED(INA_ULLC_PRODUCER_CREATE(ina_hashtable_event_t,
+                                               1, 4096,
+                                               INA_HASHTABLE_MAX_STAT_TABLES,
+                                               INA_HASHTABLE_MAX_STAT_TABLES,
+                                               "/ina_htmon", INA_ULLC_WS_SIGNAL_WAIT,
+                                               &(*event_consumer)->p_ctx)){
+        ina_mem_free(*event_consumer);
+        *event_consumer = NULL;
+
+    }
+    if (INA_FAILED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t,
+                                               1, 4096,
+                                               INA_HASHTABLE_MAX_STAT_TABLES,
+                                               INA_HASHTABLE_MAX_STAT_TABLES,
+                                               "/ina_htmon", &(*event_consumer)->c_ctx))){
+
+        INA_MUST_SUCCEED(ina_ullc_producer_destroy(&(*event_consumer)->p_ctx));
+        ina_mem_free(*event_consumer);
+        *event_consumer = NULL;
+    }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer)
+{
+    INA_VERIFY_NOT_NULL(event_consumer);
+    INA_VERIFY_NOT_NULL(*event_consumer);
+    INA_MUST_SUCCEED(ina_ullc_producer_destroy(&(*event_consumer)->p_ctx));
+    INA_MUST_SUCCEED(ina_ullc_consumer_destroy(&(*event_consumer)->c_ctx));
+    return INA_SUCCESS;
+
+}
+
+INA_API(ina_rc_t) ina_hashtable_event_consumer_next(ina_hashtable_event_consumer_t *event_consumer, ina_hashtable_event_t **event)
+{
+    INA_VERIFY_NOT_NULL(event);
+    *event = INA_ULLC_GET(ina_hashtable_event_t, event_consumer->c_ctx);
+    if (*event == NULL) {
+        return INA_ERROR(INA_ERR_TRY_AGAIN);
     }
     return INA_SUCCESS;
 }

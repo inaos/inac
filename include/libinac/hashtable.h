@@ -75,8 +75,9 @@ typedef enum ina_hashtable_shrink_strategy_e {
 
 
 /* opaque hashtable types */
-typedef struct ina_hashtable_s       ina_hashtable_t;
-typedef struct ina_hashtable_iter_s  ina_hashtable_iter_t;
+typedef struct ina_hashtable_s                ina_hashtable_t;
+typedef struct ina_hashtable_iter_s           ina_hashtable_iter_t;
+typedef struct ina_hashtable_event_consumer_s ina_hashtable_event_consumer_t;
 
 typedef enum ina_hashtable_event_id_e {
     INA_HASHTABLE_EVENT_IDLE,
@@ -122,8 +123,6 @@ INA_API(ina_rc_t) ina_hashtable_free(ina_hashtable_t **ht);
 
 INA_API(ina_rc_t) ina_hashtable_clear(ina_hashtable_t *ht);
 
-INA_API(ina_rc_t) ina_hashtable_dump(ina_hashtable_t *ht);
-
 INA_API(ina_rc_t) ina_hashtable_count(ina_hashtable_t *ht, int *count);
 
 INA_API(ina_rc_t) ina_hashtable_usage(ina_hashtable_t *ht, size_t *usage);
@@ -144,6 +143,11 @@ INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **dat
 
 INA_API(ina_rc_t) ina_hashtable_iter_reset(ina_hashtable_iter_t *iter);
 
+INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_t **event_consumer, uint32_t flag);
+
+INA_API(ina_rc_t) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer);
+
+INA_API(ina_rc_t) ina_hashtable_event_consumer_next(ina_hashtable_event_consumer_t *event_consumer, ina_hashtable_event_t **event);
 
 INA_INLINE ina_rc_t ina_hashtable_set_i32(ina_hashtable_t *ht, int32_t key, const void *data)
 {

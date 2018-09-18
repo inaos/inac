@@ -66,8 +66,7 @@ static ina_ht_info_t info[INA_HASHTABLE_MAX_STAT_TABLES];
 
 static ina_file_ctx_t *file_ctx = NULL;
 static ina_file_t     *file;
-static ina_ullc_ctx_t *ullc_ctx = NULL;
-static ina_ullc_ctx_t *ullc_ctx2 = NULL;
+static ina_hashtable_event_consumer_t *event_consumer = NULL;
 static ina_hashtable_event_t  *records = NULL;
 static ina_hashtable_event_t  *current_record = NULL;
 static int max_records = 1024*10;
@@ -93,11 +92,8 @@ static void ina_cleanup_handler(int error, int *exitcode)
     if (file_ctx != NULL) {
         ina_file_destroy(&file_ctx);
     }
-    if (ullc_ctx2 != NULL) {
-        ina_ullc_producer_destroy(&ullc_ctx2);
-    }
-    if (ullc_ctx != NULL) {
-        ina_ullc_consumer_destroy(&ullc_ctx);
+    if (event_consumer != NULL) {
+        ina_hashtable_event_consumer_free(&event_consumer);
     }
     if (file_ctx != NULL) {
         ina_file_destroy(&file_ctx);
@@ -125,12 +121,15 @@ static ina_str_t ihtm_format_time(int number)
         return ina_str_new_fromcstr("n/a");
     } else if (number < 1000) {
         return ina_str_sprintf("%n", number);
-    } else if (number < 10000000) {
+    } else if (number < 100000) {
         number = number / 1000;
         return ina_str_sprintf("%du", number);
+    } else if (number < 1000000) {
+        number = number / 10000;
+        return ina_str_sprintf("%du", number);
     } else {
-        number = number / 1000000;
-        return ina_str_sprintf("%dm", number);
+        number = number / 1000000000;
+        return ina_str_sprintf("%ss", number);
     }
 }
 
@@ -148,7 +147,7 @@ static void ihtm_write_stats(int force)
     }
     next = records;
     while (next != current_record+1) {
-        sprintf(buf, "%lu,%d,%d,%lu,%lu\n",
+        sprintf(buf, "%llu,%d,%d,%llu,%llu\n",
                 next->ts,
                 next->hashtable_id,
                 next->event_id,
@@ -157,6 +156,7 @@ static void ihtm_write_stats(int force)
         ina_file_write(file, (unsigned char*)buf, strlen(buf), &wrote);
         next++;
     }
+    current_record = records;
 }
 static void ihtm_update_stats(int ht)
 {
@@ -192,13 +192,13 @@ static void ihtm_update_stats(int ht)
         gt = ihtm_format_number((int) info[ht].get_ops),
         dt = ihtm_format_number((int) info[ht].del_ops),
 
-                ina_cio_printf(ht + 2, 0, INA_CIO_COLOR_BLUE, INA_CIO_COLOR_WHITE,
-                               "[%02d] %s      %#2d%%  %5s    %5s    %5s   %5s   %#2d%%        %3s    %3s     %3s",
-                               ht, state, ideal, nb, ni, nc, ne,
-                               misses,
-                               st,
-                               gt,
-                               dt);
+        ina_cio_printf(ht + 2, 0, INA_CIO_COLOR_BLUE, INA_CIO_COLOR_WHITE,
+                       "[%02d] %s      %#2d%%  %5s    %5s    %5s   %5s   %#2d%%        %3s    %3s     %3s",
+                       ht, state, ideal, nb, ni, nc, ne,
+                       misses,
+                       st,
+                       gt,
+                       dt);
 
         ina_str_free(nb);
         ina_str_free(ni);
@@ -263,6 +263,61 @@ static void ihtm_update_stats(int ht)
         ina_str_free(ni);
         ina_str_free(kt);
         ina_str_free(fl);
+    }  else if (panel == 2) {
+        ina_str_t sh;
+        ina_str_t sl;
+        ina_str_t sa;
+        ina_str_t st;
+        ina_str_t gh;
+        ina_str_t gl;
+        ina_str_t ga;
+        ina_str_t gt;
+        ina_str_t dh;
+        ina_str_t dl;
+        ina_str_t da;
+        ina_str_t dt;
+
+        sh = ihtm_format_time((int)info[ht].set_hig_ns);
+        sl = ihtm_format_time((int)info[ht].set_low_ns);
+        st = ihtm_format_time((int)info[ht].set_tot_ns);
+        if (info[ht].set_ops == 0) {
+            sa = ina_str_new_fromcstr("n/a");
+        } else {
+            sa = ihtm_format_time((int)(info[ht].set_tot_ns/info[ht].set_ops));
+        }
+        gh = ihtm_format_time((int)info[ht].get_hig_ns);
+        gl = ihtm_format_time((int)info[ht].get_low_ns);
+        gt = ihtm_format_time((int)info[ht].get_tot_ns);
+        if (info[ht].get_ops == 0) {
+            ga = ina_str_new_fromcstr("n/a");
+        } else {
+            ga = ihtm_format_time((int)(info[ht].get_tot_ns/info[ht].get_ops));
+        }
+        dh = ihtm_format_time((int)info[ht].del_hig_ns);
+        dl = ihtm_format_time((int)info[ht].del_low_ns);
+        dt = ihtm_format_time((int)info[ht].del_tot_ns);
+        if (info[ht].del_ops == 0) {
+            da = ina_str_new_fromcstr("n/a");
+        } else {
+            da = ihtm_format_time((int)(info[ht].del_tot_ns/info[ht].del_ops));
+        }
+        ina_cio_printf(ht + 2, 0, INA_CIO_COLOR_BLUE, INA_CIO_COLOR_WHITE,
+                       "[%02d]   %4s  %4s  %4s  %4s   %4s  %4s  %4s  %4s   %4s  %4s  %4s  %4s",
+                       ht, sh, sl, sa, st, gh, gl, ga, gt , dh, dl,da, dt);
+
+        ina_str_free(sh);
+        ina_str_free(sl);
+        ina_str_free(sa);
+        ina_str_free(st);
+        ina_str_free(gh);
+        ina_str_free(gl);
+        ina_str_free(ga);
+        ina_str_free(gt);
+        ina_str_free(dh);
+        ina_str_free(dl);
+        ina_str_free(da);
+        ina_str_free(dt);
+
     }
     ina_str_free(state);
 }
@@ -303,13 +358,19 @@ static void ihtm_switch_panel(int p)
         case 0: {
             ina_cio_printf(0, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%-80s", "IHTMON - Main");
             ina_cio_printf(1, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
-                           "     A |  ideal   #bkt   #items     #cln     #ex  miss  |    #set   #get    #del");
+                           "     A |  ideal   #bkt   #items   |  #cln     #ex  miss      #set   #get    #del");
             break;
         }
         case 1: {
             ina_cio_printf(0, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%-80s", "IHTMON - Meta data");
             ina_cio_printf(1, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
                            "     A |  ideal   #bkt   #items   |  hash        key-type   key-len    flags    ");
+            break;
+        }
+        case 2: {
+            ina_cio_printf(0, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%-80s", "IHTMON - Time measurements");
+            ina_cio_printf(1, 0, INA_CIO_COLOR_WHITE, INA_CIO_COLOR_BLUE, "%s",
+                           "    |S: hig   low   avg   tot|G: hig   low   avg   tot|D: hig   low   avg   tot");
             break;
         }
         default:
@@ -341,7 +402,7 @@ int main(int argc,  char** argv)
 
     INA_OPTS(opt,
              INA_OPT_INT("c", "core", 0, "core to pin"),
-             INA_OPT_STRING("o", "output", NULL, "file path for stats event data")
+             INA_OPT_STRING("o", "output", "-", "file path for stats event data")
     );
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
@@ -349,9 +410,14 @@ int main(int argc,  char** argv)
     }
     ina_set_cleanup_handler(ina_cleanup_handler);
 
+    if (INA_FAILED(ina_hashtable_event_consumer_new(&event_consumer, 0))) {
+        printf("failed connect event consumer\n");
+        return EXIT_FAILURE;
+    }
+
     ina_opt_get_int("c", &core);
     if (INA_FAILED(ina_cpu_pin_to_core(core))) {
-        printf("failed to pin on core %d", core);
+        printf("failed to pin on core %d\n", core);
         return EXIT_FAILURE;
     }
     ina_opt_get_string("o", &filepath);
@@ -376,30 +442,12 @@ int main(int argc,  char** argv)
     }
 
     ihtm_init();
-
-    while (INA_FAILED(INA_ULLC_PRODUCER_CREATE(ina_hashtable_event_t,
-                                               1, 4096,
-                                               INA_HASHTABLE_MAX_STAT_TABLES,
-                                               INA_HASHTABLE_MAX_STAT_TABLES,
-                                               "/ina_htmon", INA_ULLC_WS_SIGNAL_WAIT,
-                                               &ullc_ctx2))){
-        ina_time_sleep(10);
-    }
-    while (INA_FAILED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t,
-            1, 4096,
-            INA_HASHTABLE_MAX_STAT_TABLES,
-            INA_HASHTABLE_MAX_STAT_TABLES,
-            "/ina_htmon", &ullc_ctx))){
-        ina_time_sleep(10);
-    }
-
     ihtm_update_status("connected! waiting for data...");
     ihtm_update_menu("   [q] quit [s] panel switch ");
 
     while (1) {
         ++ilde_count;
-        event = INA_ULLC_GET(ina_hashtable_event_t, ullc_ctx);
-        if (event != NULL) {
+        if (INA_SUCCEED(ina_hashtable_event_consumer_next(event_consumer, &event))) {
             int ht = (int)event->hashtable_id - 1;
             if (records != NULL) {
                 ina_mem_cpy(current_record, event, sizeof(ina_hashtable_event_t));
@@ -517,7 +565,11 @@ int main(int argc,  char** argv)
             if (c == 'q') {
                 break;
             } else if (c == 's') {
-                ihtm_switch_panel((panel==0)?1:0);
+                int p = panel;
+                if (++p > 2) {
+                    p = 0;
+                }
+                ihtm_switch_panel(p);
             }
         }
     }
