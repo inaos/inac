@@ -131,7 +131,6 @@ INA_API(ina_rc_t) ina_cio_clear(void)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     DWORD dwConSize;
 
-    INA_ASSERT(__initialized);
     __INA_CHECK_TTTY;
 
     if( hStdOut != INVALID_HANDLE_VALUE
