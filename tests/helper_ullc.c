@@ -33,13 +33,13 @@ static ina_ullc_ctx_t *ullc_ctx = NULL;
 
 static void ina_test_helper_cleanup_producer(int error, int *exitcode) {
     if (ullc_ctx) {
-        ina_ullc_producer_destroy(&ullc_ctx);
+        ina_ullc_producer_free(&ullc_ctx);
     }
 }
 
 static void ina_test_helper_cleanup_consumer(int error, int *exitcode) {
     if (ullc_ctx) {
-        ina_ullc_consumer_destroy(&ullc_ctx);
+        ina_ullc_consumer_free(&ullc_ctx);
     }
 }
 
@@ -63,7 +63,7 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
     name = INA_TEST_HELPER_CARG(4);
 
   
-    if (!INA_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
+    if (!INA_SUCCEED(INA_ULLC_PRODUCER_NEW(ina_test_ullc_t,
         version, 
         slots, 
         producers, 
@@ -113,7 +113,7 @@ INA_TEST_HELPER(ullc, create_consumer) {
     name = INA_TEST_HELPER_CARG(4);
 
 
-    if (!INA_SUCCEED(INA_ULLC_CONSUMER_CREATE(ina_test_ullc_t, 
+    if (!INA_SUCCEED(INA_ULLC_CONSUMER_NEW(ina_test_ullc_t,
             version, 
             slots, 
             producers, 

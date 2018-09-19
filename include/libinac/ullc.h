@@ -173,10 +173,10 @@ typedef struct ina_ullc_rb_info_s {
 } ina_ullc_rb_info_t;
 
 
-#define INA_ULLC_PRODUCER_CREATE(type, version, slots, producers, consumers, name, ws, ctx) \
-    ina_ullc_producer_create(version, sizeof(type), slots, producers, consumers, name, ws, ctx)
-#define INA_ULLC_CONSUMER_CREATE(type, version, slots, producers, consumers, name, ctx) \
-    ina_ullc_consumer_create(version, sizeof(type), slots, producers, consumers, name, ctx)
+#define INA_ULLC_PRODUCER_NEW(type, version, slots, producers, consumers, name, ws, ctx) \
+    ina_ullc_producer_new(version, sizeof(type), slots, producers, consumers, name, ws, ctx)
+#define INA_ULLC_CONSUMER_NEW(type, version, slots, producers, consumers, name, ctx) \
+    ina_ullc_consumer_new(version, sizeof(type), slots, producers, consumers, name, ctx)
 
 /* Claim and commit */
 #define INA_ULLC_WRITE(ctx, src) do { ina_mem_cpy(ina_ullc_producer_claim(ctx), (void*)src, ctx->ring->size); ina_ullc_producer_commit(ctx); } while (0)
@@ -260,10 +260,10 @@ INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, 
-                    size_t slots, int producers, int num_consumers,
-                    const char *name, ina_ullc_wait_strategy ws, 
-                    ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
+                                        size_t slots, int producers, int num_consumers,
+                                        const char *name, ina_ullc_wait_strategy ws,
+                                        ina_ullc_ctx_t **ctx);
 
 /*
  * Reset a producer.
@@ -283,11 +283,8 @@ INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx);
  *
  * Parameters
  *  ctx  ULLC producer context to free
- *
- * Return
- *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);
+INA_API(void) ina_ullc_producer_free(ina_ullc_ctx_t **ctx);
 
 /*
  * Get current producer position.
@@ -376,24 +373,21 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_ullc_consumer_create(int version,
-                                           size_t size,
-                                           size_t slots,
-                                           int producers,
-                                           int num_consumers,
-                                           const char *name,
-                                           ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_consumer_new(int version,
+                                        size_t size,
+                                        size_t slots,
+                                        int producers,
+                                        int num_consumers,
+                                        const char *name,
+                                        ina_ullc_ctx_t **ctx);
 
 /*
  * Destroy consumer.
  *
  * Parameters
  *  ctx  ULLC context to free
- *
- * Return
- *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx);
+INA_API(void) ina_ullc_consumer_free(ina_ullc_ctx_t **ctx);
 
 /*
  * Read from consumer, no wait

@@ -380,7 +380,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 
     if ((*ht)->cf&INA_HASHTABLE_CF_STAT) {
         if (INA_SUCCEED(__ina_set_hashtable_id((*ht)))) {
-            INA_RETURN_IF_FAILED(INA_ULLC_PRODUCER_CREATE(ina_hashtable_event_t,
+            INA_RETURN_IF_FAILED(INA_ULLC_PRODUCER_NEW(ina_hashtable_event_t,
                                                           1, 4096, INA_HASHTABLE_MAX_STAT_TABLES,
                                                           INA_HASHTABLE_MAX_STAT_TABLES, "/ina_htmon",
                                                           INA_ULLC_WS_SIGNAL_WAIT,
@@ -406,7 +406,7 @@ INA_API(void) ina_hashtable_free(ina_hashtable_t **ht)
 	INA_FREE_CHECK(ht);
 	__INA_FREE(*ht);
 	if ((*ht)->ullc_ctx) {
-        ina_ullc_producer_destroy(&(*ht)->ullc_ctx);
+        ina_ullc_producer_free(&(*ht)->ullc_ctx);
     }
     if ((*ht)->time) {
         ina_time_tsc_free(&(*ht)->time);
@@ -636,7 +636,7 @@ INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_
     *event_consumer = ina_mem_alloc(sizeof(ina_hashtable_event_consumer_t));
     INA_RETURN_IF_NULL(*event_consumer);
 
-    if INA_FAILED(INA_ULLC_PRODUCER_CREATE(ina_hashtable_event_t,
+    if INA_FAILED(INA_ULLC_PRODUCER_NEW(ina_hashtable_event_t,
                                                1, 4096,
                                                INA_HASHTABLE_MAX_STAT_TABLES,
                                                INA_HASHTABLE_MAX_STAT_TABLES,
@@ -646,13 +646,13 @@ INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_
         *event_consumer = NULL;
 
     }
-    if (INA_FAILED(INA_ULLC_CONSUMER_CREATE(ina_hashtable_event_t,
+    if (INA_FAILED(INA_ULLC_CONSUMER_NEW(ina_hashtable_event_t,
                                                1, 4096,
                                                INA_HASHTABLE_MAX_STAT_TABLES,
                                                INA_HASHTABLE_MAX_STAT_TABLES,
                                                "/ina_htmon", &(*event_consumer)->c_ctx))){
 
-        INA_MUST_SUCCEED(ina_ullc_producer_destroy(&(*event_consumer)->p_ctx));
+        ina_ullc_producer_free(&(*event_consumer)->p_ctx);
         ina_mem_free(*event_consumer);
         *event_consumer = NULL;
     }
@@ -663,9 +663,8 @@ INA_API(ina_rc_t) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer
 {
     INA_VERIFY_NOT_NULL(event_consumer);
     INA_VERIFY_NOT_NULL(*event_consumer);
-    INA_MUST_SUCCEED(ina_ullc_producer_destroy(&(*event_consumer)->p_ctx));
-    INA_MUST_SUCCEED(ina_ullc_consumer_destroy(&(*event_consumer)->c_ctx));
-    return INA_SUCCESS;
+    ina_ullc_producer_free(&(*event_consumer)->p_ctx);
+    ina_ullc_consumer_free(&(*event_consumer)->c_ctx);
 
 }
 

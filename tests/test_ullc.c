@@ -39,7 +39,7 @@ INA_TEST(ullc, slow_consumer)
          INA_NUM2STR(1), INA_NUM2STR(128), INA_NUM2STR(2),
          INA_NUM2STR(1), "/ina_ullc_test3", NULL);
 
-    INA_TEST_ASSERT_SUCCEED(INA_ULLC_CONSUMER_CREATE(ina_test_ullc_t, 
+    INA_TEST_ASSERT_SUCCEED(INA_ULLC_CONSUMER_NEW(ina_test_ullc_t,
         1, 
         128, 
         2, 
@@ -66,7 +66,7 @@ INA_TEST(ullc, slow_consumer)
         }
         ina_time_sleep(5);
     }
-    ina_ullc_consumer_destroy(&ullc);
+    ina_ullc_consumer_free(&ullc);
 }
 
 INA_TEST(ullc, multiproducer)
@@ -79,7 +79,7 @@ INA_TEST(ullc, multiproducer)
     ina_test_hid_t hid1;
     ina_test_hid_t hid2;
 
-    INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
+    INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_NEW(ina_test_ullc_t,
         1, 
         128, 
         3, 
@@ -89,7 +89,7 @@ INA_TEST(ullc, multiproducer)
         &ullc1));
 
 
-    INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
+    INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_NEW(ina_test_ullc_t,
         1, 
         128, 
         3, 
@@ -98,7 +98,7 @@ INA_TEST(ullc, multiproducer)
         INA_ULLC_WS_SIGNAL_WAIT, 
         &ullc2));
 
-    INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
+    INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_NEW(ina_test_ullc_t,
         1, 
         128, 
         3, 
@@ -139,10 +139,10 @@ INA_TEST(ullc, multiproducer)
     v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc1);
     v->i3 = -1;
     INA_ULLC_COMMIT(ullc1);
- 
-    ina_ullc_producer_destroy(&ullc1);
-    ina_ullc_producer_destroy(&ullc2);
-    ina_ullc_producer_destroy(&ullc3);
+
+    ina_ullc_producer_free(&ullc1);
+    ina_ullc_producer_free(&ullc2);
+    ina_ullc_producer_free(&ullc3);
 }
 
 INA_TEST(ullc, consumer_get_set_pos)
@@ -154,7 +154,7 @@ INA_TEST(ullc, consumer_get_set_pos)
     size_t c;
     int64_t pos;
  
-    INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
+    INA_TEST_ASSERT_SUCCEED(INA_ULLC_PRODUCER_NEW(ina_test_ullc_t,
         1, 
         1000, 
         1, 
@@ -163,7 +163,7 @@ INA_TEST(ullc, consumer_get_set_pos)
         INA_ULLC_WS_SIGNAL_WAIT, 
         &producer));
 
-    INA_TEST_ASSERT_SUCCEED(INA_ULLC_CONSUMER_CREATE(ina_test_ullc_t, 
+    INA_TEST_ASSERT_SUCCEED(INA_ULLC_CONSUMER_NEW(ina_test_ullc_t,
         1, 
         1000, 
         1, 
@@ -171,7 +171,7 @@ INA_TEST(ullc, consumer_get_set_pos)
         "/ina_ullc_test2", 
         &consumer1));
 
-    INA_TEST_ASSERT_SUCCEED(INA_ULLC_CONSUMER_CREATE(ina_test_ullc_t, 
+    INA_TEST_ASSERT_SUCCEED(INA_ULLC_CONSUMER_NEW(ina_test_ullc_t,
         1, 
         1000, 
         1, 
@@ -232,9 +232,9 @@ INA_TEST(ullc, consumer_get_set_pos)
     INA_TEST_ASSERT_EQUAL_INT64(126, pos);
     v = INA_ULLC_GET(ina_test_ullc_t, consumer2);
     INA_TEST_ASSERT_NULL(v);
- 
-    ina_ullc_producer_destroy(&producer);
-    ina_ullc_consumer_destroy(&consumer1);
-    ina_ullc_consumer_destroy(&consumer2);
+
+    ina_ullc_producer_free(&producer);
+    ina_ullc_consumer_free(&consumer1);
+    ina_ullc_consumer_free(&consumer2);
 }
 
