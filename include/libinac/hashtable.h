@@ -145,7 +145,7 @@ INA_API(ina_rc_t) ina_hashtable_iter_reset(ina_hashtable_iter_t *iter);
 
 INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_t **event_consumer, uint32_t flag);
 
-INA_API(ina_rc_t) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer);
+INA_API(void) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer);
 
 INA_API(ina_rc_t) ina_hashtable_event_consumer_next(ina_hashtable_event_consumer_t *event_consumer, ina_hashtable_event_t **event);
 

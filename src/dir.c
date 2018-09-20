@@ -270,20 +270,13 @@ INA_API(ina_rc_t) ina_dir_walker_reload(ina_dir_walker_t *walker)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker) {
+INA_API(void) ina_dir_walker_free(ina_dir_walker_t **walker) {
 
-    INA_VERIFY_NOT_NULL(walker);
-    INA_VERIFY_NOT_NULL(*walker);
-
+    INA_FREE_CHECK(walker);
     ina_mempool_free(&(*walker)->mp);
     ina_mempool_free(&(*walker)->smp);
-
-    if ((*walker)->basedir != NULL) {
-        ina_str_free((*walker)->basedir);
-    }
-    ina_mem_free(*walker);
-    *walker = NULL;
-    return INA_SUCCESS;
+    INA_STR_FREE_SAFE((*walker)->basedir);
+    INA_MEM_FREE_SAFE(*walker);
 }
 
 INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
@@ -292,12 +285,13 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
     INA_VERIFY_NOT_NULL(dir);
 
     *stat = (ina_dir_stat_t*)ina_mem_alloc(sizeof(ina_dir_stat_t));
-    INA_RETURN_IF(*stat == NULL);
+    INA_RETURN_IF_NULL(*stat);
     (*stat)->dir = ina_str_new_fromcstr(dir);
 #ifdef INA_OS_WIN32
     if (GetDiskFreeSpaceEx(dir, &(*stat)->free_bytes_available, 
         &(*stat)->total_number_of_bytes, 
         &(*stat)->total_numof_free_bytes) == 0) {
+            ina_dir_stat_free(stat);
             return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
     }
 #else
@@ -352,16 +346,10 @@ INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_dir_stat_free(ina_dir_stat_t **stat)
+INA_API(void) ina_dir_stat_free(ina_dir_stat_t **stat)
 {
-    INA_VERIFY_NOT_NULL(stat);
-    INA_VERIFY_NOT_NULL(*stat);
-
-    if ((*stat)->dir != NULL) {
-        ina_str_free((*stat)->dir);
-    }
-    ina_mem_free(*stat);
-    *stat = NULL;
-    return INA_SUCCESS;
+    INA_FREE_CHECK(stat);
+    INA_STR_FREE_SAFE((*stat)->dir);
+    INA_MEM_FREE_SAFE(*stat);
 }
 

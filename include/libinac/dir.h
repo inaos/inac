@@ -185,9 +185,6 @@ INA_API(ina_rc_t) ina_dir_walker_reset(ina_dir_walker_t *walker);
  *
  * Parameters
  *  walker  Directory walker to reload
- *
- * Return
- *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_walker_reload(ina_dir_walker_t *walker);
 
@@ -196,11 +193,8 @@ INA_API(ina_rc_t) ina_dir_walker_reload(ina_dir_walker_t *walker);
  *
  * Parameter
  *  walker  Directory walker to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_dir_walker_free(ina_dir_walker_t **walker);
+INA_API(void) ina_dir_walker_free(ina_dir_walker_t **walker);
 
 /*
  * Create and initialize directory attributes for a give directory.
@@ -258,11 +252,8 @@ INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used);
  *
  * Parameters
  *  stats  Directory attributes to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_dir_stat_free(ina_dir_stat_t **stat);
+INA_API(void) ina_dir_stat_free(ina_dir_stat_t **stat);
 
 
 #ifdef __cplusplus

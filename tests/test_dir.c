@@ -97,7 +97,7 @@ INA_TEST_FIXTURE(dir, test_new_free)
     INA_TEST_ASSERT_EQUAL_INT(INA_DIR_SORT_ORDER_NONE, sort_order);
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_get_sort_attrib(w, &sort_attrib));
     INA_TEST_ASSERT_EQUAL_INT(INA_DIR_SORT_ATTRIB_DFT, sort_attrib);
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_free(&w));
+    ina_dir_walker_free(&w);
     INA_TEST_ASSERT_NULL(w);
 }
 
@@ -111,7 +111,7 @@ INA_TEST_FIXTURE(dir, test_unsorted)
     while (INA_SUCCEED(ina_dir_walker_get_next_entry(w, &e))) {
         INA_TEST_MSG("e->name: %s, e->type: %d", ina_str_cstr(e->name), e->type);
     }
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_free(&w));
+    ina_dir_walker_free(&w);
     INA_TEST_ASSERT_NULL(w);
 }
 
@@ -132,7 +132,7 @@ INA_TEST_FIXTURE(dir, test_sorted_by_name)
      */
 
 }
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_free(&w));
+    ina_dir_walker_free(&w);
     INA_TEST_ASSERT_NULL(w);
 }
 
@@ -150,7 +150,7 @@ INA_TEST_FIXTURE(dir, test_sorted_by_name_descend)
         INA_TEST_ASSERT_EQUAL_STR(__dir_entries[i-1], ina_str_cstr(e->name));
         --i;
     }
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_free(&w));
+    ina_dir_walker_free(&w);
     INA_TEST_ASSERT_NULL(w);
 }
 
@@ -179,7 +179,7 @@ INA_TEST_FIXTURE(dir, test_reset)
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_set_sort_order(w, INA_DIR_SORT_ORDER_DESCEND));
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_get_next_entry(w, &e));
     INA_TEST_ASSERT_EQUAL_STR(".", e->name);
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_free(&w));
+    ina_dir_walker_free(&w);
     INA_TEST_ASSERT_NULL(w);
 }
 
@@ -198,7 +198,7 @@ INA_TEST_FIXTURE(dir, test_reload)
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_set_sort_order(w, INA_DIR_SORT_ORDER_DESCEND));
     INA_TEST_ASSERT_SUCCEED(ina_dir_walker_get_next_entry(w, &e));
     INA_TEST_ASSERT_EQUAL_STR("test3", e->name);
-    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_free(&w));
+    ina_dir_walker_free(&w);
     INA_TEST_ASSERT_NULL(w);
 }
 
