@@ -108,7 +108,7 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx);
  *  Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_ctx_free(ina_process_ctx_t **ctx);
+INA_API(void) ina_process_ctx_free(ina_process_ctx_t **ctx);
 
 /*
  * Manage all process registered on a context.
@@ -140,18 +140,11 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_descriptor_new(
-                              ina_process_ctx_t *ctx,
-                              ina_process_descriptor_t **descriptor,
-                              const char *full_path,
-                              const char *working_dir,
-                              const char *startup_args,
-                              ina_process_lifecycle_type_t lifecycle,
-                              ina_process_managed_type_t managed_type,
-                              const char *scheduled_start_pattern, 
-                              const char *scheduled_stop_pattern,
-                              time_t stop_wait_time_ms,
-                              uint32_t start_flags);
+INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char *full_path, const char *working_dir,
+                                                      const char *startup_args, ina_process_lifecycle_type_t lifecycle,
+                                                      ina_process_managed_type_t managed_type, const char *scheduled_start_pattern,
+                                                      const char *scheduled_stop_pattern, time_t stop_wait_time_ms, uint32_t start_flags,
+                                                      ina_process_descriptor_t **descriptor);
 
 /*
  * Destroy a process descriptor.
@@ -162,7 +155,7 @@ INA_API(ina_rc_t) ina_process_descriptor_new(
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_process_descriptor_free(
+INA_API(void) ina_process_descriptor_free(
                                     ina_process_descriptor_t **descriptor);
 
 /*
@@ -222,7 +215,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_free(ina_process_t **process);
+INA_API(void) ina_process_free(ina_process_t **process);
 
 /*
  * Start a process
@@ -369,7 +362,7 @@ INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_stat_free(ina_process_stat_t **stat);
+INA_API(void) ina_process_stat_free(ina_process_stat_t **stat);
 
 #ifdef __cplusplus
 }

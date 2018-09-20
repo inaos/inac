@@ -610,7 +610,6 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
 		ina_mem_free(buf);
 
         INA_MUST_SUCCEED(ina_process_descriptor_new(ctx->process_ctx,
-                                                    &descriptor,
                                                     ina_str_cstr(cmd_parts[0]),
                                                     working_dir,
                                                     ina_str_cstr(cmd_parts[1]),
@@ -619,7 +618,8 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
                                                     NULL,
                                                     NULL,
                                                     30,
-                                                    0));
+                                                    0,
+                                                    &descriptor));
 
         INA_MUST_SUCCEED(ina_process_new(ctx->process_ctx, descriptor, &task->process));
 

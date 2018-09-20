@@ -38,7 +38,7 @@ INA_TEST(process, init_destroy)
     ina_process_ctx_t *ctx;    
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
-    INA_TEST_ASSERT_SUCCEED(ina_process_ctx_free(&ctx));
+    ina_process_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -50,20 +50,20 @@ INA_TEST(process, manage)
 
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
-    INA_TEST_ASSERT_SUCCEED(ina_process_descriptor_new(ctx, &pd,
-            __INA_TEST_EXE,
-            NULL,
-            "-h process spawn_and_wait 0",
-            INA_PROCESS_LIFECYCLE_TYPE_MANAGED,
-            INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME,
-            NULL,
-            NULL,
-            100,
-            0));
+    INA_TEST_ASSERT_SUCCEED(ina_process_descriptor_new(ctx,
+                                                       __INA_TEST_EXE,
+                                                       NULL,
+                                                       "-h process spawn_and_wait 0",
+                                                       INA_PROCESS_LIFECYCLE_TYPE_MANAGED,
+                                                       INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME,
+                                                       NULL,
+                                                       NULL,
+                                                       100,
+                                                       0, &pd));
     INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, pd, &p));
     INA_TEST_ASSERT_NOT_NULL(p);
     INA_TEST_ASSERT_SUCCEED(ina_process_manage(ctx));
-    INA_TEST_ASSERT_SUCCEED(ina_process_ctx_free(&ctx));
+    ina_process_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -75,16 +75,16 @@ INA_TEST(process, descriptor_new_free)
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
-    INA_TEST_ASSERT_SUCCEED(ina_process_descriptor_new(ctx, &pd,
-        "full_path",
-        "working_dir",
-        "1 2 3 4",
-        INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
-        INA_PROCESS_MANAGED_TYPE_SCHEDULED_START,
-        "scheduled_start_pattern",
-        "scheduled_stop_pattern",
-        100,
-        0));
+    INA_TEST_ASSERT_SUCCEED(ina_process_descriptor_new(ctx,
+                                                       "full_path",
+                                                       "working_dir",
+                                                       "1 2 3 4",
+                                                       INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
+                                                       INA_PROCESS_MANAGED_TYPE_SCHEDULED_START,
+                                                       "scheduled_start_pattern",
+                                                       "scheduled_stop_pattern",
+                                                       100,
+                                                       0, &pd));
     INA_TEST_ASSERT_NOT_NULL(pd);
     INA_TEST_ASSERT_EQUAL_STR("full_path", pd->full_path);
     INA_TEST_ASSERT_EQUAL_STR("working_dir", pd->working_dir);
@@ -95,9 +95,9 @@ INA_TEST(process, descriptor_new_free)
     INA_TEST_ASSERT_EQUAL_INT64(100, pd->stop_wait_time_ms);
     INA_TEST_ASSERT_EQUAL_INT(0, pd->start_flags);
     INA_TEST_ASSERT_EQUAL_STR("1 2 3 4", ina_str_cstr(pd->startup_args));
-    INA_TEST_ASSERT_SUCCEED(ina_process_descriptor_free(&pd));
+    ina_process_descriptor_free(&pd);
     INA_TEST_ASSERT_NULL(pd);
-    INA_TEST_ASSERT_SUCCEED(ina_process_ctx_free(&ctx));
+    ina_process_ctx_free(&ctx);
 }
 
 INA_TEST(process, new_free)
@@ -122,10 +122,9 @@ INA_TEST(process, new_free)
 
     INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, &pd, &process));
     INA_TEST_ASSERT_NOT_NULL(process);
-    INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
+    ina_process_free(&process);
     INA_TEST_ASSERT_NULL(process);
-    
-    INA_TEST_ASSERT_SUCCEED(ina_process_ctx_free(&ctx));
+    ina_process_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -149,8 +148,8 @@ INA_TEST(process, start_and_wait)
     INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_get_exit_code(process, &exit_code));
     INA_TEST_ASSERT_EQUAL_INT(0, exit_code);
-    INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
-    INA_TEST_ASSERT_SUCCEED(ina_process_ctx_free(&ctx));
+    ina_process_free(&process);
+    ina_process_ctx_free(&ctx);
 }
 
 INA_TEST(process, stop)
@@ -182,9 +181,9 @@ INA_TEST(process, stop)
     INA_TEST_ASSERT_SUCCEED(ina_process_stop(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
     INA_TEST_ASSERT_EQUAL_INT(INA_PROCESS_STOPPED, state);
-    INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
+    ina_process_free(&process);
     INA_TEST_ASSERT_NULL(process);
-    INA_TEST_ASSERT_SUCCEED(ina_process_ctx_free(&ctx));
+    ina_process_ctx_free(&ctx);
 }
 
 INA_TEST(process, state)
@@ -215,7 +214,7 @@ INA_TEST(process, state)
     INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_query_state(process, &state));
     INA_TEST_ASSERT_EQUAL_INT(INA_PROCESS_RUNNING, state);
-    INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
+    ina_process_free(&process);
     INA_TEST_ASSERT_NULL(process);
 }
 
@@ -243,7 +242,7 @@ INA_TEST(process, should_be_running)
     INA_TEST_ASSERT_SUCCEED(ina_process_new(ctx, &pd, &process));
     INA_TEST_ASSERT_NOT_NULL(process);
     INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
-    INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
+    ina_process_free(&process);
 }
 
 INA_TEST(process, get_exit_code)
@@ -266,7 +265,7 @@ INA_TEST(process, get_exit_code)
     INA_TEST_ASSERT_SUCCEED(ina_process_start(process));
     INA_TEST_ASSERT_SUCCEED(ina_process_get_exit_code(process, &exit_code));
     INA_TEST_ASSERT_EQUAL_INT(123, exit_code);
-    INA_TEST_ASSERT_SUCCEED(ina_process_free(&process));
+    ina_process_free(&process);
 }
 
 INA_TEST(process, stat)
@@ -287,7 +286,7 @@ INA_TEST(process, stat)
     INA_TEST_ASSERT_TRUE(alive);
     INA_TEST_ASSERT_TRUE(mem > 0);
     INA_TEST_ASSERT_TRUE(num_threads > 0);
-    INA_TEST_ASSERT_SUCCEED(ina_process_stat_free(&ps));
+    ina_process_stat_free(&ps);
     INA_TEST_ASSERT_NULL(ps);
 
     alive = 0;
@@ -309,6 +308,6 @@ INA_TEST(process, stat)
     INA_TEST_ASSERT_FALSE(alive);
     INA_TEST_ASSERT_TRUE(mem == 0);
     INA_TEST_ASSERT_TRUE(num_threads == 0);
-    INA_TEST_ASSERT_SUCCEED(ina_process_stat_free(&ps));
+    ina_process_stat_free(&ps);
     INA_TEST_ASSERT_NULL(ps);
 }
