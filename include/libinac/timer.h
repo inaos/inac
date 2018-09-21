@@ -28,13 +28,13 @@
 #ifndef _LIBINAC_TIMER_H_
 #define _LIBINAC_TIMER_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Timer */
+#include <libinac/lib.h>
+
+    /* Timer */
 typedef struct ina_timer_s ina_timer_t;
 typedef struct ina_timer_event_s ina_timer_event_t;
 
@@ -54,11 +54,8 @@ INA_API(ina_rc_t) ina_timer_new(ina_timer_t **timer);
  *
  * Parameters
  *  timer  Timer to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_timer_free(ina_timer_t **timer);
+INA_API(void) ina_timer_free(ina_timer_t **timer);
 
 
 /*

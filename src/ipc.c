@@ -131,7 +131,7 @@ INA_API(ina_rc_t) ina_ipc_flags_free(ina_ipc_flags_t **flags)
     INA_VERIFY_NOT_NULL(*flags);
 
     if ((*flags)->timer != NULL) {
-        INA_MUST_SUCCEED(ina_timer_free(&(*flags)->timer));
+        ina_timer_free(&(*flags)->timer);
     }
     if ((*flags)->m != NULL) {
         ina_mempool_free(&(*flags)->m);

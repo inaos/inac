@@ -38,7 +38,7 @@ INA_TEST(timer,new_free)
     t = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_free(&t));
+    ina_timer_free(&t);
     INA_TEST_ASSERT_NULL(t);
 }
  
@@ -54,7 +54,7 @@ INA_TEST(timer, event)
     ina_err_reset();
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_free(&t));
+    ina_timer_free(&t);
     INA_TEST_ASSERT_NULL(t);
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
     INA_TEST_ASSERT_NOT_NULL(t);

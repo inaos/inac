@@ -71,20 +71,14 @@ INA_API(ina_rc_t) ina_timer_new(ina_timer_t **timer)
     return ina_time_tsc_new(&(*timer)->stamp);
 }
 
-INA_API(ina_rc_t) ina_timer_free(ina_timer_t **timer)
+INA_API(void) ina_timer_free(ina_timer_t **timer)
 {
-    INA_VERIFY_NOT_NULL(timer);
-    INA_VERIFY_NOT_NULL(*timer);
-
+    INA_FREE_CHECK(timer);
     if ((*timer)->timeouts != NULL) {
         timeouts_close((*timer)->timeouts);
     }
-    if ((*timer)->stamp != NULL) {
-        INA_MUST_SUCCEED(ina_time_tsc_free(&(*timer)->stamp));
-    }
-    ina_mem_free(*timer);
-    *timer = NULL;
-    return INA_SUCCESS;
+    ina_time_tsc_free(&(*timer)->stamp);
+    INA_MEM_FREE_SAFE(timer);
 }
 
 
