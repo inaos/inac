@@ -204,7 +204,7 @@ INA_TEST(conffile, process_with_filepath)
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_free(&cf));
+    ina_conffile_free(&cf);
     INA_TEST_ASSERT_NULL(cf);
 
 }
@@ -223,7 +223,7 @@ INA_TEST(conffile, duplicate_key)
     INA_TEST_ASSERT_NOT_NULL(cs);
     INA_TEST_ASSERT_SUCCEED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
     INA_TEST_ASSERT_FAILED(ina_conffile_add_key(cs, "command_latency", INA_CONFFILE_VALUE_TYPE_NUMBER, INA_YES));
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_free(&cf));
+    ina_conffile_free(&cf);
 }
 
 
@@ -255,7 +255,7 @@ INA_TEST(conffile, process_without_filepath)
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
     
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_free(&cf));
+    ina_conffile_free(&cf);
     INA_TEST_ASSERT_NULL(cf);
 
 }
@@ -266,7 +266,7 @@ INA_TEST(conffile, new_free)
 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
     INA_TEST_ASSERT_NOT_NULL(cf);
-    INA_TEST_ASSERT_SUCCEED(ina_conffile_free(&cf));
+    ina_conffile_free(&cf);
     INA_TEST_ASSERT_NULL(cf);
 }
 

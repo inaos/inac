@@ -247,11 +247,8 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath,
  *
  * Parameters
  *  cf  Pointer of a configuration file pointer.
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_conffile_free(ina_conffile_t **cf);
+INA_API(void) ina_conffile_free(ina_conffile_t **cf);
 
 /*
  *  Add a string value key to the configuration file.

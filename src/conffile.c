@@ -107,47 +107,34 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
     INA_RETURN_IF(*cf == NULL);
     ina_mem_set(*cf, 0, sizeof(ina_conffile_t));
 
-    if (INA_FAILED(ina_ljit_init(&(*cf)->lctx))) {
-        ina_mem_free(*cf);
-        *cf = NULL;
-        return ina_err_get_last_rc();
-    }
-    if (INA_FAILED(ina_mempool_new(&(*cf)->mempool,
+    if (INA_SUCCEED(ina_ljit_init(&(*cf)->lctx)) &&
+        INA_SUCCEED(ina_mempool_new(&(*cf)->mempool,
                                         4094, 
                                         INA_MEM_DYNAMIC, 
-                                        NULL))) {
-        ina_ljit_destroy((&(*cf)->lctx));
-        ina_mem_free(*cf);
-        *cf = NULL;
-        return ina_err_get_last_rc();
-    }
-    if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                                        NULL)) &&
+        INA_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
                       INA_HASHTABLE_GROW_DEFAULT,
                       INA_HASHTABLE_SHRINK_DEFAULT,
                       INA_HASHTABLE_DEFAULT_CAPACITY,
                       INA_HASHTABLE_CF_DEFAULT, &(*cf)->sections))) {
-
-        ina_mempool_free(&(*cf)->mempool);
-        ina_mem_free(*cf);
-        *cf = NULL;
-        return ina_err_get_last_rc();
+        return INA_SUCCESS;
     }
-    return INA_SUCCESS;
+    ina_ljit_destroy(&(*cf)->lctx);
+    ina_hashtable_free(&(*cf)->sections);
+    ina_mempool_free(&(*cf)->mempool);
+    INA_MEM_FREE_SAFE(*cf);
+    return ina_err_get_last_rc();
 }
 
-INA_API(ina_rc_t) ina_conffile_free(ina_conffile_t **cf)
+INA_API(void) ina_conffile_free(ina_conffile_t **cf)
 {
-    INA_VERIFY_NOT_NULL(cf);
-    INA_VERIFY_NOT_NULL(*cf);
-
-    INA_MUST_SUCCEED(ina_ljit_destroy(&(*cf)->lctx));
+    INA_FREE_CHECK(cf);
+    ina_ljit_destroy(&(*cf)->lctx);
     ina_mempool_free(&(*cf)->mempool);
     ina_hashtable_free(&(*cf)->sections);
-    ina_mem_free(*cf);
-    *cf = NULL;
-    return INA_SUCCESS;
+    INA_MEM_FREE_SAFE(*cf);
 }
 
 INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf, 
