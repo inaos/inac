@@ -48,7 +48,7 @@ typedef struct ina_htdata_u64_s {
 } ina_htdata_u64_t;
 
 
-static ina_rc_t print_data(const void* data)
+static ina_rc_t print_data(void* data)
 {
     INA_TEST_MSG("[%d] - %s",
                  ((const ina_htdata_t*)data)->id,

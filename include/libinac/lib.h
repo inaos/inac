@@ -74,6 +74,7 @@ extern "C" {
 
 #include <libinac/version.h>
 #include <libinac/portable.h>
+#include <libinac/debug.h>
 #include <libinac/error.h>
 #include <libinac/memory.h>
 #include <libinac/mempool.h>
@@ -98,9 +99,8 @@ extern "C" {
 #include <libinac/file.h>
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
-#include <libinac/list.h>
 #include <libinac/hashtable.h>
-#include <libinac/debug.h>
+#include <libinac/list.h>
 #include <libinac/test.h>
 #include <libinac/bench.h>
 

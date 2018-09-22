@@ -57,9 +57,9 @@ static void __ina_opt_usage(void);
 /* get absolute path */
 static ina_rc_t __ina_get_binpath(ina_str_t path);
 /* free short options */
-static ina_rc_t __ina_free_sopt(const void *data);
+static ina_rc_t __ina_free_sopt(void *data);
 /* free long options */
-static ina_rc_t __ina_free_lopt(const void *data);
+static ina_rc_t __ina_free_lopt(void *data);
 
 /* initialization flag, > 0 lib/app initialized */
 static int32_t __initialized = 0;
@@ -576,7 +576,7 @@ __ina_get_binpath(ina_str_t path)
 }
 
 static ina_rc_t
-__ina_free_sopt(const void *data)
+__ina_free_sopt(void *data)
 {
     __ina_sopt_t *opt = (__ina_sopt_t*)data;
     if (opt->desc !=  NULL) {
@@ -593,7 +593,7 @@ __ina_free_sopt(const void *data)
 }
 
 static ina_rc_t
-__ina_free_lopt(const void *data)
+__ina_free_lopt(void *data)
 {
     __ina_lopt_t *opt = (__ina_lopt_t*)data;
     if (opt->opt != NULL) {

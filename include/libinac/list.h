@@ -34,34 +34,70 @@ extern "C" {
 #endif
 
 #include <libinac/lib.h>
-#include "lib.h"
 
-typedef ina_rc_t (*ina_foreach_fn_t)(const void *data);
-typedef ina_rc_t (*ina_foreach_arg_fn_t)(const void *data, void *arg);
+#define INA_LIST_CF_NOMALLOC (1U)
+#define INA_LIST_CF_DEFAULT  (0)
+
 
 typedef struct ina_list_node_s ina_list_node_t;
+
 struct ina_list_node_s {
     ina_list_node_t *next;
     ina_list_node_t *prev;
     void *data;
 };
-typedef ina_list_node_t* ina_list_t;
+typedef struct ina_list_s ina_list_t;
 
-INA_API(ina_rc_t) ina_list_new(ina_list_t *list);
-INA_API(ina_rc_t) ina_list_free(ina_list_t *list);
+
+INA_API(ina_rc_t) ina_list_new(uint32_t cf, size_t nodes, ina_list_t **list);
+INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list);
+
+INA_API(void)     ina_list_free(ina_list_t **list);
+
+INA_API(ina_rc_t) ina_list_node_new(ina_list_t *list, ina_list_node_t **node);
+INA_API(void)     ina_list_node_free(ina_list_t *list, ina_list_node_t **node);
 
 INA_API(ina_rc_t) ina_list_count(ina_list_t *list, size_t *count);
 
 INA_API(ina_rc_t) ina_list_head(ina_list_t *list, ina_list_node_t **node);
 INA_API(ina_rc_t) ina_list_tail(ina_list_t *list, ina_list_node_t **node);
 
-INA_API(ina_rc_t) ina_list_insert_head(ina_list_t *list, void *data);
-INA_API(ina_rc_t) ina_list_insert_tail(ina_list_t *list, void *data);
+INA_API(ina_rc_t) ina_list_insert_head(ina_list_t *list, ina_list_node_t *node);
+INA_API(ina_rc_t) ina_list_insert_tail(ina_list_t *list, ina_list_node_t *node);
 
 INA_API(ina_rc_t) ina_list_remove(ina_list_t *list, ina_list_node_t *node);
 
-INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
 
+
+INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
+INA_API(ina_rc_t) ina_list_sort(ina_list_t *list, ina_compare_fn_t compare_fn);
+
+
+INA_INLINE ina_rc_t ina_list_insert_head_data(ina_list_t *list, void *data)
+{
+    ina_list_node_t *node;
+    INA_MUST_SUCCEED(ina_list_node_new(list, &node));
+    node->data = data;
+    return ina_list_insert_head(list, node);
+}
+
+INA_INLINE ina_rc_t ina_list_insert_tail_data(ina_list_t *list, void *data)
+{
+    ina_list_node_t *node;
+    INA_MUST_SUCCEED(ina_list_node_new(list, &node));
+    node->data = data;
+    return ina_list_insert_tail(list, node);
+}
+
+INA_INLINE ina_rc_t ina_list_remove_data(ina_list_t *list, ina_list_node_t *node, void **data)
+{
+    INA_VERIFY_NOT_NULL(*data);
+    if (INA_SUCCEED(ina_list_remove(list, node))) {
+        *data = node->data;
+        ina_list_node_free(list, &node);
+    }
+    return INA_SUCCESS;
+}
 
 #ifdef __cplusplus
 }

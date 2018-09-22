@@ -579,6 +579,31 @@ INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t* ht, ina_foreach_fn_t fo
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_hashtable_foreach_arg(ina_hashtable_t* ht, ina_foreach_arg_fn_t foreach_fn, void *arg)
+{
+    ina_hashtable_bucket_t *bucket;
+    ina_hashtable_node_t *next;
+
+    INA_VERIFY_NOT_NULL(ht);
+    INA_VERIFY_NOT_NULL(foreach_fn);
+
+    bucket = ht->buckets;
+    while (bucket-ht->buckets < ht->capacity) {
+        if (bucket->count > 0) {
+            next = bucket->nodes;
+            while (next && next-bucket->nodes < bucket->count) {
+                if (next->data) {
+                    if (INA_FAILED(foreach_fn(next->data, arg))) {
+                        return ina_err_get_last_rc();
+                    }
+                }
+                next++;
+            }
+        }
+        bucket++;
+    }
+    return INA_SUCCESS;
+}
 
 INA_API(ina_rc_t) ina_hashtable_iter_new(ina_hashtable_t *ht, ina_hashtable_iter_t **iter)
 {
@@ -641,7 +666,7 @@ INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_
     *event_consumer = ina_mem_alloc(sizeof(ina_hashtable_event_consumer_t));
     INA_RETURN_IF_NULL(*event_consumer);
 
-    if (SUCCEEDED(INA_ULLC_PRODUCER_NEW(ina_hashtable_event_t,
+    if (INA_SUCCEED(INA_ULLC_PRODUCER_NEW(ina_hashtable_event_t,
                                                1, 4096,
                                                INA_HASHTABLE_MAX_STAT_TABLES,
                                                INA_HASHTABLE_MAX_STAT_TABLES,

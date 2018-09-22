@@ -37,6 +37,10 @@ extern "C" {
 #include <libinac/lib.h>
 #include "lib.h"
 
+typedef ina_rc_t (*ina_foreach_fn_t)(void *data);
+typedef ina_rc_t (*ina_foreach_arg_fn_t)(void *arg, void *data);
+
+typedef int (*ina_compare_fn_t)(const void *lhs, const void *lhd);
 
 #define INA_HASHTABLE_DEFAULT_CAPACITY     (32)
 #define INA_HASHTABLE_MAX_KEY_LEN          16
@@ -134,6 +138,8 @@ INA_API(ina_rc_t) ina_hashtable_get(const ina_hashtable_t *ht, const void *key, 
 INA_API(ina_rc_t) ina_hashtable_remove(ina_hashtable_t *ht,  const void *key, size_t key_len, void **data);
 
 INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t *ht, ina_foreach_fn_t foreach_fn);
+
+INA_API(ina_rc_t) ina_hashtable_foreach_arg(ina_hashtable_t *ht, ina_foreach_arg_fn_t foreach_fn, void* arg);
 
 INA_API(ina_rc_t) ina_hashtable_iter_new(ina_hashtable_t *ht, ina_hashtable_iter_t **iter);
 

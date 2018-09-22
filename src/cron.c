@@ -474,13 +474,13 @@ static void __free_task(ina_cron_task_t **task)
     ina_mem_free(*task);
 }
 
-static ina_rc_t __ina_free_task(const void *data)
+static ina_rc_t __ina_free_task(void *data)
 {
     __free_task((ina_cron_task_t**)&data);
     return INA_SUCCESS;
 }
 
-static ina_rc_t __ina_free_func(const void *data)
+static ina_rc_t __ina_free_func(void *data)
 {
     ina_mem_free((void*)data);
     return INA_SUCCESS;
