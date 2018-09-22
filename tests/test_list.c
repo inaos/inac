@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-#define INA_LIST_
 typedef struct ina_node_data_s {
     int index;
     int revindex;
@@ -40,7 +39,7 @@ INA_TEST(list, externally_data)
     ina_list_t *list;
     ina_list_node_t *node;
     ina_node_data_t *data;
-    INA_TEST_ASSERT_SUCCEED(ina_list_new(0, 10, &list));
+    INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
 
     for (i=0; i< 1000; ++i) {
         data = ina_mem_alloc(sizeof(ina_node_data_t));

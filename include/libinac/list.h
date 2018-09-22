@@ -35,8 +35,9 @@ extern "C" {
 
 #include <libinac/lib.h>
 
+#define INA_LIST_DEFAULT_SIZE (256)
 #define INA_LIST_CF_NOMALLOC (1U)
-#define INA_LIST_CF_DEFAULT  (0)
+#define INA_LIST_CF_DEFAULT  (0U)
 
 
 typedef struct ina_list_node_s ina_list_node_t;
@@ -49,8 +50,10 @@ struct ina_list_node_s {
 typedef struct ina_list_s ina_list_t;
 
 
-INA_API(ina_rc_t) ina_list_new(uint32_t cf, size_t nodes, ina_list_t **list);
+INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list);
 INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list);
+
+INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max_recyclable_nodes);
 
 INA_API(void)     ina_list_free(ina_list_t **list);
 
