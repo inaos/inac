@@ -172,7 +172,7 @@ INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max
         min_nodes = list->count;
     }
 
-    if (INA_FAILED(ina_mempool_new(&mp, sizeof(ina_list_node_t)*min_nodes, INA_MEM_DYNAMIC, NULL))) {
+    if (INA_FAILED(ina_mempool_new(sizeof(ina_list_node_t) * min_nodes, NULL, INA_MEM_DYNAMIC, &mp))) {
         return ina_err_get_last_rc();
     }
 

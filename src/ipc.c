@@ -76,9 +76,9 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
     strcpy(mname, "/ina_ipc_flags_");
     strncat(mname, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
 
-    if (INA_FAILED(ina_mempool_new(&(*flags)->m, sizeof(ina_ipc_flags_data_t),
-                     INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, 
-                     mname))) {
+    if (INA_FAILED(ina_mempool_new(sizeof(ina_ipc_flags_data_t),
+                                   mname,
+                                   INA_MEM_SHARED | INA_MEM_SHARED_CREATE | INA_MEM_SHARED_EXCL, &(*flags)->m))) {
         ina_ipc_flags_free(flags);
         return ina_err_get_last_rc();
     }
@@ -109,9 +109,9 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
 
     strcpy(mname, "/ina_ipc_flags_");
     strncat(mname, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
-    if (INA_FAILED(ina_mempool_new(&(*flags)->m, sizeof(ina_ipc_flags_data_t),
-                     INA_MEM_SHARED, 
-                     mname))) {
+    if (INA_FAILED(ina_mempool_new(sizeof(ina_ipc_flags_data_t),
+                                   mname,
+                                   INA_MEM_SHARED, &(*flags)->m))) {
         ina_ipc_flags_free(flags);
         return ina_err_get_last_rc();
     }
@@ -288,9 +288,9 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
     strcpy(mname, "/ina_ipc_counter_");
     strncat(mname, name, INA_IPC_COUNTER_NAME_MAXLEN-1);
 
-    if (INA_FAILED(ina_mempool_new(&(*counter)->m, sizeof(ina_ipc_counter_data_t),
-                     INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, 
-                     mname))) {
+    if (INA_FAILED(ina_mempool_new(sizeof(ina_ipc_counter_data_t),
+                                   mname,
+                                   INA_MEM_SHARED | INA_MEM_SHARED_CREATE | INA_MEM_SHARED_EXCL, &(*counter)->m))) {
         ina_mem_free(*counter);
         *counter = NULL;
         return ina_err_get_last_rc();
@@ -319,9 +319,9 @@ INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **cou
     INA_RETURN_IF_NULL(*counter);
     strcpy(mname, "/ina_ipc_counter_");
     strncat(mname, name, INA_IPC_COUNTER_NAME_MAXLEN-1);
-    if (INA_FAILED(ina_mempool_new(&(*counter)->m, sizeof(ina_ipc_counter_data_t),
-                     INA_MEM_SHARED, 
-                     mname))) {
+    if (INA_FAILED(ina_mempool_new(sizeof(ina_ipc_counter_data_t),
+                                   mname,
+                                   INA_MEM_SHARED, &(*counter)->m))) {
         ina_mem_free(*counter);
         *counter = NULL;
         return ina_err_get_last_rc();

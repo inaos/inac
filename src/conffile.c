@@ -108,10 +108,10 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
     ina_mem_set(*cf, 0, sizeof(ina_conffile_t));
 
     if (INA_SUCCEED(ina_ljit_init(&(*cf)->lctx)) &&
-        INA_SUCCEED(ina_mempool_new(&(*cf)->mempool,
-                                        4094, 
-                                        INA_MEM_DYNAMIC, 
-                                        NULL)) &&
+        INA_SUCCEED(ina_mempool_new(
+                4094,
+                NULL,
+                INA_MEM_DYNAMIC, &(*cf)->mempool)) &&
         INA_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,

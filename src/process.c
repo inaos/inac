@@ -177,10 +177,10 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
     ina_mem_set(*ctx, 0, sizeof(ina_process_ctx_t));
 
     if (INA_SUCCEED(ina_time_sys_new(&(*ctx)->systime)) &&
-        INA_SUCCEED(ina_mempool_new(&(*ctx)->mempool,
-                                           4096,
-                                           INA_MEM_DYNAMIC,
-                                           NULL)) &&
+        INA_SUCCEED(ina_mempool_new(
+                4096,
+                NULL,
+                INA_MEM_DYNAMIC, &(*ctx)->mempool)) &&
         INA_SUCCEED(ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL, *ctx)) &&
         INA_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
                       INA_HASH_DEFAULT,

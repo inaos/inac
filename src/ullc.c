@@ -94,7 +94,7 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
 
     INA_VERIFY_NOT_NULL(info);
 
-    if (INA_FAILED(ina_mempool_new(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, name))) {
+    if (INA_FAILED(ina_mempool_new(sizeof(ina_ullc_rb_t), name, INA_MEM_SHARED, &m))) {
         return ina_err_get_last_rc();
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
@@ -223,7 +223,7 @@ INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
     INA_VERIFY_NOT_NULL(name);
     INA_VERIFY(strlen(name));
 
-    if (INA_FAILED(ina_mempool_new(&m, sizeof(ina_ullc_rb_t), INA_MEM_SHARED, name))) {
+    if (INA_FAILED(ina_mempool_new(sizeof(ina_ullc_rb_t), name, INA_MEM_SHARED, &m))) {
         return ina_err_get_last_rc();
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
@@ -511,7 +511,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
 
 	ctx->pool = NULL;
 
-    if (INA_FAILED(ina_mempool_new(&ctx->pool, mem_size, INA_MEM_SHARED|flags, name))) {
+    if (INA_FAILED(ina_mempool_new(mem_size, name, INA_MEM_SHARED | flags, &ctx->pool))) {
         return ina_err_get_last_rc();
     }
 

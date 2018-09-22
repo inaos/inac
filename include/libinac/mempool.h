@@ -132,10 +132,7 @@ INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool,
  * Return
  *  INA_SUCCESS if pool was craeted successfully.
  */
-INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool,
-                                     size_t size,
-                                     uint32_t cf,
-                                     const char* label);
+INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool);
 
 /* 
  * Free a memory pool.

@@ -129,8 +129,8 @@ INA_API(ina_rc_t) ina_dir_walker_new(const char *basedir,
 
     *walker = (ina_dir_walker_t*)ina_mem_alloc(sizeof(ina_dir_walker_t));
     INA_RETURN_IF_NULL(*walker);
-    INA_RETURN_IF_FAILED(ina_mempool_new(&(*walker)->mp, 1024*sizeof(ina_dir_entry_t), 0, NULL));
-    INA_RETURN_IF_FAILED(ina_mempool_new(&(*walker)->smp, 1024*1024, INA_MEM_DYNAMIC, NULL));
+    INA_RETURN_IF_FAILED(ina_mempool_new(1024 * sizeof(ina_dir_entry_t), NULL, 0, &(*walker)->mp));
+    INA_RETURN_IF_FAILED(ina_mempool_new(1024 * 1024, NULL, INA_MEM_DYNAMIC, &(*walker)->smp));
     (*walker)->head = ina_mempool_dalloc((*walker)->mp,1024*sizeof(ina_dir_entry_t));
     (*walker)->basedir = ina_str_new_fromcstr(basedir);
     (*walker)->sort_order = INA_DIR_SORT_ORDER_NONE;

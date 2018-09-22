@@ -194,7 +194,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *curs
     size_t nread = 0;
     const char *chunk;
     if (cursor->ext.f.lmp == NULL) {
-        if (INA_FAILED(ina_mempool_new(&cursor->ext.f.lmp, 1024, INA_MEM_DYNAMIC, NULL))) {
+        if (INA_FAILED(ina_mempool_new(1024, NULL, INA_MEM_DYNAMIC, &cursor->ext.f.lmp))) {
             return ina_err_get_last_rc();
         }
     }

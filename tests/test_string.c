@@ -36,7 +36,7 @@ INA_TEST_DATA(string_mempool)
 INA_TEST_SETUP(string_mempool)
 {
     ina_err_reset();
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&data->pool, 10*1024,INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(10 * 1024, NULL, INA_MEM_DYNAMIC, &data->pool));
     INA_TEST_ASSERT_NOT_NULL(data->pool);
 }
 
@@ -766,7 +766,7 @@ INA_TEST(string, simple_allocation_with_pool)
     ina_str_t str2;
     ina_mempool_t *pool;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(&pool, 1024, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(1024, NULL, 0, &pool));
 
     str1 = ina_str_new_fromcstr_using_pool("hallo", pool);
     INA_TEST_ASSERT_NOT_NULL(str1);

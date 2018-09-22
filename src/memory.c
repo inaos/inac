@@ -177,7 +177,7 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
 }
 
 
-INA_API(ina_rc_t) ina_mempool_new(ina_mempool_t **pool, size_t size, uint32_t cf, const char *label)
+INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool)
 {
     INA_VERIFY_NOT_NULL(pool);
     INA_VERIFY(size > 0);
@@ -399,9 +399,9 @@ retry:
             }
 
             /* FXIME: shm can not handled in chunks ! */
-            if (INA_FAILED(ina_mempool_new(&pool->current->child, nsize,
-                    pool->cf|INA_MEM_CHILD, 
-                    pool->label))) {
+            if (INA_FAILED(ina_mempool_new(nsize,
+                                           pool->label,
+                                           pool->cf | INA_MEM_CHILD, &pool->current->child))) {
                 return NULL;
             }
             pool->current->child->parent = pool->current;
@@ -447,9 +447,9 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
             }
 
             /* FIXME: shm can not handled in chunks ! */
-            ina_mempool_new(&pool->current->child, nsize,
-                    pool->cf|INA_MEM_CHILD, 
-                    pool->label);
+            ina_mempool_new(nsize,
+                            pool->label,
+                            pool->cf | INA_MEM_CHILD, &pool->current->child);
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
         } else {
@@ -507,9 +507,9 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
 
             /* FIXME: Push an error , if fails */
             /* FIXME: shm can not handled in chunks ! */
-            ina_mempool_new(&pool->current->child, nsize,
-                    pool->cf|INA_MEM_CHILD, 
-                    pool->label);
+            ina_mempool_new(nsize,
+                            pool->label,
+                            pool->cf | INA_MEM_CHILD, &pool->current->child);
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
             ret = &pool->m[pool->pos];
@@ -544,9 +544,9 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
 
         /* FIXME: Push an error , if fails */
         /* FIXME: shm can not handled in chunks ! */
-        ina_mempool_new(&pool->current->child, nsize,
-                    pool->cf|INA_MEM_CHILD, 
-                    pool->label);
+        ina_mempool_new(nsize,
+                        pool->label,
+                        pool->cf | INA_MEM_CHILD, &pool->current->child);
         pool->current->child->parent = pool->current;
         pool->current = pool->current->child;
         ret = &pool->m[pool->pos];

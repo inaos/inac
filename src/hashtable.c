@@ -360,7 +360,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
         size = sizeof(ina_hashtable_bucket_t) * ((*ht)->capacity+1);
     }
 
-    if (INA_FAILED(ina_mempool_new(&(*ht)->mp, size, INA_MEM_DYNAMIC, NULL))) {
+    if (INA_FAILED(ina_mempool_new(size, NULL, INA_MEM_DYNAMIC, &(*ht)->mp))) {
         ina_hashtable_free(ht);
         return ina_err_get_last_rc();
     }

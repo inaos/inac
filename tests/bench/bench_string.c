@@ -74,7 +74,7 @@ INA_BENCH(string, series_2, 10) {
            ina_bench_get_iteration(),
            data->c);
 
-    INA_MUST_SUCCEED(ina_mempool_new(&data->mp, data->c*50, INA_MEM_FIXED, NULL));
+    INA_MUST_SUCCEED(ina_mempool_new(data->c * 50, NULL, INA_MEM_FIXED, &data->mp));
     ina_bench_stopwatch_start();
     for (i = 0; i < data->c; i++) {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
@@ -87,7 +87,7 @@ INA_BENCH(string, series_2, 10) {
 
 INA_BENCH_END(string, series_2) {}
 INA_BENCH_BEGIN(string, series_3) {
-    INA_MUST_SUCCEED(ina_mempool_new(&data->mp, data->c*50, INA_MEM_FIXED, NULL));
+    INA_MUST_SUCCEED(ina_mempool_new(data->c * 50, NULL, INA_MEM_FIXED, &data->mp));
 }
 
 INA_BENCH(string, series_3, 10) {

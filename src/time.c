@@ -637,10 +637,10 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
      }
 
      size = sizeof(ina_stopwatch_t)+(max_stamps*sizeof(ina_stopwatch_ts_t));
-     if (INA_FAILED(ina_mempool_new(&(*stopwatch)->shared_mem,
-             size, 
-             cf, 
-             name))) {
+     if (INA_FAILED(ina_mempool_new(
+             size,
+             name,
+             cf, &(*stopwatch)->shared_mem))) {
          ina_mem_free(*stopwatch);
          *stopwatch = NULL;
          return ina_err_get_last_rc();
