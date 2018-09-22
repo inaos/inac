@@ -44,10 +44,75 @@ ina_rc_t __ina_add_data(void *arg, void *data)
     return ina_list_insert_tail_data(list, data);
 }
 
-ina_rc_t __ina_resize(ina_list_t *list, size_t min_nodes, size_t max_recyclable_nodes)
+
+INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list)
 {
+    INA_VERIFY_NOT_NULL(*list);
+    *list = ina_mem_alloc(sizeof(ina_list_t));
+    INA_RETURN_IF_NULL(*list);
+    ina_mem_set(*list, 0, sizeof(ina_list_t));
+    (*list)->cf = cf;
+    (*list)->max_recyclable = INA_LIST_DEFAULT_SIZE;
+    if (cf&INA_LIST_CF_NOMALLOC) {
+        return INA_SUCCESS;
+    }
+    if (INA_FAILED(ina_list_resize(*list, INA_LIST_CF_DEFAULT, INA_LIST_DEFAULT_SIZE))) {
+        ina_list_free(list);
+        return ina_err_get_last_rc();
+    }
+    return INA_SUCCESS;
+}
+
+
+INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list)
+{
+    int count;
+    ina_hashtable_count(ht, &count);
+    if (INA_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, list)) &&
+        INA_SUCCEED(ina_list_resize(*list, count, 0)) &&
+        INA_SUCCEED(ina_hashtable_foreach_arg(ht, __ina_add_data, *list))) {
+        return INA_SUCCESS;
+    }
+    return ina_err_get_last_rc();
+}
+
+INA_API(void) ina_list_free(ina_list_t **list)
+{
+    INA_FREE_CHECK(list);
+    ina_mempool_free(&(*list)->mp);
+    INA_MEM_FREE_SAFE((*list)->frst_free);
+    INA_MEM_FREE_SAFE(*list);
+}
+
+INA_API(ina_rc_t) ina_list_node_new(ina_list_t *list, ina_list_node_t **node)
+{
+    INA_VERIFY_NOT_NULL(list);
+    INA_VERIFY_NOT_NULL(node);
+
+    if (list->last_free) {
+        *node = list->frst_free[list->last_free];
+        list->last_free--;
+        return INA_SUCCESS;
+    }
+    *node = ina_mempool_dalloc(list->mp, sizeof(ina_list_node_t));
+    return INA_SUCCESS;
+}
+
+INA_API(void) ina_list_node_free(ina_list_t *list, ina_list_node_t **node)
+{
+    INA_FREE_CHECK(node);
+    INA_VERIFY_NOT_NULL(list);
+    if (list->last_free < list->max_recyclable) {
+        list->last_free++;
+        list->frst_free[list->last_free] = *node;
+    }
+    *node = NULL;
+}
+
+INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max_recyclable_nodes)
+{
+    INA_VERIFY_NOT_NULL(list);
     ina_mempool_t *mp;
-    size_t size;
 
     if (min_nodes == 0) {
         min_nodes = INA_LIST_DEFAULT_SIZE;
@@ -77,85 +142,18 @@ ina_rc_t __ina_resize(ina_list_t *list, size_t min_nodes, size_t max_recyclable_
         }
         list->head = new_head;
         ina_mempool_free(&list->mp);
-        list->mp = mp;
     }
+
+    list->mp = mp;
 
     INA_MEM_FREE_SAFE(list->frst_free);
     list->last_free = 0;
     if (max_recyclable_nodes) {
-        list->frst_free = ina_mem_alloc(sizeof(void*));
+        list->max_recyclable = max_recyclable_nodes;
+        list->frst_free = ina_mem_alloc(sizeof(void*)*max_recyclable_nodes);
         ina_mem_set(list->frst_free, 0, sizeof(void*)*max_recyclable_nodes);
     }
     return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list)
-{
-    INA_VERIFY_NOT_NULL(*list);
-    *list = ina_mem_alloc(sizeof(ina_list_t));
-    INA_RETURN_IF_NULL(*list);
-    ina_mem_set(*list, 0, sizeof(ina_list_t));
-    (*list)->cf = cf;
-    (*list)->max_recyclable = INA_LIST_DEFAULT_SIZE;
-    if (cf&INA_LIST_CF_NOMALLOC) {
-        return INA_SUCCESS;
-    }
-    if (INA_FAILED(__ina_resize(*list, INA_LIST_CF_DEFAULT, INA_LIST_DEFAULT_SIZE))) {
-        ina_list_free(list);
-        return ina_err_get_last_rc();
-    }
-    return INA_SUCCESS;
-}
-
-
-INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list)
-{
-    int count;
-    ina_hashtable_count(ht, &count);
-    if (INA_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, list)) &&
-        INA_SUCCEED(ina_list_resize(*list, count, 0)) &&
-        INA_SUCCEED(ina_hashtable_foreach_arg(ht, __ina_add_data, *list))) {
-        return INA_SUCCESS;
-    }
-    return ina_err_get_last_rc();
-}
-
-INA_API(void) ina_list_free(ina_list_t **list)
-{
-    INA_FREE_CHECK(list);
-    ina_mempool_free(&(*list)->mp);
-    INA_MEM_FREE_SAFE(list);
-}
-
-INA_API(ina_rc_t) ina_list_node_new(ina_list_t *list, ina_list_node_t **node)
-{
-    INA_VERIFY_NOT_NULL(list);
-    INA_VERIFY_NOT_NULL(node);
-    *node = list->frst_free[list->last_free];
-
-    if (*node != *list->frst_free) {
-        list->last_free--;
-        return INA_SUCCESS;
-    }
-    *node = ina_mempool_dalloc(list->mp, sizeof(ina_list_node_t));
-    return INA_SUCCESS;
-}
-
-INA_API(void) ina_list_node_free(ina_list_t *list, ina_list_node_t **node)
-{
-    INA_FREE_CHECK(node);
-    INA_VERIFY_NOT_NULL(list);
-    if (list->last_free < list->max_recyclable) {
-        list->last_free++;
-        list->frst_free[list->last_free] = *node;
-    }
-    *node = NULL;
-}
-
-INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max_recyclable_nodes)
-{
-    INA_VERIFY_NOT_NULL(list);
-    return __ina_resize(list, min_nodes, max_recyclable_nodes);
 }
 
 
@@ -241,7 +239,27 @@ INA_API(ina_rc_t) ina_list_remove(ina_list_t *list, ina_list_node_t *node)
     } else {
         node->prev->next = node->next;
     }
+    --list->count;
     return INA_SUCCESS;
+}
+
+INA_API (ina_rc_t) ina_list_remove_data(ina_list_t *list, void *data)
+{
+    ina_list_node_t *node;
+    INA_VERIFY_NOT_NULL(list);
+    INA_VERIFY_NOT_NULL(data);
+
+    if(INA_SUCCEED(ina_list_head(list, &node))) {
+        while (node) {
+            if (node->data == data) {
+                ina_list_remove(list, node);
+                ina_list_node_free(list, &node);
+                return INA_SUCCESS;
+            }
+            node = node->next;
+        }
+    }
+    return INA_ERROR(INA_ERR_NOT_EXISTS);
 }
 
 INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn)

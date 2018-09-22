@@ -46,9 +46,12 @@ INA_TEST(list, externally_data)
         data->index = i;
         INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data));
     }
+    ina_list_remove_data(list, data);
+
     ina_list_head(list, &node);
     while (node) {
         ((ina_node_data_t*)node->data)->revindex = 1000 - ((ina_node_data_t*)node->data)->index;
+        node = node->next;
     }
 
     ina_list_free(&list);

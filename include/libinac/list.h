@@ -70,10 +70,10 @@ INA_API(ina_rc_t) ina_list_insert_tail(ina_list_t *list, ina_list_node_t *node);
 
 INA_API(ina_rc_t) ina_list_remove(ina_list_t *list, ina_list_node_t *node);
 
-
-
 INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
 INA_API(ina_rc_t) ina_list_sort(ina_list_t *list, ina_compare_fn_t compare_fn);
+INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_foreach_fn_t foreach_fn, ina_list_node_t **node);
+
 
 
 INA_INLINE ina_rc_t ina_list_insert_head_data(ina_list_t *list, void *data)
@@ -92,15 +92,8 @@ INA_INLINE ina_rc_t ina_list_insert_tail_data(ina_list_t *list, void *data)
     return ina_list_insert_tail(list, node);
 }
 
-INA_INLINE ina_rc_t ina_list_remove_data(ina_list_t *list, ina_list_node_t *node, void **data)
-{
-    INA_VERIFY_NOT_NULL(*data);
-    if (INA_SUCCEED(ina_list_remove(list, node))) {
-        *data = node->data;
-        ina_list_node_free(list, &node);
-    }
-    return INA_SUCCESS;
-}
+INA_API (ina_rc_t) ina_list_remove_data(ina_list_t *list, void *data);
+
 
 #ifdef __cplusplus
 }
