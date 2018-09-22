@@ -38,6 +38,56 @@ struct ina_list_s {
     int last_free;
 };
 
+ina_list_node_t *__ina_split(ina_list_node_t *head)
+{
+    ina_list_node_t *tmp;
+    ina_list_node_t *fast = head,*slow = head;
+    while (fast->next && fast->next->next)
+    {
+        fast = fast->next->next;
+        slow = slow->next;
+    }
+    tmp = slow->next;
+    slow->next = NULL;
+    return tmp;
+}
+
+ina_list_node_t *__ina_merge(ina_list_node_t *first, ina_list_node_t *second, ina_compare_fn_t compare_fn)
+{
+    /* If first linked list is empty */
+    if (!first)
+        return second;
+
+    /* If second linked list is empty */
+    if (!second)
+        return first;
+
+    /* Pick the smaller value */
+    if (compare_fn(first->data, second->data) < 0) {
+        first->next = __ina_merge(first->next,second, compare_fn);
+        first->next->prev = first;
+        first->prev = NULL;
+        return first;
+    } else {
+        second->next = __ina_merge(first,second->next, compare_fn);
+        second->next->prev = second;
+        second->prev = NULL;
+        return second;
+    }
+}
+
+ina_list_node_t *__ina_mergesort(ina_list_node_t *head, ina_compare_fn_t compare_fn)
+{
+    ina_list_node_t *second;
+    if (!head || head->next == NULL) {
+        return head;
+    }
+    second = __ina_split(head);
+    head = __ina_mergesort(head, compare_fn);
+    second = __ina_mergesort(second, compare_fn);
+    return __ina_merge(head, second, compare_fn);
+}
+
 ina_rc_t __ina_add_data(void *arg, void *data)
 {
     ina_list_t *list = (ina_list_t*)arg;
@@ -47,7 +97,7 @@ ina_rc_t __ina_add_data(void *arg, void *data)
 
 INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list)
 {
-    INA_VERIFY_NOT_NULL(*list);
+    INA_VERIFY_NOT_NULL(list);
     *list = ina_mem_alloc(sizeof(ina_list_t));
     INA_RETURN_IF_NULL(*list);
     ina_mem_set(*list, 0, sizeof(ina_list_t));
@@ -284,4 +334,31 @@ INA_API(ina_rc_t) ina_list_foreach_arg(ina_list_t *list, ina_foreach_arg_fn_t fo
         }
     }
     return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_compare_fn_t compare_fn, const void *find_arg, ina_list_node_t **node)
+{
+    ina_list_node_t *next;
+    INA_VERIFY_NOT_NULL(compare_fn);
+    INA_VERIFY_NOT_NULL(find_arg);
+    INA_VERIFY_NOT_NULL(node);
+    if (INA_SUCCEED(ina_list_head(list, &next))) {
+        while (next) {
+            if (0 == compare_fn(next->data, find_arg)) {
+                return INA_SUCCESS;
+            }
+            next = next->next;
+        }
+    }
+    return INA_ERROR(INA_ERR_NOT_FOUND);
+}
+
+INA_API(ina_rc_t) ina_list_sort(ina_list_t *list, ina_compare_fn_t compare_fn)
+{
+    ina_list_node_t *head;
+    if (INA_SUCCEED(ina_list_head(list, &head))) {
+        list->head = __ina_mergesort(head, compare_fn);
+        return INA_SUCCESS;
+    }
+    INA_ERROR(INA_ERR_EMPTY);
 }

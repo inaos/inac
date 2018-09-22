@@ -41,6 +41,8 @@ typedef ina_rc_t (*ina_foreach_fn_t)(void *data);
 typedef ina_rc_t (*ina_foreach_arg_fn_t)(void *arg, void *data);
 
 typedef int (*ina_compare_fn_t)(const void *lhs, const void *lhd);
+typedef int (*ina_find_fn_t)(const void *data, const void *find_arg);
+
 
 #define INA_HASHTABLE_DEFAULT_CAPACITY     (32)
 #define INA_HASHTABLE_MAX_KEY_LEN          16

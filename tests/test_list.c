@@ -28,32 +28,84 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
+typedef struct ina_data_s {
+    int index;
+} ina_data_t;
+
 typedef struct ina_node_data_s {
     int index;
-    int revindex;
+    ina_list_node_t node;
 } ina_node_data_t;
 
-INA_TEST(list, externally_data)
+static ina_rc_t print_data(void *data)
 {
-    int i;
+    const ina_data_t *d = (ina_data_t*)data;
+    INA_TEST_MSG("[%d]", d->index);
+}
+
+static int find_data(const void *data, const void *find_arg)
+{
+    const ina_data_t *d = (ina_data_t*)data;
+    const int index = *(int*)(find_arg);
+    if (d->index == index) {
+        return 0;
+    }
+    return (d->index > index);
+}
+
+static int sort_desc(const void *lhs, const void *rhs)
+{
+    const ina_data_t *a = (ina_data_t*)lhs;
+    const ina_data_t *b = (ina_data_t*)lhs;
+    return (a->index > b->index);
+}
+
+INA_TEST(list, arbitrary_data)
+{
+    size_t  count;
     ina_list_t *list;
     ina_list_node_t *node;
-    ina_node_data_t *data;
+    ina_data_t *data, *data1, *data2, *data3, *data4, *data5, *data6, *data7= NULL;
     INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
+    data1 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data1->index = 1;
+    data2 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data2->index = 2;
+    data3 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data3->index = 3;
+    data4 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data4->index = 4;
+    data5 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data5->index = 5;
+    data6 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data6->index = 6;
+    data7 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data7->index = 7;
 
-    for (i=0; i< 1000; ++i) {
-        data = ina_mem_alloc(sizeof(ina_node_data_t));
-        data->index = i;
-        INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data));
-    }
-    ina_list_remove_data(list, data);
+    INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data1));
+    INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data2));
+    INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data3));
+    INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data4));
+    INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data5));
+    INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data6));
 
-    ina_list_head(list, &node);
-    while (node) {
-        ((ina_node_data_t*)node->data)->revindex = 1000 - ((ina_node_data_t*)node->data)->index;
-        node = node->next;
-    }
+    INA_TEST_ASSERT_SUCCEED(ina_list_count(list, &count));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(6, count);
+    INA_TEST_ASSERT_FAILED(ina_list_remove_data(list, data7));
+    INA_TEST_ASSERT_SUCCEED(ina_list_remove_data(list, data1));
+    INA_TEST_ASSERT_SUCCEED(ina_list_count(list, &count));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(5, count);
+
+    INA_TEST_ASSERT_SUCCEED(ina_list_find(list, find_data, &data3->index, &node));
+    INA_TEST_ASSERT_SUCCEED(ina_list_foreach(list, print_data));
+    INA_TEST_ASSERT_SUCCEED(ina_list_sort(list, sort_desc));
+    INA_TEST_ASSERT_SUCCEED(ina_list_foreach(list, print_data));
+
 
     ina_list_free(&list);
 }
 
+INA_TEST(list, foreach)
+{
+
+}
