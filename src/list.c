@@ -360,5 +360,5 @@ INA_API(ina_rc_t) ina_list_sort(ina_list_t *list, ina_compare_fn_t compare_fn)
         list->head = __ina_mergesort(head, compare_fn);
         return INA_SUCCESS;
     }
-    INA_ERROR(INA_ERR_EMPTY);
+    return INA_ERROR(INA_ERR_EMPTY);
 }
