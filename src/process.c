@@ -191,11 +191,7 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
                       INA_HASHTABLE_CF_DEFAULT, &(*ctx)->processes))) {
         return INA_SUCCESS;
     }
-    ina_hashtable_free(&(*ctx)->processes);
-    ina_cron_ctx_free(&(*ctx)->cron_ctx);
-    ina_mempool_free(&(*ctx)->mempool);
-    ina_time_sys_free(&(*ctx)->systime);
-    INA_MEM_FREE_SAFE(*ctx);
+    ina_process_ctx_free(ctx);
     return ina_err_get_last_rc();
 }
 
