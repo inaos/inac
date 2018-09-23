@@ -123,7 +123,7 @@ INA_API(ina_rc_t) ina_cpu_init(void);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_cpu_destroy(void);
+INA_API(void) ina_cpu_destroy(void);
 
 /*
  * Get package count.

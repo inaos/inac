@@ -164,6 +164,7 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 
 INA_API(ina_rc_t) ina_cpu_init()
 {
+	INA_INIT_GUARD();
 #ifndef INA_OS_OSX
     char vendor[16];
     int packages = 0;
@@ -573,18 +574,13 @@ INA_API(ina_rc_t) ina_cpu_init()
 #endif
 }
 
-INA_API(ina_rc_t) ina_cpu_destroy()
+INA_API(void) ina_cpu_destroy()
 {
-    if (__ina_cpu_ctx != NULL) {
-        if (__ina_cpu_ctx->vendor != NULL) {
-            ina_str_free(__ina_cpu_ctx->vendor);
-        }
-        if (__ina_cpu_ctx->brand != NULL) {
-            ina_str_free(__ina_cpu_ctx->brand);
-        }
-        ina_mem_free(__ina_cpu_ctx);
-    }
-    return INA_SUCCESS;
+	INA_DESTROY_GUARD();
+	INA_FREE_CHECK(&__ina_cpu_ctx);
+    INA_STR_FREE_SAFE(__ina_cpu_ctx->vendor);
+	INA_STR_FREE_SAFE(__ina_cpu_ctx->brand);
+	INA_MEM_FREE_SAFE(__ina_cpu_ctx);
 }
 
 INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count)
