@@ -913,7 +913,7 @@ static ina_rc_t __ina_process_query(const char *binary,
 {
     ina_ljit_ctx_t *ctx;
 
-    INA_RETURN_IF_FAILED(ina_ljit_init(&ctx));
+    INA_RETURN_IF_FAILED(ina_ljit_ctx_new(&ctx));
 
     if (INA_FAILED(ina_ljit_dostring(ctx, "local pq = require(\"lprocqry\");pqf=pq.query"))) {
         return ina_err_get_last_rc();
@@ -948,7 +948,7 @@ static ina_rc_t __ina_process_query(const char *binary,
         *num_threads = 0;
     }
 
-    ina_ljit_destroy(&ctx);
+    ina_ljit_ctx_free(&ctx);
 
     return INA_SUCCESS;
 }
