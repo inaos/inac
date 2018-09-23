@@ -36,7 +36,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
     ina_cron_task_t *task;
     int found = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(&ctx, NULL, NULL, NULL));
 
 #ifdef INA_OS_WIN32
     cmd = ina_str_new_fromcstr("dir.exe .");
@@ -83,7 +83,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
     INA_TEST_ASSERT_EQUAL_INT(2, found);
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_iter_free(&itr));
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_destroy(&ctx));
+    ina_cron_ctx_free(&ctx);
 }
 
 INA_TEST_SKIP(cron, add_task_and_exec)
@@ -93,7 +93,7 @@ INA_TEST_SKIP(cron, add_task_and_exec)
     int suggested_sleep_time;
     time_t now;
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_init(&ctx, NULL, NULL, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(&ctx, NULL, NULL, NULL));
 
 #ifdef INA_OS_WIN32
     cmd = ina_str_new_fromcstr("pwd.exe");
@@ -111,5 +111,5 @@ INA_TEST_SKIP(cron, add_task_and_exec)
     now += suggested_sleep_time;
     INA_TEST_ASSERT_SUCCEED(ina_cron_process(ctx, now, &suggested_sleep_time));
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_destroy(&ctx));
+    ina_cron_ctx_free(&ctx);
 }

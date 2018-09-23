@@ -107,7 +107,7 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
     INA_RETURN_IF(*cf == NULL);
     ina_mem_set(*cf, 0, sizeof(ina_conffile_t));
 
-    if (INA_SUCCEED(ina_ljit_init(&(*cf)->lctx)) &&
+    if (INA_SUCCEED(ina_ljit_ctx_new(&(*cf)->lctx)) &&
         INA_SUCCEED(ina_mempool_new(
                 4094,
                 NULL,
@@ -121,7 +121,7 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
                       INA_HASHTABLE_CF_DEFAULT, &(*cf)->sections))) {
         return INA_SUCCESS;
     }
-    ina_ljit_destroy(&(*cf)->lctx);
+    ina_ljit_ctx_free(&(*cf)->lctx);
     ina_hashtable_free(&(*cf)->sections);
     ina_mempool_free(&(*cf)->mempool);
     INA_MEM_FREE_SAFE(*cf);
@@ -131,7 +131,7 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
 INA_API(void) ina_conffile_free(ina_conffile_t **cf)
 {
     INA_FREE_CHECK(cf);
-    ina_ljit_destroy(&(*cf)->lctx);
+    ina_ljit_ctx_free(&(*cf)->lctx);
     ina_mempool_free(&(*cf)->mempool);
     ina_hashtable_free(&(*cf)->sections);
     INA_MEM_FREE_SAFE(*cf);

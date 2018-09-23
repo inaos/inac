@@ -41,7 +41,7 @@ INA_TEST_HELPER(ljit, lua_echo_server) {
     addr = INA_TEST_HELPER_CARG(0);
     port = INA_TEST_HELPER_IARG(1);
 
-    if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
+    if (!INA_SUCCEED(ina_ljit_ctx_new(&ctx))) {
         *retval = INA_RC_ERROR(ina_err_get_last_rc());
         return;
     }
@@ -57,10 +57,7 @@ INA_TEST_HELPER(ljit, lua_echo_server) {
         return;
     }
    
-    if (!INA_SUCCEED(ina_ljit_destroy(&ctx))) {
-        *retval = INA_RC_ERROR(ina_err_get_last_rc());
-        return;
-    }
+	ina_ljit_ctx_free(&ctx);
 }
 
 /*
@@ -71,7 +68,7 @@ INA_TEST_HELPER(ljit, lua_debug_server) {
     ina_ljit_ctx_t *ctx = NULL;
     int ret;
 
-    if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
+    if (!INA_SUCCEED(ina_ljit_ctx_new(&ctx))) {
         *retval = INA_RC_ERROR(ina_err_get_last_rc());
         return;
     }
@@ -87,8 +84,5 @@ INA_TEST_HELPER(ljit, lua_debug_server) {
         return;
     }
    
-    if (!INA_SUCCEED(ina_ljit_destroy(&ctx))) {
-        *retval = INA_RC_ERROR(ina_err_get_last_rc());
-        return;
-    }
+	ina_ljit_ctx_free(&ctx);
 }

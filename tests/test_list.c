@@ -41,6 +41,7 @@ static ina_rc_t print_data(void *data)
 {
     const ina_data_t *d = (ina_data_t*)data;
     INA_TEST_MSG("[%d]", d->index);
+	return INA_SUCCESS;
 }
 
 static int find_data(const void *data, const void *find_arg)
@@ -79,7 +80,7 @@ INA_TEST(list, arbitrary_data)
     size_t  count;
     ina_list_t *list;
     ina_list_node_t *node;
-    ina_data_t *data, *data1, *data2, *data3, *data4, *data5, *data6, *data7= NULL;
+    ina_data_t *data1, *data2, *data3, *data4, *data5, *data6, *data7= NULL;
     INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
     data1 = ina_mem_alloc(sizeof(ina_node_data_t));
     data1->index = 1;

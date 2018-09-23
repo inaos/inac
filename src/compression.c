@@ -295,7 +295,11 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
 
     (*state)->type = type;
     (*state)->chunk_src_len = 0;
+	(*state)->chunk_proposed_dst_len = 0;
     (*state)->flags = 0;
+	(*state)->initialized = 0;
+	(*state)->finalized = 0;
+	(*state)->more = 0;
     switch (type) {
         case INA_COMPRESSION_TYPE_DEFLATE:
         case INA_COMPRESSION_TYPE_DEFLATE_RAW:

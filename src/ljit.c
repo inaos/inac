@@ -56,7 +56,7 @@ INA_LJIT_IMPORT(ljit, v);
 INA_LJIT_IMPORT(ljit, vmdef);
 INA_LJIT_IMPORT(ljit, dump);
 
-INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
+INA_API(ina_rc_t) ina_ljit_ctx_new(ina_ljit_ctx_t **ctx)
 {   
     ina_str_t cur_path = NULL;
     ina_str_t new_path = NULL;
@@ -67,8 +67,7 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     INA_RETURN_IF_NULL(*ctx);
     (*ctx)->lstate = luaL_newstate();
     if ((*ctx)->lstate == NULL) {
-        ina_mem_free(*ctx);
-        *ctx = NULL;
+		INA_MEM_FREE_SAFE(*ctx);
         return INA_ERROR(INA_NN_STATE|INA_ERR_NOT_CREATED);
     }
     luaL_openlibs((*ctx)->lstate);
@@ -85,17 +84,13 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx)
+INA_API(void) ina_ljit_ctx_free(ina_ljit_ctx_t **ctx)
 {
-    INA_VERIFY_NOT_NULL(ctx);
-    INA_VERIFY_NOT_NULL(*ctx);
-
+	INA_FREE_CHECK(ctx);
     if (((*ctx)->lstate) != NULL) {
         lua_close((*ctx)->lstate);
     }
-    ina_mem_free(*ctx);
-    *ctx = NULL;
-    return INA_SUCCESS;
+	INA_MEM_FREE_SAFE(*ctx);
 }
 
 unsigned long ina_ljit_hash_sbdm(const char *str)

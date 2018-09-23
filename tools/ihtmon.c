@@ -167,7 +167,7 @@ static void ihtm_write_stats(int force)
     }
     next = records;
     while (next != current_record+1) {
-        sprintf(buf, "%lu,%d,%d,%lu,%lu\n",
+        sprintf(buf, "%llu,%d,%u,%I64u,%I64u\n",
                 next->ts,
                 next->hashtable_id,
                 next->event_id,

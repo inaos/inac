@@ -94,7 +94,7 @@ INA_API(const void) *__ina_ljit_export_##symbol (void) {               \
  * Return
  *  INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ljit_ctx_new(ina_ljit_ctx_t **ctx);
 
 /*
  * Destroy LuaJIT context.
@@ -105,7 +105,7 @@ INA_API(ina_rc_t) ina_ljit_init(ina_ljit_ctx_t **ctx);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_ljit_destroy(ina_ljit_ctx_t **ctx);
+INA_API(void) ina_ljit_ctx_free(ina_ljit_ctx_t **ctx);
      
 /*
  * Call a Lua function.
