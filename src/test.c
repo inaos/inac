@@ -684,7 +684,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
 
     /* Run Lua unit and specification tests */
     if (ctx == NULL) {
-        if (INA_FAILED(ina_ljit_init(&ctx))) {
+        if (INA_FAILED(ina_ljit_ctx_new(&ctx))) {
             return INA_RC_ERROR(ina_err_get_last_rc());
         }
         has_to_destroy_jit = 1;
@@ -697,7 +697,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
     }
 
     if (has_to_destroy_jit) {
-        ina_ljit_destroy(&ctx);
+        ina_ljit_ctx_free(&ctx);
     }
 
     return num_fail;

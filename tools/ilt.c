@@ -41,7 +41,7 @@ int main(int argc,  char** argv)
         return EXIT_FAILURE;
     }
 
-    if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
+    if (!INA_SUCCEED(ina_ljit_ctx_new(&ctx))) {
         return EXIT_FAILURE;
     }
 
@@ -60,7 +60,7 @@ int main(int argc,  char** argv)
 
     rc = ina_test_run(argc, argv, ctx);
 
-    ina_ljit_destroy(&ctx);
+    ina_ljit_ctx_free(&ctx);
 
     return rc;
 }

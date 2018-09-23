@@ -53,7 +53,7 @@ INA_TEST_FIXTURE_SKIP(ljit_ex, lsocket_echo_client)
     ina_ljit_ctx_t *ctx = NULL;
     int r = 0;
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
@@ -65,7 +65,7 @@ INA_TEST_FIXTURE_SKIP(ljit_ex, lsocket_echo_client)
                                             8033, 
                                             &r));
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -73,7 +73,7 @@ INA_TEST_FIXTURE_SKIP(ljit_ex, debug)
 {
     ina_ljit_ctx_t *ctx = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
@@ -82,7 +82,7 @@ INA_TEST_FIXTURE_SKIP(ljit_ex, debug)
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "t.debug_client", "<"));
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -94,7 +94,7 @@ INA_TEST(ljit, call)
 
     ina_err_reset();
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
@@ -111,7 +111,7 @@ INA_TEST(ljit, call)
     INA_TEST_ASSERT_EQUAL_STR(ina_app_get_name(), rs);
     INA_TEST_ASSERT_SAME(ina_app_get_name(), rs);
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -119,7 +119,7 @@ INA_TEST(ljit, luaL_dostring)
 {
     ina_ljit_ctx_t *ctx = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
@@ -147,7 +147,7 @@ INA_TEST(ljit, luaL_dostring)
     INA_TEST_ASSERT_EQUAL_INT(50, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -155,10 +155,10 @@ INA_TEST(ljit, init_destroy)
 {
     ina_ljit_ctx_t *ctx = NULL;
     
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
