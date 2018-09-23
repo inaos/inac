@@ -69,11 +69,14 @@ extern "C" {
 #include <time.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <errno.h>
+#include <time.h>
 
 #include <libinac/contribs.h>
 
 #include <libinac/version.h>
 #include <libinac/portable.h>
+#include <libinac/types.h>
 #include <libinac/debug.h>
 #include <libinac/error.h>
 #include <libinac/memory.h>

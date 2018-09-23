@@ -28,18 +28,11 @@
 #ifndef _LIBINAC_ERROR_H_
 #define _LIBINAC_ERROR_H_
 
-#include <time.h>
-#include <errno.h>
-
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Return code */
-typedef int64_t ina_rc_t;
-
+#include <libinac/lib.h>
 
 /* Indicate no errors */
 #define INA_SUCCESS  (0)

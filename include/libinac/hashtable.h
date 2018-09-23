@@ -35,18 +35,10 @@ extern "C" {
 #endif
 
 #include <libinac/lib.h>
-#include "lib.h"
-
-typedef ina_rc_t (*ina_foreach_fn_t)(void *data);
-typedef ina_rc_t (*ina_foreach_arg_fn_t)(void *arg, void *data);
-
-typedef int (*ina_compare_fn_t)(const void *lhs, const void *lhd);
-typedef int (*ina_find_fn_t)(const void *data, const void *find_arg);
 
 
-#define INA_HASHTABLE_DEFAULT_CAPACITY     (32)
-#define INA_HASHTABLE_MAX_KEY_LEN          16
-#define INA_HASHTABLE_MAX_STAT_TABLES      16
+#define INA_HASHTABLE_DEFAULT_CAPACITY    (32)
+#define INA_HASHTABLE_MAX_KEY_LEN         (16)
 #define INA_HASHTABLE_CF_PREALLOCATED    (4UL)
 #define INA_HASHTABLE_CF_STAT           (16UL)
 #define INA_HASHTABLE_CF_DEFAULT         (0UL)
@@ -83,30 +75,6 @@ typedef enum ina_hashtable_shrink_strategy_e {
 /* opaque hashtable types */
 typedef struct ina_hashtable_s                ina_hashtable_t;
 typedef struct ina_hashtable_iter_s           ina_hashtable_iter_t;
-typedef struct ina_hashtable_event_consumer_s ina_hashtable_event_consumer_t;
-
-typedef enum ina_hashtable_event_id_e {
-    INA_HASHTABLE_EVENT_IDLE,
-    INA_HASHTABLE_EVENT_META,
-    INA_HASHTABLE_EVENT_NEW,
-    INA_HASHTABLE_EVENT_SET_BEGIN,
-    INA_HASHTABLE_EVENT_SET_END,
-    INA_HASHTABLE_EVENT_GET_BEGIN,
-    INA_HASHTABLE_EVENT_GET_END,
-    INA_HASHTABLE_EVENT_REMOVE_BEGIN,
-    INA_HASHTABLE_EVENT_REMOVE_END,
-    INA_HASHTABLE_EVENT_EXPANSION,
-    INA_HASHTABLE_EVENT_FREE,
-} ina_hashtable_event_id_t;
-
-/* stat event */
-typedef struct ina_hashtable_event_s {
-    uint64_t ts;
-    uint32_t event_id;
-    int32_t  hashtable_id;
-    uint64_t data1;
-    uint64_t data2;
-} ina_hashtable_event_t;
 
 
 INA_API(ina_rc_t) ina_hashtable_init(const char *cfg_filepath);
@@ -151,11 +119,6 @@ INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **dat
 
 INA_API(ina_rc_t) ina_hashtable_iter_reset(ina_hashtable_iter_t *iter);
 
-INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_t **event_consumer, uint32_t flag);
-
-INA_API(void) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer);
-
-INA_API(ina_rc_t) ina_hashtable_event_consumer_next(ina_hashtable_event_consumer_t *event_consumer, ina_hashtable_event_t **event);
 
 INA_INLINE ina_rc_t ina_hashtable_set_i32(ina_hashtable_t *ht, int32_t key, const void *data)
 {
@@ -252,6 +215,46 @@ INA_INLINE ina_rc_t ina_hashtable_remove_ptr(ina_hashtable_t *ht, const void * k
     uintptr_t p = (uintptr_t )key;
     return ina_hashtable_remove(ht, &p, sizeof(uintptr_t), data);
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                             *
+ * PRIVATE API                                                                 *
+ *                                                                             *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+#define INA_HASHTABLE_MAX_STAT_TABLES  (16)
+
+typedef struct ina_hashtable_event_consumer_s ina_hashtable_event_consumer_t;
+
+typedef enum ina_hashtable_event_id_e {
+    INA_HASHTABLE_EVENT_IDLE,
+    INA_HASHTABLE_EVENT_META,
+    INA_HASHTABLE_EVENT_NEW,
+    INA_HASHTABLE_EVENT_SET_BEGIN,
+    INA_HASHTABLE_EVENT_SET_END,
+    INA_HASHTABLE_EVENT_GET_BEGIN,
+    INA_HASHTABLE_EVENT_GET_END,
+    INA_HASHTABLE_EVENT_REMOVE_BEGIN,
+    INA_HASHTABLE_EVENT_REMOVE_END,
+    INA_HASHTABLE_EVENT_EXPANSION,
+    INA_HASHTABLE_EVENT_FREE,
+} ina_hashtable_event_id_t;
+
+/* stat event */
+typedef struct ina_hashtable_event_s {
+    uint64_t ts;
+    uint32_t event_id;
+    int32_t  hashtable_id;
+    uint64_t data1;
+    uint64_t data2;
+} ina_hashtable_event_t;
+
+
+INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_t **event_consumer, uint32_t flag);
+
+INA_API(void) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer);
+
+INA_API(ina_rc_t) ina_hashtable_event_consumer_next(ina_hashtable_event_consumer_t *event_consumer, ina_hashtable_event_t **event);
+
 
 #ifdef __cplusplus
 }
