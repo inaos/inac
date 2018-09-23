@@ -61,8 +61,6 @@ static ina_rc_t __ina_free_sopt(void *data);
 /* free long options */
 static ina_rc_t __ina_free_lopt(void *data);
 
-/* initialization flag, > 0 lib/app initialized */
-static int32_t __initialized = 0;
 /* function pointer to a custom cleanup routine */
 static ina_cleanup_handler_t  __cleanup = NULL;
 /* short command line options */
@@ -114,7 +112,9 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
     __main_thread = GetCurrentThread();
 #endif
     INA_RETURN_IF_FAILED(ina_init());
-    
+
+    INA_INIT_GUARD();
+
     if (argv != NULL) {
         const char* basename = strrchr(argv[0], INA_PATH_SEPARATOR);
         if (basename) {
@@ -266,9 +266,8 @@ INA_API(ina_rc_t) ina_init(void)
     WSADATA wsaData;
 #endif
 
-    if (__initialized++) {
-        return INA_SUCCESS;
-    }
+    INA_INIT_GUARD();
+
     if (atexit(ina_exit) == -1) {
         INA_TRACE("Failed to register exit function!");
         return INA_OS_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_REGISTERED);
@@ -319,12 +318,7 @@ INA_API(ina_rc_t) ina_init(void)
 
 INA_API(void) ina_exit(void)
 {
-    if (!__initialized) {
-        return;
-    }
-
-    while (__initialized--) {
-    }
+    INA_DESTROY_GUARD();
 
     /* call cleanup handler if any */
     if (__cleanup != NULL) {
