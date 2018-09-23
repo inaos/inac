@@ -40,6 +40,7 @@ extern "C" {
 #define INA_LIST_CF_DEFAULT  (0U)
 
 
+typedef struct ina_list_s ina_list_t;
 typedef struct ina_list_node_s ina_list_node_t;
 
 struct ina_list_node_s {
@@ -47,7 +48,7 @@ struct ina_list_node_s {
     ina_list_node_t *prev;
     void *data;
 };
-typedef struct ina_list_s ina_list_t;
+
 
 
 INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list);
@@ -61,20 +62,14 @@ INA_API(ina_rc_t) ina_list_node_new(ina_list_t *list, ina_list_node_t **node);
 INA_API(void)     ina_list_node_free(ina_list_t *list, ina_list_node_t **node);
 
 INA_API(ina_rc_t) ina_list_count(ina_list_t *list, size_t *count);
+INA_API(ina_rc_t) ina_list_usage(ina_list_t *list, size_t *usage);
 
 INA_API(ina_rc_t) ina_list_head(ina_list_t *list, ina_list_node_t **node);
 INA_API(ina_rc_t) ina_list_tail(ina_list_t *list, ina_list_node_t **node);
 
 INA_API(ina_rc_t) ina_list_insert_head(ina_list_t *list, ina_list_node_t *node);
 INA_API(ina_rc_t) ina_list_insert_tail(ina_list_t *list, ina_list_node_t *node);
-
 INA_API(ina_rc_t) ina_list_remove(ina_list_t *list, ina_list_node_t *node);
-
-INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
-INA_API(ina_rc_t) ina_list_sort(ina_list_t *list, ina_compare_fn_t compare_fn);
-INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_find_fn_t find_fn, const void *find_arg, ina_list_node_t **node);
-
-
 
 INA_INLINE ina_rc_t ina_list_insert_head_data(ina_list_t *list, void *data)
 {
@@ -93,6 +88,16 @@ INA_INLINE ina_rc_t ina_list_insert_tail_data(ina_list_t *list, void *data)
 }
 
 INA_API (ina_rc_t) ina_list_remove_data(ina_list_t *list, void *data);
+
+
+INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
+INA_API(ina_rc_t) ina_list_foreach_arg(ina_list_t *list, ina_foreach_arg_fn_t foreach_fn, void *arg);
+INA_API(ina_rc_t) ina_list_sort(ina_list_t *list, ina_compare_fn_t compare_fn);
+INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_find_fn_t find_fn, const void *find_arg, ina_list_node_t **node);
+
+
+
+
 
 
 #ifdef __cplusplus

@@ -222,6 +222,18 @@ INA_API(ina_rc_t) ina_list_head(ina_list_t *list, ina_list_node_t **node)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_list_usage(ina_list_t *list, size_t *usage)
+{
+    ina_mempool_info_t info;
+    INA_VERIFY_NOT_NULL(list);
+    INA_VERIFY_NOT_NULL(usage);
+    *usage = 0;
+    INA_RETURN_IF_FAILED(ina_mempool_getinfo(list->mp, &info));
+    *usage = info.size;
+    *usage += sizeof(void*)*list->max_recyclable;
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_list_tail(ina_list_t *list, ina_list_node_t **node)
 {
     INA_VERIFY_NOT_NULL(list);
@@ -335,6 +347,7 @@ INA_API(ina_rc_t) ina_list_foreach_arg(ina_list_t *list, ina_foreach_arg_fn_t fo
     }
     return INA_SUCCESS;
 }
+
 
 INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_compare_fn_t compare_fn, const void *find_arg, ina_list_node_t **node)
 {

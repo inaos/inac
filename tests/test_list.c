@@ -60,6 +60,20 @@ static int sort_desc(const void *lhs, const void *rhs)
     return (a->index > b->index);
 }
 
+INA_TEST(list, new_free)
+{
+    ina_list_t *list = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
+    INA_TEST_ASSERT_NOT_NULL(list);
+    ina_list_free(&list);
+    INA_TEST_ASSERT_NULL(list);
+
+    INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_NOMALLOC, &list));
+    INA_TEST_ASSERT_NOT_NULL(list);
+    ina_list_free(&list);
+    INA_TEST_ASSERT_NULL(list);
+}
+
 INA_TEST(list, arbitrary_data)
 {
     size_t  count;
@@ -101,11 +115,35 @@ INA_TEST(list, arbitrary_data)
     INA_TEST_ASSERT_SUCCEED(ina_list_sort(list, sort_desc));
     INA_TEST_ASSERT_SUCCEED(ina_list_foreach(list, print_data));
 
-
     ina_list_free(&list);
 }
 
-INA_TEST(list, foreach)
+INA_TEST(list, resize)
 {
+    int i;
+    ina_list_t *list;
+    ina_data_t *data;
+    size_t usage;
 
+#define CALC_SIZE(nodes, max_recyclable) sizeof(ina_list_node_t)*(nodes) + sizeof(void*)*(max_recyclable)
+
+    INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
+    INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(CALC_SIZE(INA_LIST_DEFAULT_SIZE, INA_LIST_DEFAULT_SIZE), usage);
+    INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 10000, 1000));
+
+    for (i = 0; i < 5000;++i) {
+        data = ina_mem_alloc(sizeof(ina_data_t));
+        data->index = i;
+        INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data));
+    }
+    INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(CALC_SIZE(10000, 1000), usage);
+    INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 9000, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(CALC_SIZE(9000, 0), usage);
+    INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 3000, 256));
+    INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(CALC_SIZE(8000, 256), usage);
 }
+
