@@ -78,7 +78,7 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
     strcpy(mname, "/ina_ipc_flags_");
     strncat(mname, name, INA_IPC_FLAGS_NAME_MAXLEN-1);
 
-    if (SUCCEEDED(ina_mempool_new(sizeof(ina_ipc_flags_data_t), mname,
+    if (INA_SUCCEED(ina_mempool_new(sizeof(ina_ipc_flags_data_t), mname,
                      INA_MEM_SHARED|INA_MEM_SHARED_CREATE|INA_MEM_SHARED_EXCL, 
                       &(*flags)->m)) &&
          INA_SUCCEED(ina_timer_new(&(*flags)->timer))) {
