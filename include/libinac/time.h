@@ -222,7 +222,7 @@ INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time);
+INA_API(void) ina_time_tsc_free(ina_time_tsc_t **time);
 
 /*
  * Allocate system time.

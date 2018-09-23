@@ -28,11 +28,11 @@
 #ifndef _LIBINAC_IPC_H_
 #define _LIBINAC_IPC_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_IPC_FLAGS_IGNORE       (-1)
 #define INA_IPC_FLAGS_NAME_MAXLEN  (64)
@@ -151,11 +151,8 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags);
  *
  * Parameters
  *  flag  IPC flags to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_ipc_flags_free(ina_ipc_flags_t **flags);
+INA_API(void) ina_ipc_flags_free(ina_ipc_flags_t **flags);
 
 /*
  * Get the name of a IPC flag.
@@ -300,11 +297,8 @@ INA_API(ina_rc_t) ina_ipc_counter_open(const char* name,
  *
  * Parameters
  *  counter  IPC counter to free.
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_ipc_counter_free(ina_ipc_counter_t **counter);
+INA_API(void) ina_ipc_counter_free(ina_ipc_counter_t **counter);
 
 /*
  * Get current value of an IPC counter.

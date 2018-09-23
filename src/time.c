@@ -230,13 +230,10 @@ INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time)
+INA_API(void) ina_time_tsc_free(ina_time_tsc_t **time)
 {
-    INA_VERIFY_NOT_NULL(time);
-    INA_VERIFY_NOT_NULL(*time);
-    ina_mem_free(*time);
-    *time = NULL;
-    return INA_SUCCESS;
+    INA_FREE_CHECK(time);
+    INA_MEM_FREE_SAFE(time);
 }
 
 INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time)

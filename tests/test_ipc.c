@@ -41,9 +41,9 @@ INA_TEST(ipc_flags, new_free)
     INA_TEST_ASSERT_NOT_NULL(f1);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_open("test", &f2));
     INA_TEST_ASSERT_NOT_NULL(f2);
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_free(&f1));
+    ina_ipc_flags_free(&f1);
     INA_TEST_ASSERT_NULL(f1);
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_free(&f2));
+    ina_ipc_flags_free(&f2);
     INA_TEST_ASSERT_NULL(f2);
 }
 
@@ -201,7 +201,7 @@ INA_TEST(ipc_flags, dump)
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F2));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_unset(f, F3));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_dump(f));
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_free(&f));
+    ina_ipc_flags_free(&f);
 
 }
 
@@ -217,9 +217,9 @@ INA_TEST(ipc_counter, new_free)
     INA_TEST_ASSERT_NOT_NULL(c2);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c1, &cval));
     INA_TEST_ASSERT_EQUAL_UINT64(3, cval);
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_free(&c1));
+    ina_ipc_counter_free(&c1);
     INA_TEST_ASSERT_NULL(c1);
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_free(&c2));
+    ina_ipc_counter_free(&c2);
     INA_TEST_ASSERT_NULL(c2);
 }
 
@@ -236,8 +236,7 @@ INA_TEST(ipc_counter, set_get)
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_set(c, 34LL));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
     INA_TEST_ASSERT_EQUAL_UINT64(34, cval);
-
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_free(&c));
+    ina_ipc_counter_free(&c);
     INA_TEST_ASSERT_NULL(c);
 }
 
@@ -261,8 +260,7 @@ INA_TEST(ipc_counter, inc_get)
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
     INA_TEST_ASSERT_EQUAL_UINT64(rval, cval);
     INA_TEST_ASSERT_EQUAL_UINT64(5, rval);
-
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_free(&c));
+    ina_ipc_counter_free(&c);
     INA_TEST_ASSERT_NULL(c);
 }
 
@@ -287,7 +285,7 @@ INA_TEST(ipc_counter, dec_get)
     INA_TEST_ASSERT_EQUAL_INT64(rval, cval);
     INA_TEST_ASSERT_EQUAL_INT64(4, rval);
 
-    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_free(&c));
+    ina_ipc_counter_free(&c);
     INA_TEST_ASSERT_NULL(c);
 }
 

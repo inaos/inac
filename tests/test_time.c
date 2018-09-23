@@ -277,7 +277,7 @@ INA_TEST(time, tsc_millis)
     INA_TEST_ASSERT_SUCCEED(ina_time_read_tsc_clock(t));
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_millis(t, &now_millis));
     INA_TEST_ASSERT_EQUAL_INT64(now_sec, (time_t)now_millis/1000);
-    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_free(&t));
+    ina_time_tsc_free(&t);
 }
 
 #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)

@@ -134,10 +134,10 @@ extern "C" {
 #define INA_REVISION_HEX ((INA_MINOR_VERSION << 8)  |   \
                           (INA_PATCH_VERSION << 0))
 
-  /* Handle free, destroy arg checking */
+/* Handle free, destroy arg checking */
 #define INA_FREE_CHECK(ptrptr) do {    \
-	INA_VERIFY_NOT_NULL(ptrptr);       \
-	if (*ptrptr == NULL) { return; }   \
+    INA_ASSERT_NOTNULL(ptrptr);        \
+	if (INA_UNLIKELY((*ptrptr == NULL))) { return; }   \
 } while(0) 
 
 #define INA_INIT_GUARD() do {               \

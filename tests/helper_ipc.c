@@ -33,9 +33,7 @@ static ina_ipc_flags_t *flags = NULL;
 
 
 static void ina_test_helper_cleanup(int error, int *exitcode) {
-    if (flags != NULL) {
-        ina_ipc_flags_free(&flags);
-    }
+    ina_ipc_flags_free(&flags);
 }
 
 /* Create a single */
