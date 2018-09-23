@@ -181,7 +181,7 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
                 4096,
                 NULL,
                 INA_MEM_DYNAMIC, &(*ctx)->mempool)) &&
-        INA_SUCCEED(ina_cron_init(&(*ctx)->cron_ctx, NULL, NULL, *ctx)) &&
+        INA_SUCCEED(ina_cron_ctx_new(&(*ctx)->cron_ctx, NULL, NULL, *ctx)) &&
         INA_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
@@ -192,7 +192,7 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
         return INA_SUCCESS;
     }
     ina_hashtable_free(&(*ctx)->processes);
-    ina_cron_destroy(&(*ctx)->cron_ctx);
+    ina_cron_ctx_free(&(*ctx)->cron_ctx);
     ina_mempool_free(&(*ctx)->mempool);
     ina_time_sys_free(&(*ctx)->systime);
     INA_MEM_FREE_SAFE(*ctx);
@@ -203,7 +203,7 @@ INA_API(void) ina_process_ctx_free(ina_process_ctx_t **ctx)
 {
     INA_FREE_CHECK(ctx);
 	ina_hashtable_free(&(*ctx)->processes);
-    ina_cron_destroy(&(*ctx)->cron_ctx);
+    ina_cron_ctx_free(&(*ctx)->cron_ctx);
     ina_time_sys_free(&(*ctx)->systime);
     ina_mempool_free(&(*ctx)->mempool);
     INA_MEM_FREE_SAFE(*ctx);

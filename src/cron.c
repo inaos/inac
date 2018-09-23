@@ -486,10 +486,10 @@ static ina_rc_t __ina_free_func(void *data)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
-                                    ina_cron_load_cb load_cb,
-                                    ina_cron_save_cb save_cb,
-                                    ina_process_ctx_t *process_ctx)
+INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_ctx_t **ctx,
+                                   ina_cron_load_cb load_cb,
+                                   ina_cron_save_cb save_cb,
+                                   ina_process_ctx_t *process_ctx)
 {
     INA_VERIFY_NOT_NULL(ctx);
 
@@ -513,8 +513,7 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
                                      INA_HASHTABLE_SHRINK_DEFAULT,
                                      INA_HASHTABLE_DEFAULT_CAPACITY,
                                      INA_HASHTABLE_CF_DEFAULT, &(*ctx)->tasks))) {
-        ina_mem_free(*ctx);
-        *ctx = NULL;
+		INA_MEM_FREE_SAFE(*ctx);
         return ina_err_get_last_rc();
     }
     if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
@@ -525,8 +524,7 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
                                      INA_HASHTABLE_DEFAULT_CAPACITY,
                                      INA_HASHTABLE_CF_DEFAULT, &(*ctx)->func))) {
         ina_hashtable_free(&(*ctx)->tasks);
-        ina_mem_free(*ctx);
-        *ctx = NULL;
+		INA_MEM_FREE_SAFE(*ctx);
         return ina_err_get_last_rc();
     }
 
@@ -538,7 +536,7 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
         if (INA_FAILED(ina_process_ctx_new(&process_ctx))) {
             ina_hashtable_free(&(*ctx)->tasks);
             ina_hashtable_free(&(*ctx)->func);
-            ina_mem_free(*ctx);
+			INA_MEM_FREE_SAFE(*ctx);
             return ina_err_get_last_rc();
         }
     }
@@ -546,22 +544,15 @@ INA_API(ina_rc_t) ina_cron_init(ina_cron_ctx_t **ctx,
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cron_destroy(ina_cron_ctx_t **ctx)
+INA_API(void) ina_cron_ctx_free(ina_cron_ctx_t **ctx)
 {
-    INA_VERIFY_NOT_NULL(ctx);
-    INA_VERIFY_NOT_NULL(*ctx);
-
+	INA_FREE_CHECK(ctx);
     ina_hashtable_foreach((*ctx)->tasks, __ina_free_task);
     ina_hashtable_foreach((*ctx)->func, __ina_free_func);
     ina_hashtable_free(&(*ctx)->tasks);
     ina_hashtable_free(&(*ctx)->func);
-
-    /*if ((*ctx)->process_ctx != NULL) {
-        ina_process_ctx_free(&(*ctx)->process_ctx);
-    }*/
-    ina_mem_free(*ctx);
-    *ctx = NULL;
-    return INA_SUCCESS;
+    ina_process_ctx_free(&(*ctx)->process_ctx);
+	INA_MEM_FREE_SAFE(*ctx);
 }
 
 INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const char *pattern,
@@ -603,7 +594,7 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
         sched.item = __INA_CRON_SCHEDULABLE_ITEM_TASK;
         sched.task = task;
         if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
-            ina_mem_free(buf);
+			ina_mem_free(buf);
             return ina_err_get_last_rc();
         }
 
@@ -709,8 +700,7 @@ INA_API(ina_rc_t) ina_cron_task_iter_free(ina_cron_task_itr_t **iter)
     INA_VERIFY_NOT_NULL(iter);
     INA_VERIFY_NOT_NULL(*iter);
     ina_hashtable_iter_free(&(*iter)->iter);
-    ina_mem_free(*iter);
-    *iter = NULL;
+	INA_MEM_FREE_SAFE(*iter);
     return INA_SUCCESS;
 }
 
