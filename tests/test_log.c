@@ -21,19 +21,3 @@ INA_TEST(log, open_close_console)
     ina_log_free(&log);
     INA_TEST_ASSERT_NULL(log);
 }
-
-#ifndef INA_OS_WIN32
-INA_TEST(log, syslog)
-{
-  	ina_log_t *cfg = NULL;
-  
-    INA_TEST_ASSERT_SUCCEED(ina_log_new("test", "", &cfg));
-    INA_TEST_ASSERT_NOT_NULL(cfg);
-    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test DEBUG log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_INFO, "Test INFO log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_WARNING, "Test WARNING log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_ERROR, "Test ERROR log entry, var=%d", 2));
-    ina_log_free(&cfg);
-    INA_TEST_ASSERT_NULL(cfg);	
-}
-#endif
