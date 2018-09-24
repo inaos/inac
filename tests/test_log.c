@@ -10,33 +10,29 @@
 
 INA_TEST(log, open_close_console)
 {
-    ina_log_cfg_t *cfg;
+    ina_log_t *cfg;
     
     cfg = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_log_new(&cfg, INA_LOG_STDOUT, INA_LOG_LEVEL_DEBUG, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_log_new("", "", &cfg));
     INA_TEST_ASSERT_NOT_NULL(cfg);
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_LOG_STDOUT, cfg->target);
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_LOG_LEVEL_DEBUG, cfg->level);
-    /*INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test log entry, var=%d", 2));*/
-    INA_TEST_ASSERT_SUCCEED(ina_log_free(&cfg));
+    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test log entry, var=%d", 2));
+    ina_log_free(&cfg);
     INA_TEST_ASSERT_NULL(cfg);
 }
 
 #ifndef INA_OS_WIN32
 INA_TEST(log, syslog)
 {
-  	ina_log_cfg_t *cfg = NULL;
+  	ina_log_t *cfg = NULL;
   
-    INA_TEST_ASSERT_SUCCEED(ina_log_new(&cfg, INA_LOG_SYSLOG, INA_LOG_LEVEL_DEBUG, "test"));
+    INA_TEST_ASSERT_SUCCEED(ina_log_new("test", "", &cfg));
     INA_TEST_ASSERT_NOT_NULL(cfg);
-    INA_TEST_ASSERT_EQUAL_INT(INA_LOG_SYSLOG, cfg->target);
-    INA_TEST_ASSERT_EQUAL_INT(INA_LOG_LEVEL_DEBUG, cfg->level);
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test DEBUG log entry, var=%d", 2));
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_INFO, "Test INFO log entry, var=%d", 2));
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_WARNING, "Test WARNING log entry, var=%d", 2));
     INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_ERROR, "Test ERROR log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log_free(&cfg));
+    ina_log_free(&cfg);
     INA_TEST_ASSERT_NULL(cfg);	
 }
 #endif

@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_LOG_H_
 #define _LIBINAC_LOG_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* Base log macros, user INA_LOG_DEBUG/INFO/WARNING/ERROR instead */
 #ifdef INA_LOG_ENABLED
@@ -61,41 +61,28 @@ typedef enum ina_log_level_e {
 
 /* Log target */
 typedef enum ina_log_target_e {
-    INA_LOG_STDOUT = 0x0001,
-    INA_LOG_FILE = 0x0002,
+    INA_LOG_STDOUT,
+    INA_LOG_STDERR,
+    INA_LOG_FILE,
 #ifndef WIN32
-    INA_LOG_SYSLOG = 0x0004
+    INA_LOG_SYSLOG
 #endif
 } ina_log_target_t;
 
 /* Log context/configuration */
-typedef struct ina_log_cfg_s {
-    FILE *fp1;
-    FILE *fp2;
-    ina_log_level_t level;
-    int target;
-    ina_str_t logfile;
-    ina_str_t syslog_ident;
-    int syslog_facility;
-    int pid;
-} ina_log_cfg_t;
+typedef struct ina_log_s ina_log_t;
 
 /*
  * Open a log context  based on a log configuration.
  *
  * Parameters
- *  cfg      Where to store the newly created log context
- *  target   Defines log targets
- *  level    Defines log level
- *  logfile  Path to log file, relevant if target INA_LOG_FILE is requested
+ *  cfg_filepath  Path to config file
+ *  log           Where to store the newly created log
  *
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_new(ina_log_cfg_t **cfg,
-                               int32_t target,
-                               ina_log_level_t level,
-                               const char *logfile);
+INA_API(ina_rc_t) ina_log_new(const char* category, const char *cfg_filepath, ina_log_t **log);
 
 /*
  * Log a  message to current targets and level.
@@ -109,7 +96,7 @@ INA_API(ina_rc_t) ina_log_new(ina_log_cfg_t **cfg,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg,
+INA_API(ina_rc_t) ina_log(const ina_log_t *log,
                           ina_log_level_t level,
                           const char* fmt,
                           ...);
@@ -126,7 +113,7 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level, 
+INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
                             const char* fmt, va_list ap);
 
 /*
@@ -134,11 +121,8 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level,
  *
  * Parameters
  *  cfg  Log context to close.
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_free(ina_log_cfg_t **cfg);
+INA_API(void) ina_log_free(ina_log_t **log);
 
 #ifdef __cplusplus
 }

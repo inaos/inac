@@ -9,25 +9,75 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-static ina_rc_t __ina_init(ina_log_cfg_t*);
-static ina_rc_t __ina_log(const ina_log_cfg_t*, ina_log_level_t, ina_str_t);
+typedef struct __ina_target_s __ina_target_t;
+typedef ina_rc_t(*__ina_write_fn_t)(__ina_target_t*, const char*);
 
-INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, const char* fmt, ...)
+typedef struct __ina_target_s {
+    __ina_write_fn_t write_fn;
+    ina_str_t filepath;
+    ina_log_level_t level;
+    ina_log_target_t type;
+    ina_list_node_t node;
+    size_t buffer_size;
+    void *buffer;
+    FILE *fp;
+} __ina_target_t;
+
+/* Log context/configuration */
+struct ina_log_s {
+    ina_list_t * targets;
+    int pid;
+};
+
+static ina_rc_t __ina_log(const ina_log_t*, ina_log_level_t, ina_str_t);
+static ina_rc_t __ina_free_target(void *data)
+{
+    __ina_target_t *target = (__ina_target_t*)data;
+    switch (target->type) {
+        case INA_LOG_STDOUT:
+        case INA_LOG_STDERR:
+            break;
+        case INA_LOG_FILE: {
+            fflush(target->fp);
+            fclose(target->fp);
+            break;
+        }
+        default:
+            break;
+    }
+    INA_STR_FREE_SAFE(target->filepath);
+    INA_MEM_FREE_SAFE(target->buffer);
+    INA_MEM_FREE_SAFE(target);
+
+}
+static ina_rc_t __ina_write_to_file(__ina_target_t *target, const char* msg)
+{
+    if (target->fp == NULL) {
+        target->fp = fopen(target->filepath, "a");
+    }
+    fputs(msg, target->fp);
+}
+
+static ina_rc_t __ina_write_to_buffer(__ina_target_t *target, const char* msg);
+static ina_rc_t __ina_write_to_syslog(__ina_target_t *target, const char* msg);
+
+
+INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const char* fmt, ...)
 {
     va_list ap;
     ina_rc_t rc;
 
-    INA_VERIFY_NOT_NULL(cfg);
+    INA_VERIFY_NOT_NULL(log);
     INA_VERIFY_NOT_NULL(fmt);
 
     va_start(ap, fmt);
-    rc = ina_log_v(cfg, level, fmt, ap);
+    rc = ina_log_v(log, level, fmt, ap);
     va_end(ap);
 
     return rc;
 }
 
-INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level, 
+INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
                            const char* fmt, va_list ap)
 {
     static ina_str_t msg = NULL;
@@ -36,107 +86,41 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level,
         msg = ina_str_new(1024);
     }
  
-    INA_VERIFY_NOT_NULL(cfg);
+    INA_VERIFY_NOT_NULL(log);
     INA_VERIFY_NOT_NULL(fmt);
     INA_VERIFY(strlen(fmt));
 
-    if ((level&0xff) < cfg->level) {
-        return INA_SUCCESS;
-    }
-
     ina_str_vsnprintf(&msg, ina_str_size(msg)-1, fmt, ap);
    
-    return __ina_log(cfg, level, msg);
+    return __ina_log(log, level, msg);
 }
 
-INA_API(ina_rc_t) ina_log_new(ina_log_cfg_t **cfg, int32_t target,
-                                ina_log_level_t level, const char  *logfile)
+INA_API(ina_rc_t) ina_log_new(const char* category, const char *cfg_filepath, ina_log_t **log) {
+    INA_VERIFY_NOT_NULL(log);
+    INA_VERIFY_NOT_NULL(cfg_filepath);
+    INA_VERIFY_NOT_NULL(category);
+
+    *log = (ina_log_t *) ina_mem_alloc(sizeof(ina_log_t));
+    INA_RETURN_IF_NULL(*log);
+    ina_mem_set(*log, 0, sizeof(ina_log_t));
+
+}
+
+INA_API(void) ina_log_free(ina_log_t **log)
 {
-    INA_VERIFY_NOT_NULL(cfg);
-    *cfg = (ina_log_cfg_t*)ina_mem_alloc(sizeof(ina_log_cfg_t));
-    INA_RETURN_IF_NULL(*cfg);
-
-    (*cfg)->fp1 = NULL;
-    (*cfg)->fp2 = NULL;
-    (*cfg)->logfile = ina_str_new_fromcstr(logfile);
-    (*cfg)->target = target;
-    (*cfg)->level = level;
-#ifdef INA_OS_WIN32
-    (*cfg)->syslog_facility = 0;
-    (*cfg)->syslog_ident = NULL;
-#else
-    switch (level) {
-        case INA_LOG_LEVEL_INFO:
-            (*cfg)->syslog_facility = LOG_UPTO(LOG_NOTICE);
-            break;
-        case INA_LOG_LEVEL_WARNING:
-            (*cfg)->syslog_facility = LOG_UPTO(LOG_WARNING);
-            break;
-        case INA_LOG_LEVEL_ERROR:
-            (*cfg)->syslog_facility = LOG_UPTO(LOG_ERR);
-            break;
-        default:
-            (*cfg)->syslog_facility = LOG_UPTO(LOG_DEBUG);
-            break;
-    }
-    if (logfile == NULL) {
-        (*cfg)->syslog_ident = ina_str_new_fromcstr(ina_app_get_name());
-    } else {
-        const char* basename = strrchr(logfile, INA_PATH_SEPARATOR);
-
-        if (basename) {
-            (*cfg)->syslog_ident = ina_str_new_fromcstr(++basename);
-        } else {
-            (*cfg)->syslog_ident = ina_str_new_fromcstr(logfile);
-        }
-    }
-#endif
-    return __ina_init(*cfg);
+    INA_FREE_CHECK(log);
+    ina_list_foreach((*log)->targets, __ina_free_target);
+    ina_list_free(&(*log)->targets);
+    INA_MEM_FREE_SAFE(*log);
 }
 
-INA_API(ina_rc_t) ina_log_free(ina_log_cfg_t **cfg)
-{   
-    INA_VERIFY_NOT_NULL(cfg);
-    INA_VERIFY_NOT_NULL(*cfg);
 
-    if ((*cfg)->fp2 != NULL) {
-        fclose((*cfg)->fp2);
-    }
-    if ((*cfg)->logfile != NULL) {
-        ina_str_free((*cfg)->logfile);
-    }
-    if ((*cfg)->syslog_ident != NULL) {
-        ina_str_free((*cfg)->syslog_ident);
-    }
-    *cfg = NULL;
-    return INA_SUCCESS;
-}
-
-static ina_rc_t 
-__ina_init(ina_log_cfg_t *cfg)
-{
-    if ((cfg->target & INA_LOG_STDOUT) == INA_LOG_STDOUT) {
-        cfg->fp1 = stdout;    
-    }
-    if ((cfg->target & INA_LOG_FILE) == INA_LOG_FILE) {
-        cfg->fp2 = (cfg->logfile == NULL) ? stdout : fopen(ina_str_cstr(cfg->logfile),"a");
-        if (cfg->fp2 == NULL) {
-            return INA_OS_ERROR(INA_NN_FILE|INA_ERR_OPEN);
-        }
-    }
-#ifdef INA_OS_WIN32
-    cfg->pid = (int)GetCurrentProcessId();
-#else
-    cfg->pid = (int)getpid();
-#endif
-    return INA_SUCCESS;
-}
-
-static ina_rc_t 
-__ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, ina_str_t msg) {
+static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, ina_str_t msg) {
     static const char *c = ".-*#";
     static char buf[64];
+    static char buf2[2048];
     static struct tm *lt;
+    ina_list_node_t *next;
 #ifdef INA_OS_LINUX
     static struct tm rtm;
 #endif
@@ -151,35 +135,16 @@ __ina_log(const ina_log_cfg_t *cfg, ina_log_level_t level, ina_str_t msg) {
     INA_ASSERT_NOTNULL(lt);
     
     strftime(buf, sizeof(buf),"%d %b %H:%M:%S", lt);
+    sprintf(buf2,"[%d] %s %c %s\n", log->pid, buf, c[level], msg);
 
-    if (cfg->fp1 != NULL) {
-        fprintf(cfg->fp1,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-        fflush(cfg->fp1);
-    }
-    if (cfg->fp2 != NULL) {
-        fprintf(cfg->fp2,"[%d] %s %c %s\n", cfg->pid, buf, c[level], msg);
-        fflush(cfg->fp2);
-    }
-#ifndef INA_OS_WIN32
-    if (cfg->target&INA_LOG_SYSLOG) {
-        setlogmask(cfg->syslog_facility);
-        openlog(cfg->syslog_ident, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-        switch (level) {
-            case INA_LOG_LEVEL_DEBUG:
-                syslog(LOG_DEBUG, "%s", msg);
-                break;
-            case INA_LOG_LEVEL_INFO:
-                syslog(LOG_INFO, "%s", msg);
-                break;
-            case INA_LOG_LEVEL_WARNING:
-                syslog(LOG_WARNING, "%s", msg);
-                break;
-            case INA_LOG_LEVEL_ERROR:
-                syslog(LOG_ERR, "%s", msg);
-                break;
+    if (INA_SUCCEED(ina_list_head(log->targets, &next))) {
+        while (next) {
+            __ina_target_t *target = next->data;
+            if (target->level&level) {
+                target->write_fn(target, buf2);
+            }
+            next = next->next;
         }
-        closelog();
     }
- #endif
     return INA_SUCCESS;
 }
