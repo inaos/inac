@@ -248,6 +248,7 @@ INA_API(ina_rc_t) ina_init(void)
 #endif
 
     INA_INIT_GUARD();
+    ina_err_init();
 
     if (atexit(ina_exit) == -1) {
         INA_TRACE("Failed to register exit function!");
@@ -327,6 +328,7 @@ INA_API(void) ina_exit(void)
     }
 
     ina_hashtable_destroy();
+    ina_err_destroy();
 
 #ifdef INA_OS_WIN32
     timeEndPeriod(1);
@@ -648,10 +650,9 @@ __ina_signal_handler(int sig)
     switch (sig) {
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                char buf[INA_ERROR_MSGLEN];
                 ina_err_log("Program aborted.");
                 if (INA_FAILED(ina_err_get_last_rc())) {
-                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc(), buf));
+                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc()));
                     ina_err_reset();
                 }
 #ifndef INA_OS_WIN32
@@ -664,10 +665,9 @@ __ina_signal_handler(int sig)
         case SIGILL:
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                char buf[INA_ERROR_MSGLEN];
                 ina_err_log("Signal %d received", sig);
                 if (INA_FAILED(ina_err_get_last_rc())) {
-                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc(), buf));
+                    ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc()));
                     ina_err_reset();
                 }
 #ifndef INA_OS_WIN32

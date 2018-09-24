@@ -578,6 +578,19 @@ extern "C" {
 typedef const char* (*ina_err_dict_cb_t)(int);
 
 /*
+ * Initialize error module.
+ *
+ * Returns
+ *  INA_SUCCESS if all went well.
+ */
+INA_API(ina_rc_t) ina_err_init(void);
+
+/*
+ * Destroy error module.
+ */
+INA_API(void) ina_err_destroy(void);
+
+/*
  * Register a user defined dictionary.
  *
  * Parameters
@@ -660,12 +673,11 @@ INA_API(ina_rc_t) ina_err_log(const char *fmt, ...);
  *
  * Parameters
  *  rc   Valid RC
- *  buf  String buffer to hold the message
  *
  * Return
- *  INA_SUCCESS
+ *  Error message
  */
-INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERROR_MSGLEN]);
+INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 
 /*
  * Makes a backtrace to the stderr

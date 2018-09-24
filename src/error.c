@@ -18,6 +18,22 @@
 static INA_TLS(ina_rc_t) __rc = 0;
 static INA_TLS(FILE) *__logfile = NULL;
 static INA_TLS(ina_err_dict_cb_t) __dict_cb = NULL;
+static INA_TLS(ina_str_t) __errmsg = NULL;
+
+INA_API(ina_rc_t) ina_err_init(void)
+{
+    INA_INIT_GUARD();
+    __errmsg = ina_str_new(INA_ERROR_MSGLEN);
+    INA_RETURN_IF_NULL(__errmsg);
+    return INA_SUCCESS;
+}
+
+INA_API(void) ina_err_destroy(void)
+{
+    INA_DESTROY_GUARD();
+    INA_STR_FREE_SAFE(__errmsg);
+}
+
 
 INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb)
 {
@@ -64,15 +80,20 @@ INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char *location)
 {
     __rc = rc;
     if (__logfile != NULL) {
-        char buf[INA_ERROR_MSGLEN];
-        fprintf(__logfile, "%s at %s", ina_err_strerror(__rc, buf), location);
         if (INA_RC_ERRNO(__rc) > 0) {
-            fprintf(__logfile,
-                    " - OS error: %s (%d)",
+            ina_str_snprintf(&__errmsg, INA_ERROR_MSGLEN,
+                    "%s at %s - OS error: %s (%d)\n",
+                    ina_err_strerror(__rc),
+                    location,
                     strerror(INA_RC_ERRNO(__rc)),
                     INA_RC_ERRNO(__rc));
+        } else {
+            ina_str_snprintf(&__errmsg, INA_ERROR_MSGLEN,
+                    "%s at %s\n",
+                    ina_err_strerror(__rc),
+                    location);
         }
-        fprintf(__logfile, "\n");
+        fputs(__errmsg, __logfile);
     }
     return __rc;
 }
@@ -248,15 +269,15 @@ static const char* __ina_get_noun(int id) {
     }
 }
 
-INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERROR_MSGLEN])
+INA_API(const char*) ina_err_strerror(ina_rc_t rc)
 {
     const char *neg = "", *adj = "";
-    char noun[256-48];
+    const char *noun =  __ina_get_noun(INA_RC_USERNN(rc));
 
     if (INA_SUCCEED(rc)) {
-        return (buf[0] = '\0', buf);
+        ina_str_truncate(__errmsg, 0);
+        return __errmsg;
     }
-    strncpy (noun, __ina_get_noun(INA_RC_USERNN(rc)), sizeof(noun));
 
     if (rc & ( 1LL << INA_RC_BIT_N )) {
         neg = "NOT";
@@ -410,12 +431,13 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERROR_MSGLEN])
             (type == INA_ERR_ENOUGH) || (type == INA_ERR_NOT_ENOUGH)) {
             use = special;
         }
-        strcpy(buf, (use)[0]);
-        strcat(buf, (use)[0][0] ? " " : "");
-        strcat(buf, (use)[1]);
-        strcat(buf, (use)[1][0] ? " " : "");
-        strcat(buf, (use)[2]);
-        sprintf(&buf[strlen(buf)], " - 0x%" INA_INT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
+        ina_str_snprintf(&__errmsg, INA_ERROR_MSGLEN,
+                "%s%s%s%s%s - 0x%" INA_INT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
+                (use)[0],
+                (use)[0][0]?" ":"",
+                (use)[1],
+                (use)[1][0]?" ":"",
+                (use)[2],
                 rc,
                 INA_RC_EFLAG(rc),
                 INA_RC_VER(rc),
@@ -424,7 +446,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc, char buf[INA_ERROR_MSGLEN])
                 INA_RC_NFLAG(rc),
                 INA_RC_ATTRIB(rc),
                 INA_RC_USERNN(rc));
-        return (buf[INA_ERROR_MSGLEN-1] = '\0', buf);
+        return __errmsg;
     }
 }
 
