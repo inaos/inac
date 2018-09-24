@@ -240,6 +240,25 @@ INA_API(void) ina_mempool_free(ina_mempool_t **pool)
     }
 }
 
+INA_API(ina_rc_t) ina_mempool_merge(ina_mempool_t *dest, ina_mempool_t *src)
+{
+    ina_mempool_t *first_child;
+
+    INA_VERIFY_NOT_NULL(dest);
+
+    if (src == NULL) {
+        return INA_SUCCESS;
+    }
+    if (dest->cf&INA_MEM_SHARED || src->cf&INA_MEM_SHARED) {
+        return INA_ERROR(INA_NN_OPERATION|INA_ERR_INVALID);
+    }
+    src->parent = dest;
+    first_child = dest->child;
+    dest->child = src;
+    src->child = first_child;
+    return INA_SUCCESS;
+}
+
 INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool, size_t chunks, 
                                      ina_mempool_info_t *info)
 {

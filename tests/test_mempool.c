@@ -377,6 +377,24 @@ INA_TEST(mempool, min_allowed_size)
     INA_TEST_ASSERT_NOT_NULL(pool);
 }
 
+INA_TEST(mempool, merge)
+{
+    ina_mempool_t *pool_a, *pool_b;
+    ina_mempool_info_t mi;
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(4096, NULL, 0, &pool_a));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool_a, &mi));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, mi.children);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(4096, NULL, 0, &pool_b));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool_b, &mi));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, mi.children);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_merge(pool_a, pool_b));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_getinfo(pool_a, &mi));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(1, mi.children);
+
+    ina_mempool_free(&pool_a);
+}
+
 INA_TEST(mempool, auto_resize) {
 
     ina_mempool_t *pool;

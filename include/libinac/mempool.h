@@ -124,6 +124,20 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 INA_API(void) ina_mempool_free(ina_mempool_t **pool);
 
 /*
+ * Merge a memory pools.
+ *
+ * Parameters
+ *  dest  Destination
+ *  src   Source, pool that will be merged into dest. After this call the src
+ *        content is undefined and you should not use it anymore.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ *  INA_EOP     if trying to merge shared memory pool
+ */
+INA_API(ina_rc_t) ina_mempool_merge(ina_mempool_t *dest, ina_mempool_t *src);
+
+/*
  * Shrink a memory pool.
  *
  * Parameters
