@@ -70,6 +70,7 @@ INA_INLINE ina_rc_t ina_list_insert_tail_data(ina_list_t *list, void *data)
 
 INA_API (ina_rc_t) ina_list_remove_data(ina_list_t *list, void *data);
 
+INA_API(ina_rc_t) ina_list_insert_concat(ina_list_t *dest, ina_list_t *src);
 
 INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
 INA_API(ina_rc_t) ina_list_foreach_arg(ina_list_t *list, ina_foreach_arg_fn_t foreach_fn, void *arg);

@@ -317,6 +317,39 @@ INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_list_insert_concat(ina_list_t *dest, ina_list_t *src)
+{
+    INA_VERIFY_NOT_NULL(dest);
+
+    if (src == NULL || src->head == NULL) {
+        return INA_SUCCESS;
+    }
+
+    if (dest->head == NULL) {
+        dest->head = src->head;
+        dest->count = src->count;
+        src->head = NULL;
+    } else {
+        ina_list_node_t *dest_tail;
+        dest_tail = dest->head->prev;
+        dest->head->prev = src->head->prev;
+        src->head->prev = dest_tail;
+        dest_tail->next = src->head;
+        dest->count += src->count;
+    }
+
+    src->head = NULL;
+    src->count = 0;
+    if (dest->mp != NULL) {
+        ina_mempool_merge(dest->mp, src->mp);
+    } else {
+        dest->mp = src->mp;
+    }
+    src->mp = NULL;
+    return INA_SUCCESS;
+}
+
+
 INA_API(ina_rc_t) ina_list_foreach_arg(ina_list_t *list, ina_foreach_arg_fn_t foreach_fn, void *arg)
 {
     ina_list_node_t *next;
