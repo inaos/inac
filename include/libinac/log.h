@@ -53,10 +53,10 @@ extern "C" {
 
 /* Log level */
 typedef enum ina_log_level_e {
-    INA_LOG_LEVEL_DEBUG,
-    INA_LOG_LEVEL_INFO,
-    INA_LOG_LEVEL_WARNING,
-    INA_LOG_LEVEL_ERROR
+    INA_LOG_LEVEL_DEBUG   = 1,
+    INA_LOG_LEVEL_INFO    = 2,
+    INA_LOG_LEVEL_WARNING = 4,
+    INA_LOG_LEVEL_ERROR   = 8
 } ina_log_level_t;
 
 /* Log target */
@@ -64,8 +64,9 @@ typedef enum ina_log_target_e {
     INA_LOG_STDOUT,
     INA_LOG_STDERR,
     INA_LOG_FILE,
-#ifndef WIN32
-    INA_LOG_SYSLOG
+#ifndef INA_OS_WIN32
+    INA_LOG_SYSLOG,
+    INA_LOG_PIPELINE
 #endif
 } ina_log_target_t;
 
@@ -78,8 +79,8 @@ INA_API(void)     ina_log_destroy(void);
  * Open a log context  based on a log configuration.
  *
  * Parameters
- *  cfg_filepath  Path to config file
- *  log           Where to store the newly created log
+ *  category  log category
+ *  log       Where to store the newly created log
  *
  * Return
  *  INA_SUCCESS

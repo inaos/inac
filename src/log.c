@@ -10,16 +10,18 @@
 #include "config.h"
 
 typedef struct __ina_target_s __ina_target_t;
-typedef ina_rc_t(*__ina_write_fn_t)(__ina_target_t*, const char*);
+typedef ina_rc_t(*__ina_write_fn_t)(__ina_target_t*, ina_log_level_t,  const char*);
 
 typedef struct __ina_target_s {
     __ina_write_fn_t write_fn;
     ina_str_t filepath;
+    ina_str_t syslog_ident;
     ina_log_level_t level;
     ina_log_target_t type;
     ina_list_node_t node;
     size_t buffer_size;
-    void *buffer;
+    unsigned char *buffer_pos;
+    unsigned char *buffer;
     FILE *fp;
 } __ina_target_t;
 
@@ -38,31 +40,80 @@ static ina_rc_t __ina_free_target(void *data)
     switch (target->type) {
         case INA_LOG_STDOUT:
         case INA_LOG_STDERR:
+            fflush(target->fp);
             break;
         case INA_LOG_FILE: {
-            fflush(target->fp);
-            fclose(target->fp);
+            if (target->fp) {
+                if (target->buffer != NULL && target->buffer != target->buffer_pos) {
+                    if (target->fp == NULL) {
+                        target->fp = fopen(target->filepath, "a");
+                    }
+                    fwrite(target->buffer, target->buffer_pos - target->buffer, 1, target->fp);
+                }
+                fflush(target->fp);
+                fclose(target->fp);
+            }
             break;
         }
         default:
             break;
     }
+    INA_STR_FREE_SAFE(target->syslog_ident);
     INA_STR_FREE_SAFE(target->filepath);
     INA_MEM_FREE_SAFE(target->buffer);
     INA_MEM_FREE_SAFE(target);
-
     return INA_SUCCESS;
 }
-static ina_rc_t __ina_write_to_file(__ina_target_t *target, const char* msg)
+static ina_rc_t __ina_write_to_file(__ina_target_t *target, ina_log_level_t level, const char* msg)
 {
+    INA_UNUSED(level);
     if (target->fp == NULL) {
         target->fp = fopen(target->filepath, "a");
     }
     fputs(msg, target->fp);
+    return INA_SUCCESS;
 }
 
-static ina_rc_t __ina_write_to_buffer(__ina_target_t *target, const char* msg);
-static ina_rc_t __ina_write_to_syslog(__ina_target_t *target, const char* msg);
+static ina_rc_t __ina_write_to_buffer(__ina_target_t *target, ina_log_level_t level, const char* msg)
+{
+    INA_UNUSED(level);
+    if (target->buffer == NULL) {
+        target->buffer = ina_mem_alloc(target->buffer_size);
+        target->buffer_pos = target->buffer;
+    }
+    if (target->buffer_pos-target->buffer < strlen(msg)+1) {
+        if (target->fp == NULL) {
+            target->fp = fopen(target->filepath, "a");
+        }
+        fwrite(target->buffer, target->buffer_pos - target->buffer, 1, target->fp);
+        target->buffer_pos = target->buffer;
+    }
+    ina_mem_cpy(target->buffer_pos, msg, strlen(msg));
+    target->buffer_pos += strlen(msg);
+    return INA_SUCCESS;
+}
+#ifndef  INA_OS_WIN32
+static ina_rc_t __ina_write_to_syslog(__ina_target_t *target, ina_log_level_t level, const char* msg)
+{
+    openlog(target->syslog_ident, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    switch (level) {
+        case INA_LOG_LEVEL_DEBUG:
+            syslog(LOG_DEBUG, "%s", msg);
+            break;
+        case INA_LOG_LEVEL_INFO:
+            syslog(LOG_INFO, "%s", msg);
+            break;
+        case INA_LOG_LEVEL_WARNING:
+            syslog(LOG_WARNING, "%s", msg);
+            break;
+        case INA_LOG_LEVEL_ERROR:
+            syslog(LOG_ERR, "%s", msg);
+            break;
+    }
+    closelog();
+    return  INA_SUCCESS;
+}
+#endif
 
 
 static ina_rc_t __ina_process_rule(const char *section_name,
@@ -71,12 +122,14 @@ static ina_rc_t __ina_process_rule(const char *section_name,
                                             void* user_data)
 {
     ina_str_t *tokens;
+    ina_str_t key;
     size_t count;
     int match_cat = 0;
     uint32_t levels;
 
     ina_log_t *log = (ina_log_t*)user_data;
-    tokens = ina_str_split(section_key, ".", &count);
+    key = ina_str_new_fromcstr(section_key);
+    tokens = ina_str_split(key, ".", &count);
     if (count == 2) {
         if (strcmp(tokens[0], "*") == 0 ||
             strcmp(tokens[0], log->category)== 0) {
@@ -94,6 +147,7 @@ static ina_rc_t __ina_process_rule(const char *section_name,
             levels = 8U;
         }
     }
+    ina_str_free(key);
     ina_str_split_free_tokens(tokens);
 
     if (match_cat) {
@@ -105,11 +159,24 @@ static ina_rc_t __ina_process_rule(const char *section_name,
             if (strcmp(value, ">stdout") == 0) {
                 t->type = INA_LOG_STDOUT;
                 t->fp = stdout;
+                t->write_fn = __ina_write_to_file;
             } else if (strcmp(value, ">stderr") == 0) {
                 t->type = INA_LOG_STDERR;
                 t->fp = stderr;
+                t->write_fn = __ina_write_to_file;
+#ifndef INA_OS_WIN32
+            } else if (strcmp(value, ">syslog") == 0) {
+                if (INA_FAILED(ina_conffile_get_string_from_entries(entries, "syslog_ident", &t->syslog_ident))) {
+                    t->syslog_ident = ina_str_new_fromcstr(ina_app_get_name());
+                }
+                t->write_fn = __ina_write_to_syslog;
+                t->type = INA_LOG_SYSLOG;
+#endif
             } else {
                 t->type = INA_LOG_FILE;
+                t->filepath = ina_str_dup(value);
+                t->buffer_size = 4096;
+                t->write_fn = __ina_write_to_buffer;
             }
         }
         t->node.data = t;
@@ -166,7 +233,6 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
 
 INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
 {
-    ina_conffile_t *cf = NULL;
     INA_VERIFY_NOT_NULL(log);
     INA_VERIFY_NOT_NULL(category);
 
@@ -174,14 +240,25 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
     INA_RETURN_IF_NULL(*log);
     ina_mem_set(*log, 0, sizeof(ina_log_t));
     (*log)->category = ina_str_new_fromcstr(category);
-
-    INA_CONFFILE(cf, __cfg_filepath, *log,
-                 INA_CONFFILE_SECTION("global", INA_YES, NULL,
-                         INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)),
-                 INA_CONFFILE_NAMED_SECTION("rule", INA_NO, __ina_process_rule,
-                         INA_CONFFILE_STRING_KEY("target", INA_YES)));
-
-    return INA_SUCCESS;
+#ifdef INA_OS_WIN32
+    (*log)->pid = (int)GetCurrentProcessId();
+#else
+    (*log)->pid = (int)getpid();
+#endif
+    if (INA_SUCCEED(ina_list_new(INA_LIST_CF_NOMALLOC, &(*log)->targets))) {
+        ina_conffile_t *cf = NULL;
+        INA_CONFFILE(cf, __cfg_filepath, *log,
+                INA_CONFFILE_SECTION("global", INA_YES, NULL,
+                        INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)),
+                INA_CONFFILE_NAMED_SECTION("rule", INA_NO, __ina_process_rule,
+                        INA_CONFFILE_STRING_KEY("target", INA_YES),
+                        INA_CONFFILE_STRING_KEY("syslog_ident", INA_NO),
+                        INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)));
+        ina_conffile_free(&cf);
+        return INA_SUCCESS;
+    }
+    ina_log_free(log);
+    return ina_err_get_last_rc();
 
 }
 
@@ -198,7 +275,7 @@ INA_API(void) ina_log_free(ina_log_t **log)
 
 
 static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, ina_str_t msg) {
-    static const char *c = ".-*#";
+    static const char *c = " .- *   #";
     static char buf[64];
     static char buf2[2048];
     static struct tm *lt;
@@ -223,7 +300,7 @@ static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, ina_str_t
         while (next) {
             __ina_target_t *target = next->data;
             if (target->level&level) {
-                target->write_fn(target, buf2);
+                target->write_fn(target, level, buf2);
             }
             next = next->next;
         }
