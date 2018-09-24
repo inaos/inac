@@ -72,6 +72,8 @@ typedef enum ina_log_target_e {
 /* Log context/configuration */
 typedef struct ina_log_s ina_log_t;
 
+INA_API(ina_rc_t) ina_log_init(const char* cfg_path);
+INA_API(void)     ina_log_destroy(void);
 /*
  * Open a log context  based on a log configuration.
  *
@@ -82,7 +84,7 @@ typedef struct ina_log_s ina_log_t;
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_new(const char* category, const char *cfg_filepath, ina_log_t **log);
+INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log);
 
 /*
  * Log a  message to current targets and level.

@@ -116,20 +116,20 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
     if (opt != NULL) {
         __ina_sopt_t *so = NULL;
         ina_hashtable_iter_t *iter;
-        ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+        INA_MUST_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                           INA_HASH_DEFAULT,
                           INA_HASHTABLE_TYPE_DEFAULT,
                           INA_HASHTABLE_GROW_DEFAULT,
                           INA_HASHTABLE_SHRINK_DEFAULT,
                           INA_HASHTABLE_DEFAULT_CAPACITY,
-                          INA_HASHTABLE_CF_DEFAULT, &__sopt);
-        ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                          INA_HASHTABLE_CF_DEFAULT, &__sopt));
+        INA_MUST_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                           INA_HASH_DEFAULT,
                           INA_HASHTABLE_TYPE_DEFAULT,
                           INA_HASHTABLE_GROW_DEFAULT,
                           INA_HASHTABLE_SHRINK_DEFAULT,
                           INA_HASHTABLE_DEFAULT_CAPACITY,
-                          INA_HASHTABLE_CF_DEFAULT, &__lopt);
+                          INA_HASHTABLE_CF_DEFAULT, &__lopt));
 
         while (opt->long_opt) {
             __ina_lopt_t *lo;
@@ -328,6 +328,7 @@ INA_API(void) ina_exit(void)
     }
 
     ina_hashtable_destroy();
+    ina_log_destroy();
     ina_err_destroy();
 
 #ifdef INA_OS_WIN32

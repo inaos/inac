@@ -75,6 +75,7 @@ inac_add_benchmarks(inac)
 inac_add_tools(inac)
 
 inac_post_copy_file(tests hashtable.conf)
+inac_post_copy_file(tests test_log.conf)
 inac_post_copy_file(tests test_filepath.conf)
 inac_post_copy_file(tests test_conffile_anonymous_section.conf)
 inac_post_copy_file(tests test_ljit.lua)
