@@ -189,8 +189,10 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
                 t->write_fn = __ina_write_to_file;
 #ifndef INA_OS_WIN32
             } else if (strcmp(value, ">syslog") == 0) {
-                if (INA_FAILED(ina_conffile_get_string_from_entries(entries, "syslog_ident", &t->syslog_ident))) {
+                if (INA_FAILED(ina_conffile_get_string_from_entries(entries, "syslog_ident", &value))) {
                     t->syslog_ident = ina_str_new_fromcstr(ina_app_get_name());
+                } else {
+                    t->syslog_ident = ina_str_dup(value);
                 }
                 t->write_fn = __ina_write_to_syslog;
                 t->type = INA_LOG_SYSLOG;
