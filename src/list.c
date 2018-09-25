@@ -317,7 +317,7 @@ INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_list_insert_concat(ina_list_t *dest, ina_list_t *src)
+INA_API(ina_rc_t) ina_list_concat(ina_list_t *dest, ina_list_t *src)
 {
     INA_VERIFY_NOT_NULL(dest);
 
