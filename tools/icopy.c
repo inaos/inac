@@ -13,9 +13,11 @@ static ina_file_ctx_t *file_ctx = NULL;
 
 static void ina_cleanup_handler(int error, int *exitcode)
 {
+	INA_UNUSED(error);
     if (file_ctx != NULL) {
         ina_file_ctx_free(&file_ctx);
     }
+	*exitcode = 0;
 }
 
 int main(int argc,  char** argv) 

@@ -819,7 +819,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
 }
 #endif
 
-INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds, nfds_t nfds, int timeout, int *num_fds_ready)
+INA_API(ina_rc_t) ina_net_poll(ina_net_pollfd_t *fds, nfds_t nfds, int timeout, int *num_fds_ready)
 {
 #ifdef INA_OS_WIN32
     INA_VERIFY_NOT_NULL(fds);

@@ -17,10 +17,12 @@ static ina_str_t __address = NULL, __group = NULL;
 static void 
 ina_cleanup_handler(int error, int *exitcode)
 {
+	INA_UNUSED(error);
     if (__fd > 0) {
         ina_net_leave_group(__fd, ina_str_cstr(__address), ina_str_cstr(__group));
         ina_net_close(__fd);
     }
+	*exitcode = 0;
 }
 
 int main(int argc,  char** argv) 

@@ -79,6 +79,8 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
 
 static void ina_cleanup_handler(int error, int *exitcode)
 {
+	INA_UNUSED(error);
+	*exitcode = 0;
 }
 
 int main(int argc,  char** argv) 

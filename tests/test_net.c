@@ -42,7 +42,7 @@ INA_TEST_TEARDOWN(net) {
     if (data->client_fd > -1) {
         ina_net_close(data->client_fd);
     }
-    data->client_fd = -1;
+    data->client_fd = INA_NET_INVALID_SOCKET;
     INA_TEST_HELPER_TERMINATE(&data->hid);
 }
 
@@ -126,13 +126,11 @@ INA_TEST(net_local, mac_addr)
     /* first the get first IP-Address of the system */
 #define WORKING_BUFFER_SIZE 15000
 #define MAX_TRIES 3
-    DWORD dwSize = 0;
     DWORD dwRetVal = 0;
     unsigned int i = 0;
 
     ULONG family = AF_INET;
     ULONG flags = GAA_FLAG_SKIP_DNS_SERVER;
-    LPVOID lpMsgBuf = NULL;
 
     PIP_ADAPTER_ADDRESSES pAddresses = NULL;
     ULONG outBufLen = 0;
@@ -140,11 +138,7 @@ INA_TEST(net_local, mac_addr)
 
     PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
     PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
-    PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
-    PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
-    IP_ADAPTER_DNS_SERVER_ADDRESS *pDnServer = NULL;
-    IP_ADAPTER_PREFIX *pPrefix = NULL;
-
+    
     outBufLen = WORKING_BUFFER_SIZE;
     do {
         pAddresses = (IP_ADAPTER_ADDRESSES *)ina_mem_alloc(outBufLen);

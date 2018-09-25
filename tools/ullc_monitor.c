@@ -15,8 +15,7 @@ static ina_rc_t umon_draw_monitor(ina_ullc_rb_info_t *rbi)
     int16_t bg = INA_CIO_COLOR_UNDEFINED;
     int16_t x = 1;
     int16_t y = 0;
-    size_t c = 0;
-
+    
     INA_ASSERT_NOTNULL(rbi);
     
     ina_cio_printf(x, y++, fg, bg, "Version        : %d", rbi->ring_version);

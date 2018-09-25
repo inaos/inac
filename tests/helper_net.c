@@ -18,9 +18,8 @@
  * Poor People Echo Server
  */
 INA_TEST_HELPER(net, non_blocking_echo_server) {
-
-    ina_fd_t fd = -1;
-    ina_fd_t cfd = -1;
+    ina_fd_t fd = INA_NET_INVALID_SOCKET;
+    ina_fd_t cfd = INA_NET_INVALID_SOCKET;
     const char *addr;
     int port;
     unsigned char buffer[4096];
@@ -44,12 +43,12 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
      }
 
      while (1) {
-        if (cfd == -1) {
+        if (cfd == INA_NET_INVALID_SOCKET) {
             if (INA_SUCCEED(ina_net_tcp_accept(&cfd, fd, NULL, NULL))) {
-                if (cfd != -1) {
+                if (cfd != INA_NET_INVALID_SOCKET) {
                     if (INA_FAILED(ina_net_nonblock(cfd))) {
                         ina_net_close(cfd);
-                        cfd = -1;
+                        cfd = INA_NET_INVALID_SOCKET;
                     }
                 }
             }
@@ -62,7 +61,7 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
                }
            } else {
                ina_net_close(cfd);
-               cfd = -1;
+               cfd = INA_NET_INVALID_SOCKET;
             }
        }
        ina_time_sleep(300);
