@@ -32,6 +32,8 @@ extern "C" {
 	ptr = NULL;                              \
 } while(0)
 
+#define INA_MEM_SET_ZERO(ptr, type) ina_mem_set(ptr, 0, sizeof(type))
+
 /* Function pointer with malloc()‘s signature */
 typedef void *(*ina_malloc_t)(size_t);
 /* Function pointer with realloc()‘s signature */
