@@ -101,10 +101,7 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
                       INA_HASHTABLE_CF_DEFAULT, &(*cf)->sections))) {
         return INA_SUCCESS;
     }
-    ina_ljit_ctx_free(&(*cf)->lctx);
-    ina_hashtable_free(&(*cf)->sections);
-    ina_mempool_free(&(*cf)->mempool);
-    INA_MEM_FREE_SAFE(*cf);
+    ina_conffile_free(cf);
     return ina_err_get_last_rc();
 }
 
