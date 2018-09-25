@@ -577,13 +577,15 @@ INA_API(ina_rc_t) ina_net_leave_group(ina_fd_t fd, const char *localif, const ch
     if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(imr)) == -1) {
         return INA_USR_ERROR(INA_NN_OPERATION|INA_ERR_FAILED, __INA_ERRNO);;
     }
+
 #endif
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_net_udp_socket(ina_fd_t* fd)
 {
-    INA_VERIFY(fd > 0);
+    INA_VERIFY_NOT_NULL(fd);
+    INA_VERIFY(*fd > 0);
     INA_RETURN_IF_FAILED(__ina_create_socket(AF_INET, __INA_SOCKET_TYPE_UDP, fd));
     return INA_SUCCESS;
 }
