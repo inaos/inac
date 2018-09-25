@@ -1018,8 +1018,8 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 #define INA_SIZE_T_FMT  "zu"
-#define INA_INT64_T_FMT  PRINTF_INT64_MODIFIER
-#define INA_UINT64_T_FMT PRINTF_INT64_MODIFIER "u"
+#define INA_INT64_T_FMT  PRId64
+#define INA_UINT64_T_FMT PRIu64
 
 /* Pack */
 #ifdef INA_OS_WIN32
