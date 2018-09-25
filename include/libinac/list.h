@@ -70,6 +70,15 @@ INA_INLINE ina_rc_t ina_list_insert_tail_data(ina_list_t *list, void *data)
 
 INA_API (ina_rc_t) ina_list_remove_data(ina_list_t *list, void *data);
 
+INA_INLINE ina_rc_t ina_list_pop_data(ina_list_t *list, void **data)
+{
+    ina_list_node_t *node;
+    if (INA_SUCCEED(ina_list_head(list, &node))) {
+        *data = node->data;
+    }
+    return ina_err_get_last_rc();
+}
+
 INA_API(ina_rc_t) ina_list_insert_concat(ina_list_t *dest, ina_list_t *src);
 
 INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
