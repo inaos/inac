@@ -122,7 +122,7 @@ typedef uint64_t (*ina_hash_int64_func_64_t)(uint64_t key);
  * Return
  *  Hash
  */
-uint32_t INA_INLINE ina_hash_32_wang_int8(uint8_t key8)
+INA_INLINE uint32_t ina_hash_32_wang_int8(uint8_t key8)
 {
     uint32_t key = key8;
     key += ~(key << 15);
@@ -144,7 +144,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int8(uint8_t key8)
  * Return
  *  Hash
  */
-uint32_t INA_INLINE ina_hash_32_wang_int16(uint16_t key16)
+INA_INLINE uint32_t ina_hash_32_wang_int16(uint16_t key16)
 {
     uint32_t key = key16;
     key += ~(key << 15);
@@ -166,7 +166,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int16(uint16_t key16)
  * Return
  *  Hash
  */
-uint32_t INA_INLINE ina_hash_32_wang_int32(uint32_t key)
+INA_INLINE uint32_t ina_hash_32_wang_int32(uint32_t key)
 {
     key += ~(key << 15);
     key ^= (key >> 10);
@@ -187,7 +187,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int32(uint32_t key)
  * Return
  *  Hash
  */
-uint32_t INA_INLINE ina_hash_32_jenkins_int32(uint32_t key)
+INA_INLINE uint32_t ina_hash_32_jenkins_int32(uint32_t key)
 {
     key -= key << 6;
 	key ^= key >> 17;
@@ -209,7 +209,7 @@ uint32_t INA_INLINE ina_hash_32_jenkins_int32(uint32_t key)
  * Return
  *  Hash
  */
-uint64_t INA_INLINE ina_hash_64_wang_int64(uint64_t key)
+INA_INLINE uint64_t ina_hash_64_wang_int64(uint64_t key)
 {
     key = ~key + (key << 21);
 	key = key ^ (key >> 24);
