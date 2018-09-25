@@ -30,8 +30,6 @@ struct ina_list_node_s {
     void *data;
 };
 
-
-
 INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list);
 INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list);
 
@@ -79,17 +77,24 @@ INA_INLINE ina_rc_t ina_list_pop_data(ina_list_t *list, void **data)
     return ina_err_get_last_rc();
 }
 
-INA_API(ina_rc_t) ina_list_insert_concat(ina_list_t *dest, ina_list_t *src);
+INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_find_fn_t find_fn, const void *find_arg, ina_list_node_t **node);
+
+INA_INLINE ina_rc_t ina_list_find_data(ina_list_t *list, ina_find_fn_t find_fn, const void *find_arg, void **data)
+{
+    ina_list_node_t *node;
+    if (INA_SUCCEED(ina_list_find(list, find_fn, find_arg, &node))) {
+        *data = node->data;
+        return INA_SUCCESS;
+    }
+    return ina_err_get_last_rc();
+}
+
+INA_API(ina_rc_t) ina_list_concat(ina_list_t *dest, ina_list_t *src);
+
 
 INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn);
 INA_API(ina_rc_t) ina_list_foreach_arg(ina_list_t *list, ina_foreach_arg_fn_t foreach_fn, void *arg);
 INA_API(ina_rc_t) ina_list_sort(ina_list_t *list, ina_compare_fn_t compare_fn);
-INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_find_fn_t find_fn, const void *find_arg, ina_list_node_t **node);
-
-
-
-
-
 
 #ifdef __cplusplus
 }
