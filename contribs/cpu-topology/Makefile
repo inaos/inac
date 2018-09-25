@@ -8,16 +8,16 @@ all: $(OBJS)
 	@echo assambling for: $(MACHINE)
 ifeq ($(MACHINE), x86_64)
 	@echo assambling get_cpuid_lix64.s
-	@gcc -g -c get_cpuid_lix64.s -o get_cpuid_lix64.o
+	@gcc -fPIC -g -c get_cpuid_lix64.s -o get_cpuid_lix64.o
 else
 	@echo assambling get_cpuid_lix32.s
-	@gcc -m32 -g -c get_cpuid_lix32.s -o get_cpuid_lix32.o
+	@gcc -fPIC -m32 -g -c get_cpuid_lix32.s -o get_cpuid_lix32.o
 endif
 	@ar rcs $(THIS_LIB) $(OBJS) get_cpuid*.o
 
 %.o: %.c
 	@echo compile $(CC) $<
-	@$(CC) $(CFLAGS) -c $<
+	@$(CC) -fPIC $(CFLAGS) -c $<
 
 .PHONY: clean
 

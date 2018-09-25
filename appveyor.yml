@@ -143,7 +143,7 @@ after_build:
 
 test_script:
   - sh: |
-        make runtests || true
+        make coverage || true
   - cmd: |
          nmake coverage & exit 0
 
