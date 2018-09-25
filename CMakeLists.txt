@@ -49,7 +49,6 @@ inac_add_contribs_headers(
 
 file(GLOB src ${SRC_DIR}/*.c)
 add_library(inac_c ${src})
-target_link_libraries(inac_c ${INAC_LIBS})
 set_target_properties(
 		inac_c
 		PROPERTIES
