@@ -9,6 +9,9 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#define __INA_MAX_BUFFER_SIZE (2*1024*1024)
+#define __INA_DFT_BUFFER_SIZE (4*1024)
+
 typedef struct __ina_target_s __ina_target_t;
 typedef ina_rc_t(*__ina_write_fn_t)(__ina_target_t*, ina_log_level_t,  const char*);
 
@@ -29,6 +32,7 @@ typedef struct __ina_target_s {
 struct ina_log_s {
     ina_list_t *targets;
     ina_str_t category;
+    size_t buffer_size;
     int pid;
 };
 ina_str_t  __cfg_filepath = NULL;
@@ -115,8 +119,26 @@ static ina_rc_t __ina_write_to_syslog(__ina_target_t *target, ina_log_level_t le
 }
 #endif
 
+static ina_rc_t __ina_process_global_section(const char *section_name,
+                                          const char* section_key,
+                                          ina_conffile_entries_t *entries,
+                                          void* user_data)
+{
+    ina_log_t *log;
+    double cfg_value;
+    INA_UNUSED(section_name);
+    INA_UNUSED(section_key);
 
-static ina_rc_t __ina_process_rule(const char *section_name,
+    log = (ina_log_t*)user_data;
+    if (INA_SUCCEED(ina_conffile_get_number_from_entries(entries, "buffer_size", &cfg_value))) {
+        log->buffer_size = (size_t)cfg_value;
+        if (log->buffer_size > __INA_MAX_BUFFER_SIZE) {
+            log->buffer_size = __INA_MAX_BUFFER_SIZE;
+        }
+    }
+    return INA_SUCCESS;
+}
+static ina_rc_t __ina_process_rule_section(const char *section_name,
                                             const char* section_key,
                                             ina_conffile_entries_t *entries,
                                             void* user_data)
@@ -126,8 +148,8 @@ static ina_rc_t __ina_process_rule(const char *section_name,
     size_t count;
     int match_cat = 0;
     uint32_t levels;
-
     ina_log_t *log = (ina_log_t*)user_data;
+    INA_UNUSED(section_name);
     key = ina_str_new_fromcstr(section_key);
     tokens = ina_str_split(key, ".", &count);
     if (count == 2) {
@@ -152,6 +174,7 @@ static ina_rc_t __ina_process_rule(const char *section_name,
 
     if (match_cat) {
         ina_str_t value;
+        double cfg_value;
         __ina_target_t *t = ina_mem_alloc(sizeof(__ina_target_t));
         ina_mem_set(t, 0, sizeof(__ina_target_t));
         t->level = levels;
@@ -175,8 +198,11 @@ static ina_rc_t __ina_process_rule(const char *section_name,
             } else {
                 t->type = INA_LOG_FILE;
                 t->filepath = ina_str_dup(value);
-                t->buffer_size = 4096;
                 t->write_fn = __ina_write_to_buffer;
+                t->buffer_size = log->buffer_size;
+                if (INA_SUCCEED(ina_conffile_get_number_from_entries(entries, "buffer_size", &cfg_value))) {
+                    t->buffer_size = (size_t)cfg_value;
+                }
             }
         }
         t->node.data = t;
@@ -239,6 +265,7 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
     *log = (ina_log_t *) ina_mem_alloc(sizeof(ina_log_t));
     INA_RETURN_IF_NULL(*log);
     ina_mem_set(*log, 0, sizeof(ina_log_t));
+    (*log)->buffer_size = __INA_DFT_BUFFER_SIZE;
     (*log)->category = ina_str_new_fromcstr(category);
 #ifdef INA_OS_WIN32
     (*log)->pid = (int)GetCurrentProcessId();
@@ -248,9 +275,9 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
     if (INA_SUCCEED(ina_list_new(INA_LIST_CF_NOMALLOC, &(*log)->targets))) {
         ina_conffile_t *cf = NULL;
         INA_CONFFILE(cf, __cfg_filepath, *log,
-                INA_CONFFILE_SECTION("global", INA_YES, NULL,
+                INA_CONFFILE_SECTION("global", INA_YES, __ina_process_global_section,
                         INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)),
-                INA_CONFFILE_NAMED_SECTION("rule", INA_NO, __ina_process_rule,
+                INA_CONFFILE_NAMED_SECTION("rule", INA_NO, __ina_process_rule_section,
                         INA_CONFFILE_STRING_KEY("target", INA_YES),
                         INA_CONFFILE_STRING_KEY("syslog_ident", INA_NO),
                         INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)));
