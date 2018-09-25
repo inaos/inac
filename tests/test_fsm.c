@@ -33,6 +33,7 @@ INA_FSM_EVENTS(signal_fsm,
     
 void do_nothing(void *userdata)
 {
+    INA_UNUSED(userdata);
     
 }
 
