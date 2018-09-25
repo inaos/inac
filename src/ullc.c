@@ -237,6 +237,7 @@ INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx)
 
 INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
 {
+    INA_UNUSED(ctx;)
     return INA_SUCCESS;
 }
 
