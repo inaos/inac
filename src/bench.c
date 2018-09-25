@@ -38,12 +38,12 @@ INA_BENCH_DATA(bench) {
     int dummy;
 };
 
-INA_BENCH_SETUP(bench) {}
-INA_BENCH_TEARDOWN(bench) {}
-INA_BENCH_SCALE(bench) {}
-INA_BENCH_BEGIN(bench, series) {}
-INA_BENCH_END(bench , series) {}
-INA_BENCH(bench, series, 0) { }
+INA_BENCH_SETUP(bench) { INA_UNUSED(data); }
+INA_BENCH_TEARDOWN(bench) { INA_UNUSED(data); }
+INA_BENCH_SCALE(bench) { INA_UNUSED(data); }
+INA_BENCH_BEGIN(bench, series) { INA_UNUSED(data); }
+INA_BENCH_END(bench , series) { INA_UNUSED(data); }
+INA_BENCH(bench, series, 0) { INA_UNUSED(data); }
 
 static int __ina_bench_all(ina_bench_benchmark_t* b) {
     INA_UNUSED(b);
