@@ -908,6 +908,24 @@ function (inac_package)
     endif()
     inac_artifact_name("${CPACK_PACKAGE_NAME}" "${version}" CPACK_PACKAGE_FILE_NAME)
     include(CPack)
+    install(TARGETS ${INAC_EXAMPLES}
+            DESTINATION examples
+            COMPONENT binaries)
+    install(TARGETS ${INAC_TOOLS}
+            DESTINATION bin
+            COMPONENT binaries)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/lib${CMAKE_PROJECT_NAME}
+            DESTINATION include
+            FILES_MATCHING
+            PATTERN *.h)
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/lib${CMAKE_PROJECT_NAME}
+            DESTINATION include
+            FILES_MATCHING
+            PATTERN *.h)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/doc/
+            DESTINATION doc
+            FILES_MATCHING
+            PATTERN *.md)
 endfunction()
 
 function (inac_load_config_file PATH REQUIRED)

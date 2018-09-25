@@ -91,19 +91,4 @@ else()
     	    DESTINATION lib
         	COMPONENT libraries)
 endif()
-install(TARGETS ${INAC_TOOLS}
-		DESTINATION bin
-		COMPONENT bninaries)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/libinac
-        DESTINATION include
-		FILES_MATCHING
-		PATTERN *.h)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/libinac
-		DESTINATION include
-		FILES_MATCHING
-		PATTERN *.h)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/doc/
-		DESTINATION doc
-		FILES_MATCHING
-		PATTERN *.md)
 inac_package()
