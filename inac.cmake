@@ -1,11 +1,3 @@
-#
-# Copyright INAOS GmbH, Thalwil, 2018. All rights reserved
-#
-# This software is the confidential and proprietary information of INAOS GmbH
-# ("Confidential Information"). You shall not disclose such Confidential
-# Information and shall use it only in accordance with the terms of the
-# license agreement you entered into with INAOS GmbH.
-#
 include(ExternalProject)
 set(DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
@@ -28,6 +20,13 @@ if (MSVC)
     if (POLICY CMP0026)
         cmake_policy(SET CMP0026 OLD)
     endif()
+endif()
+
+if ( CMAKE_COMPILER_IS_GNUCC )
+    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
+endif()
+if ( MSVC )
+    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} /W4")
 endif()
 
 if (MSVC)
@@ -501,7 +500,7 @@ endfunction(inac_add_tools)
 #
 function(inac_post_copy_file TARGET FILE)
     cmake_parse_arguments(PARSE_ARGV 2 CPY "" "DEST" "")
-	if (NOT CPY_DEST)
+    if (NOT CPY_DEST)
         set(CPY_DEST ${FILE})
     endif()
 
@@ -673,19 +672,20 @@ endfunction()
 function(inac_add_dependency name version)
     cmake_parse_arguments(PARSE_ARGV 2 DEP "" "REPOSITORY_REMOTE" "REPOSITORY_LOCAL")
     inac_artifact_name(${name} ${version} DEPENDENCY_NAME)
-    if (NOT DEP_REPOSITORY_LOCAL)
-        set(DEP_REPOSITORY_LOCAL "${INAC_REPOSITORY_LOCAL}")
-    endif()
     if (NOT DEP_REPOSITORY_REMOTE)
         set(DEP_REPOSITORY_REMOTE  ${INAC_REPOSITORY_REMOTE})
     endif()
-    if (NOT DEP_REPOSITORY_LOCAL OR NOT DEP_REPOSITORY_REMOTE)
-        message(FATAL_ERROR "local and remote repository  must be given for dependency ${name}")
+    if (NOT DEP_REPOSITORY_LOCAL AND NOT DEP_REPOSITORY_REMOTE)
+        message(FATAL_ERROR "local or remote repository must be given for dependency ${name}")
     endif()
     string(FIND ${version} "." patch_pos REVERSE)
     string(SUBSTRING ${version} 0 ${patch_pos} short_version)
 
     set(LOCAL_PACKAGE_PATH "${DEP_REPOSITORY_LOCAL}/${DEPENDENCY_NAME}.zip")
+
+    if (NOT EXISTS "${INAC_REPOSITORY_PATH}")
+        file(MAKE_DIRECTORY "${INAC_REPOSITORY_PATH}")
+    endif()
 
     if (NOT EXISTS "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}")
         if(EXISTS "${LOCAL_PACKAGE_PATH}")
@@ -704,15 +704,12 @@ function(inac_add_dependency name version)
             endif()
         endif()
         file(COPY "${LOCAL_PACKAGE_PATH}" DESTINATION "${INAC_REPOSITORY_PATH}")
-        add_custom_target(unpack_${DEPENDENCY_NAME} ALL)
-        add_custom_command(TARGET unpack_${DEPENDENCY_NAME} PRE_BUILD
-                COMMAND ${CMAKE_COMMAND} -E remove_directory "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}"
-                COMMAND ${CMAKE_COMMAND} -E tar xzf "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
-                COMMAND ${CMAKE_COMMAND} -E remove  "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
-                WORKING_DIRECTORY "${INAC_REPOSITORY_PATH}"
-                DEPENDS "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
-                COMMENT "Unpacking ${DEPENDENCY_NAME}.zip"
-                VERBATIM)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}"
+                WORKING_DIRECTORY "${INAC_REPOSITORY_PATH}")
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
+                WORKING_DIRECTORY "${INAC_REPOSITORY_PATH}")
+        execute_process(COMMAND ${CMAKE_COMMAND} -E remove  "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}.zip"
+                WORKING_DIRECTORY "${INAC_REPOSITORY_PATH}")
     endif()
     include_directories("${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}/include")
     set(deps ${INAC_DEPENDENCY_LIBS})
@@ -918,8 +915,8 @@ function(inac_artifact_name name version output_var)
         elseif($ENV{VisualStudioVersion} STREQUAL "15.0")
             string(APPEND ARTIFACT_NAME "${name}-${CMAKE_SYSTEM_NAME}_vs17-${INAC_TARGET_ARCH}-${CMAKE_BUILD_TYPE}-${version}")
         else()
-			message(FATAL_ERROR "Unknown Visual-Studio version: $ENV{VisualStudioVersion}")
-		endif()
+            message(FATAL_ERROR "Unknown Visual-Studio version: $ENV{VisualStudioVersion}")
+        endif()
     else()
         string(APPEND ARTIFACT_NAME "${name}-${CMAKE_SYSTEM_NAME}-${INAC_TARGET_ARCH}-${CMAKE_BUILD_TYPE}-${version}")
     endif()
@@ -934,22 +931,22 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             TARGET_LINK_LIBRARIES(${RUNNER} gcov)
             set_target_properties(${RUNNER} PROPERTIES COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
             ADD_CUSTOM_TARGET(${TARGET}
-                ${RUNNER} ${ARGV3}
-                COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                COMMENT "Running gcovr to produce Cobertura code coverage report."
-            )
+                    ${RUNNER} ${ARGV3}
+                    COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    COMMENT "Running gcovr to produce Cobertura code coverage report."
+                    )
         endif()
         if(MSVC)
-			file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/src COV_SRC_PATH)
+            file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/src COV_SRC_PATH)
             ADD_CUSTOM_TARGET(${TARGET}
                     COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura -- ${RUNNER}.exe ${ARGV3}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     COMMENT "Running OppCppCoverage to produce Cobertura code coverage report.")
             ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
-                COMMAND ;
-                COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
-            )
+                    COMMAND ;
+                    COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
+                    )
         endif()
     endif()
 endfunction()
@@ -972,9 +969,3 @@ inac_enable_log(Release 3)
 inac_platform_libs_for_win("Ws2_32.lib;Psapi.lib;Iphlpapi.lib;winmm.lib;DbgHelp.lib")
 inac_platform_libs_for_linux("-lrt -ldl -lm")
 inac_platform_libs_for_osx("-ldl -lm")
-
-
-
-
-
-
