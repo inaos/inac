@@ -85,7 +85,7 @@ static ina_rc_t __ina_write_to_buffer(__ina_target_t *target, ina_log_level_t le
         target->buffer = ina_mem_alloc(target->buffer_size);
         target->buffer_pos = target->buffer;
     }
-    if (target->buffer_pos-target->buffer < strlen(msg)+1) {
+    if (target->buffer_pos-target->buffer < (int)strlen(msg)+1) { /* its save to cast here, since buffer not > 2GB */
         if (target->fp == NULL) {
             target->fp = fopen(target->filepath, "a");
         }
