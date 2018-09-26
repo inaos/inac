@@ -112,22 +112,22 @@ INA_API(void *) ina_mem_realloc(void *ptr, size_t nb)
 
 INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb)
 {
-    INA_ASSERT_NULL(dest);
-    INA_ASSERT_NULL(src);
+    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOTNULL(src);
     return __ina_memmove(dest, src, nb);
 }
 
 INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb)
 {
-    INA_ASSERT_NULL(dest);
-    INA_ASSERT_NULL(src);
+    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOTNULL(src);
     return __ina_memcpy(dest, src, nb);
 }
 
 INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
 {
-    INA_ASSERT_NULL(lhs);
-    INA_ASSERT_NULL(rhs);
+    INA_ASSERT_NOTNULL(lhs);
+    INA_ASSERT_NOTNULL(rhs);
     return __ina_memcmp(lhs, rhs, nb);
 }
 
@@ -140,7 +140,6 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb)
 INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
 {
     INA_ASSERT_NOTNULL(dest);
-
     return __ina_memchr(dest, value, nb);
 }
 
