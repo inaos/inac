@@ -9,12 +9,12 @@
 #ifndef _LIBINAC_DIR_H_
 #define _LIBINAC_DIR_H_
 
-#include <libinac/lib.h>
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* Opaque directory walker handle */
 typedef struct ina_dir_walker_s ina_dir_walker_t;
