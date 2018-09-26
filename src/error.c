@@ -15,8 +15,7 @@
 
 #define __INA_ERR_MESSAGE_EXTRALEN (20)
 
-static INA_TLS(ina_rc_t) __rc = 0;
-static INA_TLS(FILE) *__logfile = NULL;
+static INA_TLS(ina_log_t) *__ilog = NULL;
 static INA_TLS(ina_err_dict_cb_t) __dict_cb = NULL;
 static INA_TLS(ina_str_t) __errmsg = NULL;
 
@@ -42,77 +41,24 @@ INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb)
     return old_cb;
 }
 
-INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path)
+INA_API(ina_rc_t) ina_err_set_log(ina_log_t *log)
 {
-    if (__logfile != NULL && (__logfile != stderr || __logfile == stdout)) {
-        fclose(__logfile);
-        __logfile = NULL;
-    }
-    if (file_path != NULL) {
-        if (strcmp(file_path, ">1") == 0) {
-            __logfile = stdout;
-        } else if (strcmp(file_path, ">2") == 0) {
-            __logfile = stderr;
-        } else {
-            __logfile = fopen(file_path, "w+");
-            if (__logfile == NULL) {
-                __logfile = stderr;
-                return INA_OS_ERROR(INA_NN_FILE | INA_ERR_OPEN);
-            }
-        }
-    }
+    __ilog = log;
     return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_err_log(const char *fmt, ...)
 {
-    if (__logfile != NULL) {
+    if (__ilog != NULL) {
         va_list args;
         va_start(args, fmt);
-        vfprintf(__logfile, fmt, args);
-        fprintf(__logfile, "\n");
+        ina_log_v(__ilog, INA_LOG_LEVEL_ERROR, fmt, args);
         va_end(args);
     }
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char *location)
-{
-    __rc = rc;
-    if (__logfile != NULL) {
-        if (INA_RC_ERRNO(__rc) > 0) {
-            ina_str_snprintf(&__errmsg, INA_ERROR_MSGLEN,
-                    "%s at %s - OS error: %s (%d)\n",
-                    ina_err_strerror(__rc),
-                    location,
-                    strerror(INA_RC_ERRNO(__rc)),
-                    INA_RC_ERRNO(__rc));
-        } else {
-            ina_str_snprintf(&__errmsg, INA_ERROR_MSGLEN,
-                    "%s at %s\n",
-                    ina_err_strerror(__rc),
-                    location);
-        }
-        fputs(__errmsg, __logfile);
-    }
-    return __rc;
-}
 
-INA_API(ina_rc_t) ina_err_get_last_rc(void)
-{
-    return __rc;
-}
-
-INA_API(ina_rc_t) ina_err_reset(void)
-{
-    __rc = ina_err_clear_rc(__rc);
-    return __rc;
-}
-
-INA_API(ina_rc_t) ina_err_clear_rc(ina_rc_t rc)
-{
-    return (rc &= ~(INA_ERR_ERROR));
-}
 
 static const char* __ina_get_noun(int id) {
     switch (id) {

@@ -22,6 +22,8 @@ extern "C" {
 /* Check return code: failure */
 #define INA_FAILED(rc) ((rc) < 0)
 
+static INA_TLS(ina_rc_t) RC = 0;
+
 #ifdef INA_VERIFY_ENABLED
 #define INA_VERIFY_NOT_NULL(x) INA_VERIFY(x != NULL)
 #define INA_VERIFY(x) do { if (INA_UNLIKELY((x))) return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID) } while (0)
@@ -40,16 +42,6 @@ extern "C" {
 #define INA_RETURN_IF_SUCCEED(rc) if (INA_SUCCEED((rc))) return ina_err_get_last_rc()
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED(rc))) abort(); } while(0)
-/* Set last RC */
-#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0LL), INA_AT)
-/* Set last RC and capture errno */
-#ifndef INA_OS_WIN32
-#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno),  INA_AT)
-#else
-#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), GetLastError()),  INA_AT)
-#endif
-/* Set last RC and set user defined errno */
-#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)),  INA_AT)
 
 /* Pack a RC */
 #ifdef INA_LIB
@@ -81,6 +73,17 @@ extern "C" {
 #define INA_RC_BIT_N                23
 #define INA_RC_BIT_A                15
 #define INA_RC_BIT_U                00
+
+/* Set last RC */
+#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x),0))
+/* Set last RC and capture errno */
+#ifndef INA_OS_WIN32
+#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno))
+#else
+#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), GetLastError()),  INA_AT)
+#endif
+/* Set last RC and set user defined errno */
+#define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)))
 
 /* Flags */
 #define INA_ERR_ERROR               (  1LL << INA_RC_BIT_E) /* Error-bit  */
@@ -576,6 +579,7 @@ extern "C" {
 #define INA_ERROR_MSGLEN  512
 
 typedef const char* (*ina_err_dict_cb_t)(int);
+typedef struct ina_log_s ina_log_t;
 
 /*
  * Initialize error module.
@@ -611,7 +615,11 @@ INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb);
  * Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char* location);
+INA_INLINE ina_rc_t ina_err_set_last_rc(ina_rc_t rc)
+{
+    RC = rc;
+    return RC;
+}
 
 /*
  * Return the last RC
@@ -619,7 +627,25 @@ INA_API(ina_rc_t) ina_err_set_last_rc(ina_rc_t rc, const char* location);
  * Return
  *  Last RC or INA_SUCCESS of no error occurred
  */
-INA_API(ina_rc_t) ina_err_get_last_rc(void);
+INA_INLINE ina_rc_t ina_err_get_last_rc(void)
+{
+    return RC;
+}
+
+/*
+ * Mark a RC as handled.
+ *
+ * Parameters
+ *  rc  Valid RC to mark as handled. If a error was already marked as handled
+ *      no error occurs.
+ *
+ * Return
+ *  Returns cleared RC
+ */
+INA_INLINE ina_rc_t ina_err_clear_rc(ina_rc_t rc)
+{
+    return (rc &= ~(INA_ERR_ERROR));
+}
 
 /*
  * Mark an error as handled.
@@ -632,30 +658,22 @@ INA_API(ina_rc_t) ina_err_get_last_rc(void);
  *  Returns INA_SUCCESS when the complete error state was cleared successfully
  *  otherwise
  */
-INA_API(ina_rc_t) ina_err_reset(void);
-
-/*
- * Mark a RC as handled.
- *
- * Parameters
- *  rc  Valid RC to mark as handled. If a error was already marked as handled
- *      no error occurs.
- *
- * Return
- *  Returns cleared RC
- */
-INA_API(ina_rc_t) ina_err_clear_rc(ina_rc_t rc);
+INA_INLINE ina_rc_t ina_err_reset(void)
+{
+    RC = ina_err_clear_rc(RC);
+    return RC;
+}
 
 /*
  * Set log file.
  *
  * Parameters
- *  file_path   path to the log file
+ *  log   log context
  *
  * Return
  *  INA_SUCCESS if no error occurred
  */
-INA_API(ina_rc_t) ina_err_set_log_file(const char *file_path);
+INA_API(ina_rc_t) ina_err_set_log(ina_log_t *log);
 
 /*
  * Write to the error log
