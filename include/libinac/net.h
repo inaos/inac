@@ -49,6 +49,13 @@ struct msghdr {
 };
 #endif
 
+#ifdef INA_OS_WIN32
+#define INA_NET_INVALID_SOCKET INVALID_SOCKET
+#else
+#define INA_NET_INVALID_SOCKET -1
+#endif
+
+typedef struct pollfd ina_net_pollfd_t;
 
 /* opaque UDP receiver */
 typedef struct ina_net_udp_receiver_s ina_net_udp_receiver_t;
@@ -416,7 +423,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_poll(struct pollfd *fds,
+INA_API(ina_rc_t) ina_net_poll(ina_net_pollfd_t *fds,
                                nfds_t nfds,
                                int timeout,
                                int *num_fds_ready);

@@ -26,6 +26,7 @@ if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
 endif()
 if ( MSVC )
+    string(REGEX REPLACE " /W[0-4]" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} /W4")
 endif()
 

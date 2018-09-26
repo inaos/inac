@@ -14,10 +14,14 @@ static INA_VOLATILE int __shutdown = 0;
 
 static void ina_cleanup_handler(int error, int *exitcode)
 {
+	INA_UNUSED(error);
+	*exitcode = 0;
 }
 
 static void __ina_interrrupt(ina_signal_t s, ina_signal_behavior_t *b, int *e)
 {
+	INA_UNUSED(s);
+	INA_UNUSED(b);
     __shutdown = 1;
     *e = EXIT_SUCCESS;
 }

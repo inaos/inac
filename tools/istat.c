@@ -13,9 +13,11 @@ static ina_dir_stat_t *__ds = NULL;
 
 static void ina_cleanup_handler(int error, int *exitcode)
 {
+	INA_UNUSED(error);
     if (__ds != NULL) {
         ina_dir_stat_free(&__ds);
     }
+	*exitcode = 0;
 }
 
 int main(int argc,  char** argv) 
