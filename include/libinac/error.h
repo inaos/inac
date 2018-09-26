@@ -22,7 +22,7 @@ extern "C" {
 /* Check return code: failure */
 #define INA_FAILED(rc) ((rc) < 0)
 
-static INA_TLS(ina_rc_t) RC = 0;
+static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 
 /* Bit-shifts */
 #define INA_RC_BIT_E                63
@@ -33,13 +33,13 @@ static INA_TLS(ina_rc_t) RC = 0;
 #define INA_RC_BIT_A                15
 #define INA_RC_BIT_U                00
 
-#define INA_RC_EFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_E) & 0x1))
-#define INA_RC_VER(rc)     ((int32_t)((rc >> INA_RC_BIT_V) & 0x7f))
-#define INA_RC_REV(rc)     ((int32_t)((rc >> INA_RC_BIT_R) & 0xffff))
-#define INA_RC_ERRNO(rc)   ((int32_t)((rc >> INA_RC_BIT_O) & 0xffff))
-#define INA_RC_NFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_N) & 0x1))
-#define INA_RC_ATTRIB(rc)  ((int32_t)((rc >> INA_RC_BIT_A) & 0xff))
-#define INA_RC_USERNN(rc)  ((int32_t)((rc >> INA_RC_BIT_U) & 0x7fff))
+#define INA_RC_EFLAG(rc)   ((int32_t)(((rc) >> INA_RC_BIT_E) & 0x1))
+#define INA_RC_VER(rc)     ((int32_t)(((rc) >> INA_RC_BIT_V) & 0x7f))
+#define INA_RC_REV(rc)     ((int32_t)(((rc) >> INA_RC_BIT_R) & 0xffff))
+#define INA_RC_ERRNO(rc)   ((int32_t)(((rc) >> INA_RC_BIT_O) & 0xffff))
+#define INA_RC_NFLAG(rc)   ((int32_t)(((rc) >> INA_RC_BIT_N) & 0x1))
+#define INA_RC_ATTRIB(rc)  ((int32_t)(((rc) >> INA_RC_BIT_A) & 0xff))
+#define INA_RC_USERNN(rc)  ((int32_t)(((rc) >> INA_RC_BIT_U) & 0x7fff))
 #define INA_RC_ERROR(rc)   ((int32_t)((INA_MID_BITS((rc), INA_RC_BIT_A, INA_RC_BIT_N+1))<<INA_RC_BIT_A))
 
 
@@ -575,8 +575,8 @@ INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb);
  */
 INA_INLINE ina_rc_t ina_err_set_last_rc(ina_rc_t rc)
 {
-    RC = rc;
-    return RC;
+    __rc = rc;
+    return __rc;
 }
 
 /*
@@ -587,7 +587,7 @@ INA_INLINE ina_rc_t ina_err_set_last_rc(ina_rc_t rc)
  */
 INA_INLINE ina_rc_t ina_err_get_last_rc(void)
 {
-    return RC;
+    return __rc;
 }
 
 /*
@@ -602,7 +602,7 @@ INA_INLINE ina_rc_t ina_err_get_last_rc(void)
  */
 INA_INLINE ina_rc_t ina_err_clear_rc(ina_rc_t rc)
 {
-    return (rc &= ~(INA_ERR_ERROR));
+    return (rc |~(INA_ERR_ERROR));
 }
 
 /*
@@ -618,8 +618,8 @@ INA_INLINE ina_rc_t ina_err_clear_rc(ina_rc_t rc)
  */
 INA_INLINE ina_rc_t ina_err_reset(void)
 {
-    RC = INA_SUCCESS;
-    return RC;
+    __rc = ina_err_clear_rc(__rc);
+    return __rc;
 }
 
 /*
@@ -654,14 +654,6 @@ INA_API(ina_rc_t) ina_err_log(const char *fmt, ...);
  *  Error message
  */
 INA_API(const char*) ina_err_strerror(ina_rc_t rc);
-
-/*
- * Makes a backtrace to the stderr
- *
- * Return
- *  INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_err_backtrace(void *data);
 
 /* Pack a RC */
 #ifdef INA_LIB

@@ -656,9 +656,6 @@ __ina_signal_handler(int sig)
                     ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc()));
                     ina_err_reset();
                 }
-#ifndef INA_OS_WIN32
-                ina_err_backtrace(NULL);
-#endif        
                 exit(EXIT_FAILURE);
             }
             break;        
@@ -671,9 +668,6 @@ __ina_signal_handler(int sig)
                     ina_err_log("Last error: %s", ina_err_strerror(ina_err_get_last_rc()));
                     ina_err_reset();
                 }
-#ifndef INA_OS_WIN32
-                ina_err_backtrace(NULL);
-#endif
                 exit(EXIT_FAILURE);
             }
         case SIGTERM:
@@ -710,7 +704,6 @@ void __ina_signal(int sig, void (*handler)(int))
 #ifdef INA_OS_WIN32
 static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *exception_ptr)
 {
-    ina_err_backtrace(exception_ptr);
     switch (exception_ptr->ExceptionRecord->ExceptionCode) {
         case EXCEPTION_FLT_DENORMAL_OPERAND:
         case EXCEPTION_FLT_DIVIDE_BY_ZERO:
