@@ -395,7 +395,7 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_NN_COMPILER             (17)
 #define INA_NN_COMPRESSION          (18)
 #define INA_NN_CONSOLE              (19)
-#define INA_NN_CRC                 (19)
+#define INA_NN_CRC                  (19)
 #define INA_NN_DAEMON               (20)
 #define INA_NN_DATA                 (21)
 #define INA_NN_DEPENDENCY           (22)
@@ -692,7 +692,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 
 #ifndef INA_VERIFY_DISABLED
 #define INA_VERIFY(x) do { if (INA_UNLIKELY((x))) return INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID); } while (0)
-#define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) != NULL)
+#define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) == NULL)
 #else
 #define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
