@@ -209,7 +209,7 @@ INA_API(ina_rc_t) ina_list_usage(ina_list_t *list, size_t *usage)
     INA_VERIFY_NOT_NULL(list);
     INA_VERIFY_NOT_NULL(usage);
     *usage = 0;
-    INA_RETURN_IF_FAILED(ina_mempool_getinfo(list->mp, &info));
+    INA_RETURN_IF_FAILED(ina_mempool_info(list->mp, &info));
     *usage = info.size;
     *usage += sizeof(void*)*list->max_recyclable;
     return INA_SUCCESS;

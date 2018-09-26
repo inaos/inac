@@ -525,7 +525,7 @@ __ina_get_binpath(ina_str_t path)
     }
 
     /* Report insufficient buffer size */
-    if (ret >= ina_str_size(path)) {
+    if (ret >= (int)ina_str_size(path)) {
         return INA_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);
     }
 

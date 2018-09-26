@@ -429,7 +429,7 @@ INA_API(ina_rc_t) ina_hashtable_usage(ina_hashtable_t *ht, size_t *usage)
 {
     ina_mempool_info_t info;
     INA_VERIFY_NOT_NULL(usage);
-    INA_RETURN_IF_FAILED(ina_mempool_getinfo(ht->mp, &info));
+    INA_RETURN_IF_FAILED(ina_mempool_info(ht->mp, &info));
     *usage = info.size;
     return INA_SUCCESS;
 }

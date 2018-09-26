@@ -47,6 +47,7 @@ static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, con
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
     INA_ASSERT_NOTNULL(read_len);
+    INA_UNUSED(more);
     *wrote_len = 0;
     *read_len = 0;
 
@@ -82,6 +83,8 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
     int read = 0;
     INA_UNUSED(src_len);
     INA_UNUSED(dst_len);
+    INA_UNUSED(src);
+    INA_UNUSED(more);
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
     INA_ASSERT_NOTNULL(read_len);

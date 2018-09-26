@@ -14,6 +14,8 @@ static ina_ipc_flags_t *flags = NULL;
 
 
 static void ina_test_helper_cleanup(int error, int *exitcode) {
+    INA_UNUSED(error);
+    INA_UNUSED(exitcode);
     ina_ipc_flags_free(&flags);
 }
 

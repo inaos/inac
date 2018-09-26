@@ -69,6 +69,7 @@ static void *__ina_find_symbol(ina_test_testcase_t *test, const char *fname)
 #endif
 
 static void __ina_signal_handler(int sig) {
+    INA_UNUSED(sig);
     longjmp(__err, 1);
 }
 

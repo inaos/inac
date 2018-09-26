@@ -98,8 +98,8 @@ INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
  * Return
  *  INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool,
-                                      ina_mempool_info_t *info);
+INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool,
+                                   ina_mempool_info_t *info);
 
 /* 
  * Creates a memory pool.

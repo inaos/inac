@@ -269,7 +269,7 @@ INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool, size_t chunks,
     INA_VERIFY_NOT_NULL(pool);
     INA_VERIFY_NOT_NULL(info);
 
-    INA_RETURN_IF_FAILED(ina_mempool_getinfo(pool, info));
+    INA_RETURN_IF_FAILED(ina_mempool_info(pool, info));
 
     if (info->children <= chunks) {
         return INA_SUCCESS;
@@ -340,7 +340,7 @@ INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool)
 }
 
 
-INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool, ina_mempool_info_t *info)
+INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool, ina_mempool_info_t *info)
 {
     ina_mempool_t *pm;
 
