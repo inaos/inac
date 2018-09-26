@@ -258,6 +258,7 @@ INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, in
     INA_VERIFY_NOT_NULL(mapping);
     INA_VERIFY(advice == INA_MMAP_MEM_ADVICE_RANDOM ||
                advice == INA_MMAP_MEM_ADVICE_SEQUENTIAL);
+    INA_UNUSED(length);
     switch (advice) {
         case INA_MMAP_MEM_ADVICE_SEQUENTIAL:
             padvice = MADV_SEQUENTIAL;

@@ -458,7 +458,10 @@ INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
     int fd;
 #endif
     ina_str_t mode;
-    INA_VERIFY_NOT_NULL(file);
+    if (file == NULL) {
+        INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
+        return NULL;
+    }
     if (file->stream != NULL) {
         return file->stream;
     }

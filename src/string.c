@@ -441,7 +441,7 @@ INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars)
             ep--;
         }
         if (sp > ep) {
-            len = 0; 
+            len = 0;
         } else {
             len = ((ep-sp)+1);
         }
@@ -454,7 +454,7 @@ INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars)
     return str;   
 }
 
-static size_t __ina_str_substr_internal(ina_cstr_t str, size_t start, size_t end, size_t len)
+static size_t __ina_str_substr_internal(size_t start, size_t end, size_t len)
 {
     size_t newlen = 0;
 
@@ -487,7 +487,7 @@ INA_API(ina_str_t) ina_str_substr_using_pool(ina_cstr_t str, size_t start, size_
     size_t newlen;
     INA_ASSERT_NOTNULL(str);
 
-    newlen = __ina_str_substr_internal(str, start, end, ina_str_len(str));
+    newlen = __ina_str_substr_internal(start, end, ina_str_len(str));
     return ina_str_new_fromblk_using_pool((__INA_HDR_OFFSET(str))->data+start, newlen, pool);
 }
 
@@ -497,7 +497,7 @@ INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, size_t start, size_t end)
 
     INA_ASSERT_NOTNULL(str);
 
-    newlen = __ina_str_substr_internal(str, start, end, ina_str_len(str));
+    newlen = __ina_str_substr_internal(start, end, ina_str_len(str));
     return ina_str_new_fromblk((__INA_HDR_OFFSET(str))->data+start, newlen);
 }
 

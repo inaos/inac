@@ -61,6 +61,7 @@ static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, con
 static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, const unsigned char *src, 
                                              unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
+    INA_UNUSED(more);
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
     INA_ASSERT_NOTNULL(read_len);
@@ -79,6 +80,8 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
                                                     int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     int read = 0;
+    INA_UNUSED(src_len);
+    INA_UNUSED(dst_len);
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
     INA_ASSERT_NOTNULL(read_len);
@@ -96,6 +99,7 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
 static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *state, const unsigned char *src, 
                                                     int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
+    INA_UNUSED(more);
     INA_ASSERT_NOTNULL(state);
     INA_ASSERT_NOTNULL(wrote_len);
     INA_ASSERT_NOTNULL(read_len);
@@ -120,10 +124,12 @@ static ina_rc_t ina_compression_bounds_lz4(struct ina_compression_state_s *state
 
 static void *ina_mz_wop_alloc_func(void *opaque, size_t items, size_t size)
 {
+    INA_UNUSED(opaque);
     return ina_mem_alloc(items * size);
 }
 static void ina_mz_wop_free_func(void *opaque, void *address)
 {
+    INA_UNUSED(opaque);
     ina_mem_free(address);
 }
 static void *ina_mz_wp_alloc_func(void *opaque, size_t items, size_t size)
@@ -133,6 +139,8 @@ static void *ina_mz_wp_alloc_func(void *opaque, size_t items, size_t size)
 }
 static void ina_mz_wp_free_func(void *opaque, void *address)
 {
+    INA_UNUSED(opaque);
+    INA_UNUSED(address);
     /* we do not free using a pool */
 }
 

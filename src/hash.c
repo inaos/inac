@@ -381,6 +381,7 @@ INA_API(uint32_t) ina_hash_32_superfast(uint32_t seed, const void *key, size_t s
     const signed char* data = (const signed char*)key;
     uint32_t hash = 0, tmp;
     int rem;
+	INA_UNUSED(seed);
     INA_ASSERT_NOTNULL(key);
     if (size <= 0 || data == NULL) {
         return 0;

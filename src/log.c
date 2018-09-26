@@ -210,6 +210,7 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
         t->node.data = t;
         ina_list_insert_tail(log->targets, &t->node);
     }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_log_init(const char* cfg_filepath)

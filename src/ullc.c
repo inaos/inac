@@ -267,8 +267,8 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
     int64_t num;
     void *item;
 
-    INA_VERIFY_NOT_NULL(ctx);
-    INA_VERIFY(INA_ULLC_CTX_PRODUCER == ctx->type);
+    INA_ASSERT_NULL(ctx);
+    INA_ASSERT(INA_ULLC_CTX_PRODUCER == ctx->type);
 
     slow_consumer = ctx->ring->overrun_enabled;
     like_to_write = ctx->ring->next_ptr % ctx->ring->slots;
@@ -381,7 +381,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
 INA_API(void) ina_ullc_consumer_free(ina_ullc_ctx_t **ctx)
 {
     INA_FREE_CHECK(ctx);
-    INA_VERIFY(INA_ULLC_CTX_CONSUMER == (*ctx)->type);
+    INA_ASSERT(INA_ULLC_CTX_CONSUMER == (*ctx)->type);
 
     INA_ATOMIC_SWAP(&(*ctx)->c_offset->alive,1,0);
     INA_ASSERT_EQUAL(0, (*ctx)->c_offset->alive);
@@ -458,8 +458,8 @@ INA_API(void *) ina_ullc_consumer_get(ina_ullc_ctx_t *ctx)
     void *item;
     int64_t wait_for;
 
-    INA_VERIFY_NOT_NULL(ctx);
-    INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
+    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT(INA_ULLC_CTX_CONSUMER == ctx->type);
     
     wait_for = ctx->c_offset->cursor;
     if (ctx->ring->cursor < wait_for) {

@@ -129,6 +129,10 @@ static ina_rc_t ina_file_cursor_fileio_text_read_chunk(ina_file_cursor_t *cursor
 static ina_rc_t ina_file_cursor_fileio_binary_readwrite_chunk(ina_file_cursor_t *cursor, size_t requested,
                                                               size_t *actual, unsigned char **chunk)
 {
+	INA_UNUSED(cursor);
+	INA_UNUSED(requested);
+	INA_UNUSED(actual);
+	INA_UNUSED(chunk);
     /* this function only works with an mmap cursor */
     return INA_ERROR(INA_NN_FUNCTION|INA_ERR_ILLEGAL);
 }
@@ -351,6 +355,10 @@ static ina_rc_t ina_file_cursor_mmap_text_read_chunk(ina_file_cursor_t *cursor, 
 static ina_rc_t ina_file_cursor_mmap_binary_readwrite_chunk(ina_file_cursor_t *cursor, size_t requested,
 							       size_t *actual, unsigned char **chunk)
 {
+	INA_UNUSED(cursor);
+	INA_UNUSED(requested);
+	INA_UNUSED(actual);
+	INA_UNUSED(chunk);
 	return INA_ERROR(INA_NN_FUNCTION|INA_ERR_ILLEGAL);
 }
 
