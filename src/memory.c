@@ -106,7 +106,7 @@ INA_API(void) ina_mem_free(void *ptr)
 
 INA_API(void *) ina_mem_realloc(void *ptr, size_t nb)
 {
-    INA_VERIFY_NOT_NULL(ptr);
+    INA_ASSERT_NOTNULL(ptr);
     return __ina_realloc(ptr, nb);
 }
 
@@ -133,13 +133,14 @@ INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
 
 INA_API(void *) ina_mem_set(void *dest, int value, size_t nb)
 {
-    INA_VERIFY_NOT_NULL(dest);
+    INA_ASSERT_NOTNULL(dest);
     return __ina_memset(dest, value, nb);
 }
 
 INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
 {
-    INA_ASSERT_NULL(dest);
+    INA_ASSERT_NOTNULL(dest);
+
     return __ina_memchr(dest, value, nb);
 }
 
@@ -368,7 +369,7 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
     void *ret;
     size_t nsize;
 
-    INA_VERIFY_NOT_NULL(pool);
+    INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->current);
 
     ret = NULL;
@@ -421,7 +422,7 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 {
     void *ret;
 
-    INA_VERIFY_NOT_NULL(pool);
+    INA_ASSERT_NOTNULL(pool);
     INA_ASSERT_NOTNULL(pool->current);
     ret = NULL;
 
@@ -467,13 +468,13 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
 {
     void *ret;
 
-    INA_VERIFY_NOT_NULL(pool);
-    INA_VERIFY_NOT_NULL(old);
-    INA_VERIFY(old_size > 0);
-    INA_VERIFY(new_size > 0);
+    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_NOTNULL(old);
+    INA_ASSERT(old_size > 0);
+    INA_ASSERT(new_size > 0);
     INA_ASSERT_NOTNULL(pool->current);
 
-    ret = NULL;
+
     if (pool->cf^INA_MEM_BESTFIT) {
         new_size = INA_MEM_ALIGN(new_size);
         old_size = INA_MEM_ALIGN(old_size);
