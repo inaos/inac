@@ -18,7 +18,7 @@ extern "C" {
 
 
 #define INA_HASHTABLE_DEFAULT_CAPACITY    (32)
-#define INA_HASHTABLE_MAX_KEY_LEN         (16)
+#define INA_HASHTABLE_MAX_KEY_LEN       (16UL)
 #define INA_HASHTABLE_CF_PREALLOCATED    (4UL)
 #define INA_HASHTABLE_CF_STAT           (16UL)
 #define INA_HASHTABLE_CF_DEFAULT         (0UL)
