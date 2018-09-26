@@ -200,7 +200,7 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir);
  *
  * FIXME: Use const keyword for stat
  */
-INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat,
+INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat,
                                               uint64_t *capacity_bytes);
 
 /*
@@ -213,7 +213,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(ina_dir_stat_t *stat,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat,
+INA_API(ina_rc_t) ina_dir_stat_bytes_free(const ina_dir_stat_t *stat,
                                           uint64_t *free_bytes);
 
 /*
@@ -226,7 +226,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_free(ina_dir_stat_t *stat,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_dir_stat_pct_used(ina_dir_stat_t *stat, int *pct_used);
+INA_API(ina_rc_t) ina_dir_stat_pct_used(const ina_dir_stat_t *stat, int *pct_used);
 
 /*
  *  Destroy directory attributes.
