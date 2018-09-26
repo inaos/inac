@@ -14,7 +14,7 @@
         return INA_SUCCESS;           \
     }
 
-static int __ina_get_cursor_pos(ina_cio_pos_t *const pos);
+static int __ina_get_cursor_pos(ina_cio_pos_t *pos);
 
 #ifdef INA_OS_WIN32
 #include <io.h>
@@ -252,10 +252,10 @@ INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos)
     return ina_cio_move_to_row_and_col(pos->row, pos->col);
 }
 
-INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
+INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int row, int col)
 {
 #ifdef INA_OS_WIN32
-    COORD pos;
+    COORD wpos;
 #endif
    __INA_CHECK_TTTY;
 
@@ -272,17 +272,17 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
     }
 #ifdef INA_OS_WIN32
 
-    pos.X = col;
-    pos.Y = row;
+    wpos.X = (short)col;
+    wpos.Y = (short)row;
 
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), wpos);
 #else
     printf( "%s%d;%dH", __CSI, row + 1, col + 1);
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(int) ina_cio_printf(int16_t row, int16_t col, 
+INA_API(int) ina_cio_printf(int row, int col,
                                     ina_cio_color_t fg_color, 
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...)
@@ -295,7 +295,10 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     int setattribs = INA_NO;
     int setpos = INA_NO;
 
-    INA_VERIFY_NOT_NULL(fmt);
+    if (fmt == NULL) {
+        INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
+        return -1;
+    }
 
     pos.col = 0;
     pos.row = 0;
@@ -347,7 +350,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
 
 #ifdef INA_OS_WIN32
 static int
-__ina_get_cursor_pos(ina_cio_pos_t *const pos)
+__ina_get_cursor_pos(ina_cio_pos_t* pos)
 {
     CONSOLE_SCREEN_BUFFER_INFO info;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
@@ -395,7 +398,7 @@ INA_INLINE int wr(const int fd, const char *const data, const size_t bytes)
     return 0;
 }
 static int
-__ina_get_cursor_pos(ina_cio_pos_t *const pos)
+__ina_get_cursor_pos(ina_cio_pos_t *pos)
 {
     struct termios  saved, temporary;
     int tty, retval, result, rows, cols, saved_errno;

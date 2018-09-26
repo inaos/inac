@@ -9,11 +9,12 @@
 #ifndef _LIBINAC_CIO_H_
 #define _LIBINAC_CIO_H_
 
-#include <libinac/lib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_CIO_CURRENT_COL (-1)
 #define INA_CIO_CURRENT_ROW (-1)
@@ -33,8 +34,8 @@ typedef enum ina_cio_colors_e  {
 
 /* Cursor position */
 typedef struct ina_cio_pos_s {
-    int16_t row;
-    int16_t col;
+    int row;
+    int col;
 } ina_cio_pos_t;
 
 /* CIO specials cursor attributes codes */
@@ -158,7 +159,7 @@ INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col);
+INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int row, int col);
 
 /*
  * Print a formatted string to the standard output.
@@ -190,7 +191,7 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col);
  *  On success, the total number of characters written is returned. If a writing
  *  error occurs, negative number is returned.
  */
-INA_API(int) ina_cio_printf(int16_t row, int16_t col, 
+INA_API(int) ina_cio_printf(int row, int col,
                                     ina_cio_color_t fg_color, 
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...);
