@@ -32,29 +32,7 @@ static INA_TLS(ina_rc_t) RC = 0;
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
 #endif
 
-/* Return with last rc if condition x fails */
-#define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_last_rc(); } while(0)
-/* Return with last rc if x == NULL */
-#define INA_RETURN_IF_NULL(x) do {if ((x) == NULL) return ina_err_get_last_rc();} while(0)
-/* Return with last rc if failed */
-#define INA_RETURN_IF_FAILED(rc) if (INA_FAILED((rc))) return ina_err_get_last_rc()
-/* Return with last rc if succeed */
-#define INA_RETURN_IF_SUCCEED(rc) if (INA_SUCCEED((rc))) return ina_err_get_last_rc()
-/* Checkpoint must succeed */
-#define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED(rc))) abort(); } while(0)
 
-/* Pack a RC */
-#ifdef INA_LIB
-#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_VERSION_HEX) << INA_RC_BIT_R) | (((e)) << INA_RC_BIT_O) | (x))
-#else
-#  ifndef INA_ERROR_VER
-#    define INA_ERROR_VER (0)
-#  endif
-#  ifndef INA_ERROR_REV
-#    define INA_ERROR_REV (0)
-#  endif
-#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_ERROR_VER) << INA_RC_BIT_V) | (((ina_rc_t)INA_ERROR_REV) << INA_RC_BIT_R) | (((e)) << INA_RC_BIT_O) | (x))
-#endif
 
 #define INA_RC_EFLAG(rc)   ((int32_t)((rc >> INA_RC_BIT_E) & 0x1))
 #define INA_RC_VER(rc)     ((int32_t)((rc >> INA_RC_BIT_V) & 0x7f))
@@ -74,13 +52,26 @@ static INA_TLS(ina_rc_t) RC = 0;
 #define INA_RC_BIT_A                15
 #define INA_RC_BIT_U                00
 
+/* Pack a RC */
+#ifdef INA_LIB
+#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_VERSION_HEX) << INA_RC_BIT_R) | (((e)) << INA_RC_BIT_O) | (x))
+#else
+#  ifndef INA_ERROR_VER
+#    define INA_ERROR_VER (0)
+#  endif
+#  ifndef INA_ERROR_REV
+#    define INA_ERROR_REV (0)
+#  endif
+#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_ERROR_VER) << INA_RC_BIT_V) | (((ina_rc_t)INA_ERROR_REV) << INA_RC_BIT_R) | (((e)) << INA_RC_BIT_O) | (x))
+#endif
+
 /* Set last RC */
 #define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x),0))
 /* Set last RC and capture errno */
 #ifndef INA_OS_WIN32
 #define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno))
 #else
-#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), GetLastError()),  INA_AT)
+#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), GetLastError()))
 #endif
 /* Set last RC and set user defined errno */
 #define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)))
@@ -613,7 +604,7 @@ INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb);
  *   location   source location
  *
  * Return
- *   INA_SUCCESS
+ *   Last RC
  */
 INA_INLINE ina_rc_t ina_err_set_last_rc(ina_rc_t rc)
 {
@@ -625,7 +616,7 @@ INA_INLINE ina_rc_t ina_err_set_last_rc(ina_rc_t rc)
  * Return the last RC
  *
  * Return
- *  Last RC or INA_SUCCESS of no error occurred
+ *  Last RC
  */
 INA_INLINE ina_rc_t ina_err_get_last_rc(void)
 {
@@ -705,6 +696,17 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
  */
 INA_API(ina_rc_t) ina_err_backtrace(void *data);
 
+
+/* Return with last rc if condition x fails */
+#define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_last_rc(); } while(0)
+/* Return with last rc if x == NULL */
+#define INA_RETURN_IF_NULL(x) do {if ((x) == NULL) return ina_err_get_last_rc();} while(0)
+/* Return with last rc if failed */
+#define INA_RETURN_IF_FAILED(rc) if (INA_FAILED((rc))) return ina_err_get_last_rc()
+/* Return with last rc if succeed */
+#define INA_RETURN_IF_SUCCEED(rc) if (INA_SUCCEED((rc))) return ina_err_get_last_rc()
+/* Checkpoint must succeed */
+#define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED(rc))) abort(); } while(0)
 
 #ifdef __cplusplus
 }
