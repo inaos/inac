@@ -72,6 +72,7 @@ inac_merge_static_libs(inac inac_c ${INAC_LIBS})
 inac_add_tests(inac)
 inac_add_benchmarks(inac)
 inac_add_tools(inac)
+inac_add_examples(inac)
 
 inac_post_copy_file(tests hashtable.conf)
 inac_post_copy_file(tests test_log.conf)
