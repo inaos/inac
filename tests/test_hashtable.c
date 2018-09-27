@@ -112,8 +112,8 @@ INA_TEST(hashtable, int_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
     data = new_data(20, "Name 20");
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
-    INA_TEST_ASSERT_SUCCEED(data = new_data(30, "Name 30"));
-    ina_hashtable_set_i32(ht, data->id, data);
+    data = new_data(30, "Name 30");
+    INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
     data = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 10, (void**)&data));
     INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);

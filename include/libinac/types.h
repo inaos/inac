@@ -16,7 +16,7 @@ extern "C" {
 
 
 /* Return code */
-typedef int64_t ina_rc_t;
+typedef uint64_t ina_rc_t;
 
 typedef ina_rc_t (*ina_foreach_fn_t)(void *data);
 typedef ina_rc_t (*ina_foreach_arg_fn_t)(void *arg, void *data);
