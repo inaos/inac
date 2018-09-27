@@ -18,7 +18,6 @@ extern "C" {
 /* Indicate no errors */
 #define INA_SUCCESS  (0)
 
-
 static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 
 /* Bit-shifts */
@@ -44,8 +43,7 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 /* Flags */
 #define INA_ERR_ERROR               (  1ULL << INA_RC_BIT_E) /* Error-bit  */
 #define INA_ERR_NOT                 (  1ULL << INA_RC_BIT_N) /* Negate-bit */
-
-/* Error attributes */
+/* Error codes */
 #define INA_ERR_A                   (  1ULL << INA_RC_BIT_C)
 #define INA_ERR_ACK                 (  2ULL << INA_RC_BIT_C)
 #define INA_ERR_ACTIVE              (  3ULL << INA_RC_BIT_C)
@@ -204,7 +202,7 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_ERR_PARSED              (156ULL << INA_RC_BIT_C)
 #define INA_ERR_CHANGED             (157ULL << INA_RC_BIT_C)
 
-/* Error attributes (negate forms) */
+/* Error codes (negate forms) */
 #define INA_ERR_NOT_A               (INA_ERR_NOT | INA_ERR_A)
 #define INA_ERR_NOT_ACK             (INA_ERR_NOT | INA_ERR_ACK)
 #define INA_ERR_NOT_ACTIVE          (INA_ERR_NOT | INA_ERR_ACTIVE)
@@ -363,7 +361,7 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_ERR_NOT_PARSED          (INA_ERR_NOT | INA_ERR_PARSED)
 #define INA_ERR_NOT_CHANGED         (INA_ERR_NOT | INA_ERR_CHANGED)
 
-/* Attribute aliases */
+/* Error codes aliases */
 #define INA_ERR_UNDEFINED           (INA_ERR_NOT_DEFINED)
 #define INA_ERR_UNUSED              (INA_ERR_NOT_USED)
 #define INA_ERR_UNORDERED           (INA_ERR_NOT_ORDERED)
@@ -534,12 +532,13 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_ES_USER_DEFINED         (1024UL)
 
 typedef const char* (*ina_err_subject_cb_t)(int);
+
 typedef struct ina_log_s ina_log_t;
 
 /*
  * Initialize error module.
  *
- * Returns
+ * Return
  *  INA_SUCCESS if all went well.
  */
 INA_API(ina_rc_t) ina_err_init(void);
@@ -555,7 +554,7 @@ INA_API(void) ina_err_destroy(void);
  * Parameters
  *  cb  Dictionary callback
  *
- * Returns
+ * Return
  *  Previously registered dictionary callback
  */
 INA_API(ina_err_subject_cb_t) ina_err_register_dict(ina_err_subject_cb_t cb);
@@ -564,8 +563,7 @@ INA_API(ina_err_subject_cb_t) ina_err_register_dict(ina_err_subject_cb_t cb);
  * Set RC
  *
  * Parameters
- *   rc         Return code
- *   location   source location
+ *   rc   Return code
  *
  * Return
  *   Last RC
@@ -599,7 +597,7 @@ INA_INLINE ina_rc_t ina_err_get_last_rc(void)
  */
 INA_INLINE ina_rc_t ina_err_clear_rc(ina_rc_t rc)
 {
-    return (rc & ~(INA_ERR_ERROR));
+    return (rc&~(INA_ERR_ERROR));
 }
 
 /*
@@ -662,7 +660,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 /* Check return code: failure */
 #define INA_FAILED(rc) ((rc)&INA_ERR_ERROR)
 /* Check return code: successful or handled */
-#define INA_SUCCEED(rc) (!(INA_FAILED((rc))))
+#define INA_SUCCEED(rc) (!INA_FAILED((rc)))
 
 /* Set last RC */
 #define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0UL))
@@ -674,7 +672,6 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #endif
 /* Set last RC and set user defined errno */
 #define INA_USR_ERROR(x,e) ina_err_set_last_rc(INA_RC_PACK((x), (e)))
-
 /* Return with last rc if condition x fails */
 #define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_last_rc(); } while(0)
 /* Return with last rc if x == NULL */
