@@ -283,6 +283,9 @@ INA_API(ina_rc_t) ina_time_strptime(ina_str_t input,
                                     const char *fmt,
                                     ina_time_t* time)
 {
+	INA_UNUSED(input);
+	INA_UNUSED(fmt);
+	INA_UNUSED(time);
 #ifdef INA_OS_WIN32
     /* http://stackoverflow.com/questions/321849/strptime-equivalent-on-windows
        sscanf variant .. how to make it generic ?

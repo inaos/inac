@@ -314,8 +314,7 @@ INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *
 #ifdef INA_OS_WIN32
     LARGE_INTEGER pin;
 	DWORD attrs;
-	FILETIME ct,at,wt;
-	LARGE_INTEGER utcFT = {0};
+	FILETIME ct, at, wt;
 	SYSTEMTIME systime;
     struct _stat fst;
 
@@ -447,7 +446,10 @@ INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat, time_t *last_modifi
 
 INA_API(ina_handle_t) ina_file_os_handle(ina_file_t *file)
 {
-    INA_VERIFY_NOT_NULL(file);
+	if (file == NULL) {
+		INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+		return NULL;
+	}
     return file->fh;
 }
 
@@ -484,6 +486,10 @@ INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
             mode = ina_str_new_fromcstr("w");
         }
     }
+	else {
+		INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+		return NULL;
+	}
 
 #ifdef INA_OS_WIN32
     fd = _open_osfhandle((intptr_t)file->fh, _O_APPEND | _O_RDONLY);

@@ -167,8 +167,17 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
             levels = 4U;
         } else if (strcmp(tokens[1], "ERROR") == 0) {
             levels = 8U;
-        }
+        } else {
+			ina_str_free(key);
+			ina_str_split_free_tokens(tokens);
+			return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+		}
     }
+	else {
+		ina_str_free(key);
+		ina_str_split_free_tokens(tokens);
+		return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+	}
     ina_str_free(key);
     ina_str_split_free_tokens(tokens);
 

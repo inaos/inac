@@ -114,7 +114,6 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
     }
 
     if (opt != NULL) {
-        __ina_sopt_t *so = NULL;
         ina_hashtable_iter_t *iter;
         INA_MUST_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                           INA_HASH_DEFAULT,
@@ -227,6 +226,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
             }
             
             /* Validate, any options must have a value except flags */
+			__ina_sopt_t *so = NULL;
             ina_hashtable_iter_new(__sopt, &iter);
             while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&so))) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {

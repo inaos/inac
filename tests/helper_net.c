@@ -85,6 +85,9 @@ INA_TEST_HELPER(net, udp_sender) {
     INA_TEST_HELPER_CHECK_ARGC(2);
     addr = INA_TEST_HELPER_CARG(0);
     port = INA_TEST_HELPER_IARG(1);
+
+	INA_TEST_ASSERT(port > 0);
+	INA_TEST_ASSERT(port < UINT16_MAX);
  
     ina_mem_set(buf, 0, 512);
    
@@ -95,7 +98,7 @@ INA_TEST_HELPER(net, udp_sender) {
     
     memset((char *) &si_other, 0, sizeof(si_other));
     si_other.sin_family = AF_INET;
-    si_other.sin_port = htons(port);
+    si_other.sin_port = htons((uint16_t)port);
     if (inet_addr(addr) != 0) {
         i = 0;
         while (1) {

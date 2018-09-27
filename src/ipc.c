@@ -246,6 +246,7 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
 {
     char mname[INA_IPC_COUNTER_NAME_MAXLEN+18];
 
+	INA_UNUSED(initial);
     INA_VERIFY_NOT_NULL(counter);
     INA_VERIFY_NOT_NULL(name);
     INA_VERIFY(strlen(name) < INA_IPC_COUNTER_NAME_MAXLEN);

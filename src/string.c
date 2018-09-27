@@ -702,8 +702,8 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
  
     va_copy(args_copy, args);
     if ((l = __ina_vsnprintf(*str, len, fmt, args)) >= (int)len) {
-        ina_str_t extra_str;
-        if ((extra_str = ina_str_new(l))) {
+		ina_str_t extra_str = ina_str_new(l);
+        if (extra_str) {
             l = __ina_vsnprintf(extra_str, l+1, fmt, args_copy);
             ina_str_free(*str);
             *str = extra_str;

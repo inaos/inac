@@ -92,7 +92,8 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
     INA_VERIFY_NOT_NULL(fname);
 
     /* Global function or object method? */
-    if (!(cfname = (char*)strchr(fname, '.'))) {
+	cfname = (char*)strchr(fname, '.');
+    if (!cfname) {
         /* get function */
         lua_getglobal(ctx->lstate, fname); 
     } else {    

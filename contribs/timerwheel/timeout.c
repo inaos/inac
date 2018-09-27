@@ -274,7 +274,8 @@ static struct timeouts *timeouts_init(struct timeouts *T, timeout_t hz) {
 TIMEOUT_PUBLIC struct timeouts *timeouts_open(timeout_t hz, int *error, timeout_alloc memalloc, timeout_free memfree) {
 	struct timeouts *T;
 
-	if ((T = memalloc(sizeof *T))) {
+	T = memalloc(sizeof *T);
+	if (T != NULL) {
         T->mem_alloc = memalloc;
         T->mem_free = memfree;
 		return timeouts_init(T, hz);
@@ -627,7 +628,8 @@ TIMEOUT_PUBLIC int timeouts_check(struct timeouts *T, FILE *fp) {
 	timeout_t timeout;
 	struct timeout *to;
 
-	if ((to = timeouts_min(T))) {
+	to = timeouts_min(T);
+	if (to != NULL) {
 		check(to->expires > T->curtime, "missed timeout (expires:%" TIMEOUT_PRIu " <= curtime:%" TIMEOUT_PRIu ")\n", to->expires, T->curtime);
 
 		timeout = timeouts_int(T);

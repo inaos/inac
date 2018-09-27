@@ -64,10 +64,11 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	uint64_t llMapViewSize;
     DWORD dwHigh;
     DWORD dwLow;
-	DWORD dwDesiredAccess;
+	DWORD dwDesiredAccess = FILE_MAP_ALL_ACCESS;
 	uint64_t delta;
     DWORD dwAllocationGranularity;
     SYSTEM_INFO si;
+	INA_UNUSED(map_type);
 #endif
 
 	INA_VERIFY_NOT_NULL(ctx);
@@ -253,7 +254,11 @@ INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memor
 
 INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, ina_mmap_mem_advice_t advice)
 {
-#ifndef INA_OS_WIN32
+#ifdef INA_OS_WIN32
+	INA_UNUSED(mapping);
+	INA_UNUSED(length);
+	INA_UNUSED(advice);
+#else
     int padvice = 0;
     INA_VERIFY_NOT_NULL(mapping);
     INA_VERIFY(advice == INA_MMAP_MEM_ADVICE_RANDOM ||

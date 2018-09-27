@@ -364,8 +364,15 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
     };
 
     {
+#ifdef INA_OS_WIN32
+#pragma warning( push )
+#pragma warning( disable : 4204)
+#endif
         const char *common[] = {noun, neg, adj};
         const char *special[] = {neg, adj, noun};
+#ifdef INA_OS_WIN32
+#pragma warning( pop ) 
+#endif
         const char **use = common;
 
         ina_rc_t type = rc & (0x1FFLL << INA_RC_BIT_C);

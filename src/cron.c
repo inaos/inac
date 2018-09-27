@@ -57,7 +57,7 @@ typedef struct __ina_cron_schedulable_s {
     union {
         ina_cron_task_t *task;
         ina_cron_func_t *func;
-    };
+    } cb;
 } __ina_cron_schedulable_t;
 
 /* cron context */
@@ -244,7 +244,7 @@ static void __fix_day_dow(__ina_cron_schedulable_t *sched)
     short daysUsed = 0;
 
     if (sched->item == __INA_CRON_SCHEDULABLE_ITEM_TASK) {
-        ina_cron_task_t *task = sched->task;
+        ina_cron_task_t *task = sched->cb.task;
         for (i = 0; i < arysize(task->dow); ++i) {
             if (task->dow[i] == 0) {
                 weekUsed = 1;
@@ -265,7 +265,7 @@ static void __fix_day_dow(__ina_cron_schedulable_t *sched)
         }
     }
     else {
-        ina_cron_func_t *func = sched->func;
+        ina_cron_func_t *func = sched->cb.func;
         for (i = 0; i < arysize(func->dow); ++i) {
             if (func->dow[i] == 0) {
                 weekUsed = 1;
@@ -296,7 +296,7 @@ static ina_rc_t __parse_cron_pattern(char *pattern_buf, __ina_cron_schedulable_t
 	 * parse date ranges
 	 */
     if (sched->item == __INA_CRON_SCHEDULABLE_ITEM_TASK) {
-        ina_cron_task_t *task = sched->task;
+        ina_cron_task_t *task = sched->cb.task;
 	    pattern_buf = __parse_field(task->mins, 60, 0, NULL, pattern_buf);
 	    pattern_buf = __parse_field(task->hours,  24, 0, NULL, pattern_buf);
 	    pattern_buf = __parse_field(task->days, 32, 0, NULL, pattern_buf);
@@ -304,7 +304,7 @@ static ina_rc_t __parse_cron_pattern(char *pattern_buf, __ina_cron_schedulable_t
 	    pattern_buf = __parse_field(task->dow, 7, 0, dow_array, pattern_buf);
     }
     else {
-        ina_cron_func_t *func = sched->func;
+        ina_cron_func_t *func = sched->cb.func;
         pattern_buf = __parse_field(func->mins, 60, 0, NULL, pattern_buf);
 	    pattern_buf = __parse_field(func->hours,  24, 0, NULL, pattern_buf);
 	    pattern_buf = __parse_field(func->days, 32, 0, NULL, pattern_buf);
@@ -573,7 +573,7 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
         task->pattern = ina_str_new_fromcstr(pattern);
         task->ready = 0;
         sched.item = __INA_CRON_SCHEDULABLE_ITEM_TASK;
-        sched.task = task;
+        sched.cb.task = task;
         if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
 			ina_mem_free(buf);
             return ina_err_get_last_rc();
@@ -753,7 +753,7 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
         func->cb = cb;
 		
         sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
-        sched.func = func;
+        sched.cb.func = func;
         if (INA_FAILED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
             return ina_err_get_last_rc();
@@ -798,7 +798,7 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
 
     ina_mem_set(&dummy, 0, sizeof(ina_cron_func_t));
     sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
-    sched.func = &dummy;
+    sched.cb.func = &dummy;
     if (INA_FAILED(__parse_cron_pattern(buf, &sched))) {
         ina_str_free(buf);
         return ina_err_get_last_rc();
@@ -851,7 +851,7 @@ INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, co
         func->cb = NULL;
 		
         sched.item = __INA_CRON_SCHEDULABLE_ITEM_FUNCTION;
-        sched.func = func;
+        sched.cb.func = func;
         if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
             return ina_err_get_last_rc();

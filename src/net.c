@@ -110,7 +110,7 @@ static ina_rc_t __ina_create_socket(int domain, int type, ina_fd_t *s)
 
 #define __INA_CONNECT_NONE 0
 #define __INA_CONNECT_NONBLOCK 1
-static ina_rc_t __ina_tcp_generic_connect(ina_fd_t *s, char *addr, int port, int flags)
+static ina_rc_t __ina_tcp_generic_connect(ina_fd_t *s, char *addr, uint16_t port, int flags)
 {
     struct sockaddr_in sa;
 
@@ -231,11 +231,12 @@ INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bindadd
     INA_VERIFY_NOT_NULL(fd);
     INA_VERIFY_NOT_NULL(bindaddr);
     INA_VERIFY(port > 0);
+	INA_VERIFY(port < UINT16_MAX);
     INA_RETURN_IF_FAILED(__ina_create_socket(AF_INET, __INA_SOCKET_TYPE_TCP, fd));
 
     memset(&sa,0,sizeof(sa));
     sa.sin_family = AF_INET;
-    sa.sin_port = htons(port);
+    sa.sin_port = htons((uint16_t)port);
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bindaddr && inet_aton(bindaddr, &sa.sin_addr) == 0) {
         ina_net_close(*fd);
@@ -271,9 +272,10 @@ INA_API(ina_rc_t) ina_net_tcp_connect(ina_fd_t* fd, const char *addr, int port, 
     INA_VERIFY_NOT_NULL(fd);
     INA_VERIFY_NOT_NULL(addr);
     INA_VERIFY(port > 0);
+	INA_VERIFY(port < UINT16_MAX);
 
     if (timeout_sec > 0) {
-        if (INA_SUCCEED(__ina_tcp_generic_connect(fd, (char *) addr, port, __INA_CONNECT_NONBLOCK))) {
+        if (INA_SUCCEED(__ina_tcp_generic_connect(fd, (char *) addr, (uint16_t)port, __INA_CONNECT_NONBLOCK))) {
             if (*fd != -1) {
                 fd_set fdset;
                 struct timeval timeout;
@@ -305,7 +307,7 @@ INA_API(ina_rc_t) ina_net_tcp_connect(ina_fd_t* fd, const char *addr, int port, 
         return ina_err_get_last_rc();
     }
     /* Do a blocking connect */
-    return __ina_tcp_generic_connect(fd, (char*)addr, port, __INA_CONNECT_NONE);
+    return __ina_tcp_generic_connect(fd, (char*)addr, (uint16_t)port, __INA_CONNECT_NONE);
 }
 
 INA_API(ina_rc_t) ina_net_nonblock(ina_fd_t fd)
@@ -520,12 +522,13 @@ INA_API(ina_rc_t) ina_net_udp_bind(ina_fd_t *fd, const char *addr, int port)
     INA_VERIFY_NOT_NULL(fd);
     INA_VERIFY_NOT_NULL(addr);
     INA_VERIFY(port > 0);
+	INA_VERIFY(port < UINT16_MAX);
 
     INA_RETURN_IF_FAILED(__ina_create_socket(AF_INET, __INA_SOCKET_TYPE_UDP, fd));
 
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
-    sa.sin_port = htons(port);
+    sa.sin_port = htons((uint16_t)port);
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(*fd, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
@@ -624,6 +627,7 @@ INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_ne
 {
     INA_VERIFY_NOT_NULL(address);
     INA_VERIFY(port > 0);
+	INA_VERIFY(port < UINT16_MAX);
     INA_VERIFY_NOT_NULL(receiver);
 
     *receiver = (ina_net_udp_receiver_t*)ina_mem_alloc(sizeof(ina_net_udp_receiver_t));
@@ -636,7 +640,7 @@ INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_ne
         *receiver = NULL;
         return INA_USR_ERROR(INA_ES_ADDRESS|INA_ERR_INVALID, __INA_ERRNO);
     }
-    (*receiver)->addr.sin_port = htons(port);
+    (*receiver)->addr.sin_port = htons((uint16_t)port);
     return INA_SUCCESS;
 }
 

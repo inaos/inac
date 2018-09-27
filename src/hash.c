@@ -915,11 +915,14 @@ static void __ina_hash_spooky_shorthash
 	uint64_t a, b, c, d;
 	u.p8 = (const uint8_t *)message;
 
-	if (!__INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS && (u.i & 0x7))
+
+#if __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS == 0 
+	if (u.i & 0x7)
 	{
 		memcpy(buf, message, length);
 		u.p64 = buf;
 	}
+#endif
 
 	remainder = length % 32;
 	a = *hash1;
