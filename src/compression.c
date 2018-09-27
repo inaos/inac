@@ -54,7 +54,7 @@ static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, con
     *wrote_len = LZ4_compress_fast_extState(state->statedata,
             (const char*)src, (char*)dst, state->chunk_src_len, dst_len, 1);
     if (*wrote_len == 0) {
-        return INA_ERROR(INA_NN_COMPRESSION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_COMPRESSION|INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }
@@ -72,7 +72,7 @@ static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, c
     *wrote_len = LZ4_compress_HC_extStateHC(state->statedata,
             (const char*)src, (char*)dst, state->chunk_src_len, dst_len, 1);
     if (*wrote_len == 0) {
-        return INA_ERROR(INA_NN_COMPRESSION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_COMPRESSION|INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }
@@ -93,7 +93,7 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
     INA_ASSERT_TRUE(state->chunk_src_len > 0);
     *read_len = LZ4_decompress_fast((const char*)src, (char*)dst, state->chunk_src_len);
     if (read < 0) {
-        return INA_ERROR(INA_NN_DECOMPRESSION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_DECOMPRESSION|INA_ERR_FAILED);
     }
     *wrote_len = state->chunk_src_len;
     return INA_SUCCESS;
@@ -111,7 +111,7 @@ static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *sta
 
     *wrote_len = LZ4_decompress_safe((const char*)src, (char*)dst, src_len, dst_len);
     if (*wrote_len <= 0) {
-        return INA_ERROR(INA_NN_DECOMPRESSION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_DECOMPRESSION|INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }
@@ -172,7 +172,7 @@ static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, c
         }
         status = mz_deflateInit(stream, state->flags);
         if (status != MZ_OK) {
-            return INA_ERROR(INA_NN_COMPRESSION|INA_ERR_NOT_INITIALIZED);
+            return INA_ERROR(INA_ES_COMPRESSION|INA_ERR_NOT_INITIALIZED);
         }
         state->initialized = INA_YES;
     }
@@ -188,14 +188,14 @@ static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, c
     *read_len = stream->total_in;
 
     if (status != MZ_STREAM_END && status != MZ_OK) {
-        return INA_ERROR(INA_NN_DECOMPRESSION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_DECOMPRESSION|INA_ERR_FAILED);
     }
     
     if (!more) {
         state->initialized = INA_NO;
         state->finalized = INA_YES;
         if (mz_deflateEnd(stream) != MZ_OK) {
-            return INA_ERROR(INA_NN_COMPRESSION|INA_ERR_FAILED);
+            return INA_ERROR(INA_ES_COMPRESSION|INA_ERR_FAILED);
         }
     }
     return INA_SUCCESS;
@@ -227,7 +227,7 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
         }
         status = mz_inflateInit2(stream, state->flags);
         if (status != MZ_OK) {
-            return INA_ERROR(INA_NN_DECOMPRESSION|INA_ERR_NOT_INITIALIZED);
+            return INA_ERROR(INA_ES_DECOMPRESSION|INA_ERR_NOT_INITIALIZED);
         }
         state->initialized = INA_YES;
     }
@@ -242,14 +242,14 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     *read_len = src_len - stream->avail_in;
     
     if (status != MZ_OK && status != MZ_STREAM_END) {
-        return INA_ERROR(INA_NN_DECOMPRESSION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_DECOMPRESSION|INA_ERR_FAILED);
     }
  
     if (!more) {
         state->initialized = INA_NO;
         state->finalized = INA_YES;
         if (mz_inflateEnd(stream) != MZ_OK) {
-            return INA_ERROR(INA_NN_DECOMPRESSION|INA_ERR_FAILED);
+            return INA_ERROR(INA_ES_DECOMPRESSION|INA_ERR_FAILED);
         }
     }
     return INA_SUCCESS;

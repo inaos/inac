@@ -134,7 +134,7 @@ static ina_rc_t ina_file_cursor_fileio_binary_readwrite_chunk(ina_file_cursor_t 
 	INA_UNUSED(actual);
 	INA_UNUSED(chunk);
     /* this function only works with an mmap cursor */
-    return INA_ERROR(INA_NN_FUNCTION|INA_ERR_ILLEGAL);
+    return INA_ERROR(INA_ES_FUNCTION|INA_ERR_ILLEGAL);
 }
 
 static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor, const char **begin_line, size_t *len)
@@ -245,7 +245,7 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t
 	uint64_t offset = tmp - cursor->ext.m.carry;
 
 	if (position > cursor->ext.m.len) {
-		return INA_ERROR(INA_NN_POSITION|INA_ERR_OUT_OF_RANGE);
+		return INA_ERROR(INA_ES_POSITION|INA_ERR_OUT_OF_RANGE);
 	}
 	if (cursor->ext.m.buffer_idx != buffer_idx) {
 		uint64_t len = INA_MIN(cursor->ext.m.buffer_size, cursor->ext.m.len);
@@ -359,7 +359,7 @@ static ina_rc_t ina_file_cursor_mmap_binary_readwrite_chunk(ina_file_cursor_t *c
 	INA_UNUSED(requested);
 	INA_UNUSED(actual);
 	INA_UNUSED(chunk);
-	return INA_ERROR(INA_NN_FUNCTION|INA_ERR_ILLEGAL);
+	return INA_ERROR(INA_ES_FUNCTION|INA_ERR_ILLEGAL);
 }
 
 static ina_rc_t ina_file_cursor_init_internal(ina_file_t *file, 

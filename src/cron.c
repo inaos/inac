@@ -316,7 +316,7 @@ static ina_rc_t __parse_cron_pattern(char *pattern_buf, __ina_cron_schedulable_t
 	 * check failure
 	 */
 	if (pattern_buf == NULL) {
-		return INA_ERROR(INA_NN_PATTERN|INA_ERR_INVALID);
+		return INA_ERROR(INA_ES_PATTERN|INA_ERR_INVALID);
 	}
 
 	/*
@@ -622,7 +622,7 @@ INA_API(ina_rc_t) ina_cron_task_free(ina_cron_ctx_t *ctx, ina_cron_task_t **task
         __free_task(task);
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_NN_PROCESS|INA_ERR_RUNNING);
+    return INA_ERROR(INA_ES_PROCESS|INA_ERR_RUNNING);
 }
 
 INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggested_next_time)
@@ -709,7 +709,7 @@ INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task)
             state == INA_PROCESS_RUNNING) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_NN_PROCESS|INA_ERR_NOT_RUNNING);
+    return INA_ERROR(INA_ES_PROCESS|INA_ERR_NOT_RUNNING);
 }
 
 INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pattern)
@@ -808,7 +808,7 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
     for (t = now - now % 60; t > 0; t -= 60) {
         struct tm *tp = localtime(&t);
         if (tp == NULL) {
-            return INA_OS_ERROR(INA_NN_TIME|INA_ERR_INVALID);
+            return INA_OS_ERROR(INA_ES_TIME|INA_ERR_INVALID);
         }
         if (dummy.mins[tp->tm_min] && dummy.hours[tp->tm_hour] &&
                 (dummy.days[tp->tm_mday] || dummy.dow[tp->tm_wday]) &&

@@ -235,7 +235,7 @@ INA_API(ina_rc_t) ina_conffile_get_string(ina_conffile_t *cf,
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
-            return INA_ERROR(INA_ERR_INVALID|INA_NN_TYPE);
+            return INA_ERROR(INA_ERR_INVALID|INA_ES_TYPE);
         }
         if (entry->value.s != NULL) {
             *((ina_str_t*)value) = entry->value.s;
@@ -258,7 +258,7 @@ INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
 
     if (INA_SUCCEED(ina_hashtable_get_str(entries->entries, key, (void**)&entry))) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_STRING) {
-            return INA_ERROR(INA_ERR_INVALID|INA_NN_TYPE);
+            return INA_ERROR(INA_ERR_INVALID|INA_ES_TYPE);
         }
         if (entry->value.s != NULL) {
             *((ina_str_t*)value) = entry->value.s;
@@ -284,7 +284,7 @@ INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf,
     __ina_get_value(cf, section_name, section_key, key, &entry);
     if (entry != NULL) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
-            return INA_ERROR(INA_ERR_INVALID|INA_NN_TYPE);
+            return INA_ERROR(INA_ERR_INVALID|INA_ES_TYPE);
         }
         *value = entry->value.n;
         return INA_SUCCESS;
@@ -305,7 +305,7 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
     
     if (INA_SUCCEED(ina_hashtable_get_str(entries->entries, key, (void**)&entry))) {
         if (entry->value_type != INA_CONFFILE_VALUE_TYPE_NUMBER) {
-            return INA_ERROR(INA_ERR_INVALID|INA_NN_TYPE);
+            return INA_ERROR(INA_ERR_INVALID|INA_ES_TYPE);
         }
         *value = entry->value.n;
         return INA_SUCCESS;
@@ -323,7 +323,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath,
  
     /* Almost one section must be there */
     if (cf->sections == NULL) {
-        return INA_ERROR(INA_NN_CONFIGURATION|INA_ERR_EMPTY);
+        return INA_ERROR(INA_ES_CONFIGURATION|INA_ERR_EMPTY);
     }
 
     if (INA_FAILED(__ina_prepare(cf))) {
@@ -354,7 +354,7 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath,
 		    != 0) {
         /*INA_ERRMSG(INA_EEXCALL, lua_tostring(cf->lctx->lstate, -1), NULL);*/
         printf("%s\n", lua_tostring(cf->lctx->lstate, -1));
-        INA_ERROR(INA_NN_SCRIPT|INA_ERR_FAILED);
+        INA_ERROR(INA_ES_SCRIPT|INA_ERR_FAILED);
         lua_pop(cf->lctx->lstate, 1);
         return ina_err_get_last_rc();
     }
@@ -605,18 +605,18 @@ __ina_get_value(ina_conffile_t *cf, const char* section_name,
 
     /* First section lookup */
     if (INA_FAILED(ina_hashtable_get_str(cf->sections, section_name, (void**)&section))) {
-        return INA_ERROR(INA_NN_SECTION|INA_ERR_NOT_EXISTS);
+        return INA_ERROR(INA_ES_SECTION|INA_ERR_NOT_EXISTS);
     }
 
     ina_hashtable_get_str(section->entries, k, (void**)&entries);
 
     if (entries == NULL || entries->entries == NULL) {
-        return INA_ERROR(INA_NN_SECTION|INA_ERR_EMPTY);
+        return INA_ERROR(INA_ES_SECTION|INA_ERR_EMPTY);
     }
     /* Lookup value */
     ina_hashtable_get_str(entries->entries, key, (void**)&e);
     if (e == NULL) {
-        return INA_ERROR(INA_NN_KEY|INA_ERR_NOT_EXISTS);
+        return INA_ERROR(INA_ES_KEY|INA_ERR_NOT_EXISTS);
     }
     *entry = e;
     return INA_SUCCESS;

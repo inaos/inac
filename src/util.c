@@ -77,11 +77,11 @@ INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t data
          * out over two characters
          */
         if (resultIndex >= resultSize) {
-            return INA_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
+            return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
         }
         result[resultIndex++] = base64chars[n0];
         if(resultIndex >= resultSize) {
-            return INA_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
+            return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
         }
         result[resultIndex++] = base64chars[n1];
 
@@ -91,7 +91,7 @@ INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t data
          */
         if((x+1) < dataLength) {
             if (resultIndex >= resultSize) {
-                return INA_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
+                return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
             }
             result[resultIndex++] = base64chars[n2];
         }
@@ -102,7 +102,7 @@ INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t data
          */
         if((x+2) < dataLength) {
             if (resultIndex >= resultSize) {
-                return INA_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
+                return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
             }
             result[resultIndex++] = base64chars[n3];
         }
@@ -114,13 +114,13 @@ INA_API(ina_rc_t) ina_util_base64_encode_chunk(const void* data_buf, size_t data
     if (padCount > 0) {
         for (; padCount < 3; padCount++) {
             if (resultIndex >= resultSize) {
-                return INA_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
+                return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
             }
             result[resultIndex++] = '=';
         }
     }
     if (resultIndex >= resultSize) {
-        return INA_ERROR(INA_NN_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
+        return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);   /* indicate failure: buffer too small */
     }
     result[resultIndex] = 0;
     
@@ -147,7 +147,7 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned
             case __INA_UTILS_BASE64_WHITESPACE: 
                 continue;   /* skip whitespace */
             case __INA_UTILS_BASE64_INVALID:
-                return INA_ERROR(INA_NN_INPUT|INA_ERR_INVALID);   /* invalid input, return error */
+                return INA_ERROR(INA_ES_INPUT|INA_ERR_INVALID);   /* invalid input, return error */
             case __INA_UTILS_BASE64_EQUALS:                 
                 /* pad character, end of data */
                 in = end;
@@ -158,7 +158,7 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned
                 /* If the buffer is full, split it into bytes */
                 if (buf & 0x1000000) {
                     if ((len += 3) > max_out) {
-                        return INA_ERROR(INA_NN_BUFFER|INA_ERR_OVERFLOW); /* buffer overflow */
+                        return INA_ERROR(INA_ES_BUFFER|INA_ERR_OVERFLOW); /* buffer overflow */
                     }
                     *out++ = (unsigned char)(buf >> 16);
                     *out++ = (unsigned char)(buf >> 8);
@@ -170,14 +170,14 @@ INA_API(ina_rc_t) ina_util_base64_decode_chunk(char *in, size_t in_len, unsigned
  
     if (buf & 0x40000) {
         if ((len += 2) > max_out) {
-            return INA_ERROR(INA_NN_BUFFER|INA_ERR_OVERFLOW); /* buffer overflow */
+            return INA_ERROR(INA_ES_BUFFER|INA_ERR_OVERFLOW); /* buffer overflow */
         }
         *out++ = (unsigned char)(buf >> 10);
         *out++ = (unsigned char)(buf >> 2);
     }
     else if (buf & 0x1000) {
         if (++len > max_out) {
-            return INA_ERROR(INA_NN_BUFFER|INA_ERR_OVERFLOW); /* buffer overflow */
+            return INA_ERROR(INA_ES_BUFFER|INA_ERR_OVERFLOW); /* buffer overflow */
         }
         *out++ = (unsigned char)(buf >> 4);
     }

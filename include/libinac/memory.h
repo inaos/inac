@@ -15,7 +15,7 @@ extern "C" {
 #endif
 #include <libinac/lib.h>
 
-#define INA_ENOMEM   INA_NN_MEMORY|INA_ERR_OUT_OF
+#define INA_ENOMEM   INA_ES_MEMORY|INA_ERR_OUT_OF
 
 
 	/* Align to 2x word size (as GNU libc does). */

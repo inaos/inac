@@ -13,10 +13,8 @@
 #include <DbgHelp.h>
 #endif
 
-#define __INA_ERR_MESSAGE_EXTRALEN (20)
-
 static INA_TLS(ina_log_t) *__ilog = NULL;
-static INA_TLS(ina_err_dict_cb_t) __dict_cb = NULL;
+static INA_TLS(ina_err_subject_cb_t) __dict_cb = NULL;
 static INA_TLS(ina_str_t) __errmsg = NULL;
 
 INA_API(ina_rc_t) ina_err_init(void)
@@ -34,177 +32,175 @@ INA_API(void) ina_err_destroy(void)
 }
 
 
-INA_API(ina_err_dict_cb_t) ina_err_register_dict(ina_err_dict_cb_t cb)
+INA_API(ina_err_subject_cb_t) ina_err_register_dict(ina_err_subject_cb_t cb)
 {
-    ina_err_dict_cb_t old_cb = __dict_cb;
+    ina_err_subject_cb_t old_cb = __dict_cb;
     __dict_cb = cb;
     return old_cb;
 }
 
-INA_API(ina_rc_t) ina_err_set_log(ina_log_t *log)
+INA_API(void) ina_err_set_log(ina_log_t *log)
 {
     __ilog = log;
-    return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_log(const char *fmt, ...)
+INA_API(void) ina_err_log(const char *fmt, ...)
 {
     if (__ilog != NULL) {
         va_list args;
         va_start(args, fmt);
-        ina_log_v(__ilog, INA_LOG_LEVEL_ERROR, fmt, args);
+        INA_MUST_SUCCEED(ina_log_v(__ilog, INA_LOG_LEVEL_ERROR, fmt, args));
         va_end(args);
     }
-    return INA_SUCCESS;
 }
 
-static const char* __ina_get_noun(int id) {
+static const char* __ina_get_subect(int id) {
     switch (id) {
-        case INA_NN_NONE: return "";
-        case INA_NN_ACCESS: return "ACCESS";
-        case INA_NN_ARRAY: return "ACCOUNT";
-        case INA_NN_ADMINISTRATOR: return "ADMINISTRATOR";
-        case INA_NN_API: return "API";
-        case INA_NN_APPLICATION: return "APPLICATION";
-        case INA_NN_ARGUMENT: return "ARGUMENT";
-        case INA_NN_AUTHENTICATION: return "AUTHENTICATION";
-        case INA_NN_BINARY: return "BINARY";
-        case INA_NN_BROADCAST: return "BROADCAST";
-        case INA_NN_CLIENT: return "CLIENT";
-        case INA_NN_CODE: return "CODE";
-        case INA_NN_COMMIT: return "COMMIT";
-        case INA_NN_COMPILATION: return "COMPILATION";
-        case INA_NN_COMPILER: return "COMPILER";
-        case INA_NN_COMPRESSION: return "COMPRESSION";
-        case INA_NN_CONSOLE: return "CONSOLE";
-        case INA_NN_DAEMON: return "DAEMON";
-        case INA_NN_DATA: return "DATA";
-        case INA_NN_DEPENDENCY: return "DEPENDENCY";
-        case INA_NN_DESCRIPTOR: return "DESCRIPTOR";
-        case INA_NN_DEVICE: return "DEVICE";
-        case INA_NN_DIRECTORY: return "DIRECTORY";
-        case INA_NN_DISK: return "DISK";
-        case INA_NN_DLL: return "DLL";
-        case INA_NN_DOMAIN: return "DOMAIN";
-        case INA_NN_DRIVER: return "DRIVER";
-        case INA_NN_ENDPOINT: return "ENDPOINT";
-        case INA_NN_ENGINE: return "ENGINE";
-        case INA_NN_EVALUATION: return "EVALUATION";
-        case INA_NN_EVENT: return "EVENT";
-        case INA_NN_EXCEPTION: return "EXCEPTION";
-        case INA_NN_EXPECTATION: return "EXPECTATION";
-        case INA_NN_FETCH: return "FETCH";
-        case INA_NN_FILE: return "FILE";
-        case INA_NN_FLOAT: return "FLOAT";
-        case INA_NN_FORMAT: return "FORMAT";
-        case INA_NN_FUNCTION: return "FUNCTION";
-        case INA_NN_GATEWAY: return "GATEWAY";
-        case INA_NN_GROUP: return "GROUP";
-        case INA_NN_HANDLE: return "HANDLE";
-        case INA_NN_HARDWARE: return "HARDWARE";
-        case INA_NN_HEADER: return "HEADER";
-        case INA_NN_HOST: return "HOST";
-        case INA_NN_IDENTIFIER: return "IDENTIFIER";
-        case INA_NN_INDEX: return "INDEX";
-        case INA_NN_INPUT: return "INPUT";
-        case INA_NN_INTEGER: return "INTEGER";
-        case INA_NN_INTERFACE: return "INTERFACE";
-        case INA_NN_INTERVAL: return "INTERVAL";
-        case INA_NN_IO: return "IO";
-        case INA_NN_KEYBOARD: return "KEYBOARD";
-        case INA_NN_LENGTH: return "LENGTH";
-        case INA_NN_LEVEL: return "LEVEL";
-        case INA_NN_LIBRARY: return "LIBRARY";
-        case INA_NN_LIMIT: return "LIMIT";
-        case INA_NN_LINK: return "LINK";
-        case INA_NN_LINKAGE: return "LINKAGE";
-        case INA_NN_LINKER: return "LINKER";
-        case INA_NN_LOCATION: return "LOCATION";
-        case INA_NN_LOGIN: return "LOGIN";
-        case INA_NN_LOOP: return "LOOP";
-        case INA_NN_MACHINE: return "MACHINE";
-        case INA_NN_MEDIA: return "MEDIA";
-        case INA_NN_MEMORY: return "MEMORY";
-        case INA_NN_MESSAGE: return "MESSAGE";
-        case INA_NN_METHOD: return "METHOD";
-        case INA_NN_MODULE: return "MODULE";
-        case INA_NN_MONITOR: return "MONITOR";
-        case INA_NN_NETWORK: return "NETWORK";
-        case INA_NN_NODE: return "NODE";
-        case INA_NN_NOTHING: return "NOTHING";
-        case INA_NN_NUMBER: return "NUMBER";
-        case INA_NN_OBJECT: return "OBJECT";
-        case INA_NN_OPERATION: return "OPERATION";
-        case INA_NN_OPERATOR: return "OPERATOR";
-        case INA_NN_PACKAGE: return "PACKAGE";
-        case INA_NN_PASSWORD: return "PASSWORD";
-        case INA_NN_PATH: return "PATH";
-        case INA_NN_PEER: return "PEER";
-        case INA_NN_PERMISSION: return "PERMISSION";
-        case INA_NN_PLATFORM: return "PLATFORM";
-        case INA_NN_POSITION: return "POSITION";
-        case INA_NN_POOL: return "POOL";
-        case INA_NN_PROFILER: return "PROFILER";
-        case INA_NN_PROTOCOL: return "PROTOCOL";
-        case INA_NN_PROXY: return "PROXY";
-        case INA_NN_RANGE: return "RANGE";
-        case INA_NN_RATIO: return "RATIO";
-        case INA_NN_RECORD: return "RECORD";
-        case INA_NN_REPOSITORY: return "REPOSITORY";
-        case INA_NN_REQUEST: return "REQUEST";
-        case INA_NN_RESOURCE: return "RESOURCE";
-        case INA_NN_REVISION: return "REVISION";
-        case INA_NN_ROUTE: return "ROUTE";
-        case INA_NN_RUNTIME: return "RUNTIME";
-        case INA_NN_SCALE: return "SCALE";
-        case INA_NN_SCREEN: return "SCREEN";
-        case INA_NN_SCRIPT: return "SCRIPT";
-        case INA_NN_SEQUENCE: return "SEQUENCE";
-        case INA_NN_SERIALIZATION: return "SERIALIZATION";
-        case INA_NN_SERVER: return "SERVER";
-        case INA_NN_SERVICE: return "SERVICE";
-        case INA_NN_SIZE: return "SIZE";
-        case INA_NN_SOFTWARE: return "SOFTWARE";
-        case INA_NN_SOURCE: return "SOURCE";
-        case INA_NN_SPACE: return "SPACE";
-        case INA_NN_STACK: return "STACK";
-        case INA_NN_STACKTRACE: return "STACKTRACE";
-        case INA_NN_STREAM: return "STREAM";
-        case INA_NN_STREAMING: return "STREAMING";
-        case INA_NN_STRING: return "STRING";
-        case INA_NN_STRUCT: return "STRUCT";
-        case INA_NN_SUBSYSTEM: return "SUBSYSTEM";
-        case INA_NN_SYSTEM: return "SYSTEM";
-        case INA_NN_TEXT: return "TEXT";
-        case INA_NN_TIME: return "TIME";
-        case INA_NN_TRANSLATION: return "TRANSLATION";
-        case INA_NN_TRANSPORT: return "TRANSPORT";
-        case INA_NN_TYPE: return "TYPE";
-        case INA_NN_USER: return "USER";
-        case INA_NN_USERNAME: return "USERNAME";
-        case INA_NN_VALUE: return "VALUE";
-        case INA_NN_VERSION: return "VERSION";
-        case INA_NN_DECOMPRESSION: return "DECOMPRESSION";
-        case INA_NN_STATE: return "STATE";
-        case INA_NN_DUMP: return "DUMP";
-        case INA_NN_CHAR: return "CHAR";
-        case INA_NN_CONFIGURATION: return "CONFIGURATION";
-        case INA_NN_SECTION: return "SECTION";
-        case INA_NN_KEY: return "KEY";
-        case INA_NN_ENUMERATION: return "ENUMERATION";
-        case INA_NN_READ: return "READ";
-        case INA_NN_WRITE: return "WRITE";
-        case INA_NN_OPTION: return "OPTION";
-        case INA_NN_BUFFER: return "BUFFER";
-        case INA_NN_ADDRESS: return "ADDRESS";
-        case INA_NN_NAME: return "NAME";
-        case INA_NN_MAC: return "MAC";
-        case INA_NN_PROCESS: return "PROCESS";
-        case INA_NN_PATTERN: return "PATTERN";
-        case INA_NN_MUTEX: return "MUTEX";
-        case INA_NN_SEMAPHORE: return "SEMAPHORE";
-        case INA_NN_THREAD: return "THREAD";
-        case INA_NN_CRON: return "CRON";
+        case INA_ES_NONE: return "";
+        case INA_ES_ACCESS: return "ACCESS";
+        case INA_ES_ARRAY: return "ACCOUNT";
+        case INA_ES_ADMINISTRATOR: return "ADMINISTRATOR";
+        case INA_ES_API: return "API";
+        case INA_ES_APPLICATION: return "APPLICATION";
+        case INA_ES_ARGUMENT: return "ARGUMENT";
+        case INA_ES_AUTHENTICATION: return "AUTHENTICATION";
+        case INA_ES_BINARY: return "BINARY";
+        case INA_ES_BROADCAST: return "BROADCAST";
+        case INA_ES_CLIENT: return "CLIENT";
+        case INA_ES_CODE: return "CODE";
+        case INA_ES_COMMIT: return "COMMIT";
+        case INA_ES_COMPILATION: return "COMPILATION";
+        case INA_ES_COMPILER: return "COMPILER";
+        case INA_ES_COMPRESSION: return "COMPRESSION";
+        case INA_ES_CONSOLE: return "CONSOLE";
+        case INA_ES_DAEMON: return "DAEMON";
+        case INA_ES_DATA: return "DATA";
+        case INA_ES_DEPENDENCY: return "DEPENDENCY";
+        case INA_ES_DESCRIPTOR: return "DESCRIPTOR";
+        case INA_ES_DEVICE: return "DEVICE";
+        case INA_ES_DIRECTORY: return "DIRECTORY";
+        case INA_ES_DISK: return "DISK";
+        case INA_ES_DLL: return "DLL";
+        case INA_ES_DOMAIN: return "DOMAIN";
+        case INA_ES_DRIVER: return "DRIVER";
+        case INA_ES_ENDPOINT: return "ENDPOINT";
+        case INA_ES_ENGINE: return "ENGINE";
+        case INA_ES_EVALUATION: return "EVALUATION";
+        case INA_ES_EVENT: return "EVENT";
+        case INA_ES_EXCEPTION: return "EXCEPTION";
+        case INA_ES_EXPECTATION: return "EXPECTATION";
+        case INA_ES_FETCH: return "FETCH";
+        case INA_ES_FILE: return "FILE";
+        case INA_ES_FLOAT: return "FLOAT";
+        case INA_ES_FORMAT: return "FORMAT";
+        case INA_ES_FUNCTION: return "FUNCTION";
+        case INA_ES_GATEWAY: return "GATEWAY";
+        case INA_ES_GROUP: return "GROUP";
+        case INA_ES_HANDLE: return "HANDLE";
+        case INA_ES_HARDWARE: return "HARDWARE";
+        case INA_ES_HEADER: return "HEADER";
+        case INA_ES_HOST: return "HOST";
+        case INA_ES_IDENTIFIER: return "IDENTIFIER";
+        case INA_ES_INDEX: return "INDEX";
+        case INA_ES_INPUT: return "INPUT";
+        case INA_ES_INTEGER: return "INTEGER";
+        case INA_ES_INTERFACE: return "INTERFACE";
+        case INA_ES_INTERVAL: return "INTERVAL";
+        case INA_ES_IO: return "IO";
+        case INA_ES_KEYBOARD: return "KEYBOARD";
+        case INA_ES_LENGTH: return "LENGTH";
+        case INA_ES_LEVEL: return "LEVEL";
+        case INA_ES_LIBRARY: return "LIBRARY";
+        case INA_ES_LIMIT: return "LIMIT";
+        case INA_ES_LINK: return "LINK";
+        case INA_ES_LINKAGE: return "LINKAGE";
+        case INA_ES_LINKER: return "LINKER";
+        case INA_ES_LOCATION: return "LOCATION";
+        case INA_ES_LOGIN: return "LOGIN";
+        case INA_ES_LOOP: return "LOOP";
+        case INA_ES_MACHINE: return "MACHINE";
+        case INA_ES_MEDIA: return "MEDIA";
+        case INA_ES_MEMORY: return "MEMORY";
+        case INA_ES_MESSAGE: return "MESSAGE";
+        case INA_ES_METHOD: return "METHOD";
+        case INA_ES_MODULE: return "MODULE";
+        case INA_ES_MONITOR: return "MONITOR";
+        case INA_ES_NETWORK: return "NETWORK";
+        case INA_ES_NODE: return "NODE";
+        case INA_ES_NOTHING: return "NOTHING";
+        case INA_ES_NUMBER: return "NUMBER";
+        case INA_ES_OBJECT: return "OBJECT";
+        case INA_ES_OPERATION: return "OPERATION";
+        case INA_ES_OPERATOR: return "OPERATOR";
+        case INA_ES_PACKAGE: return "PACKAGE";
+        case INA_ES_PASSWORD: return "PASSWORD";
+        case INA_ES_PATH: return "PATH";
+        case INA_ES_PEER: return "PEER";
+        case INA_ES_PERMISSION: return "PERMISSION";
+        case INA_ES_PLATFORM: return "PLATFORM";
+        case INA_ES_POSITION: return "POSITION";
+        case INA_ES_POOL: return "POOL";
+        case INA_ES_PROFILER: return "PROFILER";
+        case INA_ES_PROTOCOL: return "PROTOCOL";
+        case INA_ES_PROXY: return "PROXY";
+        case INA_ES_RANGE: return "RANGE";
+        case INA_ES_RATIO: return "RATIO";
+        case INA_ES_RECORD: return "RECORD";
+        case INA_ES_REPOSITORY: return "REPOSITORY";
+        case INA_ES_REQUEST: return "REQUEST";
+        case INA_ES_RESOURCE: return "RESOURCE";
+        case INA_ES_REVISION: return "REVISION";
+        case INA_ES_ROUTE: return "ROUTE";
+        case INA_ES_RUNTIME: return "RUNTIME";
+        case INA_ES_SCALE: return "SCALE";
+        case INA_ES_SCREEN: return "SCREEN";
+        case INA_ES_SCRIPT: return "SCRIPT";
+        case INA_ES_SEQUENCE: return "SEQUENCE";
+        case INA_ES_SERIALIZATION: return "SERIALIZATION";
+        case INA_ES_SERVER: return "SERVER";
+        case INA_ES_SERVICE: return "SERVICE";
+        case INA_ES_SIZE: return "SIZE";
+        case INA_ES_SOFTWARE: return "SOFTWARE";
+        case INA_ES_SOURCE: return "SOURCE";
+        case INA_ES_SPACE: return "SPACE";
+        case INA_ES_STACK: return "STACK";
+        case INA_ES_STACKTRACE: return "STACKTRACE";
+        case INA_ES_STREAM: return "STREAM";
+        case INA_ES_STREAMING: return "STREAMING";
+        case INA_ES_STRING: return "STRING";
+        case INA_ES_STRUCT: return "STRUCT";
+        case INA_ES_SUBSYSTEM: return "SUBSYSTEM";
+        case INA_ES_SYSTEM: return "SYSTEM";
+        case INA_ES_TEXT: return "TEXT";
+        case INA_ES_TIME: return "TIME";
+        case INA_ES_TRANSLATION: return "TRANSLATION";
+        case INA_ES_TRANSPORT: return "TRANSPORT";
+        case INA_ES_TYPE: return "TYPE";
+        case INA_ES_USER: return "USER";
+        case INA_ES_USERNAME: return "USERNAME";
+        case INA_ES_VALUE: return "VALUE";
+        case INA_ES_VERSION: return "VERSION";
+        case INA_ES_DECOMPRESSION: return "DECOMPRESSION";
+        case INA_ES_STATE: return "STATE";
+        case INA_ES_DUMP: return "DUMP";
+        case INA_ES_CHAR: return "CHAR";
+        case INA_ES_CONFIGURATION: return "CONFIGURATION";
+        case INA_ES_SECTION: return "SECTION";
+        case INA_ES_KEY: return "KEY";
+        case INA_ES_ENUMERATION: return "ENUMERATION";
+        case INA_ES_READ: return "READ";
+        case INA_ES_WRITE: return "WRITE";
+        case INA_ES_OPTION: return "OPTION";
+        case INA_ES_BUFFER: return "BUFFER";
+        case INA_ES_ADDRESS: return "ADDRESS";
+        case INA_ES_NAME: return "NAME";
+        case INA_ES_MAC: return "MAC";
+        case INA_ES_PROCESS: return "PROCESS";
+        case INA_ES_PATTERN: return "PATTERN";
+        case INA_ES_MUTEX: return "MUTEX";
+        case INA_ES_SEMAPHORE: return "SEMAPHORE";
+        case INA_ES_THREAD: return "THREAD";
+        case INA_ES_CRON: return "CRON";
         default:
             if (__dict_cb != NULL) {
                 return  __dict_cb(id);
@@ -216,7 +212,7 @@ static const char* __ina_get_noun(int id) {
 INA_API(const char*) ina_err_strerror(ina_rc_t rc)
 {
     const char *neg = "", *adj = "";
-    const char *noun =  __ina_get_noun(INA_RC_USERNN(rc));
+    const char *noun =  __ina_get_subect(INA_RC_SUBJECT(rc));
 
     if (INA_SUCCEED(rc)) {
         ina_str_truncate(__errmsg, 0);
@@ -376,7 +372,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
             use = special;
         }
         ina_str_snprintf(&__errmsg, INA_ERROR_MSGLEN,
-                "%s%s%s%s%s - 0x%" INA_INT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,attr=%d,noun=%d",
+                "%s%s%s%s%s - 0x%" INA_INT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,code=%d,subject=%d",
                 (use)[0],
                 (use)[0][0]?" ":"",
                 (use)[1],
@@ -384,12 +380,12 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
                 (use)[2],
                 rc,
                 INA_RC_EFLAG(rc),
-                INA_RC_VER(rc),
-                INA_RC_REV(rc),
+                INA_RC_APIVER(rc),
+                INA_RC_APIREV(rc),
                 INA_RC_ERRNO(rc),
                 INA_RC_NFLAG(rc),
-                INA_RC_ATTRIB(rc),
-                INA_RC_USERNN(rc));
+                INA_RC_ERRCDE(rc),
+                INA_RC_SUBJECT(rc));
         return __errmsg;
     }
 }

@@ -73,7 +73,7 @@ INA_API(ina_str_t) ina_str_new_fromblk(const void* blk, size_t len)
     ina_str_t str;
 
     if (blk == NULL) {
-        INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
+        INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
         return NULL;
     }
 
@@ -99,7 +99,7 @@ INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk,
     INA_ASSERT_NOTNULL(pool);
     
     if (blk == NULL) {
-        INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
+        INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
         return NULL;
     }
 
@@ -746,7 +746,7 @@ INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame, const char *wildcard)
                 while (*pTameText != *pWildText) {
                     if (!(*(++pTameText))) {
                         /* "x" doesn't match "*y*" */
-                        return INA_ERROR(INA_NN_TEXT|INA_ERR_NOT_MATCH);
+                        return INA_ERROR(INA_ES_TEXT|INA_ERR_NOT_MATCH);
                     }
                 }
             }
@@ -779,7 +779,7 @@ INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame, const char *wildcard)
                 }
             }
             /* "xy" doesn't match "x" */
-            return INA_ERROR(INA_NN_TEXT|INA_ERR_NOT_MATCH);
+            return INA_ERROR(INA_ES_TEXT|INA_ERR_NOT_MATCH);
         }
  
         pTameText++;
@@ -798,7 +798,7 @@ INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame, const char *wildcard)
                 return INA_SUCCESS;
             }
             /* "x" doesn't match "xy" */
-            return INA_ERROR(INA_NN_TEXT|INA_ERR_NOT_MATCH);
+            return INA_ERROR(INA_ES_TEXT|INA_ERR_NOT_MATCH);
         }
     }
 }

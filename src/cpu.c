@@ -44,11 +44,11 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	DWORD size = 4;
 	
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), 0, KEY_READ, &key) != ERROR_SUCCESS)
-        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	
 	if (RegQueryValueEx(key, TEXT("~MHz"), NULL, NULL, (LPBYTE) &result, (LPDWORD) &size) != ERROR_SUCCESS) {
 		RegCloseKey(key);
-        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);;
+        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);;
 	}
 	RegCloseKey(key);
 	
@@ -96,7 +96,7 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	long long result = -1;
 	size_t size = sizeof(result);
 	if (sysctlbyname("hw.cpufrequency", &result, &size, NULL, 0)) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 	*result_mhz = (int) (result / (long long) 1000000);
     return INA_SUCCESS;
@@ -123,7 +123,7 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	
 	f = fopen("/proc/cpuinfo", "rt");
 	if (!f) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 	
 	while (fgets(line, sizeof(line), f)) {
@@ -138,7 +138,7 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	}
 	fclose(f);
 
-	return INA_ERROR(INA_NN_PATTERN|INA_ERR_NOT_FOUND);
+	return INA_ERROR(INA_ES_PATTERN|INA_ERR_NOT_FOUND);
 }
 #endif
 #endif
@@ -570,7 +570,7 @@ INA_API(ina_rc_t) ina_cpu_get_package_count(int *package_count)
     INA_VERIFY_NOT_NULL(package_count);
 	if (__ina_cpu_ctx->running_on_vm) {
 		*package_count = 0;
-		return INA_ERROR(INA_NN_STATE|INA_ERR_ILLEGAL);
+		return INA_ERROR(INA_ES_STATE|INA_ERR_ILLEGAL);
 	}
     *package_count = __ina_cpu_ctx->package_count;
     return INA_SUCCESS;
@@ -582,7 +582,7 @@ INA_API(ina_rc_t) ina_cpu_get_core_count(int *core_count)
     INA_VERIFY_NOT_NULL(core_count);
 	if (__ina_cpu_ctx->running_on_vm) {
 		*core_count = 0;
-        return INA_ERROR(INA_NN_STATE|INA_ERR_ILLEGAL);
+        return INA_ERROR(INA_ES_STATE|INA_ERR_ILLEGAL);
 	}
     *core_count = __ina_cpu_ctx->core_count;
     return INA_SUCCESS;
@@ -594,7 +594,7 @@ INA_API(ina_rc_t) ina_cpu_get_thread_count(int *thread_count)
     INA_VERIFY_NOT_NULL(thread_count);
 	if (__ina_cpu_ctx->running_on_vm) {
 		*thread_count = 0;
-		return INA_ERROR(INA_NN_STATE|INA_ERR_ILLEGAL);
+		return INA_ERROR(INA_ES_STATE|INA_ERR_ILLEGAL);
 	}
     *thread_count = __ina_cpu_ctx->thread_count;
     return INA_SUCCESS;
@@ -657,7 +657,7 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 #endif
     /* Set Affinity */
     if (!SetProcessAffinityMask(pid, processAffinityMask)) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #else
     cpu_set_t mask;
@@ -665,7 +665,7 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
     CPU_SET(cpuid, &mask);
     int ret = sched_setaffinity(0, sizeof(mask), &mask);
     if (ret != 0) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #endif
 #endif
@@ -770,26 +770,26 @@ INA_API(ina_rc_t) ina_cpu_process_promote()
 
     /* Set Priority */
 	if(!SetPriorityClass(pid, HIGH_PRIORITY_CLASS)) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	}
 	if(!SetThreadPriority(GetCurrentThread(), HIGH_PRIORITY_CLASS)) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	}
 #else
     pid_t pid = getpid();
     struct sched_param param;
     int max_prio = sched_get_priority_max(SCHED_FIFO);
     if (max_prio == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     param.sched_priority = max_prio;
     int ret = sched_setscheduler(pid, SCHED_FIFO, &param);
     if (ret != 0) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     ret = mlockall(MCL_CURRENT | MCL_FUTURE);
     if (ret != 0) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #endif
 #endif

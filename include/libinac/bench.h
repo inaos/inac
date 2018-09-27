@@ -170,7 +170,7 @@ INA_API(const char*) ina_bench_get_series_name(void);
  *
  * Return
  *   INA_SUCCESS if all went well
- *   INA_NN_ARGUMENT|INA_ERR_INVALID  if label was NULL
+ *   INA_ES_ARGUMENT|INA_ERR_INVALID  if label was NULL
  */
 INA_API(ina_rc_t) ina_bench_set_scale_label(const char* label);
 
@@ -188,7 +188,7 @@ INA_API(const char*) ina_bench_get_scale_label(void);
  *
  * Return
  *  INA_SUCCESS if all went well
- *  INA_NN_ARGUMENT|INA_ERR_INVALID  if precision was < 0
+ *  INA_ES_ARGUMENT|INA_ERR_INVALID  if precision was < 0
  */
 INA_API(ina_rc_t) ina_bench_set_precision(int precision);
 

@@ -154,7 +154,7 @@ INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t* flags, uint64_t va
     if ((value&flags->data->v) == (value)) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+    return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 }
 
 INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
@@ -216,7 +216,7 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
     ina_timer_event_free(flags->timer, event);
 
     if (timeout == INA_YES) {
-        return INA_ERROR(INA_NN_OPERATION|INA_ERR_TIMED_OUT);
+        return INA_ERROR(INA_ES_OPERATION|INA_ERR_TIMED_OUT);
     }
     return INA_SUCCESS;
 }
@@ -331,7 +331,7 @@ INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter, uint64_t value
 
     INA_ATOMIC_SWAP(&counter->data->c, v, value);
     if (v == counter->data->c) {
-        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }

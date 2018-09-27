@@ -64,7 +64,7 @@ static void *__ina_find_symbol(ina_bench_benchmark_t *bench, const char *fname)
     snprintf(symbol_name, len + 1, "%s_%s", bench->bench_name, fname);
     void *symbol = dlsym(RTLD_DEFAULT, symbol_name);
     if (!symbol) {
-        INA_OS_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_FOUND);
+        INA_OS_ERROR(INA_ES_FUNCTION|INA_ERR_NOT_FOUND);
     }
     free(symbol_name);
     return symbol;
@@ -77,7 +77,7 @@ static void *__ina_find_symbol2(ina_bench_benchmark_t *bench, const char *fname)
     snprintf(symbol_name, len + 1, "%s_%s_%s", bench->bench_name, bench->series_name, fname);
     void *symbol = dlsym(RTLD_DEFAULT, symbol_name);
     if (!symbol) {
-        INA_OS_ERROR(INA_NN_FUNCTION|INA_ERR_NOT_FOUND);
+        INA_OS_ERROR(INA_ES_FUNCTION|INA_ERR_NOT_FOUND);
     }
     free(symbol_name);
     return symbol;
@@ -126,7 +126,7 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     f = fopen(ina_str_cstr(file_path), "w");
     if (f == NULL) {
         ina_str_free(file_path);
-        return INA_OS_ERROR(INA_NN_FILE|INA_ERR_NOT_OPEN);
+        return INA_OS_ERROR(INA_ES_FILE|INA_ERR_NOT_OPEN);
     }
     ina_str_free(file_path);
 

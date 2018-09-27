@@ -296,7 +296,7 @@ INA_API(int) ina_cio_printf(int row, int col,
     int setpos = INA_NO;
 
     if (fmt == NULL) {
-        INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
+        INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
         return -1;
     }
 
@@ -596,13 +596,13 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (hStdin == INVALID_HANDLE_VALUE) {
-        return INA_OS_ERROR(INA_NN_CONSOLE|INA_ERR_INVALID);
+        return INA_OS_ERROR(INA_ES_CONSOLE|INA_ERR_INVALID);
     }
 
     dw_wait_ret = WaitForSingleObject(hStdin, 1);
 
     if (dw_wait_ret == WAIT_ABANDONED || dw_wait_ret == WAIT_FAILED) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 
     if (blocking) {

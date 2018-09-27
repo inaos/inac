@@ -226,13 +226,13 @@ INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
         }
         walker->current = walker->first;
         if (walker->current == NULL) {
-            return INA_ERROR(INA_NN_ENUMERATION|INA_ERR_EMPTY);
+            return INA_ERROR(INA_ES_ENUMERATION|INA_ERR_EMPTY);
         }
     } else if (walker->current == NULL) {
         walker->current = walker->first;
     } else if (walker->current == walker->last) {
         *entry = NULL;
-        return INA_ERROR(INA_ERR_END_OF|INA_NN_ENUMERATION);
+        return INA_ERROR(INA_ERR_END_OF|INA_ES_ENUMERATION);
     } else {
         walker->current++;
     }
@@ -277,13 +277,13 @@ INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
         &(*stat)->total_number_of_bytes, 
         &(*stat)->total_numof_free_bytes) == 0) {
             ina_dir_stat_free(stat);
-            return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+            return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #else
     struct statvfs sfs;
     if (statvfs(dir, &sfs) != 0) {
         ina_dir_stat_free(stat);
-        return INA_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     (*stat)->free_bytes = sfs.f_bsize * sfs.f_bavail;
     (*stat)->total_bytes = sfs.f_blocks * sfs.f_bsize;

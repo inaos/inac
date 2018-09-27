@@ -612,7 +612,7 @@ INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **dat
     INA_VERIFY_NOT_NULL(data);
 
     if (iter->checksum != iter->ht->count) {
-        return INA_ERROR(INA_NN_STATE|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_STATE|INA_ERR_INVALID);
     }
 
     while (iter->bucket-iter->ht->buckets < iter->ht->capacity) {

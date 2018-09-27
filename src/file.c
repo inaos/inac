@@ -235,7 +235,7 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
 		dwCreationDisposition, dwFlagsAndAttributes, NULL);
 
 	if (fhandle == INVALID_HANDLE_VALUE) {
-		return INA_OS_ERROR(INA_NN_FILE|INA_ERR_OPEN);
+		return INA_OS_ERROR(INA_ES_FILE|INA_ERR_OPEN);
 	}
 #else    
     int posix_flags = 0;
@@ -249,7 +249,7 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
 
     fhandle = open(file_fqn, posix_flags, ctx->default_mode);
     if (fhandle < 0) {
-        return INA_OS_ERROR(INA_NN_FILE|INA_ERR_OPEN);
+        return INA_OS_ERROR(INA_ES_FILE|INA_ERR_OPEN);
     }
 #ifndef INA_OS_OSX
     if (flags & INA_FILE_FLAG_RANDOM_ACCESS) {
@@ -323,11 +323,11 @@ INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *
     INA_VERIFY_NOT_NULL(stat);
 
 	if (!GetFileSizeEx(file->fh, &pin)) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	}
 	attrs = GetFileAttributes((LPCSTR)file->file_path);
 	if (!GetFileTime(file->fh, &ct, &at, &wt)) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	}
 	stat->file_size = pin.QuadPart;
 	stat->is_dir = (FILE_ATTRIBUTE_DIRECTORY & attrs);
@@ -344,7 +344,7 @@ INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *
     INA_VERIFY_NOT_NULL(stat);
     ina_mem_set(&fst, 0, sizeof(struct stat));
     if (fstat(file->fh, &fst) != 0) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     stat->file_size = (size_t)fst.st_size;
     if (fst.st_mode & S_IFDIR) {
@@ -387,7 +387,7 @@ INA_API(ina_rc_t) ina_file_set_mode(const ina_file_t *file, mode_t mode)
 #ifndef INA_OS_WIN32
     mode_t old_mask = umask(0);
     if (fchmod(file->fh, mode) == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     umask(old_mask);
 #else
@@ -414,7 +414,7 @@ INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat)
     INA_VERIFY_NOT_NULL(stat);
 
     if (!stat->is_dir) {
-        INA_ERROR(INA_NN_DIRECTORY|INA_ERR_NOT_A);
+        INA_ERROR(INA_ES_DIRECTORY|INA_ERR_NOT_A);
     }
     return INA_SUCCESS;
 }
@@ -459,7 +459,7 @@ INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
 #endif
     ina_str_t mode;
     if (file == NULL) {
-        INA_ERROR(INA_NN_ARGUMENT|INA_ERR_INVALID);
+        INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
         return NULL;
     }
     if (file->stream != NULL) {
@@ -504,12 +504,12 @@ INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, int64_t le
 
 #ifdef INA_OS_WIN32
     if (!ReadFile(file->fh, (LPVOID)buf, (DWORD)len, (LPDWORD)nread, NULL)) {
-        return INA_OS_ERROR(INA_NN_READ|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_READ|INA_ERR_FAILED);
     }
 #else
     *nread = read(file->fh, buf, len);
     if (*nread < 0) {
-        return INA_OS_ERROR(INA_NN_READ|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_READ|INA_ERR_FAILED);
     }
 #endif
     return INA_SUCCESS;
@@ -523,12 +523,12 @@ INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, int64_t l
     INA_VERIFY_NOT_NULL(wrote);
 #ifdef INA_OS_WIN32
     if (!WriteFile(file->fh, (LPVOID)buf, (DWORD)len, (LPDWORD)wrote, NULL)) {
-        return INA_OS_ERROR(INA_NN_WRITE|INA_ERR_FAILED);;
+        return INA_OS_ERROR(INA_ES_WRITE|INA_ERR_FAILED);;
     }
 #else
     *wrote = write(file->fh, buf, len);
     if (*wrote < 0) {
-        return INA_OS_ERROR(INA_NN_WRITE|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_WRITE|INA_ERR_FAILED);
     }
 #endif
     return INA_SUCCESS;
@@ -541,12 +541,12 @@ INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file)
     LONG low = 0;
     INA_VERIFY_NOT_NULL(file);
     if (SetFilePointer(file->fh, low, &high, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #else
     INA_VERIFY_NOT_NULL(file);
     if (lseek(file->fh, 0, SEEK_SET) == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     };
 #endif
     return INA_SUCCESS;
@@ -560,13 +560,13 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_s
     LONG low = offset & 0xffffffff;
     INA_VERIFY_NOT_NULL(file);
     if (SetFilePointer(file->fh, low, &high, modes[mode]) == INVALID_SET_FILE_POINTER) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);;
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);;
     }
 #else
     static int modes[2] = {SEEK_SET, SEEK_CUR};
     INA_VERIFY_NOT_NULL(file);
     if (lseek(file->fh, offset, modes[mode]) == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #endif
     return INA_SUCCESS;
@@ -579,7 +579,7 @@ INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset)
     INA_VERIFY_NOT_NULL(file);
     dwOffset = SetFilePointer(file->fh, 0, NULL, FILE_CURRENT);
     if (dwOffset == INVALID_SET_FILE_POINTER) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     *offset = dwOffset;
 #else
@@ -587,7 +587,7 @@ INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset)
     INA_VERIFY_NOT_NULL(file);
     off = lseek(file->fh, 0, SEEK_CUR);
     if (off == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     *offset = (uint64_t)off;
 
@@ -602,12 +602,12 @@ INA_API(ina_rc_t) ina_file_set_eof(ina_file_t *file)
     LONG low = 0;
     INA_VERIFY_NOT_NULL(file);
     if (SetFilePointer(file->fh, low, &high, FILE_END) == INVALID_SET_FILE_POINTER) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #else
     INA_VERIFY_NOT_NULL(file);
     if (lseek(file->fh, 0, SEEK_END) == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #endif
     return INA_SUCCESS;

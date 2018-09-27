@@ -80,7 +80,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		INA_MUST_SUCCEED(ina_file_stat_free(&fstat));
 
 		if (offset > flen) {
-			return INA_ERROR(INA_NN_POSITION|INA_ERR_OUT_OF_RANGE);
+			return INA_ERROR(INA_ES_POSITION|INA_ERR_OUT_OF_RANGE);
 		}
 	}
 
@@ -119,7 +119,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		(*mapping)->fmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, flProtect, (DWORD)offset, (DWORD)length, NULL);		
 	}
 	if ((*mapping)->fmap == INVALID_HANDLE_VALUE) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	}
 
 	// To calculate where to start the file mapping, round down the
@@ -143,7 +143,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	
     (*mapping)->lpMapAddress = MapViewOfFile((*mapping)->fmap, dwDesiredAccess, dwHigh, dwLow, (SIZE_T)llMapViewSize);
 	if ((*mapping)->lpMapAddress == NULL) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);;
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);;
 	}
 	data = (unsigned char*)(*mapping)->lpMapAddress + delta;
 #else
@@ -187,7 +187,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     }
     if ((*mapping)->addr == MAP_FAILED) {
 		ina_mmap_free(ctx, mapping);
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
     data = (unsigned char*)(*mapping)->addr;
 #endif
@@ -222,14 +222,14 @@ INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 	INA_VERIFY_NOT_NULL(mapping);
 #ifdef INA_OS_WIN32
 	if (!FlushViewOfFile(mapping->begin_mmap, 0)) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	}
 	if (!FlushFileBuffers((HANDLE)ina_file_os_handle(mapping->fd))) {
-		return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	}
 #else
     if (msync(mapping->addr, mapping->length, MS_SYNC) == -1) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #endif
 	return INA_SUCCESS;
@@ -268,7 +268,7 @@ INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, in
             break;
     }
     if (madvise(mapping->addr, mapping->length, padvice) != 0) {
-        return INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     } 
 #endif
 	return INA_SUCCESS;

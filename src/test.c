@@ -333,7 +333,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
    
     if (pid < 0) {
          perror("fork");
-         return INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_CREATED);
+         return INA_OS_ERROR(INA_ES_PROCESS|INA_ERR_NOT_CREATED);
     }
      
     if (pid == 0) {
@@ -415,7 +415,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
         ina_time_sleep(500);
         return INA_SUCCESS;
     }
-    return INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_CREATED);
+    return INA_OS_ERROR(INA_ES_PROCESS|INA_ERR_NOT_CREATED);
 #endif
 }
 
@@ -674,7 +674,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
 
     if (luaL_dostring(ctx->lstate, "t = require(\"ltest\")\nt.run()\n") != 0) {
         printf("%s", luaL_checkstring(ctx->lstate, 1));
-        INA_ERROR(INA_NN_SCRIPT|INA_ERR_FAILED);
+        INA_ERROR(INA_ES_SCRIPT|INA_ERR_FAILED);
         return (INA_RC_ERROR(ina_err_get_last_rc()));
     }
 

@@ -377,7 +377,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
     /* Check descriptor is not referenced */
     if (descriptor->c_ref > 0) {
-        return INA_ERROR(INA_NN_DESCRIPTOR|INA_ERR_IN_USE);
+        return INA_ERROR(INA_ES_DESCRIPTOR|INA_ERR_IN_USE);
     }
 
     /* Search for a recyclable process */
@@ -528,7 +528,7 @@ INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process,
     INA_VERIFY_NOT_NULL(exit_code);
     __ina_process_is_running(process, &still_running);
     if (still_running == INA_YES) {
-        return INA_ERROR(INA_NN_PROCESS|INA_ERR_RUNNING);
+        return INA_ERROR(INA_ES_PROCESS|INA_ERR_RUNNING);
     }
     *exit_code = process->exit_code;
     return process->last_rc;
@@ -578,7 +578,7 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
         }
     }
     *should_be_running = 0;
-    return INA_ERROR(INA_NN_PROCESS|INA_ERR_NOT_ALLOWED);
+    return INA_ERROR(INA_ES_PROCESS|INA_ERR_NOT_ALLOWED);
 }
 
 INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *binary)
@@ -663,7 +663,7 @@ static void __ina_process_is_running(ina_process_t *process,
     *still_running = INA_NO;
 
     if (GetExitCodeProcess(process->pi.hProcess, &ec) == 0) {
-        process->last_rc = INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+        process->last_rc = INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
         return;
     }
     if (ec == STILL_ACTIVE) {
@@ -799,7 +799,7 @@ static void __ina_process_is_running(ina_process_t *process,
     w = waitpid(process->pid, &status, WNOHANG);
     if (w == -1) {
         if (errno != ECHILD) {
-            process->last_rc = INA_OS_ERROR(INA_NN_OPERATION|INA_ERR_FAILED);
+            process->last_rc = INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
         }
     } else if (w > 0) {
         *still_running = INA_YES;
@@ -815,7 +815,7 @@ static void __ina_process_start(ina_process_t *process)
     pid_t pid = fork();
 
     if (pid < 0) {
-        process->last_rc = INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_CREATED);
+        process->last_rc = INA_OS_ERROR(INA_ES_PROCESS|INA_ERR_NOT_CREATED);
         return;
     }
 
@@ -827,7 +827,7 @@ static void __ina_process_start(ina_process_t *process)
 
         if (process->descriptor->working_dir != NULL) {
             if (chdir(process->descriptor->working_dir) != 0) {
-                INA_OS_ERROR(INA_NN_DIRECTORY|INA_ERR_NOT_CHANGED);
+                INA_OS_ERROR(INA_ES_DIRECTORY|INA_ERR_NOT_CHANGED);
                 return;
             }
         }
@@ -841,7 +841,7 @@ static void __ina_process_start(ina_process_t *process)
         }
         args[n++] = NULL;
         execv(args[0], args);
-        INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_CREATED);
+        INA_OS_ERROR(INA_ES_PROCESS|INA_ERR_NOT_CREATED);
         INA_TRACE("%s", "FAILED");
         exit(127);
     } else {
@@ -867,7 +867,7 @@ static void __ina_process_stop(ina_process_t *process)
         INA_TRACE2("Kill %d", process->pid);
         if (kill(process->pid, SIGTERM) == -1) {
             INA_TRACE2("%s", "FAILED to kill");
-            process->last_rc = INA_OS_ERROR(INA_NN_PROCESS|INA_ERR_NOT_STOPPED);
+            process->last_rc = INA_OS_ERROR(INA_ES_PROCESS|INA_ERR_NOT_STOPPED);
             return;
         }
     }

@@ -20,7 +20,7 @@ static ina_rc_t __allocate_test_array(size_t **test_array, size_t test_array_siz
     *test_array = (size_t*)calloc(array_size, sizeof(size_t));
 
     if (*test_array == NULL) {
-        return INA_OS_ERROR(INA_ERR_OUT_OF|INA_NN_MEMORY);
+        return INA_OS_ERROR(INA_ERR_OUT_OF|INA_ES_MEMORY);
     }
 
     for(i = 0; i < array_size; i++) {
