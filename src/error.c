@@ -13,14 +13,17 @@
 #include <DbgHelp.h>
 #endif
 
-static INA_TLS(ina_log_t) *__ilog = NULL;
+/* Error message length */
+#define __INA_ERROR_MSGLEN  512
+
+static INA_TLS(ina_log_t)           *__ilog    = NULL;
 static INA_TLS(ina_err_subject_cb_t) __dict_cb = NULL;
-static INA_TLS(ina_str_t) __errmsg = NULL;
+static INA_TLS(ina_str_t)            __errmsg  = NULL;
 
 INA_API(ina_rc_t) ina_err_init(void)
 {
     INA_INIT_GUARD();
-    __errmsg = ina_str_new(INA_ERROR_MSGLEN);
+    __errmsg = ina_str_new(__INA_ERROR_MSGLEN);
     INA_RETURN_IF_NULL(__errmsg);
     return INA_SUCCESS;
 }
@@ -54,7 +57,7 @@ INA_API(void) ina_err_log(const char *fmt, ...)
     }
 }
 
-static const char* __ina_get_subect(int id) {
+static const char* __ina_get_subject(int id) {
     switch (id) {
         case INA_ES_NONE: return "";
         case INA_ES_ACCESS: return "ACCESS";
@@ -212,7 +215,7 @@ static const char* __ina_get_subect(int id) {
 INA_API(const char*) ina_err_strerror(ina_rc_t rc)
 {
     const char *neg = "", *adj = "";
-    const char *noun =  __ina_get_subect(INA_RC_SUBJECT(rc));
+    const char *noun =  __ina_get_subject(INA_RC_SUBJECT(rc));
 
     if (INA_SUCCEED(rc)) {
         ina_str_truncate(__errmsg, 0);
@@ -223,7 +226,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
         neg = "NOT";
     }
 
-    switch (rc & ( 0xFFLL << INA_RC_BIT_A ) ) {
+    switch (rc & ( 0xFFLL << INA_RC_BIT_C ) ) {
         default: break;
         case INA_ERR_A: adj = "A";break;
         case INA_ERR_ACK: adj = "ACK";break;
@@ -364,14 +367,15 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
         const char *common[] = {noun, neg, adj};
         const char *special[] = {neg, adj, noun};
         const char **use = common;
-        ina_rc_t type = rc & (0x1FFLL << INA_RC_BIT_A);
+
+        ina_rc_t type = rc & (0x1FFLL << INA_RC_BIT_C);
 
         if ((type == INA_ERR_A) || (type == INA_ERR_NOT_A) ||
             (type == INA_ERR_NO) || (type == INA_ERR_NO_SUCH) ||
             (type == INA_ERR_ENOUGH) || (type == INA_ERR_NOT_ENOUGH)) {
             use = special;
         }
-        ina_str_snprintf(&__errmsg, INA_ERROR_MSGLEN,
+        ina_str_snprintf(&__errmsg, __INA_ERROR_MSGLEN,
                 "%s%s%s%s%s - 0x%" INA_INT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,code=%d,subject=%d",
                 (use)[0],
                 (use)[0][0]?" ":"",
