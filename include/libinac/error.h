@@ -29,14 +29,14 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_RC_BIT_C 15U
 #define INA_RC_BIT_S 00U
 
-#define INA_RC_EFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_E) & 0x1UL))
-#define INA_RC_APIVER(rc)  ((uint32_t)(((rc) >> INA_RC_BIT_V) & 0x7FUL))
-#define INA_RC_APIREV(rc)  ((uint32_t)(((rc) >> INA_RC_BIT_R) & 0xFFFFUL))
-#define INA_RC_ERRNO(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_O) & 0xFFFFUL))
-#define INA_RC_NFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_N) & 0x1UL))
-#define INA_RC_ERRCDE(rc)  ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFFUL))
-#define INA_RC_ERROR(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFFUL))
-#define INA_RC_SUBJECT(rc) ((uint32_t)(((rc) >> INA_RC_BIT_S) & 0x7FFFUL))
+#define INA_RC_EFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_E) & 0x1))
+#define INA_RC_APIVER(rc)  ((uint32_t)(((rc) >> INA_RC_BIT_V) & 0x7F))
+#define INA_RC_APIREV(rc)  ((uint32_t)(((rc) >> INA_RC_BIT_R) & 0xFFFF))
+#define INA_RC_ERRNO(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_O) & 0xFFFF))
+#define INA_RC_NFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_N) & 0x1))
+#define INA_RC_ERRCDE(rc)  ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFF))
+#define INA_RC_ERROR(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFF))
+#define INA_RC_SUBJECT(rc) ((uint32_t)(((rc) >> INA_RC_BIT_S) & 0x7FFF))
 #define INA_RC_ERRMSG(rc)  ((uint32_t)((INA_MID_BITS((rc), INA_RC_BIT_C, INA_RC_BIT_N+1))<<INA_RC_BIT_C))
 
 
@@ -654,7 +654,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #  ifndef INA_ERROR_REV
 #    define INA_ERROR_REV (0)
 #  endif
-#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_ERROR_VER) << INA_RC_BIT_V) | (((ina_rc_t)INA_ERROR_REV) << INA_RC_BIT_R) | (((uint32_t)(e)) << INA_RC_BIT_O) | (x))
+#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_ERROR_VER) << INA_RC_BIT_V) | (((ina_rc_t)INA_ERROR_REV) << INA_RC_BIT_R) | (((uint32_t)(e)) << INA_RC_BIT_O) | ((x)))
 #endif
 
 /* Check return code: failure */
@@ -663,7 +663,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #define INA_SUCCEED(rc) (!INA_FAILED((rc)))
 
 /* Set last RC */
-#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0UL))
+#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0))
 /* Set last RC and capture errno */
 #ifndef INA_OS_WIN32
 #define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno))
@@ -684,8 +684,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED(rc))) abort(); } while(0)
 
 #ifndef INA_VERIFY_DISABLED
-#define INA_VERIFY(x) do { if (INA_UNLIKELY((x))) return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID); } while (0)
-#define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) == NULL)
+#define INA_VERIFY(x) do { if (INA_UNLIKELY(!(x))) return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID); } while (0)
+#define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) != NULL)
 #else
 #define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
