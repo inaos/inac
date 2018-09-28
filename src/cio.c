@@ -773,6 +773,8 @@ INA_API(ina_rc_t) ina_cio_read_char_non_block(char *ch)
     char *buf = NULL;
     size_t buf_len = 0;
     size_t buf_pos = 0;
+    INA_VERIFY_NOT_NULL(ch);
+
     if (INA_SUCCESS == (__ina_cio_read_line(&line, INA_NO, &buf, &buf_len, &buf_pos, INA_YES))) {
         const char * cstr = ina_str_cstr(line);
         *ch = cstr[0];
@@ -780,4 +782,11 @@ INA_API(ina_rc_t) ina_cio_read_char_non_block(char *ch)
         return INA_SUCCESS;
     }
     return INA_ERR_TRY_AGAIN;
+}
+
+INA_API(ina_rc_t) ina_cio_read_char(char *ch)
+{
+    INA_VERIFY_NOT_NULL(ch);
+    *ch = (char)getchar();
+    return INA_SUCCESS;
 }

@@ -9,7 +9,6 @@
 #ifndef _LIBINAC_CIO_H_
 #define _LIBINAC_CIO_H_
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,7 +45,7 @@ typedef struct ina_cio_pos_s {
 /* Cursor attributs */
 typedef struct ina_cio_attribs_s {
     ina_cio_color_t bg_color; /* background color */
-    ina_cio_color_t fg_color; /* forground color */
+    ina_cio_color_t fg_color; /* foreground color */
     uint8_t flags;
 } ina_cio_attribs_t;
 
@@ -67,7 +66,7 @@ INA_API(ina_rc_t) ina_cio_init(void);
 INA_API(void) ina_cio_destroy(void);
 
 /*
- * Clear screen and reset the cursor in the uppper left corner.
+ * Clear screen and reset the cursor in the upper left corner.
  *
  * Return
  *  INA_SUCCESS
@@ -207,6 +206,8 @@ INA_API(int) ina_cio_printf(int row, int col,
  *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line);
+
+INA_API(ina_rc_t) ina_cio_read_char(char *ch);
 
 /*
  * Non blocking read line terminated by '\n'
