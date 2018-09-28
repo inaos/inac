@@ -37,7 +37,7 @@ struct ina_log_s {
 };
 ina_str_t  __cfg_filepath = NULL;
 
-static ina_rc_t __ina_log(const ina_log_t*, ina_log_level_t, ina_str_t);
+static ina_rc_t __ina_log(const ina_log_t*, ina_log_level_t, const char*, ina_str_t);
 static ina_rc_t __ina_free_target(void *data)
 {
     __ina_target_t *target = (__ina_target_t*)data;
@@ -236,7 +236,7 @@ INA_API(void) ina_log_destroy(void)
     INA_STR_FREE_SAFE(__cfg_filepath);
 }
 
-INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const char* fmt, ...)
+INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const char *location, const char* fmt, ...)
 {
     va_list ap;
     ina_rc_t rc;
@@ -245,14 +245,14 @@ INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const cha
     INA_VERIFY_NOT_NULL(fmt);
 
     va_start(ap, fmt);
-    rc = ina_log_v(log, level, fmt, ap);
+    rc = ina_log_v(log, level, location, fmt, ap);
     va_end(ap);
 
     return rc;
 }
 
 INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
-                           const char* fmt, va_list ap)
+                            const char* location, const char* fmt, va_list ap)
 {
     static ina_str_t msg = NULL;
     
@@ -266,7 +266,7 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
 
     ina_str_vsnprintf(&msg, ina_str_size(msg)-1, fmt, ap);
    
-    return __ina_log(log, level, msg);
+    return __ina_log(log, level, location, msg);
 }
 
 INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
@@ -313,7 +313,7 @@ INA_API(void) ina_log_free(ina_log_t **log)
 }
 
 
-static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, ina_str_t msg) {
+static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, const char *location, ina_str_t msg) {
     static const char *c = " .- *   #";
     static char buf[64];
     static char buf2[2048];

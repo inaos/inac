@@ -17,7 +17,7 @@ extern "C" {
 
 /* Base log macros, user INA_LOG_DEBUG/INFO/WARNING/ERROR instead */
 #ifdef INA_LOG_ENABLED
-#define INA_LOG(cfg, level, fmt,  ...) ina_log(cfg, level, fmt, ##__VA_ARGS__)
+#define INA_LOG(cfg, level, INA_AT, fmt,  ...) ina_log(cfg, level, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG(cfg, level, ...)
 #endif
@@ -27,6 +27,8 @@ extern "C" {
 #endif
 
 #if INA_LOG_LEVEL>0
+#define INA_LOG_RC(log, rc) \
+    INA_LOG(log, INA_LOG_LEVEL_ERROR, "%s", ina_err_strerror((rc)))
 #define INA_LOG_ERROR(cfg,fmt,...)                          \
     INA_LOG(cfg, INA_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)       
 #else
@@ -101,6 +103,7 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log);
  */
 INA_API(ina_rc_t) ina_log(const ina_log_t *log,
                           ina_log_level_t level,
+                          const char *location,
                           const char* fmt,
                           ...);
 
@@ -117,13 +120,13 @@ INA_API(ina_rc_t) ina_log(const ina_log_t *log,
  *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
-                            const char* fmt, va_list ap);
+                            const char* location, const char* fmt, va_list ap);
 
 /*
  * Close a log context.
  *
  * Parameters
- *  cfg  Log context to close.
+ *  log  Log context to close.
  */
 INA_API(void) ina_log_free(ina_log_t **log);
 
