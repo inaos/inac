@@ -9,10 +9,6 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_OS_WIN32
-#include <DbgHelp.h>
-#endif
-
 /* Error message length */
 #define __INA_ERROR_MSGLEN  512
 
