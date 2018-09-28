@@ -16,7 +16,6 @@
 /* Error message length */
 #define __INA_ERROR_MSGLEN  512
 
-static INA_TLS(ina_log_t)           *__ilog    = NULL;
 static INA_TLS(ina_err_subject_cb_t) __dict_cb = NULL;
 static INA_TLS(ina_str_t)            __errmsg  = NULL;
 
@@ -40,21 +39,6 @@ INA_API(ina_err_subject_cb_t) ina_err_register_dict(ina_err_subject_cb_t cb)
     ina_err_subject_cb_t old_cb = __dict_cb;
     __dict_cb = cb;
     return old_cb;
-}
-
-INA_API(void) ina_err_set_log(ina_log_t *log)
-{
-    __ilog = log;
-}
-
-INA_API(void) ina_err_log(const char *fmt, ...)
-{
-    if (__ilog != NULL) {
-        va_list args;
-        va_start(args, fmt);
-        INA_MUST_SUCCEED(ina_log_v(__ilog, INA_LOG_LEVEL_ERROR, fmt, args));
-        va_end(args);
-    }
 }
 
 static const char* __ina_get_subject(int id) {
@@ -222,11 +206,11 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
         return __errmsg;
     }
 
-    if (rc & ( 1LL << INA_RC_BIT_N )) {
+    if (rc & ( 1ULL << INA_RC_BIT_N )) {
         neg = "NOT";
     }
 
-    switch (rc & ( 0xFFLL << INA_RC_BIT_C ) ) {
+    switch (rc & ( 0xFFULL << INA_RC_BIT_C ) ) {
         default: break;
         case INA_ERR_A: adj = "A";break;
         case INA_ERR_ACK: adj = "ACK";break;

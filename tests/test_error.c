@@ -25,7 +25,7 @@ static const char* __ina_get_subject_a(int id)
     }
 }
 
-static const char* __ina_get_subect_b(int id)
+static const char* __ina_get_subject_b(int id)
 {
     switch (id) {
         case INA_ES_HELLO:
@@ -45,12 +45,7 @@ INA_TEST(error, error_pack_rc)
     rcc = 0x8009000000980402;
     rc = INA_RC_PACK(INA_ES_ACCESS|INA_ERR_NOT_ALLOWED, 2);
 
-
-    /*INA_TRACE3("rc = %u", rc);
-    INA_TRACE3("reason = %u", INA_RC_ERRCDE(rc, 0));*/
-    /*INA_TEST_MSG("verify INA_RC_PACK with %s", ina_err_strerror(rc));*/
-
-
+    INA_TEST_MSG("verify INA_RC_PACK with %s", ina_err_strerror(rc));
     INA_TEST_ASSERT_SUCCEED(0);
     INA_TEST_ASSERT_FAILED(rc);
     INA_TEST_ASSERT_EQUAL_INT64(rcc,  rc);
@@ -128,7 +123,7 @@ INA_TEST(error, register_dict)
     INA_TEST_ASSERT_EQUAL_STR("WORLD A NOT FOUND - 0x8009000000980402 - error=1,ver=0,rev=2304,os=0,neg=1,adj=48,subject=1026", ina_err_strerror(ina_err_get_last_rc()));
     INA_ERROR(INA_ES_UNKNOWN|INA_ERR_NOT_FOUND);
     INA_TEST_ASSERT_EQUAL_STR("-- NOT FOUND - 0x8009000000980403 - error=1,ver=0,rev=2304,os=0,neg=1,adj=48,subject=1027", ina_err_strerror(ina_err_get_last_rc()));
-    INA_TEST_ASSERT_SAME(__ina_get_subject_a, ina_err_register_dict(__ina_get_subect_b));
+    INA_TEST_ASSERT_SAME(__ina_get_subject_a, ina_err_register_dict(__ina_get_subject_b));
     INA_ERROR(INA_ES_HELLO|INA_ERR_FAILED);
     INA_TEST_ASSERT_EQUAL_STR("HELLO B FAILED - 0x8009000000158401 - error=1,ver=0,rev=2304,os=0,neg=0,adj=43,subject=1025", ina_err_strerror(ina_err_get_last_rc()));
     INA_ERROR(INA_ES_WORLD|INA_ERR_NOT_FOUND);

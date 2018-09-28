@@ -618,22 +618,6 @@ INA_INLINE ina_rc_t ina_err_reset(void)
 }
 
 /*
- * Set log file.
- *
- * Parameters
- *  log   log context
- */
-INA_API(void) ina_err_set_log(ina_log_t *log);
-
-/*
- * Write to the error log
- *
- *  Parameters
- *   fmt  format
- *   ...  arguments
- */
-INA_API(void) ina_err_log(const char *fmt, ...);
-/*
  * Format the error message for a given RC.
  *
  * Parameters
