@@ -964,8 +964,6 @@ static void __ina_hash_spooky_shorthash
 		}
 	}
 
-	INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
-
 	/* Handle the last 0..15 bytes, and its length */
 	d = ((uint64_t)length) << 56;
 
