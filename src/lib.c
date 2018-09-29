@@ -660,6 +660,7 @@ __ina_signal_handler(int sig)
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
                 exit(EXIT_FAILURE);
             }
+            break;
         case SIGTERM:
         case SIGINT:
 #ifndef INA_OS_WIN32
