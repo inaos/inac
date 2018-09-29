@@ -322,7 +322,7 @@ static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, const cha
 #ifdef INA_OS_LINUX
     static struct tm rtm;
 #endif
-
+    INA_UNUSED(location);
     time_t now = time(NULL);
 
 #ifdef INA_OS_LINUX

@@ -56,17 +56,19 @@ INA_BENCH_DATA(timer) {
 };
 
 INA_BENCH_SETUP(timer){
+    INA_UNUSED(data);
     ina_bench_set_precision(0);
 }
-INA_BENCH_TEARDOWN(timer){}
+INA_BENCH_TEARDOWN(timer){ INA_UNUSED(data);}
 INA_BENCH_SCALE(timer) {
+    INA_UNUSED(data);
     ina_bench_set_scale(1);
 }
-INA_BENCH_BEGIN(timer, create_rdtsc) {}
-INA_BENCH_END(timer, create_rdtsc) {}
+INA_BENCH_BEGIN(timer, create_rdtsc) { INA_UNUSED(data);}
+INA_BENCH_END(timer, create_rdtsc) { INA_UNUSED(data);}
 INA_BENCH(timer, create_rdtsc, 1) {
     ina_timer_t *timer;
-
+    INA_UNUSED(data);
     INA_MUST_SUCCEED(ina_timer_new(&timer));
 
     ina_time_tsc_enable_rdtsc();
@@ -78,11 +80,11 @@ INA_BENCH(timer, create_rdtsc, 1) {
     ina_timer_free(&timer);
 }
 
-INA_BENCH_BEGIN(timer, create) {}
-INA_BENCH_END(timer, create) {}
+INA_BENCH_BEGIN(timer, create) { INA_UNUSED(data);}
+INA_BENCH_END(timer, create) { INA_UNUSED(data);}
 INA_BENCH(timer, create, 1) {
     ina_timer_t *timer;
-
+    INA_UNUSED(data);
     INA_MUST_SUCCEED(ina_timer_new(&timer));
 
     ina_bench_stopwatch_start();
@@ -93,14 +95,14 @@ INA_BENCH(timer, create, 1) {
 }
 
 
-INA_BENCH_BEGIN(timer, exec) {}
-INA_BENCH_END(timer, exec) {}
+INA_BENCH_BEGIN(timer, exec) { INA_UNUSED(data);}
+INA_BENCH_END(timer, exec) { INA_UNUSED(data); }
 INA_BENCH(timer, exec, 1) {
     ina_timer_t *timer;
     int64_t total = 0;
     uint64_t id;
     uint64_t stop_id;
-
+    INA_UNUSED(data);
     INA_MUST_SUCCEED(ina_timer_new(&timer));
 
     __ina_timer_bench_create_events(timer);
@@ -120,14 +122,14 @@ INA_BENCH(timer, exec, 1) {
 }
 
 
-INA_BENCH_BEGIN(timer, exec_rdtsc) {}
-INA_BENCH_END(timer, exec_rdtsc) {}
+INA_BENCH_BEGIN(timer, exec_rdtsc) { INA_UNUSED(data);}
+INA_BENCH_END(timer, exec_rdtsc) { INA_UNUSED(data);}
 INA_BENCH(timer, exec_rdtsc, 1) {
     ina_timer_t *timer;
     int64_t total = 0;
     uint64_t id;
     uint64_t stop_id;
-
+    INA_UNUSED(data);
     ina_time_tsc_enable_rdtsc();
 
     INA_MUST_SUCCEED(ina_timer_new(&timer));

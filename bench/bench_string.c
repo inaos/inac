@@ -20,7 +20,7 @@ INA_BENCH_SETUP(string) {
     ina_bench_set_scale_label("nr_of_elements");
     ina_bench_set_precision(0);
 }
-INA_BENCH_TEARDOWN(string) {}
+INA_BENCH_TEARDOWN(string) { INA_UNUSED(data);}
 INA_BENCH_BEGIN(string, series_1) {
     data->strings = NULL;
 }
@@ -45,7 +45,7 @@ INA_BENCH(string, series_1, 10) {
     ina_mem_free(data->strings);
 }
 
-INA_BENCH_END(string, series_1) {}
+INA_BENCH_END(string, series_1) { INA_UNUSED(data);}
 INA_BENCH_BEGIN(string, series_2) {
     data->mp = NULL;
 }
@@ -66,7 +66,7 @@ INA_BENCH(string, series_2, 10) {
 }
 
 
-INA_BENCH_END(string, series_2) {}
+INA_BENCH_END(string, series_2) { INA_UNUSED(data);}
 INA_BENCH_BEGIN(string, series_3) {
     INA_MUST_SUCCEED(ina_mempool_new(data->c * 50, NULL, INA_MEM_FIXED, &data->mp));
 }

@@ -16,7 +16,7 @@ extern "C" {
 #include <libinac/lib.h>
 
 /* Indicate no errors */
-#define INA_SUCCESS  (0)
+#define INA_SUCCESS  (0ULL)
 
 static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 

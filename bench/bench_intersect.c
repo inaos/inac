@@ -35,8 +35,8 @@ INA_BENCH_SCALE(intersect)
 {
     ina_bench_set_scale(1);
 }
-INA_BENCH_BEGIN(intersect, zipper) {}
-INA_BENCH_END(intersect, zipper) {}
+INA_BENCH_BEGIN(intersect, zipper) { INA_UNUSED(data);}
+INA_BENCH_END(intersect, zipper) { INA_UNUSED(data); }
 
 INA_BENCH(intersect, zipper, 1)
 {

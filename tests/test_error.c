@@ -46,7 +46,7 @@ INA_TEST(error, error_pack_rc)
     rc = INA_RC_PACK(INA_ES_ACCESS|INA_ERR_NOT_ALLOWED, 2);
 
     INA_TEST_MSG("verify INA_RC_PACK with %s", ina_err_strerror(rc));
-    INA_TEST_ASSERT_SUCCEED(0);
+    INA_TEST_ASSERT_SUCCEED(INA_SUCCESS);
     INA_TEST_ASSERT_FAILED(rc);
     INA_TEST_ASSERT_EQUAL_INT64(rcc,  rc);
     /* error indicator */
