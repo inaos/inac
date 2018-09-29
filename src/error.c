@@ -363,7 +363,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
             use = special;
         }
         ina_str_snprintf(&__errmsg, __INA_ERROR_MSGLEN,
-                "%s%s%s%s%s - 0x%" INA_INT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,adj=%d,subject=%d",
+                "%s%s%s%s%s - 0x%" INA_UINT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,adj=%d,subject=%d",
                 (use)[0],
                 (use)[0][0]?" ":"",
                 (use)[1],
