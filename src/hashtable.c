@@ -252,7 +252,9 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
     (*ht)->hash_type = hash_type;
     switch ((*ht)->hash_type) {
         case INA_HASH_DEFAULT:
+            INA_DISABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
             (*ht)->hash_type++;
+            INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
         case INA_HASH32_CRC:
             (*ht)->hash32_fn = ina_hash_crc32;
             break;

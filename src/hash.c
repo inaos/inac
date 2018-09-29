@@ -209,6 +209,8 @@ INA_API(uint32_t) ina_hash_32_lookup3(uint32_t hash, const void *data, size_t si
     INA_ASSERT_NOTNULL(data);
 	a = b = c = 0xdeadbeef + ((uint32_t)size) + hash;
 
+	INA_DISABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+
 	while (size > 12) {
 		a += __ina_hash_le_uint32_read(key + 0);
 		b += __ina_hash_le_uint32_read(key + 4);
@@ -248,6 +250,8 @@ INA_API(uint32_t) ina_hash_32_lookup3(uint32_t hash, const void *data, size_t si
 
 	__INA_HASH_LOOKUP3_FINAL(a, b, c);
 
+	INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+
 	return c;
 }
 
@@ -256,6 +260,7 @@ INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t si
 	const unsigned char* key = (const unsigned char*)data;
 	uint32_t a, b, c;
     INA_ASSERT_NOTNULL(data);
+
 
 	a = b = c = 0xdeadbeef + ((uint32_t)size) + (hash & 0xffffffff);
 	c += hash >> 32;
@@ -271,6 +276,7 @@ INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t si
 		key += 12;
 	}
 
+	INA_DISABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
 	switch (size) {
 	case 0 :
 		return c + ((uint64_t)b << 32); /* used only when called with a zero length */
@@ -296,6 +302,7 @@ INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t si
 	case 2 : a += ((uint32_t)key[1]) << 8;
 	case 1 : a += key[0];
 	}
+	INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
 
 	__INA_HASH_LOOKUP3_FINAL(a, b, c);
 
@@ -903,7 +910,9 @@ static void __ina_hash_spooky_shorthash
 	uint64_t *hash2
 )
 {
+#if __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS == 0
 	uint64_t buf[2 * __INA_HASH_SPOOKY_SC_NUMVARS];
+#endif
 	union
 	{
 		const uint8_t *p8;
@@ -955,8 +964,13 @@ static void __ina_hash_spooky_shorthash
 		}
 	}
 
+	INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+
 	/* Handle the last 0..15 bytes, and its length */
 	d = ((uint64_t)length) << 56;
+
+	INA_DISABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+
 	switch (remainder)
 	{
 		case 15:
@@ -998,6 +1012,8 @@ static void __ina_hash_spooky_shorthash
 			c += __INA_HASH_SPOOKY_SC_CONST;
 			d += __INA_HASH_SPOOKY_SC_CONST;
 	}
+	INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+
 	__ina_hash_spooky_short_end(&a, &b, &c, &d);
 	*hash1 = a;
 	*hash2 = b;
