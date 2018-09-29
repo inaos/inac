@@ -38,7 +38,7 @@ static int find_data(const void *data, const void *find_arg)
 static int sort_desc(const void *lhs, const void *rhs)
 {
     const ina_data_t *a = (ina_data_t*)lhs;
-    const ina_data_t *b = (ina_data_t*)lhs;
+    const ina_data_t *b = (ina_data_t*)rhs;
     return (a->index > b->index);
 }
 

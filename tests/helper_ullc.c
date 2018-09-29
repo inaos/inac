@@ -13,12 +13,16 @@ static ina_ullc_ctx_t *ullc_ctx = NULL;
 
 
 static void ina_test_helper_cleanup_producer(int error, int *exitcode) {
+    INA_UNUSED(error);
+    INA_UNUSED(exitcode);
     if (ullc_ctx) {
         ina_ullc_producer_free(&ullc_ctx);
     }
 }
 
 static void ina_test_helper_cleanup_consumer(int error, int *exitcode) {
+    INA_UNUSED(error);
+    INA_UNUSED(exitcode);
     if (ullc_ctx) {
         ina_ullc_consumer_free(&ullc_ctx);
     }

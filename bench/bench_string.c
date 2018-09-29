@@ -17,6 +17,7 @@ INA_BENCH_DATA(string) {
 
 
 INA_BENCH_SETUP(string) {
+    INA_UNUSED(data);
     ina_bench_set_scale_label("nr_of_elements");
     ina_bench_set_precision(0);
 }

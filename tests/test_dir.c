@@ -63,7 +63,7 @@ INA_TEST_SETUP(dir) {
 }
 
 INA_TEST_TEARDOWN(dir) {
-
+    INA_UNUSED(data);
 }
 
 INA_TEST_FIXTURE(dir, test_new_free)
@@ -137,11 +137,12 @@ INA_TEST_FIXTURE(dir, test_sorted_by_name_descend)
 
 INA_TEST_FIXTURE_SKIP(dir, test_sorted_by_type)
 {
-
+    INA_UNUSED(data);
 }
 
 INA_TEST_FIXTURE_SKIP(dir, test_sorted_by_type_descend)
 {
+    INA_UNUSED(data);
 }
 
 

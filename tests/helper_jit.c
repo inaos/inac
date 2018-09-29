@@ -48,6 +48,8 @@ INA_TEST_HELPER(ljit, lua_debug_server) {
 
     ina_ljit_ctx_t *ctx = NULL;
     int ret;
+    INA_UNUSED(argv);
+    INA_UNUSED(argc);
 
     if (!INA_SUCCEED(ina_ljit_ctx_new(&ctx))) {
         *retval = INA_RC_ERROR(ina_err_get_last_rc());

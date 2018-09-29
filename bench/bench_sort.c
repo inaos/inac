@@ -45,6 +45,7 @@ INA_BENCH_DATA(sort) {
 INA_BENCH_SETUP(sort) { INA_UNUSED(data);}
 INA_BENCH_TEARDOWN(sort) { INA_UNUSED(data);}
 INA_BENCH_SCALE(sort) {
+    INA_UNUSED(data);
     ina_bench_set_scale(1);
 }
 INA_BENCH_BEGIN(sort, quicksort_simple){ INA_UNUSED(data);}

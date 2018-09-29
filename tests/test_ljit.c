@@ -33,7 +33,7 @@ INA_TEST_FIXTURE_SKIP(ljit_ex, lsocket_echo_client)
 {
     ina_ljit_ctx_t *ctx = NULL;
     int r = 0;
-
+    INA_UNUSED(data);
     INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
@@ -53,6 +53,7 @@ INA_TEST_FIXTURE_SKIP(ljit_ex, lsocket_echo_client)
 INA_TEST_FIXTURE_SKIP(ljit_ex, debug)
 {
     ina_ljit_ctx_t *ctx = NULL;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);

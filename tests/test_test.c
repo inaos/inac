@@ -173,6 +173,7 @@ INA_TEST_FIXTURE_OSX(test_os_fixture, osx) {
     INA_TEST_ASSERT_TRUE(0);
 }
 INA_TEST_FIXTURE_LINUX(test_os_fixture, linux) {
+    INA_UNUSED(data);
     INA_TEST_ASSERT_TRUE(1);
 }
 INA_TEST_WIN32(test_os, win32) {

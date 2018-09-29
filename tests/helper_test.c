@@ -10,9 +10,14 @@
 
 
 INA_TEST_HELPER(test, spawn_and_wait) {
+    INA_UNUSED(argc);
+    INA_UNUSED(argv);
+    INA_UNUSED(retval);
     
 }
 
 INA_TEST_HELPER(test, spawn_and_forget) {
-    
+    INA_UNUSED(argc);
+    INA_UNUSED(argv);
+    INA_UNUSED(retval);
 }

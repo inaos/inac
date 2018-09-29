@@ -12,12 +12,15 @@ static int __call_count = 0;
 
 static void __cleanup_handler(int error, int *exitcode)
 {
+    INA_UNUSED(error);
     ++__call_count;
     *exitcode = EXIT_SUCCESS;
 }
  
 static void __sig_handler(ina_signal_t sig, ina_signal_behavior_t *sb, int *exitcode)
 {
+    INA_UNUSED(sig);
+    INA_UNUSED(sb);
     ++__call_count;
     *exitcode = EXIT_SUCCESS;
 }

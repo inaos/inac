@@ -448,7 +448,7 @@ INA_API(ina_handle_t) ina_file_os_handle(ina_file_t *file)
 {
 	if (file == NULL) {
 		INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
-		return NULL;
+		return (ina_handle_t)0;
 	}
     return file->fh;
 }
