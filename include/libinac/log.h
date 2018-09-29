@@ -17,7 +17,7 @@ extern "C" {
 
 /* Base log macros, user INA_LOG_DEBUG/INFO/WARNING/ERROR instead */
 #ifdef INA_LOG_ENABLED
-#define INA_LOG(cfg, level, INA_AT, fmt,  ...) ina_log(cfg, level, fmt, ##__VA_ARGS__)
+#define INA_LOG(cfg, level, INA_AT, fmt,  ...) ina_log(cfg, level, INA_AT, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG(cfg, level, ...)
 #endif
