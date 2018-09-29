@@ -355,7 +355,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
 #endif
         const char **use = common;
 
-        ina_rc_t type = rc & (0x1FFLL << INA_RC_BIT_C);
+        ina_rc_t type = rc & (0x1FFULL << INA_RC_BIT_C);
 
         if ((type == INA_ERR_A) || (type == INA_ERR_NOT_A) ||
             (type == INA_ERR_NO) || (type == INA_ERR_NO_SUCH) ||
