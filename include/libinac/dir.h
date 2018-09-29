@@ -183,10 +183,8 @@ INA_API(void) ina_dir_walker_free(ina_dir_walker_t **walker);
  * Parameters
  *  stat  Where to store the directory attributes
  *  dir   Directory
- *
- * FIXME: Swap the argument position
  */
-INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir);
+INA_API(ina_rc_t) ina_dir_stat_new(const char *dir, ina_dir_stat_t **stat);
 
 /*
  * Get total capacity in bytes for a directory.

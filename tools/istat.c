@@ -40,7 +40,7 @@ int main(int argc,  char** argv)
         hr = 1;
     }
 
-    if (INA_SUCCEED(ina_dir_stat_new(&__ds, ina_str_cstr(dir)))) {
+    if (INA_SUCCEED(ina_dir_stat_new(ina_str_cstr(dir), &__ds))) {
         uint64_t b_total;
         uint64_t b_free;
         ina_dir_stat_bytes_capacity(__ds, &b_total);

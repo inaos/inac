@@ -264,7 +264,7 @@ INA_API(void) ina_dir_walker_free(ina_dir_walker_t **walker) {
     INA_MEM_FREE_SAFE(*walker);
 }
 
-INA_API(ina_rc_t) ina_dir_stat_new(ina_dir_stat_t **stat, const char *dir)
+INA_API(ina_rc_t) ina_dir_stat_new(const char *dir, ina_dir_stat_t **stat)
 {
     INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(dir);
