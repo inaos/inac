@@ -108,8 +108,6 @@ INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode);
  *
  * Return
  *  INA_SUCCESS
- *
- * FIXME: See #479
  */
 INA_API(ina_rc_t) ina_file_ctx_free(ina_file_ctx_t **ctx);
 
