@@ -184,10 +184,6 @@ INA_API(ina_str_t) ina_str_dup_using_pool(ina_cstr_t str,
     return ina_str_new_fromcstr_using_pool(str, pool);
 }
 
-INA_API(const char*) ina_str_cstr(ina_cstr_t str)
-{
-    return str;
-}
 
 INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, ina_cstr_t src)
 {
@@ -724,7 +720,7 @@ INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame, const char *wildcard)
 
     const char *pTameBookmark = (char*)0;
     const char *pWildBookmark = (char*)0;
-    const char *pTameText = ina_str_cstr(tame);
+    const char *pTameText = tame;
     const char *pWildText = wildcard;
  
     /* Walk the text strings one character at a time. */

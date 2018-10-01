@@ -9,11 +9,12 @@
 #ifndef _LIBINAC_STRING_H_
 #define _LIBINAC_STRING_H_
 
-#include <libinac/lib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_STR_FREE_SAFE(str) if((str) == NULL) ina_str_free((str))
 
@@ -142,7 +143,10 @@ INA_API(ina_str_t) ina_str_dup_using_pool(ina_cstr_t str,
  * Return
  *   Casted string
  */
-INA_API(const char *) ina_str_cstr(ina_cstr_t str);
+INA_INLINE const char* ina_str_cstr(ina_cstr_t str)
+{
+    return str;
+}
 
 /*
  * String manipulation
