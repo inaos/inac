@@ -287,7 +287,7 @@ INA_API(ina_handle_t) ina_file_os_handle(ina_file_t *file);
  *  file   INAC file handle
  *
  * Return
- *  On successful completion return a FILE pointer. Otherwise, NULL is returned.
+ *  On successful completion return a FILE pointer. Otherwise, NULL is returned.
  */
 INA_API(FILE*) ina_file_get_stream(ina_file_t *file);
 
