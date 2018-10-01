@@ -305,19 +305,19 @@ __FIXME__
 
 ## Library Version
 The INAOS Common C Library version is of the form A.B.C, where A is the major 
-version, B is the minor version and C is the micro version. If the micro 
+version, B is the minor version and C is the patch version. If the patch
 version is zero, it's omitted from the version string, i.e. the version string 
 is just A.B.
 When a new release only fixes bugs and doesn't add new features or 
-functionality, the micro version is incremented. When new features are added
-in a backwards compatible way, the minor version is incremented and the micro 
+functionality, the patch version is incremented. When new features are added
+in a backwards compatible way, the minor version is incremented and the patch
 version is set to zero. When there are backwards incompatible changes, the 
 major version is incremented and others are set to zero.
 
 The following preprocessor constants specify the current version of the 
 library:
 
-`INA_MAJOR_VERSION, INA_MINOR_VERSION, INA_MICRO_VERSION`
+`INA_MAJOR_VERSION, INA_MINOR_VERSION, INA_PATCH_VERSION`
 
 Integers specifying the major, minor and micro versions, respectively.
 
