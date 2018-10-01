@@ -163,7 +163,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
 #define INA_TEST_ASSERT(expr)                                               \
     INA_TEST_ASSERT_TRUE(expr)
 #define INA_TEST_ASSERT_SUCCESS(expr)                                       \
-    INA_TEST_ASSERT_EQUAL_INT(INA_SUCCESS, expr)
+    INA_TEST_ASSERT_EQUAL_UINT64(INA_SUCCESS, expr)
 #define INA_TEST_ASSERT_SUCCEED(expr)                                       \
     INA_TEST_ASSERT_TRUE(!((expr)>>INA_RC_BIT_E))
 #define INA_TEST_ASSERT_FAILED(expr)                                        \
