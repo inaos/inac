@@ -196,7 +196,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                     ina_hashtable_type_t type,
                                     ina_hashtable_growth_strategy_t growth_strategy,
                                     ina_hashtable_shrink_strategy_t shrink_strategy,
-                                    int capacity,
+                                    size_t capacity,
                                     uint32_t  cf,
                                     ina_hashtable_t **ht)
 {
@@ -205,6 +205,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
     size_t size;
 
     INA_VERIFY_NOT_NULL(ht);
+    INA_VERIFY(capacity <= INT_MAX);
 
     INA_UNUSED(type);
     INA_UNUSED(growth_strategy);
@@ -215,7 +216,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
     ina_mem_set((*ht), 0, sizeof(ina_hashtable_t));
 
     if (capacity > 0) {
-        (*ht)->capacity = capacity;
+        (*ht)->capacity = (int)capacity;
     } else {
         (*ht)->capacity = 256;
     }
@@ -422,10 +423,10 @@ INA_API(ina_rc_t) ina_hashtable_clear(ina_hashtable_t *ht)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_hashtable_count(ina_hashtable_t *ht, int *count)
+INA_API(ina_rc_t) ina_hashtable_count(ina_hashtable_t *ht, size_t *count)
 {
     INA_VERIFY_NOT_NULL(count);
-    *count = ht->count;
+    *count = (size_t)ht->count;
     return INA_SUCCESS;
 }
 

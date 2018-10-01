@@ -97,7 +97,7 @@ INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list)
 
 INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list)
 {
-    int count;
+    size_t count;
     ina_hashtable_count(ht, &count);
     if (INA_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, list)) &&
         INA_SUCCEED(ina_list_resize(*list, count, 0)) &&

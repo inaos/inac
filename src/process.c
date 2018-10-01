@@ -368,7 +368,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
                                   ina_process_descriptor_t *descriptor,
                                   ina_process_t **process)
 {
-    int count = 0;
+    size_t count = 0;
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(descriptor);
     INA_VERIFY_NOT_NULL(process);

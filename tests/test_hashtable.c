@@ -78,7 +78,7 @@ INA_TEST(hashtable, int_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data;
-    int count;
+    size_t count;
     size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
@@ -131,7 +131,7 @@ INA_TEST(hashtable, uint32_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_u32_t *data;
-    int count;
+    size_t count;
     size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT32_KEY,
@@ -183,7 +183,7 @@ INA_TEST(hashtable, uint64_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_u64_t *data;
-    int count;
+    size_t count;
     size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT64_KEY,
@@ -236,7 +236,7 @@ INA_TEST(hashtable, int64_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_i64_t *data;
-    int count;
+    size_t count;
     size_t usage;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT64_KEY,
@@ -289,7 +289,7 @@ INA_TEST(hashtable, ptr_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data1, *data2, *data3, *data;
-    int count;
+    size_t count;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
                                                INA_HASH_DEFAULT,
@@ -327,7 +327,7 @@ INA_TEST(hashtable, str_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data1, *data2, *data;
-    int count;
+    size_t count;
 
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
@@ -368,7 +368,7 @@ INA_TEST(hashtable, iter)
     ina_hashtable_t *ht = NULL;
     void *d = NULL;
     ina_hashtable_iter_t *iter = NULL;
-    int count;
+    size_t count;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                                INA_HASH_DEFAULT,
@@ -461,7 +461,7 @@ INA_TEST(hashtable, clear)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data;
-    int count;
+    size_t count;
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                                INA_HASH_DEFAULT,
@@ -585,7 +585,7 @@ INA_TEST_SKIP(hashtable, new_from_cfg)
     ina_hashtable_t *ht;
     const char* names[] = {"h1", "h2", "h3", NULL};
     int i = -1;
-    int count = 0;
+    size_t count = 0;
     const int data = 1;
 
     while (names[++i] != NULL) {

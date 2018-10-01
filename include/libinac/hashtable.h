@@ -56,7 +56,9 @@ typedef enum ina_hashtable_shrink_strategy_e {
 typedef struct ina_hashtable_s                ina_hashtable_t;
 typedef struct ina_hashtable_iter_s           ina_hashtable_iter_t;
 
-
+/*
+ *
+ */
 INA_API(ina_rc_t) ina_hashtable_init(const char *cfg_filepath);
 
 INA_API(void) ina_hashtable_destroy(void);
@@ -67,7 +69,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                     ina_hashtable_type_t type,
                                     ina_hashtable_growth_strategy_t growth_strategy,
                                     ina_hashtable_shrink_strategy_t shrink_strategy,
-                                    int capacity,
+                                    size_t capacity,
                                     uint32_t  cf,
                                     ina_hashtable_t **ht);
 
@@ -77,7 +79,7 @@ INA_API(void) ina_hashtable_free(ina_hashtable_t **ht);
 
 INA_API(ina_rc_t) ina_hashtable_clear(ina_hashtable_t *ht);
 
-INA_API(ina_rc_t) ina_hashtable_count(ina_hashtable_t *ht, int *count);
+INA_API(ina_rc_t) ina_hashtable_count(ina_hashtable_t *ht, size_t *count);
 
 INA_API(ina_rc_t) ina_hashtable_usage(ina_hashtable_t *ht, size_t *usage);
 
