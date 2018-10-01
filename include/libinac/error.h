@@ -531,6 +531,13 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 
 #define INA_ES_USER_DEFINED         (1024UL)
 
+
+/*
+ * Error codes
+ */
+#define INA_ERR_INVALID_ARGUMENT (INA_ERR_INVALID|INA_ES_ARGUMENT)
+
+
 typedef const char* (*ina_err_subject_cb_t)(int);
 
 typedef struct ina_log_s ina_log_t;
@@ -668,7 +675,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED(rc))) abort(); } while(0)
 
 #ifndef INA_VERIFY_DISABLED
-#define INA_VERIFY(x) do { if (INA_UNLIKELY(!(x))) return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID); } while (0)
+#define INA_VERIFY(x) do { if (INA_UNLIKELY(!(x))) return INA_ERROR(INA_ERR_INVALID_ARGUMENT); } while (0)
 #define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) != NULL)
 #else
 #define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))

@@ -127,6 +127,9 @@ INA_INLINE void __ina_push_event(const ina_hashtable_t *ht, uint32_t event, uint
 
 INA_API(ina_rc_t) ina_hashtable_init(const char* cfg_filepath)
 {
+    INA_VERIFY_NOT_NULL(cfg_filepath);
+    INA_VERIFY(strlen(cfg_filepath));
+
     INA_INIT_GUARD();
     if (cfg_filepath != NULL) {
         __cfg_filepath = ina_str_new_fromcstr(cfg_filepath);

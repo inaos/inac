@@ -57,7 +57,14 @@ typedef struct ina_hashtable_s                ina_hashtable_t;
 typedef struct ina_hashtable_iter_s           ina_hashtable_iter_t;
 
 /*
+ * Initialize hash table module. This function is called by
+ * ina_init().
  *
+ * Return
+ *  INA_SUCCESS if all went well
+ *
+ *  Error codes
+ *  - INA_ERR_INVALID_ARGUMENT
  */
 INA_API(ina_rc_t) ina_hashtable_init(const char *cfg_filepath);
 
