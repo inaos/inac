@@ -1251,31 +1251,58 @@ void  rewinddir(DIR *dir);
 #endif
 #endif
 
-#ifdef __cplusplus
-}
-#endif
-
 #define INA_DIAG_STR(s) #s
 #define INA_DIAG_JOINSTR(x,y) INA_DIAG_STR(x ## y)
 #ifdef _MSC_VER
-#define INA_DIAG_DO_PRAGMA(x) __pragma (#x)
+#define INA_DIAG_DO_PRAGMA(x) __pragma (x)
 #define INA_DIAG_PRAGMA(compiler,x) INA_DIAG_DO_PRAGMA(warning(x))
 #else
 #define INA_DIAG_DO_PRAGMA(x) _Pragma (#x)
 #define INA_DIAG_PRAGMA(compiler,x) INA_DIAG_DO_PRAGMA(compiler diagnostic x)
 #endif
 #if defined(__clang__)
+# define INA_DISABLE_WARNING_CLANG(clang_option) INA_DIAG_PRAGMA(clang,push) INA_DIAG_PRAGMA(clang,ignored INA_DIAG_JOINSTR(-W,clang_option))
+# define INA_ENABLE_WARNING_CLANG(clang_option) INA_DIAG_PRAGMA(clang,pop)
 # define INA_DISABLE_WARNING(gcc_unused,clang_option,msvc_unused) INA_DIAG_PRAGMA(clang,push) INA_DIAG_PRAGMA(clang,ignored INA_DIAG_JOINSTR(-W,clang_option))
 # define INA_ENABLE_WARNING(gcc_unused,clang_option,msvc_unused) INA_DIAG_PRAGMA(clang,pop)
+# define INA_DISABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_ENABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_DISABLE_WARNING_GCC(msvc_errorcode)
+# define INA_ENABLE_WARNING_GCC(msvc_errorcode)
 #elif defined(_MSC_VER)
-# define INA_DISABLE_WARNING(gcc_unused,clang_unused,msvc_errorcode) INA_DIAG_PRAGMA(msvc,push) INA_DIAG_DO_PRAGMA(warning(disable:##msvc_errorcode))
+# define INA_ENABLE_WARNING_GCC(gcc_option)
+# define INA_DISABLE_WARNING_GCC(gcc_option)
+# define INA_DISABLE_WARNING_CLANG(clang_option)
+# define INA_ENABLE_WARNING_CLANG(clang_option)
+# define INA_DISABLE_WARNING(gcc_unused,clang_unused,msvc_errorcode) \
+     INA_DIAG_PRAGMA(msvc,push) \
+     INA_DIAG_DO_PRAGMA(warning(disable: msvc_errorcode))
 # define INA_ENABLE_WARNING(gcc_unused,clang_unused,msvc_errorcode) INA_DIAG_PRAGMA(msvc,pop)
+# define INA_DISABLE_WARNING_MSVC(msvc_errorcode) \
+     __pragma(warning(push)) __pragma(warning(disable: msvc_errorcode))
+# define INA_ENABLE_WARNING_MSVC(msvc_errorcode) __pragma(warning(pop))
 #elif defined(__GNUC__)
 #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+# define INA_DISABLE_WARNING_CLANG(clang_option)
+# define INA_ENABLE_WARNING_CLANG(clang_option)
+# define INA_DISABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_ENABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_DISABLE_WARNING_GCC(gcc_option) INA_DIAG_PRAGMA(GCC,push) INA_DIAG_PRAGMA(GCC,ignored INA_DIAG_JOINSTR(-W,gcc_option))
+# define INA_ENABLE_WARNING_GCC(gcc_option) INA_DIAG_PRAGMA(GCC,pop)
 # define INA_DISABLE_WARNING(gcc_option,clang_unused,msvc_unused) INA_DIAG_PRAGMA(GCC,push) INA_DIAG_PRAGMA(GCC,ignored INA_DIAG_JOINSTR(-W,gcc_option))
 # define INA_ENABLE_WARNING(gcc_option,clang_unused,msvc_unused) INA_DIAG_PRAGMA(GCC,pop)
 #else
+# define INA_DISABLE_WARNING_CLANG(clang_option)
+# define INA_ENABLE_WARNING_CLANG(clang_option)
+# define INA_DISABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_ENABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_DISABLE_WARNING_GCC(gcc_option) INA_DIAG_PRAGMA(GCC,ignored INA_DIAG_JOINSTR(-W,gcc_option))
+# define INA_ENABLE_WARNING_GCC(gcc_option) INA_DIAG_PRAGMA(GCC,pop)
 # define INA_DISABLE_WARNING(gcc_option,clang_unused,msvc_unused) INA_DIAG_PRAGMA(GCC,ignored INA_DIAG_JOINSTR(-W,gcc_option))
 # define INA_ENABLE_WARNING(gcc_option,clang_option,msvc_unused) INA_DIAG_PRAGMA(GCC,warning INA_DIAG_JOINSTR(-W,gcc_option))
 #endif
+#endif
+
+#ifdef __cplusplus
+}
 #endif

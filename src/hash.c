@@ -209,7 +209,7 @@ INA_API(uint32_t) ina_hash_32_lookup3(uint32_t hash, const void *data, size_t si
     INA_ASSERT_NOTNULL(data);
 	a = b = c = 0xdeadbeef + ((uint32_t)size) + hash;
 
-	INA_DISABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+	INA_DISABLE_WARNING_GCC(implicit-fallthrough)
 
 	while (size > 12) {
 		a += __ina_hash_le_uint32_read(key + 0);
@@ -250,7 +250,7 @@ INA_API(uint32_t) ina_hash_32_lookup3(uint32_t hash, const void *data, size_t si
 
 	__INA_HASH_LOOKUP3_FINAL(a, b, c);
 
-	INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+	INA_ENABLE_WARNING_GCC(implicit-fallthrough)
 
 	return c;
 }
@@ -276,7 +276,7 @@ INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t si
 		key += 12;
 	}
 
-	INA_DISABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+	INA_DISABLE_WARNING_GCC(implicit-fallthrough)
 	switch (size) {
 	case 0 :
 		return c + ((uint64_t)b << 32); /* used only when called with a zero length */
@@ -302,7 +302,7 @@ INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t si
 	case 2 : a += ((uint32_t)key[1]) << 8;
 	case 1 : a += key[0];
 	}
-	INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+	INA_ENABLE_WARNING_GCC(implicit-fallthrough)
 
 	__INA_HASH_LOOKUP3_FINAL(a, b, c);
 
@@ -967,7 +967,7 @@ static void __ina_hash_spooky_shorthash
 	/* Handle the last 0..15 bytes, and its length */
 	d = ((uint64_t)length) << 56;
 
-	INA_DISABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+	INA_DISABLE_WARNING_GCC(implicit-fallthrough)
 
 	switch (remainder)
 	{
@@ -1010,7 +1010,7 @@ static void __ina_hash_spooky_shorthash
 			c += __INA_HASH_SPOOKY_SC_CONST;
 			d += __INA_HASH_SPOOKY_SC_CONST;
 	}
-	INA_ENABLE_WARNING(implicit-fallthrough, implicit-fallthrough, 0)
+	INA_ENABLE_WARNING_GCC(implicit-fallthrough)
 
 	__ina_hash_spooky_short_end(&a, &b, &c, &d);
 	*hash1 = a;
