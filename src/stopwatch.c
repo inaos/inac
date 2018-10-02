@@ -10,8 +10,11 @@
 #include "config.h"
 
 #ifdef INA_OS_WIN32
-#define __INA_TIME_TSC_BACKEND_NAME "tsc backend: QueryPerformanceCounter()"
 #define __INA_TIME_INC(vv_ptr) InterlockedExchangeAdd64(vv_ptr, 1)
+INA_INLINE double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER * L)
+{
+    return ((double)L->QuadPart / freq_sec);
+}
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
   #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
@@ -199,9 +202,9 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
             elapsed.QuadPart = stopwatch->ts->stamp.tp.QuadPart - 
 		    stopwatch->tv->start.tp.QuadPart; 
         } else {
-           ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index-1);
+           *ts = (&(stopwatch->tv->stamps))+(*stamp_index-1);
            elapsed.QuadPart = stopwatch->ts->stamp.tp.QuadPart - 
-		   ts->stamp.tp.QuadPart; 
+                   (*ts)->stamp.tp.QuadPart;
         }
         stopwatch->ts->duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
 #elif defined(INA_OS_OSX)
@@ -311,7 +314,7 @@ INA_API(ina_rc_t) ina_stopwatch_stop(ina_stopwatch_t* stopwatch)
     INA_VERIFY_NOT_NULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
-    stopwatch->tv->sec_duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
+    stopwatch->tv->duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
 #elif defined(INA_OS_OSX)
     INA_VERIFY_NOT_NULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);

@@ -9,6 +9,9 @@
 #include <libinac/lib.h>
 #include "config.h"
 
+#ifdef INA_OS_WIN32
+#define __INA_TIME_TSC_BACKEND_NAME "tsc backend: QueryPerformanceCounter()"
+#endif
 #define __INA_TIME_RDTSC_BACKEND_NAME "tsc backend: rdtsc()"
 
 #if defined(INA_OS_OSX)
@@ -67,11 +70,11 @@ static uint64_t __ina_time_rdtsc_ref = 0;
 
 
 #ifdef INA_OS_WIN32
-static double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER * L) 
+INA_INLINE double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER * L)
 {
     return ((double)L->QuadPart / freq_sec);
 }
-static double __ina_freq_sec() 
+INA_INLINE double __ina_freq_sec()
 {
     LARGE_INTEGER frequency;
     QueryPerformanceFrequency( &frequency ) ; 
