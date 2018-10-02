@@ -234,6 +234,7 @@ static ssize_t __stream_array_size = 0;
 static ina_time_t *__ina_time_ref = NULL;
 
 extern double mysecond();
+extern int checktick();
 extern void checkSTREAMresults();
 #ifdef TUNED
 extern void tuned_STREAM_Copy();
@@ -247,7 +248,7 @@ extern int omp_get_num_threads();
 int
 main(int argc, char **argv)
     {
-    int			quantum, checktick();
+    int			quantum;
     int			BytesPerWord;
     int			k;
     ssize_t		j;
@@ -534,6 +535,7 @@ void checkSTREAMresults ()
 	bAvgErr = bSumErr / (STREAM_TYPE) __stream_array_size;
 	cAvgErr = cSumErr / (STREAM_TYPE) __stream_array_size;
 
+    INA_DISABLE_WARNING_MSVC(4127);
 	if (sizeof(STREAM_TYPE) == 4) {
 		epsilon = 1.e-6;
 	}
@@ -544,6 +546,7 @@ void checkSTREAMresults ()
 		printf("WEIRD: sizeof(STREAM_TYPE) = %zu\n",sizeof(STREAM_TYPE));
 		epsilon = 1.e-6;
 	}
+    INA_DISABLE_WARNING_MSVC(4127);
 
 	err = 0;
 	if (abs(aAvgErr/aj) > epsilon) {

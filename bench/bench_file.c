@@ -166,7 +166,7 @@ INA_BENCH_BEGIN(file, bf_read_cursor) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_cursor) { INA_UNUSED(data); }
 INA_BENCH(file, bf_read_cursor, 4)
 {
-    size_t nb_read = -1;
+    size_t nb_read = 0;
     data->tot_nb_read = 0;
     const unsigned char *buf;
 
@@ -200,7 +200,7 @@ INA_BENCH_BEGIN(file, bf_read_mmap_cursor) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_mmap_cursor) { INA_UNUSED(data); }
 INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4)
 {
-    size_t nb_read = -1;
+    size_t nb_read = 0;
     data->tot_nb_read = 0;
     const unsigned char *buf;
 

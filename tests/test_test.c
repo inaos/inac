@@ -125,6 +125,7 @@ INA_TEST_TEARDOWN(test_os_fixture) {
 
 #ifdef INA_OS_WIN32
 INA_TEST_FIXTURE_WIN32(test_os_fixture, win32) {
+    INA_UNUSED(data);
     INA_TEST_ASSERT_TRUE(1);
 }
 INA_TEST_FIXTURE_OSX(test_os_fixture, osx) {
