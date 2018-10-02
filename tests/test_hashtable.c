@@ -119,7 +119,7 @@ INA_TEST(hashtable, int_key)
     INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(4, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_usage(ht, &usage));
     INA_TEST_MSG("usage in bytes: %d", usage);
 
@@ -172,7 +172,7 @@ INA_TEST(hashtable, uint32_key)
     INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(4, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_usage(ht, &usage));
     INA_TEST_MSG("usage in bytes: %d", usage);
 
@@ -225,7 +225,7 @@ INA_TEST(hashtable, uint64_key)
     INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(4, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_usage(ht, &usage));
     INA_TEST_MSG("usage in bytes: %d", usage);
 
@@ -277,7 +277,7 @@ INA_TEST(hashtable, int64_key)
     INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(4, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_usage(ht, &usage));
     INA_TEST_MSG("usage in bytes: %d", usage);
 
@@ -313,12 +313,12 @@ INA_TEST(hashtable, ptr_key)
     INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
     INA_TEST_ASSERT_FAILED(ina_hashtable_get_ptr(ht, data3, (void**)&data));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(2, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(2, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_ptr(ht, data1, (void**)&data));
     INA_TEST_ASSERT_NOT_NULL(data);
     INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(1, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(1, count);
 
     ina_hashtable_free(&ht);
 }
@@ -351,12 +351,12 @@ INA_TEST(hashtable, str_key)
     INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
     INA_TEST_ASSERT_FAILED(ina_hashtable_get_str(ht, "n3", (void**)&data));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(2, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(2, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_str(ht, "n2", (void**)&data));
     INA_TEST_ASSERT_NOT_NULL(data);
     INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(1, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(1, count);
 
     ina_hashtable_free(&ht);
 }
@@ -385,7 +385,7 @@ INA_TEST(hashtable, iter)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_str(ht, "n3", new_data(3, "Name 3")));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_str(ht, "n4", new_data(4, "Name 4")));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(4, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_iter_new(ht, &iter));
     INA_TEST_ASSERT_NOT_NULL(ht);
@@ -478,10 +478,10 @@ INA_TEST(hashtable, clear)
     data = new_data(2, "Name 2");
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(2, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(2, count);
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_clear(ht));
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
-    INA_TEST_ASSERT_EQUAL_INT(0, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, count);
     ina_hashtable_free(&ht);
 }
 
