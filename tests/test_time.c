@@ -64,25 +64,21 @@ INA_TEST(time, two_stopwatches)
     time_t sec2  = 0; 
     long nano1 = 0;
     long nano2 = 0;
+    ina_time_tsc_t *ts1;
+    ina_time_tsc_t *ts2;
 
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(&w1, 1, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w1));
     INA_TEST_ASSERT_NOT_NULL(w1);
-    INA_TEST_ASSERT_EQUAL_FLOATING(1, w1->id);
-    INA_TEST_ASSERT_NOT_NULL(w1->tv);
-    INA_TEST_ASSERT_NULL(w1->ts);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(&w2, 2, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(2, -1, &w2));
     INA_TEST_ASSERT_NOT_NULL(w2);
-    INA_TEST_ASSERT_EQUAL_FLOATING(2, w2->id);
-    INA_TEST_ASSERT_NOT_NULL(w2->tv);
-    INA_TEST_ASSERT_NULL(w2->ts);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start(w1, NULL));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start(w2, NULL));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_stop(w1));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_stop(w2));
-    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w1->tv->start, 
-                                &sec1, &nano1)); 
-    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(&w2->tv->start, 
-                                &sec2, &nano2));
+    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start_time(w1, &ts1));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(ts1, &sec1, &nano1));
+    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start_time(w2, &ts2));
+    INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(ts2, &sec2, &nano2));
     INA_TEST_ASSERT_EQUAL_INT(sec1, sec2);
     INA_TEST_ASSERT_TRUE(nano1< nano2);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w1));
@@ -408,11 +404,12 @@ INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     char user_data2[INA_STOPWATCH_MAX_STAMPS];
     double msec_duration = 0;
     double msec_duration2 = 0;
+    ina_stopwatch_ts_t *ts;
 
     /* We need to wait that the helper has done his work */
     ina_time_sleep(1000);
 
-    INA_TEST_ASSERT_SUCCEED(INA_STOPWATCH_OPEN(&data->w, 889));
+    INA_TEST_ASSERT_SUCCEED(INA_STOPWATCH_OPEN(889, &data->w));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_started(data->w));
 
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
@@ -425,12 +422,12 @@ INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
     sprintf(user_data2, "%.10f", msec_duration);
     INA_TEST_ASSERT_SUCCEED(INA_STOPWATCH_STAMP2(data->w, "test", user_data2));
 
-    while (INA_SUCCEED(ina_stopwatch_read_stamp(data->w, &c))) {
-        INA_TEST_ASSERT_NOT_NULL(data->w->ts);
-        msec_duration2 = atof(data->w->ts->user_data2);
-        INA_TEST_MSG("stamp %lld: %.10f ms - %.10f ms = %.10f us (%s)", c, data->w->ts->msec_duration, 
-            msec_duration2-msec_duration, (data->w->ts->msec_duration-(msec_duration2-msec_duration))*1000,
-             data->w->ts->user_data1);
+    while (INA_SUCCEED(ina_stopwatch_read_stamp(data->w, &c, &ts))) {
+        INA_TEST_ASSERT_NOT_NULL(ts);
+        msec_duration2 = atof(ts->user_data2);
+        INA_TEST_MSG("stamp %lld: %.10f ms - %.10f ms = %.10f us (%s)", c, ts->duration,
+            msec_duration2-msec_duration, (ts->duration-(msec_duration2-msec_duration))*1000,
+             ts->user_data1);
         msec_duration = msec_duration2;
         ++c;
     }

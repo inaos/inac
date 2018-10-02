@@ -331,9 +331,9 @@ INA_API(ina_rc_t) ina_stopwatch_stop(ina_stopwatch_t* stopwatch)
         &stopwatch->tv->stop.tp.tv_sec, 
         &stopwatch->tv->stop.tp.tv_nsec);
 
-    stopwatch->tv->sec_duration = (stopwatch->tv->stop.tp.tv_sec - 
+    stopwatch->tv->duration = (stopwatch->tv->stop.tp.tv_sec -
 		    stopwatch->tv->start.tp.tv_sec);
-    stopwatch->tv->sec_duration += ((stopwatch->tv->stop.tp.tv_nsec - 
+    stopwatch->tv->duration += ((stopwatch->tv->stop.tp.tv_nsec -
 			    stopwatch->tv->start.tp.tv_nsec) / 1000000000.0); 
 #endif
     return ina_stopwatch_valid(stopwatch);
