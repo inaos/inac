@@ -19,33 +19,33 @@
 INA_TEST_HELPER(time_ipc, stopwatch_create) {
     int32_t id;
     ina_stopwatch_t *w = NULL;
-    char user_data[INA_TIME_MAX_USERDATA_LEN+10];
+    char user_data[INA_STOPWATCH_MAX_STAMPS+10];
 
     INA_TEST_HELPER_CHECK_ARGC(1);
     id = INA_TEST_HELPER_IARG(0);
 
-    if (!INA_SUCCEED(INA_TIME_STOPWATCH_NEW(&w, id, -1))) {
+    if (!INA_SUCCEED(INA_STOPWATCH_NEW(&w, id, -1))) {
         INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
         return;
     }
 
-    ina_mem_set(&user_data, 'a', INA_TIME_MAX_USERDATA_LEN+8);
-    user_data[INA_TIME_MAX_USERDATA_LEN+9] = '\0';
+    ina_mem_set(&user_data, 'a', INA_STOPWATCH_MAX_STAMPS+8);
+    user_data[INA_STOPWATCH_MAX_STAMPS+9] = '\0';
 
-    INA_TIME_STOPWATCH_START(w);
+    INA_STOPWATCH_START(w);
     ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP(w);
+    INA_STOPWATCH_STAMP(w);
     ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP1(w, "user_data1");
+    INA_STOPWATCH_STAMP1(w, "user_data1");
     ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP2(w, "user_data1", "user_data2");
+    INA_STOPWATCH_STAMP2(w, "user_data1", "user_data2");
     ina_time_sleep(10);
-    INA_TIME_STOPWATCH_STAMP2(w, user_data, user_data);
+    INA_STOPWATCH_STAMP2(w, user_data, user_data);
     
-    while (INA_SUCCEED(ina_time_stopwatch_started(w))) {
+    while (INA_SUCCEED(ina_stopwatch_started(w))) {
         ina_time_sleep(100);
     }
-    INA_TIME_STOPWATCH_FREE(&w);
+    INA_STOPWATCH_FREE(&w);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
 
@@ -64,43 +64,43 @@ INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
 
     ina_time_tsc_enable_rdtsc();
 
-    if (!INA_SUCCEED(INA_TIME_STOPWATCH_NEW(&w, id, -1))) {
+    if (!INA_SUCCEED(INA_STOPWATCH_NEW(&w, id, -1))) {
         INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
         return;
     }
  
     ina_time_tsc_t time;
     double msec_duration = 0;
-    char user_data2[INA_TIME_MAX_USERDATA_LEN];
+    char user_data2[INA_STOPWATCH_MAX_STAMPS];
     ina_time_read_tsc_clock(&t);    
 
-    INA_TIME_STOPWATCH_START_EX(w, &t);
+    INA_STOPWATCH_START_EX(w, &t);
     ina_time_sleep(1000);
     ina_time_sleep(10);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
     sprintf(user_data2, "%.10f", msec_duration);
-    INA_TIME_STOPWATCH_STAMP2(w, "helper", user_data2);
+    INA_STOPWATCH_STAMP2(w, "helper", user_data2);
     ina_time_sleep(10);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
     sprintf(user_data2, "%.10f", msec_duration);
-    INA_TIME_STOPWATCH_STAMP2(w, "helper", user_data2);
+    INA_STOPWATCH_STAMP2(w, "helper", user_data2);
     ina_time_sleep(10);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
     sprintf(user_data2, "%.10f", msec_duration);
-    INA_TIME_STOPWATCH_STAMP2(w, "helper", user_data2);
+    INA_STOPWATCH_STAMP2(w, "helper", user_data2);
     ina_time_sleep(10);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
     sprintf(user_data2, "%.10f", msec_duration);
-    INA_TIME_STOPWATCH_STAMP2(w, "helper", user_data2);
+    INA_STOPWATCH_STAMP2(w, "helper", user_data2);
     
-    while (INA_SUCCEED(ina_time_stopwatch_started(w))) {
+    while (INA_SUCCEED(ina_stopwatch_started(w))) {
         ina_time_sleep(10);
     }
-    INA_TIME_STOPWATCH_FREE(&w);
+    INA_STOPWATCH_FREE(&w);
     ina_time_tsc_disable_rdtsc();
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

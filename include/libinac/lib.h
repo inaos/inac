@@ -66,6 +66,7 @@ extern "C" {
 #include <libinac/log.h>
 #include <libinac/time.h>
 #include <libinac/timer.h>
+#include <libinac/stopwatch.h>
 #include <libinac/ullc.h>
 #include <libinac/net.h>
 #include <libinac/ljit.h>

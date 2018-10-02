@@ -36,11 +36,11 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
     size_t array_size = 1024*1024/sizeof(size_t)*test_array_size;
     size_t array_bytes = array_size * sizeof(size_t);
     double elapsed_total = 0;
+    double duration = 0;
     size_t mib = test_array_size;
     int i;
-    int64_t idx = 0;
 
-    if (!INA_SUCCEED(INA_TIME_STOPWATCH_NEW(&w, 1, -1))) {
+    if (!INA_SUCCEED(INA_STOPWATCH_NEW(&w, 1, -1))) {
         return ina_err_get_last_rc();
     }
 
@@ -53,22 +53,22 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
             return ina_err_get_last_rc();
         }
 
-        INA_TIME_STOPWATCH_START(w);
+        INA_STOPWATCH_START(w);
         memcpy(__test_array_b, __test_array_a, array_bytes);
-        INA_TIME_STOPWATCH_STOP(w);
-        ina_time_stopwatch_read_stamp(w, &idx);
+        INA_STOPWATCH_STOP(w);
 
-        printf("Elapsed: %.5f\t", w->tv->sec_duration);
+        ina_stopwatch_duration(w, &duration);
+        printf("Elapsed: %.5f\t", duration);
         printf("MiB: %zu\t", mib);
-        printf("Copy: %.3f MiB/s\n", test_array_size/w->tv->sec_duration);
+        printf("Copy: %.3f MiB/s\n", test_array_size/duration);
 
-        elapsed_total += w->tv->sec_duration;
+        elapsed_total += duration;
 
         free(__test_array_a);
         free(__test_array_b);
     }
 
-    INA_TIME_STOPWATCH_FREE(&w);
+    INA_STOPWATCH_FREE(&w);
 
     printf("AVG:\tElapsed: %.5f\t", elapsed_total/iterations);
     printf("MiB: %zu\t", mib);
