@@ -40,7 +40,7 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
     size_t mib = test_array_size;
     int i;
 
-    if (!INA_SUCCEED(INA_STOPWATCH_NEW(&w, 1, -1))) {
+    if (!INA_SUCCEED(INA_STOPWATCH_NEW(1, -1, &w))) {
         return ina_err_get_last_rc();
     }
 
