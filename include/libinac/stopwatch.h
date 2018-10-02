@@ -21,8 +21,8 @@ extern "C" {
 
 
 #ifndef INA_STOPWATCH_DISABLED
-#define INA_STOPWATCH_NEW(pptr_sw, id, max_stamps)     \
-    ina_stopwatch_new(pptr_sw, id, max_stamps)
+#define INA_STOPWATCH_NEW(id, max_stamps, pptr_sw)     \
+    ina_stopwatch_new(id, max_stamps, pptr_sw)
 #define INA_STOPWATCH_OPEN(id, pptr_sw)                \
     ina_stopwatch_open(id, pptr_sw)
 #define INA_STOPWATCH_FREE(pptr_sw)                    \
@@ -42,8 +42,8 @@ extern "C" {
 #define INA_STOPWATCH_FOREACH_STAMP(ptr_sw, fn)        \
     ina_stopwatch_foreach_stamp(ptr_sw, fn)
 #else
-#define INA_STOPWATCH_CREATE(pptr_sw, id, max_stamps)
-#define INA_STOPWATCH_OPEN(pptr_sw, id)
+#define INA_STOPWATCH_CREATE(id, max_stamps, pptr_sw)
+#define INA_STOPWATCH_OPEN(id, pptr_sw)
 #define INA_STOPWATCH_DESTROY(pptr_sw)
 #define INA_STOPWATCH_START(ptr_sw)
 #define INA_STOPWATCH_START_EX(ptr_sw, ptr_str)
@@ -78,9 +78,7 @@ typedef struct ina_stopwatch_s ina_stopwatch_t;
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_stopwatch_new(ina_stopwatch_t **stopwatch,
-                                    int id,
-                                    int max_stamps);
+INA_API(ina_rc_t) ina_stopwatch_new(int id, int max_stamps, ina_stopwatch_t **stopwatch);
 
 /*
  * Open an existing stopwatch.
@@ -92,7 +90,7 @@ INA_API(ina_rc_t) ina_stopwatch_new(ina_stopwatch_t **stopwatch,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_stopwatch_open(ina_stopwatch_t **stopwatch, int id);
+INA_API(ina_rc_t)  ina_stopwatch_open(int id, ina_stopwatch_t **stopwatch);
 
 INA_API(ina_rc_t) ina_stopwatch_start_time(const ina_stopwatch_t *stopwatch, ina_time_tsc_t **time);
 INA_API(ina_rc_t) ina_stopwatch_stop_time(const ina_stopwatch_t *stopwatch, ina_time_tsc_t **time);

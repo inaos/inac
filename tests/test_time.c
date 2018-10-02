@@ -36,7 +36,7 @@ INA_TEST(time,time_stamp)
     double msec_duration = 0;
     ina_stopwatch_ts_t *ts;
 
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(&w, 3, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(3, -1, &w));
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_FAILED(ina_stopwatch_started(w));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start(w, NULL));
@@ -97,7 +97,7 @@ INA_TEST(time, stopwatch)
     double duration;
 
     gettimeofday(&tv_start, NULL);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(&w, 1, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w));
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start(w, NULL));
 
@@ -125,7 +125,7 @@ INA_TEST(time, stopwatch_startime)
     gettimeofday(&tv_start, NULL);
     ina_time_read_tsc_clock(&start_ts);
     ina_time_sleep(200);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(&w, 1, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w));
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start(w, &start_ts));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_duration(w, &duration));
@@ -171,7 +171,7 @@ INA_TEST_SKIP(time, stopwatch_startime_rdtsc)
     gettimeofday(&tv_start, NULL);
     ina_time_read_tsc_clock(&start_ts);
     ina_time_sleep(200);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(&w, 1, -1));
+    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w));
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start(w, &start_ts));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_started(w));
@@ -341,7 +341,7 @@ INA_TEST_FIXTURE(time_ipc, stopwatch_open) {
     /* We need to wait that the heler has done his work */
     ina_time_sleep(500);
 
-    INA_TEST_ASSERT_SUCCEED(INA_STOPWATCH_OPEN(&data->w, 888));
+    INA_TEST_ASSERT_SUCCEED(INA_STOPWATCH_OPEN(888, &data->w));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_started(data->w));
 
     while (INA_SUCCEED(ina_stopwatch_read_stamp(data->w, &c, &ts))) {

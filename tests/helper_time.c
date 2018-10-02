@@ -24,7 +24,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     INA_TEST_HELPER_CHECK_ARGC(1);
     id = INA_TEST_HELPER_IARG(0);
 
-    if (!INA_SUCCEED(INA_STOPWATCH_NEW(&w, id, -1))) {
+    if (!INA_SUCCEED(INA_STOPWATCH_NEW(id, -1, &w))) {
         INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
         return;
     }

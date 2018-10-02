@@ -51,19 +51,22 @@ static ina_rc_t __ina_stopwatch_init(int, ina_stopwatch_t **, int, size_t);
 
 
 
-INA_API(ina_rc_t) ina_stopwatch_new(ina_stopwatch_t **stopwatch, int id,
-                                    int max_stamps)
+INA_API(ina_rc_t) ina_stopwatch_new(int id, int max_stamps, ina_stopwatch_t **stopwatch)
 {
     size_t size = INA_STOPWATCH_MAX_STAMPS;
     INA_VERIFY_NOT_NULL(stopwatch);
     *stopwatch = NULL;
     if (max_stamps == -1) {
-        size = (size_t)INA_STOPWATCH_MAX_STAMPS;
+        if (id > 0) {
+            size = (size_t) INA_STOPWATCH_MAX_STAMPS;
+        } else {
+            size = 0;
+        }
     }
     return __ina_stopwatch_init(id, stopwatch, 1, size);
 }
 
-INA_API(ina_rc_t) ina_stopwatch_open(ina_stopwatch_t **stopwatch, int id)
+INA_API(ina_rc_t) ina_stopwatch_open(int id, ina_stopwatch_t **stopwatch)
 {
     return __ina_stopwatch_init(id, stopwatch, 0, INA_STOPWATCH_MAX_STAMPS);
 }
@@ -341,9 +344,8 @@ static ina_rc_t
 __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create, 
 			size_t max_stamps) {
     size_t size;
-    uint32_t cf = INA_MEM_SHARED;
+    uint32_t cf = 0;
     char name[100];
-    INA_VERIFY_NOT_NULL(stopwatch);
 
     sprintf(name, "/ina_stopwatch_%d", id);
 
@@ -353,8 +355,13 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
     }
     ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
 
-    if (create == 1) {
-        cf = cf | INA_MEM_SHARED_CREATE | INA_MEM_SHARED_EXCL;
+    if (id > 0) {
+        cf = INA_MEM_SHARED;
+        if (create == 1) {
+            cf = cf | INA_MEM_SHARED_CREATE | INA_MEM_SHARED_EXCL;
+        }
+    } else {
+        cf = INA_MEM_DYNAMIC;
     }
 
     size = sizeof(ina_stopwatch_t) + (max_stamps * sizeof(ina_stopwatch_ts_t));
