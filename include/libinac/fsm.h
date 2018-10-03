@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_FSM_H_
 #define _LIBINAC_FSM_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* FSM action function prototype  */
 typedef void (*ina_fsm_action_fn_t)(void *userdata);

@@ -9,12 +9,11 @@
 #ifndef _LIBINAC_BENCH_H_
 #define _LIBINAC_BENCH_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <libinac/lib.h>
 
 /* Setup callback */
 typedef void (*ina_bench_setup_cb_t)(void*);

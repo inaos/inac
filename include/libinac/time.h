@@ -9,8 +9,6 @@
 #ifndef _LIBINAC_TIME_H_
 #define _LIBINAC_TIME_H_
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif

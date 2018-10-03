@@ -9,12 +9,11 @@
 #ifndef _LIBINAC_UTIL_H_
 #define _LIBINAC_UTIL_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <libinac/lib.h>
 
 /*
  * Base64 encoding - calculate output length.

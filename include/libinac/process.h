@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_PROCESS_H_
 #define _LIBINAC_PROCESS_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_PROCESS_FLAGS_CHILD_PROCESS  1
 #define INA_PROCESS_FLAGS_CONSOLE        2

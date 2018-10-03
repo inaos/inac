@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_FILE_CURSOR_H_
 #define _LIBINAC_FILE_CURSOR_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* Cursor type */
 typedef enum ina_file_cursor_type_e {

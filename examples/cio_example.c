@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-
 int main(int argc,  char** argv)
 {
     if (INA_FAILED(ina_app_init(argc, argv, NULL))) {

@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_ULLC_H_
 #define _LIBINAC_ULLC_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_ULLC_MIN(x,y) INA_MAX(x,y)
 

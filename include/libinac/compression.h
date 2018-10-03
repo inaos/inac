@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_COMPRESSION_H_
 #define _LIBINAC_COMPRESSION_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /*
  * FIXME: this should go into the manual instead of the header file

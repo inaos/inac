@@ -9,13 +9,11 @@
 #ifndef _LIBINAC_CONFFILE_H_
 #define _LIBINAC_CONFFILE_H_
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    #include <libinac/lib.h>
+#include <libinac/lib.h>
 
 /* Availables value types */
 typedef enum ina_conffile_value_type_e {

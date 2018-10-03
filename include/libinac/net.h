@@ -13,11 +13,11 @@
  * INAOS Network API
  */
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #ifdef INA_OS_LINUX
 #include <netinet/in.h>

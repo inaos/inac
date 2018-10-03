@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_TEST_H_
 #define _LIBINAC_TEST_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* 
  * HELPER HANDLING 

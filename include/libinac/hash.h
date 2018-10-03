@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_HASH_H_
 #define _LIBINAC_HASH_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_HASH_CSTR_TO_CRC32(s) ina_hash_crc32(0, s, strlen(s))
 #define INA_HASH_CSTR_TO_SDBM(s)  ina_hash_sdbm(0, s, strlen(s))

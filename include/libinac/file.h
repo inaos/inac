@@ -9,8 +9,6 @@
 #ifndef _LIBINAC_FILE_H_
 #define _LIBINAC_FILE_H_
 
-#include <libinac/lib.h>
-
 /**
  * DESIGN considerations
  * ---------------------
@@ -42,6 +40,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_FILE_FLAG_ATTR_NORMAL          0x00000001
 #define INA_FILE_FLAG_ATTR_HIDDEN          0x00000002

@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_CPU_H_
 #define _LIBINAC_CPU_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 typedef uint64_t ina_cpu_feature_t;
 

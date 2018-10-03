@@ -9,8 +9,6 @@
 #ifndef _LIBINAC_MMAP_H_
 #define _LIBINAC_MMAP_H_
 
-#include <libinac/lib.h>
-
 /**
  *
  * TODO:
@@ -21,6 +19,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* IO protection */
 typedef enum ina_mmap_mem_prot_e {

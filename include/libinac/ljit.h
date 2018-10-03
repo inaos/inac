@@ -9,11 +9,11 @@
 #ifndef _LIBINAC_LJIT_H_
 #define _LIBINAC_LJIT_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* LuaJIT/Lua context */
 typedef struct ina_ljit_ctx_s {
