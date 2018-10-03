@@ -88,7 +88,7 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
         /* Return the address of aligned memory */
         return ptr;
     }
-    INA_ERROR(INA_ENOMEM);
+    INA_ERROR(INA_ERR_OUT_OF_MEMORY);
     return NULL;
 }
 
@@ -205,7 +205,7 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
             ina_str_free((*pool)->label);
         }
         *pool = NULL;
-        return INA_ERROR(INA_ENOMEM);
+        return INA_ERROR(INA_ERR_OUT_OF_MEMORY);
     }
     INA_TRACE3("New memory pool: %p->%p size = %ld", *pool, (*pool)->m, (*pool)->size);
     return INA_SUCCESS;

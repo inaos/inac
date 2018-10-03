@@ -35,7 +35,8 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_RC_REV(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_R) & 0xFF))
 #define INA_RC_ERRNO(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_O) & 0xFFFF))
 #define INA_RC_NFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_N) & 0x1))
-#define INA_RC_CODE(rc)     ((uint32_t)((rc)&( 0xFFULL << INA_RC_BIT_C)))
+#define INA_RC_CODE(rc)    ((uint32_t)((rc)&( 0xFFULL << INA_RC_BIT_C)))
+#define INA_RC_ADJ(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFF))
 #define INA_RC_SUBJECT(rc) ((uint32_t)(((rc) >> INA_RC_BIT_S) & 0x7FFF))
 #define INA_RC_ERROR(rc)   ((uint32_t)((INA_MID_BITS((rc), INA_RC_BIT_O-INA_RC_BIT_N, INA_RC_BIT_N)<<(INA_RC_BIT_N-1))))
 #define INA_RC_ERRMSG(rc)  ((uint32_t)(rc))
@@ -534,10 +535,10 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 
 
 /*
- * Error codes
+ * Error messages
  */
 #define INA_ERR_INVALID_ARGUMENT (INA_ERR_INVALID|INA_ES_ARGUMENT)
-
+#define INA_ERR_OUT_OF_MEMORY    (INA_ERR_OUT_OF|INA_ES_MEMORY)
 
 typedef const char* (*ina_err_subject_cb_t)(int);
 

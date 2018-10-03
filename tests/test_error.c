@@ -53,7 +53,7 @@ INA_TEST(error, error_pack_rc)
     /* error indicator */
     INA_TEST_ASSERT_EQUAL_INT(1, INA_RC_EFLAG(rc));
 
-    /* API verson information */
+    /* API version information */
     INA_TEST_ASSERT_EQUAL_INT(0, INA_RC_VER(rc));
     INA_TEST_ASSERT_EQUAL_INT(0,  INA_RC_REV(rc));
 
@@ -70,10 +70,12 @@ INA_TEST(error, error_pack_rc)
 #define INA_ERROR_REV INA_REVISION_HEX
 
     /* OS native error */
-    INA_TEST_ASSERT_EQUAL_INT(2, INA_RC_ERRNO(rc));
+    INA_TEST_ASSERT_EQUAL_UINT(2, INA_RC_ERRNO(rc));
 
-    /* Adjective/Verb */
+    /* code */
     INA_TEST_ASSERT_EQUAL_UINT64(INA_ERR_ALLOWED, INA_RC_CODE(rc));
+    /* Adjective/Verb */
+    INA_TEST_ASSERT_EQUAL_UINT64(5, INA_RC_ADJ(rc));
 
     /* Negate flag */
     INA_TEST_ASSERT_EQUAL_UINT(1, INA_RC_NFLAG(rc));
@@ -88,7 +90,16 @@ INA_TEST(error, error_pack_rc)
     INA_TEST_ASSERT_EQUAL_UINT64((INA_ES_ACCESS|INA_ERR_NOT_ALLOWED), INA_RC_ERRMSG(rc));
 }
 
-INA_TEST_SKIP(error, get_set_rc)
+INA_TEST(error, error_same_as_errmsg)
+{
+    INA_ERROR(INA_ERR_EMPTY);
+    INA_TEST_ASSERT_EQUAL_INT(
+            INA_RC_ERRMSG(ina_err_get_last_rc()),
+            INA_RC_ERROR(ina_err_get_last_rc()));
+
+}
+
+INA_TEST(error, get_set_rc)
 {
     INA_TEST_ASSERT_EQUAL_INT64(INA_RC_PACK(INA_ERR_FAILED, 0),
                                   ina_err_set_last_rc(INA_RC_PACK(INA_ERR_FAILED, 0)));
@@ -96,7 +107,7 @@ INA_TEST_SKIP(error, get_set_rc)
                                   ina_err_set_last_rc(INA_RC_PACK(INA_ERR_NOT_INITIALIZED, 0)));
 }
 
-INA_TEST_SKIP(error, reset)
+INA_TEST(error, reset)
 {
     INA_TEST_ASSERT_FAILED(INA_ERROR(INA_ERR_NOT_INITIALIZED));
     INA_TEST_ASSERT_FAILED(ina_err_get_last_rc());
@@ -104,29 +115,28 @@ INA_TEST_SKIP(error, reset)
     INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
 }
 
-INA_TEST_SKIP(error, strerror)
+INA_TEST(error, strerror)
 {
-    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
     INA_ERROR(INA_ES_DEVICE|INA_ERR_IN_USE);
     INA_TEST_MSG("%s", ina_err_strerror(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("DEVICE IN USE - 0x81000000003b0018 - error=1,ver=1,rev=0,os=0,neg=0,adj=59,subject=24,code=3866624", ina_err_strerror(ina_err_get_last_rc()));
 }
 
-INA_TEST_SKIP(error, register_dict)
+INA_TEST(error, register_dict)
 {
     INA_TEST_ASSERT_NULL(ina_err_register_dict(__ina_get_subject_a));
     INA_ERROR(INA_ES_HELLO|INA_ERR_FAILED);
-    INA_TEST_ASSERT_EQUAL_STR("HELLO A FAILED - 0x8009000000158401 - error=1,ver=0,rev=2304,os=0,neg=0,adj=43,subject=1025", ina_err_strerror(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("HELLO A FAILED - 0x81000000002b0401 - error=1,ver=1,rev=0,os=0,neg=0,adj=43,subject=1025,code=2818048", ina_err_strerror(ina_err_get_last_rc()));
     INA_ERROR(INA_ES_WORLD|INA_ERR_NOT_FOUND);
-    INA_TEST_ASSERT_EQUAL_STR("WORLD A NOT FOUND - 0x8009000000980402 - error=1,ver=0,rev=2304,os=0,neg=1,adj=48,subject=1026", ina_err_strerror(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("WORLD A NOT FOUND - 0x8100000000308402 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1026,code=3145728", ina_err_strerror(ina_err_get_last_rc()));
     INA_ERROR(INA_ES_UNKNOWN|INA_ERR_NOT_FOUND);
-    INA_TEST_ASSERT_EQUAL_STR("-- NOT FOUND - 0x8009000000980403 - error=1,ver=0,rev=2304,os=0,neg=1,adj=48,subject=1027", ina_err_strerror(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("-- NOT FOUND - 0x8100000000308403 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1027,code=3145728", ina_err_strerror(ina_err_get_last_rc()));
     INA_TEST_ASSERT_SAME(__ina_get_subject_a, ina_err_register_dict(__ina_get_subject_b));
     INA_ERROR(INA_ES_HELLO|INA_ERR_FAILED);
-    INA_TEST_ASSERT_EQUAL_STR("HELLO B FAILED - 0x8009000000158401 - error=1,ver=0,rev=2304,os=0,neg=0,adj=43,subject=1025", ina_err_strerror(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("HELLO B FAILED - 0x81000000002b0401 - error=1,ver=1,rev=0,os=0,neg=0,adj=43,subject=1025,code=2818048", ina_err_strerror(ina_err_get_last_rc()));
     INA_ERROR(INA_ES_WORLD|INA_ERR_NOT_FOUND);
-    INA_TEST_ASSERT_EQUAL_STR("WORLD B NOT FOUND - 0x8009000000980402 - error=1,ver=0,rev=2304,os=0,neg=1,adj=48,subject=1026", ina_err_strerror(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("WORLD B NOT FOUND - 0x8100000000308402 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1026,code=3145728", ina_err_strerror(ina_err_get_last_rc()));
     INA_ERROR(INA_ES_UNKNOWN|INA_ERR_NOT_FOUND);
 
-    INA_TEST_ASSERT_EQUAL_STR("XX NOT FOUND - 0x8009000000980403 - error=1,ver=0,rev=2304,os=0,neg=1,adj=48,subject=1027", ina_err_strerror(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("XX NOT FOUND - 0x8100000000308403 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1027,code=3145728", ina_err_strerror(ina_err_get_last_rc()));
 }
