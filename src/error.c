@@ -206,7 +206,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
         neg = "NOT";
     }
 
-    switch (rc & ( 0xFFULL << INA_RC_BIT_C ) ) {
+    switch (rc & ( 0xFFULL << INA_RC_BIT_A ) ) {
         default: break;
         case INA_ERR_A: adj = "A";break;
         case INA_ERR_ACK: adj = "ACK";break;
@@ -351,7 +351,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
 
         const char **use = common;
 
-        ina_rc_t type = rc & (0x1FFULL << INA_RC_BIT_C);
+        ina_rc_t type = rc & (0x1FFULL << INA_RC_BIT_A);
 
         if ((type == INA_ERR_A) || (type == INA_ERR_NOT_A) ||
             (type == INA_ERR_NO) || (type == INA_ERR_NO_SUCH) ||
@@ -367,11 +367,11 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
                 (use)[2],
                 rc,
                 INA_RC_EFLAG(rc),
-                INA_RC_APIVER(rc),
-                INA_RC_APIREV(rc),
+                INA_RC_VER(rc),
+                INA_RC_REV(rc),
                 INA_RC_ERRNO(rc),
                 INA_RC_NFLAG(rc),
-                INA_RC_ERRCDE(rc),
+                INA_RC_ADJ(rc),
                 INA_RC_SUBJECT(rc));
         return __errmsg;
     }
