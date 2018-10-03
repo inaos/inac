@@ -90,8 +90,6 @@ extern "C" {
 #include <libinac/bench.h>
 
 
-#define INA_EINVAL INA_ES_ARGUMENT|INA_ERR_INVALID
-
 #define INA_UNUSED(x) (void)(x)
 
 #define INA_YES (1)

@@ -63,7 +63,7 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
     }
 
     if (alignment == 0) {
-        INA_ERROR(INA_EINVAL);
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return NULL;
     }
 
