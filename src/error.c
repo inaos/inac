@@ -206,7 +206,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
         neg = "NOT";
     }
 
-    switch (rc & ( 0xFFULL << INA_RC_BIT_A ) ) {
+    switch (rc & ( 0xFFULL << INA_RC_BIT_C ) ) {
         default: break;
         case INA_ERR_A: adj = "A";break;
         case INA_ERR_ACK: adj = "ACK";break;
@@ -351,7 +351,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
 
         const char **use = common;
 
-        ina_rc_t type = rc & (0x1FFULL << INA_RC_BIT_A);
+        ina_rc_t type = rc & (0x1FFULL << INA_RC_BIT_C);
 
         if ((type == INA_ERR_A) || (type == INA_ERR_NOT_A) ||
             (type == INA_ERR_NO) || (type == INA_ERR_NO_SUCH) ||
@@ -359,7 +359,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
             use = special;
         }
         ina_str_snprintf(&__errmsg, __INA_ERROR_MSGLEN,
-                "%s%s%s%s%s - 0x%" INA_UINT64_T_FMT " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,adj=%d,subject=%d",
+                "%s%s%s%s%s - 0x%" PRIx64 " - error=%d,ver=%d,rev=%d,os=%d,neg=%d,code=%d,subject=%d",
                 (use)[0],
                 (use)[0][0]?" ":"",
                 (use)[1],
@@ -371,7 +371,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
                 INA_RC_REV(rc),
                 INA_RC_ERRNO(rc),
                 INA_RC_NFLAG(rc),
-                INA_RC_ADJ(rc),
+                INA_RC_CODE(rc),
                 INA_RC_SUBJECT(rc));
         return __errmsg;
     }
