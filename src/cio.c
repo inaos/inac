@@ -596,7 +596,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (hStdin == INVALID_HANDLE_VALUE) {
-        return INA_OS_ERROR(INA_ES_CONSOLE|INA_ERR_INVALID);
+        return INA_OS_ERROR(INA_ERR_INVALID);
     }
 
     dw_wait_ret = WaitForSingleObject(hStdin, 1);
