@@ -52,7 +52,7 @@ typedef enum ina_hashtable_shrink_strategy_e {
 } ina_hashtable_shrink_strategy_t;
 
 
-/* opaque hashtable types */
+/* opaque hash table types */
 typedef struct ina_hashtable_s                ina_hashtable_t;
 typedef struct ina_hashtable_iter_s           ina_hashtable_iter_t;
 
@@ -60,14 +60,21 @@ typedef struct ina_hashtable_iter_s           ina_hashtable_iter_t;
  * Initialize hash table module. This function is called by
  * ina_init().
  *
+ * Parameters
+ *  cfg_filepath  Path to the configuration file containing the hash table configuration
+ *
  * Return
  *  INA_SUCCESS if all went well
  *
- *  Error codes
- *  - INA_ERR_INVALID_ARGUMENT
+ *  Possible error codes
+ *    INA_ERR_INVALID_ARGUMENT  if cfg_filepath is NULL or empty
+ *    INA_ERR_OUT_OF_MEMORY     out of memory
  */
 INA_API(ina_rc_t) ina_hashtable_init(const char *cfg_filepath);
 
+/*
+ * Destroy and free resources. This function is called by ina_exit
+ */
 INA_API(void) ina_hashtable_destroy(void);
 
 
