@@ -165,7 +165,7 @@ out to the standard output.
 
 To query a flag is whenever or not set use `ina_opt_isset()`:
 
-	if (INA_SUCCESS(ina_opt_isset("keep-alive")) {
+	if (INA_SUCCEED(ina_opt_isset("keep-alive")) {
 
 To get a int value use `ina_opt_get_int()`:
 	
