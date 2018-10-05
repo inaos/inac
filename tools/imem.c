@@ -20,7 +20,7 @@ static ina_rc_t __allocate_test_array(size_t **test_array, size_t test_array_siz
     *test_array = (size_t*)calloc(array_size, sizeof(size_t));
 
     if (*test_array == NULL) {
-        return INA_OS_ERROR(INA_ERR_OUT_OF|INA_ES_MEMORY);
+        return INA_OS_ERROR(INA_ERR_OUT_OF | INA_ES_MEMORY);
     }
 
     for(i = 0; i < array_size; i++) {
@@ -41,16 +41,16 @@ static ina_rc_t __run_memcpy_test(int iterations, size_t test_array_size)
     int i;
 
     if (!INA_SUCCEED(INA_STOPWATCH_NEW(1, -1, &w))) {
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     for (i = 0; i < iterations; i++) {
         
         if (INA_FAILED(__allocate_test_array(&__test_array_a, test_array_size))) {
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
         if (INA_FAILED(__allocate_test_array(&__test_array_b, test_array_size))) {
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
 
         INA_STOPWATCH_START(w);
@@ -120,7 +120,7 @@ int main(int argc,  char** argv)
 
     if (INA_SUCCEED(ina_opt_isset("b"))) {
         if (!INA_SUCCEED(__run_memcpy_test(test_iter, (size_t)test_array_size))) {
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
     }
     else {

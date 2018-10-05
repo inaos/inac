@@ -123,13 +123,13 @@ extern "C" {
 } while(0) 
 
 /* Return with last rc if condition x fails */
-#define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_last_rc(); } while(0)
+#define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_rc(); } while(0)
 /* Return with last rc if x == NULL */
-#define INA_RETURN_IF_NULL(x) do {if ((x) == NULL) return ina_err_get_last_rc();} while(0)
+#define INA_RETURN_IF_NULL(x) do {if ((x) == NULL) return ina_err_get_rc();} while(0)
 /* Return with last rc if failed */
-#define INA_RETURN_IF_FAILED(rc) do { if (INA_FAILED((rc))) return ina_err_get_last_rc(); } while (0)
+#define INA_RETURN_IF_FAILED(rc) do { if (INA_FAILED((rc))) return ina_err_get_rc(); } while (0)
 /* Return with last rc if succeed */
-#define INA_RETURN_IF_SUCCEED(rc) do {if (INA_SUCCEED((rc))) return ina_err_get_last_rc(); } while (0)
+#define INA_RETURN_IF_SUCCEED(rc) do {if (INA_SUCCEED((rc))) return ina_err_get_rc(); } while (0)
 
 #ifndef INA_VERIFY_DISABLED
 #define INA_VERIFY(x) do { if (INA_UNLIKELY(!(x))) return INA_ERROR(INA_ERR_INVALID_ARGUMENT); } while (0)

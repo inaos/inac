@@ -316,7 +316,7 @@ static ina_rc_t __parse_cron_pattern(char *pattern_buf, __ina_cron_schedulable_t
 	 * check failure
 	 */
 	if (pattern_buf == NULL) {
-		return INA_ERROR(INA_ES_PATTERN|INA_ERR_INVALID);
+		return INA_ERROR(INA_ES_PATTERN | INA_ERR_INVALID);
 	}
 
 	/*
@@ -495,7 +495,7 @@ INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_ctx_t **ctx,
                                      INA_HASHTABLE_DEFAULT_CAPACITY,
                                      INA_HASHTABLE_CF_DEFAULT, &(*ctx)->tasks))) {
 		INA_MEM_FREE_SAFE(*ctx);
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
     if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                      INA_HASH_DEFAULT,
@@ -506,7 +506,7 @@ INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_ctx_t **ctx,
                                      INA_HASHTABLE_CF_DEFAULT, &(*ctx)->func))) {
         ina_hashtable_free(&(*ctx)->tasks);
 		INA_MEM_FREE_SAFE(*ctx);
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
 	(*ctx)->t1 = time(NULL);
@@ -518,7 +518,7 @@ INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_ctx_t **ctx,
             ina_hashtable_free(&(*ctx)->tasks);
             ina_hashtable_free(&(*ctx)->func);
 			INA_MEM_FREE_SAFE(*ctx);
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
     }
     (*ctx)->process_ctx = process_ctx;
@@ -559,7 +559,7 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
 		
 		task = (ina_cron_task_t*)ina_mem_alloc(sizeof(ina_cron_task_t));
         if (task == NULL) {
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
         buf = (char*)ina_mem_alloc(slen+2);
         buf = strcpy(buf, pattern);
@@ -576,7 +576,7 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
         sched.cb.task = task;
         if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
 			ina_mem_free(buf);
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
 
 		ina_mem_free(buf);
@@ -622,7 +622,7 @@ INA_API(ina_rc_t) ina_cron_task_free(ina_cron_ctx_t *ctx, ina_cron_task_t **task
         __free_task(task);
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_ES_PROCESS|INA_ERR_RUNNING);
+    return INA_ERROR(INA_ES_PROCESS | INA_ERR_RUNNING);
 }
 
 INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggested_next_time)
@@ -709,7 +709,7 @@ INA_API(ina_rc_t) ina_cron_task_is_running(ina_cron_task_t *task)
             state == INA_PROCESS_RUNNING) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_ES_PROCESS|INA_ERR_NOT_RUNNING);
+    return INA_ERROR(INA_ES_PROCESS | INA_ERR_NOT_RUNNING);
 }
 
 INA_API(ina_rc_t) ina_cron_task_get_pattern(ina_cron_task_t *task, ina_str_t *pattern)
@@ -740,7 +740,7 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
 		
 		func = (ina_cron_func_t*)ina_mem_alloc(sizeof(ina_cron_func_t));
         if (func == NULL) {
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
         buf = (char*)ina_mem_alloc(slen+2);
         buf = strcpy(buf, pattern);
@@ -756,7 +756,7 @@ INA_API(ina_rc_t) ina_cron_register_function(ina_cron_ctx_t *ctx, const char *id
         sched.cb.func = func;
         if (INA_FAILED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
 		
 		ina_mem_free(buf);
@@ -801,14 +801,14 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx, const char *pa
     sched.cb.func = &dummy;
     if (INA_FAILED(__parse_cron_pattern(buf, &sched))) {
         ina_str_free(buf);
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
     ina_str_free(buf);
 
     for (t = now - now % 60; t > 0; t -= 60) {
         struct tm *tp = localtime(&t);
         if (tp == NULL) {
-            return INA_OS_ERROR(INA_ES_TIME|INA_ERR_INVALID);
+            return INA_OS_ERROR(INA_ES_TIME | INA_ERR_INVALID);
         }
         if (dummy.mins[tp->tm_min] && dummy.hours[tp->tm_hour] &&
                 (dummy.days[tp->tm_mday] || dummy.dow[tp->tm_wday]) &&
@@ -839,7 +839,7 @@ INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, co
 
 		func = (ina_cron_func_t*)ina_mem_alloc(sizeof(ina_cron_func_t));
         if (func == NULL) {
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
         buf = (char*)ina_mem_alloc(slen+2);
         buf = strcpy(buf, pattern);
@@ -854,7 +854,7 @@ INA_API(ina_rc_t) ina_cron_register_pull(ina_cron_ctx_t *ctx, const char *id, co
         sched.cb.func = func;
         if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
             ina_mem_free(buf);
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
 		ina_mem_free(buf);
         return ina_hashtable_set_str(ctx->func, func->key, func);

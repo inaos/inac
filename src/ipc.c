@@ -73,7 +73,7 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
             return INA_SUCCESS;
     }
     ina_ipc_flags_free(flags);
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
@@ -97,7 +97,7 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
         return INA_SUCCESS;
     }
     ina_ipc_flags_free(flags);
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(void) ina_ipc_flags_free(ina_ipc_flags_t **flags)
@@ -154,7 +154,7 @@ INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t* flags, uint64_t va
     if ((value&flags->data->v) == (value)) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+    return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
 }
 
 INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
@@ -216,7 +216,7 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
     ina_timer_event_free(flags->timer, event);
 
     if (timeout == INA_YES) {
-        return INA_ERROR(INA_ES_OPERATION|INA_ERR_TIMED_OUT);
+        return INA_ERROR(INA_ES_OPERATION | INA_ERR_TIMED_OUT);
     }
     return INA_SUCCESS;
 }
@@ -265,7 +265,7 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
         return INA_SUCCESS;
     }
     ina_ipc_counter_free(counter);
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **counter)
@@ -288,7 +288,7 @@ INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **cou
         return INA_SUCCESS;
     }
     ina_ipc_counter_free(counter);
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(void) ina_ipc_counter_free(ina_ipc_counter_t **counter)
@@ -332,7 +332,7 @@ INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter, uint64_t value
 
     INA_ATOMIC_SWAP(&counter->data->c, v, value);
     if (v == counter->data->c) {
-        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }

@@ -281,7 +281,7 @@ INA_API(ina_rc_t) ina_stopwatch_stamp(ina_stopwatch_t* stopwatch,
 
     INA_VERIFY_NOT_NULL(stopwatch);
     if (INA_UNLIKELY(stopwatch->tv->max_stamps == 0)) {
-        return INA_ERROR(INA_ES_STATE|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_STATE | INA_ERR_INVALID);
     }
 
     si = __INA_TIME_INC(&stopwatch->tv->next_stamp);
@@ -354,7 +354,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
 
     *stopwatch = (ina_stopwatch_t *) ina_mem_alloc(sizeof(ina_stopwatch_t));
     if (*stopwatch == NULL) {
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
     ina_mem_set(*stopwatch, 0, sizeof(ina_stopwatch_t));
 
@@ -374,7 +374,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
             cf, &(*stopwatch)->mp))) {
         ina_mem_free(*stopwatch);
         *stopwatch = NULL;
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     (*stopwatch)->tv = (ina_stopwatch_tv_t *) ina_mempool_dalloc(
@@ -385,7 +385,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
         ina_mempool_free(&(*stopwatch)->mp);
         ina_mem_free(*stopwatch);
         *stopwatch = NULL;
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     if (create) {

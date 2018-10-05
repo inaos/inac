@@ -256,7 +256,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
             use = special;
         }
         ina_str_snprintf(&__errmsg, __INA_ERROR_MSGLEN,
-                "%s%s%s%s%s - 0x%" PRIx64 " - error=%u,ver=%u,rev=%u,os=%u,neg=%u,adj=%u,subject=%u,code=%u",
+                "%s%s%s%s%s - 0x%" PRIx64 " - error=%u,ver=%u,rev=%u,os=%u,neg=%u,adj=%u,subject=%u,code=%u,ubits=0x%x",
                 (use)[0],
                 (use)[0][0]?" ":"",
                 (use)[1],
@@ -270,7 +270,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
                 INA_RC_NFLAG(rc),
                 INA_RC_ADJ(rc),
                 INA_RC_SUBJECT(rc),
-                INA_RC_CODE(rc));
+                INA_RC_CODE(rc),
+                INA_RC_UBITS(rc));
         return __errmsg;
     }
 }

@@ -16,16 +16,16 @@ INA_TEST(memory, memory_memfn)
 INA_TEST(memory, zero_size)
 {
     INA_TEST_ASSERT_NULL(ina_mem_alloc(0));
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_rc());
     INA_TEST_ASSERT_NULL(ina_mem_alloc_aligned(sizeof(void*), 0));
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_rc());
 }
 
 INA_TEST(memory, invalid_alignment)
 {
     INA_TEST_ASSERT_NULL(ina_mem_alloc_aligned(0, 16));
-    INA_TEST_ASSERT_FAILED(ina_err_get_last_rc());
-    INA_TEST_ASSERT_EQUAL_INT64(INA_ERR_INVALID, INA_RC_ERROR(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_FAILED(ina_err_get_rc());
+    INA_TEST_ASSERT_EQUAL_INT64(INA_ERR_INVALID, INA_RC_ERROR(ina_err_get_rc()));
 }
 
 INA_TEST(memory, memory_align)

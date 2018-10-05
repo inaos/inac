@@ -25,7 +25,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
     id = INA_TEST_HELPER_IARG(0);
 
     if (!INA_SUCCEED(INA_STOPWATCH_NEW(id, -1, &w))) {
-        INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
+        INA_TEST_HELPER_SET_RC(ina_err_get_rc());
         return;
     }
 
@@ -65,7 +65,7 @@ INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
     ina_time_tsc_enable_rdtsc();
 
     if (!INA_SUCCEED(INA_STOPWATCH_NEW(id, -1, &w))) {
-        INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
+        INA_TEST_HELPER_SET_RC(ina_err_get_rc());
         return;
     }
  

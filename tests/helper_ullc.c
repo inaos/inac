@@ -56,7 +56,7 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
         name, 
         INA_ULLC_WS_SIGNAL_WAIT, 
         &ullc_ctx))) {
-        INA_TEST_HELPER_SET_RC(ina_err_get_last_rc());
+        INA_TEST_HELPER_SET_RC(ina_err_get_rc());
     }
 
 
@@ -105,7 +105,7 @@ INA_TEST_HELPER(ullc, create_consumer) {
             consumers, 
             name, 
             &ullc_ctx))) {
-            INA_TEST_HELPER_EXIT(ina_err_get_last_rc());
+            INA_TEST_HELPER_EXIT(ina_err_get_rc());
     }
 
    INA_TRACE3("created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",

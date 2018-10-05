@@ -81,7 +81,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		INA_MUST_SUCCEED(ina_file_stat_free(&fstat));
 
 		if (offset > flen) {
-			return INA_ERROR(INA_ES_POSITION|INA_ERR_OUT_OF_RANGE);
+			return INA_ERROR(INA_ES_POSITION | INA_ERR_OUT_OF_RANGE);
 		}
 	}
 
@@ -188,7 +188,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     }
     if ((*mapping)->addr == MAP_FAILED) {
 		ina_mmap_free(ctx, mapping);
-        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
     data = (unsigned char*)(*mapping)->addr;
 #endif
@@ -230,7 +230,7 @@ INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 	}
 #else
     if (msync(mapping->addr, mapping->length, MS_SYNC) == -1) {
-        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
 #endif
 	return INA_SUCCESS;
@@ -273,7 +273,7 @@ INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, in
             break;
     }
     if (madvise(mapping->addr, mapping->length, padvice) != 0) {
-        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     } 
 #endif
 	return INA_SUCCESS;
