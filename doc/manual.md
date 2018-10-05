@@ -95,6 +95,10 @@ Describes the approach for API and ABI compatibility when INAC is used as binary
 - `destroy()` and `free()` must set the pointer to NULL after releasing the resources.
 - Every `destroy()` and `free()` must check if the pointer-pointer argument can be dereferenced and should return if the pointer is already NULL.
 
+### Use of `const` keywords for pointer arguments in API functions
+
+Usage should reflect reality. Use only if memory is readonly! E.g. a constant parameter. Casting a `const` argument into a non constant pointer should be strictly avoided in the implementation.
+
 
 ## Compile time configuration
  * `INA_TRACE_ENABLED`  : Enable/disable tracing. Default enabled.
