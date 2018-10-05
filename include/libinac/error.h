@@ -583,7 +583,9 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #define INA_SUCCEED(rc) (!INA_FAILED((rc)))
 
 /* Checkpoint must succeed */
-#define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED(rc))) abort(); } while(0)
+#define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED((rc)))) abort(); } while(0)
+#define INA_FAIL_IF(cond) do { if ((cond)) goto fail; } while(0)
+#define INA_FAIL_IF_ERROR(rc) INA_FAIL_IF(INA_FAILED((rc)))
 
 /* Set global RC */
 #define INA_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), 0))

@@ -111,16 +111,30 @@ INA_API(ina_rc_t) ina_dir_walker_new(const char *basedir,
     *walker = (ina_dir_walker_t*)ina_mem_alloc(sizeof(ina_dir_walker_t));
     INA_RETURN_IF_NULL(*walker);
     INA_MEM_SET_ZERO(*walker, ina_dir_walker_t);
-    if (INA_SUCCEED(ina_mempool_new(1024 * sizeof(ina_dir_entry_t), NULL, 0, &(*walker)->mp)) &&
-        INA_SUCCEED(ina_mempool_new(1024 * 1024, NULL, INA_MEM_DYNAMIC, &(*walker)->smp))) {
-        (*walker)->head = ina_mempool_dalloc((*walker)->mp, 1024 * sizeof(ina_dir_entry_t));
-        (*walker)->basedir = ina_str_new_fromcstr(basedir);
-        (*walker)->sort_order = INA_DIR_SORT_ORDER_NONE;
-        (*walker)->sort_attrib = INA_DIR_SORT_ATTRIB_DFT;
-        return INA_SUCCESS;
-    }
+    INA_FAIL_IF_ERROR(ina_mempool_new(1024 * sizeof(ina_dir_entry_t), NULL, 0, &(*walker)->mp));
+    INA_FAIL_IF_ERROR(ina_mempool_new(1024 * 1024, NULL, INA_MEM_DYNAMIC, &(*walker)->smp));
+
+    (*walker)->head = ina_mempool_dalloc((*walker)->mp, 1024 * sizeof(ina_dir_entry_t));
+    INA_FAIL_IF(*walker == NULL);
+
+    (*walker)->basedir = ina_str_new_fromcstr(basedir);
+    INA_FAIL_IF((*walker)->basedir == NULL);
+    (*walker)->sort_order = INA_DIR_SORT_ORDER_NONE;
+    (*walker)->sort_attrib = INA_DIR_SORT_ATTRIB_DFT;
+    return INA_SUCCESS;
+
+fail:
     ina_dir_walker_free(walker);
     return ina_err_get_rc();
+}
+
+INA_API(void) ina_dir_walker_free(ina_dir_walker_t **walker) {
+
+    INA_FREE_CHECK(walker);
+    ina_mempool_free(&(*walker)->mp);
+    ina_mempool_free(&(*walker)->smp);
+    INA_STR_FREE_SAFE((*walker)->basedir);
+    INA_MEM_FREE_SAFE(*walker);
 }
 
 INA_API(ina_rc_t) ina_dir_walker_enable_recursive(ina_dir_walker_t *walker)
@@ -255,14 +269,6 @@ INA_API(ina_rc_t) ina_dir_walker_reload(ina_dir_walker_t *walker)
     return INA_SUCCESS;
 }
 
-INA_API(void) ina_dir_walker_free(ina_dir_walker_t **walker) {
-
-    INA_FREE_CHECK(walker);
-    ina_mempool_free(&(*walker)->mp);
-    ina_mempool_free(&(*walker)->smp);
-    INA_STR_FREE_SAFE((*walker)->basedir);
-    INA_MEM_FREE_SAFE(*walker);
-}
 
 INA_API(ina_rc_t) ina_dir_stat_new(const char *dir, ina_dir_stat_t **stat)
 {
