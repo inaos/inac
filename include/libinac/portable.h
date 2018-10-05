@@ -1301,6 +1301,17 @@ void  rewinddir(DIR *dir);
 #endif
 #endif
 
+#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
+#define INA_SIMD_IVDEP _Pragma(ivdep)
+#elif INA_COMPILER_MSVC
+#define INA_SIMD_IVDEP __pragma(loop(ivdep))
+#elif INA_COMPILER_CLANG
+#define INA_SIMD_IVDEP _Pragma clang loop vectorize(enable)
+#else
+#define INA_SIMD_IVDEP
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif
