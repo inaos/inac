@@ -23,7 +23,7 @@ extern "C" {
 /*
  * Trace macros
  */
-#ifdef DEBUG
+#ifdef INA_DEBUG
 #define INA_TRACE(fmt, ...)     \
     fprintf(stderr,             \
         "%s:%d:%s(): " fmt "\n",\
@@ -55,7 +55,7 @@ extern "C" {
 #endif 
 
 
-#ifdef DEBUG
+#ifdef INA_DEBUG
 #define INA_NOT_IMPL assert(0)
 #define INA_ASSERT(cond) assert(cond)
 #define INA_ASSERT_FALSE(v) INA_ASSERT(!(v))

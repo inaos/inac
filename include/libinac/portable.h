@@ -1245,10 +1245,8 @@ void  rewinddir(DIR *dir);
 #   endif
 #endif
 
-#ifdef _DEBUG
-#ifndef DEBUG
-#define DEBUG 1
-#endif
+#if defined(_DEBUG) || defined(DEBUG)
+#define INA_DEBUG 1
 #endif
 
 #define INA_DIAG_STR(s) #s

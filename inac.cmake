@@ -67,10 +67,6 @@ include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include
         "${CMAKE_SOURCE_DIR}"
         "${DEPS_DIR}")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_definitions(-DDEBUG)
-endif ()
-
 if (WIN32)
     add_definitions(-DINA_OS_WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
