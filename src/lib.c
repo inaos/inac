@@ -135,7 +135,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
             ina_mem_set(so, 0, sizeof(__ina_sopt_t));
             if (so == NULL) {
-                return ina_err_get_last_rc();
+                return ina_err_get_rc();
             }
             so->opt = ina_str_new_fromcstr(opt->short_opt);
             if (opt->dft != NULL) {
@@ -150,7 +150,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
 
             lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
             if (lo == NULL) {
-                return ina_err_get_last_rc();
+                return ina_err_get_rc();
             }
             lo->opt = ina_str_new_fromcstr(opt->long_opt);
             lo->short_opt = so;
@@ -205,7 +205,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                     if (so == NULL) {
                         INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
-                        return INA_ERROR(INA_ES_OPTION|INA_ERR_INVALID);
+                        return INA_ERROR(INA_ES_OPTION | INA_ERR_INVALID);
                     }
                     /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
@@ -232,7 +232,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
                     ina_hashtable_iter_free(&iter);
                     __ina_opt_usage();
-                    return INA_ERROR(INA_ES_OPTION|INA_ERR_INVALID);
+                    return INA_ERROR(INA_ES_OPTION | INA_ERR_INVALID);
                 }
             }
             ina_hashtable_iter_free(&iter);
@@ -252,7 +252,7 @@ INA_API(ina_rc_t) ina_init(void)
 
     if (atexit(ina_exit) == -1) {
         INA_TRACE("Failed to register exit function!");
-        return INA_OS_ERROR(INA_ES_FUNCTION|INA_ERR_NOT_REGISTERED);
+        return INA_OS_ERROR(INA_ES_FUNCTION | INA_ERR_NOT_REGISTERED);
     }
 
     /* Setup signals */
@@ -362,10 +362,10 @@ INA_API(ina_rc_t) ina_opt_isset(const char *opt)
 
     so = __ina_opt_get(opt);
     if (so == NULL) {
-        return INA_ERROR(INA_ES_OPTION|INA_ERR_NOT_EXISTS);
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     if (so->type == INA_OPT_TYPE_FLAG && so->value == NULL) {
-        return INA_ERROR(INA_ES_OPTION|INA_ERR_NOT_EXISTS);
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     return INA_SUCCESS;
 }
@@ -390,7 +390,7 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
     ina_hashtable_iter_free(&iter);
 
     if (lo == NULL) {
-        return INA_ERROR(INA_ES_OPTION|INA_ERR_NOT_EXISTS);
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *key = lo->opt;
     *value = lo->short_opt->value;
@@ -407,7 +407,7 @@ INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
     so = __ina_opt_get(opt);
     if (so == NULL) {
         *value = NULL;
-        return INA_ERROR(INA_ES_OPTION|INA_ERR_NOT_EXISTS);
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *value = ina_str_dup(so->value);
     return INA_SUCCESS;
@@ -421,7 +421,7 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
     *value = 0.0;
     so = __ina_opt_get(opt);
     if (so == NULL) {
-        return INA_ERROR(INA_ES_OPTION|INA_ERR_NOT_EXISTS);
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *value = (float)atof(so->value);
     return INA_SUCCESS;
@@ -435,7 +435,7 @@ INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value)
     *value = 0;
     so = __ina_opt_get(opt);
     if (so == NULL) {
-        return INA_ERROR(INA_ES_OPTION|INA_ERR_NOT_EXISTS);
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *value = atoi(so->value);
     return INA_SUCCESS;
@@ -521,12 +521,12 @@ __ina_get_binpath(ina_str_t path)
     ret = readlink(linkname, buf, ina_str_size(path));
     /* In case of an error, leave the handling up to the caller */
     if (ret == -1) {
-        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
 
     /* Report insufficient buffer size */
     if (ret >= (int)ina_str_size(path)) {
-        return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);
+        return INA_ERROR(INA_ES_BUFFER | INA_ERR_TOO_SMALL);
     }
 
     /* Ensure proper NUL termination */

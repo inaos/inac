@@ -89,7 +89,7 @@ INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list)
     }
     if (INA_FAILED(ina_list_resize(*list, INA_LIST_CF_DEFAULT, INA_LIST_DEFAULT_SIZE))) {
         ina_list_free(list);
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
     return INA_SUCCESS;
 }
@@ -104,7 +104,7 @@ INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **
         INA_SUCCEED(ina_hashtable_foreach_arg(ht, __ina_add_data, *list))) {
         return INA_SUCCESS;
     }
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(void) ina_list_free(ina_list_t **list)
@@ -154,7 +154,7 @@ INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max
     }
 
     if (INA_FAILED(ina_mempool_new(sizeof(ina_list_node_t) * min_nodes, NULL, INA_MEM_DYNAMIC, &mp))) {
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     if (list->mp != NULL) {

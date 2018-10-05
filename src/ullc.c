@@ -76,12 +76,12 @@ INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name, ina_ullc_rb_info_t *i
     INA_VERIFY_NOT_NULL(info);
 
     if (INA_FAILED(ina_mempool_new(sizeof(ina_ullc_rb_t), name, INA_MEM_SHARED, &m))) {
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
     if (rb == NULL) {
         ina_mempool_free(&m);
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     info->ring_version = rb->version;
@@ -126,16 +126,16 @@ INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
     *ctx = NULL;
 
     if (version <= 0) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if (size == 0) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if (slots == 0) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if (num_consumers <= 0) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
 
     *ctx = (ina_ullc_ctx_t*)ina_mem_alloc(sizeof(ina_ullc_ctx_t));
@@ -158,7 +158,7 @@ INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
                                             INA_MEM_SHARED_CREATE))) {
             ina_mempool_free(&(pctx)->pool);
             INA_MEM_FREE_SAFE(*ctx);
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
     }
 
@@ -167,7 +167,7 @@ INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
     if (pctx->ring->version != version) {
         ina_mempool_free(&(*ctx)->pool);
         INA_MEM_FREE_SAFE(*ctx);
-        return INA_ERROR(INA_ES_VERSION|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_VERSION | INA_ERR_INVALID);
     }
     
     pctx->id = 0;
@@ -187,7 +187,7 @@ INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
     if (pctx->id == num_producers) {
         ina_mempool_free(&(*ctx)->pool);
         INA_MEM_FREE_SAFE(*ctx);
-        return INA_ERROR(INA_ES_LIMIT|INA_ERR_EXCEEDED);
+        return INA_ERROR(INA_ES_LIMIT | INA_ERR_EXCEEDED);
     }
     if (!INA_SUCCEED( __ina_sem_create(pctx))) {
         ina_mempool_free(&(*ctx)->pool);
@@ -205,12 +205,12 @@ INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name)
     INA_VERIFY(strlen(name));
 
     if (INA_FAILED(ina_mempool_new(sizeof(ina_ullc_rb_t), name, INA_MEM_SHARED, &m))) {
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
     rb = (ina_ullc_rb_t*)ina_mempool_dalloc(m, sizeof(ina_ullc_rb_t));
     if (rb == NULL) {
         ina_mempool_free(&m);
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
     rb->magic = 0;
     ina_mempool_free(&m);
@@ -223,7 +223,7 @@ INA_API(ina_rc_t) ina_ullc_overrun_enable(ina_ullc_ctx_t *ctx)
     if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, INT64_MAX, -1) == INT64_MAX) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+    return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
 }
 
 INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx)
@@ -232,7 +232,7 @@ INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx)
     if (INA_ATOMIC_SWAP(&ctx->ring->overrun_enabled, -1, INT64_MAX) == -1) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+    return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
 }
 
 INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
@@ -339,13 +339,13 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
             slots, num_producers, num_consumers, name, 0))) {
         ina_mempool_free(&(*ctx)->pool);
         INA_MEM_FREE_SAFE(*ctx);
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     if (ccxt->ring->version != version) {
         ina_mempool_free(&(*ctx)->pool);
         INA_MEM_FREE_SAFE(ctx);
-        return INA_ERROR(INA_ES_VERSION|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_VERSION | INA_ERR_INVALID);
     }
 
     ccxt->id = 0;
@@ -365,7 +365,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
     if (ccxt->id == num_consumers) {
         ina_mempool_free(&(*ctx)->pool);
         INA_MEM_FREE_SAFE(ctx);
-        return INA_ERROR(INA_ES_LIMIT|INA_ERR_EXCEEDED);
+        return INA_ERROR(INA_ES_LIMIT | INA_ERR_EXCEEDED);
     }
     INA_ATOMIC_SWAP(&ccxt->c_offset->cursor, 0, ccxt->ring->cursor);
     if (ccxt->c_offset->cursor < 0) {
@@ -418,7 +418,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos)
     if (INA_ATOMIC_SWAP(&ctx->c_offset->cursor, cursor, pos) == cursor) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+    return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
 }
 
 INA_API(ina_rc_t) ina_ullc_consumer_swait(ina_ullc_ctx_t *ctx)
@@ -484,7 +484,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
     INA_ASSERT_NOTNULL(name);
 
     if (size % 2 != 0) {
-        return INA_ERROR(INA_ES_MEMORY|INA_ERR_NOT_ALIGNED);
+        return INA_ERROR(INA_ES_MEMORY | INA_ERR_NOT_ALIGNED);
     }
 
     mem_size = (sizeof(ina_ullc_rb_t)+size*slots)+
@@ -494,12 +494,12 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
 	ctx->pool = NULL;
 
     if (INA_FAILED(ina_mempool_new(mem_size, name, INA_MEM_SHARED | flags, &ctx->pool))) {
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     *rb = (ina_ullc_rb_t*)ina_mempool_dalloc(ctx->pool, mem_size);
     if (*rb == NULL) {
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     if ((*rb)->magic != __INA_MAGIC_HDR || (flags&INA_MEM_SHARED_EXCL)) {
@@ -514,24 +514,24 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         (*rb)->version = version;
         (*rb)->size = size;
         if (INA_FAILED(__ina_sem_makekey(*rb, name))) {
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
     }
     
     if ((*rb)->version != version) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if ((*rb)->size != size) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if ((*rb)->slots != slots) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if ((*rb)->num_consumers != num_consumers) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if ((*rb)->num_producers != num_producers) {
-        return INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     return INA_SUCCESS;
 }
@@ -560,10 +560,10 @@ __ina_sem_create(ina_ullc_ctx_t *ctx)
 
     ctx->sem_handle = semget(ctx->ring->semkey, ctx->ring->num_consumers, 0666 | IPC_CREAT);
     if (ctx->sem_handle < 0) {
-        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
     if (semctl(ctx->sem_handle, 0, SETVAL, (int)1) == -1) {
-        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
      return INA_SUCCESS;
 }
@@ -588,7 +588,7 @@ __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
     op.sem_flg = SEM_UNDO;
 
     if (semop(ctx->sem_handle, &op, 1) == -1) {
-        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
     return INA_SUCCESS;
 }

@@ -297,7 +297,7 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
         return INA_SUCCESS;
     }
     ina_log_free(log);
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 
 }
 

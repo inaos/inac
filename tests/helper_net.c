@@ -32,13 +32,13 @@ INA_TEST_HELPER(net, non_blocking_echo_server) {
     ina_mem_set(buffer, 0, 4096);
 
     if (INA_FAILED(ina_net_tcp_server(&fd, port, addr))) {
-        *retval = INA_RC_ERROR(ina_err_get_last_rc());
+        *retval = INA_RC_ERROR(ina_err_get_rc());
         return;
      }
 
      if (INA_FAILED(ina_net_nonblock(fd))) {
          ina_net_close(fd);
-         *retval = INA_RC_ERROR(ina_err_get_last_rc());
+         *retval = INA_RC_ERROR(ina_err_get_rc());
          return;
      }
 

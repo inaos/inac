@@ -42,12 +42,13 @@ INA_TEST(error, error_pack_rc)
     ina_rc_t rcc;
     ina_rc_t rc;
 
-    rcc = 0x8000000200058002;
+    INA_TEST_ASSERT_SUCCEED(INA_SUCCESS);
+
+    rcc =  0x8000000200058001;
     rc = INA_RC_PACK(INA_ES_ACCESS|INA_ERR_NOT_ALLOWED, 2);
-    INA_TEST_ASSERT_EQUAL_UINT64(rcc, rc);
 
     INA_TEST_MSG("verify INA_RC_PACK with %s", ina_err_strerror(rc));
-    INA_TEST_ASSERT_SUCCEED(INA_SUCCESS);
+    INA_TEST_ASSERT_EQUAL_UINT64(rcc, rc);
     INA_TEST_ASSERT_FAILED(rc);
 ;
     /* error indicator */
@@ -94,49 +95,77 @@ INA_TEST(error, error_same_as_errmsg)
 {
     INA_ERROR(INA_ERR_EMPTY);
     INA_TEST_ASSERT_EQUAL_INT(
-            INA_RC_ERRMSG(ina_err_get_last_rc()),
-            INA_RC_ERROR(ina_err_get_last_rc()));
+            INA_RC_ERRMSG(ina_err_get_rc()),
+            INA_RC_ERROR(ina_err_get_rc()));
 
 }
 
 INA_TEST(error, get_set_rc)
 {
     INA_TEST_ASSERT_EQUAL_INT64(INA_RC_PACK(INA_ERR_FAILED, 0),
-                                  ina_err_set_last_rc(INA_RC_PACK(INA_ERR_FAILED, 0)));
+                                ina_err_set_rc(INA_RC_PACK(INA_ERR_FAILED, 0)));
     INA_TEST_ASSERT_EQUAL_INT64(INA_ERROR(INA_ERR_NOT_INITIALIZED),
-                                  ina_err_set_last_rc(INA_RC_PACK(INA_ERR_NOT_INITIALIZED, 0)));
+                                ina_err_set_rc(INA_RC_PACK(INA_ERR_NOT_INITIALIZED, 0)));
 }
 
 INA_TEST(error, reset)
 {
     INA_TEST_ASSERT_FAILED(INA_ERROR(INA_ERR_NOT_INITIALIZED));
-    INA_TEST_ASSERT_FAILED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_FAILED(ina_err_get_rc());
     INA_TEST_ASSERT_SUCCEED(ina_err_reset());
-    INA_TEST_ASSERT_SUCCEED(ina_err_get_last_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_rc());
 }
 
 INA_TEST(error, strerror)
 {
-    INA_ERROR(INA_ES_DEVICE|INA_ERR_IN_USE);
-    INA_TEST_MSG("%s", ina_err_strerror(ina_err_get_last_rc()));
-    INA_TEST_ASSERT_EQUAL_STR("DEVICE IN USE - 0x81000000003b0018 - error=1,ver=1,rev=0,os=0,neg=0,adj=59,subject=24,code=3866624", ina_err_strerror(ina_err_get_last_rc()));
+    INA_ERROR(INA_ES_DEVICE | INA_ERR_IN_USE);
+    INA_TEST_MSG("%s", ina_err_strerror(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("DEVICE IN USE - 0x81000000003b0006 - error=1,ver=1,rev=0,os=0,neg=0,adj=59,subject=6,code=3866624,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
 }
 
 INA_TEST(error, register_dict)
 {
     INA_TEST_ASSERT_NULL(ina_err_register_dict(__ina_get_subject_a));
-    INA_ERROR(INA_ES_HELLO|INA_ERR_FAILED);
-    INA_TEST_ASSERT_EQUAL_STR("HELLO A FAILED - 0x81000000002b0401 - error=1,ver=1,rev=0,os=0,neg=0,adj=43,subject=1025,code=2818048", ina_err_strerror(ina_err_get_last_rc()));
-    INA_ERROR(INA_ES_WORLD|INA_ERR_NOT_FOUND);
-    INA_TEST_ASSERT_EQUAL_STR("WORLD A NOT FOUND - 0x8100000000308402 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1026,code=3145728", ina_err_strerror(ina_err_get_last_rc()));
-    INA_ERROR(INA_ES_UNKNOWN|INA_ERR_NOT_FOUND);
-    INA_TEST_ASSERT_EQUAL_STR("-- NOT FOUND - 0x8100000000308403 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1027,code=3145728", ina_err_strerror(ina_err_get_last_rc()));
+    INA_ERROR(INA_ES_HELLO | INA_ERR_FAILED);
+    INA_TEST_ASSERT_EQUAL_STR("HELLO A FAILED - 0x81000000002b0401 - error=1,ver=1,rev=0,os=0,neg=0,adj=43,subject=1025,code=2818048,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_ERROR(INA_ES_WORLD | INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("WORLD A NOT FOUND - 0x8100000000308402 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1026,code=3145728,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_ERROR(INA_ES_UNKNOWN | INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("-- NOT FOUND - 0x8100000000308403 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1027,code=3145728,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
     INA_TEST_ASSERT_SAME(__ina_get_subject_a, ina_err_register_dict(__ina_get_subject_b));
-    INA_ERROR(INA_ES_HELLO|INA_ERR_FAILED);
-    INA_TEST_ASSERT_EQUAL_STR("HELLO B FAILED - 0x81000000002b0401 - error=1,ver=1,rev=0,os=0,neg=0,adj=43,subject=1025,code=2818048", ina_err_strerror(ina_err_get_last_rc()));
-    INA_ERROR(INA_ES_WORLD|INA_ERR_NOT_FOUND);
-    INA_TEST_ASSERT_EQUAL_STR("WORLD B NOT FOUND - 0x8100000000308402 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1026,code=3145728", ina_err_strerror(ina_err_get_last_rc()));
-    INA_ERROR(INA_ES_UNKNOWN|INA_ERR_NOT_FOUND);
+    INA_ERROR(INA_ES_HELLO | INA_ERR_FAILED);
+    INA_TEST_ASSERT_EQUAL_STR("HELLO B FAILED - 0x81000000002b0401 - error=1,ver=1,rev=0,os=0,neg=0,adj=43,subject=1025,code=2818048,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_ERROR(INA_ES_WORLD | INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("WORLD B NOT FOUND - 0x8100000000308402 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1026,code=3145728,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_ERROR(INA_ES_UNKNOWN | INA_ERR_NOT_FOUND);
 
-    INA_TEST_ASSERT_EQUAL_STR("XX NOT FOUND - 0x8100000000308403 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1027,code=3145728", ina_err_strerror(ina_err_get_last_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("XX NOT FOUND - 0x8100000000308403 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1027,code=3145728,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+}
+
+INA_TEST(error, ubits)
+{
+    INA_ERROR(INA_ES_TIME | INA_ERR_EXCEEDED);
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ERR_EXCEEDED, INA_RC_ERROR(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ES_TIME, INA_RC_SUBJECT(ina_err_get_rc()));
+
+    INA_TEST_ASSERT_EQUAL_INT(0, INA_RC_UBITS(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ERR_EXCEEDED, INA_RC_ERROR(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ES_TIME, INA_RC_SUBJECT(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT((INA_ES_TIME|INA_ERR_EXCEEDED), INA_RC_ERRMSG(ina_err_get_rc()));
+
+    INA_TEST_ASSERT_EQUAL_UINT(1, INA_RC_UBITS(ina_err_set_ubits(1)));
+    INA_TEST_ASSERT_EQUAL_UINT(16, INA_RC_UBITS(ina_err_set_ubits(16)));
+    INA_TEST_ASSERT_EQUAL_UINT(255, INA_RC_UBITS(ina_err_set_ubits(255)));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ERR_EXCEEDED, INA_RC_ERROR(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ES_TIME, INA_RC_SUBJECT(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT((INA_ES_TIME|INA_ERR_EXCEEDED), INA_RC_ERRMSG(ina_err_get_rc()));
+
+
 }

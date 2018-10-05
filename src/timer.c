@@ -90,7 +90,7 @@ INA_API(ina_rc_t) ina_timer_event_new_with_time(ina_timer_t *timer, time_t n_mse
     if ((*event)->t == NULL) {
         ina_mem_free(*event);
         *event = NULL;
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
     (*event)->id = ++timer->next_event_id;
 

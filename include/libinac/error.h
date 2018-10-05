@@ -15,9 +15,13 @@ extern "C" {
 
 #include <libinac/lib.h>
 
+/* Forward declarations */
+typedef struct ina_log_s ina_log_t;
+
 /* Indicate no errors */
 #define INA_SUCCESS  (0ULL)
 
+/* Global return code */
 static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 
 /* Bit-shifts */
@@ -25,6 +29,7 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_RC_BIT_V 56U
 #define INA_RC_BIT_R 48U
 #define INA_RC_BIT_O 32U
+#define INA_RC_BIT_U 24U
 #define INA_RC_BIT_C 16U
 #define INA_RC_BIT_N 15U
 #define INA_RC_BIT_S 00U
@@ -34,18 +39,19 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_RC_VER(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_V) & 0x7))
 #define INA_RC_REV(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_R) & 0xFF))
 #define INA_RC_ERRNO(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_O) & 0xFFFF))
+#define INA_RC_UBITS(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_U) & 0xFF))
 #define INA_RC_NFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_N) & 0x1))
 #define INA_RC_CODE(rc)    ((uint32_t)((rc)&( 0xFFULL << INA_RC_BIT_C)))
 #define INA_RC_ADJ(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFF))
 #define INA_RC_SUBJECT(rc) ((uint32_t)(((rc) >> INA_RC_BIT_S) & 0x7FFF))
-#define INA_RC_ERROR(rc)   ((uint32_t)((INA_MID_BITS((rc), INA_RC_BIT_O-INA_RC_BIT_N, INA_RC_BIT_N)<<(INA_RC_BIT_N-1))))
-#define INA_RC_ERRMSG(rc)  ((uint32_t)(rc))
+#define INA_RC_ERROR(rc)   ((uint32_t)((INA_MID_BITS((rc), INA_RC_BIT_U-INA_RC_BIT_N, INA_RC_BIT_N)<<(INA_RC_BIT_N-1))))
+#define INA_RC_ERRMSG(rc)  ((uint32_t)((rc) & 0xFFFFFF))
 
 /* Flags */
 #define INA_ERR_ERROR               (  1ULL << INA_RC_BIT_E) /* Error-bit  */
 #define INA_ERR_NOT                 (  1ULL << INA_RC_BIT_N) /* Negate-bit */
 
-/* Error codes */
+/* Errors codes */
 #define INA_ERR_A                   (  1ULL << INA_RC_BIT_C)
 #define INA_ERR_ACK                 (  2ULL << INA_RC_BIT_C)
 #define INA_ERR_ACTIVE              (  3ULL << INA_RC_BIT_C)
@@ -419,65 +425,74 @@ static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 #define INA_ES_TEXT                 (41U)
 #define INA_ES_API                  (42U)
 
+/* Start of user defined error subjects */
 #define INA_ES_USER_DEFINED         (1024UL)
 
 
 /*
- * Error messages
+ * Global error messages
  */
 #define INA_ERR_INVALID_ARGUMENT (INA_ERR_INVALID|INA_ES_ARGUMENT)
 #define INA_ERR_OUT_OF_MEMORY    (INA_ERR_OUT_OF|INA_ES_MEMORY)
 
+/*
+ * Subject dictionary callback
+ */
 typedef const char* (*ina_err_subject_cb_t)(int);
 
-typedef struct ina_log_s ina_log_t;
 
 /*
- * Initialize error module.
+ * Initialize the error module. This function should never be called,
+ * because is part of the INAC initialization and  called in ina_init().
  *
  * Return
  *  INA_SUCCESS if all went well.
+ *
+ *  Error messages
+ *   INA_ERR_OUT_OF_MEMORY
  */
 INA_API(ina_rc_t) ina_err_init(void);
 
 /*
- * Destroy error module.
+ * Destroy error module. This function is called at program exit and
+ * should never called directly.
  */
 INA_API(void) ina_err_destroy(void);
 
 /*
- * Register an error subject dictionary.
+ * Register an error subject dictionary callback.
  *
  * Parameters
  *  cb  Dictionary callback
  *
  * Return
- *  Previously registered dictionary callback
+ *  Previously registered dictionary callback or NULL
  */
 INA_API(ina_err_subject_cb_t) ina_err_register_dict(ina_err_subject_cb_t cb);
 
 /*
- * Set RC
+ * Set global return code. Use INA_ERROR() or INA_OS_ERROR() as shortcut or use
+ * INA_RC_PACK to generate an valid RC.
  *
  * Parameters
- *   rc   Return code
+ *  rc   New return code to set
  *
  * Return
- *   Last RC
+ *  Current RC
  */
-INA_INLINE ina_rc_t ina_err_set_last_rc(ina_rc_t rc)
+INA_INLINE ina_rc_t ina_err_set_rc(ina_rc_t rc)
 {
     __rc = rc;
     return __rc;
 }
 
 /*
- * Return the last RC
+ * Return current global return code.
  *
  * Return
- *  Last RC
+ *  Current RC
  */
-INA_INLINE ina_rc_t ina_err_get_last_rc(void)
+INA_INLINE ina_rc_t ina_err_get_rc(void)
 {
     return __rc;
 }
@@ -490,7 +505,7 @@ INA_INLINE ina_rc_t ina_err_get_last_rc(void)
  *      no error occurs.
  *
  * Return
- *  Returns cleared RC
+ *  Ceared RC
  */
 INA_INLINE ina_rc_t ina_err_clear_rc(ina_rc_t rc)
 {
@@ -498,20 +513,44 @@ INA_INLINE ina_rc_t ina_err_clear_rc(ina_rc_t rc)
 }
 
 /*
- * Mark an error as handled.
- *
- * Parameters
- *  rc  Valid RC to mark as handled. If a error was already marked as handled
- *      no error occurs.
+ * Reset the global RC by marking it as handled.
  *
  * Return
- *  Returns INA_SUCCESS when the complete error state was cleared successfully
- *  otherwise
+ *  Current global RC
  */
 INA_INLINE ina_rc_t ina_err_reset(void)
 {
     __rc = ina_err_clear_rc(__rc);
     return __rc;
+}
+
+/*
+ * Set user bit on the global RC.
+ *
+ * Parameters
+ *  ubits  User defined bits
+ *
+ * Return
+ *  Current global RC
+ */
+INA_INLINE ina_rc_t ina_err_set_ubits(uint8_t ubits)
+{
+    __rc = ((__rc) & (~ (((1ULL << (8)) - 1ULL) << (INA_RC_BIT_U)))) | (((ina_rc_t)(ubits)) << (INA_RC_BIT_U));
+    return __rc;
+}
+
+/*
+ * Return user defined bit of an given RC.
+ *
+ * Parameters
+ *  rc   Valid RC where to extract user defined bits
+ *
+ * Return
+ *  User defined bits
+ */
+INA_INLINE uint8_t ina_err_get_ubits(ina_rc_t rc)
+{
+    return (uint8_t)INA_RC_UBITS(rc);
 }
 
 /*
@@ -542,16 +581,17 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #define INA_FAILED(rc) ((rc)&INA_ERR_ERROR)
 /* Check return code: successful or handled */
 #define INA_SUCCEED(rc) (!INA_FAILED((rc)))
+
 /* Checkpoint must succeed */
 #define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED(rc))) abort(); } while(0)
 
-/* Set last RC */
-#define INA_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), 0))
-/* Set last RC and capture errno */
+/* Set global RC */
+#define INA_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), 0))
+/* Set global RC and capture errno */
 #ifndef INA_OS_WIN32
-#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), errno))
+#define INA_OS_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), errno))
 #else
-#define INA_OS_ERROR(x) ina_err_set_last_rc(INA_RC_PACK((x), GetLastError()))
+#define INA_OS_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), GetLastError()))
 #endif
 
 #ifdef __cplusplus

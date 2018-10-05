@@ -74,7 +74,7 @@ INA_INLINE ina_rc_t ina_list_pop_data(ina_list_t *list, void **data)
     if (INA_SUCCEED(ina_list_head(list, &node))) {
         *data = node->data;
     }
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_find_fn_t find_fn, const void *find_arg, ina_list_node_t **node);
@@ -86,7 +86,7 @@ INA_INLINE ina_rc_t ina_list_find_data(ina_list_t *list, ina_find_fn_t find_fn, 
         *data = node->data;
         return INA_SUCCESS;
     }
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(ina_rc_t) ina_list_concat(ina_list_t *dest, ina_list_t *src);

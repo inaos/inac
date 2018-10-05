@@ -352,7 +352,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 
     if (INA_FAILED(ina_mempool_new(size, NULL, INA_MEM_DYNAMIC, &(*ht)->mp))) {
         ina_hashtable_free(ht);
-        return ina_err_get_last_rc();
+        return ina_err_get_rc();
     }
 
     (*ht)->buckets = ina_mempool_dalloc((*ht)->mp, sizeof(ina_hashtable_bucket_t) * ((*ht)->capacity+1));
@@ -372,7 +372,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
     if ((*ht)->cf&INA_HASHTABLE_CF_STAT) {
         if (INA_FAILED(__ina_set_hashtable_id((*ht)))) {
             ina_hashtable_free(ht);
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
         if (INA_FAILED(INA_ULLC_PRODUCER_NEW(ina_hashtable_event_t,
                                                           1, 4096, INA_HASHTABLE_MAX_STAT_TABLES,
@@ -380,12 +380,12 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                                           INA_ULLC_WS_SIGNAL_WAIT,
                                                           &(*ht)->ullc_ctx))) {
             ina_hashtable_free(ht);
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
 
         if (INA_FAILED(ina_time_tsc_new(&(*ht)->time))) {
             ina_mem_free(*ht);
-            return ina_err_get_last_rc();
+            return ina_err_get_rc();
         }
 
         __INA_NEW(*ht, (*ht)->key_type, (uint64_t)(*ht)->capacity);
@@ -558,7 +558,7 @@ INA_API(ina_rc_t) ina_hashtable_foreach(ina_hashtable_t* ht, ina_foreach_fn_t fo
             while (next && next-bucket->nodes < bucket->count) {
                 if (next->data) {
                     if (INA_FAILED(foreach_fn(next->data))) {
-                        return ina_err_get_last_rc();
+                        return ina_err_get_rc();
                     }
                 }
                 next++;
@@ -584,7 +584,7 @@ INA_API(ina_rc_t) ina_hashtable_foreach_arg(ina_hashtable_t* ht, ina_foreach_arg
             while (next && next-bucket->nodes < bucket->count) {
                 if (next->data) {
                     if (INA_FAILED(foreach_fn(next->data, arg))) {
-                        return ina_err_get_last_rc();
+                        return ina_err_get_rc();
                     }
                 }
                 next++;
@@ -621,7 +621,7 @@ INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **dat
     INA_VERIFY_NOT_NULL(data);
 
     if (iter->checksum != iter->ht->count) {
-        return INA_ERROR(INA_ES_STATE|INA_ERR_INVALID);
+        return INA_ERROR(INA_ES_STATE | INA_ERR_INVALID);
     }
 
     while (iter->bucket-iter->ht->buckets < iter->ht->capacity) {
@@ -673,7 +673,7 @@ INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_
     ina_ullc_consumer_free(&(*event_consumer)->c_ctx);
     ina_ullc_producer_free(&(*event_consumer)->p_ctx);
     INA_MEM_FREE_SAFE(*event_consumer);
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(void) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer)

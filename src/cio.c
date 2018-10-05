@@ -296,7 +296,7 @@ INA_API(int) ina_cio_printf(int row, int col,
     int setpos = INA_NO;
 
     if (fmt == NULL) {
-        INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
         return -1;
     }
 
@@ -696,7 +696,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 if (buf == NULL) {
                     ina_mem_free(*nb_buf);
                     *nb_buf = NULL;
-                    return ina_err_get_last_rc();
+                    return ina_err_get_rc();
                 }
                 *nb_buf = buf;
             }

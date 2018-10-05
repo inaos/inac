@@ -319,7 +319,7 @@ library:
 
 `INA_MAJOR_VERSION, INA_MINOR_VERSION, INA_PATCH_VERSION`
 
-Integers specifying the major, minor and micro versions, respectively.
+Integers specifying the major, minor and patch versions, respectively.
 
 `INA_VERSION`
 
@@ -328,7 +328,7 @@ A string representation of the current version, e.g. "1.2.1" or "1.3".
 `INA_VERSION_HEX`
 
 A 3-byte hexadecimal representation of the version, e.g. 0x010201 for version 
-1.2.1 and 0x010300 for version 1.3. This is useful in numeric comparisions,
+1.2.1 and 0x010300 for version 1.3. This is useful in numeric comparisons,
 e.g.:
 
 	#if INA_VERSION_HEX >= 0x010201
@@ -341,80 +341,97 @@ __TODO__
 
 ## Error handling
 
-A good error handling should know as much as possible about an error. Things
-like when, where, what, who, is it handled or not, and "should I abort my 
-program" are such kind of information we want to know.  
-The "who" question isn't really easy to implement, so we omitted it.
-
-Also important: Easy access to error information. That's why we pack the 
-error information in one single value. 
+A good error handling should know as much as possible about an error.  Easy and fast 
+access to the error information are also important. That's why INAC stores 
+ error information in one single value. 
 We call it 'Return Code' or simply RC. RC is defined by `ina_rc_t` which is 
-in fact a 64bit signed integer value.
-The RC is packed as follow:
+in fact a 64bit unsigned integer value and can contains an error indicator, API version 
+ information, Native OS error and application error message. Almost all API
+ The RC is packed as follow:
   
     RC 64bit mask
     
-    |------ 24 bit header ----|-------- 56 bit descriptor -----------------|
-    EVVVVVVV|RRRRRRRR|RRRRRRRR|OOOOOOOO|OOOOOOOO|NAAAAAAA|AUUUUUUU|UUUUUUUU|
-    |    |           |                 |         |    |      |
-    |    |           |                 |         |    |      +--->15 bit - User defined code
-    |    |           |                 |         |    +----------> 8 bit - Attribute code
-    |    |           |                 |         +---------------> 1 bit - Negate flag
-    |    |           |                 +------------------------->16 bit - Native OS error
-    |    |           +------------------------------------------->16 bit - API revision
-    |    +-------------------------------------------------------> 7 bit - API version
-    +------------------------------------------------------------> 1 bit - Error flag
+    |- 16bit header -|-------- 48bit descriptor  --------------------------|
+    |                |                 |-- 32bit error message           --|
+    |                |                          |9bit cde |                |
+    ERRRVVVV|RRRRRRRR|OOOOOOOO|OOOOOOOO|UUUUUUUU|AAAAAAAA|NSSSSSSS|SSSSSSSS|
+    | |  |       |          |              |         |     |    |
+    | |  |       |          |              |         |     |    +-->15 bit - Subject
+    | |  |       |          |              |         |     +-------> 1 bit - Negate flag
+    | |  |       |          |              |         +--- ---------> 8 bit - Adjective/verb
+    | |  |       |          |              +-----------------------> 8 bit - User defined data (unused)
+    | |  |       |          +-------------------------------------->16 bit - Native OS error
+    | |  |       +-------------------------------------------------> 8 bit - API revision
+    | |  +---------------------------------------------------------> 3 bit - API version
+    | +------------------------------------------------------------> 3 bit - Reserved    
+    +--------------------------------------------------------------> 1 bit - Error indicator
+
+INAC pursues the goal of understandable human error messages therefore the 
+error code contains information on adjective / verb, possible negation 
+and subject
+
+#### Error indicator
+The highest bit is used (if ON) to indicate if the RC should be treated as a
+failure. Therefor one 
 
 
+One can clear the error indicator with `ina_err_clear()`. This can be useful 
+when handling an error situation we need to return information about the 
+handled error.
+`` 
+ 
 
+### API version information
+INAC store the API major and minor(revision) version in the RC. To extract 
 
-#### Defining errors
-An error message has the form '(NOT) + ADJ/V' like "Empty", "Not valid", 
-"Not initialized", "Not running", "Unavailable", etc.
+#### Error message
+An error message has the form 'ADJECTIVE/VERB'  or ' NOT ADJECTIVE/VERB' like 
+"Empty", "Not valid", "Not initialized", "Not running", "Unavailable", etc.
 
-Or additionally, 'NOUN + (NOT) + ADJ/V' errors are also supported like
+Additionally, one can be more specific on the error subject in the form of
+'SUBJECT + (NOT) + ADJECTIVE/VERB'  errors are also supported like
 "Argument invalid", "Network not initialized", "File not out", "Disk full", etc.
 
-INAC provides standard nouns and adj/v which can be used. Nouns are identified 
-by an 15 bit integer. Therefor there are 32767 possible nouns. The first 
-1024 are reserved by INAC libraries.
+INAC provides standard subjects and adjectives/verbs which can be used to 
+compose RCs. Subjects are identified by an 15 bit integer. Therefor there 
+are 32767 possible subjects. The first 1024 are reserved by INAC libraries.
   
-Nouns can be app-defined. For this purpose INAC provides a user defined dictionary 
-callback function. Nouns are resolved by calling the user-provided dictionary 
-function of type `ina_err_dict_cb_t` which is registered by `ina_err_register_dict()`.
+Subjects can be app-defined. For this purpose INAC provides a user defined dictionary 
+callback function. Subjects are resolved by calling the user-provided dictionary 
+function of type `ina_err_subject_cb_t` which is registered by `ina_err_register_dict()`.
 The user defined dictionary is used to retrieve the full error message.
 
-INAC nouns and adj/verb  are defined in `libinac/error.h`. To defined error codes
-in a application/library using predefined codes:
+INAC subjects and adj/verb are defined in `libinac/error.h` and should almost any
+kind of error for an application/library.
 
 	 #define INAWS_ERR_NOCONNECTION    INA_ERR_NOT_CONNECTED
-	 #define INAWS_ERR_CONNECT         INA_NN_CONNECTION|INA_ERR_NOT_CONNECTED
+	 #define INAWS_ERR_CONNECT         INA_ES_CONNECTION|INA_ERR_NOT_CONNECTED
 
 
-There is also the posibility to define errors using user defined nouns. Define first 
-your user defined noun:
+There is also the possibility to define errors using user defined subjects. 
+Define first your user defined subjects:
 
-    #define INAWS_NN_WORKSTATION       INA_NN_USER_DEFINED+1
+    #define INAWS_ES_WORKSTATION      INA_ES_USER_DEFINED+1
     
-Then define the error code combining error and noun
+Then define the error message combining adjective/verb and subject
 
-    #define INAWS_ERR_WS_NOT_FOUND     INAWS_NN_WORKSRATION|INA_ERR_NOT_FOUND
+    #define INAWS_ERR_WS_NOT_FOUND     INAWS_ES_WORKSRATION|INA_ERR_NOT_FOUND
     
-Declare and implement a dictionary callback for your user defined nouns.
+Declare and implement a dictionary callback for the user defined subjects.
 
-    static const char* __get_noun(int id) {
+    static const char* __get_err_getsubject(int id) {
         switch (id) {
-            case INAWS_NN_WORKSTATION:
+            case INAWS_ES_WORKSTATION:
                 return "WORKSTATION";
             default:
                 return "";
         }
     }
 
-Register your dictionary callback at program startup
+Register your dictionary callback asap at program startup
     
     int main(int argc,  char** argv) {
-        ina_err_register_dict(__get_noun);
+        ina_err_register_dict(__get_err_subject);
     
         ...
      }
@@ -423,19 +440,26 @@ Register your dictionary callback at program startup
 #### General
 Generally one will set error state by using _INA_ERROR()_
 
+    #define E_OBJ_IN_USE INA_ES_OBJECT|INA_ERR_IN_USE
+    #define E_FILE_IN_USE INA_ES_FILE|INA_ERR_IN_USE
+    
     ina_rc_t release_object(obj_t m) {
         if (m->c_ref != 0) {
-            return INA_ERROR(INA_NN_OBJECT|INA_ERR_IN_USE);
+            return INA_ERROR(E_OBJ_IN_USE);
+        } else {
+            .. try to close file...
+            if (m->file_open) {
+               return INA_ERROR(E_FILE_IN_USE);
+            }
+            ...
         }
         return INA_SUCCESS;
      }
      
      ....
-     if (INA_SUCCEED(release_object(m)) {
-        ina_mem_free(m);
-     } else {
-        switch (ina_err_get_last_rc()) {
-            case INA_NN_OBJECT|INA_ERR_IN_USE:
+     if (INA_FAILED(release_object(m)) {
+        switch (INA_RC_ERROR(ina_err_get_rc())) {
+            case INA_ERR_IN_USE:
                 ...
         }
      
@@ -458,30 +482,25 @@ error or not.
     }    
     
 #### Capture and handling of native errors 
-Use _INA_OS_ERROR(error) to capture the last native error. This is errno on
-unix based os and GetLastError() on Windows platforms.
+Use _INA_OS_ERROR() to capture the last native error. This is errno on
+unix based os and GetLastError() on Windows platforms. To extract the 
+native error code use the _INA_RC_ERRNO()_ macro.
     
     ina_rc_t openfile(const char* fn)
     {
         f = fopen("test.csv", "r");
         if (f == NULL) {
-            INA_OS_ERROR(INA_NN_FILE|INA_ERR_NOT_OPEN);
+            INA_OS_ERROR(INA_ES_FILE|INA_ERR_NOT_OPEN);
         }
         return INA_SUCCESS
     }
     
     ...
     if (INA_FAILED(openfile(fn)) {
-        if (INA_RC_ERRNO(ina_err_get_last_rc() == EFULL) {
+        if (INA_RC_ERRNO(ina_err_get_rc()) == EFULL) {
             
     
-    
-    
-#### Setting native errors
-- INA_USR_ERROR(error, errno)
-
-INA_ERROR(error message)
-
+   
 ### Return Code
 
 #### Error flag
@@ -513,14 +532,7 @@ To reset the  error state use `ina_err_reset()`.
 ### Logging
 U
 
-### Utilities
 
-This library provide two useful functions. They are used internally but they are
- for public use as well.
-
-- `ina_err_backtrace()` printout current backtrace to the standard output.
-
-- `ina_err_coredump()` generate a core dump.
 
 
 ## Memory Handling
@@ -636,7 +648,7 @@ hold the instance for the configuration file.
     
 Declare 
 
-    INA_CONFFILE(cf,
+    INA_CONFFILE(cf, NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, NULL,
             INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES)),
         INA_CONFFILE_NAMED_SECTION("iface", INA_NO, NULL,
@@ -650,7 +662,7 @@ Create a configuration file instance by calling `ina_conffile_new()`.
     if (INA_SUCCEED(ina_conffile_new(&cf, NULL)) {
 
 After calling you will get an new configurations file instance. You can 
-optionally pass a filepath as second argument to override the standard pattern of
+optionally pass a file path as second argument to override the standard pattern of
 configuration file location. By convention the configuration file path is 
 [binary-name].conf in the current working directory if nothing else is 
 specified.
@@ -725,7 +737,7 @@ There are two main design choices that are important to know up-front:
    a batch style activity. Therefore it only takes the path and arguments to
    the executable as arguments.
    
-2. One has multipe options to persist the task definitions. The Cron component
+2. One has multiple options to persist the task definitions. The Cron component
    itself does not support any persistence. However it defines callback methods
    that one can implement to persist task definitions.
    

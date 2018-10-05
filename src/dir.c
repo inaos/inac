@@ -120,7 +120,7 @@ INA_API(ina_rc_t) ina_dir_walker_new(const char *basedir,
         return INA_SUCCESS;
     }
     ina_dir_walker_free(walker);
-    return ina_err_get_last_rc();
+    return ina_err_get_rc();
 }
 
 INA_API(ina_rc_t) ina_dir_walker_enable_recursive(ina_dir_walker_t *walker)
@@ -226,13 +226,13 @@ INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
         }
         walker->current = walker->first;
         if (walker->current == NULL) {
-            return INA_ERROR(INA_ES_ENUMERATION|INA_ERR_EMPTY);
+            return INA_ERROR(INA_ES_ENUMERATION | INA_ERR_EMPTY);
         }
     } else if (walker->current == NULL) {
         walker->current = walker->first;
     } else if (walker->current == walker->last) {
         *entry = NULL;
-        return INA_ERROR(INA_ERR_END_OF|INA_ES_ENUMERATION);
+        return INA_ERROR(INA_ERR_END_OF | INA_ES_ENUMERATION);
     } else {
         walker->current++;
     }
@@ -283,7 +283,7 @@ INA_API(ina_rc_t) ina_dir_stat_new(const char *dir, ina_dir_stat_t **stat)
     struct statvfs sfs;
     if (statvfs(dir, &sfs) != 0) {
         ina_dir_stat_free(stat);
-        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
     (*stat)->free_bytes = sfs.f_bsize * sfs.f_bavail;
     (*stat)->total_bytes = sfs.f_blocks * sfs.f_bsize;
