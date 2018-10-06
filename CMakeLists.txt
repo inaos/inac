@@ -85,7 +85,7 @@ inac_post_copy_file_win32(tests tests.conf DEST tests.exe.conf)
 
 if (MSVC)
 	install(TARGETS inac
-			DESTINATION libs
+			DESTINATION lib
 			COMPONENT libraries)
 else()
 	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libinac.a
