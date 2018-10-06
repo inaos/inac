@@ -69,24 +69,6 @@ typedef struct ina_mempool_event_info_s {
 typedef ina_rc_t (*ina_mempool_event_handler_t)
         (const ina_mempool_event_info_t*, size_t*);
 
-/*
- * Set custom allocator function to use with memory pools.
- * If NULL is given standard memmory handler will be used.
- *
- * This function should be called once and as soon as possible after 
- * ina_libinit() or ina_appinit().
- *
- * Parameters:
- *  malloc_fn    Pointer to the custom malloc() function
- *  free_fn      Pointer to the custom free() function
- *  realloc_fn   Pointer to the custom realloc() function
- *
- * Return
- *  INA_SUCCESS if no error occurred.
- */
-INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
-                                 ina_free_t free_fn,
-                                 ina_realloc_t realloc_fn);
 
 /* 
  * Get runtime imformations about a memory pool.

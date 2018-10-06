@@ -15,7 +15,33 @@ extern "C" {
 #endif
 #include <libinac/lib.h>
 
-	/* Align to 2x word size (as GNU libc does). */
+/* Define memory functions */
+#ifndef INA_MEM_MALLOC
+#define INA_MEM_MALLOC malloc
+#endif
+#ifndef INA_MEM_REALLOC
+#define INA_MEM_REALLOC realloc
+#endif
+#ifndef INA_MEM_MEMMOVE
+#define INA_MEM_MEMMOVE memmove
+#endif
+#ifndef INA_MEM_MEMCPY
+#define INA_MEM_MEMCPY memcpy
+#endif
+#ifndef INA_MEM_MEMCMP
+#define INA_MEM_MEMCMP memcmp
+#endif
+#ifndef INA_MEM_MEMCHR
+#define INA_MEM_MEMCHR memchr
+#endif
+#ifndef INA_MEM_MEMSET
+#define INA_MEM_MEMSET memset
+#endif
+#ifndef INA_MEM_FREE
+#define INA_MEM_FREE free
+#endif
+
+/* Align to 2x word size (as GNU libc does). */
 #define INA_MEM_ALIGN_SIZE (2 * sizeof(void*))
 
 /* Round up 'n' to a multiple of ALIGN_SIZE. */
@@ -31,22 +57,6 @@ extern "C" {
 
 #define INA_MEM_SET_ZERO(ptr, type) ina_mem_set(ptr, 0, sizeof(type))
 
-/* Function pointer with malloc()‘s signature */
-typedef void *(*ina_malloc_t)(size_t);
-/* Function pointer with realloc()‘s signature */
-typedef void *(*ina_realloc_t)(void *, size_t);
-/* Function pointer with memmove()‘s signature */
-typedef void *(*ina_memmove_t)(void *, const void *, size_t);
-/* Function pointer with memcpy()‘s signature */
-typedef void *(*ina_memcpy_t)(void *, const void *, size_t);
-/* Function pointer with memcmp()‘s signature */
-typedef int (*ina_memcmp_t)(const void *, const void *, size_t);
-/* Function pointer with memchr()‘s signature */
-typedef void *(*ina_memchr_t) (const void *, int , size_t);
-/* Function pointer with memset()‘s signature */
-typedef void *(*ina_memset_t)(void *, int , size_t);
-/* Function pointer with free()‘s signature */
-typedef void (*ina_free_t)(void *);
 
 /*
  * The function returns the number of bytes in a memory page, where "page" is 
@@ -65,35 +75,14 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
  *
  * Parameters:
  *  query    Input size in bytes
- *  aligned  The size after alignment
  *
  * Return
- *  INA_SUCCESS if no error occurred.
+ *  The size after alignment
  */                                 
-INA_API(ina_rc_t) ina_mem_get_aligned_size(size_t query, size_t *aligned);
-
-/*
- * Allocate memory block. Allocates a block of size bytes of memory, returning
- * a pointer to the beginning of the block.
- *
- * The content of the newly allocated block of memory is not initialized, 
- * remaining with indeterminate values.
- *
- * If size is zero, it returns a null pointer. But the returned 
- * pointer shall not be used to dereference an object in any case.
- *
- * Parameters
- * size  Size of the memory block, in bytes. size_t is an unsigned integral
- *       type.
- * 
- * Return
- *  On success, a pointer to the memory block allocated by the function.
- *  The type of this pointer is always void*, which can be cast to the desired
- *  type of data pointer in order to be dereferenceable.
- *  If the function failed to allocate the requested block of memory,
- *  a null pointer is returned.
- */
-INA_API(void *) ina_mem_alloc(size_t size);
+INA_INLINE size_t ina_mem_get_aligned_size(size_t query)
+{
+	return ((query+(INA_MEM_ALIGN_SIZE-1)) & (~(INA_MEM_ALIGN_SIZE-1)));
+}
 
 /*
  * Allocate aligned memory block. Allocates a block of size bytes of memory,
@@ -117,7 +106,33 @@ INA_API(void *) ina_mem_alloc(size_t size);
  *  If the function failed to allocate the requested block of memory,
  *  a null pointer is returned.
  */
-INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size);
+INA_API(void*) ina_mem_alloc_aligned(size_t alignment, size_t size);
+
+/*
+ * Allocate memory block. Allocates a block of size bytes of memory, returning
+ * a pointer to the beginning of the block.
+ *
+ * The content of the newly allocated block of memory is not initialized,
+ * remaining with indeterminate values.
+ *
+ * If size is zero, it returns a null pointer. But the returned
+ * pointer shall not be used to dereference an object in any case.
+ *
+ * Parameters
+ * size  Size of the memory block, in bytes. size_t is an unsigned integral
+ *       type.
+ *
+ * Return
+ *  On success, a pointer to the memory block allocated by the function.
+ *  The type of this pointer is always void*, which can be cast to the desired
+ *  type of data pointer in order to be dereferenceable.
+ *  If the function failed to allocate the requested block of memory,
+ *  a null pointer is returned.
+ */
+INA_INLINE void * ina_mem_alloc(size_t size)
+{
+    return ina_mem_alloc_aligned(sizeof(void*), size);
+}
 
 /*
  * Attempts to resize the memory block pointed to by ptr that was previously
@@ -135,7 +150,11 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size);
  *  This function returns a pointer to the newly allocated memory, or NULL if
  *  the request fails.
  */
-INA_API(void *) ina_mem_realloc(void *ptr, size_t nb);
+INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
+{
+	INA_ASSERT_NOTNULL(ptr);
+	return INA_MEM_REALLOC(ptr, nb);
+}
 
 /*
  * Move a memory block.
@@ -164,7 +183,12 @@ INA_API(void *) ina_mem_realloc(void *ptr, size_t nb);
  * Return
  *  dest is returned
  */
-INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb);
+INA_INLINE void* ina_mem_move(void *dest, const void *src, size_t nb)
+{
+	INA_ASSERT_NOTNULL(dest);
+	INA_ASSERT_NOTNULL(*src);
+	return INA_MEM_MEMMOVE(dest, src, nb);
+}
 
 /* 
  * Copy block of memory
@@ -193,7 +217,12 @@ INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb);
  * Return
  *  dest is returned.
  */ 
-INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb);
+INA_INLINE void * ina_mem_cpy(void *dest, const void *src, size_t nb)
+{
+	INA_ASSERT_NOTNULL(dest);
+	INA_ASSERT_NOTNULL(src);
+	return INA_MEM_MEMMOVE(dest, src, nb);
+}
 
 /*
  * Compare two blocks of memory
@@ -219,7 +248,10 @@ INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb);
  *  evaluated as unsigned char values; And a value less than zero indicates
  *  the opposite.
  */
-INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb);
+INA_INLINE int ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
+{
+	return INA_MEM_MEMCMP(lhs, rhs, nb);
+}
 /*
  * Locate character in block of memory
  *
@@ -241,7 +273,11 @@ INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb);
  *  A pointer to the first occurrence of value in the block of memory pointed
  *  by des. If the value is not found, the function returns a null pointer.
  */
-INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb);
+INA_INLINE void* ina_mem_chr(const void *dest, int value, size_t nb)
+{
+	INA_ASSERT_NOTNULL(dest);
+	return INA_MEM_MEMCHR(dest, value, nb);
+}
 
 /*
  * Fill block of memory
@@ -259,7 +295,11 @@ INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb);
  * Return
  *  dest is returned.
  */
-INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
+INA_INLINE void* ina_mem_set(void *dest, int value, size_t nb)
+{
+    INA_ASSERT_NOTNULL(dest);
+    return INA_MEM_MEMSET(dest, value, nb);
+}
 
 /* 
  * Deallocate space in memory. A block of memory previously allocated using a 
@@ -278,7 +318,10 @@ INA_API(void *) ina_mem_set(void *dest, int value, size_t nb);
  * ptr   pointer to a memory block prevously allocated with ina_mem_alloc()
  */
 
-INA_API(void) ina_mem_free(void *ptr);
+INA_INLINE void ina_mem_free(void *ptr)
+{
+	INA_MEM_FREE(*((void**)((size_t)ptr - sizeof(void*))));
+}
 
 
 #ifdef __cplusplus

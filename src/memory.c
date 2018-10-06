@@ -18,8 +18,6 @@ struct ina_mempool_s  {
     size_t end;
     unsigned char *m;
     ina_str_t label;
-    ina_malloc_t memalloc;
-    ina_free_t  memfree;
     struct ina_mempool_s *current;
     struct ina_mempool_s *parent;
     struct ina_mempool_s *child;
@@ -29,28 +27,6 @@ struct ina_mempool_s  {
 static ina_rc_t __ina_shm_open(ina_mempool_t *);
 static ina_rc_t __ina_shm_close(ina_mempool_t *);
 
-/* Internal memory function */
-static ina_malloc_t  __ina_malloc  = INA_MEM_MALLOC;
-static ina_realloc_t __ina_realloc = INA_MEM_REALLOC;
-static ina_free_t    __ina_free    = INA_MEM_FREE;
-static ina_memmove_t __ina_memmove = INA_MEM_MEMMOVE;
-static ina_memcpy_t  __ina_memcpy  = INA_MEM_MEMCPY;
-static ina_memcmp_t  __ina_memcmp  = INA_MEM_MEMCMP;
-static ina_memchr_t  __ina_memchr  = INA_MEM_MEMCHR;
-static ina_memset_t  __ina_memset  = INA_MEM_MEMSET;
-
-
-INA_API(void *) ina_mem_alloc(size_t size)
-{
-    return ina_mem_alloc_aligned(sizeof(void*), size);
-}
-
-INA_API(ina_rc_t) ina_mem_get_aligned_size(size_t query, size_t *aligned)
-{
-    INA_VERIFY_NOT_NULL(aligned);
-    *aligned =  ((query+(INA_MEM_ALIGN_SIZE-1)) & (~(INA_MEM_ALIGN_SIZE-1)));
-    return INA_SUCCESS;
-}
 
 INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
 {
@@ -73,9 +49,9 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
      * of the memory returned by standard
      * malloc().
      */
-    void *p = __ina_malloc(size + alignment - 1 + sizeof(void*));
+    void *p = INA_MEM_MALLOC(size + alignment - 1 + sizeof(void*));
      
-    if (p != NULL) {
+    if (INA_UNLIKELY(p != NULL)) {
         void *ptr;
         /* Address of the aligned memory according to the align parameter*/
         ptr = (void*) (((size_t)p + sizeof(void*) + alignment -1) & ~(alignment-1));
@@ -92,56 +68,6 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
     return NULL;
 }
 
-
-INA_API(void) ina_mem_free(void *ptr)
-{
-    /* Get the address of the memory, stored at the
-     * start of our total memory area. Alternatively,
-     * you can use void *ptr = *((void **)p-1) instead
-     * of the one below.
-     */
-    void *p = *((void**)((size_t)ptr - sizeof(void*)));
-    __ina_free(p);
-}
-
-INA_API(void *) ina_mem_realloc(void *ptr, size_t nb)
-{
-    INA_ASSERT_NOTNULL(ptr);
-    return __ina_realloc(ptr, nb);
-}
-
-INA_API(void *) ina_mem_move(void *dest, const void *src, size_t nb)
-{
-    INA_ASSERT_NOTNULL(dest);
-    INA_ASSERT_NOTNULL(src);
-    return __ina_memmove(dest, src, nb);
-}
-
-INA_API(void *) ina_mem_cpy(void *dest, const void *src, size_t nb)
-{
-    INA_ASSERT_NOTNULL(dest);
-    INA_ASSERT_NOTNULL(src);
-    return __ina_memcpy(dest, src, nb);
-}
-
-INA_API(int) ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
-{
-    INA_ASSERT_NOTNULL(lhs);
-    INA_ASSERT_NOTNULL(rhs);
-    return __ina_memcmp(lhs, rhs, nb);
-}
-
-INA_API(void *) ina_mem_set(void *dest, int value, size_t nb)
-{
-    INA_ASSERT_NOTNULL(dest);
-    return __ina_memset(dest, value, nb);
-}
-
-INA_API(void *) ina_mem_chr(const void *dest, int value, size_t nb)
-{
-    INA_ASSERT_NOTNULL(dest);
-    return __ina_memchr(dest, value, nb);
-}
 
 INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
 {
