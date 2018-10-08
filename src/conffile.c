@@ -85,22 +85,19 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
 
     *cf = (ina_conffile_t*)ina_mem_alloc(sizeof(ina_conffile_t));
     INA_RETURN_IF(*cf == NULL);
-    ina_mem_set(*cf, 0, sizeof(ina_conffile_t));
-
-    if (INA_SUCCEED(ina_ljit_ctx_new(&(*cf)->lctx)) &&
-        INA_SUCCEED(ina_mempool_new(
-                4094,
-                NULL,
-                INA_MEM_DYNAMIC, &(*cf)->mempool)) &&
-        INA_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+    INA_MEM_SET_ZERO(*cf, ina_conffile_t);
+    INA_FAIL_IF_ERROR(ina_ljit_ctx_new(&(*cf)->lctx));
+    INA_FAIL_IF_ERROR(ina_mempool_new(4094, NULL, INA_MEM_DYNAMIC, &(*cf)->mempool));
+    INA_FAIL_IF_ERROR(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
                       INA_HASHTABLE_GROW_DEFAULT,
                       INA_HASHTABLE_SHRINK_DEFAULT,
                       INA_HASHTABLE_DEFAULT_CAPACITY,
-                      INA_HASHTABLE_CF_DEFAULT, &(*cf)->sections))) {
-        return INA_SUCCESS;
-    }
+                      INA_HASHTABLE_CF_DEFAULT, &(*cf)->sections));
+    return INA_SUCCESS;
+
+fail:
     ina_conffile_free(cf);
     return ina_err_get_rc();
 }
