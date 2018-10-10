@@ -532,7 +532,7 @@ INA_API(void) ina_cron_ctx_free(ina_cron_ctx_t **ctx)
     ina_hashtable_foreach((*ctx)->func, __ina_free_func);
     ina_hashtable_free(&(*ctx)->tasks);
     ina_hashtable_free(&(*ctx)->func);
-    ina_process_ctx_free(&(*ctx)->process_ctx);
+    //ina_process_ctx_free(&(*ctx)->process_ctx);
 	INA_MEM_FREE_SAFE(*ctx);
 }
 
