@@ -156,7 +156,7 @@ after_test:
         # Code coverage
         $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
         Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-        bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/testsCoverage.xml" -t $env:codecov_api_key
+        bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/tests-coverage.xml" -t $env:codecov_api_key
         
         # Detect if there are any failure nodes in the junit results
     #    [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml
