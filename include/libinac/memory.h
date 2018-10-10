@@ -186,7 +186,7 @@ INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
 INA_INLINE void* ina_mem_move(void *dest, const void *src, size_t nb)
 {
 	INA_ASSERT_NOTNULL(dest);
-	INA_ASSERT_NOTNULL(*src);
+	INA_ASSERT_NOTNULL(src);
 	return INA_MEM_MEMMOVE(dest, src, nb);
 }
 
