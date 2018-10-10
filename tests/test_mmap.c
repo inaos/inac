@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 
@@ -32,9 +13,9 @@ INA_TEST(mmap, test_init_destroy)
 {
 	ina_mmap_ctx_t *ctx = NULL;
 
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_init(&ctx));
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_ctx_new(&ctx));
 	INA_TEST_ASSERT_NOT_NULL(ctx);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_ctx_free(&ctx));
 	INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -42,15 +23,32 @@ INA_TEST(mmap, test_new_free)
 {
 	ina_mmap_ctx_t *ctx = NULL;
 	ina_mmap_mapping_t *m = NULL;
-
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_init(&ctx));
+	ina_file_t *file;
+	ina_file_ctx_t *file_ctx;
+	INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&file_ctx, 0));
+	INA_TEST_ASSERT_SUCCEED(ina_file_new(file_ctx,
+			"tests.mem",
+			INA_FILE_ACCESS_MODE_READWRITE,
+			INA_FILE_CREATE_MODE_CREATE,
+			INA_FILE_SHARE_MODE_EXCLUSIVE,
+			0,
+			&file));
+	INA_TEST_ASSERT_NOT_NULL(file);
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_ctx_new(&ctx));
 	INA_TEST_ASSERT_NOT_NULL(ctx);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_new(ctx, NULL, INA_MMAP_MEM_PROT_READ, INA_MMAP_MEM_SHARE_SHARED, INA_MMAP_MAP_TYPE_MEMORY, 0, 1024*1024*1024, &m));
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_new(ctx, file,
+			INA_MMAP_MEM_PROT_READ,
+			INA_MMAP_MEM_SHARE_SHARED,
+			INA_MMAP_MAP_TYPE_MEMORY,
+			1024*1024*1024,
+			0, &m));
 	INA_TEST_ASSERT_NOT_NULL(m);
 	INA_TEST_ASSERT_SUCCEED(ina_mmap_free(ctx, &m));
 	INA_TEST_ASSERT_NULL(m);
-	INA_TEST_ASSERT_SUCCEED(ina_mmap_destroy(&ctx));
+	INA_TEST_ASSERT_SUCCEED(ina_mmap_ctx_free(&ctx));
 	INA_TEST_ASSERT_NULL(ctx);
+	INA_TEST_ASSERT_SUCCEED(ina_file_free(&file));
+	INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&file_ctx));
 }
 
 INA_TEST_SKIP(mmap, synch)

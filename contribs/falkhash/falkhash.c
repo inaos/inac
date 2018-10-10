@@ -4,7 +4,15 @@
     #include <intrin.h>
     #pragma warning(pop)
 #else
-#include <x86intrin.h>
+    #if (__GNUC__ == 4 &&  __GNUC_MINOR__ < 4)
+    	#ifndef INA_OS_OSX
+        	#include <avxintrin.h>
+        #else
+			#include <immintrin.h>
+		#endif
+    #else
+        #include <x86intrin.h>
+    #endif
 #endif
 /* Discard SAL annotations if you're not using MSVC :( */
 #ifndef _MSC_VER
@@ -97,7 +105,7 @@ falkhash(
 	return hash;
 }
 
-uint64_t falkhash64(const void * key, int len, uint64_t seed)
+uint64_t falkhash64(const void * key, size_t len, uint64_t seed)
 {
 	uint64_t hash[2];
     __m128i val;
@@ -109,7 +117,7 @@ uint64_t falkhash64(const void * key, int len, uint64_t seed)
     return hash[0];
 }
 #else
-uint64_t falkhash64(const void * key, int len, uint64_t seed)
+uint64_t falkhash64(const void * key, size_t len, uint64_t seed)
 {
     return 0;
 }

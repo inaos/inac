@@ -1,33 +1,14 @@
 /*
- * Copyright (c) 2013-2015, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
-
 #ifdef INA_OS_WIN32
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <iphlpapi.h>
 #endif
 
@@ -45,9 +26,9 @@
 
 INA_TEST_DATA(net) {
     ina_test_hid_t hid;
-    int server_fd;
-    int client_fd;
-    int fd;
+    ina_fd_t server_fd;
+    ina_fd_t client_fd;
+    ina_fd_t fd;
 };
 
 INA_TEST_SETUP(net) {
@@ -61,7 +42,7 @@ INA_TEST_TEARDOWN(net) {
     if (data->client_fd > -1) {
         ina_net_close(data->client_fd);
     }
-    data->client_fd = -1;
+    data->client_fd = INA_NET_INVALID_SOCKET;
     INA_TEST_HELPER_TERMINATE(&data->hid);
 }
 
@@ -81,7 +62,7 @@ INA_TEST_FIXTURE(net, tcp_connect_5sec_timeout) {
     INA_TEST_ASSERT_SUCCEED(ina_net_close(data->client_fd));
 }
 
-INA_TEST_FIXTURE(net, tcp_write_read) {
+INA_TEST_FIXTURE_SKIP(net, tcp_write_read) {
     char buffer[1024];
     int nb_read = 0;
     int nb_write = 0;
@@ -97,18 +78,18 @@ INA_TEST_FIXTURE(net, tcp_write_read) {
     INA_TEST_MSG("write %s", buffer);    
     INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
                             (const unsigned char*)buffer,
-                            strlen(buffer), &nb_write));
+                            (int)strlen(buffer), &nb_write));
 
     ina_mem_set(buffer, 0, 1024);
     INA_TEST_ASSERT_SUCCEED(ina_net_read(data->client_fd, 
                             (unsigned char*)buffer, 1024,
                             &nb_read));
     INA_TEST_MSG("read %d bytes:%s", nb_read, buffer);
-    INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
+    INA_TEST_ASSERT_EQUAL_INT(nb_read, nb_write);
 }
 
 
-INA_TEST_FIXTURE(net, tcp_write_read_1000_times) {
+INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
     char buffer[1024];
     int nb_read = 0;
     int nb_write = 0;
@@ -126,13 +107,13 @@ INA_TEST_FIXTURE(net, tcp_write_read_1000_times) {
         strcpy(buffer, "hello");
         INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
                                 (const unsigned char*)buffer,
-                                strlen(buffer), &nb_write));
+                                (int)strlen(buffer), &nb_write));
 
         ina_mem_set(buffer, 0, 1024);
         INA_TEST_ASSERT_SUCCEED(ina_net_read(data->client_fd, 
                                 (unsigned char*)buffer, 1024,
                                 &nb_read));
-        INA_TEST_ASSERT_EQUAL_INTEGER(nb_read, nb_write);
+        INA_TEST_ASSERT_EQUAL_INT(nb_read, nb_write);
     }
 }
 #ifdef INA_OS_WIN32
@@ -145,13 +126,11 @@ INA_TEST(net_local, mac_addr)
     /* first the get first IP-Address of the system */
 #define WORKING_BUFFER_SIZE 15000
 #define MAX_TRIES 3
-    DWORD dwSize = 0;
     DWORD dwRetVal = 0;
     unsigned int i = 0;
 
     ULONG family = AF_INET;
     ULONG flags = GAA_FLAG_SKIP_DNS_SERVER;
-    LPVOID lpMsgBuf = NULL;
 
     PIP_ADAPTER_ADDRESSES pAddresses = NULL;
     ULONG outBufLen = 0;
@@ -159,11 +138,7 @@ INA_TEST(net_local, mac_addr)
 
     PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
     PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
-    PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
-    PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
-    IP_ADAPTER_DNS_SERVER_ADDRESS *pDnServer = NULL;
-    IP_ADAPTER_PREFIX *pPrefix = NULL;
-
+    
     outBufLen = WORKING_BUFFER_SIZE;
     do {
         pAddresses = (IP_ADAPTER_ADDRESSES *)ina_mem_alloc(outBufLen);
@@ -186,10 +161,11 @@ INA_TEST(net_local, mac_addr)
             if (pUnicast != NULL) {
                 for (i = 0; pUnicast != NULL; i++) {
                     if (pUnicast->Address.lpSockaddr->sa_family == AF_INET) {
-                        struct sockaddr_in *sin = (struct sockaddr_in*)pUnicast->Address.lpSockaddr;
-                        char *ip = inet_ntoa(sin->sin_addr);
-                        if (!found && strncmp("127.", ip, 4) != 0) {
-                            test_ip = _strdup(ip);
+						char ipbuf[128];
+						struct sockaddr_in *sin = (struct sockaddr_in*)pUnicast->Address.lpSockaddr;
+						inet_ntop(AF_INET, &sin->sin_addr, ipbuf, 128);
+                        if (!found && strncmp("127.", ipbuf, 4) != 0) {
+                            test_ip = _strdup(ipbuf);
                             found = 1;
                         }
                     }
@@ -251,3 +227,16 @@ INA_TEST(net_local, mac_addr)
     freeifaddrs(ifaddr);
 }
 #endif
+INA_TEST(net_local, system_lookup)
+{
+    ina_str_t *addresses;
+    short      address_count;
+
+    INA_TEST_ASSERT_SUCCEED(ina_net_system_lookup("localhost", &address_count, &addresses));
+    INA_TEST_ASSERT_TRUE(address_count > 0);
+    for (int n = 0; n < address_count; ++n) {
+       INA_TEST_MSG("address %d: %s", n, addresses[n]);
+       ina_str_free(addresses[n]);
+    }
+    INA_TEST_ASSERT_FAILED(ina_net_system_lookup("blablabla", &address_count, &addresses));
+}

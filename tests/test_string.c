@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2012-2014,2016 INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 
@@ -36,13 +17,13 @@ INA_TEST_DATA(string_mempool)
 INA_TEST_SETUP(string_mempool)
 {
     ina_err_reset();
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&data->pool, 10*1024,INA_MEM_DYNAMIC, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(10 * 1024, NULL, INA_MEM_DYNAMIC, &data->pool));
     INA_TEST_ASSERT_NOT_NULL(data->pool);
 }
 
 INA_TEST_TEARDOWN(string_mempool)
 {
-    ina_mempool_release(data->pool, INA_YES);
+    ina_mempool_free(&data->pool);
     data->pool = NULL;
 }
 
@@ -216,7 +197,7 @@ INA_TEST(string, ina_str_ncpy)
     ina_str_free(dest);
 }
 
-INA_TEST(string, ina_str_cat)
+INA_TEST_SKIP(string, ina_str_cat)
 {
     ina_str_t str = ina_str_new(128);
     ina_str_t part1 = ina_str_new_fromcstr("part1");
@@ -385,16 +366,16 @@ INA_TEST(string, ina_str_len)
     ina_str_t empty = ina_str_new_fromcstr("");
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_TRUE(strlen("an INAC string") == ina_str_len(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(empty));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(NULL));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_len(empty));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_len(NULL));
     ina_str_free(str);
     ina_str_free(empty);
     
     str = ina_str_new_fromcstr("an ");
     INA_TEST_ASSERT_NOT_NULL(str);
-    INA_TEST_ASSERT_EQUAL_INTEGER(3, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(3, ina_str_len(str));
     str = ina_str_catcstr(str, "1234567890");
-    INA_TEST_ASSERT_EQUAL_INTEGER(13, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(13, ina_str_len(str));
     INA_TEST_ASSERT_EQUAL_STR("an 1234567890", ina_str_cstr(str));
     ina_str_free(str);
 }
@@ -405,16 +386,16 @@ INA_TEST(string, ina_str_size)
     ina_str_t empty = ina_str_new_fromcstr("");
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_TRUE((strlen("an INAC string")+1) == ina_str_size(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_str_size(empty));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_size(NULL));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(1, ina_str_size(empty));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_size(NULL));
     ina_str_free(str);
     ina_str_free(empty);
 
     str = ina_str_new_fromcstr("an ");
     INA_TEST_ASSERT_NOT_NULL(str);
-    INA_TEST_ASSERT_EQUAL_INTEGER(4, ina_str_size(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4, ina_str_size(str));
     str = ina_str_catcstr(str, "1234567890");
-    INA_TEST_ASSERT_EQUAL_INTEGER(14, ina_str_size(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(14, ina_str_size(str));
     INA_TEST_ASSERT_EQUAL_STR("an 1234567890", ina_str_cstr(str));
     ina_str_free(str);
 }
@@ -422,12 +403,12 @@ INA_TEST(string, ina_str_size)
 INA_TEST(string, ina_str_available)
 {
     ina_str_t str = ina_str_new_fromcstr("1234567890");
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_available(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_available(str));
     ina_str_free(str);
     str = ina_str_new(100);
-    INA_TEST_ASSERT_EQUAL_INTEGER(100, ina_str_available(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(100, ina_str_available(str));
     ina_str_catcstr(str, "1234567890");
-    INA_TEST_ASSERT_EQUAL_INTEGER(90, ina_str_available(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(90, ina_str_available(str));
     ina_str_free(str);
 }
 
@@ -444,10 +425,10 @@ INA_TEST(string, ina_str_cmp)
     INA_TEST_ASSERT_NOT_NULL(s3);
     INA_TEST_ASSERT_NOT_NULL(s4); 
  
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s1, s2));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s3));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s3, s3));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s1, s2));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s2, s1));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s2, s3));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s3, s3));
     result = ina_str_casecmp(s4, s3);
     INA_TEST_ASSERT_TRUE((result > 0));
     result = ina_str_casecmp(s3, s4);
@@ -471,10 +452,10 @@ INA_TEST(string, ina_str_casecmp)
     ina_str_t s4 = ina_str_new_fromcstr("abCD");
     int result = 0;
 
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s1, s2));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s2, s3));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_casecmp(s3, s3));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s1, s2));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s2, s1));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s2, s3));
+    INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s3, s3));
     result = ina_str_casecmp(s4, s3);
     INA_TEST_ASSERT_TRUE((result > 0));
     result = ina_str_casecmp(s3, s4);
@@ -543,7 +524,7 @@ INA_TEST(string, ina_str_truncte_empty_string)
     INA_TEST_ASSERT_NOT_NULL(str);
     ina_str_truncate(str, 0);
     INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_len(str));
     ina_str_free(str);
 }
 
@@ -553,7 +534,7 @@ INA_TEST(string, ina_str_truncate_zero)
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
     ina_str_truncate(str, 0);
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_len(str));
     INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
     INA_TEST_ASSERT_NOT_NULL(str);
     ina_str_free(str);
@@ -565,7 +546,7 @@ INA_TEST(string, ina_str_truncate_pos)
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
     ina_str_truncate(str, 3);
-    INA_TEST_ASSERT_EQUAL_INTEGER(3, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(3, ina_str_len(str));
     INA_TEST_ASSERT_EQUAL_STR("Abc", ina_str_cstr(str));
     INA_TEST_ASSERT_NOT_NULL(str);
     ina_str_free(str);
@@ -589,28 +570,28 @@ INA_TEST(string, ina_str_split)
     char *test[] = {"a", "b", "c", "d", "e"};
 
     INA_TEST_ASSERT_NULL((tokens = ina_str_split(NULL, NULL, &count)));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
     INA_TEST_ASSERT_NULL((tokens = ina_str_split("", NULL, &count)));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
     INA_TEST_ASSERT_NULL((tokens = ina_str_split("", "", &count)));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);    
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
     INA_TEST_ASSERT_NULL((tokens = ina_str_split("1-1-1", NULL, &count)));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
     INA_TEST_ASSERT_NULL((tokens = ina_str_split(NULL, "", &count)));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
     INA_TEST_ASSERT_NULL((tokens = ina_str_split("1-1-1", "", &count)));
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, count);
     INA_TEST_ASSERT_SUCCEED(ina_str_split_free_tokens(tokens));
     
     
     tokens = ina_str_split(str, "--", &count);
     INA_TEST_ASSERT_NOT_NULL(tokens);
-    INA_TEST_ASSERT_EQUAL_INTEGER(4, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
     INA_TEST_ASSERT_EQUAL_STR("xx",  tokens[0]);
     INA_TEST_ASSERT_EQUAL_STR("yy",  tokens[1]);
     INA_TEST_ASSERT_EQUAL_STR("zz",  tokens[2]);
@@ -622,7 +603,7 @@ INA_TEST(string, ina_str_split)
     count = 0;
     tokens = ina_str_split("a b c d e", " ", &count);
     INA_TEST_ASSERT_NOT_NULL(tokens);
-    INA_TEST_ASSERT_EQUAL_INTEGER(5, count);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(5, count);
     while (count--) {
         INA_TEST_ASSERT_EQUAL_STR(test[count], ina_str_cstr(tokens[count]));
     }
@@ -643,11 +624,11 @@ INA_TEST(string, ina_str_tok)
     ret = ina_str_tok(str, " ", &next_token);
     
     while (ret) {
-        INA_TEST_ASSERT_EQUAL_INTEGER(c, (int)*ret);
+        INA_TEST_ASSERT_EQUAL_INT(c, (int)*ret);
         ret = ina_str_tok(NULL, " ", &next_token);
         c++;
     }
-    INA_TEST_ASSERT_EQUAL_INTEGER(5, c-96);
+    INA_TEST_ASSERT_EQUAL_INT(5, c-96);
     ina_str_free(str);
     
     str = ina_str_new_fromcstr("a b-cxd   ");
@@ -660,9 +641,9 @@ INA_TEST(string, ina_str_tok)
     ret = ina_str_tok(NULL, " ", &next_token);
     INA_TEST_ASSERT_EQUAL_STR("d", ret);
     INA_TEST_ASSERT_EQUAL_STR("a", ina_str_cstr(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(10, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(10, ina_str_len(str));
     ina_str_adjust_len(str);
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(1, ina_str_len(str));
     ina_str_free(str);
 }
 
@@ -670,26 +651,54 @@ INA_TEST(string, ina_str_adjust_len)
 {
     ina_str_t str = ina_str_new(128);
     str = ina_str_catcstr(str, "12345");
-    INA_TEST_ASSERT_EQUAL_INTEGER(5, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(5, ina_str_len(str));
     strcat(str, "67890");
     INA_TEST_ASSERT_EQUAL_STR("1234567890", ina_str_cstr(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(5, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(5, ina_str_len(str));
     ina_str_adjust_len(str);
     INA_TEST_ASSERT_EQUAL_STR("1234567890", ina_str_cstr(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(10, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(10, ina_str_len(str));
     ina_str_free(str);
 }
 
 INA_TEST(string, ina_str_substr)
 {
     ina_str_t substr = NULL;
-    ina_str_t str = ina_str_new_fromcstr("exctrat a substring from a string");
+    ina_str_t str = ina_str_new_fromcstr("extract a substring from a string");
     INA_TEST_ASSERT_NOT_NULL(str);
     substr = ina_str_substr(str, 10, 18);
     INA_TEST_ASSERT_NOT_NULL(substr);
     INA_TEST_ASSERT_EQUAL_STR("substring", substr);
-    ina_str_free(str);
     ina_str_free(substr);
+
+    substr = ina_str_substr(str, 0, ina_str_len(str));
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("extract a substring from a string", substr);
+    ina_str_free(substr);
+
+    substr = ina_str_substr(str, 10, ina_str_len(str));
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("substring from a string", substr);
+    ina_str_free(substr);
+
+    substr = ina_str_substr(str, 4, 2);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("", substr);
+    ina_str_free(substr);
+
+    substr = ina_str_substr(str, 0, 0);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("e", substr);
+    ina_str_free(substr);
+
+    str = ina_str_new_fromcstr("");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    substr = ina_str_substr(str, 10, 18);
+    INA_TEST_ASSERT_NOT_NULL(substr);
+    INA_TEST_ASSERT_EQUAL_STR("", substr);
+    ina_str_free(substr);
+    ina_str_free(str);
+
 }
 
 INA_TEST_FIXTURE(string_mempool, ina_str_substr)
@@ -706,7 +715,7 @@ INA_TEST(string, ina_str_sprintf)
 {
     ina_str_t str = ina_str_sprintf("format:%s", "string");
     INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str));
-    INA_TEST_ASSERT_EQUAL_INTEGER(13, ina_str_len(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(13, ina_str_len(str));
     ina_str_free(str);
 }
 
@@ -718,7 +727,7 @@ INA_TEST(string, ina_str_snprintf)
 
     len = ina_str_snprintf(&str1, 128, "format:%s", "string");
     INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(13, len);
+    INA_TEST_ASSERT_EQUAL_INT(13, len);
     INA_TEST_ASSERT_SAME(str1, str2);
     ina_str_free(str1);
 
@@ -726,15 +735,10 @@ INA_TEST(string, ina_str_snprintf)
     str2 = str1; 
     len = ina_str_snprintf(&str1, 5, "format:%s", "string");
     INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(13, len);
-    INA_TEST_ASSERT_EQUAL_INTEGER(13, ina_str_len(str1));
+    INA_TEST_ASSERT_EQUAL_INT(13, len);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(13, ina_str_len(str1));
     INA_TEST_ASSERT_NOT_SAME(str1, str2);
     ina_str_free(str1);
-}
-
-INA_TEST_SKIP(string, ina_str_vsnprintf)
-{
-
 }
 
 INA_TEST(string, simple_allocation_with_pool)
@@ -743,11 +747,11 @@ INA_TEST(string, simple_allocation_with_pool)
     ina_str_t str2;
     ina_mempool_t *pool;
 
-    INA_TEST_ASSERT_SUCCEED(ina_mempool_create(&pool, 1024, 0, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(1024, NULL, 0, &pool));
 
     str1 = ina_str_new_fromcstr_using_pool("hallo", pool);
     INA_TEST_ASSERT_NOT_NULL(str1);
-    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("hallo"), ina_str_len(str1));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(strlen("hallo"), ina_str_len(str1));
     str2 = ina_str_dup_using_pool(str1, pool);
     INA_TEST_ASSERT_NOT_NULL(str2);
 }
@@ -759,7 +763,7 @@ INA_TEST(string, simple_allocation_without_pool)
 
     str1 = ina_str_new_fromcstr("hallo");
     INA_TEST_ASSERT_NOT_NULL(str1);
-    INA_TEST_ASSERT_EQUAL_INTEGER(strlen("hallo"), ina_str_len(str1));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(strlen("hallo"), ina_str_len(str1));
     str2 = ina_str_dup(str1);
     INA_TEST_ASSERT_NOT_NULL(str2);
     ina_str_free(str1);
@@ -777,7 +781,7 @@ INA_TEST(string, ina_str_wildcard_match)
 
 #define _INA_TEST_STRING_WILDCARD_TEST_NOK(teme, wildcard)                 \
     ts = ina_str_new_fromcstr(teme);                                       \
-    INA_TEST_ASSERT_NOTSUCCEED(ina_str_wildcard_match(ts, wildcard));      \
+    INA_TEST_ASSERT_FAILED(ina_str_wildcard_match(ts, wildcard));      \
     ina_str_free(ts);
 
     /* Cases with repeating character sequences. */

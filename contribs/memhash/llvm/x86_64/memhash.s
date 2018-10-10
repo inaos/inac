@@ -35,9 +35,8 @@
 factor128:
 .octa 0xd6c573e9c613993d5a379ab38dc5a46b
 
-.global memhash
-memhash:
-
+.global _memhash
+_memhash:
     movabs      $0x1591aefa5e7e5a17, %r8
     movq        %rsi, %xmm0
     movq        %rdx, %xmm1

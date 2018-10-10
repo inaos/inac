@@ -1,38 +1,19 @@
 /*
- * Copyright (c) 2013-2014,2016 INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_PROCESS_H_
 #define _LIBINAC_PROCESS_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_PROCESS_FLAGS_CHILD_PROCESS  1
 #define INA_PROCESS_FLAGS_CONSOLE        2
@@ -97,7 +78,7 @@ INA_FSM_EVENTS(process_fsm,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx);
+INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx);
 
 /*
  *  Destroy a process context
@@ -108,7 +89,7 @@ INA_API(ina_rc_t) ina_process_init(ina_process_ctx_t **ctx);
  *  Return
  *   INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_destroy(ina_process_ctx_t **ctx);
+INA_API(void) ina_process_ctx_free(ina_process_ctx_t **ctx);
 
 /*
  * Manage all process registered on a context.
@@ -140,29 +121,22 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_descriptor_new(
-                              ina_process_ctx_t *ctx,
-                              ina_process_descriptor_t **descriptor,
-                              const char *full_path,
-                              const char *working_dir,
-                              const char *startup_args,
-                              ina_process_lifecycle_type_t lifecycle,
-                              ina_process_managed_type_t managed_type,
-                              const char *scheduled_start_pattern, 
-                              const char *scheduled_stop_pattern,
-                              time_t stop_wait_time_ms,
-                              uint32_t start_flags);
+INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char *full_path, const char *working_dir,
+                                                      const char *startup_args, ina_process_lifecycle_type_t lifecycle,
+                                                      ina_process_managed_type_t managed_type, const char *scheduled_start_pattern,
+                                                      const char *scheduled_stop_pattern, time_t stop_wait_time_ms, uint32_t start_flags,
+                                                      ina_process_descriptor_t **descriptor);
 
 /*
- * Destroy a process descriptor.
+ * Destroy a process descriptor.
  *
  * Parameters
  *  descriptor  Process descriptor to free
  *
  * Return
  *  INA_SUCCESS if all went well
- */
-INA_API(ina_rc_t) ina_process_descriptor_free(
+ */
+INA_API(void) ina_process_descriptor_free(
                                     ina_process_descriptor_t **descriptor);
 
 /*
@@ -222,7 +196,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_free(ina_process_t **process);
+INA_API(void) ina_process_free(ina_process_t **process);
 
 /*
  * Start a process
@@ -369,7 +343,7 @@ INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_stat_free(ina_process_stat_t **stat);
+INA_API(void) ina_process_stat_free(ina_process_stat_t **stat);
 
 #ifdef __cplusplus
 }

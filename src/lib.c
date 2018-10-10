@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 #include "config.h"
@@ -37,14 +18,12 @@ typedef struct __ina_sopt_s {
     ina_str_t value;
     ina_str_t desc;
     ina_opt_type_t type;
-    UT_hash_handle hh;
 } __ina_sopt_t;
 
 /* Internal registry long option */
 typedef struct __ina_lopt_s {
     ina_str_t opt;
     __ina_sopt_t *short_opt;
-    UT_hash_handle hh;
 } __ina_lopt_t;
 
 /* internal signal handler */
@@ -58,15 +37,17 @@ static __ina_sopt_t *__ina_opt_get(const char*);
 static void __ina_opt_usage(void);
 /* get absolute path */
 static ina_rc_t __ina_get_binpath(ina_str_t path);
+/* free short options */
+static ina_rc_t __ina_free_sopt(void *data);
+/* free long options */
+static ina_rc_t __ina_free_lopt(void *data);
 
-/* initialization flag, > 0 lib/app initialized */
-static int32_t __initialized = 0;
 /* function pointer to a custom cleanup routine */
 static ina_cleanup_handler_t  __cleanup = NULL;
 /* short command line options */
-static __ina_sopt_t *__sopt = NULL;
+static ina_hashtable_t *__sopt = NULL;
 /* long command line options */
-static __ina_lopt_t *__lopt = NULL;
+static ina_hashtable_t *__lopt = NULL;
 /* that's our program name */
 static ina_str_t __appname = NULL;
 /* That's our app path */
@@ -104,18 +85,17 @@ INA_API(const char*) ina_app_get_path(void)
     return ina_str_cstr(__apppath);
 }
 
-INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, ina_opt_t *opt) 
+INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
 {
     
 #ifdef INA_OS_WIN32
     _set_abort_behavior(INA_DGBMSG_ASSERT, _WRITE_ABORT_MSG);
     __main_thread = GetCurrentThread();
 #endif
-    
-    if (!INA_SUCCEED(ina_init(pool_size))) {
-        return INA_ERR_PUSH_LAST;
-    }
-    
+    INA_RETURN_IF_FAILED(ina_init());
+
+    INA_INIT_GUARD();
+
     if (argv != NULL) {
         const char* basename = strrchr(argv[0], INA_PATH_SEPARATOR);
         if (basename) {
@@ -128,20 +108,34 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
         }
         /* FIXME: not sure for all platforms */
         __apppath = ina_str_new(256);
-        if (!INA_SUCCEED(__ina_get_binpath(__apppath))) {
+        if (INA_FAILED(__ina_get_binpath(__apppath))) {
             __apppath = ina_str_new_fromcstr(argv[0]);
         }
     }
 
     if (opt != NULL) {
-        __ina_sopt_t *so = NULL;
-        __ina_sopt_t *tmp_so =  NULL;
+        ina_hashtable_iter_t *iter;
+        INA_MUST_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                          INA_HASH_DEFAULT,
+                          INA_HASHTABLE_TYPE_DEFAULT,
+                          INA_HASHTABLE_GROW_DEFAULT,
+                          INA_HASHTABLE_SHRINK_DEFAULT,
+                          INA_HASHTABLE_DEFAULT_CAPACITY,
+                          INA_HASHTABLE_CF_DEFAULT, &__sopt));
+        INA_MUST_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                          INA_HASH_DEFAULT,
+                          INA_HASHTABLE_TYPE_DEFAULT,
+                          INA_HASHTABLE_GROW_DEFAULT,
+                          INA_HASHTABLE_SHRINK_DEFAULT,
+                          INA_HASHTABLE_DEFAULT_CAPACITY,
+                          INA_HASHTABLE_CF_DEFAULT, &__lopt));
 
         while (opt->long_opt) {
             __ina_lopt_t *lo;
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
+            ina_mem_set(so, 0, sizeof(__ina_sopt_t));
             if (so == NULL) {
-                return INA_ERR_PUSH_LAST;
+                return ina_err_get_rc();
             }
             so->opt = ina_str_new_fromcstr(opt->short_opt);
             if (opt->dft != NULL) {
@@ -151,16 +145,16 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             so->type = opt->type;
             
             if (strlen(so->opt)) {
-                HASH_ADD_KEYPTR(hh, __sopt, ina_str_cstr(so->opt), ina_str_len(so->opt), so);
+                ina_hashtable_set_str(__sopt, so->opt, so);
             }
 
             lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
             if (lo == NULL) {
-                return INA_ERR_PUSH_LAST;
+                return ina_err_get_rc();
             }
             lo->opt = ina_str_new_fromcstr(opt->long_opt);
             lo->short_opt = so;
-            HASH_ADD_KEYPTR(hh, __lopt, ina_str_cstr(lo->opt), ina_str_len(lo->opt), lo);
+            ina_hashtable_set_str(__lopt, lo->opt, lo);
             opt++;
         }
         
@@ -211,7 +205,7 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
                     if (so == NULL) {
                         INA_TRACE2("invalid options %s", buf);
                         __ina_opt_usage();
-                        return INA_LIB_EOPT;
+                        return INA_ERROR(INA_ES_OPTION | INA_ERR_INVALID);
                     }
                     /* Flags don't have any value associated */
                     if (so->type != INA_OPT_TYPE_FLAG) {
@@ -232,29 +226,33 @@ INA_API(ina_rc_t) ina_app_init(const int argc, char** argv, size_t pool_size, in
             }
             
             /* Validate, any options must have a value except flags */
-            HASH_ITER(hh, __sopt, so, tmp_so) {
+			__ina_sopt_t *so = NULL;
+            ina_hashtable_iter_new(__sopt, &iter);
+            while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&so))) {
                 if (so->type != INA_OPT_TYPE_FLAG && so->value == NULL) {
+                    ina_hashtable_iter_free(&iter);
                     __ina_opt_usage();
-                    return INA_LIB_EOPT;
+                    return INA_ERROR(INA_ES_OPTION | INA_ERR_INVALID);
                 }
             }
+            ina_hashtable_iter_free(&iter);
         }
     }
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_init(size_t pool_size)
+INA_API(ina_rc_t) ina_init(void)
 {
 #ifdef INA_OS_WIN32
     WSADATA wsaData;
 #endif
 
-    if (__initialized++) {
-        return INA_SUCCESS;
-    }
-    if (atexit(ina_exit) != 0) {
+    INA_INIT_GUARD();
+    ina_err_init();
+
+    if (atexit(ina_exit) == -1) {
         INA_TRACE("Failed to register exit function!");
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_ES_FUNCTION | INA_ERR_NOT_REGISTERED);
     }
 
     /* Setup signals */
@@ -277,57 +275,51 @@ INA_API(ina_rc_t) ina_init(size_t pool_size)
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
 
+    /* initailize hashtable */
+    INA_RETURN_IF_FAILED(ina_hashtable_init("hashtable.conf"));
+
     /* initailized console */
-    if (!INA_SUCCEED(ina_cio_init())) {
-        return INA_ERR_PUSH_LAST;
-    }
+    INA_RETURN_IF_FAILED(ina_cio_init());
 
-    /* initalize global memory functions for memory pools */
-    ina_mempool_set_fn(NULL, NULL, NULL);
 
-    /* initalize error state */
-    ina_err_reset();
-
-   /* initialize system memory pool and internal structures */
-    if (!INA_SUCCEED(ina_mempool_init(pool_size))) {
-        return INA_ERR_PUSH_LAST;
-    }
 #ifdef INA_OS_WIN32
     /* Make sure to use high-accuracy multimedia-timers for windows */
-	timeBeginPeriod(1);
+    timeBeginPeriod(1);
     /* Initialize winsock */
+    
     if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
-        return INA_NET_ENETINIT;
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #endif
 
     /* initialize CPU module */
-    if (!INA_SUCCEED(ina_cpu_init())) {
-        return INA_ERR_PUSH_LAST;
-    }
+    INA_RETURN_IF_FAILED(ina_cpu_init());
 
     return INA_SUCCESS;
 }
 
 INA_API(void) ina_exit(void)
 {
-    if (!__initialized) {
-        return;
-    }
+    INA_DESTROY_GUARD();
 
-    while (__initialized--) {
+    /* call cleanup handler if any */
+    if (__cleanup != NULL) {
+        __cleanup(0, 0);
     }
 
     /* Reset CIO attributes */
     ina_cio_reset();
 
-	/* destroy cpu module */
+    /* destroy cpu module */
     ina_cpu_destroy();
-	
-    if (__cleanup != NULL) {
-        __cleanup(0, 0);
-    }
 
+    /* free allocated memory  */
+    if (__lopt != NULL) {
+        ina_hashtable_foreach(__sopt, __ina_free_sopt);
+    }
+    if (__sopt != NULL) {
+        ina_hashtable_foreach(__lopt, __ina_free_lopt);
+    }
     if (__appname != NULL) {
         ina_str_free(__appname);
     }
@@ -335,35 +327,12 @@ INA_API(void) ina_exit(void)
         ina_str_free(__apppath);
     }
 
-    /* FIXME: Crashes during tests because sys mem pool 
-       was destroyed */
-    /*if (__lopt != NULL) {
-        __ina_lopt_t *lo = NULL;
-        __ina_lopt_t *tmp_lo =  NULL;    
-        HASH_ITER(hh, __lopt, lo, tmp_lo) {
-            HASH_DEL(__lopt, lo);
-            ina_mem_free(lo);
-        }
-    }
-
-    if (__sopt != NULL) {
-        __ina_sopt_t *so = NULL;
-        __ina_sopt_t *tmp_so =  NULL;    
-        HASH_ITER(hh, __sopt, so, tmp_so) {
-            HASH_DEL(__sopt, so);
-            ina_mem_free(so);
-        }
-    }*/
-
-    ina_mempool_destroy();
-
-    if (!INA_SUCCEED(ina_err_peek())) {
-        ina_err_trace();
-    }
-    ina_err_reset();
+    ina_hashtable_destroy();
+    ina_log_destroy();
+    ina_err_destroy();
 
 #ifdef INA_OS_WIN32
-	timeEndPeriod(1);
+    timeEndPeriod(1);
     WSACleanup();
 #endif
 }
@@ -388,13 +357,15 @@ INA_API(ina_signal_handler_t) ina_register_signal_handler(ina_signal_t sig,
 
 INA_API(ina_rc_t) ina_opt_isset(const char *opt) 
 {
-    __ina_sopt_t *so = __ina_opt_get(opt);
+    __ina_sopt_t *so;
+    INA_VERIFY_NOT_NULL(opt);
+
+    so = __ina_opt_get(opt);
     if (so == NULL) {
-        /* FIXME: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     if (so->type == INA_OPT_TYPE_FLAG && so->value == NULL) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     return INA_SUCCESS;
 }
@@ -403,18 +374,23 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
                                          ina_str_t *value)
 {
     __ina_lopt_t *lo = NULL;
+    ina_hashtable_iter_t *iter;
 
-    INA_ASSERT_TRUE(index >= 0);
+    INA_VERIFY_NOT_NULL(key);
+    INA_VERIFY_NOT_NULL(value);
+    INA_VERIFY(index >= 0);
 
     *key = NULL;
     *value = NULL;
 
-    for (lo = __lopt; lo != NULL && index > 0; lo=lo->hh.next) {
+    ina_hashtable_iter_new(__lopt, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&lo)) && index > 0) {
         --index;
     }
+    ina_hashtable_iter_free(&iter);
 
     if (lo == NULL) {
-        return INA_FAILURE;
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *key = lo->opt;
     *value = lo->short_opt->value;
@@ -423,11 +399,15 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
 
 INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
 {
-    __ina_sopt_t *so = __ina_opt_get(opt);
+    __ina_sopt_t *so;
+
+    INA_VERIFY_NOT_NULL(opt);
+    INA_VERIFY_NOT_NULL(value);
+
+    so = __ina_opt_get(opt);
     if (so == NULL) {
         *value = NULL;
-        /* FIXME: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *value = ina_str_dup(so->value);
     return INA_SUCCESS;
@@ -435,11 +415,13 @@ INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
 
 INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
 {
-    __ina_sopt_t *so = __ina_opt_get(opt);
+    __ina_sopt_t *so;
+    INA_VERIFY_NOT_NULL(opt);
+    INA_VERIFY_NOT_NULL(value);
+    *value = 0.0;
+    so = __ina_opt_get(opt);
     if (so == NULL) {
-        *value = 0.0;
-        /* FIXME: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *value = (float)atof(so->value);
     return INA_SUCCESS;
@@ -447,11 +429,13 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
 
 INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value)
 {
-    __ina_sopt_t *so = __ina_opt_get(opt);
+    __ina_sopt_t *so;
+    INA_VERIFY_NOT_NULL(opt);
+    INA_VERIFY_NOT_NULL(value);
+    *value = 0;
+    so = __ina_opt_get(opt);
     if (so == NULL) {
-        *value = 0;
-        /* FIXME: specific error */
-        return INA_FAILURE;
+        return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *value = atoi(so->value);
     return INA_SUCCESS;
@@ -464,11 +448,9 @@ __ina_opt_get(const char *opt)
 
     INA_ASSERT_NOTNULL(opt);
 
-    HASH_FIND_STR(__sopt, opt, so);
-    if (so == NULL) {
+    if (INA_FAILED(ina_hashtable_get_str(__sopt, opt, (void**)&so))) {
         __ina_lopt_t *lo = NULL;
-        HASH_FIND_STR(__lopt, opt, lo);
-        if (lo != NULL) {
+        if (INA_SUCCEED(ina_hashtable_get_str(__lopt, opt, (void**)&lo))) {
             so = lo->short_opt;
         }
     }
@@ -478,13 +460,14 @@ __ina_opt_get(const char *opt)
 static void 
 __ina_opt_usage(void)
 {
+    ina_hashtable_iter_t *iter;
     __ina_lopt_t *lo = NULL;
-    __ina_lopt_t *tmp_lo =  NULL;
     __ina_sopt_t *so = NULL;
 
     printf("USAGE: %s ", ina_str_cstr(__appname));
-    
-    HASH_ITER(hh, __lopt, lo, tmp_lo) {
+
+    ina_hashtable_iter_new(__lopt, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&lo))) {
         so = lo->short_opt;
         if (strlen(so->opt) > 0) {
             printf(" -%s | --%s", ina_str_cstr(so->opt), ina_str_cstr(lo->opt));
@@ -501,7 +484,9 @@ __ina_opt_usage(void)
         }
     }
     printf("%s", "\n\n");
-    HASH_ITER(hh, __lopt, lo, tmp_lo) {
+    ina_hashtable_iter_reset(iter);
+
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&lo))) {
         so = lo->short_opt;
         if (strlen(so->opt) > 0) {
             printf("   -%s | --%s , %s\n", ina_str_cstr(so->opt), 
@@ -521,7 +506,7 @@ __ina_get_binpath(ina_str_t path)
 #ifndef INA_OS_WIN32
     char linkname[64]; /* /proc/<pid>/exe */
     pid_t pid;
-    int ret;
+    ssize_t ret;
     char *buf;
 
     buf = (char*)ina_str_cstr(path);
@@ -529,20 +514,19 @@ __ina_get_binpath(ina_str_t path)
     /* Get our PID and build the name of the link in /proc */
     pid = getpid();
     if (snprintf(linkname, sizeof(linkname), "/proc/%i/exe", pid) < 0) {
-        abort();
+        INA_OS_ERROR(INA_ERR_NOT_FATAL);
     }
 
     /* Now read the symbolic link */
     ret = readlink(linkname, buf, ina_str_size(path));
-
     /* In case of an error, leave the handling up to the caller */
-    if (ret == -1)
-        return INA_FAILURE;
+    if (ret == -1) {
+        return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
+    }
 
     /* Report insufficient buffer size */
-    if (ret >= ina_str_size(path)) {
-        errno = ERANGE;
-        return INA_FAILURE;
+    if (ret >= (int)ina_str_size(path)) {
+        return INA_ERROR(INA_ES_BUFFER | INA_ERR_TOO_SMALL);
     }
 
     /* Ensure proper NUL termination */
@@ -550,23 +534,51 @@ __ina_get_binpath(ina_str_t path)
 #elif INA_OS_WIN32
     HMODULE hMod;
     DWORD ret;
-    size_t buf_size = ina_str_size(path);
+    DWORD buf_size = (DWORD)ina_str_size(path); /* Lenght of a path has to fix in a DWORD */
     char *buf = (char*)ina_str_cstr(path);
 
     hMod = GetModuleHandle(NULL);
     ret = GetModuleFileName(hMod, buf, buf_size);
 
     if (ret == ERROR_INSUFFICIENT_BUFFER) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);
     }
     else if (ret >= ina_str_size(path)) {
-        return INA_FAILURE;
+        return INA_OS_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);
     }
 
     /* Ensure proper NUL termination */
     buf[ret] = 0;
 #endif
     return INA_SUCCESS;   
+}
+
+static ina_rc_t
+__ina_free_sopt(void *data)
+{
+    __ina_sopt_t *opt = (__ina_sopt_t*)data;
+    if (opt->desc !=  NULL) {
+        ina_str_free(opt->desc);
+    }
+    if (opt->opt != NULL) {
+        ina_str_free(opt->opt);
+    }
+    if (opt->value != NULL) {
+        ina_str_free(opt->value);
+    }
+    ina_mem_free(opt);
+    return INA_SUCCESS;
+}
+
+static ina_rc_t
+__ina_free_lopt(void *data)
+{
+    __ina_lopt_t *opt = (__ina_lopt_t*)data;
+    if (opt->opt != NULL) {
+        ina_str_free(opt->opt);
+    }
+    ina_mem_free(opt);
+    return INA_SUCCESS;
 }
 
 
@@ -639,12 +651,6 @@ __ina_signal_handler(int sig)
     switch (sig) {
         case SIGABRT:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                fprintf(stderr, "Program aborted.\n");
-                ina_err_trace();
-                ina_err_reset();
-#ifndef INA_OS_WIN32
-                ina_err_backtrace(NULL);
-#endif        
                 exit(EXIT_FAILURE);
             }
             break;        
@@ -652,15 +658,9 @@ __ina_signal_handler(int sig)
         case SIGILL:
         case SIGSEGV:
             if (sb != INA_SIGNAL_BEHAVIOR_IGNORE) {
-                fprintf(stderr, "Error: signal %d:\n", sig);
-                ina_err_trace();
-                ina_err_reset();
-#ifndef INA_OS_WIN32
-                ina_err_backtrace(NULL);
-#endif
                 exit(EXIT_FAILURE);
-                break;
             }
+            break;
         case SIGTERM:
         case SIGINT:
 #ifndef INA_OS_WIN32
@@ -676,8 +676,6 @@ __ina_signal_handler(int sig)
         case SIGKILL:
 #endif
             break;
-        default:
-            INA_TRACE("Unknown signal received!");
     }
 }
 
@@ -697,8 +695,6 @@ void __ina_signal(int sig, void (*handler)(int))
 #ifdef INA_OS_WIN32
 static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *exception_ptr)
 {
-    ina_err_coredump(exception_ptr);
-    ina_err_backtrace(exception_ptr);
     switch (exception_ptr->ExceptionRecord->ExceptionCode) {
         case EXCEPTION_FLT_DENORMAL_OPERAND:
         case EXCEPTION_FLT_DIVIDE_BY_ZERO:

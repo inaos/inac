@@ -1,38 +1,19 @@
 /*
- * Copyright (c) 2013-2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_CONFFILE_H_
 #define _LIBINAC_CONFFILE_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /* Availables value types */
 typedef enum ina_conffile_value_type_e {
@@ -41,18 +22,11 @@ typedef enum ina_conffile_value_type_e {
 } ina_conffile_value_type_t;
 
 /* Configuration file entry */
-typedef struct ina_conffile_entry_s ina_conffile_entry_t;
+typedef struct ina_conffile_entries_s ina_conffile_entries_t;
 /* Configuration file section, can be named or unnamed */
 typedef struct ina_conffile_section_s ina_conffile_section_t;
-
 /* Configuration file data */
-typedef struct ina_conffile_s {
-    ina_str_t filepath;                /* Filepath */
-    ina_ljit_ctx_t *lctx;              /* LuaJIT context */
-    ina_conffile_section_t *sections;  /* Holds all sections  */
-    int prepared;                      /* INA_YES if prepared */
-    ina_mempool_t *mempool;            /* Memory pool */
-} ina_conffile_t;
+typedef struct ina_conffile_s ina_conffile_t;
 
 /* 
  * Callback for section procession, called by ina_conffile_processs() 
@@ -61,9 +35,10 @@ typedef struct ina_conffile_s {
  *  section_name  Name of the current processing section.
  *  section_key   Key of current named section, NULL for unamed sections.
  *  entries       Section entries, see ina_conffile_has_value_in_entries(),
- *               ina_conffile_get_string_from_section() or
- *               ina_conffile_get_number_from_section() for retrieve values
- *               from section entries.
+ *                ina_conffile_get_string_from_section() or
+ *                ina_conffile_get_number_from_section() for retrieve values
+ *                from section entries.
+ *  user_data     Pointer to user data passed in ina_conffile_process()
  *
  * Return
  *  Returning other than INA_SUCCESS will stop the configuration file
@@ -71,7 +46,8 @@ typedef struct ina_conffile_s {
  */
 typedef ina_rc_t (*ina_conffile_section_cb_t)(const char *section_name, 
                                               const char *section_key,
-                                              ina_conffile_entry_t *entries);
+                                              ina_conffile_entries_t *entries,
+                                              void *user_data);
 
 /*
  * Initialize a configuration file.
@@ -82,7 +58,7 @@ typedef ina_rc_t (*ina_conffile_section_cb_t)(const char *section_name,
  * Return
  * INA_SUCCESS if no error occured.
  */
-INA_API(ina_rc_t) ina_conffile_init(ina_conffile_t **cf);
+INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf);
 
 /*
  * Add a section to the configuration file. A section can be named or unnamned.
@@ -191,7 +167,7 @@ INA_API(ina_rc_t) ina_conffile_get_number(ina_conffile_t *cf,
  *  INA_SUCCESS  Value exists
  *  INA_FAILURE  Value doesn't exists
  */
-INA_API(ina_rc_t) ina_conffile_has_value_in_entries(ina_conffile_entry_t *entries,
+INA_API(ina_rc_t) ina_conffile_has_value_in_entries(ina_conffile_entries_t *entries,
                                                     const char* key);
 
 /*
@@ -208,7 +184,7 @@ INA_API(ina_rc_t) ina_conffile_has_value_in_entries(ina_conffile_entry_t *entrie
  *  INA_FAILURE  Value not found
  */
 INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
-                                                ina_conffile_entry_t *entries,
+        ina_conffile_entries_t *entries,
                                                 const char* key,
                                                 const ina_str_t *value);
 /*
@@ -225,7 +201,7 @@ INA_API(ina_rc_t) ina_conffile_get_string_from_entries(
  *  INA_FAILURE  Value not found
  */
 INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
-                                ina_conffile_entry_t *entries,
+        ina_conffile_entries_t *entries,
                                 const char* key,
                                 double *value);
 
@@ -237,22 +213,21 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
  *  filepath   Absolute or relative file path. If filepath is NULL the config-
  *             uration file must be located in the working directory and named
  *             [binary-name].conf.
+ *  user_data  Pointer to user defined data. this pointer is passed as third argument
+ *             ib the section callback.
  *
  * Return
- *  INA_SUCCESS if no error occured.
+ *  INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath);
+INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath, void *user_data);
 
 /*
  * Destroy a confiuration file.
  *
  * Parameters
  *  cf  Pointer of a configuration file pointer.
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_conffile_destroy(ina_conffile_t **cf);
+INA_API(void) ina_conffile_free(ina_conffile_t **cf);
 
 /*
  *  Add a string value key to the configuration file.
@@ -310,24 +285,26 @@ __VA_ARGS__
  *      the configuration values after processing the configuration file
  *      Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add
  *      named or unnamed section to the configuration file.
+ *  fp  Path to the configfile or NULL
+ *  ud  Pointer to user data or NULL
  */
-#define INA_CONFFILE(cf, fp, ...)                         \
+#define INA_CONFFILE(cf, fp, ud, ...)                     \
 do                                                        \
 {                                                         \
     ina_conffile_t *__cf = NULL;                          \
     ina_conffile_section_t *__cs = NULL;                  \
     if (cf != NULL) __cf = cf;                            \
-    if (!INA_SUCCEED(ina_conffile_init(&__cf)))       {   \
+    if (!INA_SUCCEED(ina_conffile_new(&__cf)))        {   \
         exit(EXIT_FAILURE);                               \
     }                                                     \
     __VA_ARGS__;                                          \
-    if (!INA_SUCCEED(ina_conffile_process(__cf, fp)))   { \
+    if (!INA_SUCCEED(ina_conffile_process(__cf, fp,(ud))))   { \
         exit(EXIT_FAILURE);                               \
     }                                                     \
     if (cf == NULL) {                                     \
         cf = __cf;                                        \
     } else {                                              \
-        ina_conffile_destroy(&__cf);                      \
+        ina_conffile_free(&__cf);                         \
     }                                                     \
 } while(0)
 

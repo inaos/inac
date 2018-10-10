@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_PORTABLE_H_
 #define _LIBINAC_PORTABLE_H_
@@ -459,15 +440,19 @@ extern "C" {
 #  if defined( __cplusplus__ )
 #    define INA_API(rtype) extern "C" rtype INA_EXPORT
 #  else
-#    define INA_API(rtype) extern rtype INA_EXPORT 
+#    define INA_API(rtype) extern rtype INA_EXPORT
 #  endif
+#  define INA_DEPRECATED __declspec(deprecated)
 #else
 #  ifdef __cplusplus__
 #    define INA_API(rtype) extern "C" INA_EXPORT rtype
 #  else
-#    define INA_API(rtype) extern INA_EXPORT rtype 
+#    define INA_API(rtype) extern INA_EXPORT rtype
 #  endif
+#  define INA_DEPRECATED __attribute__ ((deprecated))
 #endif
+#define INA_API_DEPRECATED(rtype) INA_DEPRECATED INA_API(rtype)
+
 
 /*
  * Try to infer endianess.  Basically we just go through the CPUs we know are
@@ -1010,6 +995,14 @@ typedef uint_least32_t uint_fast32_t;
 #define INA_MIN(a,b) min(a,b)
 #endif
 
+#ifdef INA_CPU_X86_64
+#define INA_LOW32(x)       ((uint32_t)(x))
+#define INA_HIGH32(x)      ((uint32_t)(((uint64_t)(x)) >> 32))
+#else
+#define INA_LOW32(x)       (x)
+#define INA_HIGH32(x)      (0UL)
+#endif
+
 #define INA_LOW(x)       ((uint8_t)(x))
 #define INA_HIGH(x)      ((uint8_t)(((uint16_t)(x)) >> 8))
 #define INA_TOWORD(x,y)  (((x) << 8) | y)
@@ -1024,9 +1017,9 @@ struct timezone {
 INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
-/* int64_t uint64_t format specifiers */
-#define INA_INT64_T_FMT  PRINTF_INT64_MODIFIER "d"
-#define INA_UINT64_T_FMT PRINTF_INT64_MODIFIER "u"
+#define INA_SIZE_T_FMT  "zu"
+#define INA_INT64_T_FMT  PRId64
+#define INA_UINT64_T_FMT PRIu64
 
 /* Pack */
 #ifdef INA_OS_WIN32
@@ -1053,30 +1046,30 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
     #error UNSUPPORTED COMPILER
     #endif
 #else
-    #if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
-    #define INA_ALIGNED(x) __attribute__((aligned(x)))
-    #define INA_ALIGNED128 INA_ALIGNED(128)
-    #define INA_ALIGNED64 INA_ALIGNED(64)
-    #define INA_ALIGNED32 INA_ALIGNED(32)
-    #define INA_ALIGNED16 INA_ALIGNED(16)
-    #define INA_ALIGNED8 INA_ALIGNED(8)
-    #define INA_ALIGNED4 INA_ALIGNED(4)
-    #define INA_ALIGNED2 INA_ALIGNED(2)
-    #define INA_VSALIGNED128
-    #define INA_VSALIGNED64
-    #define INA_VSALIGNED32
-    #define INA_VSALIGNED16
-    #define INA_VSALIGNED8
-    #define INA_VSALIGNED4
-    #define INA_VSALIGNED2
-    #ifndef INA_PACKED
-    #define INA_PACKED __attribute__ ((__packed__))
-    #endif
-    #define INA_VS_BEGIN_PACK
-    #define INA_VS_END_PACK
-    #else
-    #error UNSUPPORTED COMPILER
-    #endif
+#    if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
+#    define INA_ALIGNED(x) __attribute__((aligned(x)))
+#    define INA_ALIGNED128 INA_ALIGNED(128)
+#    define INA_ALIGNED64 INA_ALIGNED(64)
+#    define INA_ALIGNED32 INA_ALIGNED(32)
+#    define INA_ALIGNED16 INA_ALIGNED(16)
+#    define INA_ALIGNED8 INA_ALIGNED(8)
+#    define INA_ALIGNED4 INA_ALIGNED(4)
+#    define INA_ALIGNED2 INA_ALIGNED(2)
+#    define INA_VSALIGNED128
+#    define INA_VSALIGNED64
+#    define INA_VSALIGNED32
+#    define INA_VSALIGNED16
+#    define INA_VSALIGNED8
+#    define INA_VSALIGNED4
+#    define INA_VSALIGNED2
+#    ifndef INA_PACKED
+#    define INA_PACKED __attribute__ ((__packed__))
+#    endif
+#    define INA_VS_BEGIN_PACK
+#    define INA_VS_END_PACK
+#    else
+#    error UNSUPPORTED COMPILER
+#    endif
 #endif
 
 #if !defined(GCC_VERSION) || GCC_VERSION <= 30406
@@ -1158,10 +1151,24 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #error Compiler not supported yet for INAC!
 #endif
 
-#ifdef __cplusplus
-}
-#endif 
+#ifdef INA_OS_WIN32
+int inet_aton(const char *address, struct in_addr *sock);
+#endif
 
+#ifdef INA_OS_WIN32
+typedef HANDLE ina_handle_t;
+typedef char ina_semkey_t[MAX_PATH];
+#else
+typedef int ina_handle_t;
+typedef int ina_semkey_t;
+#endif
+
+/* FD for net.h */
+#ifdef INA_OS_WIN32
+typedef SOCKET ina_fd_t;
+#else
+typedef int ina_fd_t;
+#endif
 
 #ifdef INA_OS_WIN32
 typedef int mode_t;
@@ -1224,14 +1231,87 @@ DIR *opendir(const char *name);
 int  closedir(DIR *dir);
 struct dirent *readdir(DIR *dir);
 void  rewinddir(DIR *dir);
-
 #endif
 #endif
 
+/*
+ * thread-local-safe variable
+ */
+#ifndef INA_TLS
+#   ifndef INA_OS_WIN32
+#       define INA_TLS(x) __thread x             // MingW, Solaris Studio C/C++, IBM XL C/C++, GNU C, Clang and Intel C++ Compiler (Linux systems)
+#   else
+#       define INA_TLS(x) __declspec(thread) x   // Visual C++, Intel C/C++ (Windows systems), C++Builder and Digital Mars C++
+#   endif
+#endif
 
- #ifdef _DEBUG
- #ifndef DEBUG
- #define DEBUG 1
- #endif
- #endif
+#if defined(_DEBUG) || defined(DEBUG)
+#define INA_DEBUG 1
+#endif
 
+#define INA_DIAG_STR(s) #s
+#define INA_DIAG_JOINSTR(x,y) INA_DIAG_STR(x ## y)
+#ifdef _MSC_VER
+#define INA_DIAG_DO_PRAGMA(x) __pragma (x)
+#define INA_DIAG_PRAGMA(compiler,x) INA_DIAG_DO_PRAGMA(warning(x))
+#else
+#define INA_DIAG_DO_PRAGMA(x) _Pragma (#x)
+#define INA_DIAG_PRAGMA(compiler,x) INA_DIAG_DO_PRAGMA(compiler diagnostic x)
+#endif
+#if defined(__clang__)
+# define INA_DISABLE_WARNING_CLANG(clang_option) INA_DIAG_PRAGMA(clang,push) INA_DIAG_PRAGMA(clang,ignored INA_DIAG_JOINSTR(-W,clang_option))
+# define INA_ENABLE_WARNING_CLANG(clang_option) INA_DIAG_PRAGMA(clang,pop)
+# define INA_DISABLE_WARNING(gcc_unused,clang_option,msvc_unused) INA_DIAG_PRAGMA(clang,push) INA_DIAG_PRAGMA(clang,ignored INA_DIAG_JOINSTR(-W,clang_option))
+# define INA_ENABLE_WARNING(gcc_unused,clang_option,msvc_unused) INA_DIAG_PRAGMA(clang,pop)
+# define INA_DISABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_ENABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_DISABLE_WARNING_GCC(msvc_errorcode)
+# define INA_ENABLE_WARNING_GCC(msvc_errorcode)
+#elif defined(_MSC_VER)
+# define INA_ENABLE_WARNING_GCC(gcc_option)
+# define INA_DISABLE_WARNING_GCC(gcc_option)
+# define INA_DISABLE_WARNING_CLANG(clang_option)
+# define INA_ENABLE_WARNING_CLANG(clang_option)
+# define INA_DISABLE_WARNING(gcc_unused,clang_unused,msvc_errorcode) \
+     INA_DIAG_PRAGMA(msvc,push) \
+     INA_DIAG_DO_PRAGMA(warning(disable: msvc_errorcode))
+# define INA_ENABLE_WARNING(gcc_unused,clang_unused,msvc_errorcode) INA_DIAG_PRAGMA(msvc,pop)
+# define INA_DISABLE_WARNING_MSVC(msvc_errorcode) \
+     __pragma(warning(push)) __pragma(warning(disable: msvc_errorcode))
+# define INA_ENABLE_WARNING_MSVC(msvc_errorcode) __pragma(warning(pop))
+#elif defined(__GNUC__)
+#if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+# define INA_DISABLE_WARNING_CLANG(clang_option)
+# define INA_ENABLE_WARNING_CLANG(clang_option)
+# define INA_DISABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_ENABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_DISABLE_WARNING_GCC(gcc_option) INA_DIAG_PRAGMA(GCC,push) INA_DIAG_PRAGMA(GCC,ignored INA_DIAG_JOINSTR(-W,gcc_option))
+# define INA_ENABLE_WARNING_GCC(gcc_option) INA_DIAG_PRAGMA(GCC,pop)
+# define INA_DISABLE_WARNING(gcc_option,clang_unused,msvc_unused) INA_DIAG_PRAGMA(GCC,push) INA_DIAG_PRAGMA(GCC,ignored INA_DIAG_JOINSTR(-W,gcc_option))
+# define INA_ENABLE_WARNING(gcc_option,clang_unused,msvc_unused) INA_DIAG_PRAGMA(GCC,pop)
+#else
+# define INA_DISABLE_WARNING_CLANG(clang_option)
+# define INA_ENABLE_WARNING_CLANG(clang_option)
+# define INA_DISABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_ENABLE_WARNING_MSVC(msvc_errorcode)
+# define INA_DISABLE_WARNING_GCC(gcc_option) INA_DIAG_PRAGMA(GCC,ignored INA_DIAG_JOINSTR(-W,gcc_option))
+# define INA_ENABLE_WARNING_GCC(gcc_option) INA_DIAG_PRAGMA(GCC,pop)
+# define INA_DISABLE_WARNING(gcc_option,clang_unused,msvc_unused) INA_DIAG_PRAGMA(GCC,ignored INA_DIAG_JOINSTR(-W,gcc_option))
+# define INA_ENABLE_WARNING(gcc_option,clang_option,msvc_unused) INA_DIAG_PRAGMA(GCC,warning INA_DIAG_JOINSTR(-W,gcc_option))
+#endif
+#endif
+
+#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
+#define INA_SIMD_IVDEP _Pragma(ivdep)
+#elif INA_COMPILER_MSVC
+#define INA_SIMD_IVDEP __pragma(loop(ivdep))
+#elif INA_COMPILER_CLANG
+#define INA_SIMD_IVDEP _Pragma clang loop vectorize(enable)
+#else
+#define INA_SIMD_IVDEP
+#endif
+
+
+#ifdef __cplusplus
+}
+#endif

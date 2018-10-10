@@ -1,39 +1,28 @@
 /*
- * Copyright (c) 2012-2014,2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_STRING_H_
 #define _LIBINAC_STRING_H_
 
-#include <libinac/lib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <libinac/lib.h>
+
+#define INA_STR_FREE_SAFE(str) if((str) == NULL) ina_str_free((str))
+
+/*
+ * String type
+ */
+typedef char * ina_str_t;
+typedef const char * ina_cstr_t;
 
 /*
  * Creates a empty ina_str_t with as preallocated length len.
@@ -130,7 +119,7 @@ INA_API(ina_rc_t) ina_str_free(ina_str_t str);
  * Return
  *   Duplicated string or NULL if an error occurred.
  */
-INA_API(ina_str_t) ina_str_dup(const ina_str_t str);
+INA_API(ina_str_t) ina_str_dup(ina_cstr_t str);
 
 /*
  * Duplicate a string usind a memory pool
@@ -142,7 +131,7 @@ INA_API(ina_str_t) ina_str_dup(const ina_str_t str);
  * Return
  *   Duplicated string or NULL if an error occurred.
  */
-INA_API(ina_str_t) ina_str_dup_using_pool(const ina_str_t str, 
+INA_API(ina_str_t) ina_str_dup_using_pool(ina_cstr_t str,
                                           ina_mempool_t *pool);
 
 /*
@@ -154,7 +143,10 @@ INA_API(ina_str_t) ina_str_dup_using_pool(const ina_str_t str,
  * Return
  *   Casted string
  */
-INA_API(const char *) ina_str_cstr(const ina_str_t str);
+INA_INLINE const char* ina_str_cstr(ina_cstr_t str)
+{
+    return str;
+}
 
 /*
  * String manipulation
@@ -171,7 +163,7 @@ INA_API(const char *) ina_str_cstr(const ina_str_t str);
  * Return
  *   dest
  */
-INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t src);
+INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, ina_cstr_t src);
 
 /*
  * Copies at most count characters of the byte string pointed to by src
@@ -192,7 +184,7 @@ INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, const ina_str_t src);
  * Return
  *  dest
  */
-INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n);
+INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, ina_cstr_t src, size_t n);
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
  * The resulting byte string is null-terminated. If the strings overlap, the
@@ -205,7 +197,7 @@ INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, const ina_str_t src, size_t n);
  * Return
  *  dest
  */
-INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src);
+INA_API(ina_str_t) ina_str_cat(ina_str_t dest, ina_cstr_t src);
 
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -221,7 +213,7 @@ INA_API(ina_str_t) ina_str_cat(ina_str_t dest, const ina_str_t src);
  *  dest
  */
 INA_API(ina_str_t) ina_str_cat_using_pool(ina_str_t dest,
-                                          const ina_str_t src,
+                                          ina_cstr_t src,
                                           ina_mempool_t *pool);
 
 /*
@@ -268,7 +260,7 @@ INA_API(ina_str_t) ina_str_catcstr_using_pool(ina_str_t dest,
  * Return
  *  dest
  */
-INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t src, size_t n);
+INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, ina_cstr_t src, size_t n);
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
  * At most count characters are copied. The resulting byte string is
@@ -284,7 +276,7 @@ INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, const ina_str_t src, size_t n);
  *  dest
  */
 INA_API(ina_str_t) ina_str_ncat_using_pool(ina_str_t dest,
-                                           const ina_str_t src,
+                                           ina_cstr_t src,
                                            size_t n,
                                            ina_mempool_t *pool);
 /*
@@ -335,7 +327,7 @@ INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest,
  * Return
  *  The length of the null-terminated string s.
  */
-INA_API(size_t) ina_str_len(const ina_str_t str);
+INA_API(size_t) ina_str_len(ina_cstr_t str);
 
 /*
  * Returns the memory size of the given string byte string.
@@ -346,7 +338,7 @@ INA_API(size_t) ina_str_len(const ina_str_t str);
  * Return
  *  The memory size in bytes of string s.
  */
-INA_API(size_t) ina_str_size(const ina_str_t str);
+INA_API(size_t) ina_str_size(ina_cstr_t str);
 
 /*
  * Returns the free memory size of the given string byte string.
@@ -357,7 +349,7 @@ INA_API(size_t) ina_str_size(const ina_str_t str);
  * Return
  *  The free memory size in bytes for string s.
  */
-INA_API(size_t) ina_str_available(const ina_str_t str);
+INA_API(size_t) ina_str_available(ina_cstr_t str);
 
 /*
  * Compares two null-terminated byte strings. The comparison is done
@@ -371,7 +363,7 @@ INA_API(size_t) ina_str_available(const ina_str_t str);
  *  INA_SUCCESS if lhs is equal to rhs.
  *  Positive value if lhs is greater than rhs.
  */
-INA_API(int) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
+INA_API(int) ina_str_cmp(ina_cstr_t lhs, ina_cstr_t rhs);
 
 /*
  * Same as ina_str_cmp but ignores case.
@@ -384,7 +376,7 @@ INA_API(int) ina_str_cmp(const ina_str_t lhs, const ina_str_t rhs);
  *  INA_SUCCESS if lhs is equal to rhs.
  *  Positive value if lhs is greater than rhs.
  */
-INA_API(int) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs);
+INA_API(int) ina_str_casecmp(ina_cstr_t lhs, ina_cstr_t rhs);
 
 /*
  * Compares at most count characters of two null-terminated byte strings.
@@ -399,7 +391,7 @@ INA_API(int) ina_str_casecmp(const ina_str_t lhs, const ina_str_t rhs);
  *  INA_SUCCESS  if lhs is equal to rhs.
  *  Positive value if lhs is greater than rhs.
  */
-INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n);
+INA_API(int) ina_str_ncmp(ina_cstr_t lhs, ina_cstr_t rhs, size_t n);
 
 /*
  * Locate substring. Returns a pointer to the first occurrence of s2 in s1,
@@ -415,7 +407,7 @@ INA_API(int) ina_str_ncmp(const ina_str_t lhs, const ina_str_t rhs, size_t n);
  *  of characters specified in s2, or a null pointer if the sequence is not
  *  present in s1.
  */
-INA_API(const char*) ina_str_str(const ina_str_t str1, const ina_str_t str2);
+INA_API(const char*) ina_str_str(ina_cstr_t str1, ina_cstr_t str2);
 
 /*
  * Locate substring. Returns a pointer to the first occurrence of s2 in s1,
@@ -431,7 +423,7 @@ INA_API(const char*) ina_str_str(const ina_str_t str1, const ina_str_t str2);
  *  of characters specified in s2, or a null pointer if the sequence is not
  *  present in s1.
  */
-INA_API(const char*) ina_str_strcstr(const ina_str_t str1, const char *str2);
+INA_API(const char*) ina_str_strcstr(ina_cstr_t str1, const char *str2);
 
 /*
  * Locate last occurrence of character in string. Returns a pointer to the
@@ -447,7 +439,7 @@ INA_API(const char*) ina_str_strcstr(const ina_str_t str1, const char *str2);
  *  A pointer to the last occurrence of character in str. If the value is not
  *  found, the function returns a null pointer.
  */
-INA_API(const char*) ina_str_rchr(const ina_str_t str, const char chr);
+INA_API(const char*) ina_str_rchr(ina_cstr_t str, const char chr);
 
 /*
  * Perform a zero copy tokenizing of a string. Bea aware, the returning string
@@ -517,12 +509,12 @@ INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars);
  * Parameters
  *  str    String
  *  start  Substring start position
- *  end    Substring end position
+ *  end    Substring end position (If zero (0) end is string len)
  *
  * Return
  *  Substring or NULL if an error occurred
  */
-INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end);
+INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, size_t start, size_t end);
 
 /*
  * Extract the substring starting at start until end. A new string will be
@@ -531,15 +523,15 @@ INA_API(ina_str_t) ina_str_substr(const ina_str_t str, int start, int end);
  * Parameters
  *  str    String
  *  start  Substring start position
- *  end    Substring end position
+ *  end    Substring end position (If zero (0) end is string len)
  *  pool   Memory pool
  *
  * Return
  *  Substring or NULL if an error occurred
  */
-INA_API(ina_str_t) ina_str_substr_using_pool(const ina_str_t str,
-                                             int start,
-                                             int end,
+INA_API(ina_str_t) ina_str_substr_using_pool(ina_cstr_t str,
+                                             size_t start,
+                                             size_t end,
                                              ina_mempool_t *pool);
 
 
@@ -652,7 +644,7 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
  *  tame      Input string
  *  wildcard  Wildcard character
  */
-INA_API(ina_rc_t) ina_str_wildcard_match(const ina_str_t tame,
+INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame,
                                          const char *wildcard);
 
 #ifdef __cplusplus

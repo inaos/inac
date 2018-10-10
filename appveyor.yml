@@ -1,31 +1,201 @@
+#
+# Copyright INAOS GmbH, Thalwil, 2018. All rights reserved
+#
+# This software is the confidential and proprietary information of INAOS GmbH
+# ("Confidential Information"). You shall not disclose such Confidential
+# Information and shall use it only in accordance with the terms of the
+# license agreement you entered into with INAOS GmbH.
+#
+ 
 branches:
   # whitelist
   only:
     - master
-    - develop
+  #  - develop
 
 environment:
+  jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-snapshot-local
+  jfrog_artifactory_uid: appveyor
+  jfrog_artifactory_pwd:
+    secure: 2xpsiuGNHwFPtxdh8pA/Mm0I1bC1EfC8NBSoxOEiNco=
+  sonarqube_api_key:
+    secure: RlnPXWhYdsxFHT00b5GOyOJINCQ0WLfhj5Rg4NukSRk6m1OSH4sGLJxA1996T6sM
+  codecov_api_key:
+    secure: ZrEItXMy94JPSq3RiTrMMU1fSsA0+QkO43E/37WRNP8dAINuksOqByk9aVnzUbNZ
+    
   matrix:
+    - MY_NAME: Linux Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      BUILD_CONFIGURATION: Debug
+      RUN_SONAR: yes
+      
+    - MY_NAME: Linux Release 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      BUILD_CONFIGURATION: RelWithDebInfo
+      RUN_SONAR: no
+
     - MY_NAME: Windows VS 2015 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
       MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: Debug
+      BUILD_ARCH: x86
+      RUN_SONAR: no
+      
+    - MY_NAME: Windows VS 2015 Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+      MSVC_PLATFORM: amd64
+      BUILD_CONFIGURATION: Debug
+      BUILD_ARCH: x86_64
+      RUN_SONAR: no
+
+    - MY_NAME: Windows VS 2015 Release 32bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+      MSVC_PLATFORM: x86
+      BUILD_CONFIGURATION: RelWithDebInfo
+      BUILD_ARCH: x86
+      RUN_SONAR: no
+
+    - MY_NAME: Windows VS 2015 Release 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+      MSVC_PLATFORM: amd64
+      BUILD_CONFIGURATION: RelWithDebInfo
+      BUILD_ARCH: x86_64
+      RUN_SONAR: no
+
+    - MY_NAME: Windows VS 2017 Debug 32bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: x86
+      BUILD_CONFIGURATION: Debug
+      BUILD_ARCH: x86
+      RUN_SONAR: no
 
     - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: debug
+      BUILD_CONFIGURATION: Debug
+      BUILD_ARCH: x86_64
+      RUN_SONAR: yes
+
+    - MY_NAME: Windows VS 2017 Release 32bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: x86
+      BUILD_CONFIGURATION: RelWithDebInfo
+      BUILD_ARCH: x86
+      RUN_SONAR: no
+
+    - MY_NAME: Windows VS 2017 Release 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+      BUILD_CONFIGURATION: RelWithDebInfo
+      BUILD_ARCH: x86_64
+      RUN_SONAR: no
+
+for:
+  -
+    branches:
+      only:
+        - master
+    environment:
+      jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-release-local
 
 matrix:
-  fast_finish: true
+  fast_finish: false
 
 init:
-  - C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
+  - cmd: C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat %MSVC_PLATFORM%
+
+cache:
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml # on Ubuntu builds this path will not be found
+  - /var/cache/apt/archives/inaos-dev-quality-tools_1.0-1.deb # on VS builds this path will not be found
+
+install:
+  - sh:  |
+         sudo sh -c "echo 'deb https://appveyor:N9z6j8yVukyeLcfE@inaos.jfrog.io/inaos/debian-local xenial main' >> /etc/apt/sources.list"
+         sudo wget --http-user=$jfrog_artifactory_uid --http-password=$jfrog_artifactory_pwd -O - https://inaos.jfrog.io/inaos/api/gpg/key/public | sudo apt-key add -
+         sudo apt-get update
+         sudo apt-get install inaos-dev-quality-tools
+         sudo apt-get install gcovr
+         appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
+  - cmd: |
+         choco source add -n "inaos" -s "https://inaos.jfrog.io/inaos/api/nuget/nuget-release-local/" -u %jfrog_artifactory_uid% -p %jfrog_artifactory_pwd%
+         choco install inaos-dev-quality-tools -y --force
+         appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-win-x86.zip
 
 build_script:
-  - make.bat all %BUILD_CONFIGURATION%
-  
+  - sh: |
+        mkdir cmake-build-$BUILD_CONFIGURATION
+        7z e build-wrapper-linux-x86.zip -ocmake-build-$BUILD_CONFIGURATION
+        cd cmake-build-$BUILD_CONFIGURATION
+        cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -DINAC_COVERAGE_ENABLED=1
+        ./build-wrapper-linux-x86-64 --out-dir bw-output make
+  - cmd: |
+         mkdir cmake-build-%BUILD_CONFIGURATION%
+         7z e build-wrapper-win-x86.zip -ocmake-build-%BUILD_CONFIGURATION%
+         cd cmake-build-%BUILD_CONFIGURATION%
+         cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH% -DINAC_COVERAGE_ENABLED=1
+         build-wrapper-win-x86-64.exe --out-dir bw-output nmake
+after_build:
+  - sh: |
+        if [ $RUN_SONAR == "yes" ]; then /opt/dev/tool/sonar-scanner-3.2.0.1227/bin/sonar-scanner -Dsonar.projectBaseDir=$APPVEYOR_BUILD_FOLDER -Dsonar.projectKey=inac-linux64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=$sonarqube_api_key -Dsonar.exclusions=contribs/**,cmake-build-$BUILD_CONFIGURATION/** -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**; fi
+        cpack
+  - cmd: |
+         if "%RUN_SONAR%"=="yes" C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-%BUILD_CONFIGURATION%/** -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**
+         cpack
+
 test_script:
-  - make.bat test %BUILD_CONFIGURATION%
+  - sh: |
+        make coverage || true
+  - cmd: |
+         nmake coverage & exit 0
+
+after_test:
+  - ps: |
+        $wc = New-Object 'System.Net.WebClient'
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml))
+     
+        # Code coverage
+        $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+        Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+        bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/tests-coverage.xml" -t $env:codecov_api_key
+        
+        # Detect if there are any failure nodes in the junit results
+    #    [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml
+    #    $failure = $results.SelectSingleNode("//failure")
+    #    if ($failure -ne $null) { 
+    #        throw "Forcing build failure due to unit test failure(s)"
+    #    }
+artifacts:
+  - path: cmake-build-*/*.zip
+    name: INAC
+    
+deploy_script:
+  - ps: |
+        $src = $artifacts["INAC"].path
+        $artifact_name = Split-Path $src -leaf
+        $artifact_name -match "(\d+\.\d+)"
+        $artifact_version = $matches[1]
+        $target = "inaos/inac/$artifact_version/$artifact_name"
+        Write-Host $src
+        Write-Host $artifact_name
+        Write-Host $artifact_version
+        Write-Host $target
+        Write-Host $Env:OS
+        $user = $env:jfrog_artifactory_uid
+        $pwd = $env:jfrog_artifactory_pwd
+        $url = "$env:jfrog_repository_url/$target"
+
+        if ($Env:OS -eq "Windows_NT") {
+          Write-Host "curl.exe -u${user}:${pwd}  -T $src $url"
+          $ret = curl.exe "-u${user}:${pwd}" "-T" $src $url 2>1
+        } else {
+          $ret = /usr/bin/curl "-u${user}:${pwd}" "-T" $src $url 2>1
+        }
+        $LastExitCode = 0

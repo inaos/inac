@@ -44,31 +44,12 @@
 /*
  * CHANGES UNDER FOLLOWING LICENSE
  *
- * Copyright (c) 2016-2017, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2016-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANYs THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 
 #include <libinac/lib.h>
@@ -241,7 +222,7 @@ static double	avgtime[4] = {0}, maxtime[4] = {0},
 static char	*label[4] = {"Copy:      ", "Scale:     ",
     "Add:       ", "Triad:     "};
 
-static double	bytes[4];/* = {
+static size_t	bytes[4];/* = {
     2 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     2 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     3 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
@@ -253,6 +234,7 @@ static ssize_t __stream_array_size = 0;
 static ina_time_t *__ina_time_ref = NULL;
 
 extern double mysecond();
+extern int checktick();
 extern void checkSTREAMresults();
 #ifdef TUNED
 extern void tuned_STREAM_Copy();
@@ -266,7 +248,7 @@ extern int omp_get_num_threads();
 int
 main(int argc, char **argv)
     {
-    int			quantum, checktick();
+    int			quantum;
     int			BytesPerWord;
     int			k;
     ssize_t		j;
@@ -274,7 +256,7 @@ main(int argc, char **argv)
     double		t, times[4][NTIMES];
     size_t l1=0, l2=0, l3=0;
 
-    if (!INA_SUCCEED(ina_app_init(argc, argv, 0, NULL))) {
+    if (!INA_SUCCEED(ina_app_init(argc, argv, NULL))) {
         return EXIT_FAILURE;
     }
     if (!INA_SUCCEED(ina_time_sys_new(&__ina_time_ref))) {
@@ -553,6 +535,7 @@ void checkSTREAMresults ()
 	bAvgErr = bSumErr / (STREAM_TYPE) __stream_array_size;
 	cAvgErr = cSumErr / (STREAM_TYPE) __stream_array_size;
 
+    INA_DISABLE_WARNING_MSVC(4127);
 	if (sizeof(STREAM_TYPE) == 4) {
 		epsilon = 1.e-6;
 	}
@@ -560,9 +543,10 @@ void checkSTREAMresults ()
 		epsilon = 1.e-13;
 	}
 	else {
-		printf("WEIRD: sizeof(STREAM_TYPE) = %lu\n",sizeof(STREAM_TYPE));
+		printf("WEIRD: sizeof(STREAM_TYPE) = %zu\n",sizeof(STREAM_TYPE));
 		epsilon = 1.e-6;
 	}
+    INA_DISABLE_WARNING_MSVC(4127);
 
 	err = 0;
 	if (abs(aAvgErr/aj) > epsilon) {

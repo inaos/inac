@@ -1,463 +1,278 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_OS_WIN32
-#include <DbgHelp.h>
-#endif
+/* Error message length */
+#define __INA_ERROR_MSGLEN  512
 
-#define __INA_ERR_STATE_SIZE (32)
-#define __INA_ERR_MESSAGE_EXTRALEN (20)
+static INA_TLS(ina_err_subject_cb_t) __dict_cb = NULL;
+static INA_TLS(ina_str_t)            __errmsg  = NULL;
 
-/* Error state */
-typedef struct ina_error_state_s {
-    size_t c;
-    size_t ic;
-    ina_error_t errors[__INA_ERR_STATE_SIZE];
-} ina_error_state_t;
-
-/* initialized module, returns always INA_SUCCESS */
-static ina_rc_t __ina_init(void);
-/* pop last error from error state. returns RC of new last error */
-static ina_rc_t __ina_pop_error(void);
-/* get index of error in the error state for a RC */
-static size_t __ina_get_index(ina_rc_t);
-
-/* global error state */
-static ina_error_state_t __state;
-/* initialization flag */
-static int32_t __initialized = 0;
-
-INA_API(ina_rc_t) ina_err_push(int mod, int fn, int reason, const char *file, 
-                               int line, const char *msg)
+INA_API(ina_rc_t) ina_err_init(void)
 {
-    ina_error_t *error;
-
-    INA_ASSERT(__initialized);
-    INA_ASSERT(mod <= 64);
-    INA_ASSERT(fn <= 32);
-    INA_ASSERT(reason <= 1023);
-    INA_ASSERT(reason > 0);
-    INA_ASSERT_NOTNULL(file);
-    INA_ASSERT(line > 0);
-    INA_ASSERT_NOTNULL(msg);
-    INA_ASSERT_NOTEQUAL(INA_SUCCESS, reason);
-    
-    if (__state.c == __INA_ERR_STATE_SIZE) {
-        __ina_pop_error();
-    }
-    error = &__state.errors[__state.c++];
-    error->rc = INA_RC_PACK(mod, fn, reason, ++__state.ic);
-    error->ts = time(NULL); /* FIXME: use own time value */
-    strcpy(error->file, file);
-    error->line = line;
-    strcpy(error->msg, msg);
-
-    return error->rc;
-}
-
-INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line)
-{
-    size_t k;
-
-    if (rc == INA_SUCCESS) {
-        return INA_SUCCESS;
-    }
-
-    /* Create new one for error outside the stack */
-    if (INA_RC_ID(rc) == 0) {
-        return ina_err_push(INA_RC_MOD(rc),
-                    INA_RC_OSFN(rc),
-                    INA_RC_REASON(rc),
-                    file,
-                    line,
-                    "(Error message missing!");
-    }
-
-    k = __ina_get_index(rc);
-
-    return ina_err_push(INA_RC_MOD(rc),
-                 INA_RC_OSFN(rc),
-                 INA_RC_REASON(rc),
-                 file,
-                 line,
-                 __state.errors[k].msg);
-}
-
-INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc)
-{
-    if (INA_SUCCESS == rc || INA_RC_REASON(rc) == 0) {
-        return INA_YES;
-    }
-    return INA_NO;
-}
-
-INA_API(ina_rc_t) ina_err_peek()
-{
-    if (__state.c > 0) {
-        return __state.errors[__state.c-1].rc;
-    }
+    INA_INIT_GUARD();
+    __errmsg = ina_str_new(__INA_ERROR_MSGLEN);
+    INA_RETURN_IF_NULL(__errmsg);
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc)
+INA_API(void) ina_err_destroy(void)
 {
-    size_t k;
-
-    INA_ASSERT(__initialized);
-    INA_ASSERT(INA_RC_ID(rc) <= __state.ic);
-
-    if (rc == INA_ERR_PEEK_FIRST) {
-        return ina_err_peek();
-    }
-
-    k = __ina_get_index(rc);
-
-    if (k < __state.c) {
-        return __state.errors[k-1].rc;
-    }
-    return INA_SUCCESS;
-    
+    INA_DESTROY_GUARD();
+    INA_STR_FREE_SAFE(__errmsg);
 }
 
-INA_API(ina_rc_t) ina_err_peek_last(void)
+
+INA_API(ina_err_subject_cb_t) ina_err_register_dict(ina_err_subject_cb_t cb)
 {
-    INA_ASSERT(__initialized);
-    if (__state.c > 0) {
-        return __state.errors[0].rc;
-    }
-    return INA_SUCCESS;
+    ina_err_subject_cb_t old_cb = __dict_cb;
+    __dict_cb = cb;
+    return old_cb;
 }
 
-INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc)
-{
-    size_t k;
-    ina_rc_t top;
-    ina_rc_t ret;
-
-    if (INA_RC_ID(rc) == 0) {
-        return INA_SUCCESS;
-    }
-    if (INA_RC_ID(rc) > __state.ic) {
-        return INA_FAILURE;
-    }
-
-    k = __ina_get_index(rc);
-    
-    if (k >= __state.c) {
-        return INA_FAILURE;
-    }
-   
-    INA_ASSERT_EQUAL(rc, __state.errors[k].rc);
-    ret = __state.errors[k].rc;
-   
-    for (;;) {
-        top =  __ina_pop_error();
-        if (top == 0) {
-            break;
-        }
-        if (top == ret) {
-            __ina_pop_error();
-        }
-    }
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_err_reset(void)
-{
-    if (__initialized) {
-        while (!(INA_SUCCESS == __ina_pop_error()));
-    } else {
-        __ina_init();
-    }
-    __state.ic = 0;
-    INA_ASSERT(__state.c == 0);
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, char* str, size_t len)
-{
-    size_t k;
-    struct tm *tm;
-    ina_error_t *error;
-    char tmc[30];
-    char outstr[2048];
-
-    INA_ASSERT_NOTNULL(str);
-    INA_ASSERT(len > 0);
-
-    if (INA_RC_ID(rc) <= __state.ic) {
-        k = __ina_get_index(rc);
-        if (k < __state.c) {
-            error = &__state.errors[k];
-            
-            if (len < (strlen(error->msg) +
-                       strlen(error->file) +
-                       __INA_ERR_MESSAGE_EXTRALEN)) {
-                return INA_ERR_EMSGLEN;
+static const char* __ina_get_subject(int id) {
+    switch (id) {
+        case INA_ES_NONE: return "";
+        case INA_ES_ACCESS: return "ACCESS";
+        case INA_ES_ARGUMENT: return "ARGUMENT";
+        case INA_ES_COMPRESSION: return "COMPRESSION";
+        case INA_ES_DECOMPRESSION: return "DECOMPRESSION";
+        case INA_ES_DESCRIPTOR: return "DESCRIPTOR";
+        case INA_ES_DEVICE: return "DEVICE";
+        case INA_ES_DIRECTORY: return "DIRECTORY";
+        case INA_ES_FILE: return "FILE";
+        case INA_ES_FUNCTION: return "FUNCTION";
+        case INA_ES_HANDLE: return "HANDLE";
+        case INA_ES_INPUT: return "INPUT";
+        case INA_ES_IO: return "IO";
+        case INA_ES_LIMIT: return "LIMIT";
+        case INA_ES_MEMORY: return "MEMORY";
+        case INA_ES_OBJECT: return "OBJECT";
+        case INA_ES_POSITION: return "POSITION";
+        case INA_ES_POOL: return "POOL";
+        case INA_ES_SCRIPT: return "SCRIPT";
+        case INA_ES_SIZE: return "SIZE";
+        case INA_ES_STRING: return "STRING";
+        case INA_ES_TYPE: return "TYPE";
+        case INA_ES_VERSION: return "VERSION";
+        case INA_ES_STATE: return "STATE";
+        case INA_ES_CONFIGURATION: return "CONFIGURATION";
+        case INA_ES_SECTION: return "SECTION";
+        case INA_ES_KEY: return "KEY";
+        case INA_ES_ENUMERATION: return "ENUMERATION";
+        case INA_ES_READ: return "READ";
+        case INA_ES_WRITE: return "WRITE";
+        case INA_ES_OPTION: return "OPTION";
+        case INA_ES_BUFFER: return "BUFFER";
+        case INA_ES_ADDRESS: return "ADDRESS";
+        case INA_ES_MAC: return "MAC";
+        case INA_ES_PROCESS: return "PROCESS";
+        case INA_ES_PATTERN: return "PATTERN";
+        case INA_ES_SEMAPHORE: return "SEMAPHORE";
+        case INA_ES_OPERATION: return "OPERATION";
+        case INA_ES_TIME: return "TIME";
+        case INA_ES_HOST: return "HOST";
+        case INA_ES_TEXT: return "TEXT";
+        case INA_ES_API: return "API";
+        default:
+            if (__dict_cb != NULL) {
+                return  __dict_cb(id);
             }
+            return "??";
+    }
+}
 
-            tm = localtime(&error->ts);
+INA_API(const char*) ina_err_strerror(ina_rc_t rc)
+{
+    const char *neg = "", *adj = "";
+    const char *noun =  __ina_get_subject(INA_RC_SUBJECT(rc));
 
-            if (tm && strftime(tmc, sizeof(tmc), "%Y-%m-%d %H:%M:%S", tm) > 0) {
-                sprintf(outstr, "%s %s:%d - %s (r:%u,f:%u,m:%u,h:%u,i:%d)",
-                                            tmc, 
-                                            error->file,
-                                            error->line,
-                                            error->msg,
-                                            INA_RC_REASON(error->rc),
-                                            INA_RC_OSFN(error->rc),
-                                            INA_RC_MOD(error->rc),
-                                            INA_RC_HANDLED(error->rc),
-                                            INA_RC_ID(error->rc));
+    if (INA_SUCCEED(rc)) {
+        ina_str_truncate(__errmsg, 0);
+        return __errmsg;
+    }
 
-                strncpy(str, outstr, len-1);
-                return INA_SUCCESS;
-            }
+    if (rc & ( 1ULL << INA_RC_BIT_N )) {
+        neg = "NOT";
+    }
+
+    switch (rc & ( 0xFFULL << INA_RC_BIT_C ) ) {
+        default: break;
+        case INA_ERR_A: adj = "A";break;
+        case INA_ERR_ACK: adj = "ACK";break;
+        case INA_ERR_ACTIVE: adj = "ACTIVE"; break;
+        case INA_ERR_ALIGNED: adj = "ALIGNED"; break;
+        case INA_ERR_ALLOWED: adj = "ALLOWED"; break;
+        case INA_ERR_ASSIGNED: adj = "ASSIGNED";break;
+        case INA_ERR_ATTACHED: adj = "ATTACHED"; break;
+        case INA_ERR_ATTEMPTED: adj = "ATTEMPTED"; break;
+        case INA_ERR_AUTHORIZED: adj = "AUTHORIZED"; break;
+        case INA_ERR_AVAILABLE: adj = "AVAILABLE"; break;
+        case INA_ERR_BAD: adj = "BAD"; break;
+        case INA_ERR_BLOCKED: adj = "BLOCKED"; break;
+        case INA_ERR_BROKEN: adj = "BROKEN"; break;
+        case INA_ERR_BUILT: adj = "BUILT"; break;
+        case INA_ERR_BUSY: adj = "BUSY"; break;
+        case INA_ERR_CLOSED: adj = "CLOSED"; break;
+        case INA_ERR_COMPILED: adj = "COMPILED"; break;
+        case INA_ERR_COMPLETE: adj = "COMPLETE"; break;
+        case INA_ERR_CONFLICTED: adj = "CONFLICTED"; break;
+        case INA_ERR_CONNECTED: adj = "CONNECTED"; break;
+        case INA_ERR_CONSTRUCTED: adj = "CONSTRUCTED"; break;
+        case INA_ERR_CREATED: adj = "CREATED"; break;
+        case INA_ERR_DEFINED: adj = "DEFINED"; break;
+        case INA_ERR_DENIED: adj = "DENIED";break;
+        case INA_ERR_DESTRUCTED: adj = "DESTRUCTED"; break;
+        case INA_ERR_DETACHED: adj = "DETACHED"; break;
+        case INA_ERR_DETECTED: adj = "DETECTED"; break;
+        case INA_ERR_DOWN: adj = "DOWN"; break;
+        case INA_ERR_DOWNLOADED: adj = "DOWNLOADED"; break;
+        case INA_ERR_EMPTY: adj = "EMPTY"; break;
+        case INA_ERR_ENHANCED: adj = "ENHANCED"; break;
+        case INA_ERR_ENOUGH: adj = "ENOUGH"; break;
+        case INA_ERR_EXCEEDED: adj = "EXCEEDED"; break;
+        case INA_ERR_EXCHANGED: adj = "EXCHANGED"; break;
+        case INA_ERR_EXECUTABLE: adj = "EXECUTABLE"; break;
+        case INA_ERR_EXISTS: adj = "EXISTS"; break;
+        case INA_ERR_EXPIRED: adj = "EXPIRED"; break;
+        case INA_ERR_EXTENDED: adj = "EXTENDED"; break;
+        case INA_ERR_FAILED: adj = "FAILED"; break;
+        case INA_ERR_FALSE: adj = "FALSE"; break;
+        case INA_ERR_FATAL: adj = "FATAL"; break;
+        case INA_ERR_FORBIDDEN: adj = "FORBIDDEN"; break;
+        case INA_ERR_FORMATTED: adj = "FORMATTED"; break;
+        case INA_ERR_FOUND: adj = "FOUND"; break;
+        case INA_ERR_FULL: adj = "FULL"; break;
+        case INA_ERR_GONE: adj = "GONE"; break;
+        case INA_ERR_GOOD: adj = "GOOD"; break;
+        case INA_ERR_HALTED: adj = "HALTED"; break;
+        case INA_ERR_HOLD: adj = "HOLD"; break;
+        case INA_ERR_IDLE: adj = "IDLE"; break;
+        case INA_ERR_ILLEGAL: adj = "ILLEGAL"; break;
+        case INA_ERR_IMPLEMENTED: adj = "IMPLEMENTED"; break;
+        case INA_ERR_IN_PROGRESS: adj = "IN PROGRESS"; break;
+        case INA_ERR_IN_USE: adj = "IN USE"; break;
+        case INA_ERR_INITIALIZED: adj = "INITIALIZED"; break;
+        case INA_ERR_INSTALLED: adj = "INSTALLED"; break;
+        case INA_ERR_INTERRUPTED: adj = "INTERRUPTED"; break;
+        case INA_ERR_KNOWN: adj = "KNOWN"; break;
+        case INA_ERR_LINKED: adj = "LINKED"; break;
+        case INA_ERR_LOADED: adj = "LOADED"; break;
+        case INA_ERR_LOCAL: adj = "LOCAL"; break;
+        case INA_ERR_LOCKED: adj = "LOCKED"; break;
+        case INA_ERR_LOOPED: adj = "LOOPED"; break;
+        case INA_ERR_LOST: adj = "LOST"; break;
+        case INA_ERR_MISSING: adj = "MISSING"; break;
+        case INA_ERR_MOUNTED: adj = "MOUNTED"; break;
+        case INA_ERR_NEEDED: adj = "NEEDED"; break;
+        case INA_ERR_NO: adj = "NO"; break;
+        case INA_ERR_NO_SUCH: adj = "NO SUCH"; break;
+        case INA_ERR_OFF: adj = "OFF"; break;
+        case INA_ERR_ON: adj = "ON"; break;
+        case INA_ERR_ONLINE: adj = "ONLINE"; break;
+        case INA_ERR_OPEN: adj = "OPEN"; break;
+        case INA_ERR_ORDERED: adj = "ORDERED"; break;
+        case INA_ERR_OUT_OF: adj = "OUT OF";break;
+        case INA_ERR_OUT_OF_RANGE: adj = "OUT OF RANGE"; break;
+        case INA_ERR_OVERFLOW: adj = "OVERFLOW"; break;
+        case INA_ERR_PADDED: adj = "PADDED"; break;
+        case INA_ERR_PERMITTED: adj = "PERMITTED"; break;
+        case INA_ERR_PROCESSABLE: adj = "PROCESSABLE"; break;
+        case INA_ERR_PROVIDED: adj = "PROVIDED"; break;
+        case INA_ERR_REACHABLE: adj = "REACHABLE"; break;
+        case INA_ERR_READABLE: adj = "READABLE"; break;
+        case INA_ERR_RECEIVED: adj = "RECEIVED"; break;
+        case INA_ERR_REFUSED: adj = "REFUSED"; break;
+        case INA_ERR_REGISTERED: adj = "REGISTERED"; break;
+        case INA_ERR_REJECTED: adj = "REJECTED"; break;
+        case INA_ERR_RELEASED: adj = "RELEASED"; break;
+        case INA_ERR_REMOTE: adj = "REMOTE"; break;
+        case INA_ERR_RENDERABLE: adj = "RENDERABLE"; break;
+        case INA_ERR_RESERVED: adj = "RESERVED"; break;
+        case INA_ERR_RESET: adj = "RESET"; break;
+        case INA_ERR_RESPONDING: adj = "RESPONDING"; break;
+        case INA_ERR_RETRIED: adj = "RETRIED"; break;
+        case INA_ERR_RIGHT: adj = "RIGHT"; break;
+        case INA_ERR_RUNNING: adj = "RUNNING"; break;
+        case INA_ERR_SENT: adj = "SENT"; break;
+        case INA_ERR_SPECIFIED: adj = "SPECIFIED"; break;
+        case INA_ERR_STALLED: adj = "STALLED"; break;
+        case INA_ERR_STOPPED: adj = "STOPPED"; break;
+        case INA_ERR_SUCEEDED: adj = "SUCEEDED"; break;
+        case INA_ERR_SUITABLE: adj = "SUITABLE"; break;
+        case INA_ERR_SUPPORTED: adj = "SUPPORTED"; break;
+        case INA_ERR_SYNCHRONIZED: adj = "SYNCHRONIZED"; break;
+        case INA_ERR_TERMINATED: adj = "TERMINATED"; break;
+        case INA_ERR_THROWN: adj = "THROWN"; break;
+        case INA_ERR_TIMED_OUT: adj = "TIMED OUT"; break;
+        case INA_ERR_TOO_COMPLEX: adj = "TOO COMPLEX"; break;
+        case INA_ERR_TOO_FEW: adj = "TOO FEW"; break;
+        case INA_ERR_TOO_LARGE: adj = "TOO LARGE"; break;
+        case INA_ERR_TOO_LONG: adj = "TOO LONG";break;
+        case INA_ERR_TOO_MANY: adj = "TOO MANY"; break;
+        case INA_ERR_TOO_MUCH: adj = "TOO MUCH"; break;
+        case INA_ERR_TOO_SIMPLE: adj = "TOO SIMPLE"; break;
+        case INA_ERR_TOO_SMALL: adj = "TOO SMALL"; break;
+        case INA_ERR_TRIGGERED: adj = "TRIGGERED";break;
+        case INA_ERR_TRUE: adj = "TRUE"; break;
+        case INA_ERR_UNIQUE: adj = "UNIQUE"; break;
+        case INA_ERR_UP: adj = "UP"; break;
+        case INA_ERR_UPDATED: adj = "UPDATED"; break;
+        case INA_ERR_UPGRADED: adj = "UPGRADED"; break;
+        case INA_ERR_UPLOADED: adj = "UPLOADED"; break;
+        case INA_ERR_USED: adj = "USED"; break;
+        case INA_ERR_VALID: adj = "VALID"; break;
+        case INA_ERR_WORKING: adj = "WORKING"; break;
+        case INA_ERR_WRITABLE: adj = "WRITABLE"; break;
+        case INA_ERR_WRONG: adj = "WRONG"; break;
+        case INA_ERR_END_OF: adj = "END OF"; break;
+        case INA_ERR_RESOLVED: adj = "RESOLVED"; break;
+        case INA_ERR_MATCH: adj = "MATCH"; break;
+        case INA_ERR_TRY_AGAIN: adj = "TRY AGAIN"; break;
+        case INA_ERR_PARSED: adj = "PARSED"; break;
+        case INA_ERR_CHANGED: adj = "CHANGED";
+    };
+
+    {
+        INA_DISABLE_WARNING_MSVC(4204)
+        const char *common[] = {noun, neg, adj};
+        const char *special[] = {neg, adj, noun};
+        INA_ENABLE_WARNING_MSVC(4204)
+
+        const char **use = common;
+
+        ina_rc_t type = rc & (0x1FFULL << INA_RC_BIT_C);
+
+        if ((type == INA_ERR_A) || (type == INA_ERR_NOT_A) ||
+            (type == INA_ERR_NO) || (type == INA_ERR_NO_SUCH) ||
+            (type == INA_ERR_ENOUGH) || (type == INA_ERR_NOT_ENOUGH)) {
+            use = special;
         }
+        ina_str_snprintf(&__errmsg, __INA_ERROR_MSGLEN,
+                "%s%s%s%s%s - 0x%" PRIx64 " - error=%u,ver=%u,rev=%u,os=%u,neg=%u,adj=%u,subject=%u,code=%u,ubits=0x%x",
+                (use)[0],
+                (use)[0][0]?" ":"",
+                (use)[1],
+                (use)[1][0]?" ":"",
+                (use)[2],
+                rc,
+                INA_RC_EFLAG(rc),
+                INA_RC_VER(rc),
+                INA_RC_REV(rc),
+                INA_RC_ERRNO(rc),
+                INA_RC_NFLAG(rc),
+                INA_RC_ADJ(rc),
+                INA_RC_SUBJECT(rc),
+                INA_RC_CODE(rc),
+                INA_RC_UBITS(rc));
+        return __errmsg;
     }
-    return INA_FAILURE;
 }
 
-INA_API(const char*) ina_err_get_last_errmsg(void)
-{
-    return ina_err_get_errmsg(ina_err_peek());
-}
-
-INA_API(const char*) ina_err_get_errmsg(ina_rc_t rc)
-{  
-    if (rc == INA_SUCCESS || INA_RC_ID(rc) == 0) {
-        return NULL;
-    }
-    return __state.errors[__ina_get_index(rc)].msg;
-}
-
-INA_API(ina_rc_t) ina_err_trace(void)
-{
-    ina_rc_t rc = INA_SUCCESS;
-    char str[2048];
-    int n;
-
-    INA_ASSERT(__initialized);
-
-    if (INA_SUCCEED(ina_err_peek())) {
-        return rc;
-    }
-
-    fprintf(stderr, "%s\n", "**** UNHANDLED ERROR START ******");
-
-    n = __state.c;
-    while (n--) {
-        if (INA_SUCCEED(ina_err_fmtmsg(__state.errors[n].rc, str, 2048))) {
-            fprintf(stderr, "%s\n", str);
-        } else {
-            fprintf(stderr, "Can't format error message %s:%d - %s (r:%u,f:%u,m:%u,h:%u,i:%d)\n",
-                                            __state.errors[n].file,
-                                            __state.errors[n].line,
-                                            __state.errors[n].msg,
-                                            INA_RC_REASON(__state.errors[n].rc),
-                                            INA_RC_OSFN(__state.errors[n].rc),
-                                            INA_RC_MOD(__state.errors[n].rc),
-                                            INA_RC_HANDLED(__state.errors[n].rc),
-                                            INA_RC_ID(__state.errors[n].rc));
-        }
-    }
-
-    fprintf(stderr, "%s\n", "**** UNHANDLED ERROR END ******");
-
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_err_backtrace(void *data)
-{
-#ifndef INA_OS_WIN32
-    void *fnptr[30];
-    size_t size;
-    int i;
-
-    fprintf(stderr, "%s\n", "**** BACKTRACE START ******");
-    size = backtrace(fnptr, 30);
-    char** fn = backtrace_symbols(fnptr, size);
-    for (i = 0; i < size; i++) {
-        if (i > 3) {
-            fprintf(stderr, "%s\n", fn[i]);
-        }
-    }
-    free(fn);
-    fprintf(stderr, "%s\n", "**** BACKTRACE  END ******");
-#else
-	#ifdef INA_CPU_X86_64
-	#else
-		EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
-		HANDLE process;
-		SYMBOL_INFO *symbol;
-		unsigned int i;
-		DWORD stack[100];
-		unsigned short frames = 0;
-		STACKFRAME frame = {0};
-
-		process = GetCurrentProcess();
-		SymInitialize(process, NULL, TRUE);
-	 
-		/* setup initial stack frame */
-		frame.AddrPC.Offset = pExceptionPointers->ContextRecord->Eip;
-		frame.AddrPC.Mode = AddrModeFlat;
-		frame.AddrStack.Offset = pExceptionPointers->ContextRecord->Esp;
-		frame.AddrStack.Mode = AddrModeFlat;
-		frame.AddrFrame.Offset = pExceptionPointers->ContextRecord->Ebp;
-		frame.AddrFrame.Mode = AddrModeFlat;
-
-		symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
-		symbol->MaxNameLen = 255;
-		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	 
-		while (StackWalk(IMAGE_FILE_MACHINE_I386,
-						 process,
-						 GetCurrentThread(),
-						 &frame,
-						 pExceptionPointers->ContextRecord,
-						 0,
-						 SymFunctionTableAccess,
-						 SymGetModuleBase,
-						 0 ) )
-		{
-			stack[frames++] = frame.AddrPC.Offset;
-		}
-		
-		for (i = 0; i < frames; i++) {
-			SymFromAddr(process, stack[i], 0, symbol);
-			printf("%i: %s - 0x%I64X\n", frames - i - 1, symbol->Name, symbol->Address);
-		}
-		
-		free(symbol);
-		SymCleanup(process);
-	#endif
-#endif
-    return INA_SUCCESS;
-}
-
-INA_API(ina_rc_t) ina_err_coredump(void *data) {
-#ifndef INA_OS_WIN32
-    char cmd[160];
-    sprintf(cmd, "echo 'where\ndetach' | gdb -q %d > %s.dump", getpid(), "test");
-    if (system(cmd)) {
-        return INA_FAILURE;
-    } 
-#else
-    EXCEPTION_POINTERS* pExceptionPointers = (EXCEPTION_POINTERS*)data;
-    BOOL dumped;
-    char suffix[MAX_PATH];
-    char final_name[MAX_PATH];
-    MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
-    SYSTEMTIME t;
-    HANDLE hFile;
-
-    strcpy(final_name, ina_app_get_name());
-    
-    GetSystemTime(&t);
-    sprintf(suffix,
-        "_%4d%02d%02d_%02d%02d%02d.dmp",
-        t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
-
-    strcat(final_name, suffix);
-
-    hFile = CreateFileA(final_name, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-    
-    if (hFile == INVALID_HANDLE_VALUE) {
-        printf("Error ina_err_coredump: Could not create file %s!\n", final_name);
-        return INA_FAILURE;
-    }
-
-    exceptionInfo.ThreadId = GetCurrentThreadId();
-    exceptionInfo.ExceptionPointers = pExceptionPointers;
-    exceptionInfo.ClientPointers = FALSE;
-
-    dumped = MiniDumpWriteDump(
-        GetCurrentProcess(),
-        GetCurrentProcessId(),
-        hFile,
-        (MINIDUMP_TYPE)(MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
-        pExceptionPointers ? &exceptionInfo : NULL,
-        NULL,
-        NULL
-    );
-
-    CloseHandle(hFile);
-#endif
-    return INA_SUCCESS;
-}
-
-static ina_rc_t
-__ina_init(void) 
-{
-    ++__initialized;
-    __state.c = 0;
-    __state.ic = 0;
- 
-    return INA_SUCCESS;
-}
-
-static size_t
-__ina_get_index(ina_rc_t rc)
-{
-    size_t m;
-    size_t k;
-
-    k = INA_RC_ID(rc);
-    m = k % __INA_ERR_STATE_SIZE;
-    k = m > 0?m-1:k-1;
-    return k;
-}
-
-static ina_rc_t 
-__ina_pop_error(void) 
-{
-    size_t i;
-    ina_rc_t rc;
-
-    INA_ASSERT(__state.c >= 0);
-
-    if (__state.c > 0) {
-        for (i = 1; i < __state.c; ++i) {
-            rc = INA_RC_PACK(INA_RC_OSFN(__state.errors[i].rc),
-                             INA_RC_MOD(__state.errors[i].rc),
-                             INA_RC_REASON(__state.errors[i].rc),
-                              INA_RC_ID(__state.errors[i].rc-1));
-            ina_mem_cpy(&__state.errors[i-1], &__state.errors[i], sizeof(ina_error_t));
-            __state.errors[i-1].rc = rc; 
-        }
-        --__state.c;
-        --__state.ic;
-        INA_ASSERT(__state.c >= 0);
-        if (__state.c > 0) {
-            return __state.errors[0].rc;
-        }
-    }
-    return INA_SUCCESS;
-}

@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_LOG_H_
 #define _LIBINAC_LOG_H_
@@ -32,9 +13,11 @@
 extern "C" {
 #endif
 
+#include <libinac/lib.h>
+
 /* Base log macros, user INA_LOG_DEBUG/INFO/WARNING/ERROR instead */
 #ifdef INA_LOG_ENABLED
-#define INA_LOG(cfg, level, fmt,  ...) ina_log(cfg, level, fmt, ##__VA_ARGS__)
+#define INA_LOG(cfg, level, INA_AT, fmt,  ...) ina_log(cfg, level, INA_AT, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG(cfg, level, ...)
 #endif
@@ -44,6 +27,8 @@ extern "C" {
 #endif
 
 #if INA_LOG_LEVEL>0
+#define INA_LOG_RC(log, rc) \
+    INA_LOG(log, INA_LOG_LEVEL_ERROR, "%s", ina_err_strerror((rc)))
 #define INA_LOG_ERROR(cfg,fmt,...)                          \
     INA_LOG(cfg, INA_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)       
 #else
@@ -70,49 +55,39 @@ extern "C" {
 
 /* Log level */
 typedef enum ina_log_level_e {
-    INA_LOG_LEVEL_DEBUG,
-    INA_LOG_LEVEL_INFO,
-    INA_LOG_LEVEL_WARNING,
-    INA_LOG_LEVEL_ERROR
+    INA_LOG_LEVEL_DEBUG   = 1,
+    INA_LOG_LEVEL_INFO    = 2,
+    INA_LOG_LEVEL_WARNING = 4,
+    INA_LOG_LEVEL_ERROR   = 8
 } ina_log_level_t;
 
 /* Log target */
 typedef enum ina_log_target_e {
-    INA_LOG_STDOUT = 0x0001,
-    INA_LOG_FILE = 0x0002,
-#ifndef WIN32
-    INA_LOG_SYSLOG = 0x0004
+    INA_LOG_STDOUT,
+    INA_LOG_STDERR,
+    INA_LOG_FILE,
+#ifndef INA_OS_WIN32
+    INA_LOG_SYSLOG,
+    INA_LOG_PIPELINE
 #endif
 } ina_log_target_t;
 
 /* Log context/configuration */
-typedef struct ina_log_cfg_s {
-    FILE *fp1;
-    FILE *fp2;
-    ina_log_level_t level;
-    int target;
-    ina_str_t logfile;
-    ina_str_t syslog_ident;
-    int syslog_facility;
-    int pid;
-} ina_log_cfg_t;
+typedef struct ina_log_s ina_log_t;
 
+INA_API(ina_rc_t) ina_log_init(const char* cfg_path);
+INA_API(void)     ina_log_destroy(void);
 /*
  * Open a log context  based on a log configuration.
  *
  * Parameters
- *  cfg      Where to store the newly created log context
- *  target   Defines log targets
- *  level    Defines log level
- *  logfile  Path to log file, relevant if target INA_LOG_FILE is requested
+ *  category  log category
+ *  log       Where to store the newly created log
  *
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg,
-                               int32_t target,
-                               ina_log_level_t level,
-                               const char *logfile);
+INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log);
 
 /*
  * Log a  message to current targets and level.
@@ -126,8 +101,9 @@ INA_API(ina_rc_t) ina_log_open(ina_log_cfg_t **cfg,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg,
+INA_API(ina_rc_t) ina_log(const ina_log_t *log,
                           ina_log_level_t level,
+                          const char *location,
                           const char* fmt,
                           ...);
 
@@ -143,19 +119,16 @@ INA_API(ina_rc_t) ina_log(const ina_log_cfg_t *cfg,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_v(const ina_log_cfg_t *cfg, ina_log_level_t level, 
-                            const char* fmt, va_list ap);
+INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
+                            const char* location, const char* fmt, va_list ap);
 
 /*
  * Close a log context.
  *
  * Parameters
- *  cfg  Log context to close.
- *
- * Return
- *  INA_SUCCESS
+ *  log  Log context to close.
  */
-INA_API(ina_rc_t) ina_log_close(ina_log_cfg_t **cfg);
+INA_API(void) ina_log_free(ina_log_t **log);
 
 #ifdef __cplusplus
 }

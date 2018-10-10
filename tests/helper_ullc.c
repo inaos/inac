@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2014, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 #include "test_ullc.h"
@@ -32,22 +13,26 @@ static ina_ullc_ctx_t *ullc_ctx = NULL;
 
 
 static void ina_test_helper_cleanup_producer(int error, int *exitcode) {
+    INA_UNUSED(error);
+    INA_UNUSED(exitcode);
     if (ullc_ctx) {
-        ina_ullc_producer_destroy(&ullc_ctx);
+        ina_ullc_producer_free(&ullc_ctx);
     }
 }
 
 static void ina_test_helper_cleanup_consumer(int error, int *exitcode) {
+    INA_UNUSED(error);
+    INA_UNUSED(exitcode);
     if (ullc_ctx) {
-        ina_ullc_consumer_destroy(&ullc_ctx);
+        ina_ullc_consumer_free(&ullc_ctx);
     }
 }
 
 /* Create a single */
 INA_TEST_HELPER(ullc, create_fast_producer) {
     const char* name;
-    size_t consumers;
-    size_t producers;
+    int consumers;
+    int producers;
     size_t slots;
     int16_t version;
     ina_test_ullc_t *v = NULL;
@@ -58,12 +43,12 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
     INA_TEST_HELPER_CHECK_ARGC(5);
     version = (int16_t)INA_TEST_HELPER_IARG(0);
     slots = (size_t)INA_TEST_HELPER_IARG(1);
-    producers = (size_t)INA_TEST_HELPER_IARG(2);
-    consumers = (size_t)INA_TEST_HELPER_IARG(3);
+    producers = INA_TEST_HELPER_IARG(2);
+    consumers = INA_TEST_HELPER_IARG(3);
     name = INA_TEST_HELPER_CARG(4);
 
   
-    if (!INA_SUCCEED(INA_ULLC_PRODUCER_CREATE(ina_test_ullc_t, 
+    if (!INA_SUCCEED(INA_ULLC_PRODUCER_NEW(ina_test_ullc_t,
         version, 
         slots, 
         producers, 
@@ -71,7 +56,7 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
         name, 
         INA_ULLC_WS_SIGNAL_WAIT, 
         &ullc_ctx))) {
-        INA_TEST_HELPER_SET_RC(INA_ERR_PUSH_LAST);
+        INA_TEST_HELPER_SET_RC(ina_err_get_rc());
     }
 
 
@@ -96,8 +81,8 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
 /* Create a single */
 INA_TEST_HELPER(ullc, create_consumer) {
     const char* name;
-    size_t consumers;
-    size_t producers;
+    int consumers;
+    int producers;
     size_t slots;
     int16_t version;
     ina_ullc_ctx_t *ullc_ctx = NULL;
@@ -108,19 +93,19 @@ INA_TEST_HELPER(ullc, create_consumer) {
     INA_TEST_HELPER_CHECK_ARGC(5);
     version = (int16_t)INA_TEST_HELPER_IARG(0);
     slots = (size_t)INA_TEST_HELPER_IARG(1);
-    producers = (size_t)INA_TEST_HELPER_IARG(2);
-    consumers = (size_t)INA_TEST_HELPER_IARG(3);
+    producers = INA_TEST_HELPER_IARG(2);
+    consumers = INA_TEST_HELPER_IARG(3);
     name = INA_TEST_HELPER_CARG(4);
 
 
-    if (!INA_SUCCEED(INA_ULLC_CONSUMER_CREATE(ina_test_ullc_t, 
+    if (!INA_SUCCEED(INA_ULLC_CONSUMER_NEW(ina_test_ullc_t,
             version, 
             slots, 
             producers, 
             consumers, 
             name, 
             &ullc_ctx))) {
-            INA_TEST_HELPER_EXIT(INA_ERR_PUSH_LAST);
+            INA_TEST_HELPER_EXIT(ina_err_get_rc());
     }
 
    INA_TRACE3("created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",

@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 #include "config.h"
@@ -33,7 +14,7 @@
         return INA_SUCCESS;           \
     }
 
-static int __ina_get_cursor_pos(ina_cio_pos_t *const pos);
+static int __ina_get_cursor_pos(ina_cio_pos_t *pos);
 
 #ifdef INA_OS_WIN32
 #include <io.h>
@@ -106,19 +87,20 @@ static void __ina_init_colors(void)
 #endif
 
 static ina_cio_attribs_t __attribs;
-static int               __initialized = INA_NO;
 
 INA_API(ina_rc_t) ina_cio_init(void)
 {
-    if (__initialized != INA_YES) {
-
-        __ina_init_colors();
-        __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
-        __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
-        __attribs.flags = 0;
-	    __initialized = INA_YES;
-    }
+    INA_INIT_GUARD();
+    __ina_init_colors();
+    __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
+    __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
+    __attribs.flags = 0;
     return INA_SUCCESS;
+}
+
+INA_API(void) ina_cio_destroy(void)
+{
+    INA_DESTROY_GUARD();
 }
 
 INA_API(ina_rc_t) ina_cio_clear(void)
@@ -130,7 +112,6 @@ INA_API(ina_rc_t) ina_cio_clear(void)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     DWORD dwConSize;
 
-    INA_ASSERT(__initialized);
     __INA_CHECK_TTTY;
 
     if( hStdOut != INVALID_HANDLE_VALUE
@@ -155,7 +136,6 @@ INA_API(ina_rc_t) ina_cio_clear(void)
         );
     }
 #else
-    INA_ASSERT(__initialized);
     strcpy(__cmd, (char*)__CSI);
     strcat(__cmd, (char*)__cmd_clear);
     printf( "%s", __cmd);
@@ -180,8 +160,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 #endif
    __INA_CHECK_TTTY;
 
-    INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(pos);
+    INA_VERIFY_NOT_NULL(pos);
     pos->row = pos->col = 0;
 
 #ifdef INA_OS_WIN32
@@ -216,8 +195,7 @@ INA_API(ina_rc_t) ina_cio_show_cursor(int show)
  */
 INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
 {
-    INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(attribs);
+    INA_VERIFY_NOT_NULL(attribs);
 
    __INA_CHECK_TTTY;
 
@@ -251,8 +229,7 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
  */
 INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 {
-    INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(attribs);
+    INA_VERIFY_NOT_NULL(attribs);
 
     attribs->bg_color = __attribs.bg_color;
     attribs->fg_color = __attribs.fg_color;
@@ -262,8 +239,7 @@ INA_API(ina_rc_t) ina_cio_get_attribs(ina_cio_attribs_t *attribs)
 
 INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 {
-    INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(pos);
+    INA_VERIFY_NOT_NULL(pos);
     __INA_CHECK_TTTY;
     
     __ina_get_cursor_pos(pos);
@@ -272,18 +248,15 @@ INA_API(ina_rc_t) ina_cio_get_pos(ina_cio_pos_t *pos)
 
 INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos)
 {
-    INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(pos);
+    INA_VERIFY_NOT_NULL(pos);
     return ina_cio_move_to_row_and_col(pos->row, pos->col);
 }
 
-INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
+INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int row, int col)
 {
 #ifdef INA_OS_WIN32
-    COORD pos;
-#endif    
-    INA_ASSERT(__initialized);
-
+    COORD wpos;
+#endif
    __INA_CHECK_TTTY;
 
     if (col < 0 && row < 0) {
@@ -299,17 +272,17 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col)
     }
 #ifdef INA_OS_WIN32
 
-    pos.X = col;
-    pos.Y = row;
+    wpos.X = (short)col;
+    wpos.Y = (short)row;
 
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), wpos);
 #else
     printf( "%s%d;%dH", __CSI, row + 1, col + 1);
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(int) ina_cio_printf(int16_t row, int16_t col, 
+INA_API(int) ina_cio_printf(int row, int col,
                                     ina_cio_color_t fg_color, 
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...)
@@ -322,8 +295,10 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
     int setattribs = INA_NO;
     int setpos = INA_NO;
 
-    INA_ASSERT(__initialized);
-    INA_ASSERT_NOTNULL(fmt);
+    if (fmt == NULL) {
+        INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+        return -1;
+    }
 
     pos.col = 0;
     pos.row = 0;
@@ -375,7 +350,7 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
 
 #ifdef INA_OS_WIN32
 static int
-__ina_get_cursor_pos(ina_cio_pos_t *const pos)
+__ina_get_cursor_pos(ina_cio_pos_t* pos)
 {
     CONSOLE_SCREEN_BUFFER_INFO info;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
@@ -423,7 +398,7 @@ INA_INLINE int wr(const int fd, const char *const data, const size_t bytes)
     return 0;
 }
 static int
-__ina_get_cursor_pos(ina_cio_pos_t *const pos)
+__ina_get_cursor_pos(ina_cio_pos_t *pos)
 {
     struct termios  saved, temporary;
     int tty, retval, result, rows, cols, saved_errno;
@@ -543,7 +518,7 @@ __ina_get_cursor_pos(ina_cio_pos_t *const pos)
 #define __INA_CIO_READ_BUFFER_CHUNK_SIZE 128
 #ifdef INA_OS_WIN32
 static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_buffer, 
-                                     size_t *buf_cur, size_t *buf_len, int *finished)
+                                     size_t *buf_cur, size_t *buf_len, int *finished, int rcv)
 {
     INPUT_RECORD *irInBuf;
     DWORD dw_event_count;
@@ -581,7 +556,7 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
                         *finished = 1;
                     }
 					else {
-						size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE+(1*rep)+1;
+						size_t check_size = __INA_CIO_READ_BUFFER_CHUNK_SIZE + (1 * rep) + 1;
 						cur = buffer + (*buf_cur)++;
 						/* check if there is space for another char, otherwise extend */
 						if (*buf_cur >= check_size) {
@@ -589,11 +564,17 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
 							*ptr_buffer = (char*)ina_mem_realloc(buffer, *buf_len);
 						}
 						memset(cur, cta, rep);
+						if (rcv) {
+							*finished = 1;
+						}
                     }
-                    printf("%c", cta);
+					if (!rcv) {
+						printf("%c", cta);
+					}
                 }
             }
         }
+
     }
 
     if (*finished == 1) {
@@ -607,7 +588,7 @@ static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_
     }
 }
 static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
-                                    size_t *nb_buf_len, size_t *nb_buf_cur)
+                                    size_t *nb_buf_len, size_t *nb_buf_cur, int rcv)
 {
     ina_rc_t ret = INA_SUCCESS;
     HANDLE hStdin;
@@ -615,13 +596,13 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     if (hStdin == INVALID_HANDLE_VALUE) {
-        return ENOTTY;
+        return INA_OS_ERROR(INA_ERR_INVALID);
     }
 
     dw_wait_ret = WaitForSingleObject(hStdin, 1);
 
     if (dw_wait_ret == WAIT_ABANDONED || dw_wait_ret == WAIT_FAILED) {
-        return INA_EWAIT;
+        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 
     if (blocking) {
@@ -634,7 +615,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         
         while (1) {
             if (dw_wait_ret == WAIT_OBJECT_0) {
-                __ina_cio_w32_read_input(line, hStdin, &buffer, &buf_cur, &buf_len, &finished);
+                __ina_cio_w32_read_input(line, hStdin, &buffer, &buf_cur, &buf_len, &finished, rcv);
                 if (finished) {
                     break;
                 }
@@ -646,16 +627,16 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         int finished = 0;
 
         if (dw_wait_ret == WAIT_TIMEOUT) {
-            ret = INA_EAGAIN;
+            ret = INA_ERR_TRY_AGAIN;
         }
         else {
-            if (nb_buf == NULL) {
+            if (*nb_buf == NULL) {
                 *nb_buf = (char*)ina_mem_alloc(sizeof(char)*__INA_CIO_READ_BUFFER_CHUNK_SIZE);
             }
-            __ina_cio_w32_read_input(line, hStdin, nb_buf, nb_buf_cur, nb_buf_len, &finished);
+            __ina_cio_w32_read_input(line, hStdin, nb_buf, nb_buf_cur, nb_buf_len, &finished, rcv);
         }
         if (!finished) {
-            ret = INA_EAGAIN;
+            ret = INA_ERR_TRY_AGAIN;
         }
     }    
 
@@ -663,7 +644,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 }
 #else
 static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
-                                    size_t *nb_buf_len, size_t *nb_buf_pos)
+                                    size_t *nb_buf_len, size_t *nb_buf_pos, int rcv)
 {
     ina_rc_t rc = INA_SUCCESS;
     char *buf = NULL;
@@ -671,10 +652,13 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
     struct termios new_termios;
     struct termios old_termios;
     
-    tcgetattr(0, &old_termios);
+    tcgetattr(STDIN_FILENO, &old_termios);
     memcpy(&new_termios, &old_termios, sizeof(new_termios));
     cfmakeraw(&new_termios);
-    tcsetattr(0, TCSANOW, &new_termios);
+    if (rcv) {
+        new_termios.c_lflag &= ~(ECHO);
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
 
     while (1) {
         struct timeval tv = { 0L, 0L };
@@ -685,7 +669,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         rt = select(1, &fds, NULL, NULL, &tv);
 
         if (!rt && blocking == INA_NO) {
-            rc =  INA_EAGAIN;
+            rc =  INA_ERR_TRY_AGAIN;
             break;
         }
 
@@ -695,7 +679,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         
             if ((r = read(0, &c, sizeof(c))) < 0) {
                 if (blocking == INA_NO) {
-                    rc =  INA_EAGAIN;
+                    rc =  INA_ERR_TRY_AGAIN;
                     break;
                 }
                 ina_time_sleep(50);
@@ -712,7 +696,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 if (buf == NULL) {
                     ina_mem_free(*nb_buf);
                     *nb_buf = NULL;
-                    return INA_ERR_PUSH_LAST;
+                    return ina_err_get_rc();
                 }
                 *nb_buf = buf;
             }
@@ -731,16 +715,27 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                     fflush(stdout);
                 }
             } else if (c >=32 && c <= 126) {
-                INA_ASSERT_NOTNULL(nb_buf);  
-	            buf = *nb_buf;
+                INA_ASSERT_NOTNULL(nb_buf);
+                buf = *nb_buf;
                 buf[*nb_buf_pos] = (char)c;
-	            *nb_buf_pos += 1;
-                fprintf(stdout, "%c", c);
-                fflush(stdout);
+                *nb_buf_pos += 1;
+                if (!rcv) {
+                    fprintf(stdout, "%c", c);
+                    fflush(stdout);
+                } else {
+                    *line = ina_str_new_fromcstr(*nb_buf);
+                    ina_mem_free(*nb_buf);
+                    *nb_buf = NULL;
+                    *nb_buf_pos = 0;
+                    *nb_buf_len = 0;
+                    fprintf(stdout, "\b \b");
+                    fflush(stdout);
+                    break;
+                }
             }
 
             if (blocking == INA_NO) {
-                rc = INA_EAGAIN;
+                rc = INA_ERR_TRY_AGAIN;
                 break;
             }
         }
@@ -748,7 +743,8 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             ina_time_sleep(10);
         }
     }
-    tcsetattr(0, TCSANOW, &old_termios);
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_termios);
     return rc;
 } 
 #endif
@@ -757,16 +753,40 @@ INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
     char *buf = NULL;
     size_t buf_len = 0;
     size_t buf_pos = 0;
-    INA_ASSERT_NOTNULL(line);
-    return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos);
+    INA_VERIFY_NOT_NULL(line);
+    return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos, INA_NO);
 }
 
 INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
                                               size_t *buf_len, size_t *buf_pos)
 {
-    INA_ASSERT_NOTNULL(line);
-    INA_ASSERT_NOTNULL(buf);
-    INA_ASSERT_NOTNULL(buf_len);
-    INA_ASSERT_NOTNULL(buf_pos);
-    return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos);
+    INA_VERIFY_NOT_NULL(line);
+    INA_VERIFY_NOT_NULL(buf);
+    INA_VERIFY_NOT_NULL(buf_len);
+    INA_VERIFY_NOT_NULL(buf_pos);
+    return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos, INA_NO);
+}
+
+INA_API(ina_rc_t) ina_cio_read_char_non_block(char *ch)
+{
+    ina_str_t line;
+    char *buf = NULL;
+    size_t buf_len = 0;
+    size_t buf_pos = 0;
+    INA_VERIFY_NOT_NULL(ch);
+
+    if (INA_SUCCESS == (__ina_cio_read_line(&line, INA_NO, &buf, &buf_len, &buf_pos, INA_YES))) {
+        const char * cstr = ina_str_cstr(line);
+        *ch = cstr[0];
+        ina_str_free(line);
+        return INA_SUCCESS;
+    }
+    return INA_ERR_TRY_AGAIN;
+}
+
+INA_API(ina_rc_t) ina_cio_read_char(char *ch)
+{
+    INA_VERIFY_NOT_NULL(ch);
+    *ch = (char)getchar();
+    return INA_SUCCESS;
 }

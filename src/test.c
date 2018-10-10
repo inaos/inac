@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2013-2014, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 #include <setjmp.h>
@@ -50,6 +31,7 @@ static const char* __helper_name;
 static const char* __binpath;
 static int         __last_signal = 0;
 static int         __tap = INA_NO;
+static int         __junit = INA_NO;
 
 INA_TEST(suite, test) { }
 
@@ -87,23 +69,30 @@ static void *__ina_find_symbol(ina_test_testcase_t *test, const char *fname)
 #endif
 
 static void __ina_signal_handler(int sig) {
+    INA_UNUSED(sig);
     longjmp(__err, 1);
 }
 
 INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
  {
-     int size;
+     int size = 0;
      va_list argp;
      
 
-    if (!__tap) {
+    if (!__tap && !__junit) {
         if (is_error != INA_YES) {
             size = sprintf(__errormsg, "%s", "     MSG: ");
         } else {
             size = sprintf(__errormsg, "%s", "ERR: ");
         }
-    } else {
+    } else if (__tap) {
         size = sprintf(__errormsg, "%s", "# ");
+    } else if (__junit) {
+        if (is_error) {
+            size = sprintf(__errormsg, "%s", "\t\t\t<failure message=\"");
+        } else {
+            size = sprintf(__errormsg, "%s", "\t\t\t<system-out>");
+        }
     }
  
     __errorsize -= size;
@@ -114,8 +103,16 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
      va_end(argp); 
      __errorsize -= size;
      __errormsg += size;
-    
-     size = sprintf(__errormsg, "%s", "\n");
+
+     if (!__junit) {
+         size = sprintf(__errormsg, "%s", "\n");
+     } else {
+         if (is_error) {
+             size = sprintf(__errormsg, "%s", "\"></failure>\n");
+         } else {
+             size = sprintf(__errormsg, "%s", "</system-out>\n");
+         }
+     }
      __errorsize -= size;
      __errormsg += size;
      return INA_SUCCESS;
@@ -165,11 +162,38 @@ INA_API(void) ina_test_assert_data(const unsigned char *exp, size_t exp_size,
     }
 }
 
-INA_API(void) ina_test_assert_equal_integer(int64_t exp, int64_t real, const char *caller, 
+INA_API(void) ina_test_assert_equal_int(int exp, int real, const char *caller,
+                                            int line)
+{
+    if (exp != real) {
+        INA_TEST_ERR("%s:%d  expected %d, got %d", caller, line, exp, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_equal_uint(unsigned int exp, unsigned int real, const char *caller,
+                                        int line)
+{
+    if (exp != real) {
+        INA_TEST_ERR("%s:%d  expected %u, got %u", caller, line, exp, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_equal_int64(int64_t exp, int64_t real, const char *caller,
                 int line) 
 {
     if (exp != real) {
-        INA_TEST_ERR("%s:%d  expected %"INA_INT64_T_FMT " , got %"INA_INT64_T_FMT, caller, line, (int64_t)exp, (int64_t)real);
+        INA_TEST_ERR("%s:%d  expected %"INA_INT64_T_FMT " , got %"INA_INT64_T_FMT, caller, line, exp, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_equal_uint64(uint64_t exp, uint64_t real, const char *caller,
+                                            int line)
+{
+    if (exp != real) {
+        INA_TEST_ERR("%s:%d  expected %"INA_UINT64_T_FMT " , got %"INA_UINT64_T_FMT, caller, line, exp, real);
         longjmp(__err, 1);
     }
 }
@@ -183,8 +207,26 @@ INA_API(void) ina_test_assert_equal_floating(double exp, double real, const char
     }
 }
 
-INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, const char *caller, 
+INA_API(void) ina_test_assert_not_equal_int(int exp, int real, const char *caller,
                 int line) 
+{
+    if ((exp) == (real)) {
+        INA_TEST_ERR("%s:%d  should not be %d", caller, line, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_not_equal_uint(unsigned int exp, unsigned int real, const char *caller,
+                                            int line)
+{
+    if ((exp) == (real)) {
+        INA_TEST_ERR("%s:%d  should not be %u", caller, line, real);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_not_equal_int64(int64_t exp, int64_t real, const char *caller,
+                                            int line)
 {
     if ((exp) == (real)) {
         INA_TEST_ERR("%s:%d  should not be %"INA_INT64_T_FMT, caller, line, real);
@@ -192,6 +234,14 @@ INA_API(void) ina_test_assert_not_equal_integer(int64_t exp, int64_t real, const
     }
 }
 
+INA_API(void) ina_test_assert_not_equal_uint64(uint64_t exp, uint64_t real, const char *caller,
+                                            int line)
+{
+    if ((exp) == (real)) {
+        INA_TEST_ERR("%s:%d  should not be %"INA_UINT64_T_FMT, caller, line, real);
+        longjmp(__err, 1);
+    }
+}
 INA_API(void) ina_test_assert_not_equal_floating(double exp, double real, const char *caller, 
                 int line) 
 {
@@ -283,11 +333,10 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
    
     if (pid < 0) {
          perror("fork");
-         return INA_FAILURE;
+         return INA_OS_ERROR(INA_ES_PROCESS | INA_ERR_NOT_CREATED);
     }
      
     if (pid == 0) {
- 
         if (suite_name != NULL) {
             args[n++] = (char*)__binpath;
             args[n++] = "-h";
@@ -366,7 +415,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
         ina_time_sleep(500);
         return INA_SUCCESS;
     }
-    return INA_FAILURE;
+    return INA_OS_ERROR(INA_ES_PROCESS|INA_ERR_NOT_CREATED);
 #endif
 }
 
@@ -457,8 +506,14 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
         if (strcmp(argv[1], "-h")==0) {
             return ina_test_helper_run(argc, argv);
         }
-        if (strcmp(argv[1], "--tap")==0) {
+        if (strcmp(argv[1], "--format=tap")==0) {
             __tap = INA_YES;
+            if (argc > 2) {
+                __suite_name = argv[2];
+                filter = __ina_suite_filter;
+            }
+        }else if (strcmp(argv[1], "--format=junit")==0) {
+            __junit = INA_YES;
             if (argc > 2) {
                 __suite_name = argv[2];
                 filter = __ina_suite_filter;
@@ -501,9 +556,13 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
         }
     }
    
-    /* print TAP plan */
+    /* print TAP plan */
     if (__tap) {
         printf("1..%d\n", total);
+    } else if (__junit) {
+        printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        printf("<testsuites tests=\"%d\">\n", total);
+        printf("\t<testsuite tests=\"%d\">\n", total);
     }
  
     for (test = begin; test != end; test++) {
@@ -514,18 +573,22 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
             __errorbuffer[0] = 0;
             __errorsize = __INA_MSG_SIZE-1;
             __errormsg = __errorbuffer;
-            if (!__tap) {
+            if (!__tap && !__junit) {
                 printf("TEST %d/%d %s:%s ", index, total, test->suite_name, test->test_name);
                 fflush(stdout);
+            } else if (__junit) {
+                printf("\t\t<testcase name=\"%s:%s\">\n", test->suite_name, test->test_name);
             }
             if (test->skip) {
-                if (!__tap) {
+                if (!__tap && !__junit) {
                     ina_cio_printf(-1,-1, INA_CIO_COLOR_YELLOW, 
                         INA_CIO_COLOR_UNDEFINED, 
                         "[SKIPPED]\n");                    
-                } else {
+                } else if (__tap) {
                     printf("ok %d %s:%s # skip \n", index, test->suite_name, test->test_name); 
-                } 
+                } else if (__junit) {
+                    printf("\t\t\t<skipped/>\n");
+                }
                 num_skip++;
             } else {
                 void* old_sigabrt_handler = NULL;
@@ -550,21 +613,21 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     } else {
                         test->run();
                     }
-                    if (!__tap) {
+                    if (!__tap && !__junit) {
                         ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
                             INA_CIO_COLOR_UNDEFINED, 
                             "[OK]\n");
-                    } else {
-                        printf("ok %d %s:%s\n", index, test->suite_name, test->test_name);                         
-                    }  
+                    } else if (__tap) {
+                        printf("ok %d %s:%s\n", index, test->suite_name, test->test_name);
+                    }
                     num_ok++;
                 } else {
-                    if (!__tap) {
+                    if (!__tap && !__junit) {
                         ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
                             INA_CIO_COLOR_UNDEFINED, 
                             "[FAIL]\n");
-                    } else {
-                        printf("not ok %d %s:%s\n", index, test->suite_name, test->test_name);  
+                    } else if (__tap){
+                        printf("not ok %d %s:%s\n", index, test->suite_name, test->test_name);
                     }
                     num_fail++;
                 }
@@ -578,13 +641,16 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     printf("%s", __errorbuffer);
                 }
             }
+            if (__junit) {
+                printf("\t\t</testcase>\n");
+            }
             index++;
         }
     }
 
     if (total > 0) {
         color = (num_fail) ? INA_CIO_COLOR_RED : INA_CIO_COLOR_GREEN;
-        if (!__tap) {
+        if (!__tap && !__junit) {
             ina_cio_printf(-1,-1, color, INA_CIO_COLOR_UNDEFINED,
                     "RESULTS: %d tests (%d ok, %d failed, %d skipped)\n",
                     total,
@@ -593,22 +659,27 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     num_skip);
         }
     }
+    if (__junit) {
+        printf("\t</testsuite>\n");
+        printf("</testsuites>");
+    }
 
     /* Run Lua unit and specification tests */
     if (ctx == NULL) {
-        if (!INA_SUCCEED(ina_ljit_init(&ctx))) {
-            return INA_FAILURE;
+        if (INA_FAILED(ina_ljit_ctx_new(&ctx))) {
+            return INA_RC_ERROR(ina_err_get_rc());
         }
         has_to_destroy_jit = 1;
     }
 
     if (luaL_dostring(ctx->lstate, "t = require(\"ltest\")\nt.run()\n") != 0) {
         printf("%s", luaL_checkstring(ctx->lstate, 1));
-        return INA_FAILURE;
+        INA_ERROR(INA_ES_SCRIPT | INA_ERR_FAILED);
+        return (INA_RC_ERROR(ina_err_get_rc()));
     }
 
     if (has_to_destroy_jit) {
-        ina_ljit_destroy(&ctx);
+        ina_ljit_ctx_free(&ctx);
     }
 
     return num_fail;

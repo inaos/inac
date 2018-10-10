@@ -1,38 +1,19 @@
 /*
-* Copyright (c) 2014-2016, INAOS GmbH
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the INAOS GmbH nor the names of its contributors
-* may be used to endorse or promote products derived from this software
-* without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-* OF SUCH DAMAGE.
-*/
+ * Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
+ *
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
+ */
 #ifndef _LIBINAC_COMPRESSION_H_
 #define _LIBINAC_COMPRESSION_H_
-
-#include <libinac/lib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 /*
  * FIXME: this should go into the manual instead of the header file
@@ -139,8 +120,8 @@ INA_API(ina_rc_t) ina_compression_free(ina_compression_state_t **state);
  */
 INA_API(ina_rc_t) ina_compression_get_destination_len(
                                                 ina_compression_state_t *state,
-                                                size_t src_len,
-                                                size_t *dst_len);
+                                                int src_len,
+                                                int *dst_len);
 /*
  * Compress a chunk of data.
  *
@@ -160,11 +141,11 @@ INA_API(ina_rc_t) ina_compression_get_destination_len(
  */
 INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state,
                                                  const unsigned char *src,
-                                                 size_t src_len,
+                                                 int src_len,
                                                  unsigned char *dst,
-                                                 size_t dst_len,
-                                                 size_t *wrote_len,
-                                                 size_t *read_len,
+                                                 int dst_len,
+                                                 int *wrote_len,
+                                                 int *read_len,
                                                  int more);
 /*
  * Decompress a chunk of data.
@@ -185,11 +166,11 @@ INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state,
  */
 INA_API(ina_rc_t) ina_compression_decompress_chunk(ina_compression_state_t *state,
                                                    const unsigned char *src,
-                                                   size_t src_len,
+                                                   int src_len,
                                                    unsigned char *dst,
-                                                   size_t dst_len,
-                                                   size_t *wrote_len,
-                                                   size_t *read_len,
+                                                   int dst_len,
+                                                   int *wrote_len,
+                                                   int *read_len,
                                                    int more);
 
 #ifdef __cplusplus

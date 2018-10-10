@@ -1,491 +1,600 @@
 /*
- * Copyright (c) 2012-2017, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_ERROR_H_
 #define _LIBINAC_ERROR_H_
-
-#include <time.h>
-#include <errno.h>
-
-#include <libinac/lib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <libinac/lib.h>
+
+/* Forward declarations */
+typedef struct ina_log_s ina_log_t;
+
 /* Indicate no errors */
-#define INA_SUCCESS  0
-/* Indicate generic failure */
-#define INA_FAILURE  1
+#define INA_SUCCESS  (0ULL)
 
-/* Error message length */
-#define INA_ERR_MSGLEN  512
+/* Global return code */
+static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 
-/* Module identifiers */
-#define INA_MOD_UNKNOWN  0
-#define INA_MOD_MEMORY   1
-#define INA_MOD_STRING   2
-#define INA_MOD_ERROR    3
-#define INA_MOD_ULLC     4
-#define INA_MOD_ISCP     5
-#define INA_MOD_NET      7
-#define INA_MOD_LOG      8
-#define INA_MOD_TIME     9
-#define INA_MOD_TIMER    10
-#define INA_MOD_LJIT     11
-#define INA_MOD_CONFFILE 12
-#define INA_MOD_LIB      13
-#define INA_MOD_SSL      14
-#define INA_MOD_JSON     15
-#define INA_MOD_SERVICE  16
-#define INA_MOD_DNS      17
-#define INA_MOD_CIO      18
-#define INA_MOD_AAR      19
-#define INA_MOD_DIR      20
-#define INA_MOD_USER     32
+/* Bit-shifts */
+#define INA_RC_BIT_E 63U
+#define INA_RC_BIT_V 56U
+#define INA_RC_BIT_R 48U
+#define INA_RC_BIT_O 32U
+#define INA_RC_BIT_U 24U
+#define INA_RC_BIT_C 16U
+#define INA_RC_BIT_N 15U
+#define INA_RC_BIT_S 00U
 
-/* OS function identifiers */
-#define INA_OSFN_NONE    0
-#define INA_OSFN_FOPEN   1
-#define INA_OSFN_FTRUNC  2
-#define INA_OSFN_MMAP    4
-#define INA_OSFN_SEMINIT 5
+/* Accessors */
+#define INA_RC_EFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_E) & 0x1))
+#define INA_RC_VER(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_V) & 0x7))
+#define INA_RC_REV(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_R) & 0xFF))
+#define INA_RC_ERRNO(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_O) & 0xFFFF))
+#define INA_RC_UBITS(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_U) & 0xFF))
+#define INA_RC_NFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_N) & 0x1))
+#define INA_RC_CODE(rc)    ((uint32_t)((rc)&( 0xFFULL << INA_RC_BIT_C)))
+#define INA_RC_ADJ(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFF))
+#define INA_RC_SUBJECT(rc) ((uint32_t)(((rc) >> INA_RC_BIT_S) & 0x7FFF))
+#define INA_RC_ERROR(rc)   ((uint32_t)((INA_MID_BITS((rc), INA_RC_BIT_U-INA_RC_BIT_N, INA_RC_BIT_N)<<(INA_RC_BIT_N-1))))
+#define INA_RC_ERRMSG(rc)  ((uint32_t)((rc) & 0xFFFFFF))
 
-/* Errors */
-#define INA_EMSGLEN   1
-#define INA_EMSGFMT   2
-#define INA_EALLOC    3
-#define INA_EPARAM    4
-#define INA_EVERSION  5
-#define INA_EBADALIGN 6
-#define INA_ESEMINIT  7
-#define INA_ENET      8
-#define INA_ERALLOC   9
-#define INA_EINVAL   10
-#define INA_ELIMIT   11
-#define INA_ESEMOP   12
-#define INA_EEXISTS  13
-#define INA_EREAD    14
-#define INA_EWRITE   15
-#define INA_EWAIT    16
-#define INA_EEXCALL  17
-#define INA_ETIMEOUT 18
-#define INA_EOPT     20
-#define INA_ETYPE    21
-#define INA_EAGAIN   22
-#define INA_EINIT    23
-#define INA_ELOGIC   24
-#define INA_ECAPAC   25
-#define INA_EOVRFL   26
-#define INA_EEMPTY   27
-#define INA_ENYI     28
-#define INA_ENOTFND  29
-#define INA_ESTATE   30
-#define INA_EFS      31
+/* Flags */
+#define INA_ERR_ERROR               (  1ULL << INA_RC_BIT_E) /* Error-bit  */
+#define INA_ERR_NOT                 (  1ULL << INA_RC_BIT_N) /* Negate-bit */
 
-/* Mark an handled error (bit 10 of RC) */
-#define INA_ERR_FLAG_HANDLED 0x200
-/* Mark a fatal error (bit 11 of RC) */
-#define INA_ERR_FLAG_FATAL   0x300
-/* Used to start an interation  */
-#define INA_ERR_PEEK_FIRST    0
-/* User defined errors base */
-#define INA_ERR_USER          (128)
+/* Errors codes */
+#define INA_ERR_A                   (  1ULL << INA_RC_BIT_C)
+#define INA_ERR_ACK                 (  2ULL << INA_RC_BIT_C)
+#define INA_ERR_ACTIVE              (  3ULL << INA_RC_BIT_C)
+#define INA_ERR_ALIGNED             (  4ULL << INA_RC_BIT_C)
+#define INA_ERR_ALLOWED             (  5ULL << INA_RC_BIT_C)
+#define INA_ERR_ASSIGNED            (  6ULL << INA_RC_BIT_C)
+#define INA_ERR_ATTACHED            (  7ULL << INA_RC_BIT_C)
+#define INA_ERR_ATTEMPTED           (  8ULL << INA_RC_BIT_C)
+#define INA_ERR_AUTHORIZED          (  9ULL << INA_RC_BIT_C)
+#define INA_ERR_AVAILABLE           ( 10ULL << INA_RC_BIT_C)
+#define INA_ERR_BAD                 ( 11ULL << INA_RC_BIT_C)
+#define INA_ERR_BLOCKED             ( 12ULL << INA_RC_BIT_C)
+#define INA_ERR_BROKEN              ( 13ULL << INA_RC_BIT_C)
+#define INA_ERR_BUILT               ( 14ULL << INA_RC_BIT_C)
+#define INA_ERR_BUSY                ( 15ULL << INA_RC_BIT_C)
+#define INA_ERR_CLOSED              ( 16ULL << INA_RC_BIT_C)
+#define INA_ERR_COLLIDED            ( 17ULL << INA_RC_BIT_C)
+#define INA_ERR_COMPILED            ( 18ULL << INA_RC_BIT_C)
+#define INA_ERR_COMPLETE            ( 19ULL << INA_RC_BIT_C)
+#define INA_ERR_CONFLICTED          ( 20ULL << INA_RC_BIT_C)
+#define INA_ERR_CONNECTED           ( 21ULL << INA_RC_BIT_C)
+#define INA_ERR_CONSTRUCTED         ( 22ULL << INA_RC_BIT_C)
+#define INA_ERR_CREATED             ( 23ULL << INA_RC_BIT_C)
+#define INA_ERR_DEFINED             ( 24ULL << INA_RC_BIT_C)
+#define INA_ERR_DENIED              ( 25ULL << INA_RC_BIT_C)
+#define INA_ERR_DEPARTED            ( 26ULL << INA_RC_BIT_C)
+#define INA_ERR_DESTRUCTED          ( 27ULL << INA_RC_BIT_C)
+#define INA_ERR_DETACHED            ( 28ULL << INA_RC_BIT_C)
+#define INA_ERR_DETECTED            ( 29ULL << INA_RC_BIT_C)
+#define INA_ERR_DISABLED            ( 30ULL << INA_RC_BIT_C)
+#define INA_ERR_DOWN                ( 31ULL << INA_RC_BIT_C)
+#define INA_ERR_DOWNLOADED          ( 32ULL << INA_RC_BIT_C)
+#define INA_ERR_EMPTY               ( 33ULL << INA_RC_BIT_C)
+#define INA_ERR_ENABLED             ( 34ULL << INA_RC_BIT_C)
+#define INA_ERR_ENHANCED            ( 35ULL << INA_RC_BIT_C)
+#define INA_ERR_ENOUGH              ( 36ULL << INA_RC_BIT_C)
+#define INA_ERR_EXCEEDED            ( 37ULL << INA_RC_BIT_C)
+#define INA_ERR_EXCHANGED           ( 38ULL << INA_RC_BIT_C)
+#define INA_ERR_EXECUTABLE          ( 39ULL << INA_RC_BIT_C)
+#define INA_ERR_EXISTS              ( 40ULL << INA_RC_BIT_C)
+#define INA_ERR_EXPIRED             ( 41ULL << INA_RC_BIT_C)
+#define INA_ERR_EXTENDED            ( 42ULL << INA_RC_BIT_C)
+#define INA_ERR_FAILED              ( 43ULL << INA_RC_BIT_C)
+#define INA_ERR_FALSE               ( 44ULL << INA_RC_BIT_C)
+#define INA_ERR_FATAL               ( 45ULL << INA_RC_BIT_C)
+#define INA_ERR_FORBIDDEN           ( 46ULL << INA_RC_BIT_C)
+#define INA_ERR_FORMATTED           ( 47ULL << INA_RC_BIT_C)
+#define INA_ERR_FOUND               ( 48ULL << INA_RC_BIT_C)
+#define INA_ERR_FULL                ( 49ULL << INA_RC_BIT_C)
+#define INA_ERR_GONE                ( 50ULL << INA_RC_BIT_C)
+#define INA_ERR_GOOD                ( 51ULL << INA_RC_BIT_C)
+#define INA_ERR_HALTED              ( 52ULL << INA_RC_BIT_C)
+#define INA_ERR_HIDDEN              ( 53ULL << INA_RC_BIT_C)
+#define INA_ERR_HOLD                ( 54ULL << INA_RC_BIT_C)
+#define INA_ERR_IDLE                ( 55ULL << INA_RC_BIT_C)
+#define INA_ERR_ILLEGAL             ( 56ULL << INA_RC_BIT_C)
+#define INA_ERR_IMPLEMENTED         ( 57ULL << INA_RC_BIT_C)
+#define INA_ERR_IN_PROGRESS         ( 58ULL << INA_RC_BIT_C)
+#define INA_ERR_IN_USE              ( 59ULL << INA_RC_BIT_C)
+#define INA_ERR_INITIALIZED         ( 60ULL << INA_RC_BIT_C)
+#define INA_ERR_INSERTED            ( 61ULL << INA_RC_BIT_C)
+#define INA_ERR_INSTALLED           ( 62ULL << INA_RC_BIT_C)
+#define INA_ERR_INTERRUPTED         ( 63ULL << INA_RC_BIT_C)
+#define INA_ERR_JOINED              ( 64ULL << INA_RC_BIT_C)
+#define INA_ERR_KNOWN               ( 65ULL << INA_RC_BIT_C)
+#define INA_ERR_LINKED              ( 66ULL << INA_RC_BIT_C)
+#define INA_ERR_LOADED              ( 67ULL << INA_RC_BIT_C)
+#define INA_ERR_LOCAL               ( 68ULL << INA_RC_BIT_C)
+#define INA_ERR_LOCKED              ( 69ULL << INA_RC_BIT_C)
+#define INA_ERR_LOOPED              ( 70ULL << INA_RC_BIT_C)
+#define INA_ERR_LOST                ( 71ULL << INA_RC_BIT_C)
+#define INA_ERR_MERGED              ( 72ULL << INA_RC_BIT_C)
+#define INA_ERR_MISSING             ( 73ULL << INA_RC_BIT_C)
+#define INA_ERR_MOUNTED             ( 74ULL << INA_RC_BIT_C)
+#define INA_ERR_NEEDED              ( 75ULL << INA_RC_BIT_C)
+#define INA_ERR_NO                  ( 76ULL << INA_RC_BIT_C)
+#define INA_ERR_NO_SUCH             ( 77ULL << INA_RC_BIT_C)
+#define INA_ERR_OFF                 ( 78ULL << INA_RC_BIT_C)
+#define INA_ERR_ON                  ( 79ULL << INA_RC_BIT_C)
+#define INA_ERR_ONLINE              ( 80ULL << INA_RC_BIT_C)
+#define INA_ERR_OPEN                ( 81ULL << INA_RC_BIT_C)
+#define INA_ERR_ORDERED             ( 82ULL << INA_RC_BIT_C)
+#define INA_ERR_OUT_OF              ( 83ULL << INA_RC_BIT_C)
+#define INA_ERR_OUT_OF_RANGE        ( 84ULL << INA_RC_BIT_C)
+#define INA_ERR_OVERFLOW            ( 85ULL << INA_RC_BIT_C)
+#define INA_ERR_PADDED              ( 86ULL << INA_RC_BIT_C)
+#define INA_ERR_PARTED              ( 87ULL << INA_RC_BIT_C)
+#define INA_ERR_PERMITTED           ( 88ULL << INA_RC_BIT_C)
+#define INA_ERR_POPPED              ( 89ULL << INA_RC_BIT_C)
+#define INA_ERR_PRELOADED           ( 90ULL << INA_RC_BIT_C)
+#define INA_ERR_PROCESSABLE         ( 91ULL << INA_RC_BIT_C)
+#define INA_ERR_PROVIDED            ( 92ULL << INA_RC_BIT_C)
+#define INA_ERR_PUSHED              ( 93ULL << INA_RC_BIT_C)
+#define INA_ERR_REACHABLE           ( 94ULL << INA_RC_BIT_C)
+#define INA_ERR_READABLE            ( 95ULL << INA_RC_BIT_C)
+#define INA_ERR_RECEIVED            ( 96ULL << INA_RC_BIT_C)
+#define INA_ERR_REFUSED             ( 97ULL << INA_RC_BIT_C)
+#define INA_ERR_REGISTERED          ( 98ULL << INA_RC_BIT_C)
+#define INA_ERR_REJECTED            ( 99ULL << INA_RC_BIT_C)
+#define INA_ERR_RELEASED            (100ULL << INA_RC_BIT_C)
+#define INA_ERR_REMOTE              (101ULL << INA_RC_BIT_C)
+#define INA_ERR_REMOVED             (102ULL << INA_RC_BIT_C)
+#define INA_ERR_RENDERABLE          (103ULL << INA_RC_BIT_C)
+#define INA_ERR_RESERVED            (104ULL << INA_RC_BIT_C)
+#define INA_ERR_RESET               (105ULL << INA_RC_BIT_C)
+#define INA_ERR_RESPONDING          (106ULL << INA_RC_BIT_C)
+#define INA_ERR_RETRIED             (107ULL << INA_RC_BIT_C)
+#define INA_ERR_RIGHT               (108ULL << INA_RC_BIT_C)
+#define INA_ERR_RUNNING             (109ULL << INA_RC_BIT_C)
+#define INA_ERR_SENT                (110ULL << INA_RC_BIT_C)
+#define INA_ERR_SHARED              (111ULL << INA_RC_BIT_C)
+#define INA_ERR_SORTED              (112ULL << INA_RC_BIT_C)
+#define INA_ERR_SPECIFIED           (113ULL << INA_RC_BIT_C)
+#define INA_ERR_SPLITTED            (114ULL << INA_RC_BIT_C)
+#define INA_ERR_STALLED             (115ULL << INA_RC_BIT_C)
+#define INA_ERR_STOPPED             (116ULL << INA_RC_BIT_C)
+#define INA_ERR_SUCEEDED            (117ULL << INA_RC_BIT_C)
+#define INA_ERR_SUITABLE            (118ULL << INA_RC_BIT_C)
+#define INA_ERR_SUPPORTED           (119ULL << INA_RC_BIT_C)
+#define INA_ERR_SYNCHRONIZED        (120ULL << INA_RC_BIT_C)
+#define INA_ERR_TERMINATED          (121ULL << INA_RC_BIT_C)
+#define INA_ERR_THROWN              (122ULL << INA_RC_BIT_C)
+#define INA_ERR_TIMED_OUT           (123ULL << INA_RC_BIT_C)
+#define INA_ERR_TOO_COMPLEX         (124ULL << INA_RC_BIT_C)
+#define INA_ERR_TOO_FEW             (125ULL << INA_RC_BIT_C)
+#define INA_ERR_TOO_LARGE           (126ULL << INA_RC_BIT_C)
+#define INA_ERR_TOO_LONG            (127ULL << INA_RC_BIT_C)
+#define INA_ERR_TOO_MANY            (128ULL << INA_RC_BIT_C)
+#define INA_ERR_TOO_MUCH            (129ULL << INA_RC_BIT_C)
+#define INA_ERR_TOO_SIMPLE          (130ULL << INA_RC_BIT_C)
+#define INA_ERR_TOO_SMALL           (131ULL << INA_RC_BIT_C)
+#define INA_ERR_TRIGGERED           (132ULL << INA_RC_BIT_C)
+#define INA_ERR_TRUE                (133ULL << INA_RC_BIT_C)
+#define INA_ERR_UNBLOCKED           (134ULL << INA_RC_BIT_C)
+#define INA_ERR_UNDERFLOW           (135ULL << INA_RC_BIT_C)
+#define INA_ERR_UNINITIALIZED       (136ULL << INA_RC_BIT_C)
+#define INA_ERR_UNINSTALLED         (137ULL << INA_RC_BIT_C)
+#define INA_ERR_UNIQUE              (138ULL << INA_RC_BIT_C)
+#define INA_ERR_UNLOADED            (139ULL << INA_RC_BIT_C)
+#define INA_ERR_UNLOCKED            (140ULL << INA_RC_BIT_C)
+#define INA_ERR_UNSORTED            (141ULL << INA_RC_BIT_C)
+#define INA_ERR_UP                  (142ULL << INA_RC_BIT_C)
+#define INA_ERR_UPDATED             (143ULL << INA_RC_BIT_C)
+#define INA_ERR_UPGRADED            (144ULL << INA_RC_BIT_C)
+#define INA_ERR_UPLOADED            (145ULL << INA_RC_BIT_C)
+#define INA_ERR_USED                (146ULL << INA_RC_BIT_C)
+#define INA_ERR_VALID               (147ULL << INA_RC_BIT_C)
+#define INA_ERR_VISIBLE             (148ULL << INA_RC_BIT_C)
+#define INA_ERR_WORKING             (149ULL << INA_RC_BIT_C)
+#define INA_ERR_WRITABLE            (150ULL << INA_RC_BIT_C)
+#define INA_ERR_WRONG               (151ULL << INA_RC_BIT_C)
+#define INA_ERR_END_OF              (152ULL << INA_RC_BIT_C)
+#define INA_ERR_RESOLVED            (153ULL << INA_RC_BIT_C)
+#define INA_ERR_MATCH               (154ULL << INA_RC_BIT_C)
+#define INA_ERR_TRY_AGAIN           (155ULL << INA_RC_BIT_C)
+#define INA_ERR_PARSED              (156ULL << INA_RC_BIT_C)
+#define INA_ERR_CHANGED             (157ULL << INA_RC_BIT_C)
+
+/* Error codes (negate forms) */
+#define INA_ERR_NOT_A               (INA_ERR_NOT | INA_ERR_A)
+#define INA_ERR_NOT_ACK             (INA_ERR_NOT | INA_ERR_ACK)
+#define INA_ERR_NOT_ACTIVE          (INA_ERR_NOT | INA_ERR_ACTIVE)
+#define INA_ERR_NOT_ALIGNED         (INA_ERR_NOT | INA_ERR_ALIGNED)
+#define INA_ERR_NOT_ALLOWED         (INA_ERR_NOT | INA_ERR_ALLOWED)
+#define INA_ERR_NOT_ASSIGNED        (INA_ERR_NOT | INA_ERR_ASSIGNED)
+#define INA_ERR_NOT_ATTACHED        (INA_ERR_NOT | INA_ERR_ATTACHED)
+#define INA_ERR_NOT_ATTEMPTED       (INA_ERR_NOT | INA_ERR_ATTEMPTED)
+#define INA_ERR_NOT_AUTHORIZED      (INA_ERR_NOT | INA_ERR_AUTHORIZED)
+#define INA_ERR_NOT_AVAILABLE       (INA_ERR_NOT | INA_ERR_AVAILABLE)
+#define INA_ERR_NOT_BAD             (INA_ERR_NOT | INA_ERR_BAD)
+#define INA_ERR_NOT_BLOCKED         (INA_ERR_NOT | INA_ERR_BLOCKED)
+#define INA_ERR_NOT_BROKEN          (INA_ERR_NOT | INA_ERR_BROKEN)
+#define INA_ERR_NOT_BUILT           (INA_ERR_NOT | INA_ERR_BUILT)
+#define INA_ERR_NOT_BUSY            (INA_ERR_NOT | INA_ERR_BUSY)
+#define INA_ERR_NOT_CLOSED          (INA_ERR_NOT | INA_ERR_CLOSED)
+#define INA_ERR_NOT_COLLIDED        (INA_ERR_NOT | INA_ERR_COLLIDED)
+#define INA_ERR_NOT_COMPILED        (INA_ERR_NOT | INA_ERR_COMPILED)
+#define INA_ERR_NOT_COMPLETE        (INA_ERR_NOT | INA_ERR_COMPLETE)
+#define INA_ERR_NOT_CONFLICTED      (INA_ERR_NOT | INA_ERR_CONFLICTED)
+#define INA_ERR_NOT_CONNECTED       (INA_ERR_NOT | INA_ERR_CONNECTED)
+#define INA_ERR_NOT_CONSTRUCTED     (INA_ERR_NOT | INA_ERR_CONSTRUCTED)
+#define INA_ERR_NOT_CREATED         (INA_ERR_NOT | INA_ERR_CREATED)
+#define INA_ERR_NOT_DEFINED         (INA_ERR_NOT | INA_ERR_DEFINED)
+#define INA_ERR_NOT_DENIED          (INA_ERR_NOT | INA_ERR_DENIED)
+#define INA_ERR_NOT_DEPARTED        (INA_ERR_NOT | INA_ERR_DEPARTED)
+#define INA_ERR_NOT_DESTRUCTED      (INA_ERR_NOT | INA_ERR_DESTRUCTED)
+#define INA_ERR_NOT_DETACHED        (INA_ERR_NOT | INA_ERR_DETACHED)
+#define INA_ERR_NOT_DETECTED        (INA_ERR_NOT | INA_ERR_DETECTED)
+#define INA_ERR_NOT_DISABLED        (INA_ERR_NOT | INA_ERR_DISABLED)
+#define INA_ERR_NOT_DOWN            (INA_ERR_NOT | INA_ERR_DOWN)
+#define INA_ERR_NOT_DOWNLOADED      (INA_ERR_NOT | INA_ERR_DOWNLOADED)
+#define INA_ERR_NOT_EMPTY           (INA_ERR_NOT | INA_ERR_EMPTY)
+#define INA_ERR_NOT_ENABLED         (INA_ERR_NOT | INA_ERR_ENABLED)
+#define INA_ERR_NOT_ENHANCED        (INA_ERR_NOT | INA_ERR_ENHANCED)
+#define INA_ERR_NOT_ENOUGH          (INA_ERR_NOT | INA_ERR_ENOUGH)
+#define INA_ERR_NOT_EXCEEDED        (INA_ERR_NOT | INA_ERR_EXCEEDED)
+#define INA_ERR_NOT_EXCHANGED       (INA_ERR_NOT | INA_ERR_EXCHANGED)
+#define INA_ERR_NOT_EXECUTABLE      (INA_ERR_NOT | INA_ERR_EXECUTABLE)
+#define INA_ERR_NOT_EXISTS          (INA_ERR_NOT | INA_ERR_EXISTS)
+#define INA_ERR_NOT_EXPIRED         (INA_ERR_NOT | INA_ERR_EXPIRED)
+#define INA_ERR_NOT_EXTENDED        (INA_ERR_NOT | INA_ERR_EXTENDED)
+#define INA_ERR_NOT_FAILED          (INA_ERR_NOT | INA_ERR_FAILED)
+#define INA_ERR_NOT_FALSE           (INA_ERR_NOT | INA_ERR_FALSE)
+#define INA_ERR_NOT_FATAL           (INA_ERR_NOT | INA_ERR_FATAL)
+#define INA_ERR_NOT_FORBIDDEN       (INA_ERR_NOT | INA_ERR_FORBIDDEN)
+#define INA_ERR_NOT_FORMATTED       (INA_ERR_NOT | INA_ERR_FORMATTED)
+#define INA_ERR_NOT_FOUND           (INA_ERR_NOT | INA_ERR_FOUND)
+#define INA_ERR_NOT_FULL            (INA_ERR_NOT | INA_ERR_FULL)
+#define INA_ERR_NOT_GONE            (INA_ERR_NOT | INA_ERR_GONE)
+#define INA_ERR_NOT_GOOD            (INA_ERR_NOT | INA_ERR_GOOD)
+#define INA_ERR_NOT_HALTED          (INA_ERR_NOT | INA_ERR_HALTED)
+#define INA_ERR_NOT_HIDDEN          (INA_ERR_NOT | INA_ERR_HIDDEN)
+#define INA_ERR_NOT_HOLD            (INA_ERR_NOT | INA_ERR_HOLD)
+#define INA_ERR_NOT_IDLE            (INA_ERR_NOT | INA_ERR_IDLE)
+#define INA_ERR_NOT_ILLEGAL         (INA_ERR_NOT | INA_ERR_ILLEGAL)
+#define INA_ERR_NOT_IMPLEMENTED     (INA_ERR_NOT | INA_ERR_IMPLEMENTED)
+#define INA_ERR_NOT_IN_PROGRESS     (INA_ERR_NOT | INA_ERR_IN_PROGRESS)
+#define INA_ERR_NOT_IN_USE          (INA_ERR_NOT | INA_ERR_IN_USE)
+#define INA_ERR_NOT_INITIALIZED     (INA_ERR_NOT | INA_ERR_INITIALIZED)
+#define INA_ERR_NOT_INSERTED        (INA_ERR_NOT | INA_ERR_INSERTED)
+#define INA_ERR_NOT_INSTALLED       (INA_ERR_NOT | INA_ERR_INSTALLED)
+#define INA_ERR_NOT_INTERRUPTED     (INA_ERR_NOT | INA_ERR_INTERRUPTED)
+#define INA_ERR_NOT_JOINED          (INA_ERR_NOT | INA_ERR_JOINED)
+#define INA_ERR_NOT_KNOWN           (INA_ERR_NOT | INA_ERR_KNOWN)
+#define INA_ERR_NOT_LINKED          (INA_ERR_NOT | INA_ERR_LINKED)
+#define INA_ERR_NOT_LOADED          (INA_ERR_NOT | INA_ERR_LOADED)
+#define INA_ERR_NOT_LOCAL           (INA_ERR_NOT | INA_ERR_LOCAL)
+#define INA_ERR_NOT_LOCKED          (INA_ERR_NOT | INA_ERR_LOCKED)
+#define INA_ERR_NOT_LOOPED          (INA_ERR_NOT | INA_ERR_LOOPED)
+#define INA_ERR_NOT_LOST            (INA_ERR_NOT | INA_ERR_LOST)
+#define INA_ERR_NOT_MERGED          (INA_ERR_NOT | INA_ERR_MERGED)
+#define INA_ERR_NOT_MISSING         (INA_ERR_NOT | INA_ERR_MISSING)
+#define INA_ERR_NOT_MOUNTED         (INA_ERR_NOT | INA_ERR_MOUNTED)
+#define INA_ERR_NOT_NEEDED          (INA_ERR_NOT | INA_ERR_NEEDED)
+#define INA_ERR_NOT_NO              (INA_ERR_NOT | INA_ERR_NO)
+#define INA_ERR_NOT_NO_SUCH         (INA_ERR_NOT | INA_ERR_NO_SUCH)
+#define INA_ERR_NOT_OFF             (INA_ERR_NOT | INA_ERR_OFF)
+#define INA_ERR_NOT_ON              (INA_ERR_NOT | INA_ERR_ON)
+#define INA_ERR_NOT_ONLINE          (INA_ERR_NOT | INA_ERR_ONLINE)
+#define INA_ERR_NOT_OPEN            (INA_ERR_NOT | INA_ERR_OPEN)
+#define INA_ERR_NOT_ORDERED         (INA_ERR_NOT | INA_ERR_ORDERED)
+#define INA_ERR_NOT_OUT_OF          (INA_ERR_NOT | INA_ERR_OUT_OF)
+#define INA_ERR_NOT_OUT_OF_RANGE    (INA_ERR_NOT | INA_ERR_OUT_OF_RANGE)
+#define INA_ERR_NOT_OVERFLOW        (INA_ERR_NOT | INA_ERR_OVERFLOW)
+#define INA_ERR_NOT_PADDED          (INA_ERR_NOT | INA_ERR_PADDED)
+#define INA_ERR_NOT_PARTED          (INA_ERR_NOT | INA_ERR_PARTED)
+#define INA_ERR_NOT_PERMITTED       (INA_ERR_NOT | INA_ERR_PERMITTED)
+#define INA_ERR_NOT_POPPED          (INA_ERR_NOT | INA_ERR_POPPED)
+#define INA_ERR_NOT_PRELOADED       (INA_ERR_NOT | INA_ERR_PRELOADED)
+#define INA_ERR_NOT_PROCESSABLE     (INA_ERR_NOT | INA_ERR_PROCESSABLE)
+#define INA_ERR_NOT_PROVIDED        (INA_ERR_NOT | INA_ERR_PROVIDED)
+#define INA_ERR_NOT_PUSHED          (INA_ERR_NOT | INA_ERR_PUSHED)
+#define INA_ERR_NOT_REACHABLE       (INA_ERR_NOT | INA_ERR_REACHABLE)
+#define INA_ERR_NOT_READABLE        (INA_ERR_NOT | INA_ERR_READABLE)
+#define INA_ERR_NOT_RECEIVED        (INA_ERR_NOT | INA_ERR_RECEIVED)
+#define INA_ERR_NOT_REFUSED         (INA_ERR_NOT | INA_ERR_REFUSED)
+#define INA_ERR_NOT_REGISTERED      (INA_ERR_NOT | INA_ERR_REGISTERED)
+#define INA_ERR_NOT_REJECTED        (INA_ERR_NOT | INA_ERR_REJECTED)
+#define INA_ERR_NOT_RELEASED        (INA_ERR_NOT | INA_ERR_RELEASED)
+#define INA_ERR_NOT_REMOTE          (INA_ERR_NOT | INA_ERR_REMOTE)
+#define INA_ERR_NOT_REMOVED         (INA_ERR_NOT | INA_ERR_REMOVED)
+#define INA_ERR_NOT_RENDERABLE      (INA_ERR_NOT | INA_ERR_RENDERABLE)
+#define INA_ERR_NOT_RESERVED        (INA_ERR_NOT | INA_ERR_RESERVED)
+#define INA_ERR_NOT_RESET           (INA_ERR_NOT | INA_ERR_RESET)
+#define INA_ERR_NOT_RESPONDING      (INA_ERR_NOT | INA_ERR_RESPONDING)
+#define INA_ERR_NOT_RETRIED         (INA_ERR_NOT | INA_ERR_RETRIED)
+#define INA_ERR_NOT_RIGHT           (INA_ERR_NOT | INA_ERR_RIGHT)
+#define INA_ERR_NOT_RUNNING         (INA_ERR_NOT | INA_ERR_RUNNING)
+#define INA_ERR_NOT_SENT            (INA_ERR_NOT | INA_ERR_SENT)
+#define INA_ERR_NOT_SHARED          (INA_ERR_NOT | INA_ERR_SHARED)
+#define INA_ERR_NOT_SORTED          (INA_ERR_NOT | INA_ERR_SORTED)
+#define INA_ERR_NOT_SPECIFIED       (INA_ERR_NOT | INA_ERR_SPECIFIED)
+#define INA_ERR_NOT_SPLITTED        (INA_ERR_NOT | INA_ERR_SPLITTED)
+#define INA_ERR_NOT_STALLED         (INA_ERR_NOT | INA_ERR_STALLED)
+#define INA_ERR_NOT_STOPPED         (INA_ERR_NOT | INA_ERR_STOPPED)
+#define INA_ERR_NOT_SUCEEDED        (INA_ERR_NOT | INA_ERR_SUCEEDED)
+#define INA_ERR_NOT_SUITABLE        (INA_ERR_NOT | INA_ERR_SUITABLE)
+#define INA_ERR_NOT_SUPPORTED       (INA_ERR_NOT | INA_ERR_SUPPORTED)
+#define INA_ERR_NOT_SYNCHRONIZED    (INA_ERR_NOT | INA_ERR_SYNCHRONIZED)
+#define INA_ERR_NOT_TERMINATED      (INA_ERR_NOT | INA_ERR_TERMINATED)
+#define INA_ERR_NOT_THROWN          (INA_ERR_NOT | INA_ERR_THROWN)
+#define INA_ERR_NOT_TIMED_OUT       (INA_ERR_NOT | INA_ERR_TIMED_OUT)
+#define INA_ERR_NOT_TOO_COMPLEX     (INA_ERR_NOT | INA_ERR_TOO_COMPLEX)
+#define INA_ERR_NOT_TOO_FEW         (INA_ERR_NOT | INA_ERR_TOO_FEW)
+#define INA_ERR_NOT_TOO_LARGE       (INA_ERR_NOT | INA_ERR_TOO_LARGE)
+#define INA_ERR_NOT_TOO_LONG        (INA_ERR_NOT | INA_ERR_TOO_LONG)
+#define INA_ERR_NOT_TOO_MANY        (INA_ERR_NOT | INA_ERR_TOO_MANY)
+#define INA_ERR_NOT_TOO_MUCH        (INA_ERR_NOT | INA_ERR_TOO_MUCH)
+#define INA_ERR_NOT_TOO_SIMPLE      (INA_ERR_NOT | INA_ERR_TOO_SIMPLE)
+#define INA_ERR_NOT_TOO_SMALL       (INA_ERR_NOT | INA_ERR_TOO_SMALL)
+#define INA_ERR_NOT_TRIGGERED       (INA_ERR_NOT | INA_ERR_TRIGGERED)
+#define INA_ERR_NOT_TRUE            (INA_ERR_NOT | INA_ERR_TRUE)
+#define INA_ERR_NOT_UNBLOCKED       (INA_ERR_NOT | INA_ERR_UNBLOCKED)
+#define INA_ERR_NOT_UNDERFLOW       (INA_ERR_NOT | INA_ERR_UNDERFLOW)
+#define INA_ERR_NOT_UNINITIALIZED   (INA_ERR_NOT | INA_ERR_UNINITIALIZED)
+#define INA_ERR_NOT_UNINSTALLED     (INA_ERR_NOT | INA_ERR_UNINSTALLED)
+#define INA_ERR_NOT_UNIQUE          (INA_ERR_NOT | INA_ERR_UNIQUE)
+#define INA_ERR_NOT_UNLOADED        (INA_ERR_NOT | INA_ERR_UNLOADED)
+#define INA_ERR_NOT_UNLOCKED        (INA_ERR_NOT | INA_ERR_UNLOCKED)
+#define INA_ERR_NOT_UNSORTED        (INA_ERR_NOT | INA_ERR_UNSORTED)
+#define INA_ERR_NOT_UP              (INA_ERR_NOT | INA_ERR_UP)
+#define INA_ERR_NOT_UPDATED         (INA_ERR_NOT | INA_ERR_UPDATED)
+#define INA_ERR_NOT_UPGRADED        (INA_ERR_NOT | INA_ERR_UPGRADED)
+#define INA_ERR_NOT_UPLOADED        (INA_ERR_NOT | INA_ERR_UPLOADED)
+#define INA_ERR_NOT_USED            (INA_ERR_NOT | INA_ERR_USED)
+#define INA_ERR_NOT_VALID           (INA_ERR_NOT | INA_ERR_VALID)
+#define INA_ERR_NOT_VISIBLE         (INA_ERR_NOT | INA_ERR_VISIBLE)
+#define INA_ERR_NOT_WORKING         (INA_ERR_NOT | INA_ERR_WORKING)
+#define INA_ERR_NOT_WRITABLE        (INA_ERR_NOT | INA_ERR_WRITABLE)
+#define INA_ERR_NOT_WRONG           (INA_ERR_NOT | INA_ERR_WRONG)
+#define INA_ERR_NOT_END_OF          (INA_ERR_NOT | INA_ERR_END_OF)
+#define INA_ERR_NOT_RESOLVED        (INA_ERR_NOT | INA_ERR_RESOLVED)
+#define INA_ERR_NOT_MATCH           (INA_ERR_NOT | INA_ERR_MATCH)
+#define INA_ERR_NOT_TRY_AGAIN       (INA_ERR_NOT | INA_ERR_TRY_AGAIN)
+#define INA_ERR_NOT_PARSED          (INA_ERR_NOT | INA_ERR_PARSED)
+#define INA_ERR_NOT_CHANGED         (INA_ERR_NOT | INA_ERR_CHANGED)
+
+/* Error codes aliases */
+#define INA_ERR_UNDEFINED           (INA_ERR_NOT_DEFINED)
+#define INA_ERR_UNUSED              (INA_ERR_NOT_USED)
+#define INA_ERR_UNORDERED           (INA_ERR_NOT_ORDERED)
+#define INA_ERR_INVALID             (INA_ERR_NOT_VALID)
+#define INA_ERR_INACTIVE            (INA_ERR_NOT_ACTIVE)
+#define INA_ERR_ERASED              (INA_ERR_REMOVED)
+#define INA_ERR_DELETED             (INA_ERR_REMOVED)
+#define INA_ERR_OFFLINE             (INA_ERR_NOT_ONLINE)
+#define INA_ERR_UNAVAILABLE         (INA_ERR_NOT_AVERS)
+
+/* Error subjects */
+#define INA_ES_NONE                 (0U)
+#define INA_ES_ACCESS               (1U)
+#define INA_ES_ARGUMENT             (2U)
+#define INA_ES_COMPRESSION          (3U)
+#define INA_ES_DECOMPRESSION        (5U)
+#define INA_ES_DESCRIPTOR           (4U)
+#define INA_ES_DEVICE               (6U)
+#define INA_ES_DIRECTORY            (7U)
+#define INA_ES_FILE                 (8U)
+#define INA_ES_FUNCTION             (9U)
+#define INA_ES_HANDLE               (10U)
+#define INA_ES_INPUT                (11U)
+#define INA_ES_IO                   (12U)
+#define INA_ES_LIMIT                (13U)
+#define INA_ES_MEMORY               (14U)
+#define INA_ES_OBJECT               (15U)
+#define INA_ES_POOL                 (16U)
+#define INA_ES_POSITION             (17U)
+#define INA_ES_SCRIPT               (18U)
+#define INA_ES_SIZE                 (19U)
+#define INA_ES_SOCKET               (20U)
+#define INA_ES_STRING               (21U)
+#define INA_ES_TYPE                 (22U)
+#define INA_ES_VERSION              (23U)
+#define INA_ES_STATE                (24U)
+#define INA_ES_CONFIGURATION        (25U)
+#define INA_ES_SECTION              (26U)
+#define INA_ES_KEY                  (27U)
+#define INA_ES_ENUMERATION          (28U)
+#define INA_ES_READ                 (29U)
+#define INA_ES_WRITE                (30U)
+#define INA_ES_OPTION               (31U)
+#define INA_ES_BUFFER               (32U)
+#define INA_ES_ADDRESS              (33U)
+#define INA_ES_MAC                  (34U)
+#define INA_ES_PROCESS              (35U)
+#define INA_ES_PATTERN              (36U)
+#define INA_ES_SEMAPHORE            (37U)
+#define INA_ES_OPERATION            (38U)
+#define INA_ES_TIME                 (39U)
+#define INA_ES_HOST                 (40U)
+#define INA_ES_TEXT                 (41U)
+#define INA_ES_API                  (42U)
+
+/* Start of user defined error subjects */
+#define INA_ES_USER_DEFINED         (1024UL)
+
+
 /*
- * Push an error to the error state.
- *
- * Parameters
- *  m  Module identifier (optional)
- *  f  OS function identifier (if needed)
- *  r  Reason of failure
- *  s  Error message
+ * Global error messages
  */
-#define INA_ERR_PUSH(r,m,f,s) ina_err_push(m,f,r, __FILE__, __LINE__, s)
+#define INA_ERR_INVALID_ARGUMENT (INA_ERR_INVALID|INA_ES_ARGUMENT)
+#define INA_ERR_OUT_OF_MEMORY    (INA_ERR_OUT_OF|INA_ES_MEMORY)
 
 /*
- * Push an error to the error state by passing only basic information like
- * reason of failure and message
- *
- * Parameters
- *  r  Reason of failure
- *  s  Error message
+ * Subject dictionary callback
  */
-#define INA_ERR_PUSH_BASIC(r,s) ina_err_push(INA_MOD_UNKNOWN,               \
-                                          INA_OSFN_NONE,                    \
-                                          r,                                \
-                                          __FILE__,                         \
-                                          __LINE__ ,                        \
-                                          s)
+typedef const char* (*ina_err_subject_cb_t)(int);
+
 
 /*
- * Push an error to the error state by passing  basic informations like
- * reason of failure, os function identifier and message
- *
- * Parameters
- * r  Reason of failure
- * f  OS function identifier
- * s  Error message
- */
-#define INA_ERR_PUSH_OSFN(r,f,s) ina_err_push(INA_MOD_UNKNOWN,              \
-                                          f,r,                              \
-                                          __FILE__,                         \
-                                          __LINE__ ,                        \
-
-/*
- * Re-push a previously pushed error
- *
- * Parameters
- *  rc  Error
- */
-#define INA_ERR_REPUSH(rc) ina_err_repush(rc, __FILE__, __LINE__)
-
-/*
- * Re-push last pushed error
- */
-#define INA_ERR_PUSH_LAST INA_ERR_REPUSH(ina_err_peek())
-
-/*
- * Pack an RC.
- *
- * Parameters
- *  m  Module identifier (optional)
- *  f  OS function identifier (if needed)
- *  r  Reason of failure
- *  i  Error identifier
- */
-#define INA_RC_PACK(m,f,r,i)  ((ina_rc_t)i) << 22U|   \
-                              ((ina_rc_t)m) << 16U|   \
-                              ((ina_rc_t)f) << 11U|   \
-                              ((ina_rc_t)r)
-
-/* Unpack the error identifier for a given RC */
-#define INA_RC_ID(rc)     ((((ina_rc_t)rc)&0xFFC00000U)>>22U)
-/* Unpack the module indentifier for a given RC */
-#define INA_RC_MOD(rc)    ((((ina_rc_t)rc)&0x3F0000U)>>16U)
-/* Unpack the OS function identifier for a given RC */
-#define INA_RC_OSFN(rc)    ((((ina_rc_t)rc)&0xF800U)>>11U)
-/* Unpack the reason of failuer for a given RC */
-#define INA_RC_REASON(rc)  ((((ina_rc_t)rc)&0x1FF))
-/* Verify if error is handled */
-#define INA_RC_HANDLED(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_HANDLED))
-/* Verify if fatal error occurred */
-#define INA_RC_FATAL(rc) ((ina_rc_t)(rc&INA_ERR_FLAG_FATAL))
-/* Check retuen code if successful or handled */
-#define INA_SUCCEED(rc) (INA_SUCCESS == (rc))
-/* Checkpoint must succeed */
-#define INA_MUST_SUCCEED(rc) if (INA_UNLIKELY(!INA_SUCCEED(rc))) abort()
-
-
-/* Error-Module errors */
-#define INA_ERR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ERROR,INA_OSFN_NONE, s)
-#define INA_ERR_EMSGLEN INA_ERR_ERROR(INA_EMSGLEN, "Message size")
-#define INA_ERR_EMSGFMT INA_ERR_ERROR(INA_EMSGFMT, "Message format")
-#define INA_ERR_ENYI INA_ERR_ERROR(INA_ENYI, "Not implemented yet!")
-
-/* String-Module errors */
-#define INA_STR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_STRING,INA_OSFN_NONE, s)
-#define INA_STR_EALLOC INA_STR_ERROR(INA_EALLOC, "Bad string alloc")
-
-/* Memory-Module errors */
-#define INA_MEM_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_MEMORY,INA_OSFN_NONE, s)
-#define INA_MEM_EALLOC INA_MEM_ERROR(INA_EALLOC, "Bad memory alloc")
-#define INA_MEM_ERALLOC INA_MEM_ERROR(INA_ERALLOC, "Bad memory realloc")
-#define INA_MEM_ESHMALLOC INA_MEM_ERROR(INA_EALLOC, "Failed shared memory alloc")
-
-/* ULLC-Module errors */
-#define INA_ULLC_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ULLC,INA_OSFN_NONE, s)
-#define INA_ULLC_EVERSION INA_ULLC_ERROR(INA_EVERSION, "Invalid ullc version")
-#define INA_ULLC_EBADALIGN INA_ULLC_ERROR(INA_EBADALIGN, "Bad memory align")
-#define INA_ULLC_ESEMINIT INA_ULLC_ERROR(INA_ESEMINIT, "Semaphore failed")
-#define INA_ULLC_ESEMOP INA_ULLC_ERROR(INA_ESEMOP, "Semaphore op failed")
-#define INA_ULLC_ECLIMIT INA_ULLC_ERROR(INA_ELIMIT, "Consumer limit exeeded")
-#define INA_ULLC_EPLIMIT INA_ULLC_ERROR(INA_ELIMIT, "Producer limit exeeded")
-#define INA_ULLC_EINVERSION INA_ULLC_ERROR(INA_EINVAL, "Invalid argument version")
-#define INA_ULLC_EINSLOTS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument slots")
-#define INA_ULLC_EINSIZE INA_ULLC_ERROR(INA_EINVAL, "Invalid argument size")
-#define INA_ULLC_EINCONSUMERS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument consumers")
-#define INA_ULLC_EINPRODUCERS INA_ULLC_ERROR(INA_EINVAL, "Invalid argument producers")
-
-/* Net-Module errors */
-#define INA_NET_ERROR(s) INA_ERR_PUSH(INA_ENET, INA_MOD_NET, INA_OSFN_NONE, s)
-#define INA_NET_ERROR2(r, s) INA_ERR_PUSH(r, INA_MOD_NET, INA_OSFN_NONE, s)
-#define INA_NET_ETIMEOUT INA_NET_ERROR2(INA_ETIMEOUT, "Net timeout")
-#define INA_NET_ENETINIT INA_NET_ERROR2(INA_EINIT, "Net initialization failed")
-
-/* ISCP errors */
-#define INA_ISCP_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_ISCP, INA_OSFN_NONE, s)
-#define INA_ISCP_ESENDCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set send callback")
-#define INA_ISCP_ERECVCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set recv callback")
-#define INA_ISCP_ERETNCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set retn callback")
-#define INA_ISCP_EOPENCB INA_ISCP_ERROR(INA_EINVAL, "Failed to set open callback")
-#define INA_ISCP_ECLSECB INA_ISCP_ERROR(INA_EINVAL, "Failed to set clse callback")
-#define INA_ISCP_ECMDREG INA_ISCP_ERROR(INA_EEXISTS, "Command not registered")
-#define INA_ISCP_ERECV INA_ISCP_ERROR(INA_EREAD, "Receive callback failed")
-#define INA_ISCP_ESEND INA_ISCP_ERROR(INA_EWRITE, "Send callback failed")
-#define INA_ISCP_ERETN INA_ISCP_ERROR(INA_EWRITE, "Return callback failed")
-#define INA_ISCP_EWAIT INA_ISCP_ERROR(INA_EWAIT, "waiting for object")
-#define INA_ISCP_ETYPE INA_ISCP_ERROR(INA_EINVAL, "invalid parameter type")
-
-/* LuaJIT errors */
-#define INA_LJIT_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LJIT, INA_OSFN_NONE, s)
-#define INA_LJIT_EALLOC INA_LJIT_ERROR(INA_EALLOC, "Bad memory alloc")
-#define INA_LJIT_ERESULT INA_LJIT_ERROR(INA_EINVAL, "Wong result type")
-#define INA_LJIT_EPARAM INA_LJIT_ERROR(INA_EINVAL, "Wong argument type")
-#define INA_LJIT_ENSTATE INA_LJIT_ERROR(INA_EALLOC, "Failed to create new Lua state")
-#define INA_LJIT_ELUA(ptr_ljit) \
-        INA_LJIT_ERROR(INA_EEXCALL, lua_tostring(ptr_ljit->lstate, -1)); \
-        lua_pop(ptr_ljit->lstate, 1)
-
-/* Configuration file errors */
-#define INA_CONFFILE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CONFFILE, INA_OSFN_NONE, s)
-#define INA_CONFFILE_EDUPSEC INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate section");
-#define INA_CONFFILE_EDUPKEY INA_CONFFILE_ERROR(INA_EINVAL, "Duplicate key");
-#define INA_CONFFILE_EPREPARED INA_CONFFILE_ERROR(INA_EINVAL, "Already prepared");
-#define INA_CONFFILE_ETYPE INA_CONFFILE_ERROR(INA_ETYPE, "Invalid type");
-
-/* Time errors */
-#define INA_TIME_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_TIME, INA_OSFN_NONE, s)
-#define INA_TIME_EHWDRV INA_TIME_ERROR(INA_EVERSION, "The MBGDEVIO API version which is installed is not compatible");
-#define INA_TIME_ENODEV INA_TIME_ERROR(INA_ELIMIT, "No radio clock found");
-#define INA_TIME_ETMDEV INA_TIME_ERROR(INA_ELIMIT, "Too many radio clocks found");
-#define INA_TIME_EHWERR INA_TIME_ERROR(INA_EPARAM, "Device API call failed");
-#define INA_TIME_EHWMISSF INA_TIME_ERROR(INA_EEXISTS, "Missing HW feature");
-
-/* Core library errors */
-#define INA_LIB_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_LIB, INA_OSFN_NONE, s)
-#define INA_LIB_EOPT INA_LIB_ERROR(INA_EOPT, "Command line option parsing failed");
-
-/* SSL errors */
-#define INA_SSL_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_SSL, INA_OSFN_NONE, s)
-#define INA_SSL_EINIT INA_SSL_ERROR(INA_EINIT, "SSL library init failed");
-#define INA_SSL_EAGAIN INA_SSL_ERROR(INA_EAGAIN, "SSL handshake still in progress");
-
-/* JSON errors */
-#define INA_JSON_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_JSON, INA_OSFN_NONE, s)
-#define INA_JSON_EPOOLF INA_JSON_ERROR(INA_ELOGIC, "Pool is missing entry, make sure to always return");
-#define INA_JSON_EPOOLE INA_JSON_ERROR(INA_ECAPAC, "Pool is exhausted");
-#define INA_JSON_ENOBUF INA_JSON_ERROR(INA_EEMPTY, "Buffer empty");
-#define INA_JSON_ENODATA INA_JSON_ERROR(INA_EEMPTY, "No more data. Stack is empty")
-                                              
-/* Service library errors */
-#define INA_SERVICE_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_SERVICE, INA_OSFN_NONE, s)
-#define INA_SERVICE_EMAXLEN INA_SERVICE_ERROR(INA_EPARAM, "Service-Descriptor Parameter longer then maximum");
-#define INA_SERVICE_EUST INA_SERVICE_ERROR(INA_EPARAM, "Unknown Startup Type");
-#define INA_SERVICE_ECAPI INA_SERVICE_ERROR(INA_EPARAM, "Error during Service creation API call");
-#define INA_SERVICE_ESCM INA_SERVICE_ERROR(INA_EINIT, "Could not initialize Service-Control Manager");
-#define INA_SERVICE_ESVCNF INA_SERVICE_ERROR(INA_ENOTFND, "Service not found");
-#define INA_SERVICE_EQRYS INA_SERVICE_ERROR(INA_ENOTFND, "Can not query Service-Status");
-#define INA_SERVICE_ERUNNING INA_SERVICE_ERROR(INA_ESTATE, "Service is running");
-#define INA_SERVICE_EEXCL INA_SERVICE_ERROR(INA_ELOGIC, "Process already runnning only 1 process allowed");
-#define INA_SERVICE_EMINIT INA_SERVICE_ERROR(INA_EINIT, "Can not initialize mutex");
-#define INA_SERVICE_ESDIS INA_SERVICE_ERROR(INA_EINIT, "Can not invoke service-dispatcher");
-#define INA_SERVICE_EAID INA_SERVICE_ERROR(INA_EEXISTS, "Process already is a daemon");
-#define INA_SERVICE_EFERR INA_SERVICE_ERROR(INA_EINIT, "Fork error");
-#define INA_SERVICE_ELCO INA_SERVICE_ERROR(INA_EINVAL, "Can not create/open lock-file");
-#define INA_SERVICE_ELOCK INA_SERVICE_ERROR(INA_ELIMIT, "Can not lock, service is already running");
-
-/* DNS errors */
-#define INA_DNS_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DNS, INA_OSFN_NONE, s)
-#define INA_DNS_ELOOKUP INA_SERVICE_ERROR(INA_ENET, "DNS lookup failed");
-
-/* CIO errors */
-#define INA_CIO_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_CIO, INA_OSFN_NONE, s)
-#define INA_CIO_ENOTTY INA_CIO_ERROR(INA_EREAD, "No terminal");
-
-/* DIR errors */
-#define INA_DIR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_DIR, INA_OSFN_NONE, s)
-#define INA_DIR_ESTAT INA_DIR_ERROR(INA_EFS, "Can not stat directory");
-
-/* AAR errors */
-#define INA_AAR_ERROR(r,s) INA_ERR_PUSH(r, INA_MOD_AAR, INA_OSFN_NONE, s)
-#define INA_AAR_EMKDR INA_AAR_ERROR(INA_EFS, "Failed to create directory");
-#define INA_AAR_ERMDR INA_AAR_ERROR(INA_EFS, "Failed to remove directory");
-#define INA_AAR_EZIP  INA_AAR_ERROR(INA_ESTATE, "Failed operate on archive");
-#define INA_AAR_EMETA INA_AAR_ERROR(INA_ENOTFND, "Meta value not found");
-
-/* Error information */
-typedef struct ina_error_s {
-    ina_rc_t rc;
-    time_t ts;  /* FIXME: we should use our proper time value */
-    uint32_t line;
-    char file[512];
-    char msg[INA_ERR_MSGLEN];
-} ina_error_t;
-
-/*
- * Push an error to the error state.
- *
- * Parameters
- *  mod      Module identifier
- *  osfn     OS function identifier
- *  reason   Reason of failure
- *  file     filename
- *  line     line
- *  msg      Error message
+ * Initialize the error module. This function should never be called,
+ * because is part of the INAC initialization and  called in ina_init().
  *
  * Return
- *  RC
+ *  INA_SUCCESS if all went well.
+ *
+ *  Error messages
+ *   INA_ERR_OUT_OF_MEMORY
  */
-INA_API(ina_rc_t) ina_err_push(int mod, int osfn, int reason, const char *file,
-                               int line,
-                               const char *msg);
+INA_API(ina_rc_t) ina_err_init(void);
 
 /*
- * Re-push an error to the error state
+ * Destroy error module. This function is called at program exit and
+ * should never called directly.
+ */
+INA_API(void) ina_err_destroy(void);
+
+/*
+ * Register an error subject dictionary callback.
  *
  * Parameters
- *  rc    RC to re-push
- *  file  filename
- *  line  line
+ *  cb  Dictionary callback
  *
  * Return
- *  RC
+ *  Previously registered dictionary callback or NULL
  */
-INA_API(ina_rc_t) ina_err_repush(ina_rc_t rc, const char *file, int line);
+INA_API(ina_err_subject_cb_t) ina_err_register_dict(ina_err_subject_cb_t cb);
 
 /*
- * Query if succeed.
+ * Set global return code. Use INA_ERROR() or INA_OS_ERROR() as shortcut or use
+ * INA_RC_PACK to generate an valid RC.
  *
  * Parameters
- *  rc  RC
+ *  rc   New return code to set
  *
  * Return
- *  INA_YES if succeed otherwise INA_NO
+ *  Current RC
  */
-INA_API(ina_rc_t) ina_err_succeed(ina_rc_t rc);
+INA_INLINE ina_rc_t ina_err_set_rc(ina_rc_t rc)
+{
+    __rc = rc;
+    return __rc;
+}
 
 /*
- * Peek the first pushed error from the error state.
+ * Return current global return code.
  *
  * Return
- *  RC of first pushed error or INA_SUCCESS if error state is clean
+ *  Current RC
  */
-INA_API(ina_rc_t) ina_err_peek_last(void);
+INA_INLINE ina_rc_t ina_err_get_rc(void)
+{
+    return __rc;
+}
 
 /*
- * Peek the first unhandled error from the error state.
- *
- * Return
- *  RC of first unhandled error or INA_SUCCESS  if error state is clean
- */
-INA_API(ina_rc_t) ina_err_peek(void);
-
-/*
- * Peek the next (handled or unhandled) error from the error state.
+ * Mark a RC as handled.
  *
  * Parameters
- *  rc  Previous RC
- *
- * Return
- *  RC or INA_SUCCESS if no more errors found.
- */
-INA_API(ina_rc_t) ina_err_peek_next(ina_rc_t rc);
-
-/*
- * Mark an error as handled. All errors pushed before this one are removed
- * from the state.
- *
- * Parameters
- *  rc  Valid RC to mark as handled. If a error was already maked as handled
+ *  rc  Valid RC to mark as handled. If a error was already marked as handled
  *      no error occurs.
  *
  * Return
- *  Returns INA_SUCCESS when the complete error state was cleared successfully
- *  otherwise returns INA_FAILURE. A marked
+ *  Ceared RC
  */
-INA_API(ina_rc_t) ina_err_clear(ina_rc_t rc);
+INA_INLINE ina_rc_t ina_err_clear_rc(ina_rc_t rc)
+{
+    return (rc&~(INA_ERR_ERROR));
+}
 
 /*
- * Mark an error as handled.
+ * Reset the global RC by marking it as handled.
  *
  * Return
- *  Returns INA_SUCCESS when the complete error state was cleared successfully
- *  otherwise returns INA_FAILURE
+ *  Current global RC
  */
-INA_API(ina_rc_t) ina_err_reset(void);
+INA_INLINE ina_rc_t ina_err_reset(void)
+{
+    __rc = ina_err_clear_rc(__rc);
+    return __rc;
+}
 
 /*
- * Makes a trace to the stderr of the current error state.
+ * Set user bit on the global RC.
+ *
+ * Parameters
+ *  ubits  User defined bits
  *
  * Return
- *  INA_SUCCESS
+ *  Current global RC
  */
-INA_API(ina_rc_t) ina_err_trace(void);
+INA_INLINE ina_rc_t ina_err_set_ubits(uint8_t ubits)
+{
+    __rc = ((__rc) & (~ (((1ULL << (8)) - 1ULL) << (INA_RC_BIT_U)))) | (((ina_rc_t)(ubits)) << (INA_RC_BIT_U));
+    return __rc;
+}
 
 /*
- * Makes a backrace to the stderr of the current error state.
+ * Return user defined bit of an given RC.
+ *
+ * Parameters
+ *  rc   Valid RC where to extract user defined bits
  *
  * Return
- *  INA_SUCCESS
+ *  User defined bits
  */
-INA_API(ina_rc_t) ina_err_backtrace(void *data);
-
-/*
- * Create a core dump
- *
- * Return
- *  INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_err_coredump(void *data);
+INA_INLINE uint8_t ina_err_get_ubits(ina_rc_t rc)
+{
+    return (uint8_t)INA_RC_UBITS(rc);
+}
 
 /*
  * Format the error message for a given RC.
  *
  * Parameters
  *  rc   Valid RC
- *  str  String buffer to hold the message
- *  len  Max length of the string buffer str
  *
  * Return
- *  INA_SUCCESS if successful, INA_FAILURE if an invalid RC was passed
+ *  Error message
  */
-INA_API(ina_rc_t) ina_err_fmtmsg(ina_rc_t rc, ina_str_t str, size_t len);
+INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 
-/*
- * Return the raw error message for the last pushed error.
- * 
- * Return
- *  Error message or NULL if no errors are on the stack. Char pointer is valid
- *  as long an error is on the error stack.
- */
+/* Pack a RC */
+#ifdef INA_LIB
+#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_VERSION_HEX) << INA_RC_BIT_R) | (((ina_rc_t)(e)) << INA_RC_BIT_O) | (x))
+#else
+#  ifndef INA_ERROR_VER
+#    define INA_ERROR_VER (0)
+#  endif
+#  ifndef INA_ERROR_REV
+#    define INA_ERROR_REV (0)
+#  endif
+#  define INA_RC_PACK(x, e) (INA_ERR_ERROR | (((ina_rc_t)INA_ERROR_VER) << INA_RC_BIT_V) | (((ina_rc_t)INA_ERROR_REV) << INA_RC_BIT_R) | (((ina_rc_t)(e)) << INA_RC_BIT_O) | ((x)))
+#endif
 
-INA_API(const char*) ina_err_get_last_errmsg(void);
+/* Check return code: failure */
+#define INA_FAILED(rc) ((rc)&INA_ERR_ERROR)
+/* Check return code: successful or handled */
+#define INA_SUCCEED(rc) (!INA_FAILED((rc)))
 
-/*
- * Return the raw error message for an pushed error rc.
- * 
- * Parameters
- *  rc  Valid RC
- *
- * Return
- *  Error message or NULL if rc is invalid. Char pointer is valid as long an
- *  error is on the error stack.
- */
-INA_API(const char*) ina_err_get_errmsg(ina_rc_t rc);
+/* Checkpoint must succeed */
+#define INA_MUST_SUCCEED(rc) do { if (INA_UNLIKELY(INA_FAILED((rc)))) abort(); } while(0)
+#define INA_FAIL_IF(cond) do { if ((cond)) goto fail; } while(0)
+#define INA_FAIL_IF_ERROR(rc) INA_FAIL_IF(INA_FAILED((rc)))
+
+/* Set global RC */
+#define INA_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), 0))
+/* Set global RC and capture errno */
+#ifndef INA_OS_WIN32
+#define INA_OS_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), errno))
+#else
+#define INA_OS_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), GetLastError()))
+#endif
 
 #ifdef __cplusplus
 }

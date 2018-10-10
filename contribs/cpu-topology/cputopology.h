@@ -293,19 +293,21 @@ unsigned  getAPICID(unsigned  processor);
 
 unsigned  GetCoreCount(unsigned long package_ordinal);
 unsigned  GetThreadCount(unsigned long package_ordinal, unsigned long core_ordinal);
-void InitCpuTopology();
+int InitCpuTopology();
 
 int   BindContext(unsigned cpu);
 void  SetChkProcessAffinityConsistency(unsigned  lcl_OSProcessorCount);
-void  SetGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned  cpu);
+int  SetGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned  cpu);
 unsigned  GetMaxCPUSupportedByOS();
 
-void get_cpu_hw_info(int *packages, int *cores, int *threads, int *logical);
+int get_cpu_hw_info(int *packages, int *cores, int *threads, int *logical);
 
 void get_cpuid_info(CPUIDinfo * info, const unsigned int func, const unsigned int subfunc);
 
 /* return cache sizes in bytes */
 void get_cache_info(unsigned long *l1, unsigned long *l2, unsigned long *l3);
+
+void get_last_error_cputopo(char *buf, int len);
 	
 #endif
 

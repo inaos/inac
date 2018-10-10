@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2014-2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 #include "config.h"
@@ -74,7 +55,7 @@ struct ina_file_cursor_s {
 static ina_rc_t ina_file_cursor_fileio_free(ina_file_cursor_t **cursor)
 {
     if ((*cursor)->ext.f.lmp != NULL) {
-        ina_mempool_release((*cursor)->ext.f.lmp, INA_YES);
+        ina_mempool_free(&(*cursor)->ext.f.lmp);
     }
     if ((*cursor)->ext.f.line != NULL) {
         ina_str_free((*cursor)->ext.f.line);
@@ -106,7 +87,7 @@ static ina_rc_t ina_file_cursor_fileio_set_pos(ina_file_cursor_t *cursor, uint64
 		cursor->ext.f.position = position;
 		return INA_SUCCESS;
 	}
-	return INA_ERR_PUSH_LAST;
+	return ina_err_get_rc();
 }
 
 static ina_rc_t ina_file_cursor_fileio_set_eof(ina_file_cursor_t *cursor)
@@ -122,9 +103,9 @@ static ina_rc_t ina_file_cursor_fileio_set_bof(ina_file_cursor_t *cursor)
 static ina_rc_t ina_file_cursor_fileio_binary_read_chunk(ina_file_cursor_t *cursor, size_t requested,
                                                          size_t *nread, const unsigned char **chunk)
 {
-    if (!INA_SUCCEED(ina_file_read(cursor->file, cursor->ext.f.buffer, 
+    if (INA_FAILED(ina_file_read(cursor->file, cursor->ext.f.buffer,
                                     requested, (int64_t*)nread))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_rc();
     }
     *chunk = cursor->ext.f.buffer;
     cursor->ext.f.position += *nread;
@@ -137,9 +118,9 @@ static ina_rc_t ina_file_cursor_fileio_binary_read_chunk(ina_file_cursor_t *curs
 static ina_rc_t ina_file_cursor_fileio_text_read_chunk(ina_file_cursor_t *cursor, size_t requested,
                                                        size_t *nread, const char **chunk)
 {
-    if (!INA_SUCCEED(ina_file_cursor_fileio_binary_read_chunk(cursor, requested, 
+    if (INA_FAILED(ina_file_cursor_fileio_binary_read_chunk(cursor, requested,
             nread, (const unsigned char **)chunk))) {
-        return INA_ERR_PUSH_LAST;
+        return ina_err_get_rc();
     }
     *chunk = (const char*)cursor->ext.f.buffer;
 	return INA_SUCCESS;
@@ -148,8 +129,12 @@ static ina_rc_t ina_file_cursor_fileio_text_read_chunk(ina_file_cursor_t *cursor
 static ina_rc_t ina_file_cursor_fileio_binary_readwrite_chunk(ina_file_cursor_t *cursor, size_t requested,
                                                               size_t *actual, unsigned char **chunk)
 {
+	INA_UNUSED(cursor);
+	INA_UNUSED(requested);
+	INA_UNUSED(actual);
+	INA_UNUSED(chunk);
     /* this function only works with an mmap cursor */
-    return INA_FAILURE;
+    return INA_ERROR(INA_ES_FUNCTION | INA_ERR_ILLEGAL);
 }
 
 static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor, const char **begin_line, size_t *len)
@@ -159,8 +144,8 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor,
     if (cursor->ext.f.line != NULL) {
         ina_str_free(cursor->ext.f.line);
     }
-    if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
-        return INA_ERR_PUSH_LAST;
+    if (INA_FAILED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
+        return ina_err_get_rc();
     }
     if (nread == 0) {
         *begin_line = NULL;
@@ -183,8 +168,8 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor,
             }
         }
         cursor->ext.f.next_line = ina_str_ncatcstr(cursor->ext.f.next_line, chunk, nread);
-        if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
-            return INA_ERR_PUSH_LAST;
+        if (INA_FAILED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
+            return ina_err_get_rc();
         }
     }
 }
@@ -194,15 +179,15 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *curs
     size_t nread = 0;
     const char *chunk;
     if (cursor->ext.f.lmp == NULL) {
-        if (!INA_SUCCEED(ina_mempool_create(&cursor->ext.f.lmp, 1024, INA_MEM_DYNAMIC, NULL))) {
-            return INA_ERR_PUSH_LAST;
+        if (INA_FAILED(ina_mempool_new(1024, NULL, INA_MEM_DYNAMIC, &cursor->ext.f.lmp))) {
+            return ina_err_get_rc();
         }
     }
     else {
-        ina_mempool_release(cursor->ext.f.lmp, INA_NO);
+        ina_mempool_reset(cursor->ext.f.lmp);
     }
-    if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
-        return INA_ERR_PUSH_LAST;
+    if (INA_FAILED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
+        return ina_err_get_rc();
     }
     if (nread == 0) {
         *begin_line = NULL;
@@ -224,8 +209,8 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *curs
             }
         }
         cursor->ext.f.next_line = ina_str_ncatcstr_using_pool(cursor->ext.f.next_line, chunk, nread, cursor->ext.f.lmp);
-        if (!INA_SUCCEED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
-            return INA_ERR_PUSH_LAST;
+        if (INA_FAILED(ina_file_cursor_fileio_text_read_chunk(cursor, (size_t)cursor->ext.f.buffer_size, &nread, &chunk))) {
+            return ina_err_get_rc();
         }
     }
 }
@@ -260,7 +245,7 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t
 	uint64_t offset = tmp - cursor->ext.m.carry;
 
 	if (position > cursor->ext.m.len) {
-		return INA_FAILURE;
+		return INA_ERROR(INA_ES_POSITION | INA_ERR_OUT_OF_RANGE);
 	}
 	if (cursor->ext.m.buffer_idx != buffer_idx) {
 		uint64_t len = INA_MIN(cursor->ext.m.buffer_size, cursor->ext.m.len);
@@ -370,7 +355,11 @@ static ina_rc_t ina_file_cursor_mmap_text_read_chunk(ina_file_cursor_t *cursor, 
 static ina_rc_t ina_file_cursor_mmap_binary_readwrite_chunk(ina_file_cursor_t *cursor, size_t requested,
 							       size_t *actual, unsigned char **chunk)
 {
-	return INA_FAILURE;
+	INA_UNUSED(cursor);
+	INA_UNUSED(requested);
+	INA_UNUSED(actual);
+	INA_UNUSED(chunk);
+	return INA_ERROR(INA_ES_FUNCTION | INA_ERR_ILLEGAL);
 }
 
 static ina_rc_t ina_file_cursor_init_internal(ina_file_t *file, 
@@ -382,11 +371,11 @@ static ina_rc_t ina_file_cursor_init_internal(ina_file_t *file,
     ina_file_stat_t *fstat = NULL;
 	uint64_t flen = 0;
 
-	if (!INA_SUCCEED(ina_file_stat_new(file, &fstat))) {
-		return INA_ERR_PUSH_LAST;
+	if (INA_FAILED(ina_file_stat_new(file, &fstat))) {
+		return ina_err_get_rc();
 	}
 	ina_file_stat_file_size(fstat, &flen);
-	ina_file_stat_free(file, &fstat);
+	ina_file_stat_free(&fstat);
 
 	cursor->file = file;
     cursor->cur_type = cursor_type;
@@ -475,7 +464,12 @@ INA_API(ina_rc_t) ina_file_cursor_new_using_pool(ina_file_t *file,
                                                  ina_mmap_ctx_t *mmap_ctx,
                                                  ina_mempool_t *pool)
 {
+	INA_VERIFY_NOT_NULL(file);
+    INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(mmap_ctx);
+	INA_VERIFY_NOT_NULL(pool);
     *cursor = (ina_file_cursor_t*)ina_mempool_dalloc(pool, sizeof(ina_file_cursor_t));
+    INA_RETURN_IF_NULL(*cursor);
     (*cursor)->mpref = pool;
     return ina_file_cursor_init_internal(file, cursor_type, mode, buffer_size, *cursor, mmap_ctx);
 }
@@ -487,7 +481,9 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
 									  ina_file_cursor_t **cursor,
                                       ina_mmap_ctx_t *mmap_ctx)
 {
-	
+    INA_VERIFY_NOT_NULL(file);
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(mmap_ctx);
     *cursor = (ina_file_cursor_t*)ina_mem_alloc(sizeof(ina_file_cursor_t));
     (*cursor)->mpref = NULL;
 	return ina_file_cursor_init_internal(file, cursor_type, mode, buffer_size, *cursor, mmap_ctx);
@@ -501,38 +497,39 @@ INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor)
 
 INA_API(ina_rc_t) ina_file_cursor_get_file(const ina_file_cursor_t *cursor, ina_file_t **file)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(file);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(file);
 	*file = cursor->file;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_cursor_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size)
 {
-	INA_ASSERT_NOTNULL(cursor);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(buffer_size);
 	return cursor->get_buffer_size_fp(cursor, buffer_size);
 }
 
 INA_API(ina_rc_t) ina_file_cursor_get_mode(const ina_file_cursor_t *cursor, ina_file_cursor_mode_t *mode)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(mode);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(mode);
 	*mode = cursor->mode;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_cursor_get_type(const ina_file_cursor_t *cursor, ina_file_cursor_type_t *type)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(type);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(type);
 	*type = cursor->cur_type;
 	return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_file_cursor_get_pos(const ina_file_cursor_t *cursor, uint64_t *position)
 {
-	INA_ASSERT_NOTNULL(cursor);
-	INA_ASSERT_NOTNULL(position);
+	INA_VERIFY_NOT_NULL(cursor);
+	INA_VERIFY_NOT_NULL(position);
 	return cursor->get_pos_fp(cursor, position);
 }
 

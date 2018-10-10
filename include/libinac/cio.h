@@ -1,38 +1,19 @@
 /*
- * Copyright (c) 2013-2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_CIO_H_
 #define _LIBINAC_CIO_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_CIO_CURRENT_COL (-1)
 #define INA_CIO_CURRENT_ROW (-1)
@@ -52,8 +33,8 @@ typedef enum ina_cio_colors_e  {
 
 /* Cursor position */
 typedef struct ina_cio_pos_s {
-    int16_t row;
-    int16_t col;
+    int row;
+    int col;
 } ina_cio_pos_t;
 
 /* CIO specials cursor attributes codes */
@@ -64,7 +45,7 @@ typedef struct ina_cio_pos_s {
 /* Cursor attributs */
 typedef struct ina_cio_attribs_s {
     ina_cio_color_t bg_color; /* background color */
-    ina_cio_color_t fg_color; /* forground color */
+    ina_cio_color_t fg_color; /* foreground color */
     uint8_t flags;
 } ina_cio_attribs_t;
 
@@ -77,7 +58,15 @@ typedef struct ina_cio_attribs_s {
 INA_API(ina_rc_t) ina_cio_init(void);
 
 /*
- * Clear screen and reset the cursor in the uppper left corner.
+ * Initialization. This function is called by ina_init()
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(void) ina_cio_destroy(void);
+
+/*
+ * Clear screen and reset the cursor in the upper left corner.
  *
  * Return
  *  INA_SUCCESS
@@ -169,7 +158,7 @@ INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col);
+INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int row, int col);
 
 /*
  * Print a formatted string to the standard output.
@@ -201,7 +190,7 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int16_t row, int16_t col);
  *  On success, the total number of characters written is returned. If a writing
  *  error occurs, negative number is returned.
  */
-INA_API(int) ina_cio_printf(int16_t row, int16_t col, 
+INA_API(int) ina_cio_printf(int row, int col,
                                     ina_cio_color_t fg_color, 
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...);
@@ -217,6 +206,8 @@ INA_API(int) ina_cio_printf(int16_t row, int16_t col,
  *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line);
+
+INA_API(ina_rc_t) ina_cio_read_char(char *ch);
 
 /*
  * Non blocking read line terminated by '\n'
@@ -236,6 +227,8 @@ INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line);
  */
 INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
                                               size_t *buf_len, size_t *buf_cur);
+
+INA_API(ina_rc_t) ina_cio_read_char_non_block(char *ch);
 
 #ifdef __cplusplus
 }

@@ -1,34 +1,13 @@
 /*
- * Copyright (c) 2014-2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_FILE_H_
 #define _LIBINAC_FILE_H_
-
-#include <libinac/lib.h>
 
 /**
  * DESIGN considerations
@@ -62,6 +41,8 @@
 extern "C" {
 #endif
 
+#include <libinac/lib.h>
+
 #define INA_FILE_FLAG_ATTR_NORMAL          0x00000001
 #define INA_FILE_FLAG_ATTR_HIDDEN          0x00000002
 #define INA_FILE_FLAG_RANDOM_ACCESS        0x00000004
@@ -76,7 +57,8 @@ extern "C" {
 /* File access mode */
 typedef enum ina_file_access_mode_e {
     INA_FILE_ACCESS_MODE_READ,
-    INA_FILE_ACCESS_MODE_READWRITE
+    INA_FILE_ACCESS_MODE_READWRITE,
+    INA_FILE_ACCESS_MODE_WRITE
 } ina_file_access_mode_t;
 
 /* File open mode */
@@ -116,7 +98,7 @@ typedef struct ina_file_stat_s ina_file_stat_t;
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode);
+INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode);
 
 /*
  * Free a file context.
@@ -126,10 +108,8 @@ INA_API(ina_rc_t) ina_file_init(ina_file_ctx_t **ctx, mode_t default_mode);
  *
  * Return
  *  INA_SUCCESS
- *
- * FIXME: See #479
  */
-INA_API(ina_rc_t) ina_file_destroy(ina_file_ctx_t **ctx);
+INA_API(ina_rc_t) ina_file_ctx_free(ina_file_ctx_t **ctx);
 
 /*
  * Create a new file handle.
@@ -163,10 +143,8 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx,
  *
  * Return
  *  INA_SUCCESS
- *
- * FIXME: Why we have context and file as argument
  */
-INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file);
+INA_API(ina_rc_t) ina_file_free(ina_file_t **file);
 
 /*
  * Create and initialize file attributes.
@@ -178,20 +156,30 @@ INA_API(ina_rc_t) ina_file_free(ina_file_ctx_t *ctx, ina_file_t **file);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_stat_new(ina_file_t *file, ina_file_stat_t **stat);
+INA_API(ina_rc_t) ina_file_stat_new(const ina_file_t *file, ina_file_stat_t **stat);
 
 /*
  * Destroy file attributes.
  *
  * Parameters
- *  file  File
  *  stat  File attributes to free
  *
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_stat_free(ina_file_t *file, ina_file_stat_t **stat);
+INA_API(ina_rc_t) ina_file_stat_free(ina_file_stat_t **stat);
 
+/*
+ * Synchronize file attributes.
+ *
+ * Parameters
+ *  file  File
+ *  stat  Where to store the file attributes
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat, const ina_file_t *file);
 
 /*
  * Get the filepath of a file
@@ -238,12 +226,9 @@ INA_API(ina_rc_t) ina_file_set_mode(const ina_file_t *file, mode_t mode);
  *  dir   Where to store the result. 1 for a regular directory otherwise 0.
  *
  * Return
- * INA_SUCCESS
- *
- * FIXME: Remove argument dir and use RC to indicate whenever file is a
- *        directory or not.
+ * INA_SUCCESS if is a directory
  */
-INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat, int *dir);
+INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat);
 
 /*
  * Get current file size in bytes.
@@ -293,7 +278,7 @@ INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat,
  * Return
  *  Void pointer to the Native file handle
  */
-INA_API(void*) ina_file_os_handle(ina_file_t *file);
+INA_API(ina_handle_t) ina_file_os_handle(ina_file_t *file);
 
 /*
  * Return the underlying C stream of a INAC file handle
@@ -302,7 +287,7 @@ INA_API(void*) ina_file_os_handle(ina_file_t *file);
  *  file   INAC file handle
  *
  * Return
- *  On successful completion return a FILE pointer. Otherwise, NULL is returned.
+ *  On successful completion return a FILE pointer. Otherwise, NULL is returned.
  */
 INA_API(FILE*) ina_file_get_stream(ina_file_t *file);
 

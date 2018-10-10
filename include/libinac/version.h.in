@@ -1,0 +1,19 @@
+/*
+ * Copyright INAOS GmbH, Thalwil, 2018. All rights reserved
+ *
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
+ */
+#ifndef _LIBINAC_VERSION_H_
+#define _LIBINAC_VERSION_H_
+
+/*
+ * Version
+ */
+#define INA_MAJOR_VERSION ${CMAKE_PROJECT_VERSION_MAJOR}
+#define INA_MINOR_VERSION ${CMAKE_PROJECT_VERSION_MINOR}
+#define INA_PATCH_VERSION ${CMAKE_PROJECT_VERSION_PATCH}
+
+#endif

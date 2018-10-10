@@ -1,38 +1,19 @@
 /*
- * Copyright (c) 2012-2014, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_ULLC_H_
 #define _LIBINAC_ULLC_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
 
 #define INA_ULLC_MIN(x,y) INA_MAX(x,y)
 
@@ -115,7 +96,7 @@ extern "C" {
  * - Document with graphics
  * - Error handling
  * - Proper performance-tests
- * - Options, bis-mask: 
+ * - Options, bit-mask: 
  *   - To decide whether to wait for slow-consumers or wrap around
  *   - Consumer wait strategies
  * - Tuning, cache-lines
@@ -145,39 +126,13 @@ typedef enum ina_ullc_wait_strategy_e {
  } ina_ullc_wait_strategy;
 
 /* ring buffer (shared mem) */
-typedef struct ina_ullc_rb_s {
-    char magic;
-    int16_t version;
-    int32_t num_consumers;
-    int32_t num_producers;
-    size_t size;
-    size_t slots;
-    INA_VOLATILE int64_t cursor;
-    INA_VOLATILE int64_t next_ptr;
-    INA_VOLATILE int64_t swait_count;
-    INA_VOLATILE int64_t alive_producers;
-    INA_VOLATILE int64_t overrun_enabled;
-    ina_semkey_t semkey; /*FIXME: multiple producer */
-} ina_ullc_rb_t;
+typedef struct ina_ullc_rb_s ina_ullc_rb_t;
 
 /* ULLC ring cursor */
-typedef struct ina_ullc_cursor_s {
-    INA_VOLATILE int64_t alive;
-    INA_VOLATILE int64_t cursor;
- } ina_ullc_cursor_t;
+typedef struct ina_ullc_cursor_s ina_ullc_cursor_t;
 
 /* ullc context */
-typedef struct ina_ullc_ctx_s {
-    int id;                         /* id of consumer or producer */
-    ina_mempool_t *pool;            /* memory-pool */
-    ina_ullc_ctx_type_t type;       /* type of context */
-    ina_handle_t sem_handle;        /* semaphore handle */
-    ina_ullc_wait_strategy ws;      /* wait strategy */
-    ina_ullc_rb_t *ring;            /* ring buffer */
-    ina_ullc_cursor_t *c_offset;    /* consumer(s) */
-    ina_ullc_cursor_t *p_offset;    /* prodducers */
-    unsigned char *data;            /* slot data */
-} ina_ullc_ctx_t;
+typedef struct ina_ullc_ctx_s ina_ullc_ctx_t;
 
 /* ULLC Ring buffer info */
 typedef struct ina_ullc_rb_info_s {
@@ -194,15 +149,15 @@ typedef struct ina_ullc_rb_info_s {
     size_t slot_size;               /* Size in bytes for each slot */
     size_t num_slots;               /* Nr of slots */
     int64_t current_slot;           /* Last commited slot */
-    ina_ullc_cursor_t c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
-    ina_ullc_cursor_t p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */
+    ina_ullc_cursor_t *c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
+    ina_ullc_cursor_t *p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */
 } ina_ullc_rb_info_t;
 
 
-#define INA_ULLC_PRODUCER_CREATE(type, version, slots, producers, consumers, name, ws, ctx) \
-    ina_ullc_producer_create(version, sizeof(type), slots, producers, consumers, name, ws, ctx)
-#define INA_ULLC_CONSUMER_CREATE(type, version, slots, producers, consumers, name, ctx) \
-    ina_ullc_consumer_create(version, sizeof(type), slots, producers, consumers, name, ctx)
+#define INA_ULLC_PRODUCER_NEW(type, version, slots, producers, consumers, name, ws, ctx) \
+    ina_ullc_producer_new(version, sizeof(type), slots, producers, consumers, name, ws, ctx)
+#define INA_ULLC_CONSUMER_NEW(type, version, slots, producers, consumers, name, ctx) \
+    ina_ullc_consumer_new(version, sizeof(type), slots, producers, consumers, name, ctx)
 
 /* Claim and commit */
 #define INA_ULLC_WRITE(ctx, src) do { ina_mem_cpy(ina_ullc_producer_claim(ctx), (void*)src, ctx->ring->size); ina_ullc_producer_commit(ctx); } while (0)
@@ -286,10 +241,10 @@ INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_ullc_producer_create(int version, size_t size, 
-                    size_t slots, int producers, int num_consumers,
-                    const char *name, ina_ullc_wait_strategy ws, 
-                    ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
+                                        size_t slots, int producers, int num_consumers,
+                                        const char *name, ina_ullc_wait_strategy ws,
+                                        ina_ullc_ctx_t **ctx);
 
 /*
  * Reset a producer.
@@ -309,11 +264,8 @@ INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx);
  *
  * Parameters
  *  ctx  ULLC producer context to free
- *
- * Return
- *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_ullc_producer_destroy(ina_ullc_ctx_t **ctx);
+INA_API(void) ina_ullc_producer_free(ina_ullc_ctx_t **ctx);
 
 /*
  * Get current producer position.
@@ -402,24 +354,21 @@ INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_ullc_consumer_create(int version,
-                                           size_t size,
-                                           size_t slots,
-                                           int producers,
-                                           int num_consumers,
-                                           const char *name,
-                                           ina_ullc_ctx_t **ctx);
+INA_API(ina_rc_t) ina_ullc_consumer_new(int version,
+                                        size_t size,
+                                        size_t slots,
+                                        int producers,
+                                        int num_consumers,
+                                        const char *name,
+                                        ina_ullc_ctx_t **ctx);
 
 /*
  * Destroy consumer.
  *
  * Parameters
  *  ctx  ULLC context to free
- *
- * Return
- *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_ullc_consumer_destroy(ina_ullc_ctx_t **ctx);
+INA_API(void) ina_ullc_consumer_free(ina_ullc_ctx_t **ctx);
 
 /*
  * Read from consumer, no wait

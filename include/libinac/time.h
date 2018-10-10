@@ -1,39 +1,19 @@
 /*
- * Copyright (c) 2012-2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_TIME_H_
 #define _LIBINAC_TIME_H_
-
-#include <libinac/lib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <libinac/lib.h>
 
 /* Time value - opaque */
 typedef struct ina_time_s ina_time_t;
@@ -83,75 +63,16 @@ typedef struct ina_time_tsc_s {
 #endif
 
 
-#define INA_TIME_MAX_USERDATA_LEN (32)
-#define INA_TIME_MAX_STAMPS       (1024)
 
-
-#ifndef INA_TIME_STOPWATCH_DISABLED
-#define INA_TIME_STOPWATCH_CREATE(pptr_sw, id, max_stamps)  \
-    ina_time_stopwatch_create(pptr_sw, id, max_stamps) 
-#define INA_TIME_STOPWATCH_OPEN(id, pptr_sw)                \
-    ina_time_stopwatch_open(id, pptr_sw) 
-#define INA_TIME_STOPWATCH_DESTROY(pptr_sw)                 \
-    ina_time_stopwatch_destroy(pptr_sw)
-#define INA_TIME_STOPWATCH_START(ptr_sw)                    \
-    ina_time_stopwatch_start(ptr_sw,NULL)
-#define INA_TIME_STOPWATCH_START_EX(ptr_sw, ptr_start)      \
-    ina_time_stopwatch_start(ptr_sw,ptr_start)
-#define INA_TIME_STOPWATCH_STOP(ptr_sw)                     \
-    ina_time_stopwatch_stop(ptr_sw) 
-#define INA_TIME_STOPWATCH_STAMP(ptr_sw)                    \
-    ina_time_stopwatch_stamp(ptr_sw, NULL, NULL) 
-#define INA_TIME_STOPWATCH_STAMP1(ptr_sw, ud1)              \
-    ina_time_stopwatch_stamp(ptr_sw, ud1, NULL) 
-#define INA_TIME_STOPWATCH_STAMP2(ptr_sw, ud1, ud2)         \
-    ina_time_stopwatch_stamp(ptr_sw, ud1, ud2)
-#else
-#define INA_TIME_STOPWATCH_CREATE(pptr_sw, id, max_stamps)
-#define INA_TIME_STOPWATCH_OPEN(pptr_sw, id)
-#define INA_TIME_STOPWATCH_DESTROY(pptr_sw)
-#define INA_TIME_STOPWATCH_START(ptr_sw)
-#define INA_TIME_STOPWATCH_START_EX(ptr_sw, ptr_str)
-#define INA_TIME_STOPWATCH_STOP(ptr_sw)
-#define INA_TIME_STOPWATCH_STAMP(ptr_sw)
-#define INA_TIME_STOPWATCH_STAMP1(ptr_sw, ud1)
-#define INA_TIME_STOPWATCH_STAMP2(ptr_sw, ud1, ud2)
-#endif
-
-/* Stopwatch timestamp */
-typedef struct ina_stopwatch_ts_s {
-    ina_time_tsc_t stamp;
-    double sec_duration;
-    double msec_duration;
-    double usec_duration;
-    char user_data1[INA_TIME_MAX_USERDATA_LEN];
-    char user_data2[INA_TIME_MAX_USERDATA_LEN];
-} ina_stopwatch_ts_t;
-
-/* Stopwatch  data */
-typedef struct ina_stopwatch_tv_s {
-    ina_time_tsc_t start;          /* start time */
-    ina_time_tsc_t stop;           /* stop time */
-    size_t max_stamps;             /* max stamps, readonly */
-    volatile int64_t next_stamp;   /* next free stamp slot */
-    double sec_duration;           /* duration in sections */
-    double msec_duration;          /* duration in milliseconds */
-    double usec_duration;          /* duration in microseconds */
-    char pad[8];                   /* padding */
-    ina_stopwatch_ts_t stamps;     /* stamp records */
-} ina_stopwatch_tv_t;
-
-/* Stopwatch time values */
-typedef struct ina_stopwatch_s {
-    int32_t id;                    /* stop watch id */
-    char pad[4];                   /* padding */
-    ina_mempool_t *shared_mem;     /* allocated shared memory */
-    ina_stopwatch_tv_t *tv;        /* stopwatch data */
-    ina_stopwatch_ts_t *ts;        /* current time stamp */
-#ifdef INA_OS_WIN32
-    double freq_sec;               /* WIN32: tick count per second */
-#endif
-} ina_stopwatch_t;
+typedef enum ina_time_resolution_e {
+  INA_TIME_RESOLUTION_DFT = -1,
+  INA_TIME_RESOLUTION_NSEC,
+  INA_TIME_RESOLUTION_MSEC,
+  INA_TIME_RESOLUTION_USEC,
+  INA_TIME_RESOLUTION_SEC,
+  INA_TIME_RESOLUTION_HOUR,
+  INA_TIME_RESOLUTION_MIN,
+} ina_time_resolution_t;
 
 #define INA_TIME_BACKEND_NAME_MAXLEN (60)
 
@@ -222,7 +143,7 @@ INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_time_tsc_free(ina_time_tsc_t **time);
+INA_API(void) ina_time_tsc_free(ina_time_tsc_t **time);
 
 /*
  * Allocate system time.
@@ -387,119 +308,6 @@ INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
  */
 INA_API(ina_rc_t) ina_time_tsc_millis(ina_time_tsc_t *tsc, time_t *now_millis);
 
-/*
- * Creates a new stopwatch.
- *
- * Parameters
- *  stopwatch   Where to store the created stopwatch
- *  id          Unique identifier for the stopwatch
- *  max_stamps  Defines max number of stamps
- *
- * Return
- *  INA_SUCCESS if all went well
- */
-INA_API(ina_rc_t) ina_time_stopwatch_create(ina_stopwatch_t **stopwatch,
-                                            int id,
-                                            int max_stamps);
-
-/*
- * Open an existing stopwatch.
- *
- * Parameters
- *  stopwatch  Where to store the stopwatch
- *  id         Identifier of the stopwatch to open
- *
- * Return
- *  INA_SUCCESS if all went well
- */
-INA_API(ina_rc_t) ina_time_stopwatch_open(ina_stopwatch_t **stopwatch, int id);
-
-/*
- * Read a timestamp from a stopwatch
- *
- * Parameters
- *  stopwatch  Stopwatch
- *  index      Stamp index to read
- *
- * Return
- *  INA_SUCCESS if all went well
- */
-INA_API(ina_rc_t) ina_time_stopwatch_read_stamp(ina_stopwatch_t *stopwatch,
-                                                int64_t *index);
-
-/*
- * Destroy a stopwatch.
- *
- * Parameters
- *  stopwatch  Stopwatch to free
- *
- * Return
- *  INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_time_stopwatch_destroy(ina_stopwatch_t **stopwatch);
-
-/*
- * Check if stopwatch started.
- *
- * Parameters
- *  stopwatch  Stopwatch to verify
- *
- * Return
- *  INA_SUCCESS  stopwatch is started
- *  INA_FAILURE  stopwatch is stoppen
- */
-INA_API(ina_rc_t) ina_time_stopwatch_started(ina_stopwatch_t *stopwatch);
-
-
-/*
- * Check if stopwatch has valid values.
- *
- * Parameters
- *  stopwatch  Stopwatch to verify
- *
- * Return
- *  INA_SUCCESS  valid
- *  INA_FAILURE  invalid
- */
-INA_API(ina_rc_t) ina_time_stopwatch_valid(ina_stopwatch_t *stopwatch);
-
-/*
- * Start a stopwatch.
- *
- * Parameters
- *  stopwatch  Stopwatch to start
- *  start      Start time, NULL for current time.
- *
- * Return
- *  INA_SUCCESS if all went well.
- */
-INA_API(ina_rc_t) ina_time_stopwatch_start(ina_stopwatch_t* stopwatch,
-                                           ina_time_tsc_t *start);
-
-/*
- * Make a stamp.
- *
- * Parameters
- *  stopwatch   Stopwatch to stamp
- *  user_data1  User data to link
- *  user_data2  User data to link
- *
- * Return
- *  INA_SUCCESS if all went well
- */
-INA_API(ina_rc_t) ina_time_stopwatch_stamp(ina_stopwatch_t* stopwatch,
-                                           const char* user_data1,
-                                           const char* user_data2);
-/*
- * Stop a stopwatch.
- *
- * Parameters
- *  stopwatch  Stopwatch to stop.
- *
- * Return
- *  INA_SUCCESS if all went well
- */
-INA_API(ina_rc_t) ina_time_stopwatch_stop(ina_stopwatch_t* stopwatch);
 
 #ifdef __cplusplus
 }

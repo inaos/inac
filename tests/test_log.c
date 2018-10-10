@@ -1,61 +1,24 @@
 /*
- * Copyright (c) 2012-2013, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 
 INA_TEST(log, open_close_console)
 {
-    ina_log_cfg_t *cfg;
-    
-    cfg = NULL;
-
-    INA_TEST_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_STDOUT, INA_LOG_LEVEL_DEBUG, NULL));
-    INA_TEST_ASSERT_NOT_NULL(cfg);
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_LOG_STDOUT, cfg->target);
-    INA_TEST_ASSERT_EQUAL_FLOATING(INA_LOG_LEVEL_DEBUG, cfg->level);
-    /*INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test log entry, var=%d", 2));*/
-    INA_TEST_ASSERT_SUCCEED(ina_log_close(&cfg));
-    INA_TEST_ASSERT_NULL(cfg);
+    ina_log_t *log = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_log_init("test_log.conf"));
+    INA_TEST_ASSERT_SUCCEED(ina_log_new("test", &log));
+    INA_TEST_ASSERT_NOT_NULL(log);
+    INA_TEST_ASSERT_SUCCEED(ina_log(log, INA_LOG_LEVEL_DEBUG, INA_AT, "Test DEBUG log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log(log, INA_LOG_LEVEL_INFO, INA_AT, "Test INFO log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log(log, INA_LOG_LEVEL_WARNING, INA_AT, "Test WARNING entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log(log, INA_LOG_LEVEL_ERROR, INA_AT,"Test ERROR entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(INA_LOG_RC(log, INA_ES_FILE|INA_ERR_NOT_EXISTS));
+    ina_log_free(&log);
+    INA_TEST_ASSERT_NULL(log);
 }
-
-#ifndef INA_OS_WIN32
-INA_TEST(log, syslog)
-{
-  	ina_log_cfg_t *cfg = NULL;
-  
-    INA_TEST_ASSERT_SUCCEED(ina_log_open(&cfg, INA_LOG_SYSLOG, INA_LOG_LEVEL_DEBUG, "test"));
-    INA_TEST_ASSERT_NOT_NULL(cfg);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_LOG_SYSLOG, cfg->target);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_LOG_LEVEL_DEBUG, cfg->level);
-    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_DEBUG, "Test DEBUG log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_INFO, "Test INFO log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_WARNING, "Test WARNING log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(cfg, INA_LOG_LEVEL_ERROR, "Test ERROR log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log_close(&cfg));
-    INA_TEST_ASSERT_NULL(cfg);	
-}
-#endif

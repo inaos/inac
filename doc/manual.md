@@ -12,7 +12,7 @@ High level objectives:
 * Be minimal but complete (keep it simple)
 * High Performance
 * Low complexity
-* Low Resource consumption
+* Low resource consumption
 * Ease of maintenance, testing and debugging
 * Fully documented
 
@@ -25,7 +25,7 @@ Building on Windows requires some programs to be present on your system.
 ### Prerequisites
 
 * [Visual Studio 2017 Community Edition][1]
-* [CMake][2]
+* [CMake][3.x]
   * Use the binary installer you don't need to build from source
   * Make sure you add cmake to your PATH
 
@@ -46,18 +46,66 @@ Building on Windows requires some programs to be present on your system.
 To build the library, simply type `sudo make`. To select the debug build, 
 type `sudo make debug`.
 
+## Versioning and compatibility
+
+Describes the approach for API and ABI compatibility when INAC is used as binary dependency.
+
+### Decisions
+
+* INAC is only distributed as static library
+* Major releases break the compatibility
+* Minor releases are backward compatible ABI and API wise
+* Introduce compiler warnings to deprecate API's
+
+## Dependency handling
+
+* CMake based
+* User must provide:
+	* Repository: Local or URL (https://inaos.jfrog.io/inaos/webapp/...)
+	* Package name
+	* Version
+* CMake macro will compile full path
+* On Windows we use environment variable: ${ENV:VisualStudioVersion} for version info
+* Unpacking should happen in user home e.g. %USERPROFILE%\.ina\cmake\...
+* Transitive dependencies must be managed by the User. CMake will only throw and error if a library is not present
+
+
+## Guidelines
+
+### Resource management
+
+### General function argument structure and behavior
+
+* Output parameters to function are always after input parameters
+* Structure/Object creation follows the pattern: Output parameter pointer-to-pointer. Functions  always return error-codes expect `free()` and `destroy()` which are void.
+* Modules that require static resources provide `init()` and `destroy()` methods that have to be called by the user exactly once per process-lifetime. In debug mode the application will crash if `init()` or `destroy()` are executed more than once.
+* For every `_new` function call in a module the user has to issue a `_free` function call.
+* 
+
+### Initialization and destruction
+
+* For modules we should have only ```init()```and ```destroy()```. if we have a `init()` we must have a `destroy()` also.
+* For allocation we should have only ```new()```and ```free()```. if we have a `new()` we must have a `free()`
+* `init()` and `new()` must return always a valid RC for error handling
+* `destroy()` and `free` must always succeed. They are therefore exceptionally defined as INA_API(void). 
+* Errors during `destroy()` and `free()` must be logged
+* Errors in `destroy()` and `free()` should abort execution.
+* Output parameters for `init()` and `new()`  must be after input parameters.
+* Output parameters must be properly initialized by `init()` and `new()`. They should be set to NULL on failure 
+- `destroy()` and `free()` must set the pointer to NULL after releasing the resources.
+- Every `destroy()` and `free()` must check if the pointer-pointer argument can be dereferenced and should return if the pointer is already NULL.
+
+### Use of `const` keywords for pointer arguments in API functions
+
+Usage should reflect reality. Use only if memory is readonly! E.g. a constant parameter. Casting a `const` argument into a non constant pointer should be strictly avoided in the implementation.
+
+
 ## Compile time configuration
- * `INA_CSTRING_ENABLED`: Enable C-runtime strings (Default)
- * `INA_BSTRING_ENABLED`: Enable BSTRING string (The Better String Library)
- * `INA_ISTRING_ENABLED`: Enable INAOS string 
- * `INA_SYSMEMPOOL_SIZE`: Define the capacity in bytes of the internal memory 
-                          pool. Default is 8 MB		                  
  * `INA_TRACE_ENABLED`  : Enable/disable tracing. Default enabled.
  * `INA_TRACE_LEVEL`    : Set trace level (1-3). Default 1.
  * `INA_LOG_ENABLED`    : Enable/disable logging. Default enabled.
  * `INA_LOG_LEVEL`      : Set log level from 1 (errors) to 4(debug). 
                           Default 3 (info).
- 
 
 
 All constants are prefaced with `INA_` . Other identifiers are prefaced with
@@ -66,30 +114,22 @@ keyword need not be used.
 
 ## Starting to code
 
-Start by including the INOAS library header in your code:
+Start by including the INAOS library header in your code:
 
 	#include <libinac/lib.h>;
 
 ## For library consumers
 Initialize the library context as soon as possible:
 
-	ina_init(0);
-
-For each call of `ina_init()` you have to call `ina_exit()`. You can override
-the size system memory pool by passing the pool size in bytes as argument.  
-You can override the size system memory pool by passing the pool size in bytes 
-as argument to `ina_init(pool_size)`.
-For each call of `ina_init()` you have to call `ina_exit()`.   
+	ina_init();
 
 ## For applications
 For applications, initialize the application context with `ina_app_init()`. 
-This must be  the first function call in your program. You must call 
-`ina_exit()` once before you quit  your program. You can override the system 
-memory pool size by passing the pool size in bytes as third argument.
+This must be  the first function call in your program.
 
 	int main(int argc, char **argv,) 
 	{
-	    if (INA_SUCCEED(ina_app_init(argc, argv, 0, NULL)) {
+	    if (INA_SUCCEED(ina_app_init(argc, argv, NULL)) {
 	        while (... {
 	            ...
 	        }
@@ -122,14 +162,14 @@ The function fails with RC `INA_EOPT` if current command line options don't
 match with the registered definition and simple a usage screen will be printed 
 out to the standard output.
 
-	if (INA_SUCCEED(ina_app_init(argc, argv, 0, opt)) {
+	if (INA_SUCCEED(ina_app_init(argc, argv, opt)) {
 	    while (... {
 	            ...
 	    }
 
 To query a flag is whenever or not set use `ina_opt_isset()`:
 
-	if (INA_SUCCESS(ina_opt_isset("keep-alive")) {
+	if (INA_SUCCEED(ina_opt_isset("keep-alive")) {
 
 To get a int value use `ina_opt_get_int()`:
 	
@@ -226,27 +266,64 @@ __FIXME__
 
 ## Misc macros
 
+* INA_INLINE
+* INA_CASSERT
+* INA_LOW32
+* INA_HIGH32
+* INA_LOW
+* INA_HIGH
+* INA_TOWORD
+* INA_SIZE_T_FMT
+* INA_INT64_T_FMT
+* INA_UINT64_T_FMT
+* INA_ALIGNED
+* INA_VSALIGNEDxxx
+* INA_ALIGNEDxxx
+* INA_PACKED
+* INA_VS_BEGIN_PACK
+* INA_VS_ENDPACK_PACK
+* INA_PATH_SEPARATOR
+* INA_ASM
+* INA_VOLATILE
+* INA_ATOMIC_INC
+* INA_ATOMIC_DEC
+* INA_ATOMIC_SWAP
+* INA_LIKELY
+* INA_UNLIKELY
+* INA_RESTRICT
+* INA_BSWAP_16
+* INA_BSWAP_32
+* INA_BSWAP_64
+* INA_TLS
+* INA_DISABLE_WARNING_CLANG
+* INA_ENABLE_WARNING_CLANG
+* INA_DISABLE_WARNING_GCC
+* INA_ENABLE_WARNING_GCC
+* INA_DISABLE_WARNING_MSVC
+* INA_ENABLE_WARNING_MSVC
+
+
 __FIXME__
 
 # API Reference
 
 ## Library Version
 The INAOS Common C Library version is of the form A.B.C, where A is the major 
-version, B is the minor version and C is the micro version. If the micro 
-version is zero, it’s omitted from the version string, i.e. the version string 
+version, B is the minor version and C is the patch version. If the patch
+version is zero, it's omitted from the version string, i.e. the version string 
 is just A.B.
-When a new release only fixes bugs and doesn’t add new features or 
-functionality, the micro version is incremented. When new features are added
-in a backwards compatible way, the minor version is incremented and the micro 
+When a new release only fixes bugs and doesn't add new features or 
+functionality, the patch version is incremented. When new features are added
+in a backwards compatible way, the minor version is incremented and the patch
 version is set to zero. When there are backwards incompatible changes, the 
 major version is incremented and others are set to zero.
 
 The following preprocessor constants specify the current version of the 
 library:
 
-`INA_MAJOR_VERSION, INA_MINOR_VERSION, INA_MICRO_VERSION`
+`INA_MAJOR_VERSION, INA_MINOR_VERSION, INA_PATCH_VERSION`
 
-Integers specifying the major, minor and micro versions, respectively.
+Integers specifying the major, minor and patch versions, respectively.
 
 `INA_VERSION`
 
@@ -255,7 +332,7 @@ A string representation of the current version, e.g. "1.2.1" or "1.3".
 `INA_VERSION_HEX`
 
 A 3-byte hexadecimal representation of the version, e.g. 0x010201 for version 
-1.2.1 and 0x010300 for version 1.3. This is useful in numeric comparisions,
+1.2.1 and 0x010300 for version 1.3. This is useful in numeric comparisons,
 e.g.:
 
 	#if INA_VERSION_HEX >= 0x010201
@@ -264,211 +341,216 @@ e.g.:
 
 ## Strings
 
-__FIXME__
+__TODO__
 
 ## Error handling
 
-A good error handling should know as much as possible about an error. Things
-like when, where, what, who, is it handed or not, and "should I abort my 
-program" are such kind of information we want to know.  
-The "who" question isn't really easy to implement, so we omitted  it.
-
-Also important: Easy access to error information. That's why we pack the 
-'where', 'what', 'handled or not' and 'abort or not' in one single value. 
+A good error handling should know as much as possible about an error.  Easy and fast 
+access to the error information are also important. That's why INAC stores 
+ error information in one single value. 
 We call it 'Return Code' or simply RC. RC is defined by `ina_rc_t` which is 
-in fact a 32bit unsigned integer value. The RC is packed as follow:
+in fact a 64bit unsigned integer value and can contains an error indicator, API version 
+ information, Native OS error and application error message. Almost all API
+ The RC is packed as follow:
+  
+    RC 64bit mask
+    
+    |- 16bit header -|-------- 48bit descriptor  --------------------------|
+    |                |                 |-- 32bit error message           --|
+    |                |                          |9bit cde |                |
+    ERRRVVVV|RRRRRRRR|OOOOOOOO|OOOOOOOO|UUUUUUUU|AAAAAAAA|NSSSSSSS|SSSSSSSS|
+    | |  |       |          |              |         |     |    |
+    | |  |       |          |              |         |     |    +-->15 bit - Subject
+    | |  |       |          |              |         |     +-------> 1 bit - Negate flag
+    | |  |       |          |              |         +--- ---------> 8 bit - Adjective/verb
+    | |  |       |          |              +-----------------------> 8 bit - User defined data (unused)
+    | |  |       |          +-------------------------------------->16 bit - Native OS error
+    | |  |       +-------------------------------------------------> 8 bit - API revision
+    | |  +---------------------------------------------------------> 3 bit - API version
+    | +------------------------------------------------------------> 3 bit - Reserved    
+    +--------------------------------------------------------------> 1 bit - Error indicator
 
-	 32bit |IIIIIIII|IIMMMMMM|OOOOOFHR|RRRRRRRR|
-	            |         |     |  ||      +->  9bit - Reason
-	            |         |     |  |+-------->  1bit - Handled flag
-	            |         |     |  +--------->  1bit - Fatal flag
-	            |         |     +------------>  5bit - OS function identifier   
-	            |         +------------------>  6bit - Module identifier
-	            +----------------------------> 10bit - Error identifier
-To know if an error occurred use `INA_SUCCEED` macro, which returns `1` if no
-errors occurred or the last error was handled by a previous caller.
+INAC pursues the goal of understandable human error messages therefore the 
+error code contains information on adjective / verb, possible negation 
+and subject
 
-### Return Code
+#### Error indicator
+The highest bit is used (if ON) to indicate if the RC should be treated as a
+failure. Therefor one 
 
-#### Reason
 
-This value contain the error code (reason of failure). Values from 1-128 are
-reserved to the INAOS Common C Library. Define user error codes starting
-by 129. For instance:
+One can clear the error indicator with `ina_err_clear()`. This can be useful 
+when handling an error situation we need to return information about the 
+handled error.
+`` 
+ 
 
-	 #define INAWS_ERR_NOCONNECTION    INA_ERR_USER+1
+### API version information
+INAC store the API major and minor(revision) version in the RC. To extract 
 
-We can get access to the reason by `INA_RC_REASON` macro.
+#### Error message
+An error message has the form 'ADJECTIVE/VERB'  or ' NOT ADJECTIVE/VERB' like 
+"Empty", "Not valid", "Not initialized", "Not running", "Unavailable", etc.
+
+Additionally, one can be more specific on the error subject in the form of
+'SUBJECT + (NOT) + ADJECTIVE/VERB'  errors are also supported like
+"Argument invalid", "Network not initialized", "File not out", "Disk full", etc.
+
+INAC provides standard subjects and adjectives/verbs which can be used to 
+compose RCs. Subjects are identified by an 15 bit integer. Therefor there 
+are 32767 possible subjects. The first 1024 are reserved by INAC libraries.
+  
+Subjects can be app-defined. For this purpose INAC provides a user defined dictionary 
+callback function. Subjects are resolved by calling the user-provided dictionary 
+function of type `ina_err_subject_cb_t` which is registered by `ina_err_register_dict()`.
+The user defined dictionary is used to retrieve the full error message.
+
+INAC subjects and adj/verb are defined in `libinac/error.h` and should almost any
+kind of error for an application/library.
+
+	 #define INAWS_ERR_NOCONNECTION    INA_ERR_NOT_CONNECTED
+	 #define INAWS_ERR_CONNECT         INA_ES_CONNECTION|INA_ERR_NOT_CONNECTED
+
+
+There is also the possibility to define errors using user defined subjects. 
+Define first your user defined subjects:
+
+    #define INAWS_ES_WORKSTATION      INA_ES_USER_DEFINED+1
+    
+Then define the error message combining adjective/verb and subject
+
+    #define INAWS_ERR_WS_NOT_FOUND     INAWS_ES_WORKSRATION|INA_ERR_NOT_FOUND
+    
+Declare and implement a dictionary callback for the user defined subjects.
+
+    static const char* __get_err_getsubject(int id) {
+        switch (id) {
+            case INAWS_ES_WORKSTATION:
+                return "WORKSTATION";
+            default:
+                return "";
+        }
+    }
+
+Register your dictionary callback asap at program startup
+    
+    int main(int argc,  char** argv) {
+        ina_err_register_dict(__get_err_subject);
+    
+        ...
+     }
+    
+
+#### General
+Generally one will set error state by using _INA_ERROR()_
+
+    #define E_OBJ_IN_USE INA_ES_OBJECT|INA_ERR_IN_USE
+    #define E_FILE_IN_USE INA_ES_FILE|INA_ERR_IN_USE
+    
+    ina_rc_t release_object(obj_t m) {
+        if (m->c_ref != 0) {
+            return INA_ERROR(E_OBJ_IN_USE);
+        } else {
+            .. try to close file...
+            if (m->file_open) {
+               return INA_ERROR(E_FILE_IN_USE);
+            }
+            ...
+        }
+        return INA_SUCCESS;
+     }
+     
+     ....
+     if (INA_FAILED(release_object(m)) {
+        switch (INA_RC_ERROR(ina_err_get_rc())) {
+            case INA_ERR_IN_USE:
+                ...
+        }
+     
+    
+We can get access to the reason of failure by `INA_RC_ERROR` macro.
 
 	switch (INA_RC_REASON(rc)) {
-	   case INAWS_TOOMANY_FILES:
+	   case INAWS_ERR_CONNECT:
 	      .....
 
-#### Fatal Flag
+Use  _INA_SUCCEED()_ or _INA_FAILED()_ macro to determine if an RC is an
+error or not.
 
-Indicate whenever you should abort the program. Use `INA_ERR_FATAL(rc)` to 
-verify a fatal condition. For instance:
+    if (INA_SUCCEED(inaws_start_server()) {
+        ....
+    }
 
-	rc = inaws_server_start(...)
-	if (!INA_SUCCEED(rc)) {
-	    if (INA_ERR_FATAL(rc)) {
-	       --- abort here
-  
-#### Handled Flag
+    if (INA_FAILED(inaws_start_server()) {
+        ....
+    }    
+    
+#### Capture and handling of native errors 
+Use _INA_OS_ERROR() to capture the last native error. This is errno on
+unix based os and GetLastError() on Windows platforms. To extract the 
+native error code use the _INA_RC_ERRNO()_ macro.
+    
+    ina_rc_t openfile(const char* fn)
+    {
+        f = fopen("test.csv", "r");
+        if (f == NULL) {
+            INA_OS_ERROR(INA_ES_FILE|INA_ERR_NOT_OPEN);
+        }
+        return INA_SUCCESS
+    }
+    
+    ...
+    if (INA_FAILED(openfile(fn)) {
+        if (INA_RC_ERRNO(ina_err_get_rc()) == EFULL) {
+            
+    
+   
+### Return Code
 
-Indicate if an error was handled by a previous caller. Use `ina_err_clear` to
-mark an error as handled. For instance:
-
-	rc = inaws_server_start(...)
-	if (!INA_SUCCEED(rc)) {
-	   switch (INA_RC_REASON(rc)) {
-	      case INAWS_TOOMANY_FILES:
-	           ...do something to handle too many file problem ...
-	
-	           /* mark error as handled  
-	           ina_err_clear(rc);
-
-Once an error is marked as handled, there is no way to reset it to
-"unhandled".  By marking an error as handled, all previous pushed errors are 
-removed from the error state.
-
-
-#### OS function identifier
-
-Gives us the possibility to inform the caller about system function failure. 
-For instance `fopen()`. In such a case the caller could retry with other 
-parameters/values or let the user know about the real cause of failure. 
-Use the `INA_RC_OSFN` macro to retrieve the OS function identifier. 
-For instance:
-
-	rc = inaws_server_start(...
-	if (!INA_SUCCEED(rc)) {
-	   switch (INA_RC_REASON(rc)) {
-	      case INAWS_LOGFILE_ERROR:
-	          /* actually we want to check if there is a problem with fopen() */
-	          if (INA_RC_OSFN(rc) == INA_OSFN_FOPEN) {
-	               /* may be the ownership is wrong */
-	               if (!inaws_check_ownership(....) {
-	                  /* let the user know that he must fix file ownership or
-	                     fix the problem and retry again */
-	                ...
-					
-OS function identifiers are defined in `<libinac/error.h>`. Only those 
-identifiers are allowed. Don't define any others.  
-
-#### Module identifier
-
-Clearly identify the source (compilation unit) of error. For instance 
-`INA_MOD_STRING` identifies the string compilation unit. Developers can define
-their own identifiers. User defined modules should start with `INA_MOD_USER`.
-
-### Push and peek instead of throw and catch
-
-The basic concept of our error handling is that we push an error to a global
-error state. The error state is a simple  pointer array which stores a 
-certain number of errors (`__INA_ERR_STATE_SIZE`). In case the max number of 
-errors is reached, the "first in" error will be dropped from the state.
-
-The caller has the responsibility to take care about the pushed error(s).
-He has in fact, depending on the error situation, 4 options:
-
-1. Handle the error situation
-2. Leave it unhandled and push a new error.
-3. Leave it unhandled and return it to the caller
-4. Abort the program
-
-#### Push
-
-Use the `INA_ERR_PUSH` macro to push an error to the global error state.
-
-	INA_ERR_PUSH(INAWS_ERR_NOCONNECT, 
-	    INAWS_MOD_SERVER, INA_OSFN_NONE, "Connection failed");
-
-For simplification, use the `INA_ERR_PUSH_BASIC` or `INA_ERR_PUSH_OSFN` 
-macros on depending the error information you have.
-
-	INA_ERR_PUSH_BASIC(INAWS_ERR_NOCONNECT, "Connection failed");
-	INA_ERR_PUSH_OSFN(INAWS_ERR_NOCONNECT, INA_OSFN_NONE, "Connection failed");
-
-#### Peek
-
-With a peek operation we get the first unhandled error from the global state. 
-Call `ina_err_peek()`to peek. Peek doesn't drop the error. For instance:
-  
-	if (!INA_SUCCEED(inaws_server_start())) {
-	    rc = ina_err_peek();
-	    ... do something now!
-
-To know what is the first pushed error we use `ina_err_peek_last()`. It's 
-maybe confusing but, in fact the first pushed error is the last error in our
-global error state.  In others words, `ina_err_peek_last()` returns the root 
-of failure (until no errors were dropped) .
-
-We can walk through the global error state by using `ina_err_peek()` and 
-`ina_err_peek_next()`
-
-	if (!INA_SUCCEED(inaws_server_start())) {
-	    rc = ina_err_peek();
-	    while (!INA_SUCCEED(rc)) {
-	       /* check if we must abort ... */
-	      if (INA_ERR_FATAL(RC)) {
-	        abort();
-	      }
-	      rc = ina_err_peek_next(rc);
-	    }
-		
-For simplification we can set our RC to `INA_ERR_PEEK_FIRST` and then walk 
-through using `ina_err_peek_next()`.
-
-	    rc =  INA_ERR_PEEK_FIRST;
-	    while (!(rc = ina_err_peek_next(rc)) {
-	       /* check if we must abort ... */
-	      if (INA_ERR_FATAL(RC)) {
-	        abort();
-	      }
-		}
+#### Error flag
+Indicate RC is an error. Use  _INA_EFLAG()_ to extract the error flag.
+#### Version
+Contains the major version number defined by _INA_ERROR_VER_ or 0 if not defined.
+Use _INA_RC_VER()_ to extract the version number from RC.
+#### Revision
+Contains the revision number defined by _INA_ERROR_REV_. Use _INA_RC_REV()_ to extract the
+revision number from.
+#### Native OS error 
+Contains the captured native error code. Use _INA_RC_ERRNO()_ to extract the
+native error code.
+#### Negate flag
+Use _INA_RC_NFLAG()_ to extract the negate flag. 
+#### Attribute code
+There are a max of 256 predefined error code
+#### User defined code
 
 #### Cleanup the error state
 
-To reset the entire error state use `ina_err_reset()`. All errors including 
-the most recently  pushed are removed from the error state.
+To reset the  error state use `ina_err_reset()`. 
 
 	/* make sure error state is clean */
 	ina_err_reset();
 	/* do the work now */
-	if (!INA_SUCCEED(inaws_server_start())) {
-	    rc = ina_err_peek();
-	    if (!INA_ERR_FATAL(RC)) 
+	if (INA_FAILED(inaws_server_start())) {
 
-### Cleanup handler
+### Logging
+U
 
-There is a possibility to define a callback function which is called in case 
-the program is being terminated because of fatal error like segmentation fault
-or an interruption request like ctrl-c.
-Use `ina_err_set_cleanup_handler()` to define such a callback. 
-Keep in mind that this cleanup handler will be called only in case of abnormal
-program termination.
 
-### Utilities
 
-The error handling module of this library provide two useful functions. They 
-are used internally but they are for public use as well.
-
-- `ina_err_trace()` printout current error state to the standard output.
 
 ## Memory Handling
 
 The INAOS Common C Library provide custom memory allocation and memory pooling.
 Main Goals of those components:
 
-- Avoid memory leaks. Especially in continuos server processes.
+- Avoid memory leaks. Especially in continuous server processes.
 - Speed. By reducing significantly time consuming memory allocations and 
   employing better memory allocators.
 - Hide complexity. In fact consumers doesn't have to care about releasing
   previously allocated memory.
 
 ### Architecture
-#### Internal memory pool
 #### Allocator
 #### Memory Pool
 ##### Fixed sized pool
@@ -570,26 +652,26 @@ hold the instance for the configuration file.
     
 Declare 
 
-    INA_CONFFILE(cf,
+    INA_CONFFILE(cf, NULL,
         INA_CONFFILE_SECTION("debug", INA_YES, NULL,
             INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES)),
         INA_CONFFILE_NAMED_SECTION("iface", INA_NO, NULL,
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_NUMBER_KEY("mask", INA_NO)));
 
-Create a configuration file instance by calling `ina_conffile_init()`.
+Create a configuration file instance by calling `ina_conffile_new()`.
 
     ina_conffile_t *cf = NULL;
    
-    if (INA_SUCCEED(ina_conffile_init(&cf, NULL)) {
+    if (INA_SUCCEED(ina_conffile_new(&cf, NULL)) {
 
 After calling you will get an new configurations file instance. You can 
-optinally pass a filepath as second argument to overide the standard pattern of
-configuation file location. By convention the configuration file path is 
+optionally pass a file path as second argument to override the standard pattern of
+configuration file location. By convention the configuration file path is 
 [binary-name].conf in the current working directory if nothing else is 
 specified.
 
-Remember that each instance need to be destroyed with `ina_conffile_destroy()`. 
+Remember that each instance need to be destroyed with `ina_conffile_free()`. 
 
 Define section and keys
    	
@@ -605,7 +687,7 @@ Define section and keys
     /* Add a unamed section */
     ina_conffile_add_section(cf, &section, "iface", INA_YES);
 
-Sample processor witten un LUA
+Sample processor written in Lua
 
     -- sample processor
     for sk,s in pairs(sections) do
@@ -644,10 +726,10 @@ maintenance or administration, though its general-purpose nature means that it
 can be used for such things as connecting to the Internet and downloading email.
 
 This introduction also explains why we have named our scheduling component 
-Cron. Frist of all because its has the same functional goals as cron deamon 
+Cron. First of all because its has the same functional goals as cron daemon 
 has for an OS our cron is targeted at server-applications that have to execute
 general tasks according to a schedule. Second reason is because it uses the
-same syntax as the well know cron deamon to define tasks.
+same syntax as the well know cron daemon to define tasks.
 
 ### Overview
 
@@ -659,7 +741,7 @@ There are two main design choices that are important to know up-front:
    a batch style activity. Therefore it only takes the path and arguments to
    the executable as arguments.
    
-2. One has multipe options to persist the task definitions. The Cron component
+2. One has multiple options to persist the task definitions. The Cron component
    itself does not support any persistence. However it defines callback methods
    that one can implement to persist task definitions.
    
@@ -678,7 +760,7 @@ Then add a task:
 
     ina_str_t cmd = ina_str_fromcstr("pwd.exe .");
     ina_str_t wd = ina_str_fromcstr("c:\\windows");
-    INA_SUCCEED(ina_cron_task_add(ctx, "pwd", "0 23 * * *", 0, cmd, wd));
+    INA_SUCCEED(ina_cron_task_new(ctx, "pwd", "0 23 * * *", 0, cmd, wd));
     ina_str_destroy(cmd);
     ina_str_destroy(wd);
 	
@@ -843,6 +925,7 @@ from the library itself.
  * Minimal memory footprint (no allocations)
  * Supports test helpers
  * Working the same way on Linux/OS-X/Win 
+ * Support tap and junit result format
  
 Possibles improvements:
 
@@ -911,6 +994,12 @@ From the command line prompt you can start all tests or a single suite
 
     ./test
     ./test test_suite
+    
+You can choose alternative result formats like `tap` or `JUnit` with the 
+`format` options.
+
+    ./test --format=tap
+    ./test --format=junit
 
     
 #### Helpers 
@@ -997,11 +1086,176 @@ To test or start an in-situ helper from the command line juste type
         INA_TEST_ASSERT_TRUE(dns_ping("120.0.0.1", 9001));  
     }
 
-#### Performance testing
+### Performance testing
 
-__FIXME__
+#### Features
+ * Easy adding benchmarks test with minimal effort. Non header files required.
+ * CSV output
+ * Integrated stopwatch
+ * Supports skipping series
+ * Minimal memory footprint
+ * Working the same way on Linux, Windows and OS X 
+ 
+#### Adding benchmarks
+To add a benchmark use the INA_BENCH_* macros. Every benchmark is composed at least 
+of 1 series which is executed at least 1 time. A benchmark has the following phases:
+- __Setup__: called for every series in the benchmark
+- __Begin__: called once for a series
+- __Scale__: called for the current series at every iteration 
+- __Benchmark__: called for the current series at every iteration
+- __End__: called once for a series
+- __Teardown__: called for every series in the benchmark
+
+Every phase must be declared by the corresponding macro.
+
+##### The setup phase
+
+Use _INA_BENCH_SETUP_ to define the setup phase. This phase is destined to run 
+common setup code for series.
+
+`INA_BENCH_SETUP([benchmark name])`
+
+You may call _ina_bench_set_scale_label()_, _ina_bench_get_iterations()_, 
+_ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
+
+```C
+INA_BENCH_SETUP(sort) {
+    ina_bench_set_scale_label("ns");
+    data->nr_of_elements = 1000000;
+    data->elements = ina_mem_alloc(sizeof(element)*data->nr_of_elements);
+}
+```
+
+If the setup phase is not need just declare it with an empty body. 
+
+```C
+INA_BENCH_SETUP(sort) {}
+```
+
+##### The begin phase
+The begin phase is designated to run setup code for a single series.
+
+`INA_BENCH_BEGIN([benchmark name], [series name])`
+
+You may call _ina_bench_get_iterations()_, 
+_ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
+
+```C
+INA_BENCH_BEGIN(sort, quick_sort) {
+    data->sort_fn = __ina_quicksort;
+}
+
+```
+If the begin phase is not need just declare it with an empty body. 
+```
+INA_BENCH_BEGIN(sort, quick_sort) {}
+```
+
+##### The scale phase
+The scale phase is intended to capture the scale value. You need to
+call _ina_bench_set_scale()_ before leaving the phase. This phase is called 
+for each iteration just before running the benchmark code.
+
+`INA_BENCH_SCALE([benchmark name])`
+
+You may also call _ina_bench_get_iterations()_, _ina_bench_get_iteration()_, 
+_ina_bench_get_name()_, _ina_bench_get_series_name()_, 
+_ina_bench_stopwatch_start()_ during this phase.
+
+```C
+INA_BENCH_SCALE(sort) {
+    ina_bench_set_scale(data->nr_of_elements*ina_bench_get_iteration());
+}
+```
 
 
+##### The benchmark phase
+This phase is intended to run the effective benchmark code and capture the
+measurement. The benchmark phase is called for each series and iteration. 
+_ina_bench_set_value()_ must called  before leaving the benchmark phase.
+
+```INA_BENCH(benchmark name], [series name], [nr of iterations])```
+
+Most of the time the measurements consists of time measurements 
+. The benchmark framework provide _ina_bench_stopwatch_start()_ and 
+_ina_bench_stopwatch_stop()_ to this end.
+
+You may also call _ina_bench_get_iterations()_, _ina_bench_get_iteration()_, 
+_ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
+
+```C
+INA_BENCH(sort, quick_sort, 100) {
+    ina_bench_stopwatch_start();
+    data->sort_fn(data->elements, data->nr_of_elements);
+    ina_bench_set_value(ina_bench_stopwatch_stop());
+}
+```
+
+##### The end phase
+The begin phase is designated to run cleanup code for a single series.
+
+`INA_BENCH_END([benchmark name], [series name])`
+
+You may also call _ina_bench_get_iterations()_,  _ina_bench_get_name()_, 
+_ina_bench_get_series_name()_, _ina_bench_stopwatch_stop()_ during 
+this phase.
+
+```C
+INA_BENCHEND(sort, quick_sort) {
+   __ina_do_something_after_bench();
+}
+```
+
+If the end phase is not need just declare it with an empty body. 
+```
+INA_BENCH_END(sort, quick_sort) {}
+```
+
+##### The teardown phase
+Use _INA_BENCH_TEARDOWN_ to define the teardown phase. This phase is 
+destined to run common teardown code for series.
+
+`INA_BENCH_TEARDOWN([benchmark name])`
+
+You may call _ina_bench_get_iterations()_, _ina_bench_get_name()_, 
+_ina_bench_get_series_name()_ during this phase.
+
+```C
+
+INA_BENCH_TEARDOWN(sort) {
+    ina_mem_free(data->elements);
+}
+```
+
+If the teardown phase is not need just declare it with an empty body. 
+
+```C
+INA_BENCH_TEARDOWN(sort) {}
+```
+
+#### How to run benchmarks
+
+To run the benchmarks simply call _ina_bench_run()_ by passing arguments count and 
+arguments received from the command line.
+
+    int main(int argc, char** argv) 
+    { 
+        ina_bench_run(argc, argv);
+
+From the command line prompt you can run all benchmarks, a single benchmark or
+a group of benchmarks. 
+
+    ./bench
+    ./bench my_benchmark
+    ./bench my_
+
+The location where reports should be stored can be specified with 
+_-r_ or _--report-path_ as first command line option.
+
+    ./bench -r=/home/reports
+    ./bench --report-path=/home/reports my_benchmark
+    
+If omitted the reports are generated in the working directory.
 
 
 [1]:	https://www.visualstudio.com/downloads/

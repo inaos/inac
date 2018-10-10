@@ -1,30 +1,11 @@
 /*
-* Copyright (c) 2016, INAOS GmbH
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*     * Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*     * Neither the name of the INAOS GmbH nor the names of its contributors
-*       may be used to endorse or promote products derived from this software 
-*       without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-* ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-* OF SUCH DAMAGE.
-*/
+ * Copyright INAOS GmbH, Thalwil, 2016-2018. All rights reserved
+ *
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
+ */
 #include <libinac/lib.h>
 
 typedef struct __ina_test_hash32_info_s {
@@ -55,8 +36,8 @@ typedef struct __ina_hash_test_call_wrapper_s {
 } __ina_hash_test_call_wrapper_t;
 
 static __ina_hash_rand_t __ina_hash_test_rand;
-static __ina_test_hash32_info_t __hash32_all[13];
-static __ina_test_hash64_info_t __hash64_all[7];
+static __ina_test_hash32_info_t __hash32_all[15];
+static __ina_test_hash64_info_t __hash64_all[9];
 
 static void __ina_hash_test_mix()
 {
@@ -332,9 +313,19 @@ static void __ina_hash_test_init32(int has_aes_support)
         __hash32_all[12].test1_expected = 1;
         __hash32_all[12].test2_expected = 1;
     }
+
+	__hash32_all[13].hash = ina_hash_32_t1ha1;
+	__hash32_all[13].name = ina_str_new_fromcstr("t1ha1");
+	__hash32_all[13].test1_expected = 1;
+	__hash32_all[13].test2_expected = 1;
+
+	__hash32_all[14].hash = ina_hash_32_t1ha0;
+	__hash32_all[14].name = ina_str_new_fromcstr("t1ha0");
+	__hash32_all[14].test1_expected = 1;
+	__hash32_all[14].test2_expected = 1;
 }
 
-INA_TEST(hash, all_32_bit) {
+INA_TEST_SKIP(hash, all_32_bit) {
     int i;
     int aes_hw_support = 0;
     ina_cpu_feature_t cpu_features;
@@ -388,9 +379,15 @@ static void __ina_hash_test_init64(int has_aes_support)
         __hash64_all[6].hash = ina_hash_64_falkhash;
         __hash64_all[6].name = ina_str_new_fromcstr("falkhash");
     }
+
+	__hash64_all[7].hash = ina_hash_64_t1ha1;
+	__hash64_all[7].name = ina_str_new_fromcstr("t1ha1");
+
+	__hash64_all[8].hash = ina_hash_64_t1ha0;
+	__hash64_all[8].name = ina_str_new_fromcstr("t1ha0");
 }
                             
-INA_TEST(hash, all_64_bit)
+INA_TEST_SKIP(hash, all_64_bit)
 {
     int i;
     int aes_hw_support = 0;
@@ -417,4 +414,43 @@ INA_TEST(hash, all_64_bit)
             __ina_hash_test_appended_zeroes_test(hi->name, &w, 64, 1);
         }
     }
+}
+
+
+INA_TEST_SKIP(hash, sdbm_macro)
+{
+    ina_str_t str = NULL;
+    str = ina_str_new_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_FLOATING(1195757874, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
+}
+
+INA_TEST_SKIP(hash, sdbm)
+{
+    ina_str_t str = NULL;
+    str = ina_str_new_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_FLOATING(1195757874, ina_hash_sdbm(0, str, ina_str_len(str)));
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_hash_sdbm(0, str, ina_str_len(str)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(1732587620, ina_hash_sdbm(1195757874, str, ina_str_len(str)));
+}
+
+INA_TEST_SKIP(hash, crc32_macro)
+{
+    ina_str_t str = NULL;
+    str = ina_str_new_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_FLOATING(3632233996, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
+}
+
+INA_TEST_SKIP(hash, crc32)
+{
+    ina_str_t str = NULL;
+    str = ina_str_new_fromcstr("test");
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_FLOATING(3632233996, ina_hash_crc32(0, str, ina_str_len(str)));
+    INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_hash_crc32(0, str, ina_str_len(str)));
+    INA_TEST_ASSERT_EQUAL_FLOATING(3966352177, ina_hash_crc32(3632233996, str, ina_str_len(str)));
 }

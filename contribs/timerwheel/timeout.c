@@ -1,7 +1,7 @@
 /* ==========================================================================
  * timeout.c - Tickless hierarchical timing wheel.
  * --------------------------------------------------------------------------
- * Copyright (c) 2013, 2014  William Ahern
+ * Copyright (c) 2013, 2014, 2016  William Ahern
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -274,7 +274,8 @@ static struct timeouts *timeouts_init(struct timeouts *T, timeout_t hz) {
 TIMEOUT_PUBLIC struct timeouts *timeouts_open(timeout_t hz, int *error, timeout_alloc memalloc, timeout_free memfree) {
 	struct timeouts *T;
 
-	if ((T = memalloc(sizeof *T))) {
+	T = memalloc(sizeof *T);
+	if (T != NULL) {
         T->mem_alloc = memalloc;
         T->mem_free = memfree;
 		return timeouts_init(T, hz);
@@ -331,8 +332,8 @@ TIMEOUT_PUBLIC void timeouts_del(struct timeouts *T, struct timeout *to) {
 
 		if (to->pending != &T->expired && TAILQ_EMPTY(to->pending)) {
 			ptrdiff_t index = to->pending - &T->wheel[0][0];
-			int wheel = index / WHEEL_LEN;
-			int slot = index % WHEEL_LEN;
+			int wheel = (int)index / WHEEL_LEN;
+			int slot = (int)index % WHEEL_LEN;
 
 			T->pending[wheel] &= ~(WHEEL_C(1) << slot);
 		}
@@ -389,18 +390,13 @@ static void timeouts_readd(struct timeouts *T, struct timeout *to) {
 	to->expires += to->interval;
 
 	if (to->expires <= T->curtime) {
-		if (to->expires < T->curtime) {
-			timeout_t n = T->curtime - to->expires;
-			timeout_t q = n / to->interval;
-			timeout_t r = n % to->interval;
-
-			if (r)
-				to->expires += (to->interval * q) + (to->interval - r);
-			else
-				to->expires += (to->interval * q);
-		} else {
-			to->expires += to->interval;
-		}
+	    /* If we've missed the next firing of this timeout, reschedule
+ 	     * it to occur at the next multiple of its interval after
+ 	     * the last time that it fired.
+ 	     */
+ 	    timeout_t n = T->curtime - to->expires;
+ 	    timeout_t r = n % to->interval;
+ 	    to->expires = T->curtime + (to->interval - r);
 	}
 
 	timeouts_sched(T, to, to->expires);
@@ -632,7 +628,8 @@ TIMEOUT_PUBLIC int timeouts_check(struct timeouts *T, FILE *fp) {
 	timeout_t timeout;
 	struct timeout *to;
 
-	if ((to = timeouts_min(T))) {
+	to = timeouts_min(T);
+	if (to != NULL) {
 		check(to->expires > T->curtime, "missed timeout (expires:%" TIMEOUT_PRIu " <= curtime:%" TIMEOUT_PRIu ")\n", to->expires, T->curtime);
 
 		timeout = timeouts_int(T);

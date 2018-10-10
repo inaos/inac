@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2012-2016 INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_MEMPOOL_H_
 #define _LIBINAC_MEMPOOL_H_
@@ -31,8 +12,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
-/* TODO: rename all constants to INA_MEMPOOL_.... */
+
+#include <libinac/lib.h>
+
+/* TODO: rename all constants to INA_MEMPOOL_.... */
 #define INA_MEM_DFT_POOL_SIZE (8*1024*1204)
 /* Minimal allowed pool size */
 #define INA_MEM_MIN_POOL_SIZE (1024)
@@ -54,6 +37,8 @@ extern "C" {
 #define INA_MEM_SHARED_OWNER    (128)
 /* Open shared memory exclusive */
 #define INA_MEM_SHARED_EXCL    (256)
+/* Do not fill zero on creation */
+#define INA_MEM_NOZEROFILL     (512)
 
 /* Opaque emory pool handle */
 typedef struct ina_mempool_s ina_mempool_t;
@@ -84,48 +69,6 @@ typedef struct ina_mempool_event_info_s {
 typedef ina_rc_t (*ina_mempool_event_handler_t)
         (const ina_mempool_event_info_t*, size_t*);
 
-/*
- * Set custom allocator function to use with memory pools.
- * If NULL is given standard memmory handler will be used.
- *
- * This function should be called once and as soon as possible after 
- * ina_libinit() or ina_appinit().
- *
- * Parameters:
- *  malloc_fn    Pointer to the custom malloc() function
- *  free_fn      Pointer to the custom free() function
- *  realloc_fn   Pointer to the custom realloc() function
- *
- * Return
- *  INA_SUCCESS if no error occurred.
- */
-INA_API(ina_rc_t) ina_mempool_set_fn(ina_malloc_t malloc_fn,
-                                 ina_free_t free_fn,
-                                 ina_realloc_t realloc_fn);
-
-/* 
- * Initialize internal structures an allocate the internal memory pool. This
- * system pool will automatically increase his size if needed.
- *
- * Parameters
- *  size  Initial size in bytes
- *
- * Return
- *  INA_SUCCESS when the system memory pool was successfully allocated.
- *  INA_FAILURE if an error  occurred
- */
-INA_API(ina_rc_t) ina_mempool_init(size_t size);
-
-/*
- * Destroy all memory pools.
- *
- * Release and destroy all memory pools and internal structures. Once called, 
- * ina_mempool_init() must be called to reuse memory pools.
- *
- * Return
- *  INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_mempool_destroy(void);
 
 /* 
  * Get runtime imformations about a memory pool.
@@ -137,34 +80,8 @@ INA_API(ina_rc_t) ina_mempool_destroy(void);
  * Return
  *  INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_mempool_getinfo(ina_mempool_t *pool,
-                                      ina_mempool_info_t *info);
-
-/* 
- * Get a memory pool by label.
- *
- * Parameters
- *  label    Pool label.
- *  pool     Pointer to a memory pool pointer. Hold the memory pool.
- *
- * Return
- *  INA_SUCCESS if pool was found otherwise INA_FAILURE
- */
-INA_API(ina_rc_t) ina_mempool_getbylabel(const char* label,
-                                         ina_mempool_t **pool);
-
-/* 
- * Get a memory pool by pointer.
- *
- * Parameters
- *  ptr   Pointer to find.
- *  pool  Pointer to a memory pool pointer. Hold the memory pool.
- *
- * Return
- *  INA_SUCCESS if pool was found otherwise INA_FAILURE
- */
-INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr,
-                                           ina_mempool_t **pool);
+INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool,
+                                   ina_mempool_info_t *info);
 
 /* 
  * Creates a memory pool.
@@ -178,23 +95,29 @@ INA_API(ina_rc_t) ina_mempool_getbypointer(const void *ptr,
  * Return
  *  INA_SUCCESS if pool was craeted successfully.
  */
-INA_API(ina_rc_t) ina_mempool_create(ina_mempool_t **pool,
-                                     size_t size,
-                                     uint32_t cf,
-                                     const char* label);
+INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool);
 
 /* 
- * Releases a memory pool.
+ * Free a memory pool.
  *
  * Parameters
- *  pool     Memory pool to release
- *  destroy  INA_YES to destroy an deallocate memory or IN_NO to reset the
- *           pool to the original size
+ *  pool     Memory pool to free
+ */
+INA_API(void) ina_mempool_free(ina_mempool_t **pool);
+
+/*
+ * Merge a memory pools.
+ *
+ * Parameters
+ *  dest  Destination
+ *  src   Source, pool that will be merged into dest. After this call the src
+ *        content is undefined and you should not use it anymore.
  *
  * Return
- *  INA_SUCCESS
+ *  INA_SUCCESS if all went well
+ *  INA_EOP     if trying to merge shared memory pool
  */
-INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy);
+INA_API(ina_rc_t) ina_mempool_merge(ina_mempool_t *dest, ina_mempool_t *src);
 
 /*
  * Shrink a memory pool.
@@ -210,6 +133,17 @@ INA_API(ina_rc_t) ina_mempool_release(ina_mempool_t *pool, int destroy);
 INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool,
                                      size_t chunks,
                                      ina_mempool_info_t *info);
+
+/*
+ * Clear a memory pool, fill all chunks with 0.
+ *
+ * Parameters
+ *  pool  Memory pool to clear.
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_mempool_clear(ina_mempool_t *pool);
 
 /*
  * Reset a memory pool.
@@ -235,16 +169,6 @@ INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
  *   kind of variable
  */
 INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
-
-/*
- * Free reallocable memory from a pool.
- *
- * Parameters
- *  pool  Memory pool
- *  ptr   Pointer to the previously allocated memory.
- *  size  size
- */
-INA_API(ina_rc_t) ina_mempool_free(ina_mempool_t *pool, void *ptr, size_t size);
 
 /*
  * Allocate not reallocable memory from a pool.

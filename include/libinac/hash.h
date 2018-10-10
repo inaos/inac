@@ -1,38 +1,85 @@
 /*
- * Copyright (c) 2014-2016, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_HASH_H_
 #define _LIBINAC_HASH_H_
 
-#include <libinac/lib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libinac/lib.h>
+
+#define INA_HASH_CSTR_TO_CRC32(s) ina_hash_crc32(0, s, strlen(s))
+#define INA_HASH_CSTR_TO_SDBM(s)  ina_hash_sdbm(0, s, strlen(s))
+#define INA_HASH_STR_TO_CRC32(s) ina_hash_crc32(0, ina_str_cstr(s), ina_str_len(s))
+#define INA_HASH_STR_TO_SDBM(s)  ina_hash_sdbm(0, ina_str_cstr(s), ina_str_len(s))
+
+typedef enum ina_hash_type_e {
+    INA_HASH_DEFAULT = -1,
+    INA_HASH32_CRC,
+    INA_HASH32_LOOKUP3,
+    INA_HASH32_DJB,
+    INA_HASH32_JENKINS_OOAT,
+    INA_HASH32_FNV,
+    INA_HASH32_SUPERFAST,
+    INA_HASH32_SDBM,
+    INA_HASH32_FNV_YOSHIMITSU,
+    INA_HASH32_MURMUR3,
+    INA_HASH32_SPOOKY,
+    INA_HASH32_XXHASH,
+    INA_HASH32_CRC_HW,
+    INA_HASH32_MEMMASH,
+    INA_HASH32_FALKHASH,
+    INA_HASH32_T1HA0,
+    INA_HASH32_T1HA1,
+#ifdef INA_CPU_X86_64
+    INA_HASH64_LOCKUP3,
+    INA_HASH64_FNV,
+    INA_HASH64_SPOOKY,
+    INA_HASH64_XXHASH,
+    INA_HASH64_CRC_HW,
+    INA_HASH64_MEMMASH,
+    INA_HASH64_FALKHASH,
+    INA_HASH64_T1HA0,
+    INA_HASH64_T1HA1
+#endif
+} ina_hash_type_t;
+
+INA_API(const char*) ina_hash_name(ina_hash_type_t hash_type);
+
+INA_API(ina_rc_t) ina_hash_type(const char *hash_name, ina_hash_type_t *hash_type);
+
+/*
+ * Calculate 32bit CRC hash
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return Value
+ *  Hash
+ */
+INA_API(uint32_t) ina_hash_crc32(uint32_t hashh, const void *data, size_t size);
+
+/*
+ * Calculate 32bit SDBM hash
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return Value
+ *  Hash
+ */
+INA_API(uint32_t) ina_hash_sdbm(uint32_t hash, const void *data, size_t size);
 
 /*
  * DESIGN:
@@ -75,7 +122,7 @@ typedef uint64_t (*ina_hash_int64_func_64_t)(uint64_t key);
  * Return
  *  Hash
  */
-uint32_t INA_INLINE ina_hash_32_wang_int8(uint8_t key8)
+INA_INLINE uint32_t ina_hash_32_wang_int8(uint8_t key8)
 {
     uint32_t key = key8;
     key += ~(key << 15);
@@ -97,7 +144,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int8(uint8_t key8)
  * Return
  *  Hash
  */
-uint32_t INA_INLINE ina_hash_32_wang_int16(uint16_t key16)
+INA_INLINE uint32_t ina_hash_32_wang_int16(uint16_t key16)
 {
     uint32_t key = key16;
     key += ~(key << 15);
@@ -119,7 +166,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int16(uint16_t key16)
  * Return
  *  Hash
  */
-uint32_t INA_INLINE ina_hash_32_wang_int32(uint32_t key)
+INA_INLINE uint32_t ina_hash_32_wang_int32(uint32_t key)
 {
     key += ~(key << 15);
     key ^= (key >> 10);
@@ -140,7 +187,7 @@ uint32_t INA_INLINE ina_hash_32_wang_int32(uint32_t key)
  * Return
  *  Hash
  */
-uint32_t INA_INLINE ina_hash_32_jenkins_int32(uint32_t key)
+INA_INLINE uint32_t ina_hash_32_jenkins_int32(uint32_t key)
 {
     key -= key << 6;
 	key ^= key >> 17;
@@ -162,7 +209,7 @@ uint32_t INA_INLINE ina_hash_32_jenkins_int32(uint32_t key)
  * Return
  *  Hash
  */
-uint64_t INA_INLINE ina_hash_64_wang_int64(uint64_t key)
+INA_INLINE uint64_t ina_hash_64_wang_int64(uint64_t key)
 {
     key = ~key + (key << 21);
 	key = key ^ (key >> 24);
@@ -230,7 +277,7 @@ INA_API(uint32_t) ina_hash_32_djb(uint32_t hash, const void *data, size_t size);
  */
 INA_API(uint32_t) ina_hash_32_jenkins_ooat(uint32_t hash, const void *data, size_t size);
 /*
- * Calculate 32bit FNV (Fowler�Noll�Vo) hash
+ * Calculate 32bit FNV (Fowler-Noll-Vo) hash
  *
  * Source: Wikipedia
  *
@@ -244,7 +291,7 @@ INA_API(uint32_t) ina_hash_32_jenkins_ooat(uint32_t hash, const void *data, size
  */
 INA_API(uint32_t) ina_hash_32_fnv(uint32_t hash, const void *data, size_t size);
 /*
- * Calculate 64bit FNV (Fowler�Noll�Vo) hash
+ * Calculate 64bit FNV (Fowler-Noll-Vo) hash
  *
  * Source: Wikipedia
  *
@@ -290,6 +337,8 @@ INA_API(uint32_t) ina_hash_32_sdbm(uint32_t hash, const void *data, size_t size)
  *
  * Source: www.sanmayce.com/Fastest_Hash/index.html
  *
+ * Limitations: This hash function could behave undefined in case 'size' is > 32bit
+ *
  * Parameters
  *  hash   starting hash
  *  data   data to hash
@@ -303,6 +352,8 @@ INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, si
  * Calculate 32bit Murmur3 hash from Austin Appleby
  *
  * Source: C port by Shane Day
+ *
+ * Limitations: This hash function could behave undefined in case 'size' is > 32bit
  *
  * Parameters
  *  hash   starting hash
@@ -430,6 +481,8 @@ INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t si
  *
  * Source: see 64bit version
  *
+ * Limitations: If CPU does not support AES instruction hash always returns 0
+ *
  * Parameters
  *  hash   starting hash
  *  data   data to hash
@@ -444,6 +497,8 @@ INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t s
  *
  * Source: https://github.com/gamozolabs/falkhash
  *
+ * Limitations: If CPU does not support AES instruction hash always returns 0
+ *
  * Parameters
  *  hash   starting hash
  *  data   data to hash
@@ -453,6 +508,63 @@ INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t s
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_falkhash(uint64_t hash, const void *data, size_t size);
+/*
+ * Calculate 32bit t1ha - 0, fast version, not portable
+ *
+ * Source: https://github.com/leo-yuriev/t1ha
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return
+ *  Hash
+ */
+INA_API(uint32_t) ina_hash_32_t1ha0(uint32_t hash, const void *data, size_t size);
+/*
+ * Calculate 32bit t1ha - 1, portable/stable
+ *
+ * Source: https://github.com/leo-yuriev/t1ha
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return
+ *  Hash
+ */
+INA_API(uint32_t) ina_hash_32_t1ha1(uint32_t hash, const void *data, size_t size);
+/*
+ * Calculate 64bit t1ha - 0, fast version, not portable
+ *
+ * Source: https://github.com/leo-yuriev/t1ha
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return
+ *  Hash
+ */
+INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size);
+/*
+ * Calculate 64bit t1ha - 1, portable/stable
+ *
+ * Source: https://github.com/leo-yuriev/t1ha
+ *
+ * Parameters
+ *  hash   starting hash
+ *  data   data to hash
+ *  size   size of buffer to hash
+ *
+ * Return
+ *  Hash
+ */
+INA_API(uint64_t) ina_hash_64_t1ha1(uint64_t hash, const void *data, size_t size);
+
 
 #ifdef __cplusplus
 }

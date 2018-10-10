@@ -1,29 +1,10 @@
 /*
- * Copyright (c) 2013, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <libinac/lib.h>
 
@@ -48,16 +29,16 @@ INA_TEST_TEARDOWN(ljit_ex) {
     INA_TEST_HELPER_TERMINATE(&data->debug_hid);
 }
 
-INA_TEST_FIXTURE(ljit_ex, lsocket_echo_client)
+INA_TEST_FIXTURE_SKIP(ljit_ex, lsocket_echo_client)
 {
     ina_ljit_ctx_t *ctx = NULL;
     int r = 0;
-
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_UNUSED(data);
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, 
+    INA_TEST_ASSERT_EQUAL_INT(0, luaL_dostring(ctx->lstate,
                                     "t = require(\"test_lsocket\")\n"));
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "t.echo_client", "si<i", 
@@ -65,24 +46,25 @@ INA_TEST_FIXTURE(ljit_ex, lsocket_echo_client)
                                             8033, 
                                             &r));
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
 INA_TEST_FIXTURE_SKIP(ljit_ex, debug)
 {
     ina_ljit_ctx_t *ctx = NULL;
+    INA_UNUSED(data);
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, 
+    INA_TEST_ASSERT_EQUAL_INT(0, luaL_dostring(ctx->lstate,
                                     "t = require(\"test_ldebug\")\n"));
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "t.debug_client", "<"));
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -94,11 +76,11 @@ INA_TEST(ljit, call)
 
     ina_err_reset();
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, 
+    INA_TEST_ASSERT_EQUAL_INT(0, luaL_dostring(ctx->lstate,
                                     "x = require(\"test_ljit\")\n"));
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_call(ctx, "x.test_params", "dd<d", 
@@ -111,7 +93,7 @@ INA_TEST(ljit, call)
     INA_TEST_ASSERT_EQUAL_STR(ina_app_get_name(), rs);
     INA_TEST_ASSERT_SAME(ina_app_get_name(), rs);
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -119,21 +101,21 @@ INA_TEST(ljit, luaL_dostring)
 {
     ina_ljit_ctx_t *ctx = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
 
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "return 100\n"));
+    INA_TEST_ASSERT_EQUAL_INT(0, luaL_dostring(ctx->lstate, "return 100\n"));
     INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(100, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_INT(100, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, ina_ljit_dostring(ctx, "local t = require(\"test_ljit\")\n return t.test()\n"));
+    INA_TEST_ASSERT_EQUAL_INT64(0, ina_ljit_dostring(ctx, "local t = require(\"test_ljit\")\n return t.test()\n"));
     INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(99, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_INT(99, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_app_get_name()\n"));
+    INA_TEST_ASSERT_EQUAL_INT(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_app_get_name()\n"));
     /*INA_TEST_ASSERT_TRUE(lua_isstring(ctx->lstate, -1));*/
     INA_TEST_ASSERT_EQUAL_STR(ina_app_get_name(), *(const char **)lua_topointer(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
@@ -142,12 +124,12 @@ INA_TEST(ljit, luaL_dostring)
     lua_setglobal(ctx->lstate, "d1");
     lua_pushnumber(ctx->lstate, 10);
     lua_setglobal(ctx->lstate, "d2");
-    INA_TEST_ASSERT_EQUAL_INTEGER(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_params(d1, d2)\n"));
+    INA_TEST_ASSERT_EQUAL_INT(0, luaL_dostring(ctx->lstate, "local t = require(\"test_ljit\")\n return t.test_params(d1, d2)\n"));
     INA_TEST_ASSERT_TRUE(lua_isnumber(ctx->lstate, -1));
-    INA_TEST_ASSERT_EQUAL_INTEGER(50, (int)lua_tonumber(ctx->lstate, -1));
+    INA_TEST_ASSERT_EQUAL_INT(50, (int)lua_tonumber(ctx->lstate, -1));
     lua_pop(ctx->lstate, 1);
 
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -155,12 +137,11 @@ INA_TEST(ljit, init_destroy)
 {
     ina_ljit_ctx_t *ctx = NULL;
     
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_init(&ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
+    ina_ljit_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
-    INA_TEST_ASSERT_SUCCEED(ina_ljit_destroy(&ctx));
 }
 
 INA_TEST(ljit, open_close_state_native)

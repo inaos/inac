@@ -1,32 +1,17 @@
 /*
- * Copyright (c) 2012-2017, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #ifndef _LIBINAC_LIB_H_
 #define _LIBINAC_LIB_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef _WIN32
 #ifndef _GNU_SOURCE
@@ -64,88 +49,112 @@
 #include <float.h>
 #include <time.h>
 #include <ctype.h>
+#include <inttypes.h>
+#include <errno.h>
+#include <time.h>
 
-#include <contribs/luajit/src/luajit.h>
-#include <contribs/luajit/src/lauxlib.h>
-#include <contribs/luajit/src/lualib.h>
+#include <libinac/contribs.h>
 
+#include <libinac/version.h>
 #include <libinac/portable.h>
 #include <libinac/types.h>
-#include <libinac/uthash.h>
+#include <libinac/debug.h>
+#include <libinac/error.h>
 #include <libinac/memory.h>
 #include <libinac/mempool.h>
 #include <libinac/string.h>
 #include <libinac/log.h>
-#include <libinac/error.h>
 #include <libinac/time.h>
 #include <libinac/timer.h>
+#include <libinac/stopwatch.h>
 #include <libinac/ullc.h>
 #include <libinac/net.h>
-#include <libinac/iscp.h>
 #include <libinac/ljit.h>
 #include <libinac/conffile.h>
-#include <libinac/http.h>
-#include <libinac/dns.h>
-#include <libinac/ssl.h>
-#include <libinac/xml.h>
-#include <libinac/json.h>
 #include <libinac/hash.h>
 #include <libinac/util.h>
 #include <libinac/cio.h>
 #include <libinac/fsm.h>
 #include <libinac/process.h>
 #include <libinac/cron.h>
-#include <libinac/service.h>
 #include <libinac/ipc.h>
-#include <libinac/template.h>
 #include <libinac/cpu.h>
 #include <libinac/compression.h>
 #include <libinac/dir.h>
 #include <libinac/file.h>
 #include <libinac/mmap.h>
 #include <libinac/file_cursor.h>
-#include <libinac/histogram.h>
-#include <libinac/pcap.h>
-#include <libinac/gzip.h>
-#include <libinac/percentile.h>
-#include <libinac/client.h>
-#include <libinac/server.h>
-#include <libinac/aar.h>
-#include <libinac/uthash.h>
-#include <libinac/utlist.h>
-#include <libinac/debug.h>
+#include <libinac/hashtable.h>
+#include <libinac/list.h>
 #include <libinac/test.h>
+#include <libinac/bench.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined(INA_MBTIME_ENABLED) && defined(INA_OS_OSX)
-#error "Meinberg time backend not supported."
-#endif
+#define INA_UNUSED(x) (void)(x)
 
 #define INA_YES (1)
 #define INA_NO  (0)
 
 #define INA_NUM2STR_X(x) #x
 #define INA_NUM2STR(x) INA_NUM2STR_X(x)
-/*
- * Version
- */
-#define INA_MAJOR_VERSION 0
-#define INA_MINOR_VERSION 3
-#define INA_MICRO_VERSION 0
+
+#define INA_MID_BITS(number,k,p) (((1ULL << (k)) - 1ULL) & ((number) >> ((p) - 1ULL)))
+
 
 #define INA_VERSION       INA_NUM2STR(INA_MAJOR_VERSION)"." \
                           INA_NUM2STR(INA_MINOR_VERSION)"." \
-                          INA_NUM2STR(INA_MICRO_VERSION)
+                          INA_NUM2STR(INA_PATCH_VERSION)
 
 /* Version as a 3-byte hex number, e.g. 0x010201 == 1.2.1. Use this
  * for numeric comparisons, e.g. #if INA_VERSION_HEX >= ... */
 #define INA_VERSION_HEX  ((INA_MAJOR_VERSION << 16) |   \
                           (INA_MINOR_VERSION << 8)  |   \
-                          (INA_MICRO_VERSION << 0))
+                          (INA_PATCH_VERSION << 0))
+
+/* Revsion number as 2-byte hex number e.g 0x900 == 0.9. Use this
+ * for numeric comparisons, e.g. #if INA_REVISION_HEX >= ... */
+#define INA_REVISION_HEX ((INA_MINOR_VERSION << 8)  |   \
+                          (INA_PATCH_VERSION << 0))
+
+/* Handle free, destroy arg checking */
+#define INA_FREE_CHECK(ptrptr) do {    \
+    INA_ASSERT_NOTNULL(ptrptr);        \
+	if (INA_UNLIKELY((*ptrptr == NULL))) { return; }   \
+} while(0) 
+
+/* Return with last rc if condition x fails */
+#define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_rc(); } while(0)
+/* Return with last rc if x == NULL */
+#define INA_RETURN_IF_NULL(x) do {if ((x) == NULL) return ina_err_get_rc();} while(0)
+/* Return with last rc if failed */
+#define INA_RETURN_IF_FAILED(rc) do { if (INA_FAILED((rc))) return ina_err_get_rc(); } while (0)
+/* Return with last rc if succeed */
+#define INA_RETURN_IF_SUCCEED(rc) do {if (INA_SUCCEED((rc))) return ina_err_get_rc(); } while (0)
+
+#ifndef INA_VERIFY_DISABLED
+#define INA_VERIFY(x) do { if (INA_UNLIKELY(!(x))) return INA_ERROR(INA_ERR_INVALID_ARGUMENT); } while (0)
+#define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) != NULL)
+#else
+#define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))
+#define INA_VERIFY(x) INA_ASSERT_TRUE((x))
+#endif
+
+#define INA_INIT_GUARD() do {               \
+    static int __initialized = 0;           \
+    INA_ASSERT_FALSE(__initialized);        \
+    if (__initialized) return INA_SUCCESS;  \
+    __initialized = 1;                      \
+} while(0)
+
+#define INA_DESTROY_GUARD() do {          \
+    static int __destroyed = 0;           \
+    INA_ASSERT_FALSE(__destroyed);        \
+    if (__destroyed) return;              \
+    __destroyed = 1;                      \
+} while(0)
+
+/* Source location */
+#define INA_AT __FILE__ ":" INA_NUM2STR(__LINE__)
 
 /* Add flag option */
 #define INA_OPT_FLAG(short_opt, long_opt, desc)           \
@@ -233,16 +242,13 @@ INA_API(const char*) ina_app_get_path(void);
  * Parameters
  *  argc       argc of main() function
  *  argv       Pointer to the argv of main() function
- *  pool_size  Initial size of internal memory pool. if 0 passed a pool
- *             with size INA_MEM_DFT_POOL_SIZE will be created.
  *  opt        Array of options to parse
  *
  * Return
  *  INA_SUCCESS  if no error occurred
  */
-INA_API(ina_rc_t) ina_app_init(const int argc,
+INA_API(ina_rc_t) ina_app_init(int argc,
                                char **argv,
-                               size_t pool_size,
                                ina_opt_t *opt);
 
 /*
@@ -309,13 +315,10 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value);
  * Initialize all internal data structures. This must be the first function 
  * called for any library.
  *
- * Parameters
- *  pool_size  Initial size of internal memory pool. if 0 passed a pool
- *             with size INA_MEM_DFT_POOL_SIZE will be created.
  * Return
  *  INA_SUCCESS  if no error occurred
  */
-INA_API(ina_rc_t) ina_init(size_t pool_size);
+INA_API(ina_rc_t) ina_init(void);
 
 /*
  * Set a custom termination routine to call in case of an 

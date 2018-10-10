@@ -1,209 +1,171 @@
 /*
- * Copyright (c) 2012, INAOS GmbH
- * All rights reserved.
+ * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the INAOS GmbH nor the names of its contributors
- *       may be used to endorse or promote products derived from this software 
- *       without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT SHALL INAOS GmbH BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
+ * This software is the confidential and proprietary information of INAOS GmbH
+ * ("Confidential Information"). You shall not disclose such Confidential
+ * Information and shall use it only in accordance with the terms of the
+ * license agreement you entered into with INAOS GmbH.
  */
 #include <stdio.h>
 #include <libinac/lib.h>
 
-INA_TEST(error, repush_success)
+#define INA_ES_HELLO   (INA_ES_USER_DEFINED+1)
+#define INA_ES_WORLD   (INA_ES_USER_DEFINED+2)
+#define INA_ES_UNKNOWN (INA_ES_USER_DEFINED+3)
+
+static const char* __ina_get_subject_a(int id)
 {
-    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
-
-    INA_TEST_ASSERT_SUCCEED(INA_ERR_REPUSH(INA_SUCCESS));
-    INA_TEST_ASSERT_SUCCESS(INA_ERR_REPUSH(INA_SUCCESS));
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
-}
-
-INA_TEST(error, repush)
-{
-    ina_rc_t rc;
-
-    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
-    
-    INA_ERR_EMSGLEN;
-    INA_ERR_EMSGFMT;
-    INA_STR_EALLOC;
-    INA_ERR_PUSH_LAST;
-    INA_ERR_PUSH_LAST;
-    ina_err_repush(INA_EAGAIN, __FILE__, __LINE__);
-    INA_ERR_PUSH_LAST;
-
-    rc = ina_err_peek();
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EAGAIN, INA_RC_REASON(rc));
-    rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EAGAIN, INA_RC_REASON(rc));    
-    rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EALLOC, INA_RC_REASON(rc));
-    rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EALLOC, INA_RC_REASON(rc));
-    rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EALLOC, INA_RC_REASON(rc));
-    rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EMSGFMT, INA_RC_REASON(rc));
-    rc = ina_err_peek_next(rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_EMSGLEN, INA_RC_REASON(rc));
-}
-
-INA_TEST(error, push_a_million_errors)
-{
-    size_t i;
-
-   
-    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
-
-    for (i = 0; i < 1000000; ++i) {
-        INA_ERR_PUSH(1,2,5, "test error");
-        INA_TEST_ASSERT_FALSE(INA_SUCCEED(ina_err_peek()));
+    switch (id) {
+        case INA_ES_HELLO:
+            return "HELLO A";
+        case INA_ES_WORLD:
+            return "WORLD A";
+        default:
+            return "--";
     }
 }
 
-INA_TEST(error, message_formatting)
+static const char* __ina_get_subject_b(int id)
 {
-    ina_str_t msg1;
-    ina_str_t msg2;
-
-    msg1 = ina_str_new_fromcstr("Message size error");
-    msg2 = ina_str_new(100);
-
-    INA_TEST_ASSERT_NOT_NULL(msg1);
-    INA_TEST_ASSERT_NOT_NULL(msg2);
-    
-    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
-    INA_ERR_EMSGLEN;
-    INA_TEST_ASSERT_EQUAL_INTEGER(INA_SUCCESS, ina_err_fmtmsg(ina_err_peek(), msg2, 100));
-    INA_TEST_MSG("msg2=%s", ina_str_cstr(msg2));
-    ina_str_free(msg1);
-    ina_str_free(msg2);
-}
-
-INA_TEST(error, macros)
-{
-     INA_ERR_EMSGLEN;
-     INA_ERR_EMSGFMT;
-     INA_STR_EALLOC;
-}
-
-INA_TEST(error, get_errmsg)
-{
-    ina_rc_t rc;
-
-    rc = INA_ERR_PUSH_BASIC(10, "This is error 1");
-    INA_ERR_PUSH_BASIC(10, "This is error 2");
-    INA_ERR_PUSH_BASIC(10, "This is error 3");   
-    INA_TEST_ASSERT_EQUAL_STR("This is error 1", ina_err_get_errmsg(rc));
-    INA_TEST_ASSERT_EQUAL_STR("This is error 3", ina_err_get_last_errmsg());
-}
-
-INA_TEST(error, push_and_peek)
-{
-    size_t i;
-    ina_rc_t rc;
-
-    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
-
-    for (i = 0; i < 10; ++i) {
-        INA_ERR_PUSH_BASIC(300+i, "This is an error");
+    switch (id) {
+        case INA_ES_HELLO:
+            return "HELLO B";
+        case INA_ES_WORLD:
+            return "WORLD B";
+        default:
+            return "XX";
     }
-
-     i = 0;
-     rc = INA_ERR_PEEK_FIRST;
-     while (!(rc = ina_err_peek_next(rc))) {
-         INA_TEST_ASSERT_FALSE(INA_SUCCEED(rc));
-     }
 }
 
-INA_TEST(error, push_and_clear)
-{
-	ina_rc_t rc1;
-    ina_rc_t rc2;
-    int i;
-
-    INA_TEST_ASSERT_SUCCESS(ina_err_reset());
-    rc1 = ina_err_push(1,2,3,__FILE__, __LINE__ , "test 1");
-    INA_TEST_ASSERT_EQUAL_INTEGER(rc1, ina_err_peek());
-    INA_TEST_ASSERT_EQUAL_INTEGER(rc1, ina_err_peek_last());
-    INA_TEST_ASSERT_EQUAL_INTEGER(ina_err_peek(), ina_err_peek_last());
-
-    rc2 = INA_ERR_PUSH(1,2,5, "test error");
-    INA_TEST_ASSERT_EQUAL_INTEGER(rc2, ina_err_peek());
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(rc1, ina_err_peek());
-    INA_TEST_ASSERT_EQUAL_INTEGER(rc1, ina_err_peek_last());
-    INA_TEST_ASSERT_NOT_EQUAL_INTEGER(rc1, rc2);
-
-    INA_TEST_ASSERT_SUCCESS(ina_err_clear(rc2));
-    INA_TEST_ASSERT_FAILURE(ina_err_clear(rc2));
-    INA_TEST_ASSERT_FAILURE(ina_err_clear(rc1));
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek());
- 
-    ina_err_reset();
-    for (i = 0; i < 34; ++i) {
-        INA_ERR_PUSH_BASIC(300+i, "This is an error");
-    }
-    INA_TEST_ASSERT_SUCCESS(ina_err_clear(ina_err_peek()));
-    ina_err_trace();
-  
-    INA_TEST_ASSERT_SUCCESS(ina_err_peek_last());
- }
-
-INA_TEST(error, error_pack_rc) 
+INA_TEST(error, error_pack_rc)
 {
     ina_rc_t rcc;
     ina_rc_t rc;
 
-    rcc = 16846855;
-    rc = 0;
-    rc = INA_RC_PACK(1,2,7,4);
-    
-    INA_TRACE3("rc = %u", rc);
-    INA_TRACE3("id = %u", INA_RC_ID(rc));
-    INA_TRACE3("mod = %u", INA_RC_MOD(rc));
-    INA_TRACE3("func = %u", INA_RC_OSFN(rc));
-    INA_TRACE3("reason = %u", INA_RC_REASON(rc));
-    
-    INA_TEST_ASSERT_EQUAL_INTEGER(rcc, rc);
-    INA_TEST_ASSERT_EQUAL_INTEGER(1, INA_RC_MOD(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(2, INA_RC_OSFN(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(7, INA_RC_REASON(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(4, INA_RC_ID(rc));
-    INA_TEST_ASSERT_FALSE(INA_RC_FATAL(rc));
-    
-    rc = INA_RC_PACK(15,15,255,1023);
-    INA_TEST_ASSERT_EQUAL_INTEGER(15, INA_RC_MOD(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(15, INA_RC_OSFN(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(255, INA_RC_REASON(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(1023, INA_RC_ID(rc));   
+    INA_TEST_ASSERT_SUCCEED(INA_SUCCESS);
 
-    rc = INA_RC_PACK(63,31,511,1023);
-    INA_TEST_ASSERT_EQUAL_INTEGER(63, INA_RC_MOD(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(31, INA_RC_OSFN(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(511, INA_RC_REASON(rc));
-    INA_TEST_ASSERT_EQUAL_INTEGER(1023, INA_RC_ID(rc));
-} 
+    rcc =  0x8000000200058001;
+    rc = INA_RC_PACK(INA_ES_ACCESS|INA_ERR_NOT_ALLOWED, 2);
+
+    INA_TEST_MSG("verify INA_RC_PACK with %s", ina_err_strerror(rc));
+    INA_TEST_ASSERT_EQUAL_UINT64(rcc, rc);
+    INA_TEST_ASSERT_FAILED(rc);
+;
+    /* error indicator */
+    INA_TEST_ASSERT_EQUAL_INT(1, INA_RC_EFLAG(rc));
+
+    /* API version information */
+    INA_TEST_ASSERT_EQUAL_INT(0, INA_RC_VER(rc));
+    INA_TEST_ASSERT_EQUAL_INT(0,  INA_RC_REV(rc));
+
+#undef INA_ERROR_VER
+#undef INA_ERROR_REV
+#define INA_ERROR_VER 2
+#define INA_ERROR_REV 123
+    rc = INA_RC_PACK(INA_ES_ACCESS|INA_ERR_NOT_ALLOWED, 2);
+    INA_TEST_ASSERT_EQUAL_INT(2, INA_RC_VER(rc));
+    INA_TEST_ASSERT_EQUAL_INT(123,  INA_RC_REV(rc));
+#undef INA_ERROR_VER
+#undef INA_ERROR_REV
+#define INA_ERROR_VER INA_MAJOR_VERSION
+#define INA_ERROR_REV INA_REVISION_HEX
+
+    /* OS native error */
+    INA_TEST_ASSERT_EQUAL_UINT(2, INA_RC_ERRNO(rc));
+
+    /* code */
+    INA_TEST_ASSERT_EQUAL_UINT64(INA_ERR_ALLOWED, INA_RC_CODE(rc));
+    /* Adjective/Verb */
+    INA_TEST_ASSERT_EQUAL_UINT64(5, INA_RC_ADJ(rc));
+
+    /* Negate flag */
+    INA_TEST_ASSERT_EQUAL_UINT(1, INA_RC_NFLAG(rc));
+
+    /* subject */
+    INA_TEST_ASSERT_EQUAL_INT(INA_ES_ACCESS, INA_RC_SUBJECT(rc));
+    INA_TEST_ASSERT_NOT_EQUAL_INT(INA_ES_DEVICE, INA_RC_SUBJECT(rc));
+    INA_TEST_ASSERT_NOT_EQUAL_INT(INA_ES_OPERATION, INA_RC_SUBJECT(rc));
+    INA_TEST_ASSERT_EQUAL_INT(INA_ERR_NOT_ALLOWED, INA_RC_ERROR(rc));
+
+    /* error message */
+    INA_TEST_ASSERT_EQUAL_UINT64((INA_ES_ACCESS|INA_ERR_NOT_ALLOWED), INA_RC_ERRMSG(rc));
+}
+
+INA_TEST(error, error_same_as_errmsg)
+{
+    INA_ERROR(INA_ERR_EMPTY);
+    INA_TEST_ASSERT_EQUAL_INT(
+            INA_RC_ERRMSG(ina_err_get_rc()),
+            INA_RC_ERROR(ina_err_get_rc()));
+
+}
+
+INA_TEST(error, get_set_rc)
+{
+    INA_TEST_ASSERT_EQUAL_INT64(INA_RC_PACK(INA_ERR_FAILED, 0),
+                                ina_err_set_rc(INA_RC_PACK(INA_ERR_FAILED, 0)));
+    INA_TEST_ASSERT_EQUAL_INT64(INA_ERROR(INA_ERR_NOT_INITIALIZED),
+                                ina_err_set_rc(INA_RC_PACK(INA_ERR_NOT_INITIALIZED, 0)));
+}
+
+INA_TEST(error, reset)
+{
+    INA_TEST_ASSERT_FAILED(INA_ERROR(INA_ERR_NOT_INITIALIZED));
+    INA_TEST_ASSERT_FAILED(ina_err_get_rc());
+    INA_TEST_ASSERT_SUCCEED(ina_err_reset());
+    INA_TEST_ASSERT_SUCCEED(ina_err_get_rc());
+}
+
+INA_TEST(error, strerror)
+{
+    INA_ERROR(INA_ES_DEVICE | INA_ERR_IN_USE);
+    INA_TEST_MSG("%s", ina_err_strerror(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_STR("DEVICE IN USE - 0x81000000003b0006 - error=1,ver=1,rev=0,os=0,neg=0,adj=59,subject=6,code=3866624,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+}
+
+INA_TEST(error, register_dict)
+{
+    INA_TEST_ASSERT_NULL(ina_err_register_dict(__ina_get_subject_a));
+    INA_ERROR(INA_ES_HELLO | INA_ERR_FAILED);
+    INA_TEST_ASSERT_EQUAL_STR("HELLO A FAILED - 0x81000000002b0401 - error=1,ver=1,rev=0,os=0,neg=0,adj=43,subject=1025,code=2818048,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_ERROR(INA_ES_WORLD | INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("WORLD A NOT FOUND - 0x8100000000308402 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1026,code=3145728,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_ERROR(INA_ES_UNKNOWN | INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("-- NOT FOUND - 0x8100000000308403 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1027,code=3145728,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_TEST_ASSERT_SAME(__ina_get_subject_a, ina_err_register_dict(__ina_get_subject_b));
+    INA_ERROR(INA_ES_HELLO | INA_ERR_FAILED);
+    INA_TEST_ASSERT_EQUAL_STR("HELLO B FAILED - 0x81000000002b0401 - error=1,ver=1,rev=0,os=0,neg=0,adj=43,subject=1025,code=2818048,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_ERROR(INA_ES_WORLD | INA_ERR_NOT_FOUND);
+    INA_TEST_ASSERT_EQUAL_STR("WORLD B NOT FOUND - 0x8100000000308402 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1026,code=3145728,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+    INA_ERROR(INA_ES_UNKNOWN | INA_ERR_NOT_FOUND);
+
+    INA_TEST_ASSERT_EQUAL_STR("XX NOT FOUND - 0x8100000000308403 - error=1,ver=1,rev=0,os=0,neg=1,adj=48,subject=1027,code=3145728,ubits=0x0", ina_err_strerror(
+            ina_err_get_rc()));
+}
+
+INA_TEST(error, ubits)
+{
+    INA_ERROR(INA_ES_TIME | INA_ERR_EXCEEDED);
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ERR_EXCEEDED, INA_RC_ERROR(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ES_TIME, INA_RC_SUBJECT(ina_err_get_rc()));
+
+    INA_TEST_ASSERT_EQUAL_INT(0, INA_RC_UBITS(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ERR_EXCEEDED, INA_RC_ERROR(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ES_TIME, INA_RC_SUBJECT(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT((INA_ES_TIME|INA_ERR_EXCEEDED), INA_RC_ERRMSG(ina_err_get_rc()));
+
+    INA_TEST_ASSERT_EQUAL_UINT(1, INA_RC_UBITS(ina_err_set_ubits(1)));
+    INA_TEST_ASSERT_EQUAL_UINT(16, INA_RC_UBITS(ina_err_set_ubits(16)));
+    INA_TEST_ASSERT_EQUAL_UINT(255, INA_RC_UBITS(ina_err_set_ubits(255)));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ERR_EXCEEDED, INA_RC_ERROR(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ES_TIME, INA_RC_SUBJECT(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT((INA_ES_TIME|INA_ERR_EXCEEDED), INA_RC_ERRMSG(ina_err_get_rc()));
+
+
+}
