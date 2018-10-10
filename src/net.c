@@ -839,7 +839,7 @@ INA_API(ina_rc_t) ina_net_poll(ina_net_pollfd_t *fds, nfds_t nfds, int timeout, 
     INA_VERIFY_NOT_NULL(fds);
     INA_VERIFY_NOT_NULL(num_fds_ready);
 
-    num_fds_ready = poll(fds, nfds, timeout);
+    *num_fds_ready = poll(fds, nfds, timeout);
     if (*num_fds_ready < 0) {
         *num_fds_ready = 0;
         return __INA_ERROR(INA_ES_IO | INA_ERR_FAILED);
