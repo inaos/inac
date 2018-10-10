@@ -267,7 +267,7 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
     int64_t num;
     void *item;
 
-    INA_ASSERT_NULL(ctx);
+    INA_ASSERT_NOTNULL(ctx);
     INA_ASSERT(INA_ULLC_CTX_PRODUCER == ctx->type);
 
     slow_consumer = ctx->ring->overrun_enabled;

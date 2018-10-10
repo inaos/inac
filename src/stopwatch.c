@@ -186,7 +186,7 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
     if (stamp_index == NULL) {
         stopwatch->ts = &stopwatch->tv->stamps;
     } else if (*stamp_index >= stopwatch->tv->next_stamp) {
-        return INA_ERR_END_OF;
+        return INA_ERROR(INA_ERR_END_OF);
     } else if (*stamp_index == -1) {
         *stamp_index = stopwatch->tv->next_stamp;
     }
