@@ -59,7 +59,7 @@ INA_API(void) ina_timer_free(ina_timer_t **timer)
         timeouts_close((*timer)->timeouts);
     }
     ina_time_tsc_free(&(*timer)->stamp);
-    INA_MEM_FREE_SAFE(timer);
+    INA_MEM_FREE_SAFE(*timer);
 }
 
 

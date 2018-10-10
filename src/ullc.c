@@ -344,7 +344,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
 
     if (ccxt->ring->version != version) {
         ina_mempool_free(&(*ctx)->pool);
-        INA_MEM_FREE_SAFE(ctx);
+        INA_MEM_FREE_SAFE(*ctx);
         return INA_ERROR(INA_ES_VERSION | INA_ERR_INVALID);
     }
 
@@ -364,7 +364,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
     }
     if (ccxt->id == num_consumers) {
         ina_mempool_free(&(*ctx)->pool);
-        INA_MEM_FREE_SAFE(ctx);
+        INA_MEM_FREE_SAFE(*ctx);
         return INA_ERROR(INA_ES_LIMIT | INA_ERR_EXCEEDED);
     }
     INA_ATOMIC_SWAP(&ccxt->c_offset->cursor, 0, ccxt->ring->cursor);
