@@ -481,13 +481,18 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
     INA_ASSERT(version > 0);
     INA_ASSERT(slots > 0);
     INA_ASSERT(size > 0);
+    INA_ASSERT(size < INT64_MAX);
+    INA_ASSERT(slots < INT64_MAX);
     INA_ASSERT_NOTNULL(name);
+
+    int64_t rsize = (int64_t)size;
+    int64_t rslots = (int64_t)slots;
 
     if (size % 2 != 0) {
         return INA_ERROR(INA_ES_MEMORY | INA_ERR_NOT_ALIGNED);
     }
 
-    mem_size = (sizeof(ina_ullc_rb_t)+size*slots)+
+    mem_size = (sizeof(ina_ullc_rb_t)+rsize*rslots)+
                  (sizeof(ina_ullc_cursor_t)*num_consumers) +
                  (sizeof(ina_ullc_cursor_t)*num_producers);
 
@@ -504,7 +509,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
 
     if ((*rb)->magic != __INA_MAGIC_HDR || (flags&INA_MEM_SHARED_EXCL)) {
         (*rb)->magic = __INA_MAGIC_HDR;
-        (*rb)->slots = slots;
+        (*rb)->slots = rslots;
         (*rb)->num_producers = num_producers;
         (*rb)->num_consumers = num_consumers;
         (*rb)->overrun_enabled = -1;
@@ -512,7 +517,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         (*rb)->next_ptr = 0;
         (*rb)->alive_producers = 0;
         (*rb)->version = version;
-        (*rb)->size = size;
+        (*rb)->size = rsize;
         if (INA_FAILED(__ina_sem_makekey(*rb, name))) {
             return ina_err_get_rc();
         }
@@ -521,10 +526,10 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
     if ((*rb)->version != version) {
         return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
-    if ((*rb)->size != size) {
+    if ((*rb)->size != rsize) {
         return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
-    if ((*rb)->slots != slots) {
+    if ((*rb)->slots != rslots) {
         return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if ((*rb)->num_consumers != num_consumers) {

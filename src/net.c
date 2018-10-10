@@ -345,7 +345,7 @@ INA_API(ina_rc_t) ina_net_read(ina_fd_t fd, unsigned char *buf, int nb, int* nb_
 	INA_VERIFY_NOT_NULL(nb_read);
 
 #ifdef INA_OS_WIN32
-    *nb_read = recv(fd, buf, nb, 0);
+    *nb_read = recv(fd, (char*)buf, nb, 0); /* Windows requires a signed pointer to buffer */
 #else
 	*nb_read = read(fd, buf, nb);
 #endif
@@ -387,7 +387,7 @@ INA_API(ina_rc_t) ina_net_write(ina_fd_t fd, const unsigned char *buf, int nb, i
 
 
     while (totlen != nb) {
-        nwritten = send(fd, buf, nb - totlen, 0);
+        nwritten = send(fd, (const char*)buf, nb - totlen, 0); /* Windows requires signed pointer */
         if (nwritten == 0) {
             *nb_write = totlen;
             break;
@@ -606,7 +606,7 @@ INA_API(ina_rc_t) ina_net_udp_send(ina_fd_t fd, ina_net_udp_receiver_t *receiver
     INA_VERIFY_NOT_NULL(nb_write);
 
     while (totlen != nb) {
-        nwritten = sendto(fd, buf, nb - totlen, 0, (struct sockaddr*)&receiver->addr, sizeof(*&receiver->addr));
+        nwritten = sendto(fd, (char*)buf, nb - totlen, 0, (struct sockaddr*)&receiver->addr, sizeof(*&receiver->addr)); /* Windows requires signed pointer */
         if (nwritten == 0) {
             *nb_write =totlen;
             break;

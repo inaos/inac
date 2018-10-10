@@ -604,8 +604,10 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                 if (test->setup) {
                     test->setup(test->data);
                 }
+                INA_DISABLE_WARNING_MSVC(4152);
                 old_sigabrt_handler = signal(SIGABRT, __ina_signal_handler);
                 old_sigsegv_handler = signal(SIGSEGV, __ina_signal_handler);
+                INA_ENABLE_WARNING_MSVC(4152);
 
                 if (setjmp(__err) == 0) {
                     if (test->data) {
@@ -631,8 +633,10 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     }
                     num_fail++;
                 }
+                INA_DISABLE_WARNING_MSVC(4152);
                 signal(SIGABRT, old_sigabrt_handler);
                 signal(SIGSEGV, old_sigsegv_handler);
+                INA_ENABLE_WARNING_MSVC(4152);
                 if (test->teardown) {
                     test->teardown(test->data);
                 }
