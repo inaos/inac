@@ -109,7 +109,7 @@ INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_ctx_free(ina_file_ctx_t **ctx);
+INA_API(void) ina_file_ctx_free(ina_file_ctx_t **ctx);
 
 /*
  * Create a new file handle.
@@ -144,7 +144,7 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_free(ina_file_t **file);
+INA_API(void) ina_file_free(ina_file_t **file);
 
 /*
  * Create and initialize file attributes.
@@ -167,7 +167,7 @@ INA_API(ina_rc_t) ina_file_stat_new(const ina_file_t *file, ina_file_stat_t **st
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_file_stat_free(ina_file_stat_t **stat);
+INA_API(void) ina_file_stat_free(ina_file_stat_t **stat);
 
 /*
  * Synchronize file attributes.

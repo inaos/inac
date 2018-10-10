@@ -476,7 +476,7 @@ INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_ctx_t **ctx,
 
 	*ctx = (ina_cron_ctx_t*)ina_mem_alloc(sizeof(ina_cron_ctx_t));
     INA_RETURN_IF_NULL(ctx);
-    ina_mem_set(*ctx, 0, sizeof(ina_cron_ctx_t));
+    INA_MEM_SET_ZERO(*ctx, ina_cron_ctx_t);
 
     if (load_cb) {
 		(*ctx)->load_cb = load_cb;
@@ -487,49 +487,45 @@ INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_ctx_t **ctx,
 		(*ctx)->save_cb = save_cb;
 	}
 	(*ctx)->data = NULL;
-    if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+    INA_FAIL_IF_ERROR(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                      INA_HASH_DEFAULT,
                                      INA_HASHTABLE_TYPE_DEFAULT,
                                      INA_HASHTABLE_GROW_DEFAULT,
                                      INA_HASHTABLE_SHRINK_DEFAULT,
                                      INA_HASHTABLE_DEFAULT_CAPACITY,
-                                     INA_HASHTABLE_CF_DEFAULT, &(*ctx)->tasks))) {
-		INA_MEM_FREE_SAFE(*ctx);
-        return ina_err_get_rc();
-    }
-    if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
+                                     INA_HASHTABLE_CF_DEFAULT, &(*ctx)->tasks));
+    INA_FAIL_IF_ERROR(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                      INA_HASH_DEFAULT,
                                      INA_HASHTABLE_TYPE_DEFAULT,
                                      INA_HASHTABLE_GROW_DEFAULT,
                                      INA_HASHTABLE_SHRINK_DEFAULT,
                                      INA_HASHTABLE_DEFAULT_CAPACITY,
-                                     INA_HASHTABLE_CF_DEFAULT, &(*ctx)->func))) {
-        ina_hashtable_free(&(*ctx)->tasks);
-		INA_MEM_FREE_SAFE(*ctx);
-        return ina_err_get_rc();
-    }
+                                     INA_HASHTABLE_CF_DEFAULT, &(*ctx)->func));
 
 	(*ctx)->t1 = time(NULL);
 	(*ctx)->t2 = 0;
 	(*ctx)->stime = 60;
 
     if (process_ctx == NULL) {
-        if (INA_FAILED(ina_process_ctx_new(&process_ctx))) {
-            ina_hashtable_free(&(*ctx)->tasks);
-            ina_hashtable_free(&(*ctx)->func);
-			INA_MEM_FREE_SAFE(*ctx);
-            return ina_err_get_rc();
-        }
+        INA_FAIL_IF_ERROR(ina_process_ctx_new(&process_ctx));
     }
     (*ctx)->process_ctx = process_ctx;
 	return INA_SUCCESS;
+
+fail:
+    ina_cron_ctx_free(ctx);
+    return ina_err_get_rc();
 }
 
 INA_API(void) ina_cron_ctx_free(ina_cron_ctx_t **ctx)
 {
 	INA_FREE_CHECK(ctx);
-    ina_hashtable_foreach((*ctx)->tasks, __ina_free_task);
-    ina_hashtable_foreach((*ctx)->func, __ina_free_func);
+	if ((*ctx)->tasks) {
+        ina_hashtable_foreach((*ctx)->tasks, __ina_free_task);
+    }
+    if ((*ctx)->func) {
+        ina_hashtable_foreach((*ctx)->func, __ina_free_func);
+    }
     ina_hashtable_free(&(*ctx)->tasks);
     ina_hashtable_free(&(*ctx)->func);
     //ina_process_ctx_free(&(*ctx)->process_ctx);
@@ -544,6 +540,9 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
     ina_str_t *cmd_parts;
     ina_process_descriptor_t *descriptor;
 	ina_cron_task_t *task = NULL;
+    __ina_cron_schedulable_t sched;
+    size_t slen = strlen(pattern);
+    char *buf;
 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(id);
@@ -551,68 +550,61 @@ INA_API(ina_rc_t) ina_cron_task_new(ina_cron_ctx_t *ctx, const char *id, const c
     INA_VERIFY_NOT_NULL(cmd);
     INA_VERIFY_NOT_NULL(working_dir);
 
-	/* create a new task */
-	if (INA_FAILED(ina_hashtable_get_str(ctx->tasks, id, (void**)task))) {
-        __ina_cron_schedulable_t sched;
-        size_t slen = strlen(pattern);
-		char *buf;
-		
-		task = (ina_cron_task_t*)ina_mem_alloc(sizeof(ina_cron_task_t));
-        if (task == NULL) {
-            return ina_err_get_rc();
-        }
-        buf = (char*)ina_mem_alloc(slen+2);
-        buf = strcpy(buf, pattern);
-        buf[slen] = '\n';
+	/* return existing task */
+	INA_RETURN_IF_SUCCEED(ina_hashtable_get_str(ctx->tasks, id, (void**)task));
 
-        cmdstr = ina_str_new_fromcstr(cmd);
-        cmd_parts = ina_str_split(cmdstr," ", &cmd_parts_count);
 
-        task->cmd = ina_str_new_fromcstr(cmd);
-		task->working_dir = ina_str_new_fromcstr(working_dir);
-        task->pattern = ina_str_new_fromcstr(pattern);
-        task->ready = 0;
-        sched.item = __INA_CRON_SCHEDULABLE_ITEM_TASK;
-        sched.cb.task = task;
-        if (!INA_SUCCEED(__parse_cron_pattern(buf, &sched))) {
-			ina_mem_free(buf);
-            return ina_err_get_rc();
-        }
+    task = (ina_cron_task_t*)ina_mem_alloc(sizeof(ina_cron_task_t));
+    INA_RETURN_IF_NULL(task);
 
-		ina_mem_free(buf);
+    buf = (char*)ina_mem_alloc(slen+2);
+    buf = strcpy(buf, pattern);
+    buf[slen] = '\n';
 
-        INA_MUST_SUCCEED(ina_process_descriptor_new(ctx->process_ctx,
-                                                    ina_str_cstr(cmd_parts[0]),
-                                                    working_dir,
-                                                    ina_str_cstr(cmd_parts[1]),
-                                                    INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
-                                                    INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME,
-                                                    NULL,
-                                                    NULL,
-                                                    30,
-                                                    0,
-                                                    &descriptor));
+    cmdstr = ina_str_new_fromcstr(cmd);
+    cmd_parts = ina_str_split(cmdstr," ", &cmd_parts_count);
 
-        INA_MUST_SUCCEED(ina_process_new(ctx->process_ctx, descriptor, &task->process));
+    task->cmd = ina_str_new_fromcstr(cmd);
+    task->working_dir = ina_str_new_fromcstr(working_dir);
+    task->pattern = ina_str_new_fromcstr(pattern);
+    task->ready = 0;
+    sched.item = __INA_CRON_SCHEDULABLE_ITEM_TASK;
+    sched.cb.task = task;
 
-		
-		/* persist if required */
-        task->persistent = persistent;
-        if (ctx->save_cb && persistent) {
-			ctx->save_cb(ctx, task, INA_NO);
-		}
+    INA_FAIL_IF_ERROR(__parse_cron_pattern(buf, &sched));
 
-        return ina_hashtable_set_str(ctx->tasks, id, task);
-	}
-	
+    ina_mem_free(buf);
+
+    INA_FAIL_IF_ERROR(ina_process_descriptor_new(ctx->process_ctx,
+                                                ina_str_cstr(cmd_parts[0]),
+                                                working_dir,
+                                                ina_str_cstr(cmd_parts[1]),
+                                                INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
+                                                INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME,
+                                                NULL,
+                                                NULL,
+                                                30,
+                                                0,
+                                                &descriptor));
+
+    INA_FAIL_IF_ERROR(ina_process_new(ctx->process_ctx, descriptor, &task->process));
+
+
+    /* persist if required */
+    task->persistent = persistent;
+    if (ctx->save_cb && persistent) {
+        ctx->save_cb(ctx, task, INA_NO);
+    }
+    INA_FAIL_IF_ERROR(ina_hashtable_set_str(ctx->tasks, id, task));
 	return INA_SUCCESS;
+fail:
+    ina_cron_task_free(ctx, &task);
+    return ina_err_get_rc();
 }
 
-INA_API(ina_rc_t) ina_cron_task_free(ina_cron_ctx_t *ctx, ina_cron_task_t **task)
+INA_API(void) ina_cron_task_free(ina_cron_ctx_t *ctx, ina_cron_task_t **task)
 {
-    INA_VERIFY_NOT_NULL(ctx);
-    INA_VERIFY_NOT_NULL(task);
-    INA_VERIFY_NOT_NULL(*task);
+    INA_FREE_CHECK(task);
 
     if (INA_FAILED(ina_cron_task_is_running(*task))) {
         ina_hashtable_remove_str(ctx->tasks, (*task)->key, (void**)&task);
@@ -620,9 +612,7 @@ INA_API(ina_rc_t) ina_cron_task_free(ina_cron_ctx_t *ctx, ina_cron_task_t **task
             ctx->save_cb(ctx, *task, INA_YES);
         }
         __free_task(task);
-        return INA_SUCCESS;
     }
-    return INA_ERROR(INA_ES_PROCESS | INA_ERR_RUNNING);
 }
 
 INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx, time_t now, int *suggested_next_time)

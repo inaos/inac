@@ -50,7 +50,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_by_id(ctx, "t2", &task));
     INA_TEST_ASSERT_NOT_NULL(task);
 
-    INA_TEST_ASSERT_SUCCEED(ina_cron_task_free(ctx, &task));
+    ina_cron_task_free(ctx, &task);
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_task_iter_new(ctx, &itr));
     while (task != NULL) {
