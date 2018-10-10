@@ -33,7 +33,7 @@ typedef struct ina_str_hdr_s {
     size_t  size;
     size_t  len;
     uint8_t pooled;
-    char *data;
+    char data[];
 } INA_PACKED ina_str_hdr_t;
 INA_VS_END_PACK
 
