@@ -736,7 +736,7 @@ struct __ina_hash_spooky_state
  * is a not-very-regular mix of 1's and 0's
  * does not need any other special mathematical properties
  */
-#define __INA_HASH_SPOOKY_SC_CONST 0xdeadbeefdeadbeefLL
+#define __INA_HASH_SPOOKY_SC_CONST 0xdeadbeefdeadbeefULL
 
 #if defined(INA_OS_WIN32) && defined(__rotl64)
 #define __INA_HASH_SPOOKY_ROT64(x,y) __rotl64(x,y)
@@ -1051,15 +1051,14 @@ static void __ina_hash_spooky_hash128
 	endp = u.p64 + (length/__INA_HASH_SPOOKY_SC_BLOCKSIZE)*__INA_HASH_SPOOKY_SC_NUMVARS;
 
 	/* handle all whole blocks of SC_BLOCKSIZE bytes */
-	if (__INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS || (u.i & 0x7) == 0)
+#ifdef __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS
+	while (u.p64 < endp)
 	{
-		while (u.p64 < endp)
-		{
-			__ina_hash_spooky_mix(u.p64, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-			u.p64 += __INA_HASH_SPOOKY_SC_NUMVARS;
-		}
+		__ina_hash_spooky_mix(u.p64, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
+		u.p64 += __INA_HASH_SPOOKY_SC_NUMVARS;
 	}
-	else
+#else
+	if ((u.i & 0x7) == 0)
 	{
 		while (u.p64 < endp)
 		{
@@ -1068,6 +1067,7 @@ static void __ina_hash_spooky_hash128
 			u.p64 += __INA_HASH_SPOOKY_SC_NUMVARS;
 		}
 	}
+#endif
 
 	/* handle the last partial block of SC_BLOCKSIZE bytes */
 	remainder = (length - ((const uint8_t *)endp-(const uint8_t *)message));
@@ -1133,9 +1133,9 @@ INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t siz
 /* Byte-boundary alignment issues */
 #define __INA_HASH_CRC_ALIGN_SIZE      0x08UL
 #define __INA_HASH_CRC_ALIGN_MASK      (__INA_HASH_CRC_ALIGN_SIZE - 1)
-#define __INA_HASH_CRC_CALC_CRC(op, crc, type, buf, len) do {                          \
+#define __INA_HASH_CRC_CALC_CRC(op, crc, type, cast, buf, len) do {                    \
     for (; (len) >= sizeof (type); (len) -= sizeof(type), buf += sizeof (type)) {      \
-      (crc) = op((crc), *(type *) (buf));                                              \
+      (crc) = op(((cast)(crc)), *(type *) (buf));                                      \
     }                                                                                  \
 } while(0)
 
@@ -1154,9 +1154,9 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
     }
 
     /* Blast off the CRC32 calculation */
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8,  crc, uint8_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, uint32_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, uint16_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8,  crc, uint8_t, uint8_t, buf, size);
 
     // Post-process the crc
     return (crc ^ 0xFFFFFFFF);
@@ -1174,16 +1174,16 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 
     /* Blast off the CRC32 calculation */
 #ifdef INA_CPU_X86_64
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u64, crc, uint64_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u64, crc, uint64_t, uint64_t, buf, size);
 #endif
 #ifdef INA_OS_WIN32
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, (unsigned int)crc, uint32_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, (unsigned int)crc, uint16_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, (unsigned int)crc, uint8_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, uint32_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, uint16_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, uint8_t, buf, size);
 #else
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, uint32_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, uint16_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, uint8_t, buf, size);
 #endif
 
     /* Post-process the crc */
