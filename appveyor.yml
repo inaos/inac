@@ -114,6 +114,7 @@ install:
          sudo wget --http-user=$jfrog_artifactory_uid --http-password=$jfrog_artifactory_pwd -O - https://inaos.jfrog.io/inaos/api/gpg/key/public | sudo apt-key add -
          sudo apt-get update
          sudo apt-get install inaos-dev-quality-tools
+         sudo apt-get install gcovr
          appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
   - cmd: |
          choco source add -n "inaos" -s "https://inaos.jfrog.io/inaos/api/nuget/nuget-release-local/" -u %jfrog_artifactory_uid% -p %jfrog_artifactory_pwd%
