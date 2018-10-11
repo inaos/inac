@@ -26,12 +26,12 @@ INA_INLINE int __ina_vsnprintf(char *str, size_t size, const char *format, va_li
 #endif
 
 #define __INA_HDR_OFFSET(s) (ina_str_hdr_t*)((s)-(sizeof(ina_str_hdr_t)))
+#define __INA_POOLED   80000000UL
 
 INA_VS_BEGIN_PACK
 typedef struct ina_str_hdr_s {
-    size_t  size;
-    size_t  len;
-    uint8_t pooled;
+    uint32_t size;
+    uint32_t len;
     char data[];
 } INA_PACKED ina_str_hdr_t;
 INA_VS_END_PACK
@@ -48,7 +48,6 @@ INA_API(ina_str_t) ina_str_new(size_t len)
     }
     hdr->size = len+1;
     hdr->len = 0;
-    hdr->pooled = INA_NO;
     hdr->data[0] = '\0';
     return (ina_str_t)hdr->data; 
 }
@@ -61,9 +60,8 @@ INA_API(ina_str_t) ina_str_new_using_pool(size_t len, ina_mempool_t *pool)
     if (hdr == NULL) {
         return NULL;
     }
-    hdr->size = len+1;
+    hdr->size = __INA_POOLED|(len+1);
     hdr->len = 0;
-    hdr->pooled = INA_YES;
     hdr->data[0] = '\0';
     return (ina_str_t)hdr->data; 
 }
@@ -161,7 +159,7 @@ INA_API(ina_rc_t) ina_str_free(ina_str_t str)
 {
     if (str != NULL) {
         ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
-        if (!hdr->pooled) {
+        if (!(hdr->size&__INA_POOLED)) {
             INA_MEM_FREE(hdr);
         }
     }
@@ -639,12 +637,43 @@ INA_API(const char*) ina_str_tok(char *str, const char *sep, char **next)
     return ret;
 }
 
+INA_API(ina_str_t) ina_str_assign_buf(char* buf, size_t len)
+{
+    ina_str_hdr_t *hdr;
+    if (NULL == buf) {
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
+        return NULL;
+    }
+    if (len < sizeof(ina_str_hdr_t) ||
+        len > (INT_MAX- sizeof(ina_str_hdr_t))) {
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
+        return NULL;
+    }
+    hdr = (ina_str_hdr_t*)buf;
+    hdr->size = (uint32_t )len - sizeof(ina_str_hdr_t);
+    hdr->len = 0;
+    hdr->data[0] = '\0';
+    return &hdr->data[0];
+}
+
+INA_API(char *) ina_str_release_buf(ina_str_t str)
+{
+    if (str == NULL) {
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
+    }
+    ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
+    ina_mem_move(hdr, str, hdr->len);
+    return (char*)hdr;
+}
+
 INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str)
 {
     INA_ASSERT_NOT_NULL(str);
     (__INA_HDR_OFFSET(str))->len = strlen(str);
     return str;
 }
+
+
 
 INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
 {
@@ -803,14 +832,16 @@ INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame, const char *wildcard)
 static ina_str_hdr_t* 
 __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
 {
+    size_t size;
     INA_ASSERT_NOT_NULL(hdr);
-    if ((hdr->size-hdr->len-1) > len) {
+    size = (hdr->size & ~(1UL << (31 - 1)));
+
+    if ((size-hdr->len-1) > len) {
         return hdr;
     }
-    hdr->size = (hdr->size-hdr->len)+len;
+    hdr->size = (size-hdr->len)+len;
     hdr = (ina_str_hdr_t*)INA_MEM_REALLOC(hdr, sizeof(ina_str_hdr_t) + hdr->size);
     INA_ASSERT_NOT_NULL(hdr);
-    hdr->pooled = INA_NO;
     return hdr;
 }
 
@@ -818,18 +849,21 @@ static ina_str_hdr_t*
 __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
 {
     size_t old_size = hdr->size;
+    size_t size
 
     INA_ASSERT_NOT_NULL(hdr);
-    INA_ASSERT_TRUE(hdr->pooled == INA_YES);
+    INA_ASSERT_TRUE(hdr->size&__INA_POOLED);
 
-    if ((hdr->size-hdr->len-1) > len) {
+    size = (hdr->size & ~(1UL << (31 - 1)));
+    if ((size-hdr->len-1) > len) {
         return hdr;
     }
     
-    hdr->size = (hdr->size-hdr->len)+len;
+    hdr->size = (size-hdr->len)+len;
     hdr = (ina_str_hdr_t*)ina_mempool_ralloc(pool, hdr, 
                             sizeof(ina_str_hdr_t) + old_size,
                             sizeof(ina_str_hdr_t) + hdr->size);
+    hdr->size = hdr->size|__INA_POOLED;
     INA_ASSERT_NOT_NULL(hdr);
     return hdr;
 }
