@@ -283,7 +283,7 @@ INA_API(void) ina_file_free(ina_file_t **file)
     INA_FREE_CHECK(file);
     if ((*file)->ctx) {
         ina_hashtable_remove_ptr((*file)->ctx->files, *file, (void **) &f);
-        INA_ASSERT_NOTNULL(f);
+        INA_ASSERT_NOT_NULL(f);
     }
 
     if ((*file)->stream) {

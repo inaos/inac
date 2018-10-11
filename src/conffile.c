@@ -198,9 +198,9 @@ INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_t *cf,
 {
     ina_conffile_entry_t *entry = NULL;
 
-    INA_ASSERT_NOTNULL(cf);
-    INA_ASSERT_NOTNULL(section_name);
-    INA_ASSERT_NOTNULL(key);
+    INA_ASSERT_NOT_NULL(cf);
+    INA_ASSERT_NOT_NULL(section_name);
+    INA_ASSERT_NOT_NULL(key);
     return __ina_get_value(cf, section_name, section_key, key, &entry);
 }
 
@@ -569,7 +569,7 @@ __ina_process_entries(ina_conffile_t *cf, ina_conffile_entries_t *entries)
             entry = (ina_conffile_entry_t*)ina_mempool_dalloc(
                                             cf->mempool,
                                             sizeof(ina_conffile_entry_t));
-            INA_ASSERT_NOTNULL(entry);
+            INA_ASSERT_NOT_NULL(entry);
             entry->key = ina_str_new_fromcstr_using_pool(k, cf->mempool);
             lua_getfield(lstate, -1 , __INA_ATTR_VALUE);
             if (strcmp(tn, __INA_VAL_STRING) == 0) {

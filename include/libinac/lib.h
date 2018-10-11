@@ -118,7 +118,7 @@ extern "C" {
 
 /* Handle free, destroy arg checking */
 #define INA_FREE_CHECK(ptrptr) do {    \
-    INA_ASSERT_NOTNULL(ptrptr);        \
+    INA_ASSERT_NOT_NULL(ptrptr);        \
 	if (INA_UNLIKELY((*ptrptr == NULL))) { return; }   \
 } while(0) 
 
@@ -135,7 +135,7 @@ extern "C" {
 #define INA_VERIFY(x) do { if (INA_UNLIKELY(!(x))) return INA_ERROR(INA_ERR_INVALID_ARGUMENT); } while (0)
 #define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) != NULL)
 #else
-#define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))
+#define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOT_NULL((x))
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
 #endif
 

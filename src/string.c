@@ -97,7 +97,7 @@ INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk,
 {
     ina_str_t str;
 
-    INA_ASSERT_NOTNULL(pool);
+    INA_ASSERT_NOT_NULL(pool);
     
     if (blk == NULL) {
         INA_ERROR(INA_ERR_INVALID_ARGUMENT);
@@ -195,7 +195,7 @@ INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest,  ina_cstr_t src, size_t n)
 {
     ina_str_hdr_t *d;
 
-    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOT_NULL(dest);
 
     if (src == NULL) {
         return dest;
@@ -233,7 +233,7 @@ INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, ina_cstr_t src, size_t n)
 {
     ina_str_hdr_t *d;
 
-    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOT_NULL(dest);
 
     if (src == NULL) {
         return dest;
@@ -251,7 +251,7 @@ INA_API(ina_str_t) ina_str_ncat_using_pool(ina_str_t dest, ina_cstr_t src, size_
 {
     ina_str_hdr_t *d;
 
-    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOT_NULL(dest);
 
     if (src == NULL) {
         return dest;
@@ -269,7 +269,7 @@ INA_API(ina_str_t) ina_str_ncatcstr(ina_str_t dest, const char *src, size_t n)
 {
     ina_str_hdr_t *d;
 
-    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOT_NULL(dest);
     INA_ASSERT_TRUE(strlen(src) <= n);
 
     if (src == NULL) {
@@ -288,7 +288,7 @@ INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest, const char *src, 
 {
     ina_str_hdr_t *d;
 
-    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOT_NULL(dest);
     INA_ASSERT_TRUE(strlen(src) <= n);
 
     if (src == NULL) {
@@ -423,7 +423,7 @@ INA_API(ina_str_t) ina_str_truncate(ina_str_t str, size_t pos)
 
 INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars)
 {
-    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_NOT_NULL(str);
     if (chars != NULL) {
         ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
         char *start, *end, *sp, *ep;
@@ -482,7 +482,7 @@ static size_t __ina_str_substr_internal(size_t start, size_t end, size_t len)
 INA_API(ina_str_t) ina_str_substr_using_pool(ina_cstr_t str, size_t start, size_t end, ina_mempool_t *pool)
 {
     size_t newlen;
-    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_NOT_NULL(str);
 
     newlen = __ina_str_substr_internal(start, end, ina_str_len(str));
     return ina_str_new_fromblk_using_pool((__INA_HDR_OFFSET(str))->data+start, newlen, pool);
@@ -492,7 +492,7 @@ INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, size_t start, size_t end)
 {
     size_t newlen;
 
-    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_NOT_NULL(str);
 
     newlen = __ina_str_substr_internal(start, end, ina_str_len(str));
     return ina_str_new_fromblk((__INA_HDR_OFFSET(str))->data+start, newlen);
@@ -641,7 +641,7 @@ INA_API(const char*) ina_str_tok(char *str, const char *sep, char **next)
 
 INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str)
 {
-    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_NOT_NULL(str);
     (__INA_HDR_OFFSET(str))->len = strlen(str);
     return str;
 }
@@ -653,7 +653,7 @@ INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...)
     size_t size;
     int n;
 
-    INA_ASSERT_NOTNULL(fmt);
+    INA_ASSERT_NOT_NULL(fmt);
 
     size = 128;
     str = ina_str_new(size);
@@ -676,8 +676,8 @@ INA_API(int) ina_str_snprintf(ina_str_t *str, size_t len, const char* fmt, ...)
     va_list args;
     int retval = 0;
 
-    INA_ASSERT_NOTNULL(fmt);
-    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_NOT_NULL(fmt);
+    INA_ASSERT_NOT_NULL(str);
     INA_ASSERT_TRUE(len > 0);
 
     va_start(args, fmt);
@@ -692,8 +692,8 @@ INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
     int l;
     va_list args_copy;
 
-    INA_ASSERT_NOTNULL(fmt);
-    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_NOT_NULL(fmt);
+    INA_ASSERT_NOT_NULL(str);
     INA_ASSERT_TRUE(len > 0);
     INA_ASSERT_FALSE((__INA_HDR_OFFSET(*str))->size < len);
  
@@ -803,13 +803,13 @@ INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame, const char *wildcard)
 static ina_str_hdr_t* 
 __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
 {
-    INA_ASSERT_NOTNULL(hdr);
+    INA_ASSERT_NOT_NULL(hdr);
     if ((hdr->size-hdr->len-1) > len) {
         return hdr;
     }
     hdr->size = (hdr->size-hdr->len)+len;
     hdr = (ina_str_hdr_t*)INA_MEM_REALLOC(hdr, sizeof(ina_str_hdr_t) + hdr->size);
-    INA_ASSERT_NOTNULL(hdr);
+    INA_ASSERT_NOT_NULL(hdr);
     hdr->pooled = INA_NO;
     return hdr;
 }
@@ -819,7 +819,7 @@ __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
 {
     size_t old_size = hdr->size;
 
-    INA_ASSERT_NOTNULL(hdr);
+    INA_ASSERT_NOT_NULL(hdr);
     INA_ASSERT_TRUE(hdr->pooled == INA_YES);
 
     if ((hdr->size-hdr->len-1) > len) {
@@ -830,7 +830,7 @@ __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
     hdr = (ina_str_hdr_t*)ina_mempool_ralloc(pool, hdr, 
                             sizeof(ina_str_hdr_t) + old_size,
                             sizeof(ina_str_hdr_t) + hdr->size);
-    INA_ASSERT_NOTNULL(hdr);
+    INA_ASSERT_NOT_NULL(hdr);
     return hdr;
 }
 

@@ -330,7 +330,7 @@ static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, const cha
 #else
     lt = localtime(&now);
 #endif
-    INA_ASSERT_NOTNULL(lt);
+    INA_ASSERT_NOT_NULL(lt);
     
     strftime(buf, sizeof(buf),"%d %b %H:%M:%S", lt);
     sprintf(buf2,"[%d] %s %c %s\n", log->pid, buf, c[level], msg);

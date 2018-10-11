@@ -180,7 +180,7 @@ INA_API(ina_rc_t) ina_hash_type(const char *hash_name, ina_hash_type_t *hash_typ
 INA_API(uint32_t) ina_hash_crc32(uint32_t hash, const void *data, size_t size)
 {
 	const uint8_t *p;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 	p = data;
 	hash = hash ^ ~0U;
 	while (size--) {
@@ -192,7 +192,7 @@ INA_API(uint32_t) ina_hash_crc32(uint32_t hash, const void *data, size_t size)
 INA_API(uint32_t) ina_hash_sdbm(uint32_t hash, const void *data, size_t size)
 {
 	const uint8_t *p;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 	p = data;
 	while (size--) {
 		hash = (*p++) + (hash << 6) + (hash << 16) - hash;
@@ -206,7 +206,7 @@ INA_API(uint32_t) ina_hash_32_lookup3(uint32_t hash, const void *data, size_t si
 {
 	const unsigned char* key = (const unsigned char*)(data);
 	uint32_t a, b, c;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 	a = b = c = 0xdeadbeef + ((uint32_t)size) + hash;
 
 	INA_DISABLE_WARNING_GCC(implicit-fallthrough)
@@ -259,7 +259,7 @@ INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t si
 {
 	const unsigned char* key = (const unsigned char*)data;
 	uint32_t a, b, c;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 
 
 	a = b = c = 0xdeadbeef + ((uint32_t)size) + (hash & 0xffffffff);
@@ -313,7 +313,7 @@ INA_API(uint32_t) ina_hash_32_djb(uint32_t hash, const void *data, size_t size)
 {
     const uint8_t *d = (const uint8_t*)data;
     size_t i;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     for(i = 0; i < size; ++i)  {
         hash = 33 * hash + d[i];
     }
@@ -325,7 +325,7 @@ INA_API(uint32_t) ina_hash_32_jenkins_ooat(uint32_t hash, const void *data, size
 {
     unsigned char  *str = (unsigned char *)data;
     const unsigned char *const end = (const unsigned char *)str + size;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     while (str < end) {
         hash += *str++;
         hash += (hash << 10);
@@ -343,7 +343,7 @@ INA_API(uint32_t) ina_hash_32_fnv(uint32_t hash, const void *data, size_t size)
     uint32_t h = hash;
     const uint8_t *d = (const uint8_t*)data;
     size_t i;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     h ^= __INA_HASH_BIG_CONSTANT(2166136261);
     
     for (i = 0; i < size; i++) {
@@ -359,7 +359,7 @@ INA_API(uint64_t) ina_hash_64_fnv(uint64_t hash, const void *data, size_t size)
     uint64_t h = (uint64_t)hash;
     const uint8_t *d = (const uint8_t*)data;
     size_t i;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     h ^= __INA_HASH_BIG_CONSTANT(0xcbf29ce484222325);
     
     for (i = 0; i < size; i++) {
@@ -389,7 +389,7 @@ INA_API(uint32_t) ina_hash_32_superfast(uint32_t seed, const void *key, size_t s
     uint32_t hash = 0, tmp;
     int rem;
 	INA_UNUSED(seed);
-    INA_ASSERT_NOTNULL(key);
+    INA_ASSERT_NOT_NULL(key);
     if (size <= 0 || data == NULL) {
         return 0;
     }
@@ -437,7 +437,7 @@ INA_API(uint32_t) ina_hash_32_sdbm(uint32_t hash, const void *data, size_t size)
 {
     unsigned char *str = (unsigned char*)data;
     const unsigned char *const end = (const unsigned char*)str + size;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     while (str < end) {
         hash = (hash << 6) + (hash << 16) - hash + *str++;
     }
@@ -451,7 +451,7 @@ INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, si
     uint32_t hash32A = hash ^ 2166136261;
     uint32_t hash32B = 2166136261 + (uint32_t)size;
     uint32_t hash32C = 2166136261;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     
     for (; size >= 3 * 2 * sizeof(uint32_t); size -= 3 * 2 * sizeof(uint32_t), p += 3 * 2 * sizeof(uint32_t)) {
         hash32A = (hash32A ^ (__INA_HASH_ROTL32(*(uint32_t *) (p + 0), 5)  ^ *(uint32_t *) (p + 4)))  * PRIME;
@@ -665,7 +665,7 @@ uint32_t __ina_hash_PMurHash32(uint32_t seed, const void *key, uint32_t len)
 
 INA_API(uint32_t) ina_hash_32_murmur3(uint32_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return __ina_hash_PMurHash32(hash, data, (uint32_t)size);
 }
 
@@ -1108,25 +1108,25 @@ static uint32_t __ina_hash_spooky_hash32
 
 INA_API(uint32_t) ina_hash_32_spooky(uint32_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return __ina_hash_spooky_hash32(data, size, hash);
 }
 
 INA_API(uint64_t) ina_hash_64_spooky(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return __ina_hash_spooky_hash64(data, size, hash);
 }
 
 INA_API(uint32_t) ina_hash_32_xxhash(uint32_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return XXH32(data, size, hash);
 }
 
 INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return XXH64(data, size, hash);
 }
 
@@ -1143,7 +1143,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
 {
     uint32_t crc = hash;
     const unsigned char* buf = (const unsigned char*)data;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 
     /* XOR the initial CRC with INT_MAX */
     crc ^= 0xFFFFFFFF;
@@ -1166,7 +1166,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 {
     const char* buf = (const char*)data;
     uint64_t crc = (uint64_t)hash;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     /* Align the input to the word boundary */
     for (; (size > 0) && ((size_t)buf & __INA_HASH_CRC_ALIGN_MASK); size--, buf++) {
         crc = _mm_crc32_u8((unsigned int)crc, *buf);
@@ -1193,7 +1193,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     /* Note: tested with smasher the hash quality as well as the speed does not seem to change due to the cast */
     h = ina_hash_64_memhash(hash, data, size);
     return (uint32_t)h;
@@ -1201,14 +1201,14 @@ INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t si
 
 INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return memhash(data, size, hash);
 }
 
 INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     /* Note: tested with smasher the hash quality as well as the speed does not seem to change due to the cast */
     h = ina_hash_64_falkhash(hash, data, size);
     return (uint32_t)h;
@@ -1216,14 +1216,14 @@ INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t s
 
 INA_API(uint64_t) ina_hash_64_falkhash(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return falkhash64(data, size, hash);
 }
 
 INA_API(uint32_t) ina_hash_32_t1ha0(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     h = ina_hash_64_t1ha0(hash, data, size);
 	return (uint32_t)h;
 }
@@ -1231,14 +1231,14 @@ INA_API(uint32_t) ina_hash_32_t1ha0(uint32_t hash, const void *data, size_t size
 INA_API(uint32_t) ina_hash_32_t1ha1(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 	h = ina_hash_64_t1ha1(hash, data, size);
 	return (uint32_t)h;
 }
 
 INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 #ifndef INA_OS_OSX
 	return t1ha0(data, size, hash);
 #else
@@ -1248,7 +1248,7 @@ INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size
 
 INA_API(uint64_t) ina_hash_64_t1ha1(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 #ifndef INA_OS_OSX
 	return t1ha(data, size, hash);
 #else

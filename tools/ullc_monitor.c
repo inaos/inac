@@ -16,7 +16,7 @@ static ina_rc_t umon_draw_monitor(ina_ullc_rb_info_t *rbi)
     int16_t x = 1;
     int16_t y = 0;
     
-    INA_ASSERT_NOTNULL(rbi);
+    INA_ASSERT_NOT_NULL(rbi);
     
     ina_cio_printf(x, y++, fg, bg, "Version        : %d", rbi->ring_version);
     ina_cio_printf(x, y++, fg, bg, "Write ops      : %ld", rbi->num_write_op);

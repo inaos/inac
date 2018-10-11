@@ -40,7 +40,7 @@ static void __ina_test_compression(ina_mempool_t *pool, ina_compression_type_t c
     }
     else {
         dest_buf = (unsigned char*)ina_mempool_dalloc(pool, sizeof(unsigned char)*dest_len);
-        INA_ASSERT_NOTNULL(dest_buf);
+        INA_ASSERT_NOT_NULL(dest_buf);
     }
 
     INA_TEST_ASSERT_SUCCEED(ina_compression_compress_chunk(cstate, (const unsigned char*)my_test_string, 
@@ -51,7 +51,7 @@ static void __ina_test_compression(ina_mempool_t *pool, ina_compression_type_t c
     }
     else {
         buf = (unsigned char*)ina_mempool_dalloc(pool, sizeof(unsigned char)*(src_len+1));
-        INA_ASSERT_NOTNULL(buf);
+        INA_ASSERT_NOT_NULL(buf);
     }
 
     INA_TEST_ASSERT_SUCCEED(ina_compression_decompress_chunk(cstate, dest_buf, wrote_len, 

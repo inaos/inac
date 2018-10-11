@@ -86,7 +86,7 @@ static ina_rc_t __ina_create_socket(int domain, int type, ina_fd_t *s)
     }
 #else
     int on = 1;
-    INA_ASSERT_NOTNULL(s);
+    INA_ASSERT_NOT_NULL(s);
 
     if (type == __INA_SOCKET_TYPE_TCP) {
         *s = socket(domain, SOCK_STREAM, IPPROTO_TCP);

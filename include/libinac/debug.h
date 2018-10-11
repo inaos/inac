@@ -61,7 +61,7 @@ extern "C" {
 #define INA_ASSERT_FALSE(v) INA_ASSERT(!(v))
 #define INA_ASSERT_TRUE(v) INA_ASSERT(v)
 #define INA_ASSERT_NULL(v) INA_ASSERT(v == NULL)
-#define INA_ASSERT_NOTNULL(v) INA_ASSERT(v != NULL)
+#define INA_ASSERT_NOT_NULL(v) INA_ASSERT(v != NULL)
 #define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == actual)
 #define INA_ASSERT_NOTEQUAL(nexpected, actual) INA_ASSERT(nexpected != actual)
 #define INA_ASSERT_SUCCESS(v) INA_ASSERT_EQUAL(INA_SUCCESS, v)
@@ -74,10 +74,10 @@ extern "C" {
 #define INA_ASSERT_FALSE(v)
 #define INA_ASSERT_TRUE(v)
 #define INA_ASSERT_NULL(v)
-#ifdef INA_ASSERT_NOTNULL_ENABLED
-#define INA_ASSERT_NOTNULL(v) assert(v != NULL)
+#ifdef INA_ASSERT_NOT_NULL_ENABLED
+#define INA_ASSERT_NOT_NULL(v) assert(v != NULL)
 #else
-#define INA_ASSERT_NOTNULL(v)
+#define INA_ASSERT_NOT_NULL(v)
 #endif    
 #define INA_ASSERT_EQUAL(expected, actual)
 #define INA_ASSERT_NOTEQUAL(notexpected, actual)
