@@ -98,31 +98,31 @@ INA_FSM_TRANSITIONS(process_fsm,
 static void __ina_process_fsm_event_start(void *user_data)
 {
     ina_process_t *process = (ina_process_t*)user_data;
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(process->descriptor);
+    INA_ASSERT_NOT_NULL(process);
+    INA_ASSERT_NOT_NULL(process->descriptor);
     __ina_process_start(process);
 }
 
 static void __ina_process_fsm_event_stop(void *user_data)
 {
     ina_process_t *process = (ina_process_t*)user_data;
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(process->descriptor);
+    INA_ASSERT_NOT_NULL(process);
+    INA_ASSERT_NOT_NULL(process->descriptor);
     __ina_process_stop(process);
 }
 
 static void __ina_process_fsm_event_reset(void *user_data)
 {
     ina_process_t *process = (ina_process_t*)user_data;
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(process->descriptor);
+    INA_ASSERT_NOT_NULL(process);
+    INA_ASSERT_NOT_NULL(process->descriptor);
     __ina_process_reset(process);
 }
 
 static void __ina_process_fsm_event_error(void *user_data)
 {
     ina_process_t *process = (ina_process_t*)user_data;
-    INA_ASSERT_NOTNULL(process);
+    INA_ASSERT_NOT_NULL(process);
     /* FIXME error handling */
 }
 
@@ -442,7 +442,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
                 ina_str_t id = ina_str_sprintf("START_%lld", (int64_t)process);
 
-                INA_ASSERT_NOTNULL(descriptor->scheduled_start_pattern);
+                INA_ASSERT_NOT_NULL(descriptor->scheduled_start_pattern);
 
                 if (!INA_SUCCEED(ina_cron_register_function(ctx->cron_ctx,
                                     ina_str_cstr(id),
@@ -460,7 +460,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
             ina_str_t id = ina_str_sprintf("STOP_%lld", (int64_t)process);
 
-            INA_ASSERT_NOTNULL(descriptor->scheduled_stop_pattern);
+            INA_ASSERT_NOT_NULL(descriptor->scheduled_stop_pattern);
 
             if (!INA_SUCCEED(ina_cron_register_function(ctx->cron_ctx,
                                 ina_str_cstr(id),

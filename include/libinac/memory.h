@@ -152,7 +152,7 @@ INA_INLINE void * ina_mem_alloc(size_t size)
  */
 INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
 {
-	INA_ASSERT_NOTNULL(ptr);
+	INA_ASSERT_NOT_NULL(ptr);
 	return INA_MEM_REALLOC(ptr, nb);
 }
 
@@ -185,8 +185,8 @@ INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
  */
 INA_INLINE void* ina_mem_move(void *dest, const void *src, size_t nb)
 {
-	INA_ASSERT_NOTNULL(dest);
-	INA_ASSERT_NOTNULL(src);
+	INA_ASSERT_NOT_NULL(dest);
+	INA_ASSERT_NOT_NULL(src);
 	return INA_MEM_MEMMOVE(dest, src, nb);
 }
 
@@ -219,8 +219,8 @@ INA_INLINE void* ina_mem_move(void *dest, const void *src, size_t nb)
  */ 
 INA_INLINE void * ina_mem_cpy(void *dest, const void *src, size_t nb)
 {
-	INA_ASSERT_NOTNULL(dest);
-	INA_ASSERT_NOTNULL(src);
+	INA_ASSERT_NOT_NULL(dest);
+	INA_ASSERT_NOT_NULL(src);
 	return INA_MEM_MEMMOVE(dest, src, nb);
 }
 
@@ -275,7 +275,7 @@ INA_INLINE int ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
  */
 INA_INLINE void* ina_mem_chr(const void *dest, int value, size_t nb)
 {
-	INA_ASSERT_NOTNULL(dest);
+	INA_ASSERT_NOT_NULL(dest);
 	return INA_MEM_MEMCHR(dest, value, nb);
 }
 
@@ -297,7 +297,7 @@ INA_INLINE void* ina_mem_chr(const void *dest, int value, size_t nb)
  */
 INA_INLINE void* ina_mem_set(void *dest, int value, size_t nb)
 {
-    INA_ASSERT_NOTNULL(dest);
+    INA_ASSERT_NOT_NULL(dest);
     return INA_MEM_MEMSET(dest, value, nb);
 }
 

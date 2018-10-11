@@ -147,11 +147,8 @@ INA_API(ina_rc_t) ina_cron_task_by_id(ina_cron_ctx_t *ctx,
  * Parameters
  *  ctx   Cron context
  *  task  Task to remove
- *
- * Return
- *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_cron_task_free(ina_cron_ctx_t *ctx,
+INA_API(void) ina_cron_task_free(ina_cron_ctx_t *ctx,
                                       ina_cron_task_t **task);
 
 /*

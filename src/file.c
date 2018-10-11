@@ -40,6 +40,15 @@ struct ina_file_stat_s {
     mode_t mode;
 };
 
+
+static ina_rc_t __ina_free_file(void *data)
+{
+    ina_file_t *file = (ina_file_t*)data;
+    file->ctx = NULL;
+    ina_file_free(&file);
+    return INA_SUCCESS;
+}
+
 #ifdef INA_OS_WIN32
 static void __ina_file_win_map_flags(ina_file_access_mode_t access, 
 										 ina_file_create_mode_t create,
@@ -192,26 +201,18 @@ INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode)
 }
 
 
-INA_API(ina_rc_t) ina_file_ctx_free(ina_file_ctx_t **ctx)
+INA_API(void) ina_file_ctx_free(ina_file_ctx_t **ctx)
 {
-    ina_file_t *f;
-    ina_hashtable_iter_t *iter;
-
-    INA_VERIFY_NOT_NULL(ctx);
-    INA_VERIFY_NOT_NULL(*ctx);
+    INA_FREE_CHECK(ctx);
 
     /*
      * close files that are still open
      */
-    ina_hashtable_iter_new((*ctx)->files, &iter);
-    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&f))) {
-        INA_MUST_SUCCEED(ina_file_free(&f));
+    if ((*ctx)->files) {
+        ina_hashtable_foreach((*ctx)->files, __ina_free_file);
     }
-    ina_hashtable_iter_free(&iter);
     ina_hashtable_free(&(*ctx)->files);
-    ina_mem_free(*ctx);
-    *ctx = NULL;
-    return INA_SUCCESS;
+    INA_MEM_FREE_SAFE(*ctx);
 }
 
 INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
@@ -254,8 +255,7 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
 #ifndef INA_OS_OSX
     if (flags & INA_FILE_FLAG_RANDOM_ACCESS) {
 		posix_fadvise(fhandle, 0, 0, POSIX_FADV_RANDOM);
-	}
-	else if (flags & INA_FILE_FLAG_SEQUENTIAL_ACCESS) {
+	} else if (flags & INA_FILE_FLAG_SEQUENTIAL_ACCESS) {
 		posix_fadvise(fhandle, 0, 0, POSIX_FADV_SEQUENTIAL);
 	}
 #endif
@@ -263,24 +263,28 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
 
     *file = (ina_file_t*)ina_mem_alloc(sizeof(ina_file_t));
     INA_RETURN_IF_NULL(*file);
+    INA_MEM_SET_ZERO(*file, ina_file_t);
     (*file)->access = access;
     (*file)->create = create;
     (*file)->share = share;
     (*file)->fh = fhandle;
     (*file)->file_path = ina_str_new_fromcstr(file_fqn);
     (*file)->ctx = ctx;
-    ina_hashtable_set_ptr(ctx->files, file, file);
+    INA_FAIL_IF_ERROR(ina_hashtable_set_ptr(ctx->files, *file, *file));
     return INA_SUCCESS;
+fail:
+    ina_file_free(file);
+    return ina_err_get_rc();
 }
 
-INA_API(ina_rc_t) ina_file_free(ina_file_t **file)
+INA_API(void) ina_file_free(ina_file_t **file)
 {
     ina_file_t *f;
-    INA_VERIFY_NOT_NULL(file);
-    INA_VERIFY_NOT_NULL(*file);
-
-    ina_hashtable_remove_ptr((*file)->ctx->files, *file, (void**)&f);
-    INA_ASSERT_NOTNULL(f);
+    INA_FREE_CHECK(file);
+    if ((*file)->ctx) {
+        ina_hashtable_remove_ptr((*file)->ctx->files, *file, (void **) &f);
+        INA_ASSERT_NOT_NULL(f);
+    }
 
     if ((*file)->stream) {
         fclose((*file)->stream);
@@ -290,12 +294,8 @@ INA_API(ina_rc_t) ina_file_free(ina_file_t **file)
 #else
     close((*file)->fh);
 #endif
-    if ((*file)->file_path != NULL) {
-       ina_str_free((*file)->file_path);
-    }
-    ina_mem_free(*file);
-    *file = NULL;
-    return INA_SUCCESS;
+    INA_STR_FREE_SAFE((*file)->file_path);
+    INA_MEM_FREE_SAFE(*file);
 }
 
 INA_API(ina_rc_t) ina_file_stat_new(const ina_file_t *file, ina_file_stat_t **stat)
@@ -363,13 +363,10 @@ INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_stat_free(ina_file_stat_t **stat)
+INA_API(void) ina_file_stat_free(ina_file_stat_t **stat)
 {
-    INA_VERIFY_NOT_NULL(stat);
-    INA_VERIFY_NOT_NULL(*stat);
-    ina_mem_free(*stat);
-    *stat = NULL;
-    return INA_SUCCESS;
+    INA_FREE_CHECK(stat);
+    INA_MEM_FREE_SAFE(*stat);
 }
 
 INA_API(ina_rc_t) ina_file_get_filepath(const ina_file_t *file, ina_str_t *filepath)
@@ -404,7 +401,7 @@ INA_API(ina_rc_t) ina_file_get_mode(const ina_file_t *file, mode_t *mode)
     INA_VERIFY_NOT_NULL(mode);
     INA_RETURN_IF_FAILED(ina_file_stat_new(file, &stat));
     *mode = stat->mode;
-    INA_MUST_SUCCEED(ina_file_stat_free(&stat));
+    ina_file_stat_free(&stat);
     return INA_SUCCESS;
 }
 
@@ -461,7 +458,7 @@ INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
 #endif
     ina_str_t mode;
     if (file == NULL) {
-        INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return NULL;
     }
     if (file->stream != NULL) {
@@ -485,9 +482,8 @@ INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
         } else {
             mode = ina_str_new_fromcstr("w");
         }
-    }
-	else {
-        INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+    } else {
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
 		return NULL;
 	}
 

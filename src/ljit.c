@@ -76,7 +76,7 @@ INA_API(void) ina_ljit_ctx_free(ina_ljit_ctx_t **ctx)
 
 unsigned long ina_ljit_hash_sbdm(const char *str)
 { 
-    INA_ASSERT_NOTNULL(str);
+    INA_ASSERT_NOT_NULL(str);
     return INA_HASH_CSTR_TO_SDBM(str);
 }
 
@@ -99,7 +99,7 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
     } else {    
         char *obj_name_c;
         ina_str_t obj_name = ina_str_new_fromcstr(fname);
-        INA_ASSERT_NOTNULL(obj_name);
+        INA_ASSERT_NOT_NULL(obj_name);
         obj_name_c = (char*)ina_str_cstr(obj_name);
         obj_name_c[cfname - fname] = '\0';
         lua_getglobal(ctx->lstate, obj_name_c);
@@ -192,8 +192,8 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
 
 INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
 {
-    INA_ASSERT_NOTNULL(ctx);
-    INA_ASSERT_NOTNULL(code);
+    INA_ASSERT_NOT_NULL(ctx);
+    INA_ASSERT_NOT_NULL(code);
     if (luaL_dostring(ctx->lstate, code) != 0) {
         INA_ERROR(INA_ES_SCRIPT | INA_ERR_FAILED);
         /*INA_ERRMSG(INA_EEXCALL, lua_tostring(ctx->lstate, -1), NULL);*/

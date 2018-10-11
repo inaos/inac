@@ -446,7 +446,7 @@ __ina_opt_get(const char *opt)
 {
     __ina_sopt_t *so = NULL;
 
-    INA_ASSERT_NOTNULL(opt);
+    INA_ASSERT_NOT_NULL(opt);
 
     if (INA_FAILED(ina_hashtable_get_str(__sopt, opt, (void**)&so))) {
         __ina_lopt_t *lo = NULL;

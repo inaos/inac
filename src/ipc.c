@@ -49,7 +49,7 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
     char mname[INA_IPC_FLAGS_NAME_MAXLEN+15];
 
     INA_VERIFY_NOT_NULL(flags);
-    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOT_NULL(name);
     INA_VERIFY(strlen(name) < INA_IPC_FLAGS_NAME_MAXLEN);
 
     *flags = (ina_ipc_flags_t*)ina_mem_alloc(sizeof(ina_ipc_flags_t));

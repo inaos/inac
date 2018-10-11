@@ -78,7 +78,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	if (NULL != fd) {
 		INA_RETURN_IF_FAILED(ina_file_stat_new(fd, &fstat));
 		INA_MUST_SUCCEED(ina_file_stat_file_size(fstat, &flen));
-		INA_MUST_SUCCEED(ina_file_stat_free(&fstat));
+		ina_file_stat_free(&fstat);
 
 		if (offset > flen) {
 			return INA_ERROR(INA_ES_POSITION | INA_ERR_OUT_OF_RANGE);

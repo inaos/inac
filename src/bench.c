@@ -121,7 +121,7 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     } else {
         file_path = ina_str_sprintf("bench_%s.csv", __current->bench_name);
     }
-    INA_ASSERT_NOTNULL(file_path);
+    INA_ASSERT_NOT_NULL(file_path);
 
     f = fopen(ina_str_cstr(file_path), "w");
     if (f == NULL) {

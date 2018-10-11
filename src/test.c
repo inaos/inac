@@ -327,7 +327,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     size_t n = 0;
 #ifndef INA_OS_WIN32
 
-    INA_ASSERT_NOTNULL(hid);
+    INA_ASSERT_NOT_NULL(hid);
 
     pid_t pid = fork();
    
@@ -375,7 +375,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     char cmdline[MAX_PATH];
     char exepath[MAX_PATH];
 
-    INA_ASSERT_NOTNULL(hid);
+    INA_ASSERT_NOT_NULL(hid);
 
     va_start(ap, wait_msec);
     while ((args[n++] = va_arg(ap, char *)));
@@ -421,7 +421,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
 
 INA_API(ina_rc_t) ina_test_helper_terminate(ina_test_hid_t *hid)
 {
-    INA_ASSERT_NOTNULL(hid);
+    INA_ASSERT_NOT_NULL(hid);
 #ifdef INA_OS_WIN32
     if (hid->hProcess != NULL) {
         TerminateProcess(hid->hProcess, 0);
@@ -604,8 +604,10 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                 if (test->setup) {
                     test->setup(test->data);
                 }
+                INA_DISABLE_WARNING_MSVC(4152);
                 old_sigabrt_handler = signal(SIGABRT, __ina_signal_handler);
                 old_sigsegv_handler = signal(SIGSEGV, __ina_signal_handler);
+                INA_ENABLE_WARNING_MSVC(4152);
 
                 if (setjmp(__err) == 0) {
                     if (test->data) {
@@ -631,8 +633,10 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     }
                     num_fail++;
                 }
+                INA_DISABLE_WARNING_MSVC(4152);
                 signal(SIGABRT, old_sigabrt_handler);
                 signal(SIGSEGV, old_sigsegv_handler);
+                INA_ENABLE_WARNING_MSVC(4152);
                 if (test->teardown) {
                     test->teardown(test->data);
                 }

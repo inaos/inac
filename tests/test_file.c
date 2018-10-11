@@ -39,7 +39,7 @@ INA_TEST(file, test_open_close)
     INA_TEST_ASSERT_SUCCEED(ina_file_get_mode(f, &mode));
     INA_TEST_ASSERT_NOT_EQUAL_INT(0, mode);
     INA_TEST_ASSERT_NOT_NULL(ina_file_get_stream(f));
-    INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
+    ina_file_free(&f);
     INA_ASSERT_NULL(f);
 
     INA_TEST_ASSERT_FAILED(ina_file_new(ctx, test_file2,
@@ -50,7 +50,7 @@ INA_TEST(file, test_open_close)
                                         &f));
     INA_TEST_ASSERT_NULL(f);
 
-    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&ctx));
+    ina_file_ctx_free(&ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
@@ -81,10 +81,10 @@ INA_TEST(file, stat)
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_mtime(stat, &t));
     INA_TEST_ASSERT_NOT_EQUAL_TIME_T(0, t);
     INA_TEST_ASSERT_FAILED(ina_file_stat_is_dir(stat));
-    INA_TEST_ASSERT_SUCCEED(ina_file_stat_free(&stat));
+    ina_file_stat_free(&stat);
     INA_ASSERT_NULL(stat);
-    INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
-    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&ctx));
+    ina_file_free(&f);
+    ina_file_ctx_free(&ctx);
 
 }
 
@@ -118,8 +118,8 @@ INA_TEST(file, os_handle)
     read(h, buf, 7);
 #endif
     INA_TEST_ASSERT_EQUAL_STR("debug {", buf);
-    INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
-    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&ctx));
+    ina_file_free(&f);
+    ina_file_ctx_free(&ctx);
 }
 
 INA_TEST(file, stream)
@@ -144,8 +144,8 @@ INA_TEST(file, stream)
     memset(buf, 0, 10);
     fread(buf, 7, 1, fp);
     INA_TEST_ASSERT_EQUAL_STR("debug {", buf);
-    INA_TEST_ASSERT_SUCCEED(ina_file_free(&f));
-    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_free(&ctx));
+    ina_file_free(&f);
+    ina_file_ctx_free(&ctx);
 }
 
 INA_TEST(file, mode)

@@ -86,7 +86,7 @@ static ina_rc_t __ina_create_socket(int domain, int type, ina_fd_t *s)
     }
 #else
     int on = 1;
-    INA_ASSERT_NOTNULL(s);
+    INA_ASSERT_NOT_NULL(s);
 
     if (type == __INA_SOCKET_TYPE_TCP) {
         *s = socket(domain, SOCK_STREAM, IPPROTO_TCP);
@@ -345,7 +345,7 @@ INA_API(ina_rc_t) ina_net_read(ina_fd_t fd, unsigned char *buf, int nb, int* nb_
 	INA_VERIFY_NOT_NULL(nb_read);
 
 #ifdef INA_OS_WIN32
-    *nb_read = recv(fd, buf, nb, 0);
+    *nb_read = recv(fd, (char*)buf, nb, 0); /* Windows requires a signed pointer to buffer */
 #else
 	*nb_read = read(fd, buf, nb);
 #endif
@@ -387,7 +387,7 @@ INA_API(ina_rc_t) ina_net_write(ina_fd_t fd, const unsigned char *buf, int nb, i
 
 
     while (totlen != nb) {
-        nwritten = send(fd, buf, nb - totlen, 0);
+        nwritten = send(fd, (const char*)buf, nb - totlen, 0); /* Windows requires signed pointer */
         if (nwritten == 0) {
             *nb_write = totlen;
             break;
@@ -606,7 +606,7 @@ INA_API(ina_rc_t) ina_net_udp_send(ina_fd_t fd, ina_net_udp_receiver_t *receiver
     INA_VERIFY_NOT_NULL(nb_write);
 
     while (totlen != nb) {
-        nwritten = sendto(fd, buf, nb - totlen, 0, (struct sockaddr*)&receiver->addr, sizeof(*&receiver->addr));
+        nwritten = sendto(fd, (char*)buf, nb - totlen, 0, (struct sockaddr*)&receiver->addr, sizeof(*&receiver->addr)); /* Windows requires signed pointer */
         if (nwritten == 0) {
             *nb_write =totlen;
             break;
@@ -839,7 +839,7 @@ INA_API(ina_rc_t) ina_net_poll(ina_net_pollfd_t *fds, nfds_t nfds, int timeout, 
     INA_VERIFY_NOT_NULL(fds);
     INA_VERIFY_NOT_NULL(num_fds_ready);
 
-    num_fds_ready = poll(fds, nfds, timeout);
+    *num_fds_ready = poll(fds, nfds, timeout);
     if (*num_fds_ready < 0) {
         *num_fds_ready = 0;
         return __INA_ERROR(INA_ES_IO | INA_ERR_FAILED);
