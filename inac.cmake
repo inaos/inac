@@ -641,6 +641,18 @@ function(inac_merge_static_libs LIB)
             set(LINKER_EXTRA_FLAGS "${LINKER_EXTRA_FLAGS} \"${LIB_LOCATION}\"")
         endforeach()
         set_target_properties(${LIB} PROPERTIES STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS}")
+    elseif(APPLE)
+        get_target_property(outfile ${LIB} LOCATION)
+        foreach(l ${ARGN})
+            get_property(LIB_LOCATION TARGET ${l} PROPERTY LOCATION)
+            message(STATUS "Merge lib ${l}: ${LIB_LOCATION}")
+            set(LINKER_EXTRA_FLAGS "${LINKER_EXTRA_FLAGS} \"${LIB_LOCATION}\"")
+        endforeach()
+        add_custom_command(TARGET ${LIB} POST_BUILD
+                COMMAND rm ${outfile}
+                COMMAND /usr/bin/libtool -static -o ${outfile}
+                ${ARGN}}
+                )
     else()
         set(C_LIB ${CMAKE_BINARY_DIR}/lib${LIB}.a)
         set(extracts "")
