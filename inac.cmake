@@ -23,7 +23,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if (POLICY CMP0026)
     cmake_policy(SET CMP0026 OLD)
 endif()
-gi
+
 if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
 endif()
