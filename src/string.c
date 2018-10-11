@@ -62,7 +62,9 @@ INA_API(ina_str_t) ina_str_new_using_pool(size_t len, ina_mempool_t *pool)
         return NULL;
     }
     hdr->size = len+1;
-    hdr->pooled = INA_YES;      
+    hdr->len = 0;
+    hdr->pooled = INA_YES;
+    hdr->data[0] = '\0';
     return (ina_str_t)hdr->data; 
 }
 
@@ -72,7 +74,7 @@ INA_API(ina_str_t) ina_str_new_fromblk(const void* blk, size_t len)
     ina_str_t str;
 
     if (blk == NULL) {
-        INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return NULL;
     }
 
@@ -98,7 +100,7 @@ INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk,
     INA_ASSERT_NOTNULL(pool);
     
     if (blk == NULL) {
-        INA_ERROR(INA_ES_ARGUMENT|INA_ERR_INVALID);
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return NULL;
     }
 
