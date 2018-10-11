@@ -10,23 +10,22 @@
 #include "config.h"
 
 /* Error message length */
-#define __INA_ERROR_MSGLEN  512
+#define __INA_ERROR_MSGLEN  1024
 
 static INA_TLS(ina_err_subject_cb_t) __dict_cb = NULL;
 static INA_TLS(ina_str_t)            __errmsg  = NULL;
+static char                          __msgbuf[__INA_ERROR_MSGLEN];
 
 INA_API(ina_rc_t) ina_err_init(void)
 {
     INA_INIT_GUARD();
-    __errmsg = ina_str_new(__INA_ERROR_MSGLEN);
-    INA_RETURN_IF_NULL(__errmsg);
+    __errmsg = ina_str_assign_buf(__msgbuf, __INA_ERROR_MSGLEN);
     return INA_SUCCESS;
 }
 
 INA_API(void) ina_err_destroy(void)
 {
     INA_DESTROY_GUARD();
-    INA_STR_FREE_SAFE(__errmsg);
 }
 
 
