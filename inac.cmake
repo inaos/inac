@@ -20,12 +20,10 @@ set(INAC_REPOSITORY_PATH "${INAC_USER_HOME}/.inaos/cmake")
 message(STATUS "CMake package repository cache: ${INAC_REPOSITORY_PATH}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-if (MSVC OR APPLE)
-    if (POLICY CMP0026)
-        cmake_policy(SET CMP0026 OLD)
-    endif()
+if (POLICY CMP0026)
+    cmake_policy(SET CMP0026 OLD)
 endif()
-
+gi
 if ( CMAKE_COMPILER_IS_GNUCC )
     set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
 endif()
