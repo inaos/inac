@@ -20,7 +20,7 @@ set(INAC_REPOSITORY_PATH "${INAC_USER_HOME}/.inaos/cmake")
 message(STATUS "CMake package repository cache: ${INAC_REPOSITORY_PATH}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-if (MSVC)
+if (MSVC OR APPLE)
     if (POLICY CMP0026)
         cmake_policy(SET CMP0026 OLD)
     endif()
@@ -642,16 +642,21 @@ function(inac_merge_static_libs LIB)
         endforeach()
         set_target_properties(${LIB} PROPERTIES STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS}")
     elseif(APPLE)
+        add_library(${LIB} STATIC ${SOURCE_FILE})
         get_target_property(outfile ${LIB} LOCATION)
+        add_custom_command(
+                OUTPUT  ${SOURCE_FILE}
+                COMMAND ${CMAKE_COMMAND} -E touch ${SOURCE_FILE}
+                DEPENDS ${ARGN})
         foreach(l ${ARGN})
-            get_property(LIB_LOCATION TARGET ${l} PROPERTY LOCATION)
+            get_target_property(libfile ${l} LOCATION)
+            list(APPEND libfiles "${libfile}")
             message(STATUS "Merge lib ${l}: ${LIB_LOCATION}")
-            set(LINKER_EXTRA_FLAGS "${LINKER_EXTRA_FLAGS} \"${LIB_LOCATION}\"")
         endforeach()
         add_custom_command(TARGET ${LIB} POST_BUILD
                 COMMAND rm ${outfile}
                 COMMAND /usr/bin/libtool -static -o ${outfile}
-                ${ARGN}}
+                ${libfiles}
                 )
     else()
         set(C_LIB ${CMAKE_BINARY_DIR}/lib${LIB}.a)
