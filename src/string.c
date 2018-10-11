@@ -26,7 +26,6 @@ INA_INLINE int __ina_vsnprintf(char *str, size_t size, const char *format, va_li
 #endif
 
 #define __INA_HDR_OFFSET(s) (ina_str_hdr_t*)((s)-(sizeof(ina_str_hdr_t)))
-#define __INA_STR_OFFSET(h) (char*)((h)+(sizeof(ina_str_hdr_t)))
 
 INA_VS_BEGIN_PACK
 typedef struct ina_str_hdr_s {
