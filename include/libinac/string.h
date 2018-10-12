@@ -563,6 +563,32 @@ INA_API(ina_str_t*) ina_str_split(const char *str,
 INA_API(ina_rc_t)  ina_str_split_free_tokens(ina_str_t *tokens);
 
 /*
+ * Assign a empty buffer to a string. The buffer must at least have 9 bytes in
+ * order to be assignable.
+ *
+ * Parameter
+ *  buf  buffer to be assigned
+ *  len  buffer length in bytes
+ *
+ * Return
+ *   Assigned string or NULL if buf is to small
+ */
+INA_API(ina_str_t) ina_str_assign_buf(char* buf, size_t len);
+
+/*
+ * Release the underlying buffer of a string. A released string should
+ * not used anymore. Don't free released buffers of String allocated
+ * from a memory pool.
+ *
+ * Parameters
+ *  str  String to release buffer
+ *
+ * Return
+ *  Release buffer
+ */
+INA_API(char *) ina_str_release_buf(ina_str_t str);
+
+/*
  * Adjust the internal length. Use this function after the string buffer was
  * modified directly.
  *

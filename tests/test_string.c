@@ -39,6 +39,14 @@ INA_TEST(string, ina_str_new)
     ina_str_free(str);
 }
 
+INA_TEST(string, alligned)
+{
+    ina_str_t str = ina_str_new(0);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT(INA_MEM_IS_ALIGNED(str, sizeof(void*)));
+    ina_str_free(str);
+}
+
 INA_TEST_FIXTURE(string_mempool, ina_str_new_using_pool)
 {
     ina_str_t str = ina_str_new_using_pool(0, data->pool);
@@ -875,4 +883,19 @@ INA_TEST(string, ina_str_wildcard_match)
     _INA_TEST_STRING_WILDCARD_TEST_NOK("********a********b********c********", "abc");
     _INA_TEST_STRING_WILDCARD_TEST_NOK("abc", "********a********b********b********");
     _INA_TEST_STRING_WILDCARD_TEST_OK("*abc*", "***a*b*c***");
+}
+
+INA_TEST(string, assign)
+{
+    char buf1[2];
+    char buf2[512];
+
+    ina_str_t str = ina_str_assign_buf(buf1, 2);
+    INA_TEST_ASSERT_NULL(str);
+    str = ina_str_assign_buf(buf2, 512);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("", str);
+    ina_str_catcstr(str, "hallo");
+    INA_TEST_ASSERT_SAME(&buf2, ina_str_release_buf(str));
+    INA_TEST_ASSERT_EQUAL_STR("hallo", buf2);
 }
