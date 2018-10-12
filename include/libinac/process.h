@@ -15,8 +15,11 @@ extern "C" {
 
 #include <libinac/lib.h>
 
-#define INA_PROCESS_FLAGS_CHILD_PROCESS  1
-#define INA_PROCESS_FLAGS_CONSOLE        2
+#define INA_PROCESS_CF_DEFAULT       (0UL)
+#define INA_PROCESS_CF_CHILD_PROCESS (1UL)
+#define INA_PROCESS_CF_CONSOLE       (2UL)
+#define INA_PROCESS_CF_WAIT          (4UL)
+
 
 /* opaque process context */
 typedef struct ina_process_ctx_s ina_process_ctx_t;
@@ -27,31 +30,13 @@ typedef struct ina_process_s ina_process_t;
 /* opaque process stat */
 typedef struct ina_process_stat_s ina_process_stat_t;
 
-/* Type of managed process */
-typedef enum ina_process_managed_type_e {
-    INA_PROCESS_MANAGED_TYPE_SCHEDULED_START,
-    INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP,
-    INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME
-} ina_process_managed_type_t;
-
-/* Type of process lifecycle */
-typedef enum ina_process_lifecycle_type_e {
-    INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
-    INA_PROCESS_LIFECYCLE_TYPE_MANAGED,
-    INA_PROCESS_LIFECYCLE_TYPE_WAIT
-} ina_process_lifecycle_type_t;
-
 /* Process descriptor */
 typedef struct ina_process_descriptor_s {
     ina_str_t full_path;
     ina_str_t working_dir;
     ina_str_t startup_args;
-    ina_process_lifecycle_type_t lifecycle;
-    ina_process_managed_type_t managed_type;
-    ina_str_t scheduled_start_pattern;
-    ina_str_t scheduled_stop_pattern;
     time_t stop_wait_time_ms;
-    uint32_t start_flags;
+    uint32_t cf;
     uint32_t c_ref;
 } ina_process_descriptor_t;
 
@@ -92,17 +77,6 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx);
 INA_API(void) ina_process_ctx_free(ina_process_ctx_t **ctx);
 
 /*
- * Manage all process registered on a context.
- *
- * Parameters
- *  ctx  Process context
- *
- * Return
- *  INA_SUCCESS if all went well
- */
-INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
-
-/*
  * Creates an new process descriptor.
  *
  * Parameters
@@ -111,20 +85,16 @@ INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx);
  *  full_path                Full path of executable
  *  working_dir              Working directory
  *  startup_args             Command arguments
- *  lifecycle                Defines process lifecycle
- *  managed_type             Defines type of managed process
- *  scheduled_start_pattern  Cron start pattern
- *  schedules_stop_pattern   Cron stop pattern
  *  stop_wait_time_ms
- *  start_flag
+ *  cf
  *
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char *full_path, const char *working_dir,
-                                                      const char *startup_args, ina_process_lifecycle_type_t lifecycle,
-                                                      ina_process_managed_type_t managed_type, const char *scheduled_start_pattern,
-                                                      const char *scheduled_stop_pattern, time_t stop_wait_time_ms, uint32_t start_flags,
+INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char *full_path,
+                                                        const char *working_dir,
+                                                      const char *startup_args,
+                                                      time_t stop_wait_time_ms, uint32_t cf,
                                                       ina_process_descriptor_t **descriptor);
 
 /*
