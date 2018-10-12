@@ -1,3 +1,5 @@
+[![Appveyor CI](https://ci.appveyor.com/api/projects/status/4ery3c4kj2td81og/branch/master?svg=true)](https://ci.appveyor.com/project/stoni/inac/branch/master) [![codecov](https://codecov.io/gh/inaos/inac/branch/master/graph/badge.svg?token=sEKLQQ2aeE)](https://codecov.io/gh/inaos/inac)
+
 # INAOS Common C Library
 
 The INAOS Common C Library is a collection of header files and library routines 
@@ -16,6 +18,3 @@ High level objectives:
 
 To learn more about INAOS Common C Library, please see the Manual.
 
-### Build
-
-* AppVeyor: [![Build status](https://ci.appveyor.com/api/projects/status/4ery3c4kj2td81og/branch/develop?svg=true)](https://ci.appveyor.com/project/stoni/inac/branch/develop)
