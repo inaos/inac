@@ -460,7 +460,7 @@ INA_API(void) ina_cron_event_free(ina_cron_event_t **event)
 {
     ina_cron_ctx_t *ctx;
     INA_FREE_CHECK(event);
-    INA_ASSERT_FALSE(ina_cron_task_is_running(*event));
+    INA_ASSERT_FALSE(ina_cron_event_is_running(*event));
     ctx = (*event)->ctx;
     INA_MUST_SUCCEED(ina_hashtable_remove_str(ctx->events, (*event)->id, (void**)&event));
     if (ctx->save_cb && ((*event)->cf&INA_CRON_CF_PERSIST)) {
@@ -612,7 +612,7 @@ INA_API(void) ina_cron_event_iter_free(ina_cron_event_iter_t **iter)
 	INA_MEM_FREE_SAFE(*iter);
 }
 
-INA_API(ina_rc_t) ina_cron_task_iter_next(ina_cron_event_iter_t *iter, ina_cron_event_t **event)
+INA_API(ina_rc_t) ina_cron_event_iter_next(ina_cron_event_iter_t *iter, ina_cron_event_t **event)
 {
     INA_VERIFY_NOT_NULL(iter);
     INA_VERIFY_NOT_NULL(event);
@@ -627,7 +627,7 @@ INA_API(ina_rc_t) ina_cron_event_by_id(ina_cron_ctx_t *ctx, const char *id, ina_
     return ina_hashtable_get_str(ctx->events, id, (void**)event);
 }
 
-INA_API(ina_rc_t) ina_cron_task_is_running(const ina_cron_event_t *event)
+INA_API(ina_rc_t) ina_cron_event_is_running(const ina_cron_event_t *event)
 {
     ina_fsm_state_t state;
     INA_VERIFY_NOT_NULL(event);

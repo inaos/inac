@@ -143,8 +143,6 @@ INA_API(ina_rc_t) ina_cron_event_by_id(ina_cron_ctx_t *ctx,
  */
 INA_API(ina_rc_t) ina_cron_event_is_running(const ina_cron_event_t *event);
 
-
-
 /*
  * Create a new cron task iterator.
  *
