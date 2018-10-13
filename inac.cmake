@@ -253,7 +253,7 @@ endmacro()
 #
 #
 function(inac_add_contrib_lib_ex TARGET)
-    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH;URL" "BUILD_TYPES")
+    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "CONFIGURE;DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH;URL" "BUILD_TYPES")
 
     if(LIB_ARCH)
         inac_check_arch(${LIB_ARCH})
@@ -281,7 +281,7 @@ function(inac_add_contrib_lib_ex TARGET)
 
     ExternalProject_Add(${TARGET}-external
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
-            CONFIGURE_COMMAND ""
+            CONFIGURE_COMMAND "${LIB_CONFIGURE}"
             URL ${LIB_URL}
             BUILD_COMMAND "${LIB_COMMAND}" "${LIB_COMMAND_ARGS}"
             BUILD_IN_SOURCE 1
@@ -315,6 +315,7 @@ function(inac_add_contrib_lib_ex TARGET)
     add_dependencies(${LIB_DEPENDS} ${TARGET})
     list(APPEND INAC_LIBS_LIST  ${TARGET})
     set(INAC_LIBS "${INAC_LIBS_LIST}" PARENT_SCOPE)
+    include_directories(${LIB_DIR})
     message(STATUS "Added external contrib lib ${TARGET} ${LIB_COMMAND} ${LIB_COMMAND_ARGS}")
 endfunction()
 
