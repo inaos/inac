@@ -45,7 +45,8 @@ typedef struct ina_cron_event_iter_s ina_cron_event_iter_t;
 /* cron load callback */
 typedef ina_rc_t (*ina_cron_load_cb)(ina_cron_ctx_t *ctx);
 /* cron save callback */
-typedef ina_rc_t (*ina_cron_save_cb)(const ina_cron_ctx_t *ctx);
+typedef ina_rc_t (*ina_cron_save_cb)(const ina_cron_ctx_t *ctx,
+                                     const ina_cron_event_t *event);
 
 /* cron execution callback */
 typedef ina_rc_t (*ina_cron_push_cb_t)(ina_cron_ctx_t *ctx,
@@ -72,7 +73,7 @@ INA_API(ina_rc_t) ina_cron_parse_pattern(const char* pattern,
  *  pattern  Where to store the pattern
  *
  *  Return
- *   INA_SUCESS when all went well
+ *   INA_SUCCESS when all went well
  */
 INA_API(ina_rc_t) ina_cron_make_pattern(const ina_cron_timetable_t *tt,
                                         ina_str_t *pattern);
@@ -92,7 +93,7 @@ INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_load_cb load_cb,
                                    ina_cron_ctx_t **ctx);
 
 /*
- * Free a cron context. Destroy all registred cron task and cron function.
+ * Free a cron context. Destroy all registered cron events
  *
  * Parameters
  *  ctx  cron context to free
@@ -269,9 +270,9 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx,
                                              time_t *last_exec_time);
 
 
-INA_API(ina_rc_t) ina_cron_ctx_load(ina_cron_ctx_t *ctx);
+INA_API(ina_rc_t) ina_cron_load(ina_cron_ctx_t *ctx, const char* file_path);
 
-INA_API(ina_rc_t) ina_cron_ctx_save(const ina_cron_ctx_t *ctx);
+INA_API(ina_rc_t) ina_cron_save(const ina_cron_ctx_t *ctx, const char* file_path);
 
 
 #ifdef __cplusplus

@@ -31,6 +31,26 @@ INA_TEST(cron, pattern)
     ina_cron_ctx_free(&ctx);
 }
 
+INA_TEST(cron, parse_pattern)
+{
+    const char* pattern0 = "* * * * *";
+    const char* pattern1 = "0 * * * *";
+    const char* pattern2 = "0 0 * * *";
+    const char* pattern3 = "0 0 0 * *";
+    const char* pattern4 = "0 0 0 0 *";
+    const char* pattern5 = "0 0 0 0 0";
+    ina_cron_timetable_t tt;
+    INA_MEM_SET_ZERO(&tt, ina_cron_timetable_t);
+
+    INA_TEST_ASSERT_SUCCEED(ina_cron_parse_pattern(pattern0, &tt));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_parse_pattern(pattern1, &tt));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_parse_pattern(pattern2, &tt));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_parse_pattern(pattern3, &tt));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_parse_pattern(pattern4, &tt));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_parse_pattern(pattern5, &tt));
+
+}
+
 INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
 {
     ina_cron_ctx_t *ctx;
