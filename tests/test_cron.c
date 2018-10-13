@@ -13,7 +13,7 @@ INA_TEST(cron, id)
     ina_cron_ctx_t *ctx;
     ina_cron_event_t *e;
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t1", "0 * * * *", &e));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t1", "0 * * * *", 0, &e));
     INA_TEST_ASSERT_EQUAL_STR("t1", ina_cron_event_id(e));
 
     ina_cron_ctx_free(&ctx);
@@ -25,7 +25,7 @@ INA_TEST(cron, pattern)
     ina_cron_ctx_t *ctx;
     ina_cron_event_t *e;
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t1", "0 * * * *", &e));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t1", "0 * * * *", 0, &e));
     INA_TEST_ASSERT_EQUAL_STR("0 * * * *", ina_cron_event_pattern(e));
 
     ina_cron_ctx_free(&ctx);
@@ -45,11 +45,11 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
     cmd = ina_str_new_fromcstr("dir.exe .");
     wd = ina_str_new_fromcstr("c:\\windows");
 #else
-    cmd = ina_str_new_fromcstr("uname");
+    cmd = ina_str_new_fromcstr("ls");
     wd = ina_str_new_fromcstr("./");
 #endif
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t1", "0 * * * *", &e));
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t1", "0 * * * *", 0, &e));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd));
     ina_str_free(cmd);
 
 #ifdef INA_OS_WIN32
@@ -57,8 +57,8 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
 #else
     cmd = ina_str_new_fromcstr("pwd");
 #endif
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t2", "0 23 * * *", &e));
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t2", "0 23 * * *", 0, &e));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd));
     ina_str_free(cmd);
 
 #ifdef INA_OS_WIN32
@@ -66,8 +66,8 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
 #else
     cmd = ina_str_new_fromcstr("mkdir");
 #endif
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t3", "0 23 * * *", &e));
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t3", "0 23 * * *", 0, &e));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd));
     ina_str_free(cmd);
     ina_str_free(wd);
 
@@ -108,8 +108,8 @@ INA_TEST_SKIP(cron, add_task_and_exec)
     cmd = ina_str_new_fromcstr("pwd");
     wd = ina_str_new_fromcstr("./");
 #endif
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "pwd", "* * * * *", &e));
-    INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "pwd", "* * * * *", 0, &e));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd));
 
     ina_str_free(cmd);
     ina_str_free(wd);

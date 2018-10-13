@@ -21,6 +21,18 @@ extern "C" {
 #define INA_CRON_CF_PULL    (4)
 #define INA_CRON_CF_PERSIST (8)
 
+/*
+ * Crontab time table
+ */
+typedef struct ina_cron_timetable_s {
+    char mins[60];     /* 0-59 */
+    char hours[24];    /* 0-23 */
+    char days[32];     /* 1-31 */
+    char mons[12];     /* 0-11 */
+    char dow[7];       /* 0-6, beginning sunday */
+} ina_cron_timetable_t;
+
+
 /* opaque cron context */
 typedef struct ina_cron_ctx_s ina_cron_ctx_t;
 
@@ -33,14 +45,37 @@ typedef struct ina_cron_event_iter_s ina_cron_event_iter_t;
 /* cron load callback */
 typedef ina_rc_t (*ina_cron_load_cb)(ina_cron_ctx_t *ctx);
 /* cron save callback */
-typedef ina_rc_t (*ina_cron_save_cb)(ina_cron_ctx_t *ctx,
-                                     ina_cron_event_t *event,
-                                     int removed);
+typedef ina_rc_t (*ina_cron_save_cb)(const ina_cron_ctx_t *ctx);
+
 /* cron execution callback */
 typedef ina_rc_t (*ina_cron_push_cb_t)(ina_cron_ctx_t *ctx,
                                        void *user_data);
 
+/*
+ * Parse a cron pattern by filling a given time table
+ *
+ * Parameters
+ *  pattern   Cron pattern to parse
+ *  table     Time table to fill
+ *
+ *  Return
+ *   INA_SUCCESS if all went well
+ */
+INA_API(ina_rc_t) ina_cron_parse_pattern(const char* pattern,
+                                     ina_cron_timetable_t *tt);
 
+/*
+ * Create a cron pattern from a given time table.
+ *
+ * Parameters
+ *  table    Time table
+ *  pattern  Where to store the pattern
+ *
+ *  Return
+ *   INA_SUCESS when all went well
+ */
+INA_API(ina_rc_t) ina_cron_make_pattern(const ina_cron_timetable_t *tt,
+                                        ina_str_t *pattern);
 /*
  * Create and initialize a new cron context
  *
@@ -71,6 +106,7 @@ INA_API(void) ina_cron_ctx_free(ina_cron_ctx_t **ctx);
 INA_API(ina_rc_t) ina_cron_event_new(ina_cron_ctx_t *ctx,
                                     const char *id,
                                     const char *pattern,
+                                    uint32_t cf,
                                     ina_cron_event_t **event);
 
 
@@ -79,11 +115,11 @@ INA_API(void) ina_cron_event_free(ina_cron_event_t **event);
 INA_API(const char*) ina_cron_event_id(const ina_cron_event_t *event);
 
 /*
- * Get the current crontab pattern for a task.
+ * Get the current crontab pattern for an event.
  *
  * Parameters
  *  task     Task
- *  pattern  Where to store task's pattern
+ *  pattern  Where to store events's pattern
  *
  * Return
  *  INA_SUCCESS
@@ -93,21 +129,27 @@ INA_API(const char*) ina_cron_event_pattern(const ina_cron_event_t *event);
 
 INA_API(ina_rc_t) ina_cron_event_set_exec_params(ina_cron_event_t *event,
                                                  const char* cmd,
-                                                 const char* working_dir,
-                                                 int persist);
+                                                 const char* working_dir);
 
 INA_API(ina_rc_t) ina_cron_event_get_exec_params(const ina_cron_event_t *event,
-                                                 const char* cmd,
-                                                 const char* working_dir,
-                                                 int persist);
+                                                 ina_str_t *cmd,
+                                                 ina_str_t *working_dir);
 
 INA_API(ina_rc_t) ina_cron_event_set_push_params(ina_cron_event_t *event,
                                                  ina_cron_push_cb_t push_cb,
                                                  void *user_data);
 
+INA_API(ina_rc_t) ina_cron_event_get_push_params(const ina_cron_event_t *event,
+                                                 ina_cron_push_cb_t *push_cb,
+                                                 void **user_data);
+
 INA_API(ina_rc_t) ina_cron_event_set_pull_params(ina_cron_event_t *event,
                                                  uint32_t  key,
                                                  void *user_data);
+
+INA_API(ina_rc_t) ina_cron_event_get_pull_params(const ina_cron_event_t *event,
+                                                 uint32_t  *key,
+                                                 void **user_data);
 
 INA_API(ina_rc_t) ina_cron_event_check_capability(const ina_cron_event_t *event,
                                                   uint32_t cf);
@@ -209,7 +251,7 @@ INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx,
                                     void **user_data);
 
 /*
- * Calculate last execution time from a crontap pattern
+ * Calculate last execution time from a crontab pattern
  *
  * Parameters
  *  ctx             Cron context
@@ -222,10 +264,14 @@ INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx,
  *
  */
 INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx,
-                                             const char *pattern,
+                                             const ina_cron_timetable_t *tt,
                                              time_t now,
                                              time_t *last_exec_time);
 
+
+INA_API(ina_rc_t) ina_cron_ctx_load(ina_cron_ctx_t *ctx);
+
+INA_API(ina_rc_t) ina_cron_ctx_save(const ina_cron_ctx_t *ctx);
 
 
 #ifdef __cplusplus
