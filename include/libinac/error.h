@@ -596,7 +596,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #else
 #define INA_OS_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), GetLastError()))
 #endif
-
+typedef void*  CExceptionHandler;
+INA_API(CExceptionHandler) ina_err_init_coredump(const char* dump_dir);
 #ifdef __cplusplus
 }
 #endif
