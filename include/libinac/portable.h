@@ -362,7 +362,7 @@ extern "C" {
 #  endif
 #else
 #  ifdef INA_OS_WIN32
-#    define INA_INLINE __inline
+#    define INA_INLINE __forceinline
 #  else
 #    define INA_INLINE static inline
 #  endif

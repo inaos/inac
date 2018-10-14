@@ -18,7 +18,7 @@ extern "C" {
 
 
 #define INA_HASHTABLE_DEFAULT_CAPACITY    (32)
-#define INA_HASHTABLE_MAX_KEY_LEN       (16UL)
+#define INA_HASHTABLE_MAX_KEY_LEN        (8UL)
 #define INA_HASHTABLE_CF_PREALLOCATED    (4UL)
 #define INA_HASHTABLE_CF_STAT           (16UL)
 #define INA_HASHTABLE_CF_DEFAULT         (0UL)
@@ -77,6 +77,7 @@ INA_API(ina_rc_t) ina_hashtable_init(const char *cfg_filepath);
  */
 INA_API(void) ina_hashtable_destroy(void);
 
+INA_API(void) ina_hashtable_set_compare_fn(ina_hashtable_t *ht, ina_compare_fn_t compare_fn);
 
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                     ina_hash_type_t hash_type,
