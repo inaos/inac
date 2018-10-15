@@ -14,7 +14,7 @@ branches:
   #  - develop
 
 environment:
-  snapshot: -DINAC_SNAPSHOT=1
+  snapshot: "-DINAC_SNAPSHOT=1"
   jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-snapshot-local
   jfrog_artifactory_uid: appveyor
   jfrog_artifactory_pwd:
