@@ -106,6 +106,14 @@ for:
     environment:
       jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-release-local
 
+  -
+    branches:
+      only:
+        - develop
+    environment:
+      jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-snapshop-local
+      snapshot: -DINAC_SNAPSHOT=1
+      
 matrix:
   fast_finish: false
 
