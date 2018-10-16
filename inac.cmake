@@ -564,6 +564,7 @@ function(inac_merge_static_libs outlib)
     list(REMOVE_AT libs 0)
     # Create a dummy file that the target will depend on
     set(dummyfile ${CMAKE_CURRENT_BINARY_DIR}/${outlib}_dummy.c)
+    string(REPLACE "-" "_" dummyfile ${dummyfile})
     file(WRITE ${dummyfile} "const char * dummy = \"${dummyfile}\";")
 
     add_library(${outlib} STATIC ${dummyfile})
