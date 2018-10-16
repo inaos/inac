@@ -2,6 +2,7 @@ include(ExternalProject)
 set(DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(INAC_CMAKE_VERSION "0.1.0")
+message(STATUS "CMake version: ${CMAKE_VERSION}")
 message(STATUS "INAC CMake version ${INAC_CMAKE_VERSION}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER_ID}")
 
@@ -628,9 +629,10 @@ EXECUTE_PROCESS(COMMAND ls .
             list(APPEND extrafiles "${objlistfile}")
             # relative path is needed by ar under MSYS
             file(RELATIVE_PATH objlistfilerpath ${objdir} ${objlistfile})
+            file(TO_NATIVE_PATH  ${objlistfilerpath} objlistfilerpath)
             add_custom_command(TARGET ${outlib} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E echo "Running: ${CMAKE_AR} ru ${outfile} @${objlistfilerpath}"
-                    COMMAND ${CMAKE_AR} ru "${outfile}" @"${objlistfilerpath}"
+                    COMMAND ${CMAKE_COMMAND} -E echo "Running: ${CMAKE_AR} ruU ${outfile} @${objlistfilerpath}"
+                    COMMAND ${CMAKE_AR} ruU "${outfile}" @"${objlistfilerpath}"
                     WORKING_DIRECTORY ${objdir})
         endforeach()
         add_custom_command(TARGET ${outlib} POST_BUILD
