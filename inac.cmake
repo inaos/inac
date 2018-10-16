@@ -568,49 +568,25 @@ function(inac_merge_static_libs outlib)
 
     add_library(${outlib} STATIC ${dummyfile})
 
-    if("${CMAKE_CFG_INTDIR}" STREQUAL ".")
-        set(multiconfig FALSE)
-    else()
-        set(multiconfig TRUE)
-    endif()
-
     # First get the file names of the libraries to be merged
     foreach(lib ${libs})
         get_target_property(libtype ${lib} TYPE)
-        if(NOT libtype STREQUAL "STATIC_LIBRARY")
-            message(FATAL_ERROR "Merge_static_libs can only process static libraries")
-        endif()
-        if(multiconfig)
-            foreach(CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES})
-                get_target_property("libfile_${CONFIG_TYPE}" ${lib} "LOCATION_${CONFIG_TYPE}")
-                list(APPEND libfiles_${CONFIG_TYPE} ${libfile_${CONFIG_TYPE}})
-            endforeach()
-        else()
-            get_target_property(libfile ${lib} LOCATION)
-            list(APPEND libfiles "${libfile}")
-        endif(multiconfig)
+        get_target_property(libfile ${lib} LOCATION)
+        list(APPEND libfiles "${libfile}")
     endforeach()
     message(STATUS "will be merging ${libfiles}")
-    # Just to be sure: cleanup from duplicates
-    if(multiconfig)
-        foreach(CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES})
-            list(REMOVE_DUPLICATES libfiles_${CONFIG_TYPE})
-            set(libfiles ${libfiles} ${libfiles_${CONFIG_TYPE}})
-        endforeach()
-    endif()
+
     list(REMOVE_DUPLICATES libfiles)
 
     # Now the easy part for MSVC and for MAC
     if(MSVC)
-        # lib.exe does the merging of libraries just need to conver the list into string
-        foreach(CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES})
-            set(flags "")
-            foreach(lib ${libfiles_${CONFIG_TYPE}})
-                set(flags "${flags} ${lib}")
-            endforeach()
-            string(TOUPPER "STATIC_LIBRARY_FLAGS_${CONFIG_TYPE}" PROPNAME)
-            set_target_properties(${outlib} PROPERTIES ${PROPNAME} "${flags}")
+        set(LINKER_EXTRA_FLAGS "")
+        foreach(l ${ARGN})
+            get_property(LIB_LOCATION TARGET ${l} PROPERTY LOCATION)
+            message(STATUS "Merge lib ${l}: ${LIB_LOCATION}")
+            set(LINKER_EXTRA_FLAGS "${LINKER_EXTRA_FLAGS} \"${LIB_LOCATION}\"")
         endforeach()
+        set_target_properties(${outlib} PROPERTIES STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS}")
 
     elseif(APPLE)
         # Use OSX's libtool to merge archives
