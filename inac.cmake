@@ -563,8 +563,10 @@ function(inac_merge_static_libs outlib)
     set(libs ${ARGV})
     list(REMOVE_AT libs 0)
     # Create a dummy file that the target will depend on
-    set(dummyfile ${CMAKE_CURRENT_BINARY_DIR}/${outlib}_dummy.c)
+    set(dummyfile ${outlib}_dummy.c)
     string(REPLACE "-" "_" dummyfile ${dummyfile})
+    set(dummyfile ${CMAKE_CURRENT_BINARY_DIR}/${dummyfile})
+
     file(WRITE ${dummyfile} "const char * dummy = \"${dummyfile}\";")
 
     add_library(${outlib} STATIC ${dummyfile})
@@ -590,10 +592,6 @@ function(inac_merge_static_libs outlib)
         set_target_properties(${outlib} PROPERTIES STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS}")
 
     elseif(APPLE)
-        # Use OSX's libtool to merge archives
-        if(multiconfig)
-            message(FATAL_ERROR "Multiple configurations are not supported")
-        endif()
         get_target_property(outfile ${outlib} LOCATION)
         add_custom_command(TARGET ${outlib} POST_BUILD
                 COMMAND rm ${outfile}
@@ -601,10 +599,6 @@ function(inac_merge_static_libs outlib)
                 ${libfiles}
                 )
     else()
-        # general UNIX - need to "ar -x" and then "ar -ru"
-        if(multiconfig)
-            message(FATAL_ERROR "Multiple configurations are not supported")
-        endif()
         get_target_property(outfile ${outlib} LOCATION)
         message(STATUS "outfile location is ${outfile}")
         foreach(lib ${libfiles})
