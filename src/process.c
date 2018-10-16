@@ -121,7 +121,6 @@ static void __ina_process_fsm_event_reset(void *user_data)
 static void __ina_process_fsm_event_error(void *user_data)
 {
     INA_UNUSED(user_data);
-    INA_ASSERT_NOT_NULL(process);
     /* FIXME error handling */
 }
 
@@ -529,9 +528,9 @@ static void __ina_process_start(ina_process_t *process)
     cmd_line = ina_str_catcstr(cmd_line, " ");
     cmd_line = ina_str_cat(cmd_line, process->descriptor->startup_args);
 
-    if ((process->descriptor->start_flags & INA_PROCESS_CF_CHILD_PROCESS)
-        != INA_PROCESS_FLAGS_CHILD_PROCESS) {
-        if ((process->descriptor->start_flags & INA_PROCESS_CF_CONSOLE)) {
+    if ((process->descriptor->cf & INA_PROCESS_CF_CHILD_PROCESS)
+        != INA_PROCESS_CF_CHILD_PROCESS) {
+        if ((process->descriptor->cf & INA_PROCESS_CF_CONSOLE)) {
             creation_flags |= CREATE_NEW_CONSOLE;
         } else {
             creation_flags |= DETACHED_PROCESS;
@@ -546,7 +545,7 @@ static void __ina_process_start(ina_process_t *process)
         &si, &process->pi
     );
 
-    if (process->start_flags&INA_PROCESS_CF_WAIT) {
+    if (process->descriptor->cf&INA_PROCESS_CF_WAIT) {
         int still_running;
         WaitForSingleObject(process->pi.hProcess, INFINITE);
         __ina_process_is_running(process, &still_running);
