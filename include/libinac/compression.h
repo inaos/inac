@@ -16,7 +16,7 @@ extern "C" {
 #include <libinac/lib.h>
 
 /*
- * FIXME: this should go into the manual instead of the header file
+ * TODO: this should go into the manual instead of the header file
  *
  * How to use the module:
  *
