@@ -303,7 +303,7 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
 
 INA_API(void) ina_log_free(ina_log_t **log)
 {
-    INA_FREE_CHECK(log);
+    INA_VERIFY_FREE(log);
     if ((*log)->targets != NULL) {
         ina_list_foreach((*log)->targets, __ina_free_target);
         ina_list_free(&(*log)->targets);

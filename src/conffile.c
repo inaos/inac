@@ -104,7 +104,7 @@ fail:
 
 INA_API(void) ina_conffile_free(ina_conffile_t **cf)
 {
-    INA_FREE_CHECK(cf);
+    INA_VERIFY_FREE(cf);
     ina_ljit_ctx_free(&(*cf)->lctx);
     ina_mempool_free(&(*cf)->mempool);
     ina_hashtable_free(&(*cf)->sections);

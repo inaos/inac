@@ -142,7 +142,7 @@ INA_API(void) ina_mempool_free(ina_mempool_t **pool)
     ina_mempool_t *pm;
     ina_mempool_t *pn;
 
-    INA_FREE_CHECK(pool);
+    INA_VERIFY_FREE(pool);
 
     /* Unlink parent */
     if ((*pool)->parent != NULL) {

@@ -367,7 +367,7 @@ fail:
 
 INA_API(void) ina_cron_ctx_free(ina_cron_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
     if ((*ctx)->events) {
         ina_hashtable_foreach((*ctx)->events, __ina_free_event);
     }
@@ -410,7 +410,7 @@ fail:
 INA_API(void) ina_cron_event_free(ina_cron_event_t **event)
 {
     ina_cron_ctx_t *ctx;
-    INA_FREE_CHECK(event);
+    INA_VERIFY_FREE(event);
     INA_ASSERT_FALSE(ina_cron_event_is_running(*event));
     ctx = (*event)->ctx;
 
@@ -619,7 +619,7 @@ fail:
 
 INA_API(void) ina_cron_event_iter_free(ina_cron_event_iter_t **iter)
 {
-    INA_FREE_CHECK(iter);
+    INA_VERIFY_FREE(iter);
     ina_hashtable_iter_free(&(*iter)->iter);
     INA_MEM_FREE_SAFE(*iter);
 }

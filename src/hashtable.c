@@ -402,7 +402,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 
 INA_API(void) ina_hashtable_free(ina_hashtable_t **ht)
 {
-	INA_FREE_CHECK(ht);
+	INA_VERIFY_FREE(ht);
 	__INA_FREE(*ht);
 	ina_ullc_producer_free(&(*ht)->ullc_ctx);
 	ina_time_tsc_free(&(*ht)->time);
@@ -678,7 +678,7 @@ INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_
 
 INA_API(void) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer)
 {
-    INA_FREE_CHECK(event_consumer);
+    INA_VERIFY_FREE(event_consumer);
     ina_ullc_producer_free(&(*event_consumer)->p_ctx);
     ina_ullc_consumer_free(&(*event_consumer)->c_ctx);
 }

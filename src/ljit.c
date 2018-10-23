@@ -67,7 +67,7 @@ INA_API(ina_rc_t) ina_ljit_ctx_new(ina_ljit_ctx_t **ctx)
 
 INA_API(void) ina_ljit_ctx_free(ina_ljit_ctx_t **ctx)
 {
-	INA_FREE_CHECK(ctx);
+	INA_VERIFY_FREE(ctx);
     if (((*ctx)->lstate) != NULL) {
         lua_close((*ctx)->lstate);
     }

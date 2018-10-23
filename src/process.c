@@ -174,7 +174,7 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
 
 INA_API(void) ina_process_ctx_free(ina_process_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
 	ina_hashtable_free(&(*ctx)->processes);
     ina_time_sys_free(&(*ctx)->systime);
     ina_mempool_free(&(*ctx)->mempool);
@@ -212,7 +212,7 @@ INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char 
 
 INA_API(void) ina_process_descriptor_free(ina_process_descriptor_t **descriptor)
 {
-    INA_FREE_CHECK(descriptor);
+    INA_VERIFY_FREE(descriptor);
     if ((*descriptor)->c_ref > 0) {
         return;
     }
@@ -345,7 +345,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
 INA_API(void) ina_process_free(ina_process_t **process)
 {
-    INA_FREE_CHECK(process);
+    INA_VERIFY_FREE(process);
     /* Release descriptor if any */
     if ((*process)->descriptor != NULL) {
         (*process)->descriptor->c_ref -= 1;
@@ -487,7 +487,7 @@ INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat, int
 
 INA_API(void) ina_process_stat_free(ina_process_stat_t **stat)
 {
-    INA_FREE_CHECK(stat);
+    INA_VERIFY_FREE(stat);
     INA_STR_FREE_SAFE((*stat)->cmd);
     INA_STR_FREE_SAFE((*stat)->binary);
     INA_MEM_FREE_SAFE(*stat);

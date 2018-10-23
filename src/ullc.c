@@ -243,7 +243,7 @@ INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
 
 INA_API(void) ina_ullc_producer_free(ina_ullc_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, (*ctx)->type);
     
     INA_ATOMIC_SWAP(&(*ctx)->p_offset->alive,1,0);
@@ -380,7 +380,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
 
 INA_API(void) ina_ullc_consumer_free(ina_ullc_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
     INA_ASSERT(INA_ULLC_CTX_CONSUMER == (*ctx)->type);
 
     INA_ATOMIC_SWAP(&(*ctx)->c_offset->alive,1,0);

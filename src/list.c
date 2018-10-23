@@ -109,7 +109,7 @@ INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **
 
 INA_API(void) ina_list_free(ina_list_t **list)
 {
-    INA_FREE_CHECK(list);
+    INA_VERIFY_FREE(list);
     ina_mempool_free(&(*list)->mp);
     INA_MEM_FREE_SAFE((*list)->frst_free);
     INA_MEM_FREE_SAFE(*list);
@@ -131,7 +131,7 @@ INA_API(ina_rc_t) ina_list_node_new(ina_list_t *list, ina_list_node_t **node)
 
 INA_API(void) ina_list_node_free(ina_list_t *list, ina_list_node_t **node)
 {
-    INA_FREE_CHECK(node);
+    INA_VERIFY_FREE(node);
     INA_ASSERT_NULL(list);
     if (list->last_free < list->max_recyclable) {
         list->last_free++;
