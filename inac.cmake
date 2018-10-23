@@ -609,9 +609,9 @@ function(inac_merge_static_libs outlib)
         message(STATUS "outfile location is ${outfile}")
         foreach(lib ${libfiles})
             # objlistfile will contain the list of object files for the library
-            set(objlistfile ${lib}.objlist)
-            set(objdir ${lib}.objdir)
-            set(objlistcmake  ${objlistfile}.cmake)
+            set(objlistfile ${CMAKE_BINARY_DIR}/${lib}.objlist)
+            set(objdir ${CMAKE_BINARY_DIR}/${lib}.objdir)
+            set(objlistcmake  ${CMAKE_BINARY_DIR}/${objlistfile}.cmake)
             # we only need to extract files once
             if(${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/cmake.check_cache IS_NEWER_THAN ${objlistcmake})
                 #---------------------------------
@@ -631,13 +631,13 @@ EXECUTE_PROCESS(COMMAND ls .
                         COMMAND ${CMAKE_COMMAND} -P ${objlistcmake}
                         DEPENDS ${lib})
             endif()
+
             list(APPEND extrafiles "${objlistfile}")
             # relative path is needed by ar under MSYS
             file(RELATIVE_PATH objlistfilerpath ${objdir} ${objlistfile})
-            file(TO_NATIVE_PATH  ${objlistfilerpath} objlistfilerpath)
             add_custom_command(TARGET ${outlib} POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E echo "Running: ${CMAKE_AR} ruU ${outfile} @${objlistfilerpath}"
-                    COMMAND ar ruU "${outfile}" @"${objlistfilerpath}"
+                    COMMAND ${CMAKE_AR} ruU "${outfile}" @"${objlistfilerpath}"
                     WORKING_DIRECTORY ${objdir})
         endforeach()
         add_custom_command(TARGET ${outlib} POST_BUILD
