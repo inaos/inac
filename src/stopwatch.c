@@ -16,9 +16,9 @@ INA_INLINE double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER *
     return ((double)L->QuadPart / freq_sec);
 }
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
 #else
 #define __INA_TIME_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1)

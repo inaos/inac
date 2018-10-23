@@ -131,7 +131,7 @@ extern "C" {
 #define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) != NULL)
 #define INA_VERIFY_FREE(ptrptr) do {                   \
     INA_ASSERT_NOT_NULL(ptrptr);                       \
-	if (INA_UNLIKELY((*ptrptr == NULL))) { return; }   \
+    if (INA_UNLIKELY((*ptrptr == NULL))) { return; }   \
 } while(0)
 #else
 #define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOT_NULL((x))
@@ -202,14 +202,14 @@ typedef enum ina_signal_e {
     INA_SIGNAL_INT,
     INA_SIGNAL_SEGV,
     INA_SIGNAL_TERM,
-    #ifndef INA_OS_WIN32
+#ifndef INA_OS_WIN32
     INA_SIGNAL_HUP,
     INA_SIGNAL_QUIT,
     INA_SIGNAL_KILL,
     INA_SIGNAL_STOP,
     INA_SIGNAL_TTOU,
     INA_SIGNAL_TTIN
-    #endif
+#endif
  } ina_signal_t;
 
 /* Signal handling behavior */
