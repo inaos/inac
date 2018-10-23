@@ -704,14 +704,3 @@ INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx, uint32_t *key, void **u
     ina_hashtable_iter_free(&iter);
     return INA_SUCCESS;
 }
-
-
-INA_API(ina_rc_t) ina_cron_load(ina_cron_ctx_t *ctx, const char* file_path)
-{
-    return INA_ERROR(INA_ERR_NOT_IMPLEMENTED);
-}
-
-INA_API(ina_rc_t) ina_cron_save(const ina_cron_ctx_t *ctx, const char* file_path)
-{
-    return INA_ERROR(INA_ERR_NOT_IMPLEMENTED);
-}
