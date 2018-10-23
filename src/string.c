@@ -849,7 +849,7 @@ static ina_str_hdr_t*
 __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
 {
     size_t old_size = hdr->size;
-    size_t size
+    size_t size;
 
     INA_ASSERT_NOT_NULL(hdr);
     INA_ASSERT_TRUE(hdr->size&__INA_POOLED);

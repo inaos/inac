@@ -121,7 +121,6 @@ static void __ina_process_fsm_event_reset(void *user_data)
 static void __ina_process_fsm_event_error(void *user_data)
 {
     INA_UNUSED(user_data);
-    INA_ASSERT_NOT_NULL(process);
     /* FIXME error handling */
 }
 
@@ -175,7 +174,7 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
 
 INA_API(void) ina_process_ctx_free(ina_process_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
 	ina_hashtable_free(&(*ctx)->processes);
     ina_time_sys_free(&(*ctx)->systime);
     ina_mempool_free(&(*ctx)->mempool);
@@ -213,7 +212,7 @@ INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char 
 
 INA_API(void) ina_process_descriptor_free(ina_process_descriptor_t **descriptor)
 {
-    INA_FREE_CHECK(descriptor);
+    INA_VERIFY_FREE(descriptor);
     if ((*descriptor)->c_ref > 0) {
         return;
     }
@@ -346,7 +345,7 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
 INA_API(void) ina_process_free(ina_process_t **process)
 {
-    INA_FREE_CHECK(process);
+    INA_VERIFY_FREE(process);
     /* Release descriptor if any */
     if ((*process)->descriptor != NULL) {
         (*process)->descriptor->c_ref -= 1;
@@ -488,7 +487,7 @@ INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat, int
 
 INA_API(void) ina_process_stat_free(ina_process_stat_t **stat)
 {
-    INA_FREE_CHECK(stat);
+    INA_VERIFY_FREE(stat);
     INA_STR_FREE_SAFE((*stat)->cmd);
     INA_STR_FREE_SAFE((*stat)->binary);
     INA_MEM_FREE_SAFE(*stat);
@@ -529,9 +528,9 @@ static void __ina_process_start(ina_process_t *process)
     cmd_line = ina_str_catcstr(cmd_line, " ");
     cmd_line = ina_str_cat(cmd_line, process->descriptor->startup_args);
 
-    if ((process->descriptor->start_flags & INA_PROCESS_CF_CHILD_PROCESS)
-        != INA_PROCESS_FLAGS_CHILD_PROCESS) {
-        if ((process->descriptor->start_flags & INA_PROCESS_CF_CONSOLE)) {
+    if ((process->descriptor->cf & INA_PROCESS_CF_CHILD_PROCESS)
+        != INA_PROCESS_CF_CHILD_PROCESS) {
+        if ((process->descriptor->cf & INA_PROCESS_CF_CONSOLE)) {
             creation_flags |= CREATE_NEW_CONSOLE;
         } else {
             creation_flags |= DETACHED_PROCESS;
@@ -546,7 +545,7 @@ static void __ina_process_start(ina_process_t *process)
         &si, &process->pi
     );
 
-    if (process->start_flags&INA_PROCESS_CF_WAIT) {
+    if (process->descriptor->cf&INA_PROCESS_CF_WAIT) {
         int still_running;
         WaitForSingleObject(process->pi.hProcess, INFINITE);
         __ina_process_is_running(process, &still_running);

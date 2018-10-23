@@ -102,7 +102,7 @@ INA_API(ina_rc_t) ina_ipc_flags_open(const char* name, ina_ipc_flags_t **flags)
 
 INA_API(void) ina_ipc_flags_free(ina_ipc_flags_t **flags)
 {
-    INA_FREE_CHECK(flags);
+    INA_VERIFY_FREE(flags);
     ina_timer_free(&(*flags)->timer);
     ina_mempool_free(&(*flags)->m);
     INA_MEM_FREE_SAFE(*flags);
@@ -293,7 +293,7 @@ INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **cou
 
 INA_API(void) ina_ipc_counter_free(ina_ipc_counter_t **counter)
 {
-    INA_FREE_CHECK(counter);
+    INA_VERIFY_FREE(counter);
     ina_mempool_free(&(*counter)->m);
     INA_MEM_FREE_SAFE(*counter);
 }

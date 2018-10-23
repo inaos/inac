@@ -166,8 +166,6 @@ INA_API(ina_rc_t) ina_cron_event_check_capability(const ina_cron_event_t *event,
  *
  * Return
  *  INA_SUCCESS
- *
- * FIXME: Should return INA_EEXISTS if task was not found
  */
 INA_API(ina_rc_t) ina_cron_event_by_id(ina_cron_ctx_t *ctx,
                                        const char *id,
@@ -269,10 +267,6 @@ INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx,
                                              time_t now,
                                              time_t *last_exec_time);
 
-
-INA_API(ina_rc_t) ina_cron_load(ina_cron_ctx_t *ctx, const char* file_path);
-
-INA_API(ina_rc_t) ina_cron_save(const ina_cron_ctx_t *ctx, const char* file_path);
 
 
 #ifdef __cplusplus

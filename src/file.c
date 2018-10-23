@@ -203,7 +203,7 @@ INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode)
 
 INA_API(void) ina_file_ctx_free(ina_file_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
 
     /*
      * close files that are still open
@@ -280,7 +280,7 @@ fail:
 INA_API(void) ina_file_free(ina_file_t **file)
 {
     ina_file_t *f;
-    INA_FREE_CHECK(file);
+    INA_VERIFY_FREE(file);
     if ((*file)->ctx) {
         ina_hashtable_remove_ptr((*file)->ctx->files, *file, (void **) &f);
         INA_ASSERT_NOT_NULL(f);
@@ -365,7 +365,7 @@ INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *
 
 INA_API(void) ina_file_stat_free(ina_file_stat_t **stat)
 {
-    INA_FREE_CHECK(stat);
+    INA_VERIFY_FREE(stat);
     INA_MEM_FREE_SAFE(*stat);
 }
 

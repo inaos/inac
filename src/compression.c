@@ -103,6 +103,7 @@ static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *sta
                                                     int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     INA_UNUSED(more);
+    INA_UNUSED(state);
     INA_ASSERT_NOT_NULL(state);
     INA_ASSERT_NOT_NULL(wrote_len);
     INA_ASSERT_NOT_NULL(read_len);

@@ -14,7 +14,6 @@ branches:
   #  - develop
 
 environment:
-  snapshot: -DINAC_SNAPSHOT=1
   jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-snapshot-local
   jfrog_artifactory_uid: appveyor
   jfrog_artifactory_pwd:
@@ -106,8 +105,15 @@ for:
         - master
     environment:
       jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-release-local
-      snapshot:
 
+  -
+    branches:
+       only:
+        - develop
+    environment:
+      jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-snapshot-local
+      snapshot: -DINAC_SNAPSHOT=1
+      
 matrix:
   fast_finish: false
 
