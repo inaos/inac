@@ -16,8 +16,6 @@
 
 #include <contribs/miniz/miniz.h>
 
-struct ina_compression_state_s;
-
 typedef ina_rc_t (*ina_compression_compress_fn)(struct ina_compression_state_s *state, const unsigned char *src,
                                                 unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more);
 
