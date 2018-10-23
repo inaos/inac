@@ -15,9 +15,6 @@ extern "C" {
 
 #include <libinac/lib.h>
 
-/* Forward declarations */
-typedef struct ina_log_s ina_log_t;
-
 /* Indicate no errors */
 #define INA_SUCCESS  (0ULL)
 
