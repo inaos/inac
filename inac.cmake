@@ -7,8 +7,13 @@ message(STATUS "INAC CMake version ${INAC_CMAKE_VERSION}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER_ID}")
 
 if(NOT ${CMAKE_BUILD_TYPE} MATCHES "Debug|Release|RelWithDebInfo")
-    message(STATUS "Unsupported buidl type ${CMAKE_BUILD_TYPE} , allowed Debug|Release|RelWithDebInfo")
+    message(STATUS "Unsupported build type ${CMAKE_BUILD_TYPE} , allowed Debug|Release|RelWithDebInfo")
 endif()
+
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    add_definitions(-DINA_DEBUG=1)
+endif()
+
 
 if (WIN32)
     set(INAC_USER_HOME "$ENV{USERPROFILE}")
@@ -632,7 +637,7 @@ EXECUTE_PROCESS(COMMAND ls .
             file(TO_NATIVE_PATH  ${objlistfilerpath} objlistfilerpath)
             add_custom_command(TARGET ${outlib} POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E echo "Running: ${CMAKE_AR} ruU ${outfile} @${objlistfilerpath}"
-                    COMMAND ${CMAKE_AR} ruU "${outfile}" @"${objlistfilerpath}"
+                    COMMAND ar ruU "${outfile}" @"${objlistfilerpath}"
                     WORKING_DIRECTORY ${objdir})
         endforeach()
         add_custom_command(TARGET ${outlib} POST_BUILD
