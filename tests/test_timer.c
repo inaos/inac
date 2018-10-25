@@ -85,12 +85,12 @@ INA_TEST(timer, event_rdtsc)
     t = NULL;
     e1 = NULL;
     e2 = NULL;
-    #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
     sched_setaffinity(0, sizeof(mask), &mask);
-    #endif
+#endif
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_enable_rdtsc());

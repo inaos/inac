@@ -13,7 +13,7 @@
 #include <libinac/lib.h>
 
 #if !defined(CLOCK_MONOTONIC_RAW)
-    #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
 #endif
 
 INA_TEST(time, tsc_strftime)
@@ -155,13 +155,12 @@ INA_TEST_SKIP(time, stopwatch_startime_rdtsc)
     ina_stopwatch_ts_t *ts;
     double duration;
 
-
-    #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
     sched_setaffinity(0, sizeof(mask), &mask);
-    #endif
+#endif
 
     ina_time_tsc_enable_rdtsc();
     gettimeofday(&tv_start, NULL);
@@ -180,7 +179,7 @@ INA_TEST_SKIP(time, stopwatch_startime_rdtsc)
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_stop(w));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_valid(w));
     while (INA_SUCCEED(ina_stopwatch_read_stamp(w, &i, &ts))) {
-	INA_TEST_MSG("Stamp %ld, %.10f", i,ts->duration);
+    INA_TEST_MSG("Stamp %ld, %.10f", i,ts->duration);
         ++i;
     }
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_duration(w, &duration));
@@ -199,13 +198,13 @@ INA_TEST(time,backend)
 #ifdef INA_MBTIME_ENABLED
     INA_TEST_ASSERT_TRUE(strncmp("HW backend:", ina_str_cstr(info.backend_name), 12) == 0);
 #else
-    #ifdef INA_OS_WIN32
+#  ifdef INA_OS_WIN32
     INA_TEST_ASSERT_EQUAL_STR("OS backend: GetSystemTimeAsFileTime()",
-                     ina_str_cstr(info.backend_name));   
-    #else                    
+                     ina_str_cstr(info.backend_name));
+#  else
     INA_TEST_ASSERT_EQUAL_STR("OS backend: gettimeofday()",
                     ina_str_cstr(info.backend_name));
-    #endif
+#  endif
 #endif
 }
  
@@ -227,7 +226,7 @@ INA_TEST(time,read_clock)
 
     gettimeofday(&tv, NULL);
     INA_TEST_ASSERT_SUCCEED(ina_time_read_sys_clock(t));
-	INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(t, &secs, &us));
+    INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(t, &secs, &us));
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_seconds_micros(t, &secs2, &us2));
     INA_TEST_ASSERT(secs > 0);
     INA_TEST_ASSERT_EQUAL_INT64(secs, secs2);
@@ -319,7 +318,7 @@ INA_TEST_DATA(time_ipc) {
 INA_TEST_SETUP(time_ipc) {
     INA_TEST_HELPER_INVOKE(&data->hid, time_ipc, stopwatch_create, 
         INA_NUM2STR(888),
-	NULL);
+        NULL);
 }
 
 INA_TEST_TEARDOWN(time_ipc) 
@@ -375,12 +374,12 @@ INA_TEST_DATA(time_ipc_rdtsc) {
 };
 
 INA_TEST_SETUP(time_ipc_rdtsc) {
-    #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
     sched_setaffinity(0, sizeof(mask), &mask);
-    #endif
+#endif
     ina_time_tsc_enable_rdtsc();
     ina_time_sleep(3000);
     INA_TEST_HELPER_INVOKE(&data->hid, time_ipc_rdtsc, stopwatch_create_rdtsc, 

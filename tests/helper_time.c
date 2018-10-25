@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 
 #if !defined(CLOCK_MONOTONIC_RAW)
-    #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
 #endif
  
 /* 

@@ -219,7 +219,7 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
                                ina_file_access_mode_t access, ina_file_create_mode_t create, 
                                ina_file_share_mode_t share, int flags, ina_file_t **file)
 {
-    #ifdef INA_OS_WIN32
+#ifdef INA_OS_WIN32
 	DWORD dwDesiredAccess;
 	DWORD dwShareMode;
 	DWORD dwCreationDisposition;

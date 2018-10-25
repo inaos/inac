@@ -276,7 +276,7 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
 
     *log = (ina_log_t *) ina_mem_alloc(sizeof(ina_log_t));
     INA_RETURN_IF_NULL(*log);
-    ina_mem_set(*log, 0, sizeof(ina_log_t));
+    INA_MEM_SET_ZERO(*log, ina_log_t);
     (*log)->buffer_size = __INA_DFT_BUFFER_SIZE;
     (*log)->category = ina_str_new_fromcstr(category);
 #ifdef INA_OS_WIN32
