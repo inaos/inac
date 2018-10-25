@@ -14,12 +14,12 @@
 
 static INA_TLS(ina_err_subject_cb_t) __dict_cb = NULL;
 static INA_TLS(ina_str_t)            __errmsg  = NULL;
-static char                          __msgbuf[__INA_ERROR_MSGLEN];
+static char                          __msgbuf[__INA_ERROR_MSGLEN+32];
 
 INA_API(ina_rc_t) ina_err_init(void)
 {
     INA_INIT_GUARD();
-    __errmsg = ina_str_assign_buf(__msgbuf, __INA_ERROR_MSGLEN);
+    __errmsg = ina_str_assign_buf(__msgbuf, __INA_ERROR_MSGLEN+32);
     return INA_SUCCESS;
 }
 
