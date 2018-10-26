@@ -165,9 +165,9 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
 #define INA_TEST_ASSERT_SUCCESS(expr)                                       \
     INA_TEST_ASSERT_EQUAL_UINT64(INA_SUCCESS, expr)
 #define INA_TEST_ASSERT_SUCCEED(expr)                                       \
-    INA_TEST_ASSERT_TRUE(!((expr)>>INA_RC_BIT_E))
+    ina_test_assert_succeed((expr), __FILE__, __LINE__)
 #define INA_TEST_ASSERT_FAILED(expr)                                        \
-    INA_TEST_ASSERT_TRUE((expr)>>INA_RC_BIT_E)
+    ina_test_assert_failed((expr), __FILE__, __LINE__)
 #define INA_TEST_ASSERT_EQUAL_STR(exp, real)                                \
     ina_test_assert_equal_str(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NOT_EQUAL_STR(exp, real)                            \
@@ -480,6 +480,26 @@ INA_API(void) ina_test_assert_true(int real, const char *caller, int line);
  *  line    Caller line number
  */
 INA_API(void) ina_test_assert_false(int real, const char *caller, int line);
+
+/*
+ * Assert succeed expression
+ *
+ * Parameters
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_succeed(ina_rc_t real, const char *caller, int line);
+
+/*
+ * Assert failed expression
+ *
+ * Parameters
+ *  real    Real value
+ *  caller  Caller function name calling this assert
+ *  line    Caller line number
+ */
+INA_API(void) ina_test_assert_failed(ina_rc_t real, const char *caller, int line);
 
 /*
  * Assert
