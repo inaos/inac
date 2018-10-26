@@ -305,7 +305,7 @@ INA_API(void) ina_test_assert_false(int real, const char *caller, int line)
 
 INA_API(void) ina_test_assert_failed(ina_rc_t real, const char *caller, int line)
 {
-    if (!(real&(INA_ERR_FAILED))) {
+    if (!(real&(INA_ERR_ERROR))) {
         INA_TEST_ERR("%s:%d  should be failed", caller, line);
         longjmp(__err, 1);
     }
@@ -313,7 +313,7 @@ INA_API(void) ina_test_assert_failed(ina_rc_t real, const char *caller, int line
 
 INA_API(void) ina_test_assert_succeed(ina_rc_t real, const char *caller, int line)
 {
-    if (real&(INA_ERR_FAILED)) {
+    if (real&(INA_ERR_ERROR)) {
         INA_TEST_ERR("%s:%d  should be succeed", caller, line);
         longjmp(__err, 1);
     }

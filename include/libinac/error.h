@@ -507,7 +507,7 @@ INA_INLINE ina_rc_t ina_err_get_rc(void)
  */
 INA_INLINE ina_rc_t ina_err_clear_rc(ina_rc_t rc)
 {
-    return (rc&~(INA_ERR_ERROR));
+    return (rc & ~(INA_ERR_ERROR));
 }
 
 /*
@@ -576,7 +576,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #endif
 
 /* Check return code: failure */
-#define INA_FAILED(rc) ((rc)&INA_ERR_ERROR)
+#define INA_FAILED(rc) ((rc)&(INA_ERR_ERROR))
 /* Check return code: successful or handled */
 #define INA_SUCCEED(rc) (!INA_FAILED((rc)))
 
