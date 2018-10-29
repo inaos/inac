@@ -127,7 +127,9 @@ INA_API(ina_str_t) ina_str_new_fromcstr(const char* cstr)
     if (str == NULL) {
         return NULL;
     }
-    INA_MEM_MEMCPY(str, cstr, len);
+    if (cstr != NULL) {
+        INA_MEM_MEMCPY(str, cstr, len);
+    }
     (__INA_HDR_OFFSET(str))->len = len;
     str[len]='\0';
     return str;
@@ -150,7 +152,9 @@ INA_API(ina_str_t) ina_str_new_fromcstr_using_pool(const char* cstr,
     if (str == NULL) {
         return NULL;
     }
-    INA_MEM_MEMCPY(str, cstr, len);
+    if (cstr != NULL) {
+        INA_MEM_MEMCPY(str, cstr, len);
+    }
     (__INA_HDR_OFFSET(str))->len = len;
     return str;
 }
