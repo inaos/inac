@@ -152,8 +152,13 @@ INA_INLINE void * ina_mem_alloc(size_t size)
  */
 INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
 {
+	void *p;
 	INA_ASSERT_NOT_NULL(ptr);
-	return INA_MEM_REALLOC(ptr, nb);
+	p = *((void**)((size_t)ptr - sizeof(void*)));
+	p = INA_MEM_REALLOC(p, nb);
+	ptr = (void*) (((size_t)p + sizeof(void*) + sizeof(void*) -1) & ~(sizeof(void*)-1));
+	*((void**)((size_t)ptr - sizeof(void*))) = p;
+	return ptr;
 }
 
 /*
