@@ -183,7 +183,7 @@ INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
  * Return
  *  dest is returned
  */
-INA_INLINE void* ina_mem_move(void *dest, const void *src, size_t nb)
+INA_INLINE void* ina_mem_move(void *dest,  void *src, size_t nb)
 {
 	INA_ASSERT_NOT_NULL(dest);
 	INA_ASSERT_NOT_NULL(src);
@@ -217,7 +217,7 @@ INA_INLINE void* ina_mem_move(void *dest, const void *src, size_t nb)
  * Return
  *  dest is returned.
  */ 
-INA_INLINE void * ina_mem_cpy(void *dest, const void *src, size_t nb)
+INA_INLINE void * ina_mem_cpy(void *dest, void *src, size_t nb)
 {
 	INA_ASSERT_NOT_NULL(dest);
 	INA_ASSERT_NOT_NULL(src);

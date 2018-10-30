@@ -238,7 +238,8 @@ INA_API(ina_rc_t) ina_ljit_dump_stack(ina_ljit_ctx_t *ctx)
  */
 INA_API(const void*) ina_ljit_checkcdata(ina_ljit_ctx_t *ctx, int narg)
 {
-    INA_ASSERT_NULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx->lstate);
     if (lua_type(ctx->lstate, narg) != 10) {
         luaL_typerror(ctx->lstate, narg, "cdata");
     }
