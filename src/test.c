@@ -490,12 +490,14 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     }
     end++;
 
-     for (test = begin; test != end; test++) {
-        if (test == &__ina_test_suite_test) {
-            continue;
-        }
-        if (filter(test)) {
-            test->run(&retval, argc, argv);
+    if (begin && end) {
+        for (test = begin; test != end; test++) {
+            if (test == &__ina_test_suite_test) {
+                continue;
+            }
+            if (filter(test)) {
+                test->run(&retval, argc, argv);
+            }
         }
     }
     return retval;
