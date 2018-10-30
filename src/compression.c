@@ -78,7 +78,6 @@ static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, c
 static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *state, const unsigned char *src, 
                                                     int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
-    int read = 0;
     INA_UNUSED(src_len);
     INA_UNUSED(dst_len);
     INA_UNUSED(src);
@@ -90,7 +89,7 @@ static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *sta
 
     INA_ASSERT_TRUE(state->chunk_src_len > 0);
     *read_len = LZ4_decompress_fast((const char*)src, (char*)dst, state->chunk_src_len);
-    if (read < 0) {
+    if (*read_len < 0) {
         return INA_ERROR(INA_ES_DECOMPRESSION|INA_ERR_FAILED);
     }
     *wrote_len = state->chunk_src_len;
