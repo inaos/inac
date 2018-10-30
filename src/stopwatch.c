@@ -173,6 +173,7 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
                                                 ina_stopwatch_ts_t **ts)
 {
     INA_VERIFY_NOT_NULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stamp_index);
 
     /* reset current timestamp */
     stopwatch->ts = NULL;
@@ -183,9 +184,7 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
     }
 
     /* Get the timestamp depending in stamp index */
-    if (stamp_index == NULL) {
-        stopwatch->ts = &stopwatch->tv->stamps;
-    } else if (*stamp_index >= stopwatch->tv->next_stamp) {
+    if (*stamp_index >= stopwatch->tv->next_stamp) {
         return INA_ERROR(INA_ERR_END_OF);
     } else if (*stamp_index == -1) {
         *stamp_index = stopwatch->tv->next_stamp;
@@ -217,7 +216,7 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 				    ts->stamp.tp) / 10000000.0);         
         } 
 #else
-        if (stamp_index && *stamp_index == 0) {
+        if (*stamp_index == 0) {
 
             ina_time_tsc_seconds_nanos(&stopwatch->tv->start,
                 &stopwatch->tv->start.tp.tv_sec,

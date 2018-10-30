@@ -132,7 +132,7 @@ INA_API(ina_rc_t) ina_list_node_new(ina_list_t *list, ina_list_node_t **node)
 INA_API(void) ina_list_node_free(ina_list_t *list, ina_list_node_t **node)
 {
     INA_VERIFY_FREE(node);
-    INA_ASSERT_NULL(list);
+    INA_ASSERT_NOT_NULL(list);
     if (list->last_free < list->max_recyclable) {
         list->last_free++;
         list->first_free[list->last_free] = *node;

@@ -173,7 +173,6 @@ INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
     pctx->id = 0;
     pctx->type = INA_ULLC_CTX_PRODUCER;
     pctx->ws = ws;
-    pctx->ring = pctx->ring;
     pctx->data = ((unsigned char*)pctx->ring) + sizeof(ina_ullc_rb_t);
     pctx->c_offset = (ina_ullc_cursor_t*)&pctx->data[(pctx->ring->slots)*pctx->ring->size];
     pctx->p_offset = &pctx->c_offset[num_consumers];
@@ -352,7 +351,6 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
     ccxt->type = INA_ULLC_CTX_CONSUMER;
     ccxt->ws = INA_ULLC_WS_NONE;
     ccxt->sem_handle = 0;
-    ccxt->ring = ccxt->ring;
     ccxt->data = ((unsigned char*)ccxt->ring) + sizeof(ina_ullc_rb_t);
     cons = (ina_ullc_cursor_t*)&ccxt->data[(ccxt->ring->slots)*ccxt->ring->size];
     while (ccxt->id < num_consumers) {
