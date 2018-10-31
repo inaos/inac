@@ -181,7 +181,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     		break;
     }
     
-    if (pflags&MAP_FILE) {
+    if (map_type == INA_MMAP_MAP_TYPE_FILE) {
     	(*mapping)->addr = mmap(0, length, pprot, pflags, ina_file_os_handle(fd), offset);
     } else {
     	(*mapping)->addr = mmap(0, length, pprot, pflags, -1, offset);
