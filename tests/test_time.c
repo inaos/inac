@@ -413,12 +413,12 @@ INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
 
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
-    sprintf(user_data2, "%.10f", msec_duration);
+    snprintf(user_data2, INA_STOPWATCH_MAX_USERDATA_LEN-1,"%.10f", msec_duration);
     INA_TEST_ASSERT_SUCCEED(INA_STOPWATCH_STAMP2(data->w, "test", user_data2));
     ina_time_sleep(3);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
-    sprintf(user_data2, "%.10f", msec_duration);
+    snprintf(user_data2, INA_STOPWATCH_MAX_USERDATA_LEN-1 "%.10f", msec_duration);
     INA_TEST_ASSERT_SUCCEED(INA_STOPWATCH_STAMP2(data->w, "test", user_data2));
 
     while (INA_SUCCEED(ina_stopwatch_read_stamp(data->w, &c, &ts))) {
