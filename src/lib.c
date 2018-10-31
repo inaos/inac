@@ -216,7 +216,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                                 n++;
                             }
                         } else {
-                            strcpy(buf, &argv[n][vs]);
+                            strncpy(buf, &argv[n][vs], strlen(&argv[n][vs]));
                             so->value = ina_str_new_fromcstr(buf);
                         }
                     } else {
