@@ -347,9 +347,9 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
 			size_t max_stamps) {
     size_t size;
     uint32_t cf = 0;
-    char name[100];
-
-    sprintf(name, "/ina_stopwatch_%d", id);
+    char buf[100];
+    ina_str_t name = ina_str_assign_buf(buf, 100);
+    ina_str_snprintf(&name, 80, "/ina_stopwatch_%d", id);
 
     *stopwatch = (ina_stopwatch_t *) ina_mem_alloc(sizeof(ina_stopwatch_t));
     if (*stopwatch == NULL) {
