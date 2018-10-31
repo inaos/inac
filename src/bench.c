@@ -115,6 +115,8 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     double *result;
     int64_t *scale;
     int i,j;
+    char fmt[20];
+    snprintf(fmt, 19, ",%%.%df", __precision);
 
     if (report_path != NULL) {
         file_path = ina_str_sprintf("%s%cbench_%s.csv", report_path, INA_PATH_SEPARATOR,  __current->bench_name);
@@ -140,8 +142,6 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     for (j = 0; j < __current->iterations; ++j) {
         fprintf(f, "%"INA_INT64_T_FMT, scale[j]);
         for (i = 0; i < num_series; ++i) {
-            char fmt[20];
-            sprintf(fmt, ",%%.%df", __precision);
             fprintf(f, fmt, result[i*__current->iterations+j]);
         }
         fprintf(f, "\n");
