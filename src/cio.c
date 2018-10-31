@@ -20,7 +20,7 @@ static int __ina_get_cursor_pos(ina_cio_pos_t *pos);
 #include <io.h>
 
 static short int __fg_colors[] = {
-    0;
+    0,
     FOREGROUND_BLUE,
     FOREGROUND_RED,
     FOREGROUND_BLUE | FOREGROUND_RED,
@@ -33,7 +33,7 @@ static short int __fg_colors[] = {
 };
 
 static short int __bg_colors[] = {
-    0;
+    0,
     FOREGROUND_BLUE,
     FOREGROUND_RED,
     FOREGROUND_BLUE | FOREGROUND_RED,
