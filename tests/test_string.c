@@ -660,7 +660,7 @@ INA_TEST(string, ina_str_adjust_len)
     ina_str_t str = ina_str_new(128);
     str = ina_str_catcstr(str, "12345");
     INA_TEST_ASSERT_EQUAL_SIZE_T(5, ina_str_len(str));
-    strcat(str, "67890");
+    strncat(str, "67890", 127);
     INA_TEST_ASSERT_EQUAL_STR("1234567890", ina_str_cstr(str));
     INA_TEST_ASSERT_EQUAL_SIZE_T(5, ina_str_len(str));
     ina_str_adjust_len(str);
