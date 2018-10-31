@@ -636,6 +636,7 @@ INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **dat
         iter->bucket++;
         iter->node = iter->bucket->nodes;
     }
+    *data = NULL;
     return INA_ERROR(INA_ERR_END_OF);
 }
 
