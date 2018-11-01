@@ -251,7 +251,7 @@ INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bindadd
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_tcp_accept(ina_fd_t *fd, ina_fd_t sfd, char *ip, int *port)
+INA_API(ina_rc_t) ina_net_tcp_accept(ina_fd_t *fd, ina_fd_t sfd, ina_str_t ip, int *port)
 {
     struct sockaddr_in sa;
     socklen_t salen = sizeof(sa);
@@ -261,7 +261,10 @@ INA_API(ina_rc_t) ina_net_tcp_accept(ina_fd_t *fd, ina_fd_t sfd, char *ip, int *
 
     INA_RETURN_IF_FAILED(__ina_generic_accept(sfd, fd, (struct sockaddr*)&sa,&salen));
 
-    if (ip) strcpy(ip,inet_ntoa(sa.sin_addr));
+    if (ip) {
+        ina_str_truncate(ip, 0);
+        ina_str_catcstr(ip, inet_ntoa(sa.sin_addr));
+    }
     if (port) *port = ntohs(sa.sin_port);
 
     if (*fd == -1 && !__ina_eagain()) {
@@ -356,12 +359,13 @@ INA_API(ina_rc_t) ina_net_read(ina_fd_t fd, unsigned char *buf, int nb, int* nb_
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf)
+INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ip)
 {
     struct sockaddr_in sa;
 
     INA_VERIFY_NOT_NULL(host);
-    INA_VERIFY_NOT_NULL(ipbuf);
+    INA_VERIFY_NOT_NULL(ip);
+    INA_VERIFY(ina_str_size(ip) > 32);
 
     sa.sin_family = AF_INET;
     if (inet_aton(host, &sa.sin_addr) == 0) {
@@ -373,7 +377,8 @@ INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf)
         }
         memcpy(&sa.sin_addr, he->h_addr, sizeof(struct in_addr));
     }
-    strcpy(ipbuf, inet_ntoa(sa.sin_addr));
+    ina_str_truncate(ip, 0);
+    ina_str_catcstr(ip, inet_ntoa(sa.sin_addr));
     return INA_SUCCESS;
 }
 
