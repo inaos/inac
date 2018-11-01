@@ -124,7 +124,7 @@ INA_TEST(time, stopwatch_startime)
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w));
     INA_TEST_ASSERT_NOT_NULL(w);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_start(w, &start_ts));
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_duration(w, &duration));
+    INA_TEST_ASSERT_FAILED(ina_stopwatch_duration(w, &duration));
     INA_TEST_ASSERT_EQUAL_FLOATING(0, duration);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_started(w));
     ina_time_sleep(100);

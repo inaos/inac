@@ -293,14 +293,12 @@ INA_API(ina_rc_t) ina_stopwatch_stamp(ina_stopwatch_t* stopwatch,
     ina_time_read_tsc_clock(&ts->stamp);
 
     if (user_data1 != NULL) {
-        if (strlen(user_data1)+1 < INA_STOPWATCH_MAX_USERDATA_LEN) {
-            strcpy(ts->user_data1, user_data1);
-        }
+        strncpy(ts->user_data1, user_data1, INA_STOPWATCH_MAX_USERDATA_LEN-1);
+        ts->user_data1[INA_STOPWATCH_MAX_USERDATA_LEN-1] = 0;
     }
     if (user_data2 != NULL) {
-        if (strlen(user_data2)+1 < INA_STOPWATCH_MAX_USERDATA_LEN) {
-            strcpy(ts->user_data2, user_data2); 
-        }
+        strncpy(ts->user_data2, user_data2, INA_STOPWATCH_MAX_USERDATA_LEN-1);
+        ts->user_data2[INA_STOPWATCH_MAX_USERDATA_LEN-1] = 0;
     }
     return INA_SUCCESS;
 }
