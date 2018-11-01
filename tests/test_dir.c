@@ -32,7 +32,7 @@ INA_TEST_DATA(dir) {
 
 INA_TEST_SETUP(dir) {
     struct stat st;
-    ina_mem_set(&stat, 0, sizeof(struct stat));
+    ina_mem_set(&st, 0, sizeof(struct stat));
 
     data->tmp_dir = ina_str_new(2048);
     ina_str_t dir = ina_str_new(2048);
