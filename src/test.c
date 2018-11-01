@@ -81,17 +81,17 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
 
     if (!__tap && !__junit) {
         if (is_error != INA_YES) {
-            size = sprintf(__errormsg, "%s", "     MSG: ");
+            size = snprintf(__errormsg, __errorsize, "%s", "     MSG: ");
         } else {
-            size = sprintf(__errormsg, "%s", "ERR: ");
+            size = snprintf(__errormsg, __errorsize, "%s", "ERR: ");
         }
     } else if (__tap) {
-        size = sprintf(__errormsg, "%s", "# ");
+        size = snprintf(__errormsg, __errorsize, "%s", "# ");
     } else if (__junit) {
         if (is_error) {
-            size = sprintf(__errormsg, "%s", "\t\t\t<failure message=\"");
+            size = snprintf(__errormsg, __errorsize, "%s", "\t\t\t<failure message=\"");
         } else {
-            size = sprintf(__errormsg, "%s", "\t\t\t<system-out>");
+            size = snprintf(__errormsg, __errorsize, "%s", "\t\t\t<system-out>");
         }
     }
  
@@ -105,12 +105,12 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
      __errormsg += size;
 
      if (!__junit) {
-         size = sprintf(__errormsg, "%s", "\n");
+         size = snprintf(__errormsg, __errorsize, "%s", "\n");
      } else {
          if (is_error) {
-             size = sprintf(__errormsg, "%s", "\"></failure>\n");
+             size = snprintf(__errormsg, __errorsize, "%s", "\"></failure>\n");
          } else {
-             size = sprintf(__errormsg, "%s", "</system-out>\n");
+             size = snprintf(__errormsg, __errorsize, "%s", "</system-out>\n");
          }
      }
      __errorsize -= size;

@@ -147,7 +147,7 @@ static void ihtm_write_stats(int force)
     }
     next = records;
     while (next != current_record+1) {
-        sprintf(buf, "%"INA_UINT64_T_FMT",%d,%u,%"INA_UINT64_T_FMT",%"INA_UINT64_T_FMT"\n",
+        snprintf(buf, 1023, "%"INA_UINT64_T_FMT",%d,%u,%"INA_UINT64_T_FMT",%"INA_UINT64_T_FMT"\n",
                 next->ts,
                 next->hashtable_id,
                 next->event_id,

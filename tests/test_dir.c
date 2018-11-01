@@ -27,43 +27,46 @@ static const char* __dir_entries[] = {
 };
 
 INA_TEST_DATA(dir) {
-    char tmp_dir[2024];
+    ina_str_t  tmp_dir;
 };
 
 INA_TEST_SETUP(dir) {
-    struct stat st = {0};
-    char dir[128];
+    struct stat st;
+    ina_mem_set(&stat, 0, sizeof(struct stat));
+
+    data->tmp_dir = ina_str_new(2048);
+    ina_str_t dir = ina_str_new(2048);
 #ifdef INA_OS_WIN32
-    strcpy(data->tmp_dir, getenv("TEMP"));
-    strcat(data->tmp_dir, "/inac_test_dir");
+    ina_str_catcstr(data->tmp_dir, getenv("TEMP"));
+    ina_str_catcstr(data->tmp_dir, "/inac_test_dir");
 #else
-    strcpy(data->tmp_dir, "/tmp/inac_test_dir");
+    ina_str_catcstr(data->tmp_dir, "/tmp/inac_test_dir");
 #endif
 
 
-    strcpy(dir, data->tmp_dir);
+    ina_str_cpy(dir, data->tmp_dir);
     if (stat(data->tmp_dir, &st) == -1) {
         mkdir(data->tmp_dir, 0777);
     }
-    strcpy(dir, data->tmp_dir);
-    strcat(dir, "/test1");
+    ina_str_catcstr(dir, "/test1");
     if (stat(dir, &st) == -1) {
         mkdir(dir, 0777);
     }
-    strcpy(dir, data->tmp_dir);
-    strcat(dir, "/test2");
+    ina_str_cpy(dir, data->tmp_dir);
+    ina_str_catcstr(dir, "/test2");
     if (stat(dir, &st) == -1) {
         mkdir(dir, 0777);
     }
-    strcpy(dir, data->tmp_dir);
-    strcat(dir, "/test3");
+    ina_str_cpy(dir, data->tmp_dir);
+    ina_str_catcstr(dir, "/test3");
     if (stat(dir, &st) == -1) {
         mkdir(dir, 0777);
     }
+    ina_str_free(dir);
 }
 
 INA_TEST_TEARDOWN(dir) {
-    INA_UNUSED(data);
+    ina_str_free(data->tmp_dir);
 }
 
 INA_TEST_FIXTURE(dir, test_new_free)
