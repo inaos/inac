@@ -201,7 +201,7 @@ INA_API(void) ina_test_assert_equal_uint64(uint64_t exp, uint64_t real, const ch
 INA_API(void) ina_test_assert_equal_floating(double exp, double real, const char *caller, 
                 int line) 
 {
-    if (exp != real) {
+    if (!ina_util_dbl_cmp_abs(exp, real)) {
         INA_TEST_ERR("%s:%d  expected %f, got %f", caller, line, exp, real);
         longjmp(__err, 1);
     }
