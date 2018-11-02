@@ -131,6 +131,7 @@ install:
          sudo apt-get update
          sudo apt-get install inaos-dev-quality-tools
          sudo apt-get install gcovr
+         sudo apt-get install xsltproc
          appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
   - cmd: |
          choco source add -n "inaos" -s "https://inaos.jfrog.io/inaos/api/nuget/nuget-release-local/" -u %jfrog_artifactory_uid% -p %jfrog_artifactory_pwd%
@@ -164,9 +165,9 @@ test_script:
 
 after_test:
   - sh: |
-        if [ $RUN_SONAR == "yes" ]; then /opt/dev/tool/sonar-scanner-3.2.0.1227/bin/sonar-scanner -Dsonar.projectBaseDir=$APPVEYOR_BUILD_FOLDER -Dsonar.projectKey=inac-linux64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=$sonarqube_api_key -Dsonar.exclusions=contribs/**,cmake-build-$BUILD_CONFIGURATION/** -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**; fi
+        if [ $RUN_SONAR == "yes" ]; then /opt/dev/tool/sonar-scanner-3.2.0.1227/bin/sonar-scanner -Dsonar.projectBaseDir=$APPVEYOR_BUILD_FOLDER -Dsonar.projectKey=inac-linux64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=$sonarqube_api_key -Dsonar.exclusions=contribs/**,cmake-build-$BUILD_CONFIGURATION/** -Dsonar.coverageReportPaths=cmake-build-$BUILD_CONFIGURATION/tests-coverage.sonar.xml; fi
   - cmd: |
-         if "%RUN_SONAR%"=="yes" C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-%BUILD_CONFIGURATION%/** -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/** 
+         if "%RUN_SONAR%"=="yes" C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-%BUILD_CONFIGURATION%/** -Dsonar.coverageReportPaths=cmake-build-%BUILD_CONFIGURATION%/tests-coverage.sonar.xml
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
         $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml))
