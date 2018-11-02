@@ -12,6 +12,7 @@
 /* Error message length */
 #define __INA_ERROR_MSGLEN  1024
 
+INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
 static INA_TLS(ina_err_subject_cb_t) __dict_cb = NULL;
 static INA_TLS(ina_str_t)            __errmsg  = NULL;
 static char                          __msgbuf[__INA_ERROR_MSGLEN+32];

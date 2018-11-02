@@ -19,7 +19,7 @@ extern "C" {
 #define INA_SUCCESS  (0ULL)
 
 /* Global return code */
-static INA_TLS(ina_rc_t) __rc = INA_SUCCESS;
+extern INA_TLS(ina_rc_t) __rc;
 
 /* Bit-shifts */
 #define INA_RC_BIT_E 63U
