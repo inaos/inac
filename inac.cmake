@@ -974,9 +974,13 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             set_target_properties(${RUNNER} PROPERTIES COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
             ADD_CUSTOM_TARGET(${TARGET}
                     ${RUNNER} ${ARGV3} || (exit 0)
-                    COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml -e="${CMAKE_SOURCE_DIR}/tests" ${COVERAGE_EXCLUDE} ${ARGV4}
+                    COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml --filter="${CMAKE_SOURCE_DIR}/src/" --filter="${CMAKE_SOURCE_DIR}/include/" ${COVERAGE_EXCLUDE} ${ARGV4}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     COMMENT "Running gcovr to produce Cobertura code coverage report."
+                    COMMAND xsltproc c2s.xsl ${OUTPUT}.xml >> ${OUTPUT}.sonar.xml
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    COMMENT "Running gcovr to produce SonarQube code coverage report."
+
                     )
         endif()
         if(MSVC)
@@ -1003,6 +1007,10 @@ if (NOT INAC_REPOSITORY)
     set(INAC_REPOSITORY repository)
 endif()
 
+
+
+set(INAC_C2S "<?xml version=\"1.0\" ?>\r\n<xsl:transform xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"1.0\">\r\n    <xsl:output indent=\"yes\" omit-xml-declaration=\"no\" />\r\n\r\n    <xsl:variable name=\"TAB\">\r\n        <xsl:text>&#32;&#32;&#32;&#32;</xsl:text>\r\n    </xsl:variable>\r\n    <xsl:variable name=\"CR\">\r\n        <xsl:text>&#xA;</xsl:text>\r\n    </xsl:variable>\r\n    <xsl:param name=\"SRC_DIR\"/>\r\n\r\n    <xsl:template match=\"/coverage\">\r\n        <xsl:value-of select=\"$CR\" />\r\n        <coverage version=\"1\">\r\n            <xsl:value-of select=\"$CR\" />\r\n            <xsl:apply-templates mode=\"custom-copy\" select=\".\" />\r\n        </coverage>\r\n    </xsl:template>\r\n\r\n    <xsl:template mode=\"custom-copy\" match=\"/coverage/packages/package/classes\">\r\n        <xsl:for-each select=\"class\">\r\n            <xsl:variable name=\"currFilename\" select=\"@filename\" />\r\n            <xsl:if test=\". = /coverage/packages/package/classes/class[@filename=$currFilename][1]\">\r\n                <xsl:value-of select=\"$TAB\" />\r\n                <file path=\"{$SRC_DIR}{@filename}\">\r\n                    <xsl:value-of select=\"$CR\" />\r\n                    <xsl:for-each select=\"/coverage/packages/package/classes/class[@filename=$currFilename]\">\r\n                        <xsl:for-each select=\"lines/line\">\r\n                            <xsl:apply-templates mode=\"custom-copy\" select=\".\" />\r\n                        </xsl:for-each>\r\n                    </xsl:for-each>\r\n                    <xsl:value-of select=\"$TAB\" />\r\n                </file>\r\n                <xsl:value-of select=\"$CR\" />\r\n            </xsl:if>\r\n        </xsl:for-each>\r\n    </xsl:template>\r\n\r\n    <xsl:template mode=\"custom-copy\" match=\"/coverage/packages/package/classes/class/lines/line\">\r\n        <xsl:value-of select=\"$TAB\" />\r\n        <xsl:value-of select=\"$TAB\" />\r\n        <xsl:choose>\r\n            <xsl:when test=\"@condition-coverage\">\r\n                <xsl:variable name=\"COVERAGE_SEPARATOR\"><![CDATA[/]]></xsl:variable>\r\n                <xsl:variable name=\"COVERAGE\" select=\"translate(translate(substring-after(normalize-space(@condition-coverage), '% '), ')', ''), '(', '')\" />\r\n                <lineToCover lineNumber=\"{@number}\" covered=\"{boolean(@hits &gt; 0)}\" branchesToCover=\"{substring-after($COVERAGE, $COVERAGE_SEPARATOR)}\" coveredBranches=\"{substring-before($COVERAGE, $COVERAGE_SEPARATOR)}\" />\r\n            </xsl:when>\r\n            <xsl:otherwise>\r\n                <lineToCover lineNumber=\"{@number}\" covered=\"{boolean(@hits &gt; 0)}\" />\r\n            </xsl:otherwise>\r\n        </xsl:choose>\r\n        <xsl:value-of select=\"$CR\" />\r\n    </xsl:template>\r\n\r\n    <xsl:template mode=\"custom-copy\" match=\"@* | node()\">\r\n        <xsl:apply-templates mode=\"custom-copy\" select=\"@* | node()\" />\r\n    </xsl:template>\r\n</xsl:transform>")
+file(WRITE "${CMAKE_BINARY_DIR}/c2s.xsl" "${INAC_C2S}")
 
 inac_load_config_file("${INAC_REPOSITORY_PATH}/${INAC_REPOSITORY}.txt" FALSE)
 inac_enable_trace(Debug 1)
