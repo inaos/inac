@@ -965,9 +965,10 @@ function(inac_coverage TARGET RUNNER OUTPUT)
                     )
         endif()
         if(MSVC)
+            file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/include COV_INC_PATH)
             file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/src COV_SRC_PATH)
             ADD_CUSTOM_TARGET(${TARGET}
-                    COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura:${OUTPUT}.xml -- ${RUNNER}.exe ${ARGV3}
+                    COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_INC_PATH} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura:${OUTPUT}.xml -- ${RUNNER}.exe ${ARGV3}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     COMMENT "Running OppCppCoverage to produce Cobertura code coverage report.")
             ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
