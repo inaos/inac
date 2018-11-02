@@ -619,7 +619,7 @@ __ina_sem_makekey(ina_ullc_rb_t *rb, const char *name)
 
     semkey = ina_str_new_fromcstr(name);
     semkey = ina_str_catcstr(semkey, "_sem");
-    strcpy(rb->semkey, ina_str_cstr(semkey));
+    strncpy(rb->semkey, ina_str_cstr(semkey), MAX_PATH);
     return INA_SUCCESS;
 }
 
