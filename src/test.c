@@ -399,16 +399,18 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     /* Start a in-situ helper */
     if (suite_name != NULL) {
         GetModuleFileName(NULL, exepath, MAX_PATH-1);
-        sprintf(cmdline, "\"%s\" -h %s %s ", exepath, suite_name, helper_name);
+        snprintf(cmdline, MAX_PATH - 1, "\"%s\" -h %s %s ", exepath, suite_name, helper_name);
     /* .. or an external one if non suite name is NULL */
     } else {
-        sprintf(cmdline, "\"%s\" ", helper_name);
+        snprintf(cmdline, MAX_PATH - 1, "\"%s\" ", helper_name);
     }
     /* Append arguments */
     n = 0;
     while(args[n++]) {
-         strcat(cmdline, args[n-1]);
-         strcat(cmdline, " ");
+        size_t curlen = strlen(cmdline);
+        strncat(cmdline, args[n-1], MAX_PATH - curlen - 1);
+        curlen = strlen(cmdline);
+        strncat(cmdline, " ", MAX_PATH - curlen - 1);
     }
     ina_mem_set(&si, 0, sizeof(si));
     ina_mem_set(&pi, 0, sizeof(pi));
