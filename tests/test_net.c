@@ -120,7 +120,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
 INA_TEST(net_local, mac_addr)
 {
     char *mac = (char*)malloc(sizeof(6));
-    char *test_ip;
+    char *test_ip = NULL;
     int found = 0;
 
     /* first the get first IP-Address of the system */
@@ -182,7 +182,10 @@ INA_TEST(net_local, mac_addr)
     /* execute the actual test now that we have an IP address */
     INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(test_ip, mac));
 
-    free(test_ip);
+    if (test_ip != NULL) {
+        free(test_ip);
+    }
+    free(mac);
 }
 #else
 INA_TEST(net_local, mac_addr)
