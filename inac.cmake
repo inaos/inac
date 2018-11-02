@@ -976,11 +976,9 @@ function(inac_coverage TARGET RUNNER OUTPUT)
                     ${RUNNER} ${ARGV3} || (exit 0)
                     COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml --filter="${CMAKE_SOURCE_DIR}/src/" --filter="${CMAKE_SOURCE_DIR}/include/" ${COVERAGE_EXCLUDE} ${ARGV4}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    COMMENT "Running gcovr to produce Cobertura code coverage report."
                     COMMAND xsltproc c2s.xsl ${OUTPUT}.xml >> ${OUTPUT}.sonar.xml
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    COMMENT "Running gcovr to produce SonarQube code coverage report."
-
+                    COMMENT "Running gcovr to produce code coverage report."
                     )
         endif()
         if(MSVC)
@@ -989,7 +987,9 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             ADD_CUSTOM_TARGET(${TARGET}
                     COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_INC_PATH} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura:${OUTPUT}.xml -- ${RUNNER}.exe ${ARGV3}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    COMMENT "Running OppCppCoverage to produce Cobertura code coverage report.")
+                    COMMAND msxsl.exe  ${OUTPUT}.xml c2s.xsl -o ${OUTPUT}.sonar.xml
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    COMMENT "Running OppCppCoverage to produce code coverage report.")
             ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
                     COMMAND ;
                     COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
