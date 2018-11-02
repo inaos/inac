@@ -958,7 +958,7 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             TARGET_LINK_LIBRARIES(${RUNNER} gcov)
             set_target_properties(${RUNNER} PROPERTIES COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
             ADD_CUSTOM_TARGET(${TARGET}
-                    ${RUNNER} ${ARGV3}
+                    ${RUNNER} ${ARGV3} || (exit 0)
                     COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     COMMENT "Running gcovr to produce Cobertura code coverage report."
