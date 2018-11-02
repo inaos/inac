@@ -74,7 +74,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read) {
     INA_TEST_MSG("conected to %s:%d", __INA_TCP_ADDR, __INA_TCP_PORT);
 
     ina_mem_set(buffer, 0, 1024);
-    strncpy(buffer, 1023, "hello");
+    strncpy(buffer, "hello", 1023);
     INA_TEST_MSG("write %s", buffer);    
     INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
                             (const unsigned char*)buffer,
@@ -104,7 +104,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
     INA_TEST_MSG("write/reed 100 times %s", buffer);
     while (c--) {
         ina_mem_set(buffer, 0, 1024);
-        strncpy(buffer, 1023, "hello");
+        strncpy(buffer, "hello", 1023);
         INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
                                 (const unsigned char*)buffer,
                                 (int)strlen(buffer), &nb_write));
@@ -230,7 +230,7 @@ INA_TEST(net_local, mac_addr)
     freeifaddrs(ifaddr);
 }
 #endif
-INA_TEST(net_local, system_lookup)
+INA_TEST_SKIP(net_local, system_lookup)
 {
     ina_str_t *addresses;
     short      address_count;

@@ -8,7 +8,7 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST(log, open_close_console)
+INA_TEST_SKIP(log, open_close_console)
 {
     ina_log_t *log = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_log_init("test_log.conf"));

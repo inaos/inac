@@ -200,7 +200,7 @@ INA_TEST(process, get_exit_code)
     ina_process_free(&process);
 }
 
-INA_TEST(process, stat)
+INA_TEST_SKIP(process, stat)
 {
     ina_process_stat_t *ps = NULL;
     int alive = 0;
