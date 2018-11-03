@@ -58,7 +58,7 @@ typedef struct ina_time_tsc_s {
         INA_ASM mov (counter).uint32.lo, eax \
         INA_ASM mov (counter).uint32.hi, edx
 #else
-    #error RDTCS not supported
+#error RDTCS not supported
 #endif
 #endif
 

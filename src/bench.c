@@ -114,7 +114,8 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     ina_str_t file_path;
     double *result;
     int64_t *scale;
-    int i,j;
+    int i;
+    int j;
     char fmt[20];
     snprintf(fmt, 19, ",%%.%df", __precision);
 
