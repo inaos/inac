@@ -234,6 +234,15 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
     *file = ina_mem_alloc(sizeof(ina_file_t));
     INA_RETURN_IF_NULL(*file);
 
+    /* Do the assignement first, so we do not need to memset the file structure */
+    (*file)->access = access;
+    (*file)->create = create;
+    (*file)->share = share;
+    (*file)->file_path = ina_str_new_fromcstr(file_fqn);
+    (*file)->ctx = ctx;
+    (*file)->cursors = 0;
+    (*file)->stream = NULL;
+
 #ifdef INA_OS_WIN32
 	__ina_file_win_map_flags(access, create, share, flags,
 		&dwDesiredAccess, &dwShareMode, &dwCreationDisposition, &dwFlagsAndAttributes);
@@ -260,11 +269,6 @@ INA_API(ina_rc_t) ina_file_new(ina_file_ctx_t *ctx, const char *file_fqn,
 	}
 #endif
 #endif
-    (*file)->access = access;
-    (*file)->create = create;
-    (*file)->share = share;
-    (*file)->file_path = ina_str_new_fromcstr(file_fqn);
-    (*file)->ctx = ctx;
     INA_FAIL_IF_ERROR(ina_hashtable_set_ptr(ctx->files, *file, *file));
     return INA_SUCCESS;
 fail:
@@ -275,6 +279,9 @@ fail:
 INA_API(void) ina_file_free(ina_file_t **file)
 {
     ina_file_t *f;
+#ifdef INA_OS_WIN32
+    int already_closed_by_stream = 0;
+#endif
     INA_VERIFY_FREE(file);
     if ((*file)->ctx) {
         ina_hashtable_remove_ptr((*file)->ctx->files, *file, (void **) &f);
@@ -283,9 +290,14 @@ INA_API(void) ina_file_free(ina_file_t **file)
 
     if ((*file)->stream) {
         fclose((*file)->stream);
+#ifdef INA_OS_WIN32
+        already_closed_by_stream = 1;
+#endif
     }
 #ifdef INA_OS_WIN32
-    CloseHandle((*file)->fh);
+    if (!already_closed_by_stream) {
+        CloseHandle((*file)->fh);
+    }
 #else
     close((*file)->fh);
 #endif
