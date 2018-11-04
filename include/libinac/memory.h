@@ -150,16 +150,7 @@ INA_INLINE void * ina_mem_alloc(size_t size)
  *  This function returns a pointer to the newly allocated memory, or NULL if
  *  the request fails.
  */
-INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
-{
-	void *p;
-	INA_ASSERT_NOT_NULL(ptr);
-	p = *((void**)((size_t)ptr - sizeof(void*)));
-	p = INA_MEM_REALLOC(p, nb+ sizeof(void*) - 1 + sizeof(void*));
-	ptr = (void*) (((size_t)p + sizeof(void*) + sizeof(void*) -1) & ~(sizeof(void*)-1));
-	*((void**)((size_t)ptr - sizeof(void*))) = p;
-	return ptr;
-}
+INA_API(void*) ina_mem_realloc(void *ptr, size_t nb);
 
 /*
  * Move a memory block.

@@ -68,6 +68,22 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
     return NULL;
 }
 
+INA_API(void*) ina_mem_realloc(void *ptr, size_t nb)
+{
+    void *p;
+    INA_ASSERT_NOT_NULL(ptr);
+    p = *((void**)((size_t)ptr - sizeof(void*)));
+
+    if (nb == 0) {
+        ina_mem_free(ptr);
+        return NULL;
+    }
+
+    p = INA_MEM_REALLOC(p, nb+ sizeof(void*) - 1 + sizeof(void*));
+    ptr = (void*) (((size_t)p + sizeof(void*) + sizeof(void*) -1) & ~(sizeof(void*)-1));
+    *((void**)((size_t)ptr - sizeof(void*))) = p;
+    return ptr;
+}
 
 INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
 {
