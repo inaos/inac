@@ -368,7 +368,7 @@ INA_TEST_FIXTURE(string_mempool, ina_str_ncatcstr)
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
 }
 
-INA_TEST_SKIP(string, ina_str_len)
+INA_TEST(string, ina_str_len)
 {
     ina_str_t str = ina_str_new_fromcstr("an INAC string");
     ina_str_t empty = ina_str_new_fromcstr("");
@@ -388,7 +388,7 @@ INA_TEST_SKIP(string, ina_str_len)
     ina_str_free(str);
 }
 
-INA_TEST_SKIP(string, ina_str_size)
+INA_TEST(string, ina_str_size)
 {
     ina_str_t str = ina_str_new_fromcstr("an INAC string");
     ina_str_t empty = ina_str_new_fromcstr("");
