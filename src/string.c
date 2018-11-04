@@ -170,29 +170,6 @@ INA_API(ina_rc_t) ina_str_free(ina_str_t str)
     return INA_SUCCESS;
 }
 
-INA_API(ina_str_t) ina_str_dup(ina_cstr_t str)
-{
-    if (str == NULL) {
-        return NULL;
-    }
-    return ina_str_new_fromcstr(str);
-}
-
-INA_API(ina_str_t) ina_str_dup_using_pool(ina_cstr_t str,
-                                          ina_mempool_t *pool)
-{
-    if (str == NULL) {
-        return NULL;
-    }
-    return ina_str_new_fromcstr_using_pool(str, pool);
-}
-
-
-INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, ina_cstr_t src)
-{
-    return ina_str_ncpy(dest, src, ina_str_len(src));
-}
-
 INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest,  ina_cstr_t src, size_t n)
 {
     ina_str_hdr_t *d;
@@ -211,25 +188,6 @@ INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest,  ina_cstr_t src, size_t n)
     return d->data;
 }
 
-INA_API(ina_str_t) ina_str_cat(ina_str_t dest, ina_cstr_t src)
-{
-    return ina_str_ncat(dest, src, ina_str_len(src));
-}
-
-INA_API(ina_str_t) ina_str_cat_using_pool(ina_str_t dest,  ina_cstr_t src, ina_mempool_t *pool)
-{
-    return ina_str_ncat_using_pool(dest, src, ina_str_len(src), pool);
-}
-
-INA_API(ina_str_t) ina_str_catcstr(ina_str_t dest, const char *src)
-{
-    return ina_str_ncatcstr(dest, src, strlen(src));
-}
-
-INA_API(ina_str_t) ina_str_catcstr_using_pool(ina_str_t dest, const char *src, ina_mempool_t *pool)
-{
-    return ina_str_ncatcstr_using_pool(dest, src, strlen(src), pool);
-}
 
 INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, ina_cstr_t src, size_t n)
 {
@@ -323,46 +281,6 @@ INA_API(int) ina_str_cmp(ina_cstr_t lhs, ina_cstr_t rhs)
     return cmp;
 }
 
-INA_API(int) ina_str_casecmp(ina_cstr_t lhs, ina_cstr_t rhs)
-{
-    return INA_CSTR_CASECMP(lhs, rhs);
-}
-
-INA_API(int) ina_str_ncmp(ina_cstr_t lhs, ina_cstr_t rhs, size_t n)
-{
-    return strncmp(lhs, rhs, n);
-}
-
-INA_API(const char*) ina_str_rchr(ina_cstr_t str, const char chr)
-{
-    if (chr == 0) {
-        return NULL;
-    }
-    return strrchr(str, chr);
-}
-
-INA_API(const char*) ina_str_str(ina_cstr_t str1,  ina_cstr_t str2)
-{
-    if (str2 == NULL || str1 == NULL) {
-        return NULL;
-    }
-    if (ina_str_len(str2) == 0) {
-        return NULL;
-    }
-    return strstr(str1, str2);
-}
-
-INA_API(const char*) ina_str_strcstr(ina_cstr_t str1, const char *str2)
-{
-    if (str2 == NULL || str1 == NULL) {
-        return NULL;
-    }
-    if (strlen(str2) == 0) {
-        return NULL;
-    }
-    return strstr(str1, str2);
-}
-
 INA_API(size_t) ina_str_len(ina_cstr_t str)
 {
     if (str == NULL) {
@@ -453,7 +371,7 @@ INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars)
     return str;   
 }
 
-static size_t __ina_str_substr_internal(size_t start, size_t end, size_t len)
+INA_INLINE size_t __ina_str_substr_internal(size_t start, size_t end, size_t len)
 {
     size_t newlen = 0;
 

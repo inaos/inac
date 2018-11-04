@@ -119,7 +119,13 @@ INA_API(ina_rc_t) ina_str_free(ina_str_t str);
  * Return
  *   Duplicated string or NULL if an error occurred.
  */
-INA_API(ina_str_t) ina_str_dup(ina_cstr_t str);
+INA_INLINE ina_str_t ina_str_dup(ina_cstr_t str)
+{
+    if (str == NULL) {
+        return NULL;
+    }
+    return ina_str_new_fromcstr(str);
+}
 
 /*
  * Duplicate a string usind a memory pool
@@ -131,8 +137,14 @@ INA_API(ina_str_t) ina_str_dup(ina_cstr_t str);
  * Return
  *   Duplicated string or NULL if an error occurred.
  */
-INA_API(ina_str_t) ina_str_dup_using_pool(ina_cstr_t str,
-                                          ina_mempool_t *pool);
+INA_INLINE ina_str_t ina_str_dup_using_pool(ina_cstr_t str, ina_mempool_t *pool)
+{
+    if (str == NULL) {
+        return NULL;
+    }
+    return ina_str_new_fromcstr_using_pool(str, pool);
+}
+
 
 /*
  * Cast a INAC string to a C string
@@ -147,23 +159,164 @@ INA_INLINE const char* ina_str_cstr(ina_cstr_t str)
 {
     return str;
 }
+/*
+ * String examinations
+ */
+
+/*
+ * Returns the length of the given string byte string.
+ *
+ * Parameters
+ *  s  Pointer to the null-terminated byte string to be examined
+ *
+ * Return
+ *  The length of the null-terminated string s.
+ */
+INA_API(size_t) ina_str_len(ina_cstr_t str);
+
+/*
+ * Returns the memory size of the given string byte string.
+ *
+ * Parameters
+ *  s  Pointer to the null-terminated byte string to be examined
+ *
+ * Return
+ *  The memory size in bytes of string s.
+ */
+INA_API(size_t) ina_str_size(ina_cstr_t str);
+
+/*
+ * Returns the free memory size of the given string byte string.
+ *
+ * Parameters
+ *  s  Pointer to the null-terminated byte string to be examined
+ *
+ * Return
+ *  The free memory size in bytes for string s.
+ */
+INA_API(size_t) ina_str_available(ina_cstr_t str);
+
+/*
+ * Compares two null-terminated byte strings. The comparison is done
+ * lexicographically.
+ *
+ * Parameters
+ *  lhs, rhs  Pointers to the null-terminated byte strings to compare
+ *
+ * Return
+ *  Negative value if lhs is less than rhs.
+ *  INA_SUCCESS if lhs is equal to rhs.
+ *  Positive value if lhs is greater than rhs.
+ */
+INA_API(int) ina_str_cmp(ina_cstr_t lhs, ina_cstr_t rhs);
+
+/*
+ * Same as ina_str_cmp but ignores case.
+ *
+ * Parameters
+ * lhs, rhs  Pointers to the null-terminated byte strings to compare
+ *
+ * Return
+ *  Negative value if lhs is less than rhs.
+ *  INA_SUCCESS if lhs is equal to rhs.
+ *  Positive value if lhs is greater than rhs.
+ */
+INA_INLINE int ina_str_casecmp(ina_cstr_t lhs, ina_cstr_t rhs)
+{
+    return INA_CSTR_CASECMP(lhs, rhs);
+}
+
+/*
+ * Compares at most count characters of two null-terminated byte strings.
+ * The comparison is done lexicographically.
+ *
+ * Parameters
+ * lhs, rhs  Pointers to the null-terminated byte strings to compare
+ * n         Maximum number of characters to compare
+ *
+ * Return
+ *  Negative value if lhs is less than rhs.
+ *  INA_SUCCESS  if lhs is equal to rhs.
+ *  Positive value if lhs is greater than rhs.
+ */
+INA_INLINE int ina_str_ncmp(ina_cstr_t lhs, ina_cstr_t rhs, size_t n)
+{
+    return strncmp(lhs, rhs, n);
+}
+
+/*
+ * Locate substring. Returns a pointer to the first occurrence of s2 in s1,
+ * or a null pointer if s2 is not part of s1.
+ * The matching process does not include the terminating null-characters.
+ *
+ * Parameters
+ *  str1  String to be scanned.
+ *  str2  String containing the sequence of characters to match.
+ *
+ * Return
+ *  A pointer to the first occurrence in s1 of any of the entire sequence
+ *  of characters specified in s2, or a null pointer if the sequence is not
+ *  present in s1.
+ */
+INA_INLINE const char* ina_str_str(ina_cstr_t str1,  ina_cstr_t str2)
+{
+    if (str2 == NULL || str1 == NULL) {
+        return NULL;
+    }
+    if (ina_str_len(str2) == 0) {
+        return NULL;
+    }
+    return strstr(str1, str2);
+}
+/*
+ * Locate substring. Returns a pointer to the first occurrence of s2 in s1,
+ * or a null pointer if s2 is not part of s1.
+ * The matching process does not include the terminating null-characters.
+ *
+ * Parameters
+ *  str1  String to be scanned.
+ *  str2  C string containing the sequence of characters to match.
+ *
+ * Return
+ *  A pointer to the first occurrence in s1 of any of the entire sequence
+ *  of characters specified in s2, or a null pointer if the sequence is not
+ *  present in s1.
+ */
+INA_INLINE const char* ina_str_strcstr(ina_cstr_t str1, const char *str2)
+{
+    if (str2 == NULL || str1 == NULL) {
+        return NULL;
+    }
+    if (strlen(str2) == 0) {
+        return NULL;
+    }
+    return strstr(str1, str2);
+}
+/*
+ * Locate last occurrence of character in string. Returns a pointer to the
+ * last occurrence of character in the C string str. The terminating
+ * null-character is considered part of the string. Therefore, it can also be
+ * located to retrieve a pointer to the end of a string.
+ *
+ * Parameters
+ *  str  String
+ *  chr  Character to be located.
+ *
+ * Return
+ *  A pointer to the last occurrence of character in str. If the value is not
+ *  found, the function returns a null pointer.
+ */
+INA_INLINE const char* ina_str_rchr(ina_cstr_t str, const char chr)
+{
+    if (chr == 0) {
+        return NULL;
+    }
+    return strrchr(str, chr);
+}
 
 /*
  * String manipulation
  */
-
-/*
- * Copies the byte string pointed to by src to byte string, pointed to by dest.
- * If the strings overlap, the behavior is undefined.
- *
- * Parameters
- *  dest  Pointer to the byte string to copy to
- *  src   Pointer to the null-terminated byte string to copy from
- *
- * Return
- *   dest
- */
-INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, ina_cstr_t src);
 
 /*
  * Copies at most count characters of the byte string pointed to by src
@@ -185,67 +338,22 @@ INA_API(ina_str_t) ina_str_cpy(ina_str_t dest, ina_cstr_t src);
  *  dest
  */
 INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, ina_cstr_t src, size_t n);
+
 /*
- * Appends a byte string pointed to by src to a byte string pointed to by dest.
- * The resulting byte string is null-terminated. If the strings overlap, the
- * behavior is undefined.
+ * Copies the byte string pointed to by src to byte string, pointed to by dest.
+ * If the strings overlap, the behavior is undefined.
  *
  * Parameters
- *  dest  Pointer to the null-terminated byte string to append to
+ *  dest  Pointer to the byte string to copy to
  *  src   Pointer to the null-terminated byte string to copy from
  *
  * Return
- *  dest
+ *   dest
  */
-INA_API(ina_str_t) ina_str_cat(ina_str_t dest, ina_cstr_t src);
-
-/*
- * Appends a byte string pointed to by src to a byte string pointed to by dest.
- * The resulting byte string is null-terminated. If the strings overlap, the
- * behavior is undefined.
- *
- * Parameters
- *  dest  Pointer to the null-terminated byte string to append to
- *  src   Pointer to the null-terminated byte string to copy from
- *  pool  Memory pool
- *
- * Return
- *  dest
- */
-INA_API(ina_str_t) ina_str_cat_using_pool(ina_str_t dest,
-                                          ina_cstr_t src,
-                                          ina_mempool_t *pool);
-
-/*
- * Appends a byte string pointed to by src to a byte string pointed to by dest.
- * The resulting byte string is null-terminated. If the strings overlap, the
- * behavior is undefined.
- *
- * Parameters
- *  dest  Pointer to the null-terminated byte string to append to
- *  src   Pointer to the null-terminated byte c string to copy from
- *
- * Return
- *  dest
- */
-INA_API(ina_str_t) ina_str_catcstr(ina_str_t dest, const char* src);
-
-/*
- * Appends a byte string pointed to by src to a byte string pointed to by dest.
- * The resulting byte string is null-terminated. If the strings overlap, the
- * behavior is undefined.
- *
- * Parameters
- *  dest  Pointer to the null-terminated byte string to append to
- *  src   Pointer to the null-terminated byte c string to copy from
- *  pool  Memory pool
- *
- * Return
- *  dest
- */
-INA_API(ina_str_t) ina_str_catcstr_using_pool(ina_str_t dest,
-                                              const char* src,
-                                              ina_mempool_t *pool);
+INA_INLINE ina_str_t ina_str_cpy(ina_str_t dest, ina_cstr_t src)
+{
+    return ina_str_ncpy(dest, src, ina_str_len(src));
+}
 
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -313,133 +421,74 @@ INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest,
                                                size_t n,
                                                ina_mempool_t *pool);
 
-
 /*
- * String examinations
- */
-
-/*
- * Returns the length of the given string byte string.
+ * Appends a byte string pointed to by src to a byte string pointed to by dest.
+ * The resulting byte string is null-terminated. If the strings overlap, the
+ * behavior is undefined.
  *
  * Parameters
- *  s  Pointer to the null-terminated byte string to be examined
+ *  dest  Pointer to the null-terminated byte string to append to
+ *  src   Pointer to the null-terminated byte string to copy from
  *
  * Return
- *  The length of the null-terminated string s.
+ *  dest
  */
-INA_API(size_t) ina_str_len(ina_cstr_t str);
-
+INA_INLINE ina_str_t ina_str_cat(ina_str_t dest, ina_cstr_t src)
+{
+    return ina_str_ncat(dest, src, ina_str_len(src));
+}
 /*
- * Returns the memory size of the given string byte string.
+ * Appends a byte string pointed to by src to a byte string pointed to by dest.
+ * The resulting byte string is null-terminated. If the strings overlap, the
+ * behavior is undefined.
  *
  * Parameters
- *  s  Pointer to the null-terminated byte string to be examined
+ *  dest  Pointer to the null-terminated byte string to append to
+ *  src   Pointer to the null-terminated byte string to copy from
+ *  pool  Memory pool
  *
  * Return
- *  The memory size in bytes of string s.
+ *  dest
  */
-INA_API(size_t) ina_str_size(ina_cstr_t str);
-
+INA_INLINE ina_str_t ina_str_cat_using_pool(ina_str_t dest,  ina_cstr_t src, ina_mempool_t *pool)
+{
+    return ina_str_ncat_using_pool(dest, src, ina_str_len(src), pool);
+}
 /*
- * Returns the free memory size of the given string byte string.
+ * Appends a byte string pointed to by src to a byte string pointed to by dest.
+ * The resulting byte string is null-terminated. If the strings overlap, the
+ * behavior is undefined.
  *
  * Parameters
- *  s  Pointer to the null-terminated byte string to be examined
+ *  dest  Pointer to the null-terminated byte string to append to
+ *  src   Pointer to the null-terminated byte c string to copy from
  *
  * Return
- *  The free memory size in bytes for string s.
+ *  dest
  */
-INA_API(size_t) ina_str_available(ina_cstr_t str);
+INA_INLINE ina_str_t ina_str_catcstr(ina_str_t dest, const char *src)
+{
+    return ina_str_ncatcstr(dest, src, strlen(src));
+}
 
 /*
- * Compares two null-terminated byte strings. The comparison is done
- * lexicographically.
+ * Appends a byte string pointed to by src to a byte string pointed to by dest.
+ * The resulting byte string is null-terminated. If the strings overlap, the
+ * behavior is undefined.
  *
  * Parameters
- *  lhs, rhs  Pointers to the null-terminated byte strings to compare
+ *  dest  Pointer to the null-terminated byte string to append to
+ *  src   Pointer to the null-terminated byte c string to copy from
+ *  pool  Memory pool
  *
  * Return
- *  Negative value if lhs is less than rhs.
- *  INA_SUCCESS if lhs is equal to rhs.
- *  Positive value if lhs is greater than rhs.
+ *  dest
  */
-INA_API(int) ina_str_cmp(ina_cstr_t lhs, ina_cstr_t rhs);
+INA_INLINE ina_str_t ina_str_catcstr_using_pool(ina_str_t dest, const char *src, ina_mempool_t *pool)
+{
+    return ina_str_ncatcstr_using_pool(dest, src, strlen(src), pool);
+}
 
-/*
- * Same as ina_str_cmp but ignores case.
- *
- * Parameters
- * lhs, rhs  Pointers to the null-terminated byte strings to compare
- *
- * Return
- *  Negative value if lhs is less than rhs.
- *  INA_SUCCESS if lhs is equal to rhs.
- *  Positive value if lhs is greater than rhs.
- */
-INA_API(int) ina_str_casecmp(ina_cstr_t lhs, ina_cstr_t rhs);
-
-/*
- * Compares at most count characters of two null-terminated byte strings.
- * The comparison is done lexicographically.
- *
- * Parameters
- * lhs, rhs  Pointers to the null-terminated byte strings to compare
- * n         Maximum number of characters to compare
- *
- * Return
- *  Negative value if lhs is less than rhs.
- *  INA_SUCCESS  if lhs is equal to rhs.
- *  Positive value if lhs is greater than rhs.
- */
-INA_API(int) ina_str_ncmp(ina_cstr_t lhs, ina_cstr_t rhs, size_t n);
-
-/*
- * Locate substring. Returns a pointer to the first occurrence of s2 in s1,
- * or a null pointer if s2 is not part of s1.
- * The matching process does not include the terminating null-characters.
- *
- * Parameters
- *  str1  String to be scanned.
- *  str2  String containing the sequence of characters to match.
- *
- * Return
- *  A pointer to the first occurrence in s1 of any of the entire sequence
- *  of characters specified in s2, or a null pointer if the sequence is not
- *  present in s1.
- */
-INA_API(const char*) ina_str_str(ina_cstr_t str1, ina_cstr_t str2);
-
-/*
- * Locate substring. Returns a pointer to the first occurrence of s2 in s1,
- * or a null pointer if s2 is not part of s1.
- * The matching process does not include the terminating null-characters.
- *
- * Parameters
- *  str1  String to be scanned.
- *  str2  C string containing the sequence of characters to match.
- *
- * Return
- *  A pointer to the first occurrence in s1 of any of the entire sequence
- *  of characters specified in s2, or a null pointer if the sequence is not
- *  present in s1.
- */
-INA_API(const char*) ina_str_strcstr(ina_cstr_t str1, const char *str2);
-
-/*
- * Locate last occurrence of character in string. Returns a pointer to the
- * last occurrence of character in the C string str. The terminating 
- * null-character is considered part of the string. Therefore, it can also be
- * located to retrieve a pointer to the end of a string.
- * 
- * Parameters
- *  str  String
- *  chr  Character to be located.
- *
- * Return
- *  A pointer to the last occurrence of character in str. If the value is not
- *  found, the function returns a null pointer.
- */
-INA_API(const char*) ina_str_rchr(ina_cstr_t str, const char chr);
 
 /*
  * Perform a zero copy tokenizing of a string. Bea aware, the returning string
