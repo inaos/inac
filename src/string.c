@@ -36,8 +36,42 @@ typedef struct ina_str_hdr_s {
 } INA_PACKED ina_str_hdr_t;
 INA_VS_END_PACK
 
-static ina_str_hdr_t* __ina_ensure_size(ina_str_hdr_t*, size_t);
-static ina_str_hdr_t* __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t*, size_t);
+INA_INLINE ina_str_hdr_t* __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
+{
+    size_t size;
+    INA_ASSERT_NOT_NULL(hdr);
+    size = (hdr->size & ~(1UL << (31 - 1)));
+
+    if ((size-hdr->len-1) > len) {
+        return hdr;
+    }
+    hdr->size = (size-hdr->len)+len;
+    hdr = (ina_str_hdr_t*)ina_mem_realloc(hdr, sizeof(ina_str_hdr_t) + hdr->size);
+    INA_ASSERT_NOT_NULL(hdr);
+    return hdr;
+}
+
+INA_INLINE ina_str_hdr_t* __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
+{
+    size_t old_size = hdr->size;
+    size_t size;
+
+    INA_ASSERT_NOT_NULL(hdr);
+    INA_ASSERT_TRUE(hdr->size&__INA_POOLED);
+
+    size = (hdr->size & ~(1UL << (31 - 1)));
+    if ((size-hdr->len-1) > len) {
+        return hdr;
+    }
+
+    hdr->size = (size-hdr->len)+len;
+    hdr = (ina_str_hdr_t*)ina_mempool_ralloc(pool, hdr,
+                                             sizeof(ina_str_hdr_t) + old_size,
+                                             sizeof(ina_str_hdr_t) + hdr->size);
+    hdr->size = hdr->size|__INA_POOLED;
+    INA_ASSERT_NOT_NULL(hdr);
+    return hdr;
+}
 
 INA_API(ina_str_t) ina_str_new(size_t len)
 {
@@ -752,42 +786,5 @@ INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame, const char *wildcard)
     }
 }
 
-static ina_str_hdr_t* 
-__ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
-{
-    size_t size;
-    INA_ASSERT_NOT_NULL(hdr);
-    size = (hdr->size & ~(1UL << (31 - 1)));
 
-    if ((size-hdr->len-1) > len) {
-        return hdr;
-    }
-    hdr->size = (size-hdr->len)+len;
-    hdr = (ina_str_hdr_t*)ina_mem_realloc(hdr, sizeof(ina_str_hdr_t) + hdr->size);
-    INA_ASSERT_NOT_NULL(hdr);
-    return hdr;
-}
-
-static ina_str_hdr_t* 
-__ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
-{
-    size_t old_size = hdr->size;
-    size_t size;
-
-    INA_ASSERT_NOT_NULL(hdr);
-    INA_ASSERT_TRUE(hdr->size&__INA_POOLED);
-
-    size = (hdr->size & ~(1UL << (31 - 1)));
-    if ((size-hdr->len-1) > len) {
-        return hdr;
-    }
-    
-    hdr->size = (size-hdr->len)+len;
-    hdr = (ina_str_hdr_t*)ina_mempool_ralloc(pool, hdr, 
-                            sizeof(ina_str_hdr_t) + old_size,
-                            sizeof(ina_str_hdr_t) + hdr->size);
-    hdr->size = hdr->size|__INA_POOLED;
-    INA_ASSERT_NOT_NULL(hdr);
-    return hdr;
-}
 
