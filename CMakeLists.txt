@@ -6,7 +6,7 @@
 # Information and shall use it only in accordance with the terms of the
 # license agreement you entered into with INAOS GmbH.
 #
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.7)
 project(inac VERSION 1.0.0)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
