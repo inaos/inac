@@ -33,6 +33,7 @@ extern "C" {
     INA_LOG(cfg, INA_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)       
 #else
 #define INA_LOG_ERROR(cfg,fmt,...)
+#define INA_LOG_RC(log, rc)
 #endif
 #if INA_LOG_LEVEL>1
 #define INA_LOG_WARNING(cfg,fmt,...)                         \
