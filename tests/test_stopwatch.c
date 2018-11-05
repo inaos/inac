@@ -262,7 +262,7 @@ INA_TEST_TEARDOWN(stopwatch_ipc_rdtsc)
 }
 
 #if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
-INA_TEST_FIXTURE(time_ipc_rdtsc, stopwatch_open_rdtsc) {
+INA_TEST_FIXTURE(stopwatch_ipc_rdtsc, stopwatch_open_rdtsc) {
     int64_t c = 0;
     ina_time_tsc_t time;
     char user_data2[INA_STOPWATCH_MAX_STAMPS];
