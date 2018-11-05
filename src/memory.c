@@ -112,14 +112,10 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 
     *pool = (ina_mempool_t*)ina_mem_alloc(sizeof(ina_mempool_t));
     INA_RETURN_IF_NULL(*pool);
-    ina_mem_set(*pool, 0, sizeof(ina_mempool_t));
+    INA_MEM_SET_ZERO(*pool, ina_mempool_t);
     (*pool)->cf = cf;
-    (*pool)->pos = 0;
     (*pool)->size = size;
     (*pool)->end = (*pool)->size;
-    (*pool)->m = NULL;
-    (*pool)->parent = NULL;
-    (*pool)->child = NULL;
     (*pool)->current = *pool;
     if (label != NULL) {
         (*pool)->label = ina_str_new_fromcstr(label);
@@ -349,7 +345,7 @@ retry:
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
         } else {
-            INA_ERROR(INA_ES_POOL | INA_ERR_FULL);
+            INA_ERROR(INA_ERR_POOL_FULL);
             return NULL;
         }
     }
@@ -395,7 +391,7 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
             pool->current->child->parent = pool->current;
             pool->current = pool->current->child;
         } else {
-            INA_ERROR(INA_ES_POOL | INA_ERR_FULL);
+            INA_ERROR(INA_ERR_POOL_FULL);
             return NULL;
         }
     }
@@ -459,7 +455,7 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
             pool->pos += new_size;
             return ret;
         }
-        INA_ERROR(INA_ES_POOL | INA_ERR_FULL);
+        INA_ERROR(INA_ERR_OUT_OF_MEMORY);
         return NULL;
     }
     /* cannot shrink, we need to move */
@@ -496,7 +492,7 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
         pool->pos += new_size;
         return ret;
     }
-    INA_ERROR(INA_ES_POOL | INA_ERR_FULL);
+    INA_ERROR(INA_ERR_POOL_FULL);
     return NULL;
 }
 

@@ -168,6 +168,8 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[]);
     ina_test_assert_succeed((expr), __FILE__, __LINE__)
 #define INA_TEST_ASSERT_FAILED(expr)                                        \
     ina_test_assert_failed((expr), __FILE__, __LINE__)
+#define INA_TEST_ASSERT_ERRMSG(exp, real)                                   \
+    ina_test_assert_equal_uint((exp), INA_RC_ERRMSG((real)), __FILE__, __LINE__)
 #define INA_TEST_ASSERT_EQUAL_STR(exp, real)                                \
     ina_test_assert_equal_str(exp, real, __FILE__, __LINE__)
 #define INA_TEST_ASSERT_NOT_EQUAL_STR(exp, real)                            \

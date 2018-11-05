@@ -129,8 +129,11 @@ INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk,
 {
     ina_str_t str;
 
-    INA_ASSERT_NOT_NULL(pool);
-    
+    if (pool == NULL) {
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
+        return NULL;
+    }
+
     if (blk == NULL) {
         INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return NULL;

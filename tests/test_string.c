@@ -57,10 +57,22 @@ INA_TEST_FIXTURE(string_mempool, ina_str_new_using_pool)
     INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
 }
 
+INA_TEST(string, ina_str_new_using_pool)
+{
+    ina_mempool_t *mp;
+    ina_mempool_new(1024, NULL, INA_MEM_FIXED, &mp);
+    ina_str_t str = ina_str_new_using_pool(4096, mp);
+    INA_TEST_ASSERT_NULL(str);
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_POOL_FULL, ina_err_get_rc());
+}
+
 INA_TEST(string, ina_str_new_fromblk)
 {
     ina_str_t str = NULL;
     char blk[] = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    INA_TEST_ASSERT_NULL(ina_str_new_fromblk(NULL, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
     str = ina_str_new_fromblk(&blk[5], 4);
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("DATA", ina_str_cstr(str));
@@ -71,6 +83,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_new_fromblk_using_pool)
 {
     ina_str_t str = NULL;
     char blk[] = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    INA_TEST_ASSERT_NULL(ina_str_new_fromblk_using_pool(blk, 10, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
     str = ina_str_new_fromblk_using_pool(&blk[5], 4, data->pool);
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("DATA", ina_str_cstr(str));
