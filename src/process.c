@@ -216,9 +216,9 @@ INA_API(void) ina_process_descriptor_free(ina_process_descriptor_t **descriptor)
     if ((*descriptor)->c_ref > 0) {
         return;
     }
-    INA_STR_FREE_SAFE((*descriptor)->full_path);
-    INA_STR_FREE_SAFE((*descriptor)->working_dir);
-    INA_STR_FREE_SAFE((*descriptor)->startup_args);
+    ina_str_free((*descriptor)->full_path);
+    ina_str_free((*descriptor)->working_dir);
+    ina_str_free((*descriptor)->startup_args);
     INA_MEM_FREE_SAFE(*descriptor);
 
 }
@@ -488,8 +488,8 @@ INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat, int
 INA_API(void) ina_process_stat_free(ina_process_stat_t **stat)
 {
     INA_VERIFY_FREE(stat);
-    INA_STR_FREE_SAFE((*stat)->cmd);
-    INA_STR_FREE_SAFE((*stat)->binary);
+    ina_str_free((*stat)->cmd);
+    ina_str_free((*stat)->binary);
     INA_MEM_FREE_SAFE(*stat);
 }
 

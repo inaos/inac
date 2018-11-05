@@ -301,7 +301,7 @@ INA_API(void) ina_file_free(ina_file_t **file)
 #else
     close((*file)->fh);
 #endif
-    INA_STR_FREE_SAFE((*file)->file_path);
+    ina_str_free((*file)->file_path);
     INA_MEM_FREE_SAFE(*file);
 }
 

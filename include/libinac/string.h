@@ -16,8 +16,6 @@ extern "C" {
 
 #include <libinac/lib.h>
 
-#define INA_STR_FREE_SAFE(str) if((str) == NULL) ina_str_free((str))
-
 /*
  * String type
  */

@@ -133,7 +133,7 @@ INA_API(void) ina_dir_walker_free(ina_dir_walker_t **walker) {
     INA_VERIFY_FREE(walker);
     ina_mempool_free(&(*walker)->mp);
     ina_mempool_free(&(*walker)->smp);
-    INA_STR_FREE_SAFE((*walker)->basedir);
+    ina_str_free((*walker)->basedir);
     INA_MEM_FREE_SAFE(*walker);
 }
 
@@ -341,7 +341,7 @@ INA_API(ina_rc_t) ina_dir_stat_pct_used(const ina_dir_stat_t *stat, int *pct_use
 INA_API(void) ina_dir_stat_free(ina_dir_stat_t **stat)
 {
     INA_VERIFY_FREE(stat);
-    INA_STR_FREE_SAFE((*stat)->dir);
+    ina_str_free((*stat)->dir);
     INA_MEM_FREE_SAFE(*stat);
 }
 

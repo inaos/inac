@@ -140,7 +140,7 @@ INA_API(ina_rc_t) ina_hashtable_init(const char* cfg_filepath)
 INA_API(void) ina_hashtable_destroy(void)
 {
     INA_DESTROY_GUARD();
-    INA_STR_FREE_SAFE(__cfg_filepath);
+    ina_str_free(__cfg_filepath);
 }
 
 INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, const char *name, ina_hashtable_t **ht)

@@ -62,8 +62,8 @@ static ina_rc_t __ina_free_target(void *data)
         default:
             break;
     }
-    INA_STR_FREE_SAFE(target->syslog_ident);
-    INA_STR_FREE_SAFE(target->filepath);
+    ina_str_free(target->syslog_ident);
+    ina_str_free(target->filepath);
     INA_MEM_FREE_SAFE(target->buffer);
     INA_MEM_FREE_SAFE(target);
     return INA_SUCCESS;
@@ -233,7 +233,7 @@ INA_API(ina_rc_t) ina_log_init(const char* cfg_filepath)
 INA_API(void) ina_log_destroy(void)
 {
     INA_DESTROY_GUARD();
-    INA_STR_FREE_SAFE(__cfg_filepath);
+    ina_str_free(__cfg_filepath);
 }
 
 INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const char *location, const char* fmt, ...)
@@ -308,7 +308,7 @@ INA_API(void) ina_log_free(ina_log_t **log)
         ina_list_foreach((*log)->targets, __ina_free_target);
         ina_list_free(&(*log)->targets);
     }
-    INA_STR_FREE_SAFE((*log)->category);
+    ina_str_free((*log)->category);
     INA_MEM_FREE_SAFE(*log);
 }
 

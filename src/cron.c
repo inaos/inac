@@ -419,10 +419,10 @@ INA_API(void) ina_cron_event_free(ina_cron_event_t **event)
                                                   (void **) &event));
     }
 
-    INA_STR_FREE_SAFE((*event)->id);
-    INA_STR_FREE_SAFE((*event)->cmd);
-    INA_STR_FREE_SAFE((*event)->working_dir);
-    INA_STR_FREE_SAFE((*event)->pattern);
+    ina_str_free((*event)->id);
+    ina_str_free((*event)->cmd);
+    ina_str_free((*event)->working_dir);
+    ina_str_free((*event)->pattern);
     ina_process_free(&(*event)->process);
     INA_MEM_FREE_SAFE(*event);
 }

@@ -278,7 +278,7 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
     }
     ina_time_tsc_free(&__time1);
     ina_time_tsc_free(&__time2);
-    INA_STR_FREE_SAFE(report_path);
+    ina_str_free(report_path);
     return total;
 }
 
