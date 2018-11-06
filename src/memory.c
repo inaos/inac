@@ -33,12 +33,12 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
     /*
      * Same behavior as in c-runtime
      */
-    if (size == 0) {
+    if (INA_UNLIKELY(size == 0)) {
         ina_err_reset();
         return NULL;
     }
 
-    if (alignment == 0) {
+    if (INA_UNLIKELY(alignment == 0)) {
         INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return NULL;
     }
