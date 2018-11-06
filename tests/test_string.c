@@ -219,7 +219,7 @@ INA_TEST(string, ina_str_ncpy)
     ina_str_free(dest);
 }
 
-INA_TEST_SKIP(string, ina_str_cat)
+INA_TEST(string, ina_str_cat)
 {
     ina_str_t str = ina_str_new(128);
     ina_str_t part1 = ina_str_new_fromcstr("part1");
@@ -228,7 +228,7 @@ INA_TEST_SKIP(string, ina_str_cat)
     str = ina_str_cat(str, part1);
     str = ina_str_cat(str, part2);
     str = ina_str_cat(str, part3);
-    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", str) == 0);
     ina_str_free(str);
     ina_str_free(part1);
     ina_str_free(part2);
@@ -241,20 +241,11 @@ INA_TEST_SKIP(string, ina_str_cat)
     str = ina_str_cat(str, part1);
     str = ina_str_cat(str, part2);
     str = ina_str_cat(str, part3);
-    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", str) == 0);
     ina_str_free(str);
     ina_str_free(part1);
     ina_str_free(part2);
     ina_str_free(part3);
-    
-    str = ina_str_new(0);
-    str = ina_str_cat(str, ina_str_cat(str, ina_str_cat(str, ina_str_new_fromcstr("test"))));
-    INA_TEST_ASSERT_EQUAL_STR("testtesttesttest", ina_str_cstr(str));
-    ina_str_free(str);
-    
-    str = ina_str_cat(ina_str_new(0), ina_str_new(0));
-    INA_TEST_ASSERT_EQUAL_STR(str, ina_str_cstr(""));
-    ina_str_free(str);
     
     str = ina_str_cat(ina_str_new(0), NULL);
     INA_TEST_ASSERT_EQUAL_STR(str, ina_str_cstr(""));
@@ -280,10 +271,6 @@ INA_TEST_FIXTURE(string_mempool, ina_str_cat)
     str = ina_str_cat_using_pool(str, part2, data->pool);
     str = ina_str_cat_using_pool(str, part3, data->pool);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
-
-    str = ina_str_new_using_pool(0, data->pool);
-    str = ina_str_cat_using_pool(str, ina_str_cat_using_pool(str, ina_str_cat_using_pool(str, ina_str_new_fromcstr_using_pool("test", data->pool), data->pool), data->pool), data->pool);
-    INA_TEST_ASSERT_EQUAL_STR("testtesttesttest", ina_str_cstr(str));
 
     str = ina_str_cat_using_pool(ina_str_new_using_pool(0, data->pool), ina_str_new_using_pool(0, data->pool), data->pool);
     INA_TEST_ASSERT_EQUAL_STR(str, ina_str_cstr(""));
