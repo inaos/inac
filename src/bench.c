@@ -180,6 +180,8 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
         __bench_name = argv[2];
         filter = __ina_bench_filter;
     }
+
+
     begin = &INA_BENCH_BNAME(bench, series);
     end = &INA_BENCH_BNAME(bench, series);
     while (begin) {
@@ -211,64 +213,62 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
             if (bench == &__ina_bench_bench_series) {
                 continue;
             }
-            if (filter(bench)) {
-                if (!bench->skip) {
-                    int ic;
+            if (filter(bench) && !bench->skip) {
+                int ic;
 #ifdef INA_OS_OSX
-                    INA_MUST_SUCCEED(__ina_find_symbols(bench));
+                INA_MUST_SUCCEED(__ina_find_symbols(bench));
 #endif
-                    if (__current == NULL ||
-                        strcmp(__current->bench_name, bench->bench_name) != 0) {
-                        if (__current != NULL) {
-                            INA_MUST_SUCCEED(
-                                    __ina_write_report(__current_series,
-                                                       ina_str_cstr(
-                                                               report_path)));
-                            ina_mem_free(__results);
-                            ina_mem_free(__scales);
-                        }
-                        __scales = ina_mem_alloc(
-                                sizeof(int64_t) * bench->iterations);
-                        __results = ina_mem_alloc(
-                                sizeof(int64_t) * bench->iterations *
-                                __INA_MAX_SERIES);
-                        __current_result = __results;
-                        __header[0] = '\0';
-                        __current_series = 0;
-                        __current_iteration = 0;
-                        __precision = 5;
+                if (__current == NULL ||
+                    strcmp(__current->bench_name, bench->bench_name) != 0) {
+                    if (__current != NULL) {
+                        INA_MUST_SUCCEED(
+                                __ina_write_report(__current_series,
+                                                   ina_str_cstr(
+                                                           report_path)));
+                        ina_mem_free(__results);
+                        ina_mem_free(__scales);
                     }
-                    __current_scale = __scales;
-                    __current = bench;
-                    if (strlen(__header)) {
-                        strncat(__header, ",",
-                                sizeof(__header) - strlen(__header) + 1);
-                    }
-                    strncat(__header, bench->series_name,
-                            sizeof(__header) - strlen(__header) + 1);
-
-                    printf("%s:%s : setup\n", ina_bench_get_name(),
-                           ina_bench_get_series_name());
-                    bench->setup(bench->data);
-                    printf("%s:%s : begin\n", ina_bench_get_name(),
-                           ina_bench_get_series_name());
-                    bench->series_setup(bench->data);
-                    for (ic = 0; ic < bench->iterations; ++ic) {
-                        __current_iteration = ic;
-                        bench->scale(bench->data);
-                        bench->run(bench->data);
-                        __current_result += 1;
-                        __current_scale += 1;
-                    }
-                    printf("%s:%s : end\n", ina_bench_get_name(),
-                           ina_bench_get_series_name());
-                    bench->series_teardown(bench->data);
-                    printf("%s:%s : teardown\n", ina_bench_get_name(),
-                           ina_bench_get_series_name());
-                    bench->teardown(bench->data);
-
-                    __current_series += 1;
+                    __scales = ina_mem_alloc(
+                            sizeof(int64_t) * bench->iterations);
+                    __results = ina_mem_alloc(
+                            sizeof(int64_t) * bench->iterations *
+                            __INA_MAX_SERIES);
+                    __current_result = __results;
+                    __header[0] = '\0';
+                    __current_series = 0;
+                    __current_iteration = 0;
+                    __precision = 5;
                 }
+                __current_scale = __scales;
+                __current = bench;
+                if (strlen(__header)) {
+                    strncat(__header, ",",
+                            sizeof(__header) - strlen(__header) + 1);
+                }
+                strncat(__header, bench->series_name,
+                        sizeof(__header) - strlen(__header) + 1);
+
+                printf("%s:%s : setup\n", ina_bench_get_name(),
+                       ina_bench_get_series_name());
+                bench->setup(bench->data);
+                printf("%s:%s : begin\n", ina_bench_get_name(),
+                       ina_bench_get_series_name());
+                bench->series_setup(bench->data);
+                for (ic = 0; ic < bench->iterations; ++ic) {
+                    __current_iteration = ic;
+                    bench->scale(bench->data);
+                    bench->run(bench->data);
+                    __current_result += 1;
+                    __current_scale += 1;
+                }
+                printf("%s:%s : end\n", ina_bench_get_name(),
+                       ina_bench_get_series_name());
+                bench->series_teardown(bench->data);
+                printf("%s:%s : teardown\n", ina_bench_get_name(),
+                       ina_bench_get_series_name());
+                bench->teardown(bench->data);
+
+                __current_series += 1;
             }
         }
     }
