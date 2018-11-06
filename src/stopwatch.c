@@ -16,9 +16,9 @@ INA_INLINE double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER *
     return ((double)L->QuadPart / freq_sec);
 }
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
 #else
 #define __INA_TIME_INC(vv_ptr) __sync_fetch_and_add(vv_ptr, 1)
@@ -173,6 +173,7 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
                                                 ina_stopwatch_ts_t **ts)
 {
     INA_VERIFY_NOT_NULL(stopwatch);
+    INA_VERIFY_NOT_NULL(stamp_index);
 
     /* reset current timestamp */
     stopwatch->ts = NULL;
@@ -183,10 +184,8 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
     }
 
     /* Get the timestamp depending in stamp index */
-    if (stamp_index == NULL) {
-        stopwatch->ts = &stopwatch->tv->stamps;
-    } else if (*stamp_index >= stopwatch->tv->next_stamp) {
-        return INA_ERR_END_OF;
+    if (*stamp_index >= stopwatch->tv->next_stamp) {
+        return INA_ERROR(INA_ERR_END_OF);
     } else if (*stamp_index == -1) {
         *stamp_index = stopwatch->tv->next_stamp;
     }
@@ -217,7 +216,7 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 				    ts->stamp.tp) / 10000000.0);         
         } 
 #else
-        if (stamp_index && *stamp_index == 0) {
+        if (*stamp_index == 0) {
 
             ina_time_tsc_seconds_nanos(&stopwatch->tv->start,
                 &stopwatch->tv->start.tp.tv_sec,
@@ -294,14 +293,12 @@ INA_API(ina_rc_t) ina_stopwatch_stamp(ina_stopwatch_t* stopwatch,
     ina_time_read_tsc_clock(&ts->stamp);
 
     if (user_data1 != NULL) {
-        if (strlen(user_data1)+1 < INA_STOPWATCH_MAX_USERDATA_LEN) {
-            strcpy(ts->user_data1, user_data1);
-        }
+        strncpy(ts->user_data1, user_data1, INA_STOPWATCH_MAX_USERDATA_LEN-1);
+        ts->user_data1[INA_STOPWATCH_MAX_USERDATA_LEN-1] = 0;
     }
     if (user_data2 != NULL) {
-        if (strlen(user_data2)+1 < INA_STOPWATCH_MAX_USERDATA_LEN) {
-            strcpy(ts->user_data2, user_data2); 
-        }
+        strncpy(ts->user_data2, user_data2, INA_STOPWATCH_MAX_USERDATA_LEN-1);
+        ts->user_data2[INA_STOPWATCH_MAX_USERDATA_LEN-1] = 0;
     }
     return INA_SUCCESS;
 }
@@ -348,9 +345,9 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
 			size_t max_stamps) {
     size_t size;
     uint32_t cf = 0;
-    char name[100];
-
-    sprintf(name, "/ina_stopwatch_%d", id);
+    char buf[100];
+    ina_str_t name = ina_str_assign_buf(buf, 100);
+    ina_str_snprintf(&name, 80, "/ina_stopwatch_%d", id);
 
     *stopwatch = (ina_stopwatch_t *) ina_mem_alloc(sizeof(ina_stopwatch_t));
     if (*stopwatch == NULL) {

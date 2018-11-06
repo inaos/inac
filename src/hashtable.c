@@ -140,7 +140,7 @@ INA_API(ina_rc_t) ina_hashtable_init(const char* cfg_filepath)
 INA_API(void) ina_hashtable_destroy(void)
 {
     INA_DESTROY_GUARD();
-    INA_STR_FREE_SAFE(__cfg_filepath);
+    ina_str_free(__cfg_filepath);
 }
 
 INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, const char *name, ina_hashtable_t **ht)
@@ -396,7 +396,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 
 INA_API(void) ina_hashtable_free(ina_hashtable_t **ht)
 {
-	INA_FREE_CHECK(ht);
+	INA_VERIFY_FREE(ht);
 	__INA_FREE(*ht);
 	ina_ullc_producer_free(&(*ht)->ullc_ctx);
 	ina_time_tsc_free(&(*ht)->time);
@@ -601,6 +601,7 @@ INA_API(ina_rc_t) ina_hashtable_iter_next(ina_hashtable_iter_t *iter, void **dat
         iter->bucket++;
         ina_list_head(iter->bucket->nodes, &iter->node);
     }
+    *data = NULL;
     return INA_ERROR(INA_ERR_END_OF);
 }
 
@@ -643,7 +644,7 @@ INA_API(ina_rc_t) ina_hashtable_event_consumer_new(ina_hashtable_event_consumer_
 
 INA_API(void) ina_hashtable_event_consumer_free(ina_hashtable_event_consumer_t **event_consumer)
 {
-    INA_FREE_CHECK(event_consumer);
+    INA_VERIFY_FREE(event_consumer);
     ina_ullc_producer_free(&(*event_consumer)->p_ctx);
     ina_ullc_consumer_free(&(*event_consumer)->c_ctx);
 }

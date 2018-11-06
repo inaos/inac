@@ -54,12 +54,12 @@ INA_API(ina_rc_t) ina_timer_new(ina_timer_t **timer)
 
 INA_API(void) ina_timer_free(ina_timer_t **timer)
 {
-    INA_FREE_CHECK(timer);
+    INA_VERIFY_FREE(timer);
     if ((*timer)->timeouts != NULL) {
         timeouts_close((*timer)->timeouts);
     }
     ina_time_tsc_free(&(*timer)->stamp);
-    INA_MEM_FREE_SAFE(timer);
+    INA_MEM_FREE_SAFE(*timer);
 }
 
 

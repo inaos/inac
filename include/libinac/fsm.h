@@ -22,8 +22,7 @@ typedef void (*ina_fsm_action_fn_t)(void *userdata);
 typedef uint16_t ina_fsm_status_t;
 /* FSM state type */
 typedef uint8_t  ina_fsm_state_t;
-/* FSM event type */
-typedef uint8_t  ina_fsm_event_t;
+
 
 /* FSM transition */
 typedef struct ina_fsm_transition_s {

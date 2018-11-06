@@ -85,7 +85,7 @@ INA_TEST_HELPER(ullc, create_consumer) {
     int producers;
     size_t slots;
     int16_t version;
-    ina_ullc_ctx_t *ullc_ctx = NULL;
+    ina_ullc_ctx_t *ctx = NULL;
     ina_test_ullc_t *v = NULL;
 
     ina_set_cleanup_handler(ina_test_helper_cleanup_consumer);
@@ -104,7 +104,7 @@ INA_TEST_HELPER(ullc, create_consumer) {
             producers, 
             consumers, 
             name, 
-            &ullc_ctx))) {
+            &ctx))) {
             INA_TEST_HELPER_EXIT(ina_err_get_rc());
     }
 
@@ -112,15 +112,15 @@ INA_TEST_HELPER(ullc, create_consumer) {
         version, slots, producers, consumers, name);
  
     while (1) {
-        v = INA_ULLC_GET(ina_test_ullc_t, ullc_ctx);
+        v = INA_ULLC_GET(ina_test_ullc_t, ctx);
         if (v) {
-            INA_TRACE3("consumer %d, v=%d", ullc_ctx->id, v->i3);
+            INA_TRACE3("consumer %d, v=%d", ctx->id, v->i3);
             if (v->i3 == -1) {
                 break;
             }
         }
         ina_time_sleep(1);
     }
-    INA_TRACE3("ullc consumer %d exit", ullc_ctx->id);
+    INA_TRACE3("ullc consumer %d exit", ctx->id);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

@@ -15,7 +15,6 @@
 #endif
 
 struct ina_process_ctx_s {
-    ina_cron_ctx_t *cron_ctx;
     ina_time_t *systime;
     ina_hashtable_t *processes;
     ina_mempool_t *mempool;
@@ -98,31 +97,30 @@ INA_FSM_TRANSITIONS(process_fsm,
 static void __ina_process_fsm_event_start(void *user_data)
 {
     ina_process_t *process = (ina_process_t*)user_data;
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(process->descriptor);
+    INA_ASSERT_NOT_NULL(process);
+    INA_ASSERT_NOT_NULL(process->descriptor);
     __ina_process_start(process);
 }
 
 static void __ina_process_fsm_event_stop(void *user_data)
 {
     ina_process_t *process = (ina_process_t*)user_data;
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(process->descriptor);
+    INA_ASSERT_NOT_NULL(process);
+    INA_ASSERT_NOT_NULL(process->descriptor);
     __ina_process_stop(process);
 }
 
 static void __ina_process_fsm_event_reset(void *user_data)
 {
     ina_process_t *process = (ina_process_t*)user_data;
-    INA_ASSERT_NOTNULL(process);
-    INA_ASSERT_NOTNULL(process->descriptor);
+    INA_ASSERT_NOT_NULL(process);
+    INA_ASSERT_NOT_NULL(process->descriptor);
     __ina_process_reset(process);
 }
 
 static void __ina_process_fsm_event_error(void *user_data)
 {
-    ina_process_t *process = (ina_process_t*)user_data;
-    INA_ASSERT_NOTNULL(process);
+    INA_UNUSED(user_data);
     /* FIXME error handling */
 }
 
@@ -161,7 +159,6 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
                 4096,
                 NULL,
                 INA_MEM_DYNAMIC, &(*ctx)->mempool)) &&
-        INA_SUCCEED(ina_cron_ctx_new(&(*ctx)->cron_ctx, NULL, NULL, *ctx)) &&
         INA_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
@@ -177,82 +174,18 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
 
 INA_API(void) ina_process_ctx_free(ina_process_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
 	ina_hashtable_free(&(*ctx)->processes);
-    ina_cron_ctx_free(&(*ctx)->cron_ctx);
     ina_time_sys_free(&(*ctx)->systime);
     ina_mempool_free(&(*ctx)->mempool);
     INA_MEM_FREE_SAFE(*ctx);
 }
 
-INA_API(ina_rc_t) ina_process_manage(ina_process_ctx_t *ctx)
-{
-    ina_hashtable_iter_t *iter;
-    ina_process_t *p;
-    time_t curr_time_sec;
-    long curr_time_micros;
-    int suggested_next_time;
 
-    INA_VERIFY_NOT_NULL(ctx);
-
-    if (INA_FAILED(ina_time_read_sys_clock(ctx->systime))) {
-        return ina_err_get_rc();
-    }
-
-    ina_time_sys_seconds_micros(ctx->systime,
-                                &curr_time_sec,
-                                &curr_time_micros);
-
-    ina_hashtable_iter_new(ctx->processes, &iter);
-    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&p))) {
-        /* if we need to perform init checks */
-        if (p->init && p->descriptor->lifecycle ==
-            INA_PROCESS_LIFECYCLE_TYPE_MANAGED) {
-
-            time_t last_start = 0;
-            time_t last_stop = 0;
-            if (p->descriptor->managed_type ==
-                INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
-                if (INA_FAILED(ina_cron_last_exec_systime(ctx->cron_ctx,
-                                p->descriptor->scheduled_start_pattern,
-                                curr_time_sec,
-                                &last_start))) {
-                    p->last_rc = ina_err_get_rc();
-                    continue;
-                }
-                if (INA_FAILED(ina_cron_last_exec_systime(ctx->cron_ctx,
-                                p->descriptor->scheduled_stop_pattern,
-                                curr_time_sec,
-                                &last_stop))) {
-                    p->last_rc = ina_err_get_rc();
-                    continue;
-                }
-                if (last_start > 0 &&
-                    (curr_time_sec > last_start && last_stop < last_start)) {
-                    /* we should be running therefore start */
-                    p->last_rc = ina_process_start(p);
-                }
-            }
-            p->init = INA_NO;
-        }
-        /* if process is supposed to be running, check if still running */
-        if (INA_FSM_GET_STATE(process_fsm, p->state) == INA_PROCESS_RUNNING) {
-            int running = 0;
-            __ina_process_is_running(p, &running);
-            if (!running) {
-                INA_FSM_FIRE_EVENT(process_fsm, p->state, INA_PROCESS_STOP, p);
-            }
-        }
-    }
-    ina_hashtable_iter_free(&iter);
-    /* let cron decide whether its time to do something on a managed process */
-    return ina_cron_process(ctx->cron_ctx, curr_time_sec, &suggested_next_time);
-}
 
 INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char *full_path, const char *working_dir,
-                                                      const char *startup_args, ina_process_lifecycle_type_t lifecycle,
-                                                      ina_process_managed_type_t managed_type, const char *scheduled_start_pattern,
-                                                      const char *scheduled_stop_pattern, time_t stop_wait_time_ms, uint32_t start_flags,
+                                                      const char *startup_args,
+                                                      time_t stop_wait_time_ms, uint32_t cf,
                                                       ina_process_descriptor_t **descriptor)
 {
     INA_VERIFY_NOT_NULL(ctx);
@@ -272,32 +205,20 @@ INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char 
         (*descriptor)->startup_args = ina_str_new_fromcstr(startup_args);
     }
 
-    (*descriptor)->lifecycle = lifecycle;
-    (*descriptor)->managed_type = managed_type;
-    if (scheduled_start_pattern != NULL) {
-        (*descriptor)->scheduled_start_pattern = ina_str_new_fromcstr(
-                                                    scheduled_start_pattern);
-    }
-    if (scheduled_stop_pattern != NULL) {
-        (*descriptor)->scheduled_stop_pattern = ina_str_new_fromcstr(
-                                                    scheduled_stop_pattern);
-    }
     (*descriptor)->stop_wait_time_ms = stop_wait_time_ms;
-    (*descriptor)->start_flags = start_flags;
+    (*descriptor)->cf = cf;
     return INA_SUCCESS;
 }
 
 INA_API(void) ina_process_descriptor_free(ina_process_descriptor_t **descriptor)
 {
-    INA_FREE_CHECK(descriptor);
+    INA_VERIFY_FREE(descriptor);
     if ((*descriptor)->c_ref > 0) {
         return;
     }
-    INA_STR_FREE_SAFE((*descriptor)->full_path);
-    INA_STR_FREE_SAFE((*descriptor)->working_dir);
-    INA_STR_FREE_SAFE((*descriptor)->startup_args);
-    INA_STR_FREE_SAFE((*descriptor)->scheduled_stop_pattern);
-    INA_STR_FREE_SAFE((*descriptor)->scheduled_start_pattern);
+    ina_str_free((*descriptor)->full_path);
+    ina_str_free((*descriptor)->working_dir);
+    ina_str_free((*descriptor)->startup_args);
     INA_MEM_FREE_SAFE(*descriptor);
 
 }
@@ -315,10 +236,6 @@ INA_API(ina_rc_t) ina_process_exec(ina_process_ctx_t *ctx,
     *process = NULL;
 
     if (INA_FAILED(ina_process_descriptor_new(ctx, full_path, NULL, startup_args,
-                                              INA_PROCESS_LIFECYCLE_TYPE_FIRE_AND_FORGET,
-                                              INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME,
-                                              NULL,
-                                              NULL,
                                               20,
                                               0, &ds))) {
         return ina_err_get_rc();
@@ -344,12 +261,8 @@ INA_API(ina_rc_t) ina_process_exec_and_wait(ina_process_ctx_t *ctx,
     *process = NULL;
 
     if (INA_FAILED(ina_process_descriptor_new(ctx, full_path, NULL, startup_args,
-                                              INA_PROCESS_LIFECYCLE_TYPE_WAIT,
-                                              INA_PROCESS_MANAGED_TYPE_PARENT_LIFETIME,
-                                              NULL,
-                                              NULL,
                                               20,
-                                              0, &ds))) {
+                                              INA_PROCESS_CF_WAIT, &ds))) {
         return ina_err_get_rc();
     }
 
@@ -417,17 +330,8 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
     (*process)->descriptor->startup_args = ina_str_dup_using_pool(
                                                 descriptor->startup_args,
                                                 ctx->mempool);
-    (*process)->descriptor->scheduled_start_pattern = ina_str_dup_using_pool(
-                                    descriptor->scheduled_start_pattern,
-                                    ctx->mempool);
-
-    (*process)->descriptor->scheduled_stop_pattern = ina_str_dup_using_pool(
-                                    descriptor->scheduled_stop_pattern,
-                                    ctx->mempool);
     (*process)->descriptor->stop_wait_time_ms = descriptor->stop_wait_time_ms;
-    (*process)->descriptor->start_flags = descriptor->start_flags;
-    (*process)->descriptor->lifecycle = descriptor->lifecycle;
-    (*process)->descriptor->managed_type = descriptor->managed_type;
+    (*process)->descriptor->cf = descriptor->cf;
     (*process)->descriptor->c_ref = 1;
     (*process)->exit_code = -1;
     (*process)->init = INA_YES;
@@ -435,52 +339,13 @@ INA_API(ina_rc_t) ina_process_new(ina_process_ctx_t *ctx,
 
     INA_FSM_SET_STATE(process_fsm, (*process)->state, INA_PROCESS_STARTABLE);
 
-    if (descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_MANAGED) {
-        if (descriptor->managed_type == INA_PROCESS_MANAGED_TYPE_SCHEDULED_START
-            || descriptor->managed_type ==
-               INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
-
-                ina_str_t id = ina_str_sprintf("START_%lld", (int64_t)process);
-
-                INA_ASSERT_NOTNULL(descriptor->scheduled_start_pattern);
-
-                if (!INA_SUCCEED(ina_cron_register_function(ctx->cron_ctx,
-                                    ina_str_cstr(id),
-                                    descriptor->scheduled_start_pattern,
-                                    *process,
-                                    __ina_process_cron_start_cb))) {
-                    ina_str_free(id);
-                    *process = NULL;
-                    return ina_err_get_rc();
-                }
-                ina_str_free(id);
-        }
-        if (descriptor->managed_type ==
-            INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
-
-            ina_str_t id = ina_str_sprintf("STOP_%lld", (int64_t)process);
-
-            INA_ASSERT_NOTNULL(descriptor->scheduled_stop_pattern);
-
-            if (!INA_SUCCEED(ina_cron_register_function(ctx->cron_ctx,
-                                ina_str_cstr(id),
-                                descriptor->scheduled_stop_pattern,
-                                *process,
-                                __ina_process_cron_stop_cb))) {
-                ina_str_free(id);
-                *process = NULL;
-                return ina_err_get_rc();
-            }
-            ina_str_free(id);
-        }
-    }
     ina_hashtable_set_ptr(ctx->processes, *process, *process);
     return INA_SUCCESS;
 }
 
 INA_API(void) ina_process_free(ina_process_t **process)
 {
-    INA_FREE_CHECK(process);
+    INA_VERIFY_FREE(process);
     /* Release descriptor if any */
     if ((*process)->descriptor != NULL) {
         (*process)->descriptor->c_ref -= 1;
@@ -552,31 +417,6 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
         return ina_err_get_rc();
     }
 
-    if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_MANAGED) {
-        time_t last_start = 0;
-        time_t last_stop = 0;
-        if (process->descriptor->managed_type ==
-            INA_PROCESS_MANAGED_TYPE_SCHEDULED_START_STOP) {
-
-            ina_cron_last_exec_systime(process->ctx->cron_ctx,
-                                process->descriptor->scheduled_start_pattern,
-                                curr_time_sec,
-                                &last_start);
-            ina_cron_last_exec_systime(process->ctx->cron_ctx,
-                                process->descriptor->scheduled_stop_pattern,
-                                curr_time_sec,
-                                &last_stop);
-            if (last_start > 0 &&
-                (curr_time_sec > last_start && last_stop < last_start)) {
-
-                *should_be_running = 1;
-                return INA_SUCCESS;
-            } else {
-                *should_be_running = 0;
-                return INA_SUCCESS;
-            }
-        }
-    }
     *should_be_running = 0;
     return INA_ERROR(INA_ES_PROCESS | INA_ERR_NOT_ALLOWED);
 }
@@ -647,9 +487,9 @@ INA_API(ina_rc_t) ina_process_stat_get_num_threads(ina_process_stat_t *stat, int
 
 INA_API(void) ina_process_stat_free(ina_process_stat_t **stat)
 {
-    INA_FREE_CHECK(stat);
-    INA_STR_FREE_SAFE((*stat)->cmd);
-    INA_STR_FREE_SAFE((*stat)->binary);
+    INA_VERIFY_FREE(stat);
+    ina_str_free((*stat)->cmd);
+    ina_str_free((*stat)->binary);
     INA_MEM_FREE_SAFE(*stat);
 }
 
@@ -688,10 +528,9 @@ static void __ina_process_start(ina_process_t *process)
     cmd_line = ina_str_catcstr(cmd_line, " ");
     cmd_line = ina_str_cat(cmd_line, process->descriptor->startup_args);
 
-    if ((process->descriptor->start_flags & INA_PROCESS_FLAGS_CHILD_PROCESS)
-        != INA_PROCESS_FLAGS_CHILD_PROCESS) {
-        if ((process->descriptor->start_flags & INA_PROCESS_FLAGS_CONSOLE)
-            == INA_PROCESS_FLAGS_CONSOLE) {
+    if ((process->descriptor->cf & INA_PROCESS_CF_CHILD_PROCESS)
+        != INA_PROCESS_CF_CHILD_PROCESS) {
+        if ((process->descriptor->cf & INA_PROCESS_CF_CONSOLE)) {
             creation_flags |= CREATE_NEW_CONSOLE;
         } else {
             creation_flags |= DETACHED_PROCESS;
@@ -706,7 +545,7 @@ static void __ina_process_start(ina_process_t *process)
         &si, &process->pi
     );
 
-    if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
+    if (process->descriptor->cf&INA_PROCESS_CF_WAIT) {
         int still_running;
         WaitForSingleObject(process->pi.hProcess, INFINITE);
         __ina_process_is_running(process, &still_running);
@@ -850,7 +689,7 @@ static void __ina_process_start(ina_process_t *process)
         /* Store pid */
         process->pid = pid;
 
-        if (process->descriptor->lifecycle == INA_PROCESS_LIFECYCLE_TYPE_WAIT) {
+        if (process->descriptor->cf&INA_PROCESS_CF_WAIT) {
             waitpid(process->pid, &status, 0);
             if (WIFEXITED(status)) {
                 process->exit_code = WEXITSTATUS(status);

@@ -102,7 +102,7 @@ INA_TEST_HELPER(net, udp_sender) {
     if (inet_addr(addr) != 0) {
         i = 0;
         while (1) {
-            sprintf(buf, "This is packet %d\n", ++i);
+            snprintf(buf, 511, "This is packet %d\n", ++i);
             if (sendto(s, buf, 512, 0, (struct sockaddr*)&si_other, slen) == -1) {
                 INA_TEST_HELPER_SET_RC(INA_ERR_FAILED);
             }

@@ -8,10 +8,7 @@
  */
 #include <stdio.h>
 #include <libinac/lib.h>
- 
-INA_TEST(memory, memory_memfn)
-{
-}
+
 
 INA_TEST(memory, zero_size)
 {
@@ -21,11 +18,39 @@ INA_TEST(memory, zero_size)
     INA_TEST_ASSERT_SUCCEED(ina_err_get_rc());
 }
 
+INA_TEST(memory, realloc)
+{
+    uint8_t i;
+    uint8_t *pc;
+    uint8_t *p1 = ina_mem_alloc(128);
+    INA_TEST_ASSERT_NOT_NULL(p1);
+    ina_mem_set(p1, 0, 128);
+    pc = p1;
+    for (i = 0; i < 128; ++i) {
+        pc += 1;
+        *pc = i;
+    }
+    uint8_t *p2 = ina_mem_realloc(p1, 64);
+    pc = p2;
+    for (i = 0; i < 64; ++i) {
+        pc += 1;
+        INA_TEST_ASSERT_EQUAL_UINT(i, *pc);
+    }
+    INA_TEST_ASSERT_SAME(p1, p2);
+    p2 = ina_mem_realloc(p2, 256);
+    pc = p2;
+    for (i = 0; i < 64; ++i) {
+        pc += 1;
+        INA_TEST_ASSERT_EQUAL_UINT(i, *pc);
+    }
+    INA_TEST_ASSERT_NULL(ina_mem_realloc(p2, 0));
+}
+
 INA_TEST(memory, invalid_alignment)
 {
     INA_TEST_ASSERT_NULL(ina_mem_alloc_aligned(0, 16));
     INA_TEST_ASSERT_FAILED(ina_err_get_rc());
-    INA_TEST_ASSERT_EQUAL_INT64(INA_ERR_INVALID, INA_RC_ERROR(ina_err_get_rc()));
+    INA_TEST_ASSERT_EQUAL_UINT(INA_ERR_INVALID_ARGUMENT, INA_RC_ERRMSG(ina_err_get_rc()));
 }
 
 INA_TEST(memory, memory_align)
@@ -56,7 +81,6 @@ INA_TEST(memory, memory_alloc_aligned)
     INA_TEST_ASSERT_TRUE(INA_MEM_IS_ALIGNED(p, 16));
     ina_mem_free(p);
     p = NULL;
-
 }
 
 INA_TEST(memory, pagesize)

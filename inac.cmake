@@ -2,12 +2,18 @@ include(ExternalProject)
 set(DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(INAC_CMAKE_VERSION "0.1.0")
+message(STATUS "CMake version: ${CMAKE_VERSION}")
 message(STATUS "INAC CMake version ${INAC_CMAKE_VERSION}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER_ID}")
 
 if(NOT ${CMAKE_BUILD_TYPE} MATCHES "Debug|Release|RelWithDebInfo")
-    message(STATUS "Unsupported buidl type ${CMAKE_BUILD_TYPE} , allowed Debug|Release|RelWithDebInfo")
+    message(STATUS "Unsupported build type ${CMAKE_BUILD_TYPE} , allowed Debug|Release|RelWithDebInfo")
 endif()
+
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    add_definitions(-DINA_DEBUG=1)
+endif()
+
 
 if (WIN32)
     set(INAC_USER_HOME "$ENV{USERPROFILE}")
@@ -20,10 +26,8 @@ set(INAC_REPOSITORY_PATH "${INAC_USER_HOME}/.inaos/cmake")
 message(STATUS "CMake package repository cache: ${INAC_REPOSITORY_PATH}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-if (MSVC)
-    if (POLICY CMP0026)
-        cmake_policy(SET CMP0026 OLD)
-    endif()
+if (POLICY CMP0026)
+    cmake_policy(SET CMP0026 OLD)
 endif()
 
 if ( CMAKE_COMPILER_IS_GNUCC )
@@ -90,6 +94,21 @@ if (INAC_COVERAGE_ENABLED)
         if(NOT GCOVR_PATH)
             message(FATAL_ERROR "gcovr not found! Aborting...")
         endif()
+
+        set(COVERAGE_COMPILER_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage"
+                CACHE INTERNAL "")
+
+        set(CMAKE_CXX_FLAGS_COVERAGE
+                ${COVERAGE_COMPILER_FLAGS}
+                CACHE STRING "Flags used by the C++ compiler during coverage builds."
+                FORCE )
+        set(CMAKE_C_FLAGS_COVERAGE
+                ${COVERAGE_COMPILER_FLAGS}
+                CACHE STRING "Flags used by the C compiler during coverage builds."
+                FORCE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COVERAGE_COMPILER_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_COMPILER_FLAGS}")
+        message(STATUS "Appending code coverage compiler flags: ${COVERAGE_COMPILER_FLAGS}")
     endif()
     if(MSVC)
         find_program(OPENCPPCOVERAGE_PATH opencppcoverage.exe PATHS "C:/Program Files/OpenCppCoverage/")
@@ -191,87 +210,22 @@ endfunction()
 #
 #
 #
-function (inac_enable_snapshot)
+function(inac_enable_snapshot)
     set(INAC_SNAPSHOT ON PARENT_SCOPE)
 endfunction()
 
 
-function(inac_patch_version VERSION)
-
-endfunction()
-
-macro (setup_package_version_variables _packageName)
-    if (DEFINED ${_packageName}_VERSION)
-        string (REGEX MATCHALL "[0-9]+" _versionComponents "${${_packageName}_VERSION}")
-        list (LENGTH _versionComponents _len)
-        if (${_len} GREATER 0)
-            list(GET _versionComponents 0 ${_packageName}_VERSION_MAJOR)
-        endif()
-        if (${_len} GREATER 1)
-            list(GET _versionComponents 1 ${_packageName}_VERSION_MINOR)
-        endif()
-        if (${_len} GREATER 2)
-            list(GET _versionComponents 2 ${_packageName}_VERSION_PATCH)
-        endif()
-        if (${_len} GREATER 3)
-            list(GET _versionComponents 3 ${_packageName}_VERSION_TWEAK)
-        endif()
-        set (${_packageName}_VERSION_COUNT ${_len})
-    else()
-        set (${_packageName}_VERSION_COUNT 0)
-        set (${_packageName}_VERSION "")
-    endif()
-endmacro()
-
 #
 # HEADER
 #
-function(inac_version VERSION)
-    cmake_parse_arguments(PARSE_ARGV 1 "PRJ" "" "HEADER"  "")
-
-    string (REGEX MATCHALL "[0-9]+" _versionComponents "${VERSION}")
-    list (LENGTH _versionComponents _len)
-
-    if (${_len} GREATER 0)
-        list(GET _versionComponents 0 PRJ_MAJOR)
+function(inac_version_header HEADER)
+    if (HEADER AND EXISTS ${CMAKE_SOURCE_DIR}/${HEADER}.in)
+        message(STATUS "Version header ${HEADER}")
+        configure_file(${CMAKE_SOURCE_DIR}/${HEADER}.in ${HEADER})
     endif()
-    if (${_len} GREATER 1)
-        list(GET _versionComponents 1 PRJ_MINOR)
-    endif()
-    if (${_len} GREATER 2)
-        list(GET _versionComponents 2 PRJ_PATCH)
-    endif()
-    if (${_len} GREATER 3)
-        list(GET _versionComponents 3 PRJ_TWEAK)
-    endif()
-
-    if (INAC_MAJOR_VERSION)
-        set(PRJ_MAJOR ${INAC_MAJOR_VERSION})
-    endif()
-    if (INAC_MINOR_VERSION)
-        set(PRJ_MINOR ${INAC_MINOR_VERSION})
-    endif()
-    if (INAC_PATCH_VERSION)
-        set(PRJ_PATCH ${INAC_PATCH_VERSION})
-    endif()
-    if (NOT DEFINED PRJ_MAJOR)
-        message(FATAL_ERROR "Major version not defined")
-    endif()
-    if (NOT DEFINED PRJ_MINOR)
-        message(FATAL_ERROR "Minor version not defined")
-    endif()
-    if (NOT DEFINED PRJ_PATCH)
-        message(FATAL_ERROR "Patch version not defined")
-    endif()
-
-    project("${CMAKE_PROJECT_NAME}" VERSION "${PRJ_MAJOR}.${PRJ_MINOR}.${PRJ_PATCH}")
-    if (PRJ_HEADER AND EXISTS ${CMAKE_SOURCE_DIR}/${PRJ_HEADER}.in)
-        message(STATUS "Version header ${PRJ_HEADER}")
-        configure_file(${CMAKE_SOURCE_DIR}/${PRJ_HEADER}.in ${PRJ_HEADER})
-    endif()
-    message(STATUS Major: ${CMAKE_PROJECT_VERSION_MAJOR})
-    message(STATUS Minor: ${CMAKE_PROJECT_VERSION_MINOR})
-    message(STATUS Patch: ${CMAKE_PROJECT_VERSION_PATCH})
+    message(STATUS Major: ${PROJECT_VERSION_MAJOR})
+    message(STATUS Minor: ${PROJECT_VERSION_MINOR})
+    message(STATUS Patch: ${PROJECT_VERSION_PATCH})
 endfunction()
 
 #
@@ -318,7 +272,7 @@ endmacro()
 #
 #
 function(inac_add_contrib_lib_ex TARGET)
-    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH;URL" "BUILD_TYPES")
+    cmake_parse_arguments(PARSE_ARGV 1 LIB OMIT_PREFIX "CONFIGURE;DEPENDS;SOURCE_ROOT;COMMAND;COMMAND_ARGS;LIBNAME;ARCH;URL" "BUILD_TYPES")
 
     if(LIB_ARCH)
         inac_check_arch(${LIB_ARCH})
@@ -346,7 +300,7 @@ function(inac_add_contrib_lib_ex TARGET)
 
     ExternalProject_Add(${TARGET}-external
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
-            CONFIGURE_COMMAND ""
+            CONFIGURE_COMMAND "${LIB_CONFIGURE}"
             URL ${LIB_URL}
             BUILD_COMMAND "${LIB_COMMAND}" "${LIB_COMMAND_ARGS}"
             BUILD_IN_SOURCE 1
@@ -380,6 +334,7 @@ function(inac_add_contrib_lib_ex TARGET)
     add_dependencies(${LIB_DEPENDS} ${TARGET})
     list(APPEND INAC_LIBS_LIST  ${TARGET})
     set(INAC_LIBS "${INAC_LIBS_LIST}" PARENT_SCOPE)
+    include_directories(${LIB_DIR})
     message(STATUS "Added external contrib lib ${TARGET} ${LIB_COMMAND} ${LIB_COMMAND_ARGS}")
 endfunction()
 
@@ -586,6 +541,9 @@ function(inac_add_luafiles TARGET)
     message(STATUS "Lua Path: ${LUAJIT_CMD}")
 
     set(SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_depends.c")
+    if(MSVC)
+        file(WRITE ${SOURCE_FILE} "#pragma warning( disable : 4206)")
+    endif()
     set(OBJECTS)
     foreach (ls IN LISTS ARGN)
         get_filename_component(TN ${ls} NAME)
@@ -620,55 +578,90 @@ function(inac_add_luafiles TARGET)
     set(INAC_LIBS ${INAC_LIBS_LIST} PARENT_SCOPE)
 endfunction()
 
-function(inac_merge_static_libs LIB)
-    set(SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/${LIB}_merged.c")
-    if (MSVC)
-        add_library(${LIB} STATIC ${SOURCE_FILE})
-        add_custom_command(
-                OUTPUT  ${SOURCE_FILE}
-                COMMAND ${CMAKE_COMMAND} -E touch ${SOURCE_FILE}
-                DEPENDS ${ARGN})
+function(inac_merge_static_libs outlib)
+    set(libs ${ARGV})
+    list(REMOVE_AT libs 0)
+    # Create a dummy file that the target will depend on
+    set(dummyfile ${outlib}_dummy.c)
+    string(REPLACE "-" "_" dummyfile ${dummyfile})
+    set(dummyfile ${CMAKE_CURRENT_BINARY_DIR}/${dummyfile})
+
+    file(WRITE ${dummyfile} "const char * dummy = \"${dummyfile}\";")
+
+    add_library(${outlib} STATIC ${dummyfile})
+
+    # First get the file names of the libraries to be merged
+    foreach(lib ${libs})
+        get_target_property(libtype ${lib} TYPE)
+        get_target_property(libfile ${lib} LOCATION)
+        list(APPEND libfiles "${libfile}")
+    endforeach()
+    message(STATUS "will be merging ${libfiles}")
+
+    list(REMOVE_DUPLICATES libfiles)
+
+    # Now the easy part for MSVC and for MAC
+    if(MSVC)
         set(LINKER_EXTRA_FLAGS "")
         foreach(l ${ARGN})
             get_property(LIB_LOCATION TARGET ${l} PROPERTY LOCATION)
             message(STATUS "Merge lib ${l}: ${LIB_LOCATION}")
             set(LINKER_EXTRA_FLAGS "${LINKER_EXTRA_FLAGS} \"${LIB_LOCATION}\"")
         endforeach()
-        set_target_properties(${LIB} PROPERTIES STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS}")
-    else()
-        set(C_LIB ${CMAKE_BINARY_DIR}/lib${LIB}.a)
-        set(extracts "")
-        foreach(l ${ARGN})
-            message(STATUS "Merge lib ${l}")
-            add_custom_target(${l}_extract
-                    COMMAND ar -x $<TARGET_FILE:${l}>
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    DEPENDS ${l}
-                    )
-            list(APPEND extracts ${l}_extract)
-        endforeach()
-        add_custom_command(
-                OUTPUT  ${SOURCE_FILE}
-                COMMAND ${CMAKE_COMMAND} -E touch ${SOURCE_FILE}
-                DEPENDS ${ARGN} ${extracts})
+        set_target_properties(${outlib} PROPERTIES STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS}")
 
-        add_custom_target(${LIB}_merged
-                COMMAND ar -qcs ${C_LIB} *.o
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                DEPENDS ${extracts} ${ARGN})
-        add_custom_command(
-                POST_BUILD
-                TARGET ${LIB}_merged
-                COMMAND ${CMAKE_COMMAND} -E remove *.o
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                DEPENDS ALL)
-        add_library(${LIB} STATIC IMPORTED GLOBAL)
-        add_dependencies(${LIB} ${LIB}_merged)
-        set_target_properties(${LIB}
-                PROPERTIES
-                IMPORTED_LOCATION ${C_LIB}
+    elseif(APPLE)
+        get_target_property(outfile ${outlib} LOCATION)
+        add_custom_command(TARGET ${outlib} POST_BUILD
+                COMMAND rm ${outfile}
+                COMMAND /usr/bin/libtool -static -o ${outfile}
+                ${libfiles}
                 )
+    else()
+        get_target_property(outfile ${outlib} LOCATION)
+        message(STATUS "outfile location is ${outfile}")
+        foreach(lib ${libfiles})
+            # objlistfile will contain the list of object files for the library
+            set(objlistfile ${CMAKE_BINARY_DIR}/${lib}.objlist)
+            set(objdir ${CMAKE_BINARY_DIR}/${lib}.objdir)
+            set(objlistcmake  ${CMAKE_BINARY_DIR}/${objlistfile}.cmake)
+            # we only need to extract files once
+            if(${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/cmake.check_cache IS_NEWER_THAN ${objlistcmake})
+                #---------------------------------
+                FILE(WRITE ${objlistcmake}
+                        "# Extract object files from the library
+message(STATUS \"Extracting object files from ${lib}\")
+EXECUTE_PROCESS(COMMAND ${CMAKE_AR} -x ${lib}
+                WORKING_DIRECTORY ${objdir})
+# save the list of object files
+EXECUTE_PROCESS(COMMAND ls .
+				OUTPUT_FILE ${objlistfile}
+                WORKING_DIRECTORY ${objdir})")
+                #---------------------------------
+                file(MAKE_DIRECTORY ${objdir})
+                add_custom_command(
+                        OUTPUT ${objlistfile}
+                        COMMAND ${CMAKE_COMMAND} -P ${objlistcmake}
+                        DEPENDS ${lib})
+            endif()
+
+            list(APPEND extrafiles "${objlistfile}")
+            # relative path is needed by ar under MSYS
+            file(RELATIVE_PATH objlistfilerpath ${objdir} ${objlistfile})
+            add_custom_command(TARGET ${outlib} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E echo "Running: ${CMAKE_AR} ruU ${outfile} @${objlistfilerpath}"
+                    COMMAND ${CMAKE_AR} ruU "${outfile}" @"${objlistfilerpath}"
+                    WORKING_DIRECTORY ${objdir})
+        endforeach()
+        add_custom_command(TARGET ${outlib} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E echo "Running: ${CMAKE_RANLIB} ${outfile}"
+                COMMAND ${CMAKE_RANLIB} ${outfile})
     endif()
+    file(WRITE ${dummyfile}.base "const char* ${outlib}_sublibs=\"${libs}\";")
+    add_custom_command(
+            OUTPUT  ${dummyfile}
+            COMMAND ${CMAKE_COMMAND}  -E copy ${dummyfile}.base ${dummyfile}
+            DEPENDS ${libs} ${extrafiles})
 endfunction()
 
 function(inac_artifact_repository LOCAL)
@@ -689,9 +682,8 @@ function(inac_artifact_repository LOCAL)
     endif()
 endfunction()
 
-function(inac_add_dependency name version)
-    cmake_parse_arguments(PARSE_ARGV 2 DEP "" "REPOSITORY_REMOTE" "REPOSITORY_LOCAL")
-    inac_artifact_name(${name} ${version} DEPENDENCY_NAME)
+function(inac_add_dependency name version )
+    cmake_parse_arguments(PARSE_ARGV 2 DEP "SNAPSHOT" "REPOSITORY_REMOTE" "REPOSITORY_LOCAL")
     if (NOT DEP_REPOSITORY_REMOTE)
         set(DEP_REPOSITORY_REMOTE  ${INAC_REPOSITORY_REMOTE})
     endif()
@@ -704,14 +696,21 @@ function(inac_add_dependency name version)
     string(FIND ${version} "." patch_pos REVERSE)
     string(SUBSTRING ${version} 0 ${patch_pos} short_version)
 
+    if (NOT DEP_SNAPSHOT)
+        inac_artifact_name(${name} ${version} DEPENDENCY_NAME)
+    else()
+        inac_artifact_name(${name} ${short_version}.snapshot DEPENDENCY_NAME)
+        string(REPLACE "release" "snapshot" DEP_REPOSITORY_REMOTE ${DEP_REPOSITORY_REMOTE})
+    endif()
+
     set(LOCAL_PACKAGE_PATH "${DEP_REPOSITORY_LOCAL}/${DEPENDENCY_NAME}.zip")
 
     if (NOT EXISTS "${INAC_REPOSITORY_PATH}")
         file(MAKE_DIRECTORY "${INAC_REPOSITORY_PATH}")
     endif()
 
-    if (NOT EXISTS "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}")
-        if(EXISTS "${LOCAL_PACKAGE_PATH}")
+    if (NOT EXISTS "${INAC_REPOSITORY_PATH}/${DEPENDENCY_NAME}" OR DEP_SNAPSHOT)
+        if(EXISTS "${LOCAL_PACKAGE_PATH}" AND (NOT DEP_SNAPSHOT))
             message(STATUS "Dependency ${DEPENDENCY_NAME} found in local repository ${DEP_REPOSITORY_LOCAL}")
             file(COPY "${LOCAL_PACKAGE_PATH}" DESTINATION "${INAC_REPOSITORY_PATH}")
         else()
@@ -903,11 +902,11 @@ function (inac_package)
     if (P_SUMMARY)
         set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${P_SUMMARY})
     endif()
-    set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
+    set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
     if (NOT INAC_SNAPSHOT)
         set(version "${CPACK_PACKAGE_VERSION}")
     else()
-        set(version "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}-snapshot")
+        set(version "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.snapshot")
     endif()
     inac_artifact_name("${CPACK_PACKAGE_NAME}" "${version}" CPACK_PACKAGE_FILE_NAME)
     include(CPack)
@@ -972,18 +971,23 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             TARGET_LINK_LIBRARIES(${RUNNER} gcov)
             set_target_properties(${RUNNER} PROPERTIES COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
             ADD_CUSTOM_TARGET(${TARGET}
-                    ${RUNNER} ${ARGV3}
-                    COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml ${COVERAGE_EXCLUDE} ${ARGV4}
+                    ${RUNNER} ${ARGV3} || (exit 0)
+                    COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -o ${OUTPUT}.xml --filter="${CMAKE_SOURCE_DIR}/src/" --filter="${CMAKE_SOURCE_DIR}/include/" ${COVERAGE_EXCLUDE} ${ARGV4}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    COMMENT "Running gcovr to produce Cobertura code coverage report."
+                    COMMAND xsltproc c2s.xsl ${OUTPUT}.xml > ${OUTPUT}.sonar.xml
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    COMMENT "Running gcovr to produce code coverage report."
                     )
         endif()
         if(MSVC)
+            file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/include COV_INC_PATH)
             file(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR}/src COV_SRC_PATH)
             ADD_CUSTOM_TARGET(${TARGET}
-                    COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura -- ${RUNNER}.exe ${ARGV3}
+                    COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_INC_PATH} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura:${OUTPUT}.xml -- ${RUNNER}.exe ${ARGV3}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    COMMENT "Running OppCppCoverage to produce Cobertura code coverage report.")
+                    COMMAND msxsl.exe  ${OUTPUT}.xml c2s.xsl -o ${OUTPUT}.sonar.xml
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    COMMENT "Running OppCppCoverage to produce code coverage report.")
             ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
                     COMMAND ;
                     COMMENT "Cobertura code coverage report saved in ${OUTPUT}.xml."
@@ -1003,6 +1007,10 @@ if (NOT INAC_REPOSITORY)
     set(INAC_REPOSITORY repository)
 endif()
 
+
+
+set(INAC_C2S "<?xml version=\"1.0\" ?>\r\n<xsl:transform xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"1.0\">\r\n    <xsl:output indent=\"yes\" omit-xml-declaration=\"no\" />\r\n\r\n    <xsl:variable name=\"TAB\">\r\n        <xsl:text>&#32;&#32;&#32;&#32;</xsl:text>\r\n    </xsl:variable>\r\n    <xsl:variable name=\"CR\">\r\n        <xsl:text>&#xA;</xsl:text>\r\n    </xsl:variable>\r\n    <xsl:param name=\"SRC_DIR\"/>\r\n\r\n    <xsl:template match=\"/coverage\">\r\n        <xsl:value-of select=\"$CR\" />\r\n        <coverage version=\"1\">\r\n            <xsl:value-of select=\"$CR\" />\r\n            <xsl:apply-templates mode=\"custom-copy\" select=\".\" />\r\n        </coverage>\r\n    </xsl:template>\r\n\r\n    <xsl:template mode=\"custom-copy\" match=\"/coverage/packages/package/classes\">\r\n        <xsl:for-each select=\"class\">\r\n            <xsl:variable name=\"currFilename\" select=\"@filename\" />\r\n            <xsl:if test=\". = /coverage/packages/package/classes/class[@filename=$currFilename][1]\">\r\n                <xsl:value-of select=\"$TAB\" />\r\n                <file path=\"{$SRC_DIR}{@filename}\">\r\n                    <xsl:value-of select=\"$CR\" />\r\n                    <xsl:for-each select=\"/coverage/packages/package/classes/class[@filename=$currFilename]\">\r\n                        <xsl:for-each select=\"lines/line\">\r\n                            <xsl:apply-templates mode=\"custom-copy\" select=\".\" />\r\n                        </xsl:for-each>\r\n                    </xsl:for-each>\r\n                    <xsl:value-of select=\"$TAB\" />\r\n                </file>\r\n                <xsl:value-of select=\"$CR\" />\r\n            </xsl:if>\r\n        </xsl:for-each>\r\n    </xsl:template>\r\n\r\n    <xsl:template mode=\"custom-copy\" match=\"/coverage/packages/package/classes/class/lines/line\">\r\n        <xsl:value-of select=\"$TAB\" />\r\n        <xsl:value-of select=\"$TAB\" />\r\n        <xsl:choose>\r\n            <xsl:when test=\"@branch='true'\">\r\n                <xsl:variable name=\"COVERAGE_SEPARATOR\"><![CDATA[/]]></xsl:variable>\r\n                <xsl:variable name=\"COVERAGE\" select=\"translate(translate(substring-after(normalize-space(@condition-coverage), '% '), ')', ''), '(', '')\" />\r\n                <lineToCover lineNumber=\"{@number}\" covered=\"{boolean(@hits &gt; 0)}\" branchesToCover=\"{substring-after($COVERAGE, $COVERAGE_SEPARATOR)}\" coveredBranches=\"{substring-before($COVERAGE, $COVERAGE_SEPARATOR)}\" />\r\n            </xsl:when>\r\n            <xsl:otherwise>\r\n                <lineToCover lineNumber=\"{@number}\" covered=\"{boolean(@hits &gt; 0)}\" />\r\n            </xsl:otherwise>\r\n        </xsl:choose>\r\n        <xsl:value-of select=\"$CR\" />\r\n    </xsl:template>\r\n\r\n    <xsl:template mode=\"custom-copy\" match=\"@* | node()\">\r\n        <xsl:apply-templates mode=\"custom-copy\" select=\"@* | node()\" />\r\n    </xsl:template>\r\n</xsl:transform>")
+file(WRITE "${CMAKE_BINARY_DIR}/c2s.xsl" "${INAC_C2S}")
 
 inac_load_config_file("${INAC_REPOSITORY_PATH}/${INAC_REPOSITORY}.txt" FALSE)
 inac_enable_trace(Debug 1)

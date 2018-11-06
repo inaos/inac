@@ -162,7 +162,7 @@ INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
         }
     }
 
-    INA_ASSERT_NOTNULL(pctx->ring);
+    INA_ASSERT_NOT_NULL(pctx->ring);
 
     if (pctx->ring->version != version) {
         ina_mempool_free(&(*ctx)->pool);
@@ -173,7 +173,6 @@ INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
     pctx->id = 0;
     pctx->type = INA_ULLC_CTX_PRODUCER;
     pctx->ws = ws;
-    pctx->ring = pctx->ring;
     pctx->data = ((unsigned char*)pctx->ring) + sizeof(ina_ullc_rb_t);
     pctx->c_offset = (ina_ullc_cursor_t*)&pctx->data[(pctx->ring->slots)*pctx->ring->size];
     pctx->p_offset = &pctx->c_offset[num_consumers];
@@ -243,7 +242,7 @@ INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
 
 INA_API(void) ina_ullc_producer_free(ina_ullc_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, (*ctx)->type);
     
     INA_ATOMIC_SWAP(&(*ctx)->p_offset->alive,1,0);
@@ -267,7 +266,7 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
     int64_t num;
     void *item;
 
-    INA_ASSERT_NULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
     INA_ASSERT(INA_ULLC_CTX_PRODUCER == ctx->type);
 
     slow_consumer = ctx->ring->overrun_enabled;
@@ -344,7 +343,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
 
     if (ccxt->ring->version != version) {
         ina_mempool_free(&(*ctx)->pool);
-        INA_MEM_FREE_SAFE(ctx);
+        INA_MEM_FREE_SAFE(*ctx);
         return INA_ERROR(INA_ES_VERSION | INA_ERR_INVALID);
     }
 
@@ -352,7 +351,6 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
     ccxt->type = INA_ULLC_CTX_CONSUMER;
     ccxt->ws = INA_ULLC_WS_NONE;
     ccxt->sem_handle = 0;
-    ccxt->ring = ccxt->ring;
     ccxt->data = ((unsigned char*)ccxt->ring) + sizeof(ina_ullc_rb_t);
     cons = (ina_ullc_cursor_t*)&ccxt->data[(ccxt->ring->slots)*ccxt->ring->size];
     while (ccxt->id < num_consumers) {
@@ -364,7 +362,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
     }
     if (ccxt->id == num_consumers) {
         ina_mempool_free(&(*ctx)->pool);
-        INA_MEM_FREE_SAFE(ctx);
+        INA_MEM_FREE_SAFE(*ctx);
         return INA_ERROR(INA_ES_LIMIT | INA_ERR_EXCEEDED);
     }
     INA_ATOMIC_SWAP(&ccxt->c_offset->cursor, 0, ccxt->ring->cursor);
@@ -380,7 +378,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
 
 INA_API(void) ina_ullc_consumer_free(ina_ullc_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
     INA_ASSERT(INA_ULLC_CTX_CONSUMER == (*ctx)->type);
 
     INA_ATOMIC_SWAP(&(*ctx)->c_offset->alive,1,0);
@@ -458,7 +456,7 @@ INA_API(void *) ina_ullc_consumer_get(ina_ullc_ctx_t *ctx)
     void *item;
     int64_t wait_for;
 
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
     INA_ASSERT(INA_ULLC_CTX_CONSUMER == ctx->type);
     
     wait_for = ctx->c_offset->cursor;
@@ -481,13 +479,18 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
     INA_ASSERT(version > 0);
     INA_ASSERT(slots > 0);
     INA_ASSERT(size > 0);
-    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT(size < INT64_MAX);
+    INA_ASSERT(slots < INT64_MAX);
+    INA_ASSERT_NOT_NULL(name);
+
+    int64_t rsize = (int64_t)size;
+    int64_t rslots = (int64_t)slots;
 
     if (size % 2 != 0) {
         return INA_ERROR(INA_ES_MEMORY | INA_ERR_NOT_ALIGNED);
     }
 
-    mem_size = (sizeof(ina_ullc_rb_t)+size*slots)+
+    mem_size = (sizeof(ina_ullc_rb_t)+rsize*rslots)+
                  (sizeof(ina_ullc_cursor_t)*num_consumers) +
                  (sizeof(ina_ullc_cursor_t)*num_producers);
 
@@ -504,7 +507,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
 
     if ((*rb)->magic != __INA_MAGIC_HDR || (flags&INA_MEM_SHARED_EXCL)) {
         (*rb)->magic = __INA_MAGIC_HDR;
-        (*rb)->slots = slots;
+        (*rb)->slots = rslots;
         (*rb)->num_producers = num_producers;
         (*rb)->num_consumers = num_consumers;
         (*rb)->overrun_enabled = -1;
@@ -512,7 +515,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         (*rb)->next_ptr = 0;
         (*rb)->alive_producers = 0;
         (*rb)->version = version;
-        (*rb)->size = size;
+        (*rb)->size = rsize;
         if (INA_FAILED(__ina_sem_makekey(*rb, name))) {
             return ina_err_get_rc();
         }
@@ -521,10 +524,10 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
     if ((*rb)->version != version) {
         return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
-    if ((*rb)->size != size) {
+    if ((*rb)->size != rsize) {
         return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
-    if ((*rb)->slots != slots) {
+    if ((*rb)->slots != rslots) {
         return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
     }
     if ((*rb)->num_consumers != num_consumers) {
@@ -545,8 +548,8 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
 static ina_rc_t
 __ina_sem_makekey(ina_ullc_rb_t *rb, const char *name)
 {
-    INA_ASSERT_NOTNULL(rb);
-    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOT_NULL(rb);
+    INA_ASSERT_NOT_NULL(name);
 
     rb->semkey = INA_HASH_CSTR_TO_CRC32(name);
     return INA_SUCCESS;
@@ -555,7 +558,7 @@ __ina_sem_makekey(ina_ullc_rb_t *rb, const char *name)
 static ina_rc_t
 __ina_sem_create(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
 
     ctx->sem_handle = semget(ctx->ring->semkey, ctx->ring->num_consumers, 0666 | IPC_CREAT);
@@ -571,7 +574,7 @@ __ina_sem_create(ina_ullc_ctx_t *ctx)
 static ina_rc_t
 __ina_sem_open(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
     ctx->sem_handle = semget(ctx->ring->semkey, 1, 0);
     return INA_SUCCESS;
 }
@@ -581,7 +584,7 @@ __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 {
     struct sembuf op;
 
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
 
     op.sem_op = (int)st;
     op.sem_num = 0;
@@ -595,7 +598,7 @@ __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 static ina_rc_t
 __ina_sem_close(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
 
     if (ctx->ring->semkey != 0) {
         semctl(ctx->sem_handle, 0, IPC_RMID , 0);
@@ -611,19 +614,19 @@ __ina_sem_makekey(ina_ullc_rb_t *rb, const char *name)
 {
     ina_str_t semkey;
 
-    INA_ASSERT_NOTNULL(rb);
-    INA_ASSERT_NOTNULL(name);
+    INA_ASSERT_NOT_NULL(rb);
+    INA_ASSERT_NOT_NULL(name);
 
     semkey = ina_str_new_fromcstr(name);
     semkey = ina_str_catcstr(semkey, "_sem");
-    strcpy(rb->semkey, ina_str_cstr(semkey));
+    strncpy(rb->semkey, ina_str_cstr(semkey), MAX_PATH);
     return INA_SUCCESS;
 }
 
 static ina_rc_t
 __ina_sem_create(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, ctx->type);
 
     ctx->sem_handle = CreateSemaphore(NULL,
@@ -639,7 +642,7 @@ __ina_sem_create(ina_ullc_ctx_t *ctx)
 static ina_rc_t
 __ina_sem_open(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
 
     ctx->sem_handle = OpenSemaphore(SEMAPHORE_ALL_ACCESS,
                             FALSE,
@@ -649,7 +652,7 @@ __ina_sem_open(ina_ullc_ctx_t *ctx)
 static ina_rc_t
 __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
 
     if (st == INA_ULLC_SIG_RELEASE) {
         if (ctx->ring->swait_count > 0) {
@@ -666,7 +669,7 @@ __ina_sem_operation(ina_ullc_ctx_t *ctx, ina_ullc_signal_type st)
 static ina_rc_t
 __ina_sem_close(ina_ullc_ctx_t *ctx)
 {
-    INA_ASSERT_NOTNULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
 
     CloseHandle(ctx->sem_handle);
     return INA_SUCCESS;

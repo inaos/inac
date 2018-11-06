@@ -116,11 +116,6 @@ extern "C" {
 #define INA_REVISION_HEX ((INA_MINOR_VERSION << 8)  |   \
                           (INA_PATCH_VERSION << 0))
 
-/* Handle free, destroy arg checking */
-#define INA_FREE_CHECK(ptrptr) do {    \
-    INA_ASSERT_NOTNULL(ptrptr);        \
-	if (INA_UNLIKELY((*ptrptr == NULL))) { return; }   \
-} while(0) 
 
 /* Return with last rc if condition x fails */
 #define INA_RETURN_IF(x) do {if ((x)) return ina_err_get_rc(); } while(0)
@@ -134,9 +129,14 @@ extern "C" {
 #ifndef INA_VERIFY_DISABLED
 #define INA_VERIFY(x) do { if (INA_UNLIKELY(!(x))) return INA_ERROR(INA_ERR_INVALID_ARGUMENT); } while (0)
 #define INA_VERIFY_NOT_NULL(x) INA_VERIFY((x) != NULL)
+#define INA_VERIFY_FREE(ptrptr) do {                   \
+    INA_ASSERT_NOT_NULL(ptrptr);                       \
+    if (INA_UNLIKELY((*ptrptr == NULL))) { return; }   \
+} while(0)
 #else
-#define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOTNULL((x))
+#define INA_VERIFY_NOT_NULL(x) INA_ASSERT_NOT_NULL((x))
 #define INA_VERIFY(x) INA_ASSERT_TRUE((x))
+#define INA_VERIFY_FREE(ptrptr) INA_ASSERT_NOT_NULL(ptrptr)
 #endif
 
 #define INA_INIT_GUARD() do {               \
@@ -202,14 +202,14 @@ typedef enum ina_signal_e {
     INA_SIGNAL_INT,
     INA_SIGNAL_SEGV,
     INA_SIGNAL_TERM,
-    #ifndef INA_OS_WIN32
+#ifndef INA_OS_WIN32
     INA_SIGNAL_HUP,
     INA_SIGNAL_QUIT,
     INA_SIGNAL_KILL,
     INA_SIGNAL_STOP,
     INA_SIGNAL_TTOU,
     INA_SIGNAL_TTIN
-    #endif
+#endif
  } ina_signal_t;
 
 /* Signal handling behavior */

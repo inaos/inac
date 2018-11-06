@@ -14,6 +14,7 @@ branches:
   #  - develop
 
 environment:
+  jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-snapshot-local
   jfrog_artifactory_uid: appveyor
   jfrog_artifactory_pwd:
     secure: 2xpsiuGNHwFPtxdh8pA/Mm0I1bC1EfC8NBSoxOEiNco=
@@ -97,7 +98,22 @@ environment:
       BUILD_ARCH: x86_64
       RUN_SONAR: no
 
+for:
+  -
+    branches:
+      only:
+        - master
+    environment:
+      jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-release-local
 
+  -
+    branches:
+       only:
+        - develop
+    environment:
+      jfrog_repository_url: https://inaos.jfrog.io/inaos/libs-snapshot-local
+      snapshot: -DINAC_SNAPSHOT=1
+      
 matrix:
   fast_finish: false
 
@@ -114,10 +130,12 @@ install:
          sudo wget --http-user=$jfrog_artifactory_uid --http-password=$jfrog_artifactory_pwd -O - https://inaos.jfrog.io/inaos/api/gpg/key/public | sudo apt-key add -
          sudo apt-get update
          sudo apt-get install inaos-dev-quality-tools
+         sudo apt-get install gcovr
+         sudo apt-get install xsltproc
          appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
   - cmd: |
          choco source add -n "inaos" -s "https://inaos.jfrog.io/inaos/api/nuget/nuget-release-local/" -u %jfrog_artifactory_uid% -p %jfrog_artifactory_pwd%
-         choco install inaos-dev-quality-tools -y
+         choco install inaos-dev-quality-tools -y --force
          appveyor DownloadFile https://sonarcloud.io/static/cpp/build-wrapper-win-x86.zip
 
 build_script:
@@ -125,20 +143,18 @@ build_script:
         mkdir cmake-build-$BUILD_CONFIGURATION
         7z e build-wrapper-linux-x86.zip -ocmake-build-$BUILD_CONFIGURATION
         cd cmake-build-$BUILD_CONFIGURATION
-        cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION
+        cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -DINAC_COVERAGE_ENABLED=1 $snapshot
         ./build-wrapper-linux-x86-64 --out-dir bw-output make
   - cmd: |
          mkdir cmake-build-%BUILD_CONFIGURATION%
          7z e build-wrapper-win-x86.zip -ocmake-build-%BUILD_CONFIGURATION%
          cd cmake-build-%BUILD_CONFIGURATION%
-         cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH% -DINAC_COVERAGE_ENABLED=1
+         cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH% -DINAC_COVERAGE_ENABLED=1 %snapshot%
          build-wrapper-win-x86-64.exe --out-dir bw-output nmake
 after_build:
   - sh: |
-        if [ $RUN_SONAR == "yes" ]; then /opt/dev/tool/sonar-scanner-3.2.0.1227/bin/sonar-scanner -Dsonar.projectBaseDir=$APPVEYOR_BUILD_FOLDER -Dsonar.projectKey=inac-linux64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=$sonarqube_api_key -Dsonar.exclusions=contribs/**,cmake-build-$BUILD_CONFIGURATION/** -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**; fi
         cpack
   - cmd: |
-         if "%RUN_SONAR%"=="yes" C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-%BUILD_CONFIGURATION%/** -Dsonar.cfamily.gcov.reportsPath=src -Dsonar.coverage.exclusions=tests/**,tools/**
          cpack
 
 test_script:
@@ -148,6 +164,10 @@ test_script:
          nmake coverage & exit 0
 
 after_test:
+  - sh: |
+        if [ $RUN_SONAR == "yes" ]; then /opt/dev/tool/sonar-scanner-3.2.0.1227/bin/sonar-scanner -Dsonar.projectBaseDir=$APPVEYOR_BUILD_FOLDER -Dsonar.projectKey=inac-linux64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=$sonarqube_api_key -Dsonar.exclusions=contribs/**,cmake-build-$BUILD_CONFIGURATION/** -Dsonar.coverageReportPaths=cmake-build-$BUILD_CONFIGURATION/tests-coverage.sonar.xml -Dsonar.coverage.exclusions=bench/**,examples/**,tests/**,tools/**; fi
+  - cmd: |
+         if "%RUN_SONAR%"=="yes" C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-%BUILD_CONFIGURATION%/** -Dsonar.coverageReportPaths=cmake-build-%BUILD_CONFIGURATION%/tests-coverage.sonar.xml -Dsonar.coverage.exclusions=bench/**,examples/**,tests/**,tools/**
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
         $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml))
@@ -155,7 +175,7 @@ after_test:
         # Code coverage
         $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
         Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-        bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/testsCoverage.xml" -t $env:codecov_api_key
+        bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/tests-coverage.xml" -t $env:codecov_api_key
         
         # Detect if there are any failure nodes in the junit results
     #    [xml]$results = Get-Content $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml
@@ -181,7 +201,7 @@ deploy_script:
         Write-Host $Env:OS
         $user = $env:jfrog_artifactory_uid
         $pwd = $env:jfrog_artifactory_pwd
-        $url = "https://inaos.jfrog.io/inaos/libs-snapshot-local/$target"
+        $url = "$env:jfrog_repository_url/$target"
 
         if ($Env:OS -eq "Windows_NT") {
           Write-Host "curl.exe -u${user}:${pwd}  -T $src $url"

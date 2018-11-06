@@ -16,8 +16,6 @@
 
 #include <contribs/miniz/miniz.h>
 
-struct ina_compression_state_s;
-
 typedef ina_rc_t (*ina_compression_compress_fn)(struct ina_compression_state_s *state, const unsigned char *src,
                                                 unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more);
 
@@ -44,9 +42,9 @@ struct ina_compression_state_s {
 static ina_rc_t ina_compression_compress_lz4(ina_compression_state_t *state, const unsigned char *src, 
                                              unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
-    INA_ASSERT_NOTNULL(state);
-    INA_ASSERT_NOTNULL(wrote_len);
-    INA_ASSERT_NOTNULL(read_len);
+    INA_ASSERT_NOT_NULL(state);
+    INA_ASSERT_NOT_NULL(wrote_len);
+    INA_ASSERT_NOT_NULL(read_len);
     INA_UNUSED(more);
     *wrote_len = 0;
     *read_len = 0;
@@ -63,9 +61,9 @@ static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, c
                                              unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     INA_UNUSED(more);
-    INA_ASSERT_NOTNULL(state);
-    INA_ASSERT_NOTNULL(wrote_len);
-    INA_ASSERT_NOTNULL(read_len);
+    INA_ASSERT_NOT_NULL(state);
+    INA_ASSERT_NOT_NULL(wrote_len);
+    INA_ASSERT_NOT_NULL(read_len);
     *wrote_len = 0;
     *read_len = 0;
 
@@ -80,19 +78,18 @@ static ina_rc_t ina_compression_compress_lz4hc(ina_compression_state_t *state, c
 static ina_rc_t ina_compression_decompress_lz4_fast(ina_compression_state_t *state, const unsigned char *src, 
                                                     int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
-    int read = 0;
     INA_UNUSED(src_len);
     INA_UNUSED(dst_len);
     INA_UNUSED(src);
     INA_UNUSED(more);
-    INA_ASSERT_NOTNULL(state);
-    INA_ASSERT_NOTNULL(wrote_len);
-    INA_ASSERT_NOTNULL(read_len);
+    INA_ASSERT_NOT_NULL(state);
+    INA_ASSERT_NOT_NULL(wrote_len);
+    INA_ASSERT_NOT_NULL(read_len);
     *wrote_len = 0;
 
     INA_ASSERT_TRUE(state->chunk_src_len > 0);
     *read_len = LZ4_decompress_fast((const char*)src, (char*)dst, state->chunk_src_len);
-    if (read < 0) {
+    if (*read_len < 0) {
         return INA_ERROR(INA_ES_DECOMPRESSION|INA_ERR_FAILED);
     }
     *wrote_len = state->chunk_src_len;
@@ -103,9 +100,10 @@ static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *sta
                                                     int src_len, unsigned char *dst, int dst_len, int *wrote_len, int *read_len, int more)
 {
     INA_UNUSED(more);
-    INA_ASSERT_NOTNULL(state);
-    INA_ASSERT_NOTNULL(wrote_len);
-    INA_ASSERT_NOTNULL(read_len);
+    INA_UNUSED(state);
+    INA_ASSERT_NOT_NULL(state);
+    INA_ASSERT_NOT_NULL(wrote_len);
+    INA_ASSERT_NOT_NULL(read_len);
     *wrote_len = 0;
     *read_len = 0;
 
@@ -118,8 +116,8 @@ static ina_rc_t ina_compression_decompress_lz4_safe(ina_compression_state_t *sta
 
 static ina_rc_t ina_compression_bounds_lz4(struct ina_compression_state_s *state, int *dst_len)
 {
-    INA_ASSERT_NOTNULL(state);
-    INA_ASSERT_NOTNULL(dst_len);
+    INA_ASSERT_NOT_NULL(state);
+    INA_ASSERT_NOT_NULL(dst_len);
 
     *dst_len = LZ4_compressBound(state->chunk_src_len);
     return INA_SUCCESS;
@@ -153,12 +151,12 @@ static ina_rc_t ina_compression_compress_miniz(ina_compression_state_t *state, c
     int status;
     mz_stream *stream;
     
-    INA_ASSERT_NOTNULL(state);
-    INA_ASSERT_NOTNULL(wrote_len);
+    INA_ASSERT_NOT_NULL(state);
+    INA_ASSERT_NOT_NULL(wrote_len);
 
     *wrote_len = 0;
     stream = (mz_stream*)state->statedata;
-    INA_ASSERT_NOTNULL(stream);
+    INA_ASSERT_NOT_NULL(stream);
 
     if (!state->initialized) {
         ina_mem_set(stream, 0, sizeof(stream));
@@ -207,13 +205,13 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
     int status;
     mz_stream *stream;
 
-    INA_ASSERT_NOTNULL(state);
-    INA_ASSERT_NOTNULL(wrote_len);
+    INA_ASSERT_NOT_NULL(state);
+    INA_ASSERT_NOT_NULL(wrote_len);
 
     *wrote_len = 0;
     *read_len = 0;
     stream = (mz_stream*)state->statedata;
-    INA_ASSERT_NOTNULL(stream);
+    INA_ASSERT_NOT_NULL(stream);
 
     if (!state->initialized) {
         ina_mem_set(stream, 0, sizeof(stream));
@@ -257,7 +255,7 @@ static ina_rc_t ina_compression_decompress_miniz(ina_compression_state_t *state,
 
 static ina_rc_t ina_compression_bounds_miniz(struct ina_compression_state_s *state, int *dst_len)
 {
-    INA_ASSERT_NOTNULL(state);
+    INA_ASSERT_NOT_NULL(state);
 
     *dst_len = mz_compressBound(state->chunk_src_len);
     return INA_SUCCESS;

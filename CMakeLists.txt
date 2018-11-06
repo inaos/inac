@@ -6,10 +6,10 @@
 # Information and shall use it only in accordance with the terms of the
 # license agreement you entered into with INAOS GmbH.
 #
-cmake_minimum_required (VERSION 3.12)
-project(inac)
+cmake_minimum_required(VERSION 3.7)
+project(inac VERSION 1.0.0)
 include("inac.cmake")
-inac_version("1.0.0" HEADER include/libinac/version.h)
+inac_version_header(include/libinac/version.h)
 inac_enable_aes()
 inac_enable_sse4()
 
@@ -83,13 +83,8 @@ inac_post_copy_file(tests test_lsocket.lua)
 inac_post_copy_file_unix(tests tests.conf)
 inac_post_copy_file_win32(tests tests.conf DEST tests.exe.conf)
 
-if (MSVC)
-	install(TARGETS inac
-			DESTINATION lib
-			COMPONENT libraries)
-else()
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libinac.a
-    	    DESTINATION lib
-        	COMPONENT libraries)
-endif()
+install(TARGETS inac
+		DESTINATION lib
+		COMPONENT libraries)
+
 inac_package()

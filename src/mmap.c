@@ -68,7 +68,6 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	uint64_t delta;
     DWORD dwAllocationGranularity;
     SYSTEM_INFO si;
-	INA_UNUSED(map_type);
 #endif
 
 	INA_VERIFY_NOT_NULL(ctx);
@@ -78,7 +77,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	if (NULL != fd) {
 		INA_RETURN_IF_FAILED(ina_file_stat_new(fd, &fstat));
 		INA_MUST_SUCCEED(ina_file_stat_file_size(fstat, &flen));
-		INA_MUST_SUCCEED(ina_file_stat_free(&fstat));
+		ina_file_stat_free(&fstat);
 
 		if (offset > flen) {
 			return INA_ERROR(INA_ES_POSITION | INA_ERR_OUT_OF_RANGE);
@@ -114,7 +113,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		dwDesiredAccess = FILE_MAP_WRITE;
 	}
 
-	if (fd) {
+	if (map_type == INA_MMAP_MAP_TYPE_FILE) {
 		(*mapping)->fmap = CreateFileMapping((HANDLE)ina_file_os_handle(fd), NULL, flProtect, 0, 0, NULL);
 	} else {
 		(*mapping)->fmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, flProtect, (DWORD)offset, (DWORD)length, NULL);		
@@ -181,7 +180,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     		break;
     }
     
-    if (pflags&MAP_FILE) {
+    if (map_type == INA_MMAP_MAP_TYPE_FILE) {
     	(*mapping)->addr = mmap(0, length, pprot, pflags, ina_file_os_handle(fd), offset);
     } else {
     	(*mapping)->addr = mmap(0, length, pprot, pflags, -1, offset);

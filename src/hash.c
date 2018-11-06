@@ -180,7 +180,7 @@ INA_API(ina_rc_t) ina_hash_type(const char *hash_name, ina_hash_type_t *hash_typ
 INA_API(uint32_t) ina_hash_crc32(uint32_t hash, const void *data, size_t size)
 {
 	const uint8_t *p;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 	p = data;
 	hash = hash ^ ~0U;
 	while (size--) {
@@ -192,7 +192,7 @@ INA_API(uint32_t) ina_hash_crc32(uint32_t hash, const void *data, size_t size)
 INA_API(uint32_t) ina_hash_sdbm(uint32_t hash, const void *data, size_t size)
 {
 	const uint8_t *p;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 	p = data;
 	while (size--) {
 		hash = (*p++) + (hash << 6) + (hash << 16) - hash;
@@ -206,7 +206,7 @@ INA_API(uint32_t) ina_hash_32_lookup3(uint32_t hash, const void *data, size_t si
 {
 	const unsigned char* key = (const unsigned char*)(data);
 	uint32_t a, b, c;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 	a = b = c = 0xdeadbeef + ((uint32_t)size) + hash;
 
 	INA_DISABLE_WARNING_GCC(implicit-fallthrough)
@@ -259,7 +259,7 @@ INA_API(uint64_t) ina_hash_64_lookup3(uint64_t hash, const void *data, size_t si
 {
 	const unsigned char* key = (const unsigned char*)data;
 	uint32_t a, b, c;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 
 
 	a = b = c = 0xdeadbeef + ((uint32_t)size) + (hash & 0xffffffff);
@@ -313,7 +313,7 @@ INA_API(uint32_t) ina_hash_32_djb(uint32_t hash, const void *data, size_t size)
 {
     const uint8_t *d = (const uint8_t*)data;
     size_t i;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     for(i = 0; i < size; ++i)  {
         hash = 33 * hash + d[i];
     }
@@ -325,7 +325,7 @@ INA_API(uint32_t) ina_hash_32_jenkins_ooat(uint32_t hash, const void *data, size
 {
     unsigned char  *str = (unsigned char *)data;
     const unsigned char *const end = (const unsigned char *)str + size;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     while (str < end) {
         hash += *str++;
         hash += (hash << 10);
@@ -343,7 +343,7 @@ INA_API(uint32_t) ina_hash_32_fnv(uint32_t hash, const void *data, size_t size)
     uint32_t h = hash;
     const uint8_t *d = (const uint8_t*)data;
     size_t i;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     h ^= __INA_HASH_BIG_CONSTANT(2166136261);
     
     for (i = 0; i < size; i++) {
@@ -359,7 +359,7 @@ INA_API(uint64_t) ina_hash_64_fnv(uint64_t hash, const void *data, size_t size)
     uint64_t h = (uint64_t)hash;
     const uint8_t *d = (const uint8_t*)data;
     size_t i;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     h ^= __INA_HASH_BIG_CONSTANT(0xcbf29ce484222325);
     
     for (i = 0; i < size; i++) {
@@ -389,7 +389,7 @@ INA_API(uint32_t) ina_hash_32_superfast(uint32_t seed, const void *key, size_t s
     uint32_t hash = 0, tmp;
     int rem;
 	INA_UNUSED(seed);
-    INA_ASSERT_NOTNULL(key);
+    INA_ASSERT_NOT_NULL(key);
     if (size <= 0 || data == NULL) {
         return 0;
     }
@@ -437,7 +437,7 @@ INA_API(uint32_t) ina_hash_32_sdbm(uint32_t hash, const void *data, size_t size)
 {
     unsigned char *str = (unsigned char*)data;
     const unsigned char *const end = (const unsigned char*)str + size;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     while (str < end) {
         hash = (hash << 6) + (hash << 16) - hash + *str++;
     }
@@ -451,7 +451,7 @@ INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, si
     uint32_t hash32A = hash ^ 2166136261;
     uint32_t hash32B = 2166136261 + (uint32_t)size;
     uint32_t hash32C = 2166136261;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     
     for (; size >= 3 * 2 * sizeof(uint32_t); size -= 3 * 2 * sizeof(uint32_t), p += 3 * 2 * sizeof(uint32_t)) {
         hash32A = (hash32A ^ (__INA_HASH_ROTL32(*(uint32_t *) (p + 0), 5)  ^ *(uint32_t *) (p + 4)))  * PRIME;
@@ -494,23 +494,23 @@ INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, si
 /* BEGIN MURMUR3 support code */
 
 #if INA_LITTLE_ENDIAN == 1
-  #define __INA_HASH_MURMUR_UNALIGNED_SAFE
+#  define __INA_HASH_MURMUR_UNALIGNED_SAFE
   /* CPU endian matches murmurhash algorithm, so read 32-bit word directly */
-  #define __INA_HASH_MURMUR_READ_UINT32(ptr)   (*((uint32_t*)(ptr)))
+#  define __INA_HASH_MURMUR_READ_UINT32(ptr)   (*((uint32_t*)(ptr)))
 #elif INA_BIG_ENDIAN == 1
   /* TODO: Add additional cases below where a compiler provided bswap32 is available */
-  #if defined(__GNUC__) && (__GNUC__>4 || (__GNUC__==4 && __GNUC_MINOR__>=3))
-    #define __INA_HASH_MURMUR_READ_UINT32(ptr)   (__builtin_bswap32(*((uint32_t*)(ptr))))
-  #else
+#  if defined(__GNUC__) && (__GNUC__>4 || (__GNUC__==4 && __GNUC_MINOR__>=3))
+#    define __INA_HASH_MURMUR_READ_UINT32(ptr)   (__builtin_bswap32(*((uint32_t*)(ptr))))
+#  else
     /* Without a known fast bswap32 we're just as well off doing this */
-    #define __INA_HASH_MURMUR_READ_UINT32(ptr)   (ptr[0]|ptr[1]<<8|ptr[2]<<16|ptr[3]<<24)
-    #define __INA_HASH_MURMUR_UNALIGNED_SAFE
-  #endif
+#    define __INA_HASH_MURMUR_READ_UINT32(ptr)   (ptr[0]|ptr[1]<<8|ptr[2]<<16|ptr[3]<<24)
+#    define __INA_HASH_MURMUR_UNALIGNED_SAFE
+#  endif
 #else
   /* Unknown endianess so last resort is to read individual bytes */
-  #define __INA_HASH_MURMUR_READ_UINT32(ptr)   (ptr[0]|ptr[1]<<8|ptr[2]<<16|ptr[3]<<24)
+#  define __INA_HASH_MURMUR_READ_UINT32(ptr)   (ptr[0]|ptr[1]<<8|ptr[2]<<16|ptr[3]<<24)
   /* Since we're not doing word-reads we can skip the messing about with realignment */
-  #define __INA_HASH_MURMUR_UNALIGNED_SAFE
+#  define __INA_HASH_MURMUR_UNALIGNED_SAFE
 #endif
 
 /* Core murmurhash algorithm macros */
@@ -665,7 +665,7 @@ uint32_t __ina_hash_PMurHash32(uint32_t seed, const void *key, uint32_t len)
 
 INA_API(uint32_t) ina_hash_32_murmur3(uint32_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return __ina_hash_PMurHash32(hash, data, (uint32_t)size);
 }
 
@@ -713,9 +713,9 @@ INA_API(uint32_t) ina_hash_32_murmur3(uint32_t hash, const void *data, size_t si
  */
 
 #if INA_LITTLE_ENDIAN == 1
-    #define __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS 1
+#define __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS 1
 #else
-    #define __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS 0
+#define __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS 0
 #endif
 
 #define __INA_HASH_SPOOKY_SC_NUMVARS      12
@@ -736,7 +736,7 @@ struct __ina_hash_spooky_state
  * is a not-very-regular mix of 1's and 0's
  * does not need any other special mathematical properties
  */
-#define __INA_HASH_SPOOKY_SC_CONST 0xdeadbeefdeadbeefLL
+#define __INA_HASH_SPOOKY_SC_CONST 0xdeadbeefdeadbeefULL
 
 #if defined(INA_OS_WIN32) && defined(__rotl64)
 #define __INA_HASH_SPOOKY_ROT64(x,y) __rotl64(x,y)
@@ -1051,15 +1051,14 @@ static void __ina_hash_spooky_hash128
 	endp = u.p64 + (length/__INA_HASH_SPOOKY_SC_BLOCKSIZE)*__INA_HASH_SPOOKY_SC_NUMVARS;
 
 	/* handle all whole blocks of SC_BLOCKSIZE bytes */
-	if (__INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS || (u.i & 0x7) == 0)
+#ifdef __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS
+	while (u.p64 < endp)
 	{
-		while (u.p64 < endp)
-		{
-			__ina_hash_spooky_mix(u.p64, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
-			u.p64 += __INA_HASH_SPOOKY_SC_NUMVARS;
-		}
+		__ina_hash_spooky_mix(u.p64, &h0, &h1, &h2, &h3, &h4, &h5, &h6, &h7, &h8, &h9, &h10, &h11);
+		u.p64 += __INA_HASH_SPOOKY_SC_NUMVARS;
 	}
-	else
+#else
+	if ((u.i & 0x7) == 0)
 	{
 		while (u.p64 < endp)
 		{
@@ -1068,6 +1067,7 @@ static void __ina_hash_spooky_hash128
 			u.p64 += __INA_HASH_SPOOKY_SC_NUMVARS;
 		}
 	}
+#endif
 
 	/* handle the last partial block of SC_BLOCKSIZE bytes */
 	remainder = (length - ((const uint8_t *)endp-(const uint8_t *)message));
@@ -1108,34 +1108,34 @@ static uint32_t __ina_hash_spooky_hash32
 
 INA_API(uint32_t) ina_hash_32_spooky(uint32_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return __ina_hash_spooky_hash32(data, size, hash);
 }
 
 INA_API(uint64_t) ina_hash_64_spooky(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return __ina_hash_spooky_hash64(data, size, hash);
 }
 
 INA_API(uint32_t) ina_hash_32_xxhash(uint32_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return XXH32(data, size, hash);
 }
 
 INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return XXH64(data, size, hash);
 }
 
 /* Byte-boundary alignment issues */
 #define __INA_HASH_CRC_ALIGN_SIZE      0x08UL
 #define __INA_HASH_CRC_ALIGN_MASK      (__INA_HASH_CRC_ALIGN_SIZE - 1)
-#define __INA_HASH_CRC_CALC_CRC(op, crc, type, buf, len) do {                          \
+#define __INA_HASH_CRC_CALC_CRC(op, crc, type, cast, buf, len) do {                    \
     for (; (len) >= sizeof (type); (len) -= sizeof(type), buf += sizeof (type)) {      \
-      (crc) = op((crc), *(type *) (buf));                                              \
+      (crc) = op(((cast)(crc)), *(type *) (buf));                                      \
     }                                                                                  \
 } while(0)
 
@@ -1143,7 +1143,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
 {
     uint32_t crc = hash;
     const unsigned char* buf = (const unsigned char*)data;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 
     /* XOR the initial CRC with INT_MAX */
     crc ^= 0xFFFFFFFF;
@@ -1154,9 +1154,9 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
     }
 
     /* Blast off the CRC32 calculation */
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8,  crc, uint8_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, uint32_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, uint16_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8,  crc, uint8_t, uint8_t, buf, size);
 
     // Post-process the crc
     return (crc ^ 0xFFFFFFFF);
@@ -1166,7 +1166,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 {
     const char* buf = (const char*)data;
     uint64_t crc = (uint64_t)hash;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     /* Align the input to the word boundary */
     for (; (size > 0) && ((size_t)buf & __INA_HASH_CRC_ALIGN_MASK); size--, buf++) {
         crc = _mm_crc32_u8((unsigned int)crc, *buf);
@@ -1174,16 +1174,16 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 
     /* Blast off the CRC32 calculation */
 #ifdef INA_CPU_X86_64
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u64, crc, uint64_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u64, crc, uint64_t, uint64_t, buf, size);
 #endif
 #ifdef INA_OS_WIN32
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, (unsigned int)crc, uint32_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, (unsigned int)crc, uint16_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, (unsigned int)crc, uint8_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, uint32_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, uint16_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, uint8_t, buf, size);
 #else
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, buf, size);
-    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, uint32_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, uint16_t, buf, size);
+    __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, uint8_t, buf, size);
 #endif
 
     /* Post-process the crc */
@@ -1193,7 +1193,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     /* Note: tested with smasher the hash quality as well as the speed does not seem to change due to the cast */
     h = ina_hash_64_memhash(hash, data, size);
     return (uint32_t)h;
@@ -1201,14 +1201,14 @@ INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t si
 
 INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return memhash(data, size, hash);
 }
 
 INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     /* Note: tested with smasher the hash quality as well as the speed does not seem to change due to the cast */
     h = ina_hash_64_falkhash(hash, data, size);
     return (uint32_t)h;
@@ -1216,14 +1216,14 @@ INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t s
 
 INA_API(uint64_t) ina_hash_64_falkhash(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     return falkhash64(data, size, hash);
 }
 
 INA_API(uint32_t) ina_hash_32_t1ha0(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
     h = ina_hash_64_t1ha0(hash, data, size);
 	return (uint32_t)h;
 }
@@ -1231,14 +1231,14 @@ INA_API(uint32_t) ina_hash_32_t1ha0(uint32_t hash, const void *data, size_t size
 INA_API(uint32_t) ina_hash_32_t1ha1(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 	h = ina_hash_64_t1ha1(hash, data, size);
 	return (uint32_t)h;
 }
 
 INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 #ifndef INA_OS_OSX
 	return t1ha0(data, size, hash);
 #else
@@ -1248,7 +1248,7 @@ INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size
 
 INA_API(uint64_t) ina_hash_64_t1ha1(uint64_t hash, const void *data, size_t size)
 {
-    INA_ASSERT_NOTNULL(data);
+    INA_ASSERT_NOT_NULL(data);
 #ifndef INA_OS_OSX
 	return t1ha(data, size, hash);
 #else

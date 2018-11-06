@@ -41,7 +41,8 @@ INA_BENCH_END(intersect, zipper) { INA_UNUSED(data); }
 
 INA_BENCH(intersect, zipper, 1)
 {
-    size_t i_a = 0, i_b = 0;
+    size_t i_a = 0;
+    size_t i_b = 0;
     size_t counter = 0;
 
     ina_bench_stopwatch_start();
