@@ -78,7 +78,7 @@ INA_TEST(stopwatch, stopwatch)
 {
     struct timeval tv_start;
     ina_stopwatch_t *w = NULL;
-    double duration;
+    double duration = 0;
 
     gettimeofday(&tv_start, NULL);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w));

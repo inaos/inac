@@ -15,6 +15,12 @@ INA_INLINE double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER *
 {
     return ((double)L->QuadPart / freq_sec);
 }
+INA_INLINE double __ina_freq_sec()
+{
+    LARGE_INTEGER frequency;
+    QueryPerformanceFrequency(&frequency);
+    return (double)frequency.QuadPart;
+}
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
@@ -395,5 +401,10 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
         (*stopwatch)->tv->max_stamps = max_stamps;
         (*stopwatch)->tv->duration = -1.0;
     }
+
+#ifdef INA_OS_WIN32
+    (*stopwatch)->freq_sec = __ina_freq_sec();
+#endif
+
     return INA_SUCCESS;
 }
