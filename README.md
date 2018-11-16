@@ -1,4 +1,4 @@
-[![Appveyor CI](https://ci.appveyor.com/api/projects/status/4ery3c4kj2td81og/branch/develop?svg=true)](https://ci.appveyor.com/project/stoni/inac/branch/develop) [![codecov](https://codecov.io/gh/inaos/inac/branch/develop/graph/badge.svg?token=sEKLQQ2aeE)](https://codecov.io/gh/inaos/inac)
+[![Appveyor CI](https://ci.appveyor.com/api/projects/status/4ery3c4kj2td81og/branch/master?svg=true)](https://ci.appveyor.com/project/stoni/inac/branch/master) [![codecov](https://codecov.io/gh/inaos/inac/branch/master/graph/badge.svg?token=sEKLQQ2aeE)](https://codecov.io/gh/inaos/inac)
 
 # INAOS Common C Library
 
