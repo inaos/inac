@@ -119,7 +119,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
 #ifdef INA_OS_WIN32
 INA_TEST(net_local, mac_addr)
 {
-    char *mac = (char*)malloc(sizeof(6));
+    char *mac = (char*)malloc(sizeof(char)*6);
     char *test_ip = NULL;
     int found = 0;
 
