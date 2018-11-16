@@ -384,7 +384,7 @@ function(inac_add_tests)
     if (NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/main.c")
         if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c")
             file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tests.dir/main.c
-                    "#include <libinac/lib.h>\nint main(int argc,  char** argv) { return ina_test_run(argc, argv, NULL);}"
+                    "#include <libinac/lib.h>\nint main(int argc,  char** argv) { INA_MUST_SUCCEED(ina_app_init(argc, argv, NULL)); return ina_test_run(argc, argv, NULL);}"
                     )
             message(STATUS "Generate main.c for tests")
         endif ()
