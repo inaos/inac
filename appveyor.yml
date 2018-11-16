@@ -25,55 +25,55 @@ environment:
   APPVEYOR_RDP_PASSWORD: FK^Bk6p}Z.bzwh2_
     
   matrix:
-    - MY_NAME: Linux Debug 64bit
-      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
-      BUILD_CONFIGURATION: Debug
-      RUN_SONAR: yes
+#    - MY_NAME: Linux Debug 64bit
+#     APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+#      BUILD_CONFIGURATION: Debug
+#      RUN_SONAR: yes
       
-    - MY_NAME: Linux Release 64bit
-      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
-      BUILD_CONFIGURATION: RelWithDebInfo
-      RUN_SONAR: no
+#    - MY_NAME: Linux Release 64bit
+#      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+#      BUILD_CONFIGURATION: RelWithDebInfo
+#      RUN_SONAR: no
 
-    - MY_NAME: Windows VS 2015 Debug 32bit
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
-      MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: Debug
-      BUILD_ARCH: x86
-      RUN_SONAR: no
+#    - MY_NAME: Windows VS 2015 Debug 32bit
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+#      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+#      MSVC_PLATFORM: x86
+#      BUILD_CONFIGURATION: Debug
+#      BUILD_ARCH: x86
+#      RUN_SONAR: no
       
-    - MY_NAME: Windows VS 2015 Debug 64bit
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
-      MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: Debug
-      BUILD_ARCH: x86_64
-      RUN_SONAR: no
+#    - MY_NAME: Windows VS 2015 Debug 64bit
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+#      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+#      MSVC_PLATFORM: amd64
+#      BUILD_CONFIGURATION: Debug
+#      BUILD_ARCH: x86_64
+#      RUN_SONAR: no
 
-    - MY_NAME: Windows VS 2015 Release 32bit
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
-      MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: RelWithDebInfo
-      BUILD_ARCH: x86
-      RUN_SONAR: no
+#    - MY_NAME: Windows VS 2015 Release 32bit
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+#      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+#      MSVC_PLATFORM: x86
+#      BUILD_CONFIGURATION: RelWithDebInfo
+#      BUILD_ARCH: x86
+#      RUN_SONAR: no
 
-    - MY_NAME: Windows VS 2015 Release 64bit
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
-      MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: RelWithDebInfo
-      BUILD_ARCH: x86_64
-      RUN_SONAR: no
+#    - MY_NAME: Windows VS 2015 Release 64bit
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+#      VSINSTALL: "Microsoft Visual Studio 14.0\\VC"
+#      MSVC_PLATFORM: amd64
+#      BUILD_CONFIGURATION: RelWithDebInfo
+#      BUILD_ARCH: x86_64
+#      RUN_SONAR: no
 
-    - MY_NAME: Windows VS 2017 Debug 32bit
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
-      MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: Debug
-      BUILD_ARCH: x86
-      RUN_SONAR: no
+#   - MY_NAME: Windows VS 2017 Debug 32bit
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+#      MSVC_PLATFORM: x86
+#      BUILD_CONFIGURATION: Debug
+#      BUILD_ARCH: x86
+#      RUN_SONAR: no
 
     - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -83,21 +83,21 @@ environment:
       BUILD_ARCH: x86_64
       RUN_SONAR: yes
 
-    - MY_NAME: Windows VS 2017 Release 32bit
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
-      MSVC_PLATFORM: x86
-      BUILD_CONFIGURATION: RelWithDebInfo
-      BUILD_ARCH: x86
-      RUN_SONAR: no
+#    - MY_NAME: Windows VS 2017 Release 32bit
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+#      MSVC_PLATFORM: x86
+#      BUILD_CONFIGURATION: RelWithDebInfo
+#      BUILD_ARCH: x86
+#      RUN_SONAR: no
 
-    - MY_NAME: Windows VS 2017 Release 64bit
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
-      MSVC_PLATFORM: amd64
-      BUILD_CONFIGURATION: RelWithDebInfo
-      BUILD_ARCH: x86_64
-      RUN_SONAR: no
+#    - MY_NAME: Windows VS 2017 Release 64bit
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
+#      MSVC_PLATFORM: amd64
+#      BUILD_CONFIGURATION: RelWithDebInfo
+#      BUILD_ARCH: x86_64
+#      RUN_SONAR: no
 
 for:
   -
