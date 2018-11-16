@@ -29,3 +29,21 @@ change it back to link against the runtime as library
 - For CCOPTIONS we replaced CFLAGS with LCFLAGS
 - For CCOPT_x86 we use -march=native 
 - For CCOPT_x64 we use -march=native
+
+
+4) For the SonarQube Scanner we added a workaround for the msvcbuild_debug.bat
+
+- Instead of compiling the buildvm by this simple command:
+  %LJCOMPILE% /I "." /I %DASMDIR% host\buildvm*.c
+- We had to explicitly specify all the buildvm files
+  %LJCOMPILE% /I "." /I %DASMDIR% host\buildvm.c
+  @if errorlevel 1 goto :BAD
+  %LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_asm.c
+  @if errorlevel 1 goto :BAD
+  %LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_fold.c
+  @if errorlevel 1 goto :BAD
+  %LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_lib.c
+  @if errorlevel 1 goto :BAD
+  %LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_peobj.c
+  @if errorlevel 1 goto :BAD
+  

@@ -168,7 +168,7 @@ after_test:
   - sh: |
         if [ $RUN_SONAR == "yes" ]; then /opt/dev/tool/sonar-scanner-3.2.0.1227/bin/sonar-scanner -Dsonar.projectBaseDir=$APPVEYOR_BUILD_FOLDER -Dsonar.projectKey=inac-linux64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=$sonarqube_api_key -Dsonar.exclusions=contribs/**,cmake-build-$BUILD_CONFIGURATION/** -Dsonar.coverageReportPaths=cmake-build-$BUILD_CONFIGURATION/tests-coverage.sonar.xml -Dsonar.coverage.exclusions=bench/**,examples/**,tests/**,tools/**; fi
   - cmd: |
-         if "%RUN_SONAR%"=="yes" C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -X -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-%BUILD_CONFIGURATION%/** -Dsonar.coverageReportPaths=cmake-build-%BUILD_CONFIGURATION%/tests-coverage.sonar.xml -Dsonar.coverage.exclusions=bench/**,examples/**,tests/**,tools/**
+         if "%RUN_SONAR%"=="yes" C:\ProgramData\chocolatey\lib\inaos-dev-quality-tools\tools\sonar-scanner\bin\sonar-scanner -Dsonar.projectBaseDir=%APPVEYOR_BUILD_FOLDER% -Dsonar.projectKey=inac-win64 -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=inaos -Dsonar.login=%sonarqube_api_key% -Dsonar.exclusions=contribs/**,cmake-build-%BUILD_CONFIGURATION%/** -Dsonar.coverageReportPaths=cmake-build-%BUILD_CONFIGURATION%/tests-coverage.sonar.xml -Dsonar.coverage.exclusions=bench/**,examples/**,tests/**,tools/**
   - ps: |
         $wc = New-Object 'System.Net.WebClient'
         $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER/cmake-build-$env:BUILD_CONFIGURATION/junit.xml))
@@ -212,6 +212,6 @@ deploy_script:
         }
         $LastExitCode = 0
 
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   

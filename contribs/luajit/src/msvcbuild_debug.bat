@@ -41,7 +41,15 @@ if exist minilua.exe.manifest^
 minilua %DASM% -LN %DASMFLAGS% -o host\buildvm_arch.h vm_x86.dasc
 @if errorlevel 1 goto :BAD
 
-%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm*.c
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_asm.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_fold.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_lib.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_peobj.c
 @if errorlevel 1 goto :BAD
 %LJLINK% /out:buildvm.exe buildvm*.obj
 @if errorlevel 1 goto :BAD
