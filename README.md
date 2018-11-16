@@ -14,6 +14,7 @@ High level objectives:
 * Low complexity
 * Low Resource consumption/High performance
 * Ease of maintenance, testing and debugging
+* Cross-platform
 * Fully documented
 
 To learn more about INAOS Common C Library, please see the Manual.
