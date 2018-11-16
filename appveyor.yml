@@ -25,7 +25,7 @@ environment:
     
   matrix:
     - MY_NAME: Linux Debug 64bit
-     APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
       BUILD_CONFIGURATION: Debug
       RUN_SONAR: yes
       
@@ -66,7 +66,7 @@ environment:
       BUILD_ARCH: x86_64
       RUN_SONAR: no
 
-   - MY_NAME: Windows VS 2017 Debug 32bit
+    - MY_NAME: Windows VS 2017 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: x86
