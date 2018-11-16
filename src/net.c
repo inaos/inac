@@ -737,6 +737,9 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     dst_ip = inet_addr(ip);
 
     ret = SendARP(dst_ip , INADDR_ANY, mac_addr, &phy_addr_len);
+	if (ret != NO_ERROR) {
+		return INA_OS_ERROR(INA_ERR_FAILED);
+	}
      
     if(phy_addr_len) {
         BYTE *bMacAddr = (BYTE*) & mac_addr;
