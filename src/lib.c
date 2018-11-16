@@ -247,7 +247,12 @@ INA_API(ina_rc_t) ina_init(void)
     WSADATA wsaData;
 #endif
 
-    INA_INIT_GUARD();
+	static int __initialized = 0;
+	if (__initialized) {
+		return INA_SUCCESS;
+	}
+	__initialized = 1;
+
     ina_err_init();
 
     if (atexit(ina_exit) == -1) {
