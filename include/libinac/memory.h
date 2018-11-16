@@ -143,18 +143,14 @@ INA_INLINE void * ina_mem_alloc(size_t size)
  *       ina_mem_alloc(). If this is NULL, a new block is allocated and a
  *       pointer to it is returned by the function.
  *  nb   This is the new size for the memory block, in bytes. If it is 0 and ptr
- *       points to an existing block of memory, the memory block pointed by0 ptr
- *       is deallocated and a NULL pointer is returned.
+ *       points to an existing block of memory, the memory block pointed by ptr
+ *       is deallocate and a NULL pointer is returned.
  *
  * Return
  *  This function returns a pointer to the newly allocated memory, or NULL if
  *  the request fails.
  */
-INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
-{
-	INA_ASSERT_NOT_NULL(ptr);
-	return INA_MEM_REALLOC(ptr, nb);
-}
+INA_API(void*) ina_mem_realloc(void *ptr, size_t nb);
 
 /*
  * Move a memory block.
@@ -183,7 +179,7 @@ INA_INLINE void* ina_mem_realloc(void *ptr, size_t nb)
  * Return
  *  dest is returned
  */
-INA_INLINE void* ina_mem_move(void *dest, const void *src, size_t nb)
+INA_INLINE void* ina_mem_move(void *dest,  const void *src, size_t nb)
 {
 	INA_ASSERT_NOT_NULL(dest);
 	INA_ASSERT_NOT_NULL(src);
@@ -221,7 +217,7 @@ INA_INLINE void * ina_mem_cpy(void *dest, const void *src, size_t nb)
 {
 	INA_ASSERT_NOT_NULL(dest);
 	INA_ASSERT_NOT_NULL(src);
-	return INA_MEM_MEMMOVE(dest, src, nb);
+	return INA_MEM_MEMCPY(dest, src, nb);
 }
 
 /*
@@ -315,7 +311,7 @@ INA_INLINE void* ina_mem_set(void *dest, int value, size_t nb)
  * still points to the same (now invalid) location.
  *
  * Parameters
- * ptr   pointer to a memory block prevously allocated with ina_mem_alloc()
+ * ptr   pointer to a memory block previously allocated with ina_mem_alloc()
  */
 
 INA_INLINE void ina_mem_free(void *ptr)

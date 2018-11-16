@@ -74,7 +74,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read) {
     INA_TEST_MSG("conected to %s:%d", __INA_TCP_ADDR, __INA_TCP_PORT);
 
     ina_mem_set(buffer, 0, 1024);
-    strcpy(buffer, "hello");
+    strncpy(buffer, "hello", 1023);
     INA_TEST_MSG("write %s", buffer);    
     INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
                             (const unsigned char*)buffer,
@@ -104,7 +104,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
     INA_TEST_MSG("write/reed 100 times %s", buffer);
     while (c--) {
         ina_mem_set(buffer, 0, 1024);
-        strcpy(buffer, "hello");
+        strncpy(buffer, "hello", 1023);
         INA_TEST_ASSERT_SUCCEED(ina_net_write(data->client_fd, 
                                 (const unsigned char*)buffer,
                                 (int)strlen(buffer), &nb_write));
@@ -119,8 +119,8 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
 #ifdef INA_OS_WIN32
 INA_TEST(net_local, mac_addr)
 {
-    char *mac = (char*)malloc(sizeof(6));
-    char *test_ip;
+    char *mac = (char*)malloc(sizeof(char)*6);
+    char *test_ip = NULL;
     int found = 0;
 
     /* first the get first IP-Address of the system */
@@ -182,7 +182,10 @@ INA_TEST(net_local, mac_addr)
     /* execute the actual test now that we have an IP address */
     INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(test_ip, mac));
 
-    free(test_ip);
+    if (test_ip != NULL) {
+        free(test_ip);
+    }
+    free(mac);
 }
 #else
 INA_TEST(net_local, mac_addr)
@@ -227,7 +230,7 @@ INA_TEST(net_local, mac_addr)
     freeifaddrs(ifaddr);
 }
 #endif
-INA_TEST(net_local, system_lookup)
+INA_TEST_SKIP(net_local, system_lookup)
 {
     ina_str_t *addresses;
     short      address_count;

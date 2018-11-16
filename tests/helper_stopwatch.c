@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 
 #if !defined(CLOCK_MONOTONIC_RAW)
-    #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
 #endif
  
 /* 
@@ -79,22 +79,22 @@ INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
     ina_time_sleep(10);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
-    sprintf(user_data2, "%.10f", msec_duration);
+    snprintf(user_data2, INA_STOPWATCH_MAX_USERDATA_LEN-1, "%.10f", msec_duration);
     INA_STOPWATCH_STAMP2(w, "helper", user_data2);
     ina_time_sleep(10);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
-    sprintf(user_data2, "%.10f", msec_duration);
+    snprintf(user_data2, INA_STOPWATCH_MAX_USERDATA_LEN-1, "%.10f", msec_duration);
     INA_STOPWATCH_STAMP2(w, "helper", user_data2);
     ina_time_sleep(10);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
-    sprintf(user_data2, "%.10f", msec_duration);
+    snprintf(user_data2, INA_STOPWATCH_MAX_USERDATA_LEN-1, "%.10f", msec_duration);
     INA_STOPWATCH_STAMP2(w, "helper", user_data2);
     ina_time_sleep(10);
     clock_gettime(CLOCK_MONOTONIC_RAW, &time.tp);
     msec_duration = (time.tp.tv_sec + time.tp.tv_nsec / 1000000000.0)*1000.0;
-    sprintf(user_data2, "%.10f", msec_duration);
+    snprintf(user_data2, INA_STOPWATCH_MAX_USERDATA_LEN-1, "%.10f", msec_duration);
     INA_STOPWATCH_STAMP2(w, "helper", user_data2);
     
     while (INA_SUCCEED(ina_stopwatch_started(w))) {

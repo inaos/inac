@@ -494,23 +494,23 @@ INA_API(uint32_t) ina_hash_32_fnv_yoshimitsu(uint32_t hash, const void *data, si
 /* BEGIN MURMUR3 support code */
 
 #if INA_LITTLE_ENDIAN == 1
-  #define __INA_HASH_MURMUR_UNALIGNED_SAFE
+#  define __INA_HASH_MURMUR_UNALIGNED_SAFE
   /* CPU endian matches murmurhash algorithm, so read 32-bit word directly */
-  #define __INA_HASH_MURMUR_READ_UINT32(ptr)   (*((uint32_t*)(ptr)))
+#  define __INA_HASH_MURMUR_READ_UINT32(ptr)   (*((uint32_t*)(ptr)))
 #elif INA_BIG_ENDIAN == 1
   /* TODO: Add additional cases below where a compiler provided bswap32 is available */
-  #if defined(__GNUC__) && (__GNUC__>4 || (__GNUC__==4 && __GNUC_MINOR__>=3))
-    #define __INA_HASH_MURMUR_READ_UINT32(ptr)   (__builtin_bswap32(*((uint32_t*)(ptr))))
-  #else
+#  if defined(__GNUC__) && (__GNUC__>4 || (__GNUC__==4 && __GNUC_MINOR__>=3))
+#    define __INA_HASH_MURMUR_READ_UINT32(ptr)   (__builtin_bswap32(*((uint32_t*)(ptr))))
+#  else
     /* Without a known fast bswap32 we're just as well off doing this */
-    #define __INA_HASH_MURMUR_READ_UINT32(ptr)   (ptr[0]|ptr[1]<<8|ptr[2]<<16|ptr[3]<<24)
-    #define __INA_HASH_MURMUR_UNALIGNED_SAFE
-  #endif
+#    define __INA_HASH_MURMUR_READ_UINT32(ptr)   (ptr[0]|ptr[1]<<8|ptr[2]<<16|ptr[3]<<24)
+#    define __INA_HASH_MURMUR_UNALIGNED_SAFE
+#  endif
 #else
   /* Unknown endianess so last resort is to read individual bytes */
-  #define __INA_HASH_MURMUR_READ_UINT32(ptr)   (ptr[0]|ptr[1]<<8|ptr[2]<<16|ptr[3]<<24)
+#  define __INA_HASH_MURMUR_READ_UINT32(ptr)   (ptr[0]|ptr[1]<<8|ptr[2]<<16|ptr[3]<<24)
   /* Since we're not doing word-reads we can skip the messing about with realignment */
-  #define __INA_HASH_MURMUR_UNALIGNED_SAFE
+#  define __INA_HASH_MURMUR_UNALIGNED_SAFE
 #endif
 
 /* Core murmurhash algorithm macros */
@@ -713,9 +713,9 @@ INA_API(uint32_t) ina_hash_32_murmur3(uint32_t hash, const void *data, size_t si
  */
 
 #if INA_LITTLE_ENDIAN == 1
-    #define __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS 1
+#define __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS 1
 #else
-    #define __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS 0
+#define __INA_HASH_SPOOKY_ALLOW_UNALIGNED_READS 0
 #endif
 
 #define __INA_HASH_SPOOKY_SC_NUMVARS      12

@@ -173,7 +173,6 @@ INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
     pctx->id = 0;
     pctx->type = INA_ULLC_CTX_PRODUCER;
     pctx->ws = ws;
-    pctx->ring = pctx->ring;
     pctx->data = ((unsigned char*)pctx->ring) + sizeof(ina_ullc_rb_t);
     pctx->c_offset = (ina_ullc_cursor_t*)&pctx->data[(pctx->ring->slots)*pctx->ring->size];
     pctx->p_offset = &pctx->c_offset[num_consumers];
@@ -243,7 +242,7 @@ INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx)
 
 INA_API(void) ina_ullc_producer_free(ina_ullc_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
     INA_ASSERT_EQUAL(INA_ULLC_CTX_PRODUCER, (*ctx)->type);
     
     INA_ATOMIC_SWAP(&(*ctx)->p_offset->alive,1,0);
@@ -352,7 +351,6 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
     ccxt->type = INA_ULLC_CTX_CONSUMER;
     ccxt->ws = INA_ULLC_WS_NONE;
     ccxt->sem_handle = 0;
-    ccxt->ring = ccxt->ring;
     ccxt->data = ((unsigned char*)ccxt->ring) + sizeof(ina_ullc_rb_t);
     cons = (ina_ullc_cursor_t*)&ccxt->data[(ccxt->ring->slots)*ccxt->ring->size];
     while (ccxt->id < num_consumers) {
@@ -380,7 +378,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_new(int version, size_t size,
 
 INA_API(void) ina_ullc_consumer_free(ina_ullc_ctx_t **ctx)
 {
-    INA_FREE_CHECK(ctx);
+    INA_VERIFY_FREE(ctx);
     INA_ASSERT(INA_ULLC_CTX_CONSUMER == (*ctx)->type);
 
     INA_ATOMIC_SWAP(&(*ctx)->c_offset->alive,1,0);
@@ -621,7 +619,7 @@ __ina_sem_makekey(ina_ullc_rb_t *rb, const char *name)
 
     semkey = ina_str_new_fromcstr(name);
     semkey = ina_str_catcstr(semkey, "_sem");
-    strcpy(rb->semkey, ina_str_cstr(semkey));
+    strncpy(rb->semkey, ina_str_cstr(semkey), MAX_PATH);
     return INA_SUCCESS;
 }
 

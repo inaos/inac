@@ -41,7 +41,15 @@ if exist minilua.exe.manifest^
 minilua %DASM% -LN %DASMFLAGS% -o host\buildvm_arch.h vm_x86.dasc
 @if errorlevel 1 goto :BAD
 
-%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm*.c
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_asm.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_fold.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_lib.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% /I "." /I %DASMDIR% host\buildvm_peobj.c
 @if errorlevel 1 goto :BAD
 %LJLINK% /out:buildvm.exe buildvm*.obj
 @if errorlevel 1 goto :BAD
@@ -76,7 +84,15 @@ buildvm -m folddef -o lj_folddef.h lj_opt_fold.c
 @if errorlevel 1 goto :BAD
 @goto :MTDLL
 :STATIC
-%LJCOMPILE% lj_*.c lib_*.c
+%LJCOMPILE% lib_aux.c lib_base.c lib_bit.c lib_debug.c lib_ffi.c lib_init.c lib_io.c lib_jit.c lib_math.c lib_os.c lib_package.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% lib_string.c lib_table.c lj_alloc.c lj_api.c lj_asm.c lj_bc.c lj_bcread.c lj_bcwrite.c lj_carith.c lj_ccall.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% lj_ccallback.c lj_cconv.c lj_cdata.c lj_char.c lj_clib.c lj_cparse.c lj_crecord.c lj_ctype.c lj_debug.c lj_dispatch.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% lj_err.c lj_ffrecord.c lj_func.c lj_gc.c lj_gdbjit.c lj_ir.c lj_lex.c lj_lib.c lj_load.c lj_mcode.c lj_meta.c lj_obj.c lj_opt_dce.c lj_opt_fold.c lj_opt_loop.c
+@if errorlevel 1 goto :BAD
+%LJCOMPILE% lj_opt_mem.c lj_opt_narrow.c lj_opt_sink.c lj_opt_split.c lj_parse.c lj_record.c lj_snap.c lj_state.c lj_str.c lj_strscan.c lj_tab.c lj_trace.c lj_udata.c lj_vmevent.c lj_vmmath.c
 @if errorlevel 1 goto :BAD
 %LJLIB% /OUT:%LJLIBNAME% lj_*.obj lib_*.obj
 @if errorlevel 1 goto :BAD

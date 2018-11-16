@@ -81,17 +81,17 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
 
     if (!__tap && !__junit) {
         if (is_error != INA_YES) {
-            size = sprintf(__errormsg, "%s", "     MSG: ");
+            size = snprintf(__errormsg, __errorsize, "%s", "     MSG: ");
         } else {
-            size = sprintf(__errormsg, "%s", "ERR: ");
+            size = snprintf(__errormsg, __errorsize, "%s", "ERR: ");
         }
     } else if (__tap) {
-        size = sprintf(__errormsg, "%s", "# ");
+        size = snprintf(__errormsg, __errorsize, "%s", "# ");
     } else if (__junit) {
         if (is_error) {
-            size = sprintf(__errormsg, "%s", "\t\t\t<failure message=\"");
+            size = snprintf(__errormsg, __errorsize, "%s", "\t\t\t<failure message=\"");
         } else {
-            size = sprintf(__errormsg, "%s", "\t\t\t<system-out>");
+            size = snprintf(__errormsg, __errorsize, "%s", "\t\t\t<system-out>");
         }
     }
  
@@ -105,12 +105,12 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
      __errormsg += size;
 
      if (!__junit) {
-         size = sprintf(__errormsg, "%s", "\n");
+         size = snprintf(__errormsg, __errorsize, "%s", "\n");
      } else {
          if (is_error) {
-             size = sprintf(__errormsg, "%s", "\"></failure>\n");
+             size = snprintf(__errormsg, __errorsize, "%s", "\"></failure>\n");
          } else {
-             size = sprintf(__errormsg, "%s", "</system-out>\n");
+             size = snprintf(__errormsg, __errorsize, "%s", "</system-out>\n");
          }
      }
      __errorsize -= size;
@@ -201,7 +201,7 @@ INA_API(void) ina_test_assert_equal_uint64(uint64_t exp, uint64_t real, const ch
 INA_API(void) ina_test_assert_equal_floating(double exp, double real, const char *caller, 
                 int line) 
 {
-    if (exp != real) {
+    if (!ina_util_dbl_cmp_abs(exp, real)) {
         INA_TEST_ERR("%s:%d  expected %f, got %f", caller, line, exp, real);
         longjmp(__err, 1);
     }
@@ -303,6 +303,21 @@ INA_API(void) ina_test_assert_false(int real, const char *caller, int line)
     }
 }
 
+INA_API(void) ina_test_assert_failed(ina_rc_t real, const char *caller, int line)
+{
+    if (!(real&(INA_ERR_ERROR))) {
+        INA_TEST_ERR("%s:%d  should be failed", caller, line);
+        longjmp(__err, 1);
+    }
+}
+
+INA_API(void) ina_test_assert_succeed(ina_rc_t real, const char *caller, int line)
+{
+    if (real&(INA_ERR_ERROR)) {
+        INA_TEST_ERR("%s:%d  should be succeed", caller, line);
+        longjmp(__err, 1);
+    }
+}
 INA_API(void) ina_test_assert_fail(const char *caller, int line)
 { 
     INA_TEST_ERR("%s:%d  shouldn't come here", caller, line);
@@ -384,16 +399,18 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     /* Start a in-situ helper */
     if (suite_name != NULL) {
         GetModuleFileName(NULL, exepath, MAX_PATH-1);
-        sprintf(cmdline, "\"%s\" -h %s %s ", exepath, suite_name, helper_name);
+        snprintf(cmdline, MAX_PATH - 1, "\"%s\" -h %s %s ", exepath, suite_name, helper_name);
     /* .. or an external one if non suite name is NULL */
     } else {
-        sprintf(cmdline, "\"%s\" ", helper_name);
+        snprintf(cmdline, MAX_PATH - 1, "\"%s\" ", helper_name);
     }
     /* Append arguments */
     n = 0;
     while(args[n++]) {
-         strcat(cmdline, args[n-1]);
-         strcat(cmdline, " ");
+        size_t curlen = strlen(cmdline);
+        strncat(cmdline, args[n-1], MAX_PATH - curlen - 1);
+        curlen = strlen(cmdline);
+        strncat(cmdline, " ", MAX_PATH - curlen - 1);
     }
     ina_mem_set(&si, 0, sizeof(si));
     ina_mem_set(&pi, 0, sizeof(pi));
@@ -475,12 +492,14 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     }
     end++;
 
-     for (test = begin; test != end; test++) {
-        if (test == &__ina_test_suite_test) {
-            continue;
-        }
-        if (filter(test)) {
-            test->run(&retval, argc, argv);
+    if (begin && end) {
+        for (test = begin; test != end; test++) {
+            if (test == &__ina_test_suite_test) {
+                continue;
+            }
+            if (filter(test)) {
+                test->run(&retval, argc, argv);
+            }
         }
     }
     return retval;
@@ -564,91 +583,98 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
         printf("<testsuites tests=\"%d\">\n", total);
         printf("\t<testsuite tests=\"%d\">\n", total);
     }
- 
-    for (test = begin; test != end; test++) {
-        if (test == &__ina_test_suite_test) {
-            continue;
-        }
-        if (filter(test)) {
-            __errorbuffer[0] = 0;
-            __errorsize = __INA_MSG_SIZE-1;
-            __errormsg = __errorbuffer;
-            if (!__tap && !__junit) {
-                printf("TEST %d/%d %s:%s ", index, total, test->suite_name, test->test_name);
-                fflush(stdout);
-            } else if (__junit) {
-                printf("\t\t<testcase name=\"%s:%s\">\n", test->suite_name, test->test_name);
+
+    if (begin && end) {
+        for (test = begin; test != end; test++) {
+            if (test == &__ina_test_suite_test) {
+                continue;
             }
-            if (test->skip) {
+            if (filter(test)) {
+                __errorbuffer[0] = 0;
+                __errorsize = __INA_MSG_SIZE - 1;
+                __errormsg = __errorbuffer;
                 if (!__tap && !__junit) {
-                    ina_cio_printf(-1,-1, INA_CIO_COLOR_YELLOW, 
-                        INA_CIO_COLOR_UNDEFINED, 
-                        "[SKIPPED]\n");                    
-                } else if (__tap) {
-                    printf("ok %d %s:%s # skip \n", index, test->suite_name, test->test_name); 
+                    printf("TEST %d/%d %s:%s ", index, total, test->suite_name,
+                           test->test_name);
+                    fflush(stdout);
                 } else if (__junit) {
-                    printf("\t\t\t<skipped/>\n");
+                    printf("\t\t<testcase name=\"%s:%s\">\n", test->suite_name,
+                           test->test_name);
                 }
-                num_skip++;
-            } else {
-                void* old_sigabrt_handler = NULL;
-                void* old_sigsegv_handler = NULL;
-#ifdef INA_OS_OSX
-                if (!test->setup) {
-                    test->setup = __ina_find_symbol(test, "setup");
-                }
-                if (!test->teardown) {
-                    test->teardown = __ina_find_symbol(test, "teardown");
-                }
-#endif
-                if (test->setup) {
-                    test->setup(test->data);
-                }
-                INA_DISABLE_WARNING_MSVC(4152);
-                old_sigabrt_handler = signal(SIGABRT, __ina_signal_handler);
-                old_sigsegv_handler = signal(SIGSEGV, __ina_signal_handler);
-                INA_ENABLE_WARNING_MSVC(4152);
-
-                if (setjmp(__err) == 0) {
-                    if (test->data) {
-                        test->run(test->data);
-                    } else {
-                        test->run();
-                    }
+                if (test->skip) {
                     if (!__tap && !__junit) {
-                        ina_cio_printf(-1,-1, INA_CIO_COLOR_GREEN, 
-                            INA_CIO_COLOR_UNDEFINED, 
-                            "[OK]\n");
+                        ina_cio_printf(-1, -1, INA_CIO_COLOR_YELLOW,
+                                       INA_CIO_COLOR_UNDEFINED,
+                                       "[SKIPPED]\n");
                     } else if (__tap) {
-                        printf("ok %d %s:%s\n", index, test->suite_name, test->test_name);
+                        printf("ok %d %s:%s # skip \n", index, test->suite_name,
+                               test->test_name);
+                    } else if (__junit) {
+                        printf("\t\t\t<skipped/>\n");
                     }
-                    num_ok++;
+                    num_skip++;
                 } else {
-                    if (!__tap && !__junit) {
-                        ina_cio_printf(-1,-1, INA_CIO_COLOR_RED, 
-                            INA_CIO_COLOR_UNDEFINED, 
-                            "[FAIL]\n");
-                    } else if (__tap){
-                        printf("not ok %d %s:%s\n", index, test->suite_name, test->test_name);
+                    void *old_sigabrt_handler = NULL;
+                    void *old_sigsegv_handler = NULL;
+    #ifdef INA_OS_OSX
+                    if (!test->setup) {
+                        test->setup = __ina_find_symbol(test, "setup");
                     }
-                    num_fail++;
-                }
-                INA_DISABLE_WARNING_MSVC(4152);
-                signal(SIGABRT, old_sigabrt_handler);
-                signal(SIGSEGV, old_sigsegv_handler);
-                INA_ENABLE_WARNING_MSVC(4152);
-                if (test->teardown) {
-                    test->teardown(test->data);
-                }
+                    if (!test->teardown) {
+                        test->teardown = __ina_find_symbol(test, "teardown");
+                    }
+    #endif
+                    if (test->setup) {
+                        test->setup(test->data);
+                    }
+                    INA_DISABLE_WARNING_MSVC(4152);
+                    old_sigabrt_handler = signal(SIGABRT, __ina_signal_handler);
+                    old_sigsegv_handler = signal(SIGSEGV, __ina_signal_handler);
+                    INA_ENABLE_WARNING_MSVC(4152);
 
-                if (__errorsize != __INA_MSG_SIZE-1) {
-                    printf("%s", __errorbuffer);
+                    if (setjmp(__err) == 0) {
+                        if (test->data) {
+                            test->run(test->data);
+                        } else {
+                            test->run();
+                        }
+                        if (!__tap && !__junit) {
+                            ina_cio_printf(-1, -1, INA_CIO_COLOR_GREEN,
+                                           INA_CIO_COLOR_UNDEFINED,
+                                           "[OK]\n");
+                        } else if (__tap) {
+                            printf("ok %d %s:%s\n", index, test->suite_name,
+                                   test->test_name);
+                        }
+                        num_ok++;
+                    } else {
+                        if (!__tap && !__junit) {
+                            ina_cio_printf(-1, -1, INA_CIO_COLOR_RED,
+                                           INA_CIO_COLOR_UNDEFINED,
+                                           "[FAIL]\n");
+                        } else if (__tap) {
+                            printf("not ok %d %s:%s\n", index, test->suite_name,
+                                   test->test_name);
+                        }
+                        num_fail++;
+                    }
+                    INA_DISABLE_WARNING_MSVC(4152);
+                    signal(SIGABRT, old_sigabrt_handler);
+                    signal(SIGSEGV, old_sigsegv_handler);
+                    INA_ENABLE_WARNING_MSVC(4152);
+                    if (test->teardown) {
+                        test->teardown(test->data);
+                    }
+
+                    if (__errorsize != __INA_MSG_SIZE - 1) {
+                        printf("%s", __errorbuffer);
+                    }
                 }
+                if (__junit) {
+                    printf("\t\t</testcase>\n");
+                }
+                index++;
             }
-            if (__junit) {
-                printf("\t\t</testcase>\n");
-            }
-            index++;
         }
     }
 

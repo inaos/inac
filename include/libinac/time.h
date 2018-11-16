@@ -47,22 +47,20 @@ typedef struct ina_time_tsc_s {
 
 
 #ifdef INA_OS_WIN32
-    #define INA_TIME_RDTSC(counter)  counter.uint64 = __rdtsc()
+#define INA_TIME_RDTSC(counter)  counter.uint64 = __rdtsc()
 #else
 #if defined(INA_CPU_X86_64)
-    #define INA_TIME_RDTSC(counter) \
+#define INA_TIME_RDTSC(counter) \
         INA_ASM INA_VOLATILE ("rdtsc" : "=a" ((counter).uint32.lo), "=d"((counter).uint32.hi))
 #elif defined(INA_CPU_X86) 
-    #define INA_TIME_RDTSC(counter) \
+#define INA_TIME_RDTSC(counter) \
         INA_ASM rdtsc \
         INA_ASM mov (counter).uint32.lo, eax \
         INA_ASM mov (counter).uint32.hi, edx
 #else
-    #error RDTCS not supported
+#error RDTCS not supported
 #endif
 #endif
-
-
 
 typedef enum ina_time_resolution_e {
   INA_TIME_RESOLUTION_DFT = -1,

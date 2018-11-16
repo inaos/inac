@@ -17,4 +17,3 @@ High level objectives:
 * Fully documented
 
 To learn more about INAOS Common C Library, please see the Manual.
-

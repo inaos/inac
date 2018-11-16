@@ -216,7 +216,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                                 n++;
                             }
                         } else {
-                            strcpy(buf, &argv[n][vs]);
+                            strncpy(buf, &argv[n][vs], strlen(&argv[n][vs]));
                             so->value = ina_str_new_fromcstr(buf);
                         }
                     } else {
@@ -247,7 +247,12 @@ INA_API(ina_rc_t) ina_init(void)
     WSADATA wsaData;
 #endif
 
-    INA_INIT_GUARD();
+	static int __initialized = 0;
+	if (__initialized) {
+		return INA_SUCCESS;
+	}
+	__initialized = 1;
+
     ina_err_init();
 
     if (atexit(ina_exit) == -1) {

@@ -9,8 +9,9 @@
 #include <stdlib.h>
 #include <libinac/lib.h>
 
-
-size_t j = 0, p = 0, temp = 0;
+size_t j = 0;
+size_t p = 0;
+size_t temp = 0;
 
 static void quicksort(double *input, size_t *position, size_t k, size_t m)
 {

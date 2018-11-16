@@ -558,9 +558,9 @@ INA_API(ina_rc_t) ina_cpu_init()
 INA_API(void) ina_cpu_destroy()
 {
 	INA_DESTROY_GUARD();
-	INA_FREE_CHECK(&__ina_cpu_ctx);
-    INA_STR_FREE_SAFE(__ina_cpu_ctx->vendor);
-	INA_STR_FREE_SAFE(__ina_cpu_ctx->brand);
+	INA_VERIFY_FREE(&__ina_cpu_ctx);
+    ina_str_free(__ina_cpu_ctx->vendor);
+	ina_str_free(__ina_cpu_ctx->brand);
 	INA_MEM_FREE_SAFE(__ina_cpu_ctx);
 }
 

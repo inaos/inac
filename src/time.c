@@ -226,7 +226,7 @@ INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
 
 INA_API(void) ina_time_tsc_free(ina_time_tsc_t **time)
 {
-    INA_FREE_CHECK(time);
+    INA_VERIFY_FREE(time);
     INA_MEM_FREE_SAFE(*time);
 }
 
@@ -339,7 +339,7 @@ INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
 
     if (show_nanos) {
         char bs[15];
-        sprintf(bs, "%09ld", nanos);
+        snprintf(bs, 14,"%09ld", nanos);
         if (ina_str_len(buf) > 0) {
             buf = ina_str_catcstr(buf,".");
         }

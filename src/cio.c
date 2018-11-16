@@ -19,31 +19,33 @@ static int __ina_get_cursor_pos(ina_cio_pos_t *pos);
 #ifdef INA_OS_WIN32
 #include <io.h>
 
-static short int __fg_colors[INA_CIO_COLOR_UNDEFINED + 1];
-static short int __bg_colors[INA_CIO_COLOR_UNDEFINED + 1 ];
+static short int __fg_colors[] = {
+    0,
+    FOREGROUND_BLUE,
+    FOREGROUND_RED,
+    FOREGROUND_BLUE | FOREGROUND_RED,
+    FOREGROUND_GREEN,
+    FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+    FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY,
+    FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED,
+    FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED,
+    0
+};
 
-static void __ina_init_colors(void)
-{
-    __fg_colors[INA_CIO_COLOR_BLACK]     = 0;
-    __fg_colors[INA_CIO_COLOR_BLUE]      = FOREGROUND_BLUE;
-    __fg_colors[INA_CIO_COLOR_RED]       = FOREGROUND_RED;
-    __fg_colors[INA_CIO_COLOR_MAGENTA]   = FOREGROUND_BLUE | FOREGROUND_RED;
-    __fg_colors[INA_CIO_COLOR_GREEN]     = FOREGROUND_GREEN;
-    __fg_colors[INA_CIO_COLOR_CYAN]      = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-    __fg_colors[INA_CIO_COLOR_YELLOW]    = FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
-    __fg_colors[INA_CIO_COLOR_WHITE]     = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
-    __fg_colors[INA_CIO_COLOR_UNDEFINED] = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+static short int __bg_colors[] = {
+    0,
+    FOREGROUND_BLUE,
+    FOREGROUND_RED,
+    FOREGROUND_BLUE | FOREGROUND_RED,
+    FOREGROUND_GREEN,
+    FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+    FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY,
+    FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED,
+    FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED,
+    0
+};
 
-    __bg_colors[INA_CIO_COLOR_BLACK]     = 0;
-    __bg_colors[INA_CIO_COLOR_BLUE]      = BACKGROUND_BLUE;
-    __bg_colors[INA_CIO_COLOR_RED]       = BACKGROUND_RED;
-    __bg_colors[INA_CIO_COLOR_MAGENTA]   = BACKGROUND_BLUE | BACKGROUND_RED;
-    __bg_colors[INA_CIO_COLOR_GREEN]     = BACKGROUND_GREEN;
-    __bg_colors[INA_CIO_COLOR_CYAN]      = BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY;
-    __bg_colors[INA_CIO_COLOR_YELLOW]    = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_INTENSITY;
-    __bg_colors[INA_CIO_COLOR_WHITE]     = BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED;
-    __bg_colors[INA_CIO_COLOR_UNDEFINED] = 0;
-}
+
 #else
 #include <termios.h>
 #include <fcntl.h>
@@ -53,37 +55,35 @@ static void __ina_init_colors(void)
 #define _fileno fileno
 #define __INA_RD_EOF   (-1)
 #define __INA_RD_EIO   (-2)
-#define __INA_MAX_CMD_BUFLEN  (32)
 /* ANSI color codes */
 static const char * __CSI = "\033[";
-static const char * __cmd_clear = "2J";
 
-static char __cmd[__INA_MAX_CMD_BUFLEN];
-static char __fg_colors[INA_CIO_COLOR_UNDEFINED + 1][__INA_MAX_CMD_BUFLEN];
-static char __bg_colors[INA_CIO_COLOR_UNDEFINED + 1][__INA_MAX_CMD_BUFLEN];
+static const char* __fg_colors[] = {
+        "\033[30m",
+        "\033[34m",
+        "\033[31m",
+        "\033[35m",
+        "\033[32m",
+        "\033[36m",
+        "\033[33m",
+        "\033[37m",
+        "\033[0m",
+        NULL
+};
 
-static void __ina_init_colors(void)
-{
-    sprintf(__fg_colors[INA_CIO_COLOR_BLACK], "%s%s", __CSI, "30m");
-    sprintf(__fg_colors[INA_CIO_COLOR_BLUE], "%s%s", __CSI, "34m");
-    sprintf(__fg_colors[INA_CIO_COLOR_RED], "%s%s", __CSI, "31m");
-    sprintf(__fg_colors[INA_CIO_COLOR_MAGENTA], "%s%s", __CSI, "35m");
-    sprintf(__fg_colors[INA_CIO_COLOR_GREEN], "%s%s", __CSI, "32m");
-    sprintf(__fg_colors[INA_CIO_COLOR_CYAN], "%s%s", __CSI, "36m");
-    sprintf(__fg_colors[INA_CIO_COLOR_YELLOW], "%s%s", __CSI, "33m");
-    sprintf(__fg_colors[INA_CIO_COLOR_WHITE], "%s%s", __CSI, "37m");
-    sprintf(__fg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "0m");
+static const char *__bg_colors[] = {
+        "\033[40m",
+        "\033[44m",
+        "\033[41m",
+        "\033[45m",
+        "\033[42m",
+        "\033[46m",
+        "\033[43m",
+        "\033[47m",
+        "\033[0m",
+        NULL
+};
 
-    sprintf(__bg_colors[INA_CIO_COLOR_BLACK], "%s%s", __CSI, "40m");
-    sprintf(__bg_colors[INA_CIO_COLOR_BLUE], "%s%s", __CSI, "44m");
-    sprintf(__bg_colors[INA_CIO_COLOR_RED], "%s%s", __CSI, "41m");
-    sprintf(__bg_colors[INA_CIO_COLOR_MAGENTA], "%s%s", __CSI, "45m");
-    sprintf(__bg_colors[INA_CIO_COLOR_GREEN], "%s%s", __CSI, "42m");
-    sprintf(__bg_colors[INA_CIO_COLOR_CYAN], "%s%s", __CSI, "46m");
-    sprintf(__bg_colors[INA_CIO_COLOR_YELLOW], "%s%s", __CSI, "43m");
-    sprintf(__bg_colors[INA_CIO_COLOR_WHITE], "%s%s", __CSI, "47m");
-    sprintf(__bg_colors[INA_CIO_COLOR_UNDEFINED], "%s%s", __CSI, "0m");
-}
 #endif
 
 static ina_cio_attribs_t __attribs;
@@ -91,7 +91,6 @@ static ina_cio_attribs_t __attribs;
 INA_API(ina_rc_t) ina_cio_init(void)
 {
     INA_INIT_GUARD();
-    __ina_init_colors();
     __attribs.fg_color = INA_CIO_COLOR_UNDEFINED;
     __attribs.bg_color = INA_CIO_COLOR_UNDEFINED;
     __attribs.flags = 0;
@@ -136,9 +135,7 @@ INA_API(ina_rc_t) ina_cio_clear(void)
         );
     }
 #else
-    strcpy(__cmd, (char*)__CSI);
-    strcat(__cmd, (char*)__cmd_clear);
-    printf( "%s", __cmd);
+    printf("%s", "\033[2J");
 #endif
     return ina_cio_move_to_row_and_col(0, 0);
 }

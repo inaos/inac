@@ -59,14 +59,14 @@ int main(int argc,  char** argv)
             mb_free = (double)b_free/1024/1024;
             gb_free = mb_free/1024;
             d_total = (double)b_total/1024;
-            strcpy(hdu, "KB");
+            strncpy(hdu, "KB", 3);
             if (b_total > 1024*1024) {
                 d_total = mb_total;
-                strcpy(hdu, "MB");
+                strncpy(hdu, "MB", 3);
             }
             if (b_total > 1024UL*1024UL*1024UL) {
                 d_total = gb_total;
-                strcpy(hdu, "GB");
+                strncpy(hdu, "GB", 3);
             }
             d_free = (double)b_free/1024;
             if (b_free > 1024*1024) {

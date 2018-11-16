@@ -79,12 +79,12 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
  * 
  * Parameters
  *  host   Hostname
- *  ipbuf  Char buffer for ip address
+ *  ip     Char buffer for ip address
  *
  * Return
  *  INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ipbuf);
+INA_API(ina_rc_t) ina_net_resolve(const char *host, ina_str_t ip);
 
 /*
  * Get the null-terminated hostname in the character array host,
@@ -121,7 +121,7 @@ INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bindadd
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_net_tcp_accept(ina_fd_t *fd, ina_fd_t sfd, char *ip, int *port);
+INA_API(ina_rc_t) ina_net_tcp_accept(ina_fd_t *fd, ina_fd_t sfd, ina_str_t ip, int *port);
 
 /*
  * Creates a tcp client socket.

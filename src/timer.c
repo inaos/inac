@@ -54,7 +54,7 @@ INA_API(ina_rc_t) ina_timer_new(ina_timer_t **timer)
 
 INA_API(void) ina_timer_free(ina_timer_t **timer)
 {
-    INA_FREE_CHECK(timer);
+    INA_VERIFY_FREE(timer);
     if ((*timer)->timeouts != NULL) {
         timeouts_close((*timer)->timeouts);
     }

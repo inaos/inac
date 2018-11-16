@@ -143,9 +143,9 @@ INA_TEST(lib, format_specifiers)
     char buf[100];
     uint64_t ui64 = 90;
     int64_t i64 = 90;
-    sprintf(buf, "ui64=%" INA_UINT64_T_FMT, ui64);
+    snprintf(buf, 99, "ui64=%" INA_UINT64_T_FMT, ui64);
     INA_TEST_ASSERT_EQUAL_STR("ui64=90", buf);
-    sprintf(buf, "i64=%" INA_INT64_T_FMT, i64);
+    snprintf(buf, 99, "i64=%" INA_INT64_T_FMT, i64);
     /* FIXME */
     INA_TEST_ASSERT_EQUAL_STR("i64=5a", buf);
 }

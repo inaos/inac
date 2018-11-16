@@ -19,7 +19,7 @@ INA_TEST(mmap, test_init_destroy)
 	INA_TEST_ASSERT_NULL(ctx);
 }
 
-INA_TEST(mmap, test_new_free)
+INA_TEST_SKIP(mmap, test_new_free)
 {
 	ina_mmap_ctx_t *ctx = NULL;
 	ina_mmap_mapping_t *m = NULL;

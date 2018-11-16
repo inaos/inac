@@ -8,12 +8,17 @@
  */
 #include <libinac/lib.h>
 
+#ifdef INA_OS_WIN32
+#define _INA_FILE_TEST_CONF_NAME "tests.exe.conf"
+#else
+#define _INA_FILE_TEST_CONF_NAME "tests.conf"
+#endif
 
 INA_TEST(file, test_open_close)
 {
     ina_file_ctx_t *ctx = NULL;
     ina_file_t *f = NULL;
-    const char *test_file1 = "tests.conf";
+    const char *test_file1 = _INA_FILE_TEST_CONF_NAME;
     const char *test_file2 = "tests2.conf";
     ina_str_t file_path = NULL;
     mode_t mode = 0;
@@ -29,7 +34,7 @@ INA_TEST(file, test_open_close)
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_file_get_filepath(f, &file_path));
     INA_TEST_ASSERT_NOT_NULL(file_path);
-    INA_TEST_ASSERT_EQUAL_STR("tests.conf", file_path);
+    INA_TEST_ASSERT_EQUAL_STR(_INA_FILE_TEST_CONF_NAME, file_path);
     ina_str_free(file_path);
 #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_NOT_NULL(ina_file_os_handle(f));
@@ -62,7 +67,7 @@ INA_TEST(file, stat)
     uint64_t file_size = 0;
     time_t t = 0;
 
-    const char *test_file = "tests.conf";
+    const char *test_file = _INA_FILE_TEST_CONF_NAME;
 
     INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_SUCCEED(ina_file_new(ctx, test_file,
@@ -92,7 +97,7 @@ INA_TEST(file, os_handle)
 {
     ina_file_ctx_t *ctx = NULL;
     ina_file_t *f = NULL;
-    const char *test_file = "tests.conf";
+    const char *test_file = _INA_FILE_TEST_CONF_NAME;
     ina_handle_t h;
     char buf[10];
 #ifdef INA_OS_WIN32
@@ -126,7 +131,7 @@ INA_TEST(file, stream)
 {
     ina_file_ctx_t *ctx = NULL;
     ina_file_t *f = NULL;
-    const char *test_file = "tests.conf";
+    const char *test_file = _INA_FILE_TEST_CONF_NAME;
     FILE *fp;
     char buf[10];
 
@@ -152,7 +157,7 @@ INA_TEST(file, mode)
 {
     ina_file_ctx_t *ctx = NULL;
     ina_file_t *f = NULL;
-    const char *test_file = "tests.conf";
+    const char *test_file = _INA_FILE_TEST_CONF_NAME;
 
     INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
