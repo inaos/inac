@@ -6,6 +6,9 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
+
+#include <libinac/lib.h>
+
 #ifdef INA_OS_WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -32,10 +35,10 @@
 #endif
 
 #ifdef INA_OS_OSX
-#include <net/if_dl.h>
+#include <net/if_dl.h>		/* for the LLADDR macro */
 #endif
 
-#include <libinac/lib.h>
+
 
 #define __INA_SOCKET_TYPE_TCP 1
 #define __INA_SOCKET_TYPE_UDP 2
@@ -756,7 +759,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *buf, size_t buf_len
 {
     struct ifaddrs *iflist, *cur;
     INA_VERIFY_NOT_NULL(ip);
-    INA_VERIFY_NOT_NULL(mac);
+    INA_VERIFY_NOT_NULL(buf);
 
     int found = INA_NO;
     if (getifaddrs(&iflist) == 0) {
@@ -777,6 +780,10 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *buf, size_t buf_len
                     (strcmp(cur->ifa_name, ifa_name) == 0) &&
                     cur->ifa_addr) {
                     struct sockaddr_dl* sdl = (struct sockaddr_dl*)cur->ifa_addr;
+                    if (sdl->sdl_alen > buf_len) {
+                        freeifaddrs(iflist);
+                        return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);
+                    }
                     memcpy(buf, LLADDR(sdl), sdl->sdl_alen);
                     found = INA_YES;
                     break;
