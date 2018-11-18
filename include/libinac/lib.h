@@ -32,6 +32,8 @@ extern "C" {
 #endif
 
 #ifdef _WIN32
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
 #include <windows.h>
 #include <minwindef.h>
 #include <wincon.h>
