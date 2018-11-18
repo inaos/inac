@@ -84,7 +84,7 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
  * Return
  *  INA_SUCCESS if no error occurred.
  */
-INA_API(ina_rc_t) ina_net_resolve(const char *host, ina_str_t ip);
+INA_API(ina_rc_t) ina_net_resolve(const char *host, ina_str_t *ip);
 
 /*
  * Get the null-terminated hostname in the character array host,

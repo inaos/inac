@@ -359,13 +359,14 @@ INA_API(ina_rc_t) ina_net_read(ina_fd_t fd, unsigned char *buf, int nb, int* nb_
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ip)
+INA_API(ina_rc_t) ina_net_resolve(const char *host, ina_str_t* ip)
 {
     struct sockaddr_in sa;
 
     INA_VERIFY_NOT_NULL(host);
     INA_VERIFY_NOT_NULL(ip);
-    INA_VERIFY(ina_str_size(ip) > 32);
+    INA_VERIFY_NOT_NULL(*ip);
+    INA_VERIFY(ina_str_size(*ip) > 32);
 
     sa.sin_family = AF_INET;
     if (inet_aton(host, &sa.sin_addr) == 0) {
@@ -377,8 +378,8 @@ INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ip)
         }
         memcpy(&sa.sin_addr, he->h_addr, sizeof(struct in_addr));
     }
-    ina_str_truncate(ip, 0);
-    ina_str_catcstr(ip, inet_ntoa(sa.sin_addr));
+    ina_str_truncate(*ip, 0);
+    *ip =ina_str_catcstr(*ip, inet_ntoa(sa.sin_addr));
     return INA_SUCCESS;
 }
 
