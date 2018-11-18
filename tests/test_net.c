@@ -180,7 +180,7 @@ INA_TEST(net_local, mac_addr)
     }
 
     /* execute the actual test now that we have an IP address */
-    INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(test_ip, mac));
+    INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(test_ip, mac, 6));
 
     if (test_ip != NULL) {
         free(test_ip);
@@ -211,7 +211,7 @@ INA_TEST(net_local, mac_addr)
     }
 
     if (found) {
-        INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(ip, mac));
+        INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(ip, mac, 6));
         INA_TEST_MSG("MAC address for %s is %02X:%02X:%02X:%02X:%02X:%02X", ip,
                      mac[0],
                      mac[1],

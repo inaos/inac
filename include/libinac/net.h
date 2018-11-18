@@ -79,7 +79,7 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
  * 
  * Parameters
  *  host   Hostname
- *  ip     Char buffer for ip address
+ *  ip     String for ip address
  *
  * Return
  *  INA_SUCCESS if no error occurred.
@@ -92,12 +92,12 @@ INA_API(ina_rc_t) ina_net_resolve(const char *host, ina_str_t ip);
  *
  * Parameters
  *   host  Where to store the hostname
- *   len   Max. length of host.
+ *   len   Max length of host char buffer
  *
  * Return
  *  INA_SUCCESS if all went well.
  */
-INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len);
+INA_API(ina_rc_t) ina_net_hostname(char* host, size_t len);
 
 /*
  * Creates a tcp server socket listening at port and bindaddr.
@@ -105,9 +105,9 @@ INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len);
  * Parameters
  *  fd        Where to store the server socket
  *  port      Port for listening
- *  bindaddr  Bind address
+ *  bind_addr  Bind address
  */
-INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bindaddr);
+INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bind_addr);
 
 /*
  * Accept a new connection on a socket.
@@ -407,7 +407,7 @@ INA_API(ina_rc_t) ina_net_get_ip_from_ifname(const char *ifname, char* ip);
  * Return
  *  INA_SUCCESS if all went well.
  */
-INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac);
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *buf, size_t buf_len);
 
 /*
  * Level triggered readiness notification, good enough for a couple of thousand
