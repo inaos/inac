@@ -52,23 +52,6 @@ typedef struct ina_mempool_info_s {
     size_t chunk_size; /* default chunks size */
 } ina_mempool_info_t;
 
-/* Memory pool events */
-typedef enum ina_mempool_event_e {
-    INA_MEMPOOL_EVENT_GROW,
-    INA_MEMPOOL_EVENT_RELEASE,
-    INA_MEMPOOL_EVENT_RELEASE_AND_DESTROY,
-} ina_mempool_event_t;
-
-/* struct to hold pool event info */
-typedef struct ina_mempool_event_info_s {
-    ina_mempool_event_t event;
-    ina_mempool_t *pool;
-    ina_mempool_info_t info;
-} ina_mempool_event_info_t;
-
-typedef ina_rc_t (*ina_mempool_event_handler_t)
-        (const ina_mempool_event_info_t*, size_t*);
-
 
 /* 
  * Get runtime imformations about a memory pool.

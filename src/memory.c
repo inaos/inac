@@ -21,7 +21,6 @@ struct ina_mempool_s  {
     struct ina_mempool_s *current;
     struct ina_mempool_s *parent;
     struct ina_mempool_s *child;
-    ina_mempool_event_handler_t event_handler;
 };
 
 static ina_rc_t __ina_shm_open(ina_mempool_t *);
