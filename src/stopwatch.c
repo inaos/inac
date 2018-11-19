@@ -96,10 +96,6 @@ INA_API(ina_rc_t) ina_stopwatch_valid(const ina_stopwatch_t *stopwatch)
     if (INA_UNLIKELY(stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart)) {
         return INA_ERROR(INA_ERR_INVALID);
     }
-#elif defined(INA_OS_OSX)
-    if (INA_UNLIKELY(stopwatch->tv->stop.tp < stopwatch->tv->start.tp)) {
-        return INA_ERROR(INA_ERR_INVALID);
-    }
 #else   
     if (INA_UNLIKELY(stopwatch->tv->stop.tp.tv_sec <  stopwatch->tv->start.tp.tv_sec)) {
         return INA_ERROR(INA_ERR_INVALID);
@@ -212,15 +208,6 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
                    (*ts)->stamp.tp.QuadPart;
         }
         stopwatch->ts->duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
-#elif defined(INA_OS_OSX)
-        if (*stamp_index == 0) {
-            stopwatch->ts->duration += ((stopwatch->ts->stamp.tp -
-				    stopwatch->tv->start.tp) / 10000000.0);
-        } else {
-            ina_stopwatch_ts_t *ts = (&(stopwatch->tv->stamps))+(*stamp_index)-1;
-            stopwatch->ts->duration += ((stopwatch->ts->stamp.tp -
-				    ts->stamp.tp) / 10000000.0);         
-        } 
 #else
         if (*stamp_index == 0) {
 
@@ -318,10 +305,6 @@ INA_API(ina_rc_t) ina_stopwatch_stop(ina_stopwatch_t* stopwatch)
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
     elapsed.QuadPart = stopwatch->tv->stop.tp.QuadPart - stopwatch->tv->start.tp.QuadPart; 
     stopwatch->tv->duration = __ina_lit_to_secs(stopwatch->freq_sec, &elapsed);
-#elif defined(INA_OS_OSX)
-    INA_VERIFY_NOT_NULL(stopwatch);
-    ina_time_read_tsc_clock(&stopwatch->tv->stop);
-    stopwatch->tv->duration = (stopwatch->tv->stop.tp - stopwatch->tv->stop.tp) / 1000000000;
 #else
     INA_VERIFY_NOT_NULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);

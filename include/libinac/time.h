@@ -34,8 +34,6 @@ typedef struct ina_time_tsc_s {
     double freq_sec;
     LARGE_INTEGER wref;
     uint64_t wrefhpet;
-#elif defined(INA_OS_OSX)
-    uint64_t tp;
 #else
     struct timespec tp;
 #endif

@@ -14,21 +14,13 @@
 #endif
 #define __INA_TIME_RDTSC_BACKEND_NAME "tsc backend: rdtsc()"
 
-#if defined(INA_OS_OSX)
-# include <mach/mach_time.h>
-#define __INA_TIME_TSC_BACKEND_NAME "tsc backend: mach_absolute_time()"
-#endif
-
-#if defined(INA_OS_LINUX)
+#if defined(INA_OS_LINUX) || defined(INA_OS_OSX)
 #define __INA_TIME_TSC_BACKEND_NAME "tsc backend: clock_gettime()"
 # if defined(CLOCK_MONOTONIC_RAW)
 #  define __INA_CLOCK_TYPE CLOCK_MONOTONIC_RAW
 # else
 #   define __INA_CLOCK_TYPE CLOCK_MONOTONIC
 # endif
-#endif
-#if defined(INA_OS_OSX)
-#  define __INA_CLOCK_TYPE CLOCK_MONOTONIC
 #endif
 
 /* Stopwatch  data */
@@ -366,8 +358,6 @@ __ina_time_tsc_os_read(ina_time_tsc_t *time)
 {
 #ifdef INA_OS_WIN32
     QueryPerformanceCounter(&time->tp);
-#elif defined(INA_OS_OSX)
-     time->tp = mach_absolute_time();
 #else
     if (clock_gettime(__INA_CLOCK_TYPE, &time->tp) == -1) {
         return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
@@ -387,15 +377,6 @@ __ina_time_tsc_os_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos)
     fpart = modf(dsecs, &ipart);
     *secs = (time_t)ipart;
     *nanos = (long)(fpart*1000*1000*1000);
-#elif defined(INA_OS_OSX)
-    int64_t ns;
-    mach_timebase_info_data_t info;
-    mach_timebase_info(&info);
-    ns = (int64_t)(time->tp);
-    ns *= info.numer;
-    ns /= info.denom;
-    *nanos = (long)ns % 1000000000;
-    *secs = (time_t)(ns / 1000000000);
 #else
     uint64_t stamp = (time->tp.tv_sec * 1000000000) + time->tp.tv_nsec;
     uint64_t elapsed = stamp - time->ref;
