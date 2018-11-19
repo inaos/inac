@@ -10,14 +10,7 @@
 #include <libinac/lib.h>
 
 #ifdef INA_OS_WIN32
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-
-#include <winsock2.h>
-#include <windows.h>
-#include <time.h>
-
 #include <Ws2tcpip.h>
-#include <mswsock.h>
 #include <Iphlpapi.h>
 #else
 #include <sys/types.h>
