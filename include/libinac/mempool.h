@@ -52,9 +52,21 @@ typedef struct ina_mempool_info_s {
     size_t chunk_size; /* default chunks size */
 } ina_mempool_info_t;
 
+/*
+ * Initialized memory pool module
+ *
+ * Return
+ *  INA_SUCCES if all went well
+ */
+INA_API(ina_rc_t) ina_mempool_init(void);
 
-/* 
- * Get runtime imformations about a memory pool.
+/*
+ * Destroy memory pool module.
+ */
+INA_API(void) ina_mempool_destroy(void);
+
+/*
+ * Get runtime information about a memory pool.
  *
  * Parameters
  *  pool  Pointer to a memory pool, pass NULL to query system memory pool.
@@ -76,7 +88,7 @@ INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool,
  *  label    Pool label. Optional for non shared memory pools.
  *
  * Return
- *  INA_SUCCESS if pool was craeted successfully.
+ *  INA_SUCCESS if pool was created successfully.
  */
 INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool);
 

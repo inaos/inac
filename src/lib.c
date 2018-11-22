@@ -247,11 +247,7 @@ INA_API(ina_rc_t) ina_init(void)
     WSADATA wsaData;
 #endif
 
-	static int __initialized = 0;
-	if (__initialized) {
-		return INA_SUCCESS;
-	}
-	__initialized = 1;
+    INA_INIT_GUARD();
 
     ina_err_init();
 
@@ -279,6 +275,7 @@ INA_API(ina_rc_t) ina_init(void)
     /* Set unhandled exception handler for windows */
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
+    INA_RETURN_IF_FAILED(ina_mempool_init());
 
     /* initailize hashtable */
     INA_RETURN_IF_FAILED(ina_hashtable_init("hashtable.conf"));
@@ -334,6 +331,7 @@ INA_API(void) ina_exit(void)
 
     ina_hashtable_destroy();
     ina_log_destroy();
+    ina_mempool_destroy();
     ina_err_destroy();
 
 #ifdef INA_OS_WIN32

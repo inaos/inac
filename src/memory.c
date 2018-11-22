@@ -21,11 +21,21 @@ struct ina_mempool_s  {
     struct ina_mempool_s *current;
     struct ina_mempool_s *parent;
     struct ina_mempool_s *child;
+    ina_list_node_t node;
 };
+
+
+static ina_list_t *__pools = NULL;
 
 static ina_rc_t __ina_shm_open(ina_mempool_t *);
 static ina_rc_t __ina_shm_close(ina_mempool_t *);
 
+static ina_rc_t __ina_free_pool(void *data)
+{
+    ina_mempool_t *pool = (ina_mempool_t*)data;
+    ina_mempool_free(&pool);
+    return INA_SUCCESS;
+}
 
 INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
 {
@@ -98,6 +108,19 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
     return INA_SUCCESS;
 }
 
+INA_API(ina_rc_t) ina_mempool_init(void)
+{
+    INA_INIT_GUARD();
+    INA_RETURN_IF_FAILED(ina_list_new(INA_LIST_CF_NOMALLOC, &__pools));
+    return INA_SUCCESS;
+}
+
+INA_API(void) ina_mempool_destroy(void)
+{
+    INA_DESTROY_GUARD();
+    ina_list_foreach(__pools, __ina_free_pool);
+    ina_list_free(&__pools);
+}
 
 INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool)
 {
@@ -144,7 +167,10 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
         *pool = NULL;
         return INA_ERROR(INA_ERR_OUT_OF_MEMORY);
     }
-    INA_TRACE3("New memory pool: %p->%p size = %ld", *pool, (*pool)->m, (*pool)->size);
+    if ((*pool)->cf&INA_MEM_CHILD) {
+        return INA_SUCCESS;
+    }
+    ina_list_insert_tail(__pools, &(*pool)->node);
     return INA_SUCCESS;
 }
 
@@ -159,6 +185,7 @@ INA_API(void) ina_mempool_free(ina_mempool_t **pool)
     if ((*pool)->parent != NULL) {
         (*pool)->parent->child = NULL;
     }
+    INA_MUST_SUCCEED(ina_list_remove(__pools, &(*pool)->node));
 
     (*pool)->current = *pool;
 
@@ -173,6 +200,7 @@ INA_API(void) ina_mempool_free(ina_mempool_t **pool)
         } else {
             ina_mem_free(pm->m);
         }
+
         ina_mem_free(pm);
     }
 }
