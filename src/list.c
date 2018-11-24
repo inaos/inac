@@ -145,6 +145,10 @@ INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max
     INA_VERIFY_NOT_NULL(list);
     ina_mempool_t *mp;
 
+    if (list->cf&INA_LIST_CF_NOMALLOC) {
+        return INA_ERROR(INA_ERR_OPERATION_INVALID);
+    }
+
     if (min_nodes == 0) {
         min_nodes = INA_LIST_DEFAULT_SIZE;
     }
@@ -153,7 +157,11 @@ INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max
         min_nodes = list->count;
     }
 
-    if (INA_FAILED(ina_mempool_new(sizeof(ina_list_node_t) * min_nodes, NULL, INA_MEM_DYNAMIC, &mp))) {
+    if (INA_FAILED(ina_mempool_new(
+            sizeof(ina_list_node_t) * min_nodes,
+            NULL,
+
+            INA_MEM_DYNAMIC, &mp))) {
         return ina_err_get_rc();
     }
 
