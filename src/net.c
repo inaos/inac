@@ -29,6 +29,7 @@
 
 #ifdef INA_OS_OSX
 #include <net/if_dl.h>		/* for the LLADDR macro */
+#include <sys/uio.h>
 #endif
 
 
