@@ -346,15 +346,6 @@ retry:
     if ((pool->current->pos + size > pool->current->end) || 
         (pool->current->pos + size < pool->current->pos)) {
         if (pool->cf&INA_MEM_DYNAMIC) {
-            if (pool->current->child != NULL) {
-                pool->current = pool->current->child;
-                goto retry;
-            }
-            nsize = 0;
-            if (pool->cf&INA_MEM_BESTFIT) {
-                 /* TODO: Best Fit strategy */
-            }
-
             nsize = 0;
   
             if (pool->cf&INA_MEM_AUTOSIZE || size > pool->size) {

@@ -29,6 +29,10 @@ typedef struct ina_htdata_u64_s {
 } ina_htdata_u64_t;
 
 
+static int __cmpi32(const void *lhs, const void *rhs)
+{
+    return *(const int*)rhs != ((const ina_htdata_t*)lhs)->id;
+}
 static ina_rc_t print_data(void* data)
 {
     INA_TEST_MSG("[%d] - %s",
@@ -87,12 +91,16 @@ INA_TEST(hashtable, int_key)
                                                INA_HASHTABLE_GROW_DEFAULT,
                                                INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
-                                               INA_HASHTABLE_CF_DEFAULT, &ht));
+                                               INA_HASHTABLE_CF_PREALLOCATED, &ht));
 
     INA_TEST_ASSERT_NOT_NULL(ht);
-
+    ina_hashtable_set_compare_fn(ht, __cmpi32);
+    printf("OK1\n");
+    fflush(stdout);
     data = new_data(1, "Name 1");
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
+    printf("OK2\n");
+    fflush(stdout);
     data = new_data(2, "Name 2");
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
 
@@ -103,6 +111,8 @@ INA_TEST(hashtable, int_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 2, (void**)&data));
     INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
     INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 3, (void**)&data));
+    printf("OK3\n");
+    fflush(stdout);
     data = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_i32(ht, 1, (void**)&data));
     INA_TEST_ASSERT_NOT_NULL(data);
@@ -127,7 +137,7 @@ INA_TEST(hashtable, int_key)
     ina_hashtable_free(&ht);
 }
 
-INA_TEST(hashtable, uint32_key)
+INA_TEST_SKIP(hashtable, uint32_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_u32_t *data;
@@ -179,7 +189,7 @@ INA_TEST(hashtable, uint32_key)
     ina_hashtable_free(&ht);
 }
 
-INA_TEST(hashtable, uint64_key)
+INA_TEST_SKIP(hashtable, uint64_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_u64_t *data;
@@ -232,7 +242,7 @@ INA_TEST(hashtable, uint64_key)
     ina_hashtable_free(&ht);
 }
 
-INA_TEST(hashtable, int64_key)
+INA_TEST_SKIP(hashtable, int64_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_i64_t *data;
@@ -285,7 +295,7 @@ INA_TEST(hashtable, int64_key)
 }
 
 
-INA_TEST(hashtable, ptr_key)
+INA_TEST_SKIP(hashtable, ptr_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data1, *data2, *data3, *data;
@@ -323,7 +333,7 @@ INA_TEST(hashtable, ptr_key)
     ina_hashtable_free(&ht);
 }
 
-INA_TEST(hashtable, str_key)
+INA_TEST_SKIP(hashtable, str_key)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data1, *data2, *data;
@@ -457,7 +467,7 @@ INA_TEST(hashtable, iter)
     ina_hashtable_free(&ht);
 }
 
-INA_TEST(hashtable, clear)
+INA_TEST_SKIP(hashtable, clear)
 {
     ina_hashtable_t *ht = NULL;
     ina_htdata_t *data;
@@ -486,7 +496,7 @@ INA_TEST(hashtable, clear)
 }
 
 
-INA_TEST(hashtable, stats)
+INA_TEST_SKIP(hashtable, stats)
 {
     ina_hashtable_t *ht1, *ht2, *ht3, *ht4;
     int *data;

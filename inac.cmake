@@ -1032,6 +1032,8 @@ endfunction()
 inac_detect_host_arch()
 if (NOT INAC_TARGET_ARCH)
     inac_set_target_arch(${INAC_HOST_ARCH})
+else()
+    message(STATUS "Taget architecture: ${INAC_TARGET_ARCH}")
 endif()
 
 if (NOT INAC_REPOSITORY)

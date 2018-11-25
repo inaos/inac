@@ -228,6 +228,7 @@ INA_API(ina_rc_t) ina_list_tail(ina_list_t *list, ina_list_node_t **node)
     INA_VERIFY_NOT_NULL(list);
     INA_VERIFY_NOT_NULL(node);
     if (list->head == NULL) {
+        *node = NULL;
         return INA_ERROR(INA_ERR_EMPTY);
     }
     *node = list->head;
@@ -275,7 +276,7 @@ INA_API(ina_rc_t) ina_list_insert_tail(ina_list_t *list, ina_list_node_t *node)
 
 INA_API(ina_rc_t) ina_list_remove(ina_list_t *list, ina_list_node_t *node)
 {
-    ina_list_node_t *head;
+    ina_list_node_t *head = NULL;
     INA_VERIFY_NOT_NULL(node);
     ina_list_head(list, &head);
 
