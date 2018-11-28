@@ -88,8 +88,6 @@ INA_TEST(hashtable, int_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                                INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
-                                               INA_HASHTABLE_GROW_DEFAULT,
-                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_PREALLOCATED, &ht));
 
@@ -147,8 +145,6 @@ INA_TEST_SKIP(hashtable, uint32_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT32_KEY,
                                                INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
-                                               INA_HASHTABLE_GROW_DEFAULT,
-                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_DEFAULT, &ht));
 
@@ -199,8 +195,6 @@ INA_TEST_SKIP(hashtable, uint64_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT64_KEY,
                                                INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
-                                               INA_HASHTABLE_GROW_DEFAULT,
-                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_DEFAULT, &ht));
 
@@ -252,8 +246,6 @@ INA_TEST_SKIP(hashtable, int64_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT64_KEY,
                                                INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
-                                               INA_HASHTABLE_GROW_DEFAULT,
-                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_DEFAULT, &ht));
 
@@ -304,8 +296,6 @@ INA_TEST_SKIP(hashtable, ptr_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
                                                INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
-                                               INA_HASHTABLE_GROW_DEFAULT,
-                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_DEFAULT, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
@@ -343,8 +333,6 @@ INA_TEST_SKIP(hashtable, str_key)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                                INA_HASH32_SPOOKY,
                                                INA_HASHTABLE_TYPE_DEFAULT,
-                                               INA_HASHTABLE_GROW_DEFAULT,
-                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_DEFAULT, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
@@ -383,8 +371,6 @@ INA_TEST(hashtable, iter)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                                INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
-                                               INA_HASHTABLE_GROW_DEFAULT,
-                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_DEFAULT, &ht));
     INA_TEST_ASSERT_NOT_NULL(ht);
@@ -476,8 +462,6 @@ INA_TEST_SKIP(hashtable, clear)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                                INA_HASH_DEFAULT,
                                                INA_HASHTABLE_TYPE_DEFAULT,
-                                               INA_HASHTABLE_GROW_DEFAULT,
-                                               INA_HASHTABLE_SHRINK_DEFAULT,
                                                INA_HASHTABLE_DEFAULT_CAPACITY,
                                                INA_HASHTABLE_CF_DEFAULT, &ht));
 
@@ -511,24 +495,18 @@ INA_TEST_SKIP(hashtable, stats)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                               INA_HASH32_SDBM,
                                               INA_HASHTABLE_TYPE_DEFAULT,
-                                              INA_HASHTABLE_GROW_DEFAULT,
-                                              INA_HASHTABLE_SHRINK_DEFAULT,
                                               1024,
                                               INA_HASHTABLE_CF_STAT|INA_HASHTABLE_CF_PREALLOCATED, &ht1));
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                               INA_HASH_DEFAULT,
                                               INA_HASHTABLE_TYPE_DEFAULT,
-                                              INA_HASHTABLE_GROW_DEFAULT,
-                                              INA_HASHTABLE_SHRINK_DEFAULT,
                                               INA_HASHTABLE_DEFAULT_CAPACITY,
                                               INA_HASHTABLE_CF_STAT, &ht2));
 
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                               INA_HASH32_MEMMASH,
                                               INA_HASHTABLE_TYPE_DEFAULT,
-                                              INA_HASHTABLE_GROW_DEFAULT,
-                                              INA_HASHTABLE_SHRINK_DEFAULT,
                                               INA_HASHTABLE_DEFAULT_CAPACITY,
                                               INA_HASHTABLE_CF_STAT, &ht3));
 
@@ -536,8 +514,6 @@ INA_TEST_SKIP(hashtable, stats)
     INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
                                               INA_HASH32_LOOKUP3,
                                               INA_HASHTABLE_TYPE_DEFAULT,
-                                              INA_HASHTABLE_GROW_DEFAULT,
-                                              INA_HASHTABLE_SHRINK_DEFAULT,
                                               INA_HASHTABLE_DEFAULT_CAPACITY,
                                               INA_HASHTABLE_CF_STAT|INA_HASHTABLE_CF_PREALLOCATED, &ht4));
 

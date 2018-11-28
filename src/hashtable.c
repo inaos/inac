@@ -187,8 +187,6 @@ INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, 
     return ina_hashtable_new(key_type,
             htc.hash_type,
             INA_HASHTABLE_TYPE_DEFAULT,
-            INA_HASHTABLE_GROW_DEFAULT,
-            INA_HASHTABLE_SHRINK_DEFAULT,
             htc.capacity,
             htc.cf,
             ht);
@@ -197,8 +195,6 @@ INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, 
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                     ina_hash_type_t hash_type,
                                     ina_hashtable_type_t type,
-                                    ina_hashtable_growth_strategy_t growth_strategy,
-                                    ina_hashtable_shrink_strategy_t shrink_strategy,
                                     size_t capacity,
                                     uint32_t  cf,
                                     ina_hashtable_t **ht)
@@ -211,8 +207,6 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
     INA_VERIFY(capacity <= INT_MAX);
 
     INA_UNUSED(type);
-    INA_UNUSED(growth_strategy);
-    INA_UNUSED(shrink_strategy);
 
     *ht = ina_mem_alloc(sizeof(ina_hashtable_t));
     INA_RETURN_IF_NULL(*ht);

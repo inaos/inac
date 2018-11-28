@@ -40,16 +40,6 @@ typedef enum ina_hashtable_key_type_e {
     INA_HASHTABLE_PTR_KEY,
 } ina_hashtable_key_type_t;
 
-typedef enum ina_hashtable_growth_strategy_e {
-    INA_HASHTABLE_GROW_DEFAULT = -1,
-    INA_HASHTABLE_GROW_NEVER,
-} ina_hashtable_growth_strategy_t;
-
-
-typedef enum ina_hashtable_shrink_strategy_e {
-    INA_HASHTABLE_SHRINK_DEFAULT = -1,
-    INA_HASHTABLE_SHRINK_NEVER,
-} ina_hashtable_shrink_strategy_t;
 
 
 /* opaque hash table types */
@@ -82,8 +72,6 @@ INA_API(void) ina_hashtable_set_compare_fn(ina_hashtable_t *ht, ina_compare_fn_t
 INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
                                     ina_hash_type_t hash_type,
                                     ina_hashtable_type_t type,
-                                    ina_hashtable_growth_strategy_t growth_strategy,
-                                    ina_hashtable_shrink_strategy_t shrink_strategy,
                                     size_t capacity,
                                     uint32_t  cf,
                                     ina_hashtable_t **ht);
