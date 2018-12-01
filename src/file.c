@@ -179,7 +179,7 @@ INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode)
     INA_VERIFY_NOT_NULL(ctx);
     *ctx = (ina_file_ctx_t*)ina_mem_alloc(sizeof(ina_file_ctx_t));
     INA_RETURN_IF_NULL(ctx);
-    ina_mem_set(*ctx, 0, sizeof(ina_file_ctx_t));
+    INA_MEM_SET_ZERO(*ctx, ina_file_ctx_t);
 
     (*ctx)->default_mode = default_mode;
     if ((*ctx)->default_mode == 0) {
