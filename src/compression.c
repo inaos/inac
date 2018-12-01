@@ -282,14 +282,9 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
         *state = (ina_compression_state_t*)ina_mem_alloc(sizeof(struct ina_compression_state_s));
     }
     INA_RETURN_IF(*state == NULL);
+    INA_MEM_SET_ZERO(state, ina_compression_state_t);
 
     (*state)->type = type;
-    (*state)->chunk_src_len = 0;
-	(*state)->chunk_proposed_dst_len = 0;
-    (*state)->flags = 0;
-	(*state)->initialized = 0;
-	(*state)->finalized = 0;
-	(*state)->more = 0;
     switch (type) {
         case INA_COMPRESSION_TYPE_DEFLATE:
         case INA_COMPRESSION_TYPE_DEFLATE_RAW:
@@ -341,19 +336,11 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_compression_free(ina_compression_state_t **state)
+INA_API(void) ina_compression_free(ina_compression_state_t **state)
 {
-    INA_VERIFY_NOT_NULL(state);
-    INA_VERIFY_NOT_NULL(*state);
-
-    if ((*state)->mempool == NULL) {
-        ina_mem_free((*state)->statedata);
-    }
-
-    ina_mem_free(*state);
-    *state = NULL;
-
-    return INA_SUCCESS;
+    INA_VERIFY_FREE(state);
+    ina_mem_free((*state)->statedata);
+    INA_MEM_FREE_SAFE(*state);
 }
 
 INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state, const unsigned char *src,
