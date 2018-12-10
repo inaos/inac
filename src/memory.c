@@ -44,7 +44,7 @@ static ina_rc_t __ina_free_chunk(void *data, void *arg)
 {
     ina_mempool_chunk_t* chunk = (ina_mempool_chunk_t*)data;
     ina_mempool_t *pool = (ina_mempool_t*)arg;
-    if (pool->cf&INA_MEM_SHARED) {
+    if (pool->shm_handle) {
         __ina_shm_close(pool);
         pool->shm_handle = 0;
     } else {
@@ -167,17 +167,21 @@ INA_API(void) ina_mempool_destroy(void)
 INA_INLINE ina_mempool_chunk_t*  __ina_add_chunk(ina_mempool_t *pool, size_t size)
 {
     ina_mempool_chunk_t *chunk = ina_mem_alloc(size);
+    chunk->pos = 0;
     chunk->size = size;
     chunk->end = size;
-    chunk->m =  (unsigned char*)ina_mem_alloc(size);
     chunk->node.data = chunk;
 
-    if (0 == (pool->cf&INA_MEM_NOZEROFILL)) {
-        ina_mem_set(chunk->m, 0, chunk->size);
+    if (pool->cf^INA_MEM_SHARED) {
+        chunk->m = (unsigned char *) ina_mem_alloc(size);
+        if (0 == (pool->cf & INA_MEM_NOZEROFILL)) {
+            ina_mem_set(chunk->m, 0, chunk->size);
+        }
     }
     ina_list_insert_tail(pool->chunks, &chunk->node);
     return chunk;
 }
+
 
 INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool)
 {
@@ -200,13 +204,12 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 
     INA_FAIL_IF_ERROR(ina_list_new(INA_LIST_CF_NOMALLOC, &(*pool)->chunks));
 
-    if (cf&INA_MEM_SHARED) {
-        INA_ASSERT_NOT_NULL((*pool)->label);
+    (*pool)->current = __ina_add_chunk(*pool, size);
+    INA_FAIL_IF((*pool)->current == NULL);
+    if ((*pool)->cf&INA_MEM_SHARED) {
         INA_FAIL_IF_ERROR(__ina_shm_open(*pool));
-    } else {
-        (*pool)->current = __ina_add_chunk(size, cf);
     }
-
+    (*pool)->node.data = *pool;
     ina_list_insert_tail(__pools, &(*pool)->node);
     return INA_SUCCESS;
 
@@ -218,7 +221,7 @@ fail:
 INA_API(void) ina_mempool_free(ina_mempool_t **pool)
 {
     INA_VERIFY_FREE(pool);
-    ina_list_foreach_arg((*pool)->chunks, __ina_free_chunk, pool);
+    ina_list_foreach_arg((*pool)->chunks, __ina_free_chunk, *pool);
     INA_MUST_SUCCEED(ina_list_remove(__pools, &(*pool)->node));
     ina_list_free(&(*pool)->chunks);
     ina_str_free((*pool)->label);
@@ -296,9 +299,9 @@ INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool, ina_mempool_info_t *info
     INA_VERIFY_NOT_NULL(pool);
     INA_VERIFY_NOT_NULL(info);
 
-    INA_MEM_SET_ZERO(&info, ina_mempool_info_t);
+    INA_MEM_SET_ZERO(info, ina_mempool_info_t);
     info->cf = pool->cf;
-    ina_list_foreach_arg(pool->chunks, __ina_chunk_info, &info);
+    ina_list_foreach_arg(pool->chunks, __ina_chunk_info, info);
     --info->children;
     return INA_SUCCESS;
 }
@@ -312,6 +315,7 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 
     if (pool->cf^INA_MEM_BESTFIT) {
         size = INA_MEM_ALIGN(size);
+        /*INA_TRACE("dalloc bytes: %d", size);*/
     }
 
     if ((pool->current->pos + size > pool->current->end) || 
