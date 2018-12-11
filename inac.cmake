@@ -454,7 +454,7 @@ function(inac_add_benchmarks)
                     "#include <libinac/lib.h>\nint main(int argc,  char** argv) {  INA_MUST_SUCCEED(ina_app_init(argc, argv, NULL)); return ina_bench_run(argc, argv);}"
                     )
         endif ()
-        list(APPEND src "${CMAKE_CURRENT_BINARY_DIR}/bench/main.c")
+        list(APPEND src "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
     else ()
         list(APPEND src "${CMAKE_SOURCE_DIR}/bench/main.c")
         message(STATUS "Do NOT generate main.c for benchmarks")
