@@ -46,7 +46,6 @@ static ina_rc_t __ina_free_chunk(void *data, void *arg)
     ina_mempool_t *pool = (ina_mempool_t*)arg;
     if (pool->shm_handle) {
         __ina_shm_close(pool);
-        pool->shm_handle = 0;
     } else {
         ina_mem_free(chunk->m);
     }
@@ -320,6 +319,7 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 
     if ((pool->current->pos + size > pool->current->end) || 
         (pool->current->pos + size < pool->current->pos)) {
+
         if (pool->cf&INA_MEM_DYNAMIC) {
             size_t new_size;
             if (pool->cf&INA_MEM_AUTOSIZE || size > pool->current->size) {
@@ -472,7 +472,6 @@ __ina_shm_open(ina_mempool_t *pool)
     INA_ASSERT_NOT_NULL(pool);
     INA_ASSERT_NOT_NULL(pool->label);
     INA_ASSERT(pool->current->size > 0);
-    INA_ASSERT(pool->cf&INA_MEM_SHARED);
     INA_ASSERT_NULL(pool->current->m);
 
     pool->current->size = INA_MEM_ALIGN(pool->current->size+sizeof(int64_t));
@@ -486,8 +485,9 @@ __ina_shm_open(ina_mempool_t *pool)
         }
     }
 
-    pool->shm_handle = shm_open(ina_str_cstr(pool->label), flags, S_IRUSR | S_IWUSR | S_IWGRP | S_IRGRP | S_IWOTH | S_IROTH);
+    pool->shm_handle = shm_open(pool->label, flags, S_IRUSR | S_IWUSR | S_IWGRP | S_IRGRP | S_IWOTH | S_IROTH);
     if (pool->shm_handle == -1) {
+        pool->shm_handle = 0;
         return INA_OS_ERROR(INA_ES_HANDLE | INA_ERR_INVALID);
     }
 
@@ -496,12 +496,12 @@ __ina_shm_open(ina_mempool_t *pool)
             INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
             close(pool->shm_handle);
             pool->shm_handle = 0;
-            shm_unlink(ina_str_cstr(pool->label));
+            shm_unlink(pool->label);
             return ina_err_get_rc();
        }
     }
 
-    pool->current->m = (void *)mmap(NULL, pool->current->size, PROT_READ|PROT_WRITE,
+    pool->current->m = mmap(NULL, pool->current->size, PROT_READ|PROT_WRITE,
                         MAP_SHARED, 
                         pool->shm_handle, 0);
 
@@ -510,7 +510,7 @@ __ina_shm_open(ina_mempool_t *pool)
         close(pool->shm_handle);
         pool->shm_handle = 0;
         if (pool->cf&INA_MEM_SHARED_EXCL) {
-            shm_unlink(ina_str_cstr(pool->label));
+            shm_unlink(pool->label);
         }
         return ina_err_get_rc();
     }
@@ -550,7 +550,7 @@ __ina_shm_close(ina_mempool_t *pool)
     /* Dec ref count, unlink on last relase */
     if (cn == 0 || pool->cf&INA_MEM_SHARED_EXCL) {
         INA_TRACE2("unlinking shared mem %s", pool->label);
-        shm_unlink(ina_str_cstr(pool->label));
+        shm_unlink(pool->label);
     }
     INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
 
