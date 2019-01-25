@@ -396,7 +396,7 @@ INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_compare_fn_t compare_fn, c
     if (INA_SUCCEED(ina_list_head(list, &next))) {
         while (next) {
             if (0 == compare_fn(next->data, find_arg)) {
-				*node = next->data;
+				*node = next;
                 return INA_SUCCESS;
             }
             next = next->next;
