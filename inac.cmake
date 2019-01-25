@@ -1018,7 +1018,7 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             ADD_CUSTOM_TARGET(${TARGET}
                     COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_INC_PATH} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura:${OUTPUT}.xml -- ${RUNNER}.exe ${ARGV3} & exit 0
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    COMMAND msxsl.exe  "${OUTPUT}.xml" c2s.xsl -o "${OUTPUT}.sonar.xml" source="'${CMAKE_SOURCE_DIR}'"
+                    COMMAND msxsl.exe  "${OUTPUT}.xml" c2s.xsl -o "${OUTPUT}.sonar.xml" source="${CMAKE_SOURCE_DIR}"
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     COMMENT "Running OppCppCoverage to produce code coverage report.")
             ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
