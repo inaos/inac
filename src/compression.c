@@ -282,7 +282,7 @@ INA_API(ina_rc_t) ina_compression_new_using_pool(ina_compression_state_t **state
         *state = (ina_compression_state_t*)ina_mem_alloc(sizeof(struct ina_compression_state_s));
     }
     INA_RETURN_IF(*state == NULL);
-    INA_MEM_SET_ZERO(state, ina_compression_state_t);
+    INA_MEM_SET_ZERO(*state, ina_compression_state_t);
 
     (*state)->type = type;
     switch (type) {

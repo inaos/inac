@@ -342,6 +342,8 @@ INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_load_cb load_cb, ina_cron_save_cb sa
     INA_FAIL_IF_ERROR(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                      INA_HASH_DEFAULT,
                                      INA_HASHTABLE_TYPE_DEFAULT,
+		                             INA_HASHTABLE_GROW_DEFAULT,
+		                             INA_HASHTABLE_SHRINK_DEFAULT,
                                      INA_HASHTABLE_DEFAULT_CAPACITY,
                                      INA_HASHTABLE_CF_DEFAULT, &(*ctx)->events));
     (*ctx)->t1 = time(NULL);

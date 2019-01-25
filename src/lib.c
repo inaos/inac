@@ -284,7 +284,7 @@ INA_API(ina_rc_t) ina_init(void)
     /* Set unhandled exception handler for windows */
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
-    INA_RETURN_IF_FAILED(ina_mempool_init());
+    /*INA_RETURN_IF_FAILED(ina_mempool_init());*/
 
 #ifdef _LIBINAC_HASHTABLE_H_
     /* initailize hashtable */
@@ -354,7 +354,7 @@ INA_API(void) ina_exit(void)
 #ifdef _LIBINAC_LOG_H_
     ina_log_destroy();
 #endif
-    ina_mempool_destroy();
+    /*ina_mempool_destroy();*/
     ina_err_destroy();
 
 #ifdef INA_OS_WIN32
