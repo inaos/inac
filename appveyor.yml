@@ -52,6 +52,7 @@ environment:
       BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86
       RUN_SONAR: no
+      UPLOAD_TO_ARTIFACTORY: yes
       
     - MY_NAME: Windows VS 2015 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -60,6 +61,7 @@ environment:
       BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86_64
       RUN_SONAR: no
+      UPLOAD_TO_ARTIFACTORY: yes
 
     - MY_NAME: Windows VS 2015 Release 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -68,6 +70,7 @@ environment:
       BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86
       RUN_SONAR: no
+      UPLOAD_TO_ARTIFACTORY: yes
 
     - MY_NAME: Windows VS 2015 Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -76,6 +79,7 @@ environment:
       BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86_64
       RUN_SONAR: no
+      UPLOAD_TO_ARTIFACTORY: yes
 
     - MY_NAME: Windows VS 2017 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -84,6 +88,7 @@ environment:
       BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86
       RUN_SONAR: no
+      UPLOAD_TO_ARTIFACTORY: yes
 
     - MY_NAME: Windows VS 2017 Debug 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -92,6 +97,7 @@ environment:
       BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86_64
       RUN_SONAR: yes
+      UPLOAD_TO_ARTIFACTORY: yes
 
     - MY_NAME: Windows VS 2017 Release 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -100,6 +106,7 @@ environment:
       BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86
       RUN_SONAR: no
+      UPLOAD_TO_ARTIFACTORY: yes
 
     - MY_NAME: Windows VS 2017 Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -108,6 +115,7 @@ environment:
       BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86_64
       RUN_SONAR: no
+      UPLOAD_TO_ARTIFACTORY: yes
 
 for:
   -
