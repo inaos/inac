@@ -177,7 +177,8 @@ test_script:
         if [ $RUN_COVERAGE = "yes" ]; then
             make coverage || true
         else
-            make tests || true
+            make
+            ./tests --format=junit > junit.xml || true
         fi
   - cmd: |
          nmake coverage & exit 0
