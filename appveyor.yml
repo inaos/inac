@@ -1,5 +1,5 @@
 #
-# Copyright INAOS GmbH, Thalwil, 2018. All rights reserved
+# Copyright INAOS GmbH, Thalwil, 2018-2019. All rights reserved
 #
 # This software is the confidential and proprietary information of INAOS GmbH
 # ("Confidential Information"). You shall not disclose such Confidential
@@ -28,11 +28,22 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
       BUILD_CONFIGURATION: Debug
       RUN_SONAR: yes
+      RUN_COVERAGE: yes
+      UPLOAD_TO_ARTIFACTORY: no
+      
+    - MY_NAME: Linux Debug 64bit
+      APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
+      BUILD_CONFIGURATION: Debug
+      RUN_SONAR: no
+      RUN_COVERAGE: no
+      UPLOAD_TO_ARTIFACTORY: yes
       
     - MY_NAME: Linux Release 64bit
       APPVEYOR_BUILD_WORKER_IMAGE: ubuntu
       BUILD_CONFIGURATION: RelWithDebInfo
       RUN_SONAR: no
+      RUN_COVERAGE: no
+      UPLOAD_TO_ARTIFACTORY: yes
 
     - MY_NAME: Windows VS 2015 Debug 32bit
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -143,7 +154,11 @@ build_script:
         mkdir cmake-build-$BUILD_CONFIGURATION
         7z e build-wrapper-linux-x86.zip -ocmake-build-$BUILD_CONFIGURATION
         cd cmake-build-$BUILD_CONFIGURATION
-        cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -DINAC_COVERAGE_ENABLED=1 $snapshot
+        if [ $RUN_COVERAGE = "yes" ]; then
+            cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -DINAC_COVERAGE_ENABLED=1 $snapshot
+        else
+            cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION $snapshot
+        fi
         ./build-wrapper-linux-x86-64 --out-dir bw-output make
   - cmd: |
          mkdir cmake-build-%BUILD_CONFIGURATION%
@@ -159,7 +174,11 @@ after_build:
 
 test_script:
   - sh: |
-        make coverage || true
+        if [ $RUN_COVERAGE = "yes" ]; then
+            make coverage || true
+        else
+            make test || true
+        fi
   - cmd: |
          nmake coverage & exit 0
 
@@ -189,25 +208,27 @@ artifacts:
     
 deploy_script:
   - ps: |
-        $src = $artifacts["INAC"].path
-        $artifact_name = Split-Path $src -leaf
-        $artifact_name -match "(\d+\.\d+)"
-        $artifact_version = $matches[1]
-        $target = "inaos/inac/$artifact_version/$artifact_name"
-        Write-Host $src
-        Write-Host $artifact_name
-        Write-Host $artifact_version
-        Write-Host $target
-        Write-Host $Env:OS
-        $user = $env:jfrog_artifactory_uid
-        $pwd = $env:jfrog_artifactory_pwd
-        $url = "$env:jfrog_repository_url/$target"
+        if ($Env:UPLOAD_TO_ARTIFACTORY -eq "yes") {
+          $src = $artifacts["INAC"].path
+          $artifact_name = Split-Path $src -leaf
+          $artifact_name -match "(\d+\.\d+)"
+          $artifact_version = $matches[1]
+          $target = "inaos/inac/$artifact_version/$artifact_name"
+          Write-Host $src
+          Write-Host $artifact_name
+          Write-Host $artifact_version
+          Write-Host $target
+          Write-Host $Env:OS
+          $user = $env:jfrog_artifactory_uid
+          $pwd = $env:jfrog_artifactory_pwd
+          $url = "$env:jfrog_repository_url/$target"
 
-        if ($Env:OS -eq "Windows_NT") {
-          Write-Host "curl.exe -u${user}:${pwd}  -T $src $url"
-          $ret = curl.exe "-u${user}:${pwd}" "-T" $src $url 2>1
-        } else {
-          $ret = /usr/bin/curl "-u${user}:${pwd}" "-T" $src $url 2>1
+          if ($Env:OS -eq "Windows_NT") {
+            Write-Host "curl.exe -u${user}:${pwd}  -T $src $url"
+            $ret = curl.exe "-u${user}:${pwd}" "-T" $src $url 2>1
+          } else {
+            $ret = /usr/bin/curl "-u${user}:${pwd}" "-T" $src $url 2>1
+          }
+          $LastExitCode = 0
         }
-        $LastExitCode = 0
   
