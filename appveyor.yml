@@ -22,6 +22,7 @@ environment:
     secure: RlnPXWhYdsxFHT00b5GOyOJINCQ0WLfhj5Rg4NukSRk6m1OSH4sGLJxA1996T6sM
   codecov_api_key:
     secure: ZrEItXMy94JPSq3RiTrMMU1fSsA0+QkO43E/37WRNP8dAINuksOqByk9aVnzUbNZ
+  APPVEYOR_RDP_PASSWORD: AppV123_Debug!
     
   matrix:
     - MY_NAME: Linux Debug 64bit
@@ -211,3 +212,6 @@ deploy_script:
         }
         $LastExitCode = 0
   
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
