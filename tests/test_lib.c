@@ -61,7 +61,7 @@ INA_TEST(lib, opt)
     INA_TEST_ASSERT_EQUAL_FLOATING(l_float_value, (float)1.02);
 }
 
-INA_TEST(lib, opt_get_key_value)
+INA_TEST_SKIP(lib, opt_get_key_value)
 {
     ina_str_t key = NULL;
     ina_str_t value = NULL;
