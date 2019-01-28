@@ -32,6 +32,8 @@ extern "C" {
 #endif
 
 #ifdef _WIN32
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
 #include <windows.h>
 #include <minwindef.h>
 #include <wincon.h>
@@ -141,14 +143,12 @@ extern "C" {
 
 #define INA_INIT_GUARD() do {               \
     static int __initialized = 0;           \
-    INA_ASSERT_FALSE(__initialized);        \
     if (__initialized) return INA_SUCCESS;  \
     __initialized = 1;                      \
 } while(0)
 
 #define INA_DESTROY_GUARD() do {          \
     static int __destroyed = 0;           \
-    INA_ASSERT_FALSE(__destroyed);        \
     if (__destroyed) return;              \
     __destroyed = 1;                      \
 } while(0)

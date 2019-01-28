@@ -42,7 +42,7 @@ INA_TEST(timer, event)
     INA_TEST_ASSERT_SUCCEED(ina_timer_event_new(t, 900,&e1));
     INA_TEST_ASSERT_NOT_NULL(e1);
     ina_time_sleep(100);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_next_event(t, &e2));
+    INA_TEST_ASSERT_FAILED(ina_timer_next_event(t, &e2));
     INA_TEST_ASSERT_NULL(e2);
     ina_time_sleep(1000);
     INA_TEST_ASSERT_SUCCEED(ina_timer_next_event(t, &e2));
@@ -98,7 +98,7 @@ INA_TEST(timer, event_rdtsc)
     INA_TEST_ASSERT_SUCCEED(ina_timer_event_new(t, 900, &e1));
     INA_TEST_ASSERT_NOT_NULL(e1);
     ina_time_sleep(100);
-    INA_TEST_ASSERT_SUCCEED(ina_timer_next_event(t, &e2));
+    INA_TEST_ASSERT_FAILED(ina_timer_next_event(t, &e2));
     INA_TEST_ASSERT_NULL(e2);
     ina_time_sleep(2000);
     INA_TEST_ASSERT_SUCCEED(ina_timer_next_event(t, &e2));

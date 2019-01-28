@@ -1,7 +1,12 @@
 include(ExternalProject)
+
+set(INAC_CMAKE_VERSION_MAJOR 0)
+set(INAC_CMAKE_VERSION_MINOR 1)
+set(INAC_CMAKE_VERSION_PATCH 0)
+
 set(DEPS_DIR "${CMAKE_SOURCE_DIR}/contribs")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
-set(INAC_CMAKE_VERSION "0.1.0")
+set(INAC_CMAKE_VERSION "${INAC_CMAKE_VERSION_MAJOR}.${INAC_CMAKE_VERSION_MINOR}.${INAC_CMAKE_VERSION_PATCH}")
 message(STATUS "CMake version: ${CMAKE_VERSION}")
 message(STATUS "INAC CMake version ${INAC_CMAKE_VERSION}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER_ID}")
@@ -133,6 +138,28 @@ if (INAC_COVERAGE_ENABLED)
     endif()
 endif()
 
+
+function(inac_cmake_module NAME)
+    cmake_parse_arguments(PARSE_ARGV 1 MOD "" URL "")
+    if (NOT MOD_URL)
+        set(MOD_URL "https://raw.githubusercontent.com/inaos/inac-cmake/${INAC_CMAKE_VERSION_MAJOR}.${INAC_CMAKE_VERSION_MINOR}/${NAME}.cmake")
+    endif()
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/${NAME}.cmake")
+        if (NOT EXISTS "${CMAKE_SOURCE_DIR}/${NAME}.cmake")
+            message(STATUS "Downloading ${NAME}.cmake from ${MOD_URL}")
+            file(DOWNLOAD "${MOD_URL}" "${CMAKE_BINARY_DIR}/${NAME}.cmake" STATUS DS)
+            if(NOT "${DS}"  MATCHES "0;")
+                file(REMOVE "${CMAKE_BINARY_DIR}/${NAME}.cmake")
+                message(FATAL_ERROR "Failed to download ${NAME}.cmake ${DS}")
+            endif()
+        else()
+            message(STATUS "Use local ${NAME}.cmake")
+            configure_file("${CMAKE_SOURCE_DIR}/${NAME}.cmake" "${CMAKE_BINARY_DIR}/${NAME}.cmake" COPYONLY)
+        endif()
+    endif()
+    include("${CMAKE_BINARY_DIR}/${NAME}.cmake")
+endfunction()
+    
 
 function(inac_enable_verbose)
     set(CMAKE_VERBOSE_MAKEFILE ON PARENT_SCOPE)
@@ -424,10 +451,10 @@ function(inac_add_benchmarks)
     if (NOT EXISTS "${CMAKE_SOURCE_DIR}/bench/main.c")
         if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
             file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c
-                    "#include <libinac/lib>\nint main(int argc,  char** argv) {  INA_MUST_SUCCEED(ina_app_init(argc, argv, NULL)); return ina_bench_run(argc, argv);}"
+                    "#include <libinac/lib.h>\nint main(int argc,  char** argv) {  INA_MUST_SUCCEED(ina_app_init(argc, argv, NULL)); return ina_bench_run(argc, argv);}"
                     )
         endif ()
-        list(APPEND src "${CMAKE_CURRENT_BINARY_DIR}/bench/main.c")
+        list(APPEND src "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
     else ()
         list(APPEND src "${CMAKE_SOURCE_DIR}/bench/main.c")
         message(STATUS "Do NOT generate main.c for benchmarks")
@@ -991,7 +1018,7 @@ function(inac_coverage TARGET RUNNER OUTPUT)
             ADD_CUSTOM_TARGET(${TARGET}
                     COMMAND ${OPENCPPCOVERAGE_PATH} --working_dir=${CMAKE_BINARY_DIR} --sources=${COV_INC_PATH} --sources=${COV_SRC_PATH} ${COVERAGE_EXCLUDE} --export_type=cobertura:${OUTPUT}.xml -- ${RUNNER}.exe ${ARGV3} & exit 0
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                    COMMAND msxsl.exe  ${OUTPUT}.xml c2s.xsl -o ${OUTPUT}.sonar.xml source=${CMAKE_SOURCE_DIR}
+                    COMMAND msxsl.exe  "${OUTPUT}.xml" c2s.xsl -o "${OUTPUT}.sonar.xml" source="${CMAKE_SOURCE_DIR}"
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     COMMENT "Running OppCppCoverage to produce code coverage report.")
             ADD_CUSTOM_COMMAND(TARGET ${TARGET} POST_BUILD
@@ -1005,6 +1032,8 @@ endfunction()
 inac_detect_host_arch()
 if (NOT INAC_TARGET_ARCH)
     inac_set_target_arch(${INAC_HOST_ARCH})
+else()
+    message(STATUS "Target architecture: ${INAC_TARGET_ARCH}")
 endif()
 
 if (NOT INAC_REPOSITORY)

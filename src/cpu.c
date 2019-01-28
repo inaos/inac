@@ -162,6 +162,7 @@ INA_API(ina_rc_t) ina_cpu_init()
 
     __ina_cpu_ctx = (ina_cpu_ctx_t*)ina_mem_alloc(sizeof(struct ina_cpu_ctx_s));
     INA_RETURN_IF(__ina_cpu_ctx == NULL);
+    INA_MEM_SET_ZERO(__ina_cpu_ctx, ina_cpu_ctx_t);
 
 #ifdef INA_OS_OSX
     return INA_SUCCESS;

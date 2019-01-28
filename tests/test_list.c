@@ -22,7 +22,7 @@ static ina_rc_t print_data(void *data)
 {
     const ina_data_t *d = (ina_data_t*)data;
     INA_TEST_MSG("[%d]", d->index);
-	return INA_SUCCESS;
+    return INA_SUCCESS;
 }
 
 static int find_data(const void *data, const void *find_arg)
@@ -63,19 +63,19 @@ INA_TEST(list, arbitrary_data)
     ina_list_node_t *node;
     ina_data_t *data1, *data2, *data3, *data4, *data5, *data6, *data7= NULL;
     INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
-    data1 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data1 = ina_mem_alloc(sizeof(ina_data_t));
     data1->index = 1;
-    data2 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data2 = ina_mem_alloc(sizeof(ina_data_t));
     data2->index = 2;
-    data3 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data3 = ina_mem_alloc(sizeof(ina_data_t));
     data3->index = 3;
-    data4 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data4 = ina_mem_alloc(sizeof(ina_data_t));
     data4->index = 4;
-    data5 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data5 = ina_mem_alloc(sizeof(ina_data_t));
     data5->index = 5;
-    data6 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data6 = ina_mem_alloc(sizeof(ina_data_t));
     data6->index = 6;
-    data7 = ina_mem_alloc(sizeof(ina_node_data_t));
+    data7 = ina_mem_alloc(sizeof(ina_data_t));
     data7->index = 7;
 
     INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data1));
@@ -100,6 +100,9 @@ INA_TEST(list, arbitrary_data)
     ina_list_free(&list);
 }
 
+#define __INA_CALC_SIZE(nodes, max_recyclable) \
+    sizeof(ina_list_node_t)*(nodes) + sizeof(void*)*(max_recyclable)
+
 INA_TEST(list, resize)
 {
     int i;
@@ -107,11 +110,10 @@ INA_TEST(list, resize)
     ina_data_t *data;
     size_t usage;
 
-#define CALC_SIZE(nodes, max_recyclable) sizeof(ina_list_node_t)*(nodes) + sizeof(void*)*(max_recyclable)
 
     INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
     INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
-    INA_TEST_ASSERT_EQUAL_SIZE_T(CALC_SIZE(INA_LIST_DEFAULT_SIZE, INA_LIST_DEFAULT_SIZE), usage);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(INA_LIST_DEFAULT_SIZE, INA_LIST_DEFAULT_SIZE), usage);
     INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 10000, 1000));
 
     for (i = 0; i < 5000;++i) {
@@ -120,12 +122,12 @@ INA_TEST(list, resize)
         INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data));
     }
     INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
-    INA_TEST_ASSERT_EQUAL_SIZE_T(CALC_SIZE(10000, 1000), usage);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(10000, 1000), usage);
     INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 9000, 0));
     INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
-    INA_TEST_ASSERT_EQUAL_SIZE_T(CALC_SIZE(9000, 0), usage);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(9000, 0), usage);
     INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 3000, 256));
     INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
-    INA_TEST_ASSERT_EQUAL_SIZE_T(CALC_SIZE(8000, 256), usage);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(8000, 256), usage);
 }
 

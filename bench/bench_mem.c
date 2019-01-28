@@ -46,6 +46,7 @@ INA_BENCH(mem, malloc_aligned_rw, 1) {
     double r=0;
     INA_UNUSED(data);
     pdata = malloc(sizeof(data_t)*100000);
+    ina_mem_set(pdata, 0, sizeof(data_t)*100000);
     ina_bench_stopwatch_start();
     for (i = 0; i < 100000; ++i) {
         r += pdata[i].d1;
@@ -62,6 +63,7 @@ INA_BENCH(mem, malloc_inac_aligned_r, 1) {
     data_t *pdata;
     INA_UNUSED(data);
     pdata = ina_mem_alloc_aligned(16, sizeof(data_t)*100000);
+    ina_mem_set(pdata, 0, sizeof(data_t)*100000);
     ina_bench_stopwatch_start();
     for (i = 0; i < 100000; ++i) {
         pdata[i].d1 = 1.0;
@@ -79,6 +81,7 @@ INA_BENCH(mem, malloc_inac_aligned_rw, 1) {
     double r=0;
     INA_UNUSED(data);
     pdata = ina_mem_alloc_aligned(16, sizeof(data_t)*100000);
+    ina_mem_set(pdata, 0, sizeof(data_t)*100000);
     ina_bench_stopwatch_start();
     for (i = 0; i < 100000; ++i) {
         r += pdata[i].d1;
@@ -95,6 +98,7 @@ INA_BENCH(mem, malloc_inac_aligned_type_r, 1) {
     data_t *pdata;
     INA_UNUSED(data);
     pdata = ina_mem_alloc_aligned(sizeof(data_t), sizeof(data_t)*100000);
+    ina_mem_set(pdata, 0, sizeof(data_t)*100000);
     ina_bench_stopwatch_start();
     for (i = 0; i < 100000; ++i) {
         pdata[i].d1 = 1.0;
@@ -112,6 +116,8 @@ INA_BENCH(mem, malloc_inac_aligned_type_rw, 1) {
     double r=0;
     INA_UNUSED(data);
     pdata = ina_mem_alloc_aligned(sizeof(data_t), sizeof(data_t)*100000);
+    ina_mem_set(pdata, 0, sizeof(data_t)*100000);
+
     ina_bench_stopwatch_start();
     for (i = 0; i < 100000; ++i) {
         r += pdata[i].d1;

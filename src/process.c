@@ -162,8 +162,8 @@ INA_API(ina_rc_t) ina_process_ctx_new(ina_process_ctx_t **ctx)
         INA_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
-                      INA_HASHTABLE_GROW_DEFAULT,
-                      INA_HASHTABLE_SHRINK_DEFAULT,
+					  INA_HASHTABLE_GROW_DEFAULT,
+			          INA_HASHTABLE_SHRINK_DEFAULT,
                       INA_HASHTABLE_DEFAULT_CAPACITY,
                       INA_HASHTABLE_CF_DEFAULT, &(*ctx)->processes))) {
         return INA_SUCCESS;

@@ -27,8 +27,6 @@ extern "C" {
 #define INA_MEM_AUTOSIZE        (2)
 /* Fill chunks */
 #define INA_MEM_BESTFIT         (4)
-/* Child pool (internal used) */
-#define INA_MEM_CHILD           (8)
 /* Use shared memory */
 #define INA_MEM_SHARED          (32)
 /* Open or create shared memory */
@@ -52,26 +50,21 @@ typedef struct ina_mempool_info_s {
     size_t chunk_size; /* default chunks size */
 } ina_mempool_info_t;
 
-/* Memory pool events */
-typedef enum ina_mempool_event_e {
-    INA_MEMPOOL_EVENT_GROW,
-    INA_MEMPOOL_EVENT_RELEASE,
-    INA_MEMPOOL_EVENT_RELEASE_AND_DESTROY,
-} ina_mempool_event_t;
+/*
+ * Initialized memory pool module
+ *
+ * Return
+ *  INA_SUCCES if all went well
+ */
+INA_API(ina_rc_t) ina_mempool_init(void);
 
-/* struct to hold pool event info */
-typedef struct ina_mempool_event_info_s {
-    ina_mempool_event_t event;
-    ina_mempool_t *pool;
-    ina_mempool_info_t info;
-} ina_mempool_event_info_t;
+/*
+ * Destroy memory pool module.
+ */
+INA_API(void) ina_mempool_destroy(void);
 
-typedef ina_rc_t (*ina_mempool_event_handler_t)
-        (const ina_mempool_event_info_t*, size_t*);
-
-
-/* 
- * Get runtime imformations about a memory pool.
+/*
+ * Get runtime information about a memory pool.
  *
  * Parameters
  *  pool  Pointer to a memory pool, pass NULL to query system memory pool.
@@ -93,7 +86,7 @@ INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool,
  *  label    Pool label. Optional for non shared memory pools.
  *
  * Return
- *  INA_SUCCESS if pool was craeted successfully.
+ *  INA_SUCCESS if pool was created successfully.
  */
 INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool);
 

@@ -342,8 +342,8 @@ INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_load_cb load_cb, ina_cron_save_cb sa
     INA_FAIL_IF_ERROR(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                      INA_HASH_DEFAULT,
                                      INA_HASHTABLE_TYPE_DEFAULT,
-                                     INA_HASHTABLE_GROW_DEFAULT,
-                                     INA_HASHTABLE_SHRINK_DEFAULT,
+		                             INA_HASHTABLE_GROW_DEFAULT,
+		                             INA_HASHTABLE_SHRINK_DEFAULT,
                                      INA_HASHTABLE_DEFAULT_CAPACITY,
                                      INA_HASHTABLE_CF_DEFAULT, &(*ctx)->events));
     (*ctx)->t1 = time(NULL);
@@ -497,9 +497,7 @@ INA_API(ina_rc_t) ina_cron_event_get_push_params(const ina_cron_event_t *event,
     INA_VERIFY_NOT_NULL(event);
     INA_VERIFY_NOT_NULL(push_cb);
     *push_cb = event->push_cb;
-    if (user_data != NULL) {
-        *user_data = event->push_data;
-    }
+    *user_data = event->push_data;
     return INA_SUCCESS;
 }
 
@@ -510,9 +508,7 @@ INA_API(ina_rc_t) ina_cron_event_get_pull_params(const ina_cron_event_t *event,
     INA_VERIFY_NOT_NULL(event);
     INA_VERIFY_NOT_NULL(key);
     *key = event->key;
-    if (user_data != NULL) {
-        *user_data = event->pull_data;
-    }
+    *user_data = event->pull_data;
     return INA_SUCCESS;
 }
 
@@ -530,7 +526,7 @@ INA_API(ina_rc_t) ina_cron_event_set_pull_params(ina_cron_event_t *event, uint32
  INA_API(ina_rc_t) ina_cron_event_check_capability(const ina_cron_event_t *event, uint32_t cf)
 {
     if (event->cf&cf) {
-        return  INA_SUCCESS;
+        return INA_SUCCESS;
     }
     return INA_ERROR(INA_ERR_NOT_AVAILABLE);
 }

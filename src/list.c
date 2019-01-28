@@ -94,7 +94,7 @@ INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list)
     return INA_SUCCESS;
 }
 
-
+#ifdef _LIBINAC_HASHTABLE_H_
 INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list)
 {
     size_t count;
@@ -106,6 +106,7 @@ INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **
     }
     return ina_err_get_rc();
 }
+#endif
 
 INA_API(void) ina_list_free(ina_list_t **list)
 {
@@ -145,6 +146,10 @@ INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max
     INA_VERIFY_NOT_NULL(list);
     ina_mempool_t *mp;
 
+    if (list->cf&INA_LIST_CF_NOMALLOC) {
+        return INA_ERROR(INA_ERR_OPERATION_INVALID);
+    }
+
     if (min_nodes == 0) {
         min_nodes = INA_LIST_DEFAULT_SIZE;
     }
@@ -153,7 +158,11 @@ INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max
         min_nodes = list->count;
     }
 
-    if (INA_FAILED(ina_mempool_new(sizeof(ina_list_node_t) * min_nodes, NULL, INA_MEM_DYNAMIC, &mp))) {
+    if (INA_FAILED(ina_mempool_new(
+            sizeof(ina_list_node_t) * min_nodes,
+            NULL,
+
+            INA_MEM_DYNAMIC, &mp))) {
         return ina_err_get_rc();
     }
 
@@ -220,6 +229,7 @@ INA_API(ina_rc_t) ina_list_tail(ina_list_t *list, ina_list_node_t **node)
     INA_VERIFY_NOT_NULL(list);
     INA_VERIFY_NOT_NULL(node);
     if (list->head == NULL) {
+        *node = NULL;
         return INA_ERROR(INA_ERR_EMPTY);
     }
     *node = list->head;
@@ -267,7 +277,7 @@ INA_API(ina_rc_t) ina_list_insert_tail(ina_list_t *list, ina_list_node_t *node)
 
 INA_API(ina_rc_t) ina_list_remove(ina_list_t *list, ina_list_node_t *node)
 {
-    ina_list_node_t *head;
+    ina_list_node_t *head = NULL;
     INA_VERIFY_NOT_NULL(node);
     ina_list_head(list, &head);
 
@@ -307,14 +317,21 @@ INA_API (ina_rc_t) ina_list_remove_data(ina_list_t *list, void *data)
 
 INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn)
 {
-    ina_list_node_t *next;
+    ina_list_node_t *next, *next_next;
+    ina_rc_t rc = INA_SUCCESS;
+
     INA_VERIFY_NOT_NULL(foreach_fn);
     if (INA_SUCCEED(ina_list_head(list, &next))) {
-        while (next && INA_SUCCEED((foreach_fn(next->data)))) {
-            next = next->next;
+
+        while (next) {
+			next_next = next->next;
+			if (INA_FAILED(foreach_fn(next->data))) {
+				break;
+			}
+            next = next_next;
         }
     }
-    return INA_SUCCESS;
+    return rc;
 }
 
 INA_API(ina_rc_t) ina_list_concat(ina_list_t *dest, ina_list_t *src)
@@ -352,14 +369,21 @@ INA_API(ina_rc_t) ina_list_concat(ina_list_t *dest, ina_list_t *src)
 
 INA_API(ina_rc_t) ina_list_foreach_arg(ina_list_t *list, ina_foreach_arg_fn_t foreach_fn, void *arg)
 {
-    ina_list_node_t *next;
+    ina_list_node_t *next, *next_next;
+    ina_rc_t rc = INA_SUCCESS;
+
     INA_VERIFY_NOT_NULL(foreach_fn);
     if (INA_SUCCEED(ina_list_head(list, &next))) {
-        while (next && INA_SUCCEED((foreach_fn(next->data, arg)))) {
-            next = next->next;
+        while (next) {
+			next_next = next->next;
+			rc = foreach_fn(next->data, arg);
+			if (INA_FAILED(rc)) {
+				break;
+			}
+            next = next_next;
         }
     }
-    return INA_SUCCESS;
+    return rc;
 }
 
 
@@ -372,6 +396,7 @@ INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_compare_fn_t compare_fn, c
     if (INA_SUCCEED(ina_list_head(list, &next))) {
         while (next) {
             if (0 == compare_fn(next->data, find_arg)) {
+				*node = next;
                 return INA_SUCCESS;
             }
             next = next->next;

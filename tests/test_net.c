@@ -180,7 +180,7 @@ INA_TEST(net_local, mac_addr)
     }
 
     /* execute the actual test now that we have an IP address */
-    INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(test_ip, mac));
+    INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(test_ip, mac, 6));
 
     if (test_ip != NULL) {
         free(test_ip);
@@ -211,7 +211,7 @@ INA_TEST(net_local, mac_addr)
     }
 
     if (found) {
-        INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(ip, mac));
+        INA_TEST_ASSERT_SUCCEED(ina_net_get_mac_addr(ip, mac, 6));
         INA_TEST_MSG("MAC address for %s is %02X:%02X:%02X:%02X:%02X:%02X", ip,
                      mac[0],
                      mac[1],
@@ -230,7 +230,7 @@ INA_TEST(net_local, mac_addr)
     freeifaddrs(ifaddr);
 }
 #endif
-INA_TEST_SKIP(net_local, system_lookup)
+INA_TEST(net_local, system_lookup)
 {
     ina_str_t *addresses;
     short      address_count;
@@ -242,4 +242,19 @@ INA_TEST_SKIP(net_local, system_lookup)
        ina_str_free(addresses[n]);
     }
     INA_TEST_ASSERT_FAILED(ina_net_system_lookup("blablabla", &address_count, &addresses));
+}
+
+INA_TEST(net_local, resolve_host)
+{
+    ina_str_t ip = ina_str_new(128);
+    INA_TEST_ASSERT_SUCCEED(ina_net_resolve("localhost", &ip));
+    INA_TEST_MSG("IP for localhost: %s", ip);
+    ina_str_free(ip);
+}
+
+INA_TEST(net_local, hostname)
+{
+    char host[128];
+    INA_TEST_ASSERT_SUCCEED(ina_net_hostname(&host[0],127 ));
+    INA_TEST_MSG("hostname: %s", host);
 }

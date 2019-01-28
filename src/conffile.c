@@ -91,8 +91,8 @@ INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf)
     INA_FAIL_IF_ERROR(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
-                      INA_HASHTABLE_GROW_DEFAULT,
-                      INA_HASHTABLE_SHRINK_DEFAULT,
+					  INA_HASHTABLE_GROW_DEFAULT,
+					  INA_HASHTABLE_SHRINK_DEFAULT,
                       INA_HASHTABLE_DEFAULT_CAPACITY,
                       INA_HASHTABLE_CF_DEFAULT, &(*cf)->sections));
     return INA_SUCCESS;
@@ -150,16 +150,16 @@ INA_API(ina_rc_t) ina_conffile_add_section(ina_conffile_t *cf,
     ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
-                      INA_HASHTABLE_GROW_DEFAULT,
-                      INA_HASHTABLE_SHRINK_DEFAULT,
+					  INA_HASHTABLE_GROW_DEFAULT,
+		              INA_HASHTABLE_SHRINK_DEFAULT,
                       INA_HASHTABLE_DEFAULT_CAPACITY,
                       INA_HASHTABLE_CF_DEFAULT, &sp->keys);
 
     ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
-                      INA_HASHTABLE_GROW_DEFAULT,
-                      INA_HASHTABLE_SHRINK_DEFAULT,
+					  INA_HASHTABLE_GROW_DEFAULT,
+		              INA_HASHTABLE_SHRINK_DEFAULT,
                       INA_HASHTABLE_DEFAULT_CAPACITY,
                       INA_HASHTABLE_CF_DEFAULT, &sp->entries);
     return ina_hashtable_set_str(cf->sections, sp->name, sp);;
@@ -506,8 +506,8 @@ __ina_process_section_table(ina_conffile_t *cf)
                 ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                   INA_HASH_DEFAULT,
                                   INA_HASHTABLE_TYPE_DEFAULT,
-                                  INA_HASHTABLE_GROW_DEFAULT,
-                                  INA_HASHTABLE_SHRINK_DEFAULT,
+								  INA_HASHTABLE_GROW_DEFAULT,
+								  INA_HASHTABLE_SHRINK_DEFAULT,
                                   INA_HASHTABLE_DEFAULT_CAPACITY,
                                   INA_HASHTABLE_CF_DEFAULT, &e->entries);
 
@@ -530,8 +530,8 @@ __ina_process_section_table(ina_conffile_t *cf)
                     ina_hashtable_new(INA_HASHTABLE_STR_KEY,
                                       INA_HASH_DEFAULT,
                                       INA_HASHTABLE_TYPE_DEFAULT,
-                                      INA_HASHTABLE_GROW_DEFAULT,
-                                      INA_HASHTABLE_SHRINK_DEFAULT,
+						              INA_HASHTABLE_GROW_DEFAULT,
+						              INA_HASHTABLE_SHRINK_DEFAULT,
                                       INA_HASHTABLE_DEFAULT_CAPACITY,
                                       INA_HASHTABLE_CF_DEFAULT, &e->entries);
                     ina_hashtable_set_str(s->entries, e->key, e);

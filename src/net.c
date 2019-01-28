@@ -6,15 +6,11 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
+
+#include <libinac/lib.h>
+
 #ifdef INA_OS_WIN32
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-
-#include <winsock2.h>
-#include <windows.h>
-#include <time.h>
-
 #include <Ws2tcpip.h>
-#include <mswsock.h>
 #include <Iphlpapi.h>
 #else
 #include <sys/types.h>
@@ -32,10 +28,11 @@
 #endif
 
 #ifdef INA_OS_OSX
-#include <net/if_dl.h>
+#include <net/if_dl.h>		/* for the LLADDR macro */
+#include <sys/uio.h>
 #endif
 
-#include <libinac/lib.h>
+
 
 #define __INA_SOCKET_TYPE_TCP 1
 #define __INA_SOCKET_TYPE_UDP 2
@@ -212,7 +209,7 @@ INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_cou
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
+INA_API(ina_rc_t) ina_net_hostname(char* host, size_t len)
 {
     INA_VERIFY_NOT_NULL(host);
 #ifdef INA_OS_WIN32
@@ -226,12 +223,12 @@ INA_API(ina_rc_t) ina_net_hostname(char *host, size_t len)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bindaddr)
+INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bind_addr)
 {
     struct sockaddr_in sa;
 
     INA_VERIFY_NOT_NULL(fd);
-    INA_VERIFY_NOT_NULL(bindaddr);
+    INA_VERIFY_NOT_NULL(bind_addr);
     INA_VERIFY(port > 0);
 	INA_VERIFY(port < UINT16_MAX);
     INA_RETURN_IF_FAILED(__ina_create_socket(AF_INET, __INA_SOCKET_TYPE_TCP, fd));
@@ -240,7 +237,7 @@ INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bindadd
     sa.sin_family = AF_INET;
     sa.sin_port = htons((uint16_t)port);
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
-    if (bindaddr && inet_aton(bindaddr, &sa.sin_addr) == 0) {
+    if (bind_addr && inet_aton(bind_addr, &sa.sin_addr) == 0) {
         ina_net_close(*fd);
         return __INA_ERROR(INA_ES_ADDRESS | INA_ERR_INVALID);
     }
@@ -359,13 +356,14 @@ INA_API(ina_rc_t) ina_net_read(ina_fd_t fd, unsigned char *buf, int nb, int* nb_
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ip)
+INA_API(ina_rc_t) ina_net_resolve(const char *host, ina_str_t* ip)
 {
     struct sockaddr_in sa;
 
     INA_VERIFY_NOT_NULL(host);
     INA_VERIFY_NOT_NULL(ip);
-    INA_VERIFY(ina_str_size(ip) > 32);
+    INA_VERIFY_NOT_NULL(*ip);
+    INA_VERIFY(ina_str_size(*ip) > 32);
 
     sa.sin_family = AF_INET;
     if (inet_aton(host, &sa.sin_addr) == 0) {
@@ -377,8 +375,8 @@ INA_API(ina_rc_t) ina_net_resolve(const char *host, char *ip)
         }
         memcpy(&sa.sin_addr, he->h_addr, sizeof(struct in_addr));
     }
-    ina_str_truncate(ip, 0);
-    ina_str_catcstr(ip, inet_ntoa(sa.sin_addr));
+    ina_str_truncate(*ip, 0);
+    *ip =ina_str_catcstr(*ip, inet_ntoa(sa.sin_addr));
     return INA_SUCCESS;
 }
 
@@ -724,7 +722,7 @@ INA_API(ina_rc_t) ina_net_block(ina_fd_t fd)
 #endif
 
 #ifdef INA_OS_WIN32
-INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *buf, size_t buf_len)
 {
     DWORD ret;
     IPAddr dst_ip;
@@ -733,7 +731,8 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     int i;
     
     INA_VERIFY_NOT_NULL(ip);
-    INA_VERIFY_NOT_NULL(mac);
+    INA_VERIFY_NOT_NULL(buf);
+    INA_VERIFY(buf_len >= phy_addr_len);
     dst_ip = inet_addr(ip);
 
     ret = SendARP(dst_ip , INADDR_ANY, mac_addr, &phy_addr_len);
@@ -744,17 +743,17 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     if(phy_addr_len) {
         BYTE *bMacAddr = (BYTE*) & mac_addr;
         for (i = 0; i < (int)phy_addr_len; i++) {
-            mac[i] = (char)bMacAddr[i];
+            buf[i] = (char)bMacAddr[i];
         }
     }
     return INA_SUCCESS;
 }
 #elif INA_OS_OSX
-INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *buf, size_t buf_len)
 {
     struct ifaddrs *iflist, *cur;
     INA_VERIFY_NOT_NULL(ip);
-    INA_VERIFY_NOT_NULL(mac);
+    INA_VERIFY_NOT_NULL(buf);
 
     int found = INA_NO;
     if (getifaddrs(&iflist) == 0) {
@@ -774,8 +773,12 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
                 if ((cur->ifa_addr->sa_family == AF_LINK) &&
                     (strcmp(cur->ifa_name, ifa_name) == 0) &&
                     cur->ifa_addr) {
-                    /*struct sockaddr_dl* sdl = (struct sockaddr_dl*)cur->ifa_addr;
-                    memcpy(mac, LLADDR(sdl), sdl->sdl_alen);*/
+                    struct sockaddr_dl* sdl = (struct sockaddr_dl*)cur->ifa_addr;
+                    if (sdl->sdl_alen > buf_len) {
+                        freeifaddrs(iflist);
+                        return INA_ERROR(INA_ES_BUFFER|INA_ERR_TOO_SMALL);
+                    }
+                    memcpy(buf, LLADDR(sdl), sdl->sdl_alen);
                     found = INA_YES;
                     break;
                 }
@@ -790,12 +793,14 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
     return INA_ERROR(INA_ES_MAC|INA_ERR_NOT_DETECTED);
 }
 #else
-INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
+INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *buf, size_t buf_len)
 {
     struct ifaddrs *ifaddr, *ifa;
     struct ifreq ifr;
     int fd;
     int found = INA_NO;
+    INA_VERIFY_NOT_NULL(buf);
+    INA_VERIFY(buf_len >= 6);
 
     if (getifaddrs(&ifaddr) == -1) {
         return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
@@ -826,7 +831,7 @@ INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *mac)
         return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
     close(fd);
-    memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
+    memcpy(buf, ifr.ifr_hwaddr.sa_data, 6);
     freeifaddrs(ifaddr);
 
     return INA_SUCCESS;

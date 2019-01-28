@@ -179,7 +179,7 @@ INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode)
     INA_VERIFY_NOT_NULL(ctx);
     *ctx = (ina_file_ctx_t*)ina_mem_alloc(sizeof(ina_file_ctx_t));
     INA_RETURN_IF_NULL(ctx);
-    ina_mem_set(*ctx, 0, sizeof(ina_file_ctx_t));
+    INA_MEM_SET_ZERO(*ctx, ina_file_ctx_t);
 
     (*ctx)->default_mode = default_mode;
     if ((*ctx)->default_mode == 0) {
@@ -188,8 +188,8 @@ INA_API(ina_rc_t) ina_file_ctx_new(ina_file_ctx_t **ctx, mode_t default_mode)
     if (INA_FAILED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
                       INA_HASH_DEFAULT,
                       INA_HASHTABLE_TYPE_DEFAULT,
-                      INA_HASHTABLE_GROW_DEFAULT,
-                      INA_HASHTABLE_SHRINK_DEFAULT,
+					  INA_HASHTABLE_GROW_DEFAULT,
+		              INA_HASHTABLE_SHRINK_DEFAULT,
                       128,
                       INA_HASHTABLE_CF_DEFAULT, &(*ctx)->files))) {
         ina_mem_free(*ctx);
