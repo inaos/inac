@@ -529,8 +529,8 @@ __ina_opt_usage(void) {
                        ina_str_cstr(lo->opt),
                        ina_str_cstr(so->desc));
             }
+            next = next->next;
         }
-        next = next->next;
     }
 }
 
