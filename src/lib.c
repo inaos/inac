@@ -409,13 +409,13 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
     *key = NULL;
     *value = NULL;
 
-    if (INA_SUCCEED(ina_list_head(__sopt, &next))) {
+    if (INA_SUCCEED(ina_list_head(__lopt, &next))) {
         while (next && index > 0) {
             --index;
             next = next->next;
         }
     }
-    if (index < 0) {
+    if (index < 0 || next == NULL) {
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     lo = (__ina_lopt_t*)next->data;
