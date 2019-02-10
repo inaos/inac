@@ -317,13 +317,18 @@ INA_API (ina_rc_t) ina_list_remove_data(ina_list_t *list, void *data)
 
 INA_API(ina_rc_t) ina_list_foreach(ina_list_t *list, ina_foreach_fn_t foreach_fn)
 {
-    ina_list_node_t *next;
+    ina_list_node_t *next, *next_next;
     ina_rc_t rc = INA_SUCCESS;
 
     INA_VERIFY_NOT_NULL(foreach_fn);
     if (INA_SUCCEED(ina_list_head(list, &next))) {
-        while (next && INA_SUCCEED((rc = (foreach_fn(next->data))))) {
-            next = next->next;
+
+        while (next) {
+			next_next = next->next;
+			if (INA_FAILED(foreach_fn(next->data))) {
+				break;
+			}
+            next = next_next;
         }
     }
     return rc;
@@ -364,12 +369,18 @@ INA_API(ina_rc_t) ina_list_concat(ina_list_t *dest, ina_list_t *src)
 
 INA_API(ina_rc_t) ina_list_foreach_arg(ina_list_t *list, ina_foreach_arg_fn_t foreach_fn, void *arg)
 {
-    ina_list_node_t *next;
+    ina_list_node_t *next, *next_next;
     ina_rc_t rc = INA_SUCCESS;
+
     INA_VERIFY_NOT_NULL(foreach_fn);
     if (INA_SUCCEED(ina_list_head(list, &next))) {
-        while (next && INA_SUCCEED((rc = (foreach_fn(next->data, arg))))) {
-            next = next->next;
+        while (next) {
+			next_next = next->next;
+			rc = foreach_fn(next->data, arg);
+			if (INA_FAILED(rc)) {
+				break;
+			}
+            next = next_next;
         }
     }
     return rc;
@@ -385,6 +396,7 @@ INA_API(ina_rc_t) ina_list_find(ina_list_t *list, ina_compare_fn_t compare_fn, c
     if (INA_SUCCEED(ina_list_head(list, &next))) {
         while (next) {
             if (0 == compare_fn(next->data, find_arg)) {
+				*node = next;
                 return INA_SUCCESS;
             }
             next = next->next;

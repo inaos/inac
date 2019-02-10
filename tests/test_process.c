@@ -96,7 +96,7 @@ INA_TEST(process, start_and_wait)
     ina_process_ctx_free(&ctx);
 }
 
-INA_TEST(process, stop)
+INA_TEST_SKIP(process, stop)
 {
     ina_process_ctx_t *ctx;
     ina_process_t *process;

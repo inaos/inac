@@ -284,7 +284,7 @@ INA_API(ina_rc_t) ina_init(void)
     /* Set unhandled exception handler for windows */
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
-    INA_RETURN_IF_FAILED(ina_mempool_init());
+    /*INA_RETURN_IF_FAILED(ina_mempool_init());*/
 
 #ifdef _LIBINAC_HASHTABLE_H_
     /* initailize hashtable */
@@ -354,7 +354,7 @@ INA_API(void) ina_exit(void)
 #ifdef _LIBINAC_LOG_H_
     ina_log_destroy();
 #endif
-    ina_mempool_destroy();
+    /*ina_mempool_destroy();*/
     ina_err_destroy();
 
 #ifdef INA_OS_WIN32
@@ -409,13 +409,13 @@ INA_API(ina_rc_t) ina_opt_get_key_value(int index,  ina_str_t *key,
     *key = NULL;
     *value = NULL;
 
-    if (INA_SUCCEED(ina_list_head(__sopt, &next))) {
+    if (INA_SUCCEED(ina_list_head(__lopt, &next))) {
         while (next && index > 0) {
             --index;
             next = next->next;
         }
     }
-    if (index < 0) {
+    if (index < 0 || next == NULL) {
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     lo = (__ina_lopt_t*)next->data;
@@ -529,8 +529,8 @@ __ina_opt_usage(void) {
                        ina_str_cstr(lo->opt),
                        ina_str_cstr(so->desc));
             }
+            next = next->next;
         }
-        next = next->next;
     }
 }
 
