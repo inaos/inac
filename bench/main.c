@@ -11,10 +11,11 @@
 int main(int argc,  char** argv) 
 {
     INA_OPTS(opt,
-             INA_OPT_STRING("r", "report-path", NULL, "Directory for report output"));
+             INA_OPT_STRING("r", "report-path", "."INA_PATH_SEPARATOR_STR, "Directory for report output"),
+             INA_OPT_STRING("n", "name", "", "Benchmark name"));
 
     if (INA_FAILED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
     }
-    return ina_bench_run(argc, argv);
+    return ina_bench_run();
 }

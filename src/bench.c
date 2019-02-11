@@ -19,7 +19,7 @@
 
 typedef int (*ina_bench_filter_fn_t)(ina_bench_benchmark_t*);
 
-static const char* __bench_name = NULL;
+static ina_str_t __bench_name = NULL;
 static ina_bench_benchmark_t *__current = NULL;
 static ina_str_t __scale_label = NULL;
 static ina_time_tsc_t *__time1 = NULL;
@@ -51,7 +51,7 @@ static int __ina_bench_all(ina_bench_benchmark_t* b) {
 }
 
 static int __ina_bench_filter(ina_bench_benchmark_t* b) {
-    return (strncmp(__bench_name, b->bench_name, strlen(__bench_name)) == 0);
+    return (strncmp(__bench_name, b->bench_name, ina_str_len(__bench_name)) == 0);
 }
 
 
@@ -151,7 +151,7 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     return INA_SUCCESS;
 }
 
-INA_API(int) ina_bench_run(int argc, char *argv[])
+INA_API(int) ina_bench_run(void)
 {
     static int total = 0;
     static ina_bench_filter_fn_t filter = __ina_bench_all;
@@ -164,23 +164,12 @@ INA_API(int) ina_bench_run(int argc, char *argv[])
 
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time1));
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time2));
-    if (argc > 1) {
-        if (strstr(argv[1], "-r=") != NULL ||
-            strstr(argv[1], "--report-path=")) {
-            report_path = ina_str_new_fromcstr(strstr(argv[1], "=")+1);
-            if (argc > 2) {
-                __bench_name = argv[2];
-                filter = __ina_bench_filter;
-            }
-        } else {
-            __bench_name = argv[1];
-            filter = __ina_bench_filter;
-        }
-    } else {
-        __bench_name = argv[2];
+
+    ina_opt_get_string("r", &report_path);
+    ina_opt_get_string("n", &__bench_name);
+    if (ina_str_len(__bench_name)) {
         filter = __ina_bench_filter;
     }
-
 
     begin = &INA_BENCH_BNAME(bench, series);
     end = &INA_BENCH_BNAME(bench, series);

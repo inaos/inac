@@ -142,14 +142,10 @@ typedef struct ina_bench_benchmark_s {
 /*
  * Run benchmarks.
  *
- * Parameters
- *  argc  Argument count
- *  argv  Array of arguments
- *
  * Return
  *  Exit code
  */
-int ina_bench_run(int argc, char *argv[]);
+int ina_bench_run(void);
 
 /*
  * Returns the name of the current running benchmark
