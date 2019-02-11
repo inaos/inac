@@ -203,6 +203,12 @@ INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
     return INA_SUCCESS;
 }
 
+INA_API(const char*) ina_ljit_last_error(ina_ljit_ctx_t *ctx)
+{
+    INA_VERIFY_NOT_NULL(ctx);
+    return luaL_checkstring(ctx->lstate, 1);
+}
+
 INA_API(ina_rc_t) ina_ljit_dump_stack(ina_ljit_ctx_t *ctx)
 {
     int i;

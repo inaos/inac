@@ -115,6 +115,17 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx,
                                 const char *signature,
                                 ...);
 
+/*
+ * Return last error message.
+ *
+ * Parameters
+ *  ctx  LuaJIT context
+ *
+ * Return
+ *  Error message of last occurred error.
+ */
+INA_API(const char*) ina_ljit_last_error(ina_ljit_ctx_t *ctx);
+
 /* 
  * Load lua code an execute it.
  *

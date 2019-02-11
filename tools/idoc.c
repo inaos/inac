@@ -36,11 +36,11 @@ int main(int argc,  char** argv)
 
 
     if (INA_FAILED(ina_ljit_dostring(ctx, "idoc = require(\"lidoc\")\n"))) {
-        printf("%s", luaL_checkstring(ctx->lstate, 1));
+        printf("%s", ina_ljit_last_error(ctx));
         return EXIT_FAILURE;
     }
     if (INA_FAILED(ina_ljit_call(ctx, "idoc.run", "ssd", output_dir, filter, (double)0))) {
-        printf("%s", luaL_checkstring(ctx->lstate, 1));
+        printf("%s", ina_ljit_last_error(ctx));
         return EXIT_FAILURE;
     }
     ina_ljit_ctx_free(&ctx);
