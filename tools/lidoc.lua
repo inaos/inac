@@ -123,7 +123,7 @@ end
 
 local wait_for_code_end = function(line, code)
     table.insert(code, line);
-    return string.endsWith(string.trim(line, " "), ";");
+    return string.endsWith(string.trim(line, " "), ";")
 end
 
 local parse_block = function(block, code)
@@ -132,7 +132,7 @@ local parse_block = function(block, code)
     local returnBlock = 2
     local blockType = 0
 
-    table.insert(doc, "\n```C\n"..string.implode("", code).."\n```")
+    table.insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
 
     for k,v in pairs(block) do
         line = string.replace(v, "/*", "")
@@ -218,9 +218,9 @@ idoc.run = function(outputDir, fileFilter)
                         k = k + 1
                         line = trim_line(lines[k])
                     end
-                    while (k < #lines and wait_for_code_end(line, code)) do
+                    while (k < #lines and not wait_for_code_end(line, code)) do
                         k = k + 1
-                        line = trim_line(lines[k]);
+                        line = lines[k];
                     end
                 end
 
