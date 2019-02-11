@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_MEMORY_H_
+#define _LIBINAC_MEMORY_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
@@ -10,20 +15,58 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 #ifndef INA_MEM_MALLOC
+#define INA_MEM_MALLOC malloc
+#endif
+#ifndef INA_MEM_REALLOC
+#define INA_MEM_REALLOC realloc
+#endif
+#ifndef INA_MEM_MEMMOVE
+#define INA_MEM_MEMMOVE memmove
+#endif
+#ifndef INA_MEM_MEMCPY
+#define INA_MEM_MEMCPY memcpy
+#endif
+#ifndef INA_MEM_MEMCMP
+#define INA_MEM_MEMCMP memcmp
+#endif
+#ifndef INA_MEM_MEMCHR
+#define INA_MEM_MEMCHR memchr
+#endif
+#ifndef INA_MEM_MEMSET
+#define INA_MEM_MEMSET memset
+#endif
+#ifndef INA_MEM_FREE
+#define INA_MEM_FREE free
+#endif
+
 ```
 Define memory functions
+
+---
+
 ```C
 #define INA_MEM_ALIGN_SIZE (2 * sizeof(void*))
+
 ```
 Align to 2x word size (as GNU libc does).
+
+---
+
 ```C
 #define INA_MEM_ALIGN(n) ((n+(INA_MEM_ALIGN_SIZE-1)) & (~(INA_MEM_ALIGN_SIZE-1)))
+
 ```
 Round up 'n' to a multiple of ALIGN_SIZE.
+
+---
+
 ```C
-INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);/*
+INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size);
 ```
 
 The function returns the number of bytes in a memory page, where "page" is
@@ -39,6 +82,32 @@ size Size in bytes
 
 INA_SUCCESS if no error occurred.
 
+
+
+---
+
+```C
+INA_INLINE size_t ina_mem_get_aligned_size(size_t query)
+{
+	return ((query+(INA_MEM_ALIGN_SIZE-1)) & (~(INA_MEM_ALIGN_SIZE-1)));
+}
+
+```
+
+The function calculates the size of a memory segment after
+proper alignment.
+
+Parameters:
+query    Input size in bytes
+
+
+**Return**
+
+The size after alignment
+
+
+
+---
 
 ```C
 INA_API(void*) ina_mem_alloc_aligned(size_t alignment, size_t size);
@@ -56,7 +125,7 @@ pointer shall not be used to dereference an object in any case.
 
 **Parameters**
  - `alignment`: Memory alignment in bytes
- - `size`: 
+ - `size`: Size of the memory block, in bytes. size_t is an unsigned integral
 type.
 
 
@@ -70,8 +139,15 @@ If the function failed to allocate the requested block of memory,
 a null pointer is returned.
 
 
+
+---
+
 ```C
 INA_INLINE void * ina_mem_alloc(size_t size)
+{
+    return ina_mem_alloc_aligned(sizeof(void*), size);
+}
+
 ```
 
 Allocate memory block. Allocates a block of size bytes of memory, returning
@@ -99,6 +175,9 @@ If the function failed to allocate the requested block of memory,
 a null pointer is returned.
 
 
+
+---
+
 ```C
 INA_API(void*) ina_mem_realloc(void *ptr, size_t nb);
 ```
@@ -123,8 +202,17 @@ This function returns a pointer to the newly allocated memory, or NULL if
 the request fails.
 
 
+
+---
+
 ```C
 INA_INLINE void* ina_mem_move(void *dest,  const void *src, size_t nb)
+{
+	INA_ASSERT_NOT_NULL(dest);
+	INA_ASSERT_NOT_NULL(src);
+	return INA_MEM_MEMMOVE(dest, src, nb);
+}
+
 ```
 
 Move a memory block.
@@ -158,8 +246,17 @@ nb    Number of bytes to copy. size_t is an unsigned integral type.
 dest is returned
 
 
+
+---
+
 ```C
 INA_INLINE void * ina_mem_cpy(void *dest, const void *src, size_t nb)
+{
+	INA_ASSERT_NOT_NULL(dest);
+	INA_ASSERT_NOT_NULL(src);
+	return INA_MEM_MEMCPY(dest, src, nb);
+}
+
 ```
 
 Copy block of memory
@@ -184,7 +281,7 @@ and source parameters, shall be at least nb bytes, and should not overlap
 copied, type-casted to a pointer of type void.
  - `source`: Pointer to the source of data to be copied, type-casted to a
 pointer of type const void.
- - `nb`:  Number of bytes to copy. size_t is an unsigned integral type.
+ - `nb`: Number of bytes to copy. size_t is an unsigned integral type.
 
 
 
@@ -193,8 +290,41 @@ pointer of type const void.
 dest is returned.
 
 
+
+---
+
 ```C
 INA_INLINE int ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
+{
+	return INA_MEM_MEMCMP(lhs, rhs, nb);
+}
+/*
+ * Locate character in block of memory
+ *
+ * Searches within the first num bytes of the block of memory pointed by dest 
+ * for the first occurrence of value (interpreted as an unsigned char), and 
+ * returns a pointer to it.
+ * 
+ * Both value and each of the bytes checked on the the dest array are 
+ * interpreted as unsigned char for the comparison.
+ *
+ * Parameters
+ *  dest   Pointer to the block of memory where the search is performed.
+ *  value  Value to be located. The value is passed as an int, but the
+ *         function performs a byte per byte search using the unsigned char
+ *         conversion of this value.
+ *  nb     Number of bytes to be analyzed.
+ *
+ * Return
+ *  A pointer to the first occurrence of value in the block of memory pointed
+ *  by des. If the value is not found, the function returns a null pointer.
+ */
+INA_INLINE void* ina_mem_chr(const void *dest, int value, size_t nb)
+{
+	INA_ASSERT_NOT_NULL(dest);
+	return INA_MEM_MEMCHR(dest, value, nb);
+}
+
 ```
 
 Compare two blocks of memory
@@ -225,37 +355,16 @@ evaluated as unsigned char values; And a value less than zero indicates
 the opposite.
 
 
-```C
-INA_INLINE void* ina_mem_chr(const void *dest, int value, size_t nb)
-```
 
-Locate character in block of memory
-
-Searches within the first num bytes of the block of memory pointed by dest
-for the first occurrence of value (interpreted as an unsigned char), and
-returns a pointer to it.
-
-Both value and each of the bytes checked on the the dest array are
-interpreted as unsigned char for the comparison.
-
-
-**Parameters**
- - `dest`: Pointer to the block of memory where the search is performed.
- - `value`: Value to be located. The value is passed as an int, but the
-function performs a byte per byte search using the unsigned char
-conversion of this value.
- - `nb`: Number of bytes to be analyzed.
-
-
-
-**Return**
-
-A pointer to the first occurrence of value in the block of memory pointed
-by des. If the value is not found, the function returns a null pointer.
-
+---
 
 ```C
 INA_INLINE void* ina_mem_set(void *dest, int value, size_t nb)
+{
+    INA_ASSERT_NOT_NULL(dest);
+    return INA_MEM_MEMSET(dest, value, nb);
+}
+
 ```
 
 Fill block of memory
@@ -278,8 +387,15 @@ this value.
 dest is returned.
 
 
+
+---
+
 ```C
 INA_INLINE void ina_mem_free(void *ptr)
+{
+	INA_MEM_FREE(*((void**)((size_t)ptr - sizeof(void*))));
+}
+
 ```
 
 Deallocate space in memory. A block of memory previously allocated using a

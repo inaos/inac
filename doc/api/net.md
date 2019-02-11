@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_NET_H__
+#define _LIBINAC_NET_H__
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
@@ -10,20 +15,38 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 #ifdef __cplusplus
+extern "C" {
+#endif
+
 ```
 
 INAOS Network API
 
+
+---
+
 ```C
 struct iovec {
+    void  *iov_base;    /* Starting address */
+    ULONG  iov_len;     /* Number of bytes to transfer */
+};
 ```
 POSIX Vectored I/O for Windows
+
+---
+
 ```C
 typedef struct ina_net_udp_receiver_s ina_net_udp_receiver_t;
 ```
 opaque UDP receiver
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_system_lookup(const char* hostname, short *address_count, ina_str_t **addresses);
 ```
@@ -32,10 +55,10 @@ Retrieve IPv4 addresses for a given hostname.
 
 
 **Parameters**
- - `ctx`: 
- - `hostname`: 
+ - `ctx`: DNS context
+ - `hostname`: Hostname to query
  - `address_count`: Where to store address count
- - `addresses`:  Where to store ip addresses
+ - `addresses`: Where to store ip addresses
 
 
 
@@ -43,6 +66,9 @@ Retrieve IPv4 addresses for a given hostname.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_net_resolve(const char *host, ina_str_t *ip);
@@ -61,6 +87,9 @@ Resolve an host name into to a ip address
 
 INA_SUCCESS if no error occurred.
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_net_hostname(char* host, size_t len);
@@ -81,6 +110,9 @@ which has a length of len bytes.
 INA_SUCCESS if all went well.
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_tcp_server(ina_fd_t *fd, int port, const char *bind_addr);
 ```
@@ -89,10 +121,13 @@ Creates a tcp server socket listening at port and bindaddr.
 
 
 **Parameters**
- - `fd`: 
- - `port`:  Port for listening
+ - `fd`: Where to store the server socket
+ - `port`: Port for listening
  - `bind_addr`: Bind address
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_net_tcp_accept(ina_fd_t *fd, ina_fd_t sfd, ina_str_t ip, int *port);
@@ -114,8 +149,14 @@ Accept a new connection on a socket.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_tcp_connect(ina_fd_t *fd,
+                                      const char *addr,
+                                      int port,
+                                      int timeout_sec);
 ```
 
 Creates a tcp client socket.
@@ -126,17 +167,23 @@ Creates a tcp client socket.
  - `addr`: Where t
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_read(ina_fd_t fd,
+                               unsigned char *buf,
+                               int nb,
+                               int *nb_read);
 ```
 
 Read data from a socket.
 
 
 **Parameters**
- - `fd`: 
- - `buf`:  Buffer where to store the read data
- - `nb`: 
+ - `fd`: Socket
+ - `buf`: Buffer where to store the read data
+ - `nb`: Size of buf in bytes
  - `nb_read`: Number of bytes read
 
 
@@ -146,17 +193,23 @@ Read data from a socket.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_write(ina_fd_t fd,
+                                const unsigned char *buf,
+                                int nb,
+                                int *nb_write);
 ```
 
 Write data to a socket.
 
 
 **Parameters**
- - `fd`: 
- - `buf`: 
- - `nb`: 
+ - `fd`: Socket
+ - `buf`: Input buffer
+ - `nb`: Length of buf in bytes
  - `nb_write`: Number of bytes written
 
 
@@ -166,15 +219,21 @@ Write data to a socket.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_readv(ina_fd_t fd,
+                                const struct iovec *iov,
+                                int iovcnt,
+                                int *nb_read);
 ```
 
 Read a vector form a socket.
 
 
 **Parameters**
- - `fd`:  Socket
+ - `fd`: Socket
  - `iov`: iov array where to store read data
  - `iovcnt`: iov buffer count
 nb_read Total number of bytes read
@@ -187,16 +246,22 @@ INA_SUCCESS if all went well
 
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_writev(ina_fd_t fd,
+                                 const struct iovec *iov,
+                                 int iovcnt,
+                                 int *nb_write);
 ```
 
 Write a vector to a socket
 
 
 **Parameters**
- - `fd`: 
- - `iov`: 
+ - `fd`: Socket
+ - `iov`: Input iov array
  - `iovcnt`: iov buffer count
  - `nb_write`: Total number of bytes written.
 
@@ -207,16 +272,22 @@ Write a vector to a socket
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_sendmsg(ina_fd_t fd,
+                                  const struct msghdr *msg,
+                                  int flags,
+                                  int *nb_send);
 ```
 
 Send a message on a socket.
 
 
 **Parameters**
- - `fd`: 
- - `msg`:  Message header
+ - `fd`: Socket
+ - `msg`: Message header
 flags
  - `nb_send`: Number of bytes sent
 
@@ -226,6 +297,9 @@ flags
 
 INA_SUCCESS id all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_net_nonblock(ina_fd_t fd);
@@ -244,6 +318,9 @@ Set non blocking mode on a socket.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_block(ina_fd_t fd);
 ```
@@ -260,6 +337,9 @@ Set blocking mode on a socket.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_net_set_read_timeout(ina_fd_t fd, int msec);
@@ -279,6 +359,9 @@ Set read timeout on a socket.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_set_write_timeout(ina_fd_t fd, int msec);
 ```
@@ -297,6 +380,9 @@ Set write timeout on a socket.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_close(ina_fd_t fd);
 ```
@@ -313,6 +399,9 @@ Close a socket.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_net_udp_bind(ina_fd_t* fd, const char *addr, int port);
@@ -333,6 +422,9 @@ Creates a UPD socket bind to port and address.
 INA_SUCCESS if all wen well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_udp_socket(ina_fd_t* fd);
 ```
@@ -350,8 +442,13 @@ Creates a UDP client socket.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address,
+                                           int port,
+                                           ina_net_udp_receiver_t **receiver);
 ```
 
 Creates a new UPD receiver.
@@ -359,7 +456,7 @@ Creates a new UPD receiver.
 
 **Parameters**
  - `address`: Remote IP address of receiver
- - `port`:  Remote port of receiver
+ - `port`: Remote port of receiver
  - `receiver`: Where to store the newly created receiver
 
 
@@ -369,8 +466,13 @@ Creates a new UPD receiver.
 INA_SUCCESS if all went well.
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_udp_receiver_free(const char *address,
+                                            int port,
+                                            ina_net_udp_receiver_t **receiver);
 ```
 
 Destroy a UPD receiver.
@@ -390,18 +492,25 @@ INA_SUCCESS
 
 FIXME: address and port seems to be useless. Remove them.
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_udp_send(ina_fd_t fd,
+                                   ina_net_udp_receiver_t *receiver,
+                                   unsigned char *buf,
+                                   int nb,
+                                   int* nb_write);
 ```
 
 Send UDP diagram.
 
 
 **Parameters**
- - `fd`: 
+ - `fd`: UDP socket
  - `receiver`: Destination
- - `buf`: 
- - `nb`: 
+ - `buf`: Buffer containing the data to send
+ - `nb`: Length of data to send
  - `nb_write`: Number of bytes sent
 
 
@@ -411,8 +520,13 @@ Send UDP diagram.
 INA_SUCCESS if all went well.
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_join_group(ina_fd_t fd,
+                                     const char *localif,
+                                     const char *source);
 ```
 
 Join a socket to multicast group
@@ -430,15 +544,20 @@ Join a socket to multicast group
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_leave_group(ina_fd_t fd,
+                                      const char *localif,
+                                      const char *source);
 ```
 
 Remove a socket from a multicast group
 
 
 **Parameters**
- - `fd`: 
+ - `fd`: Socket
  - `localif`: Local interface to leave
  - `source`: UPD source to leave
 
@@ -449,24 +568,8 @@ Remove a socket from a multicast group
 INA_SUCCESS if all wen well
 
 
-```C
-INA_API(ina_rc_t) ina_net_get_ip_from_ifname(const char *ifname, char* ip);
-```
 
-Get the IP address from interface name
-
-
-**Parameters**
- - `ifname`: Interface name
- - `ip`:  Where to store the IP address
-
-
-
-**Return**
-
-INA_SUCCESS if all went well.
-INA_FAILURE if interface ifname could not be found.
-
+---
 
 ```C
 INA_API(ina_rc_t) ina_net_get_mac_addr(const char *ip, char *buf, size_t buf_len);
@@ -486,8 +589,14 @@ Get the MAC address of an network adapter
 INA_SUCCESS if all went well.
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_net_poll(ina_net_pollfd_t *fds,
+                               nfds_t nfds,
+                               int timeout,
+                               int *num_fds_ready);
 ```
 
 Level triggered readiness notification, good enough for a couple of thousand

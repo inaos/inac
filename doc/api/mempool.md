@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_MEMPOOL_H_
+#define _LIBINAC_MEMPOOL_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
@@ -10,58 +15,57 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 #define INA_MEM_DFT_POOL_SIZE (8*1024*1204)
+/* Minimal allowed pool size */
+#define INA_MEM_MIN_POOL_SIZE (1024)
+/* Single Pool, fixed size , no chunks */
+#define INA_MEM_FIXED           (0)
+/* Dynamic chunk allocation */
+#define INA_MEM_DYNAMIC         (1)
+/* Autosized chunk */
+#define INA_MEM_AUTOSIZE        (2)
+/* Fill chunks */
+#define INA_MEM_BESTFIT         (4)
+/* Use shared memory */
+#define INA_MEM_SHARED          (32)
+/* Open or create shared memory */
+#define INA_MEM_SHARED_CREATE   (64)
+/* Shared memory owner */
+#define INA_MEM_SHARED_OWNER    (128)
+/* Open shared memory exclusive */
+#define INA_MEM_SHARED_EXCL    (256)
+/* Do not fill zero on creation */
+#define INA_MEM_NOZEROFILL     (512)
+
 ```
 TODO: rename all constants to INA_MEMPOOL_....
-```C
-#define INA_MEM_MIN_POOL_SIZE (1024)
-```
-Minimal allowed pool size
-```C
-#define INA_MEM_FIXED           (0)
-```
-Single Pool, fixed size , no chunks
-```C
-#define INA_MEM_DYNAMIC         (1)
-```
-Dynamic chunk allocation
-```C
-#define INA_MEM_AUTOSIZE        (2)
-```
-Autosized chunk
-```C
-#define INA_MEM_BESTFIT         (4)
-```
-Fill chunks
-```C
-#define INA_MEM_SHARED          (32)
-```
-Use shared memory
-```C
-#define INA_MEM_SHARED_CREATE   (64)
-```
-Open or create shared memory
-```C
-#define INA_MEM_SHARED_OWNER    (128)
-```
-Shared memory owner
-```C
-#define INA_MEM_SHARED_EXCL    (256)
-```
-Open shared memory exclusive
-```C
-#define INA_MEM_NOZEROFILL     (512)
-```
-Do not fill zero on creation
+
+---
+
 ```C
 typedef struct ina_mempool_s ina_mempool_t;
 ```
 Opaque emory pool handle
+
+---
+
 ```C
 typedef struct ina_mempool_info_s {
+    uint32_t cf;       /* creation flags */
+    size_t size;       /* current size of all chunks */
+    size_t used;       /* current used size incl. all chunks */
+    size_t children;   /* number of chunks */
+    size_t chunk_size; /* default chunks size */
+} ina_mempool_info_t;
 ```
 struct to hold pool information
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mempool_init(void);
 ```
@@ -74,14 +78,21 @@ Initialized memory pool module
 INA_SUCCES if all went well
 
 
+
+---
+
 ```C
 INA_API(void) ina_mempool_destroy(void);
 ```
 
 Destroy memory pool module.
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool,
+                                   ina_mempool_info_t *info);
 ```
 
 Get runtime information about a memory pool.
@@ -98,6 +109,9 @@ Get runtime information about a memory pool.
 INA_SUCCESS if no error occurred.
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool);
 ```
@@ -108,7 +122,7 @@ Creates a memory pool.
 **Parameters**
  - `pool`: Pointer to a memory pool pointer
  - `size`: Size of memory pool in bytes.
- - `cf`: 
+ - `cf`: Creation flags
  - `label`: Pool label. Optional for non shared memory pools.
 
 
@@ -117,6 +131,9 @@ Creates a memory pool.
 
 INA_SUCCESS if pool was created successfully.
 
+
+
+---
 
 ```C
 INA_API(void) ina_mempool_free(ina_mempool_t **pool);
@@ -128,6 +145,9 @@ Free a memory pool.
 **Parameters**
  - `pool`: Memory pool to free
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_mempool_merge(ina_mempool_t *dest, ina_mempool_t *src);
@@ -149,8 +169,13 @@ INA_SUCCESS if all went well
 INA_EOP     if trying to merge shared memory pool
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mempool_shrink(ina_mempool_t *pool,
+                                     size_t chunks,
+                                     ina_mempool_info_t *info);
 ```
 
 Shrink a memory pool.
@@ -167,6 +192,9 @@ Shrink a memory pool.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_mempool_clear(ina_mempool_t *pool);
@@ -185,6 +213,9 @@ Clear a memory pool, fill all chunks with 0.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
 ```
@@ -201,6 +232,9 @@ Reset a memory pool.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
@@ -222,6 +256,9 @@ Pointer to the allocated memory that is suitably aligned for any
 kind of variable
 
 
+
+---
+
 ```C
 INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
 ```
@@ -242,6 +279,9 @@ Pointer to the allocated memory that is suitably aligned for any
 kind of variable
 
 
+
+---
+
 ```C
 INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size);
 ```
@@ -250,8 +290,8 @@ Reallocate memory from a pool
 
 
 **Parameters**
- - `pool`:  Memory pool
- - `old`: 
+ - `pool`: Memory pool
+ - `old`: Old pointer
  - `old_size`: Old size in bytes
  - `new_size`: New size in bytes
 

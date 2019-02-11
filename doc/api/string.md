@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_STRING_H_
+#define _LIBINAC_STRING_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
@@ -10,11 +15,17 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
-typedef char * ina_str_t;typedef const char * ina_cstr_t;
+typedef char * ina_str_t;
 ```
 
 String type
+
+
+---
 
 ```C
 INA_API(ina_str_t) ina_str_new(size_t len);
@@ -33,6 +44,9 @@ Creates a empty ina_str_t with as preallocated length len.
 New created string or NULL if an error occurred.
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_new_using_pool(size_t len, ina_mempool_t *pool);
 ```
@@ -49,6 +63,9 @@ Creates a empty ina_str_t from a memory pool with as preallocated length len.
 
 New created string or NULL if an error occurred.
 
+
+
+---
 
 ```C
 INA_API(ina_str_t) ina_str_new_fromblk(const void* blk, size_t len);
@@ -69,8 +86,13 @@ len.
 New created string or NULL if an error occurred.
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk,
+                                                  size_t len, 
+                                                  ina_mempool_t* pool);
 ```
 
 Creates a ina_str_t wich contains the content of blk of length
@@ -87,6 +109,9 @@ len. Memory will allocated from a memory pool.
 
 New created string or NULL if an error occurred.
 
+
+
+---
 
 ```C
 INA_API(ina_str_t) ina_str_new_fromcstr(const char *cstr);
@@ -105,8 +130,12 @@ Creates a ina_str_t which contains the content of cstr.
 New created string or NULL if an error occurred.
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_new_fromcstr_using_pool(const char *cstr,
+                                               ina_mempool_t *pool);
 ```
 
 Creates a ina_str_t from a memory pool which contains the content of cstr.
@@ -123,6 +152,9 @@ Creates a ina_str_t from a memory pool which contains the content of cstr.
 New created string or NULL if an error occurred.
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_str_free(ina_str_t str);
 ```
@@ -138,8 +170,14 @@ str  String to free
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_INLINE ina_str_t ina_str_dup(ina_cstr_t str)
+{
+    if (str == NULL) {
+        return NULL;
 ```
 
 Duplicate a string.
@@ -153,8 +191,14 @@ str   String to duplicate
 Duplicated string or NULL if an error occurred.
 
 
+
+---
+
 ```C
 INA_INLINE ina_str_t ina_str_dup_using_pool(ina_cstr_t str, ina_mempool_t *pool)
+{
+    if (str == NULL) {
+        return NULL;
 ```
 
 Duplicate a string usind a memory pool
@@ -169,8 +213,13 @@ pool  Memory pool
 Duplicated string or NULL if an error occurred.
 
 
+
+---
+
 ```C
 INA_INLINE const char* ina_str_cstr(ina_cstr_t str)
+{
+    return str;
 ```
 
 Cast a INAC string to a C string
@@ -184,11 +233,26 @@ str  String to cast
 Casted string
 
 
+
+---
+
 ```C
 /*
+ * Returns the length of the given string byte string.
+ *
+ * Parameters
+ *  s  Pointer to the null-terminated byte string to be examined
+ *
+ * Return
+ *  The length of the null-terminated string s.
+ */
+INA_API(size_t) ina_str_len(ina_cstr_t str);
 ```
 
 String examinations
+
+
+---
 
 ```C
 INA_API(size_t) ina_str_size(ina_cstr_t str);
@@ -207,6 +271,9 @@ Returns the memory size of the given string byte string.
 The memory size in bytes of string s.
 
 
+
+---
+
 ```C
 INA_API(size_t) ina_str_available(ina_cstr_t str);
 ```
@@ -223,6 +290,9 @@ Returns the free memory size of the given string byte string.
 
 The free memory size in bytes for string s.
 
+
+
+---
 
 ```C
 INA_API(int) ina_str_cmp(ina_cstr_t lhs, ina_cstr_t rhs);
@@ -244,8 +314,13 @@ INA_SUCCESS if lhs is equal to rhs.
 Positive value if lhs is greater than rhs.
 
 
+
+---
+
 ```C
 INA_INLINE int ina_str_casecmp(ina_cstr_t lhs, ina_cstr_t rhs)
+{
+    return INA_CSTR_CASECMP(lhs, rhs);
 ```
 
 Same as ina_str_cmp but ignores case.
@@ -263,8 +338,13 @@ INA_SUCCESS if lhs is equal to rhs.
 Positive value if lhs is greater than rhs.
 
 
+
+---
+
 ```C
 INA_INLINE int ina_str_ncmp(ina_cstr_t lhs, ina_cstr_t rhs, size_t n)
+{
+    return strncmp(lhs, rhs, n);
 ```
 
 Compares at most count characters of two null-terminated byte strings.
@@ -273,7 +353,7 @@ The comparison is done lexicographically.
 
 **Parameters**
  - `lhs, rhs`: Pointers to the null-terminated byte strings to compare
- - `n`: 
+ - `n`: Maximum number of characters to compare
 
 
 
@@ -284,8 +364,14 @@ INA_SUCCESS  if lhs is equal to rhs.
 Positive value if lhs is greater than rhs.
 
 
+
+---
+
 ```C
 INA_INLINE const char* ina_str_str(ina_cstr_t str1,  ina_cstr_t str2)
+{
+    if (str2 == NULL || str1 == NULL) {
+        return NULL;
 ```
 
 Locate substring. Returns a pointer to the first occurrence of s2 in s1,
@@ -306,8 +392,14 @@ of characters specified in s2, or a null pointer if the sequence is not
 present in s1.
 
 
+
+---
+
 ```C
 INA_INLINE const char* ina_str_strcstr(ina_cstr_t str1, const char *str2)
+{
+    if (str2 == NULL || str1 == NULL) {
+        return NULL;
 ```
 
 Locate substring. Returns a pointer to the first occurrence of s2 in s1,
@@ -328,8 +420,14 @@ of characters specified in s2, or a null pointer if the sequence is not
 present in s1.
 
 
+
+---
+
 ```C
 INA_INLINE const char* ina_str_rchr(ina_cstr_t str, const char chr)
+{
+    if (chr == 0) {
+        return NULL;
 ```
 
 Locate last occurrence of character in string. Returns a pointer to the
@@ -350,14 +448,41 @@ A pointer to the last occurrence of character in str. If the value is not
 found, the function returns a null pointer.
 
 
+
+---
+
 ```C
 /*
+ * Copies at most count characters of the byte string pointed to by src
+ * (including the terminating null character) to character array pointed to by
+ * dest.
+ * If count is reached before the entire string src was copied, the resulting
+ * character array is not null-terminated.
+ * If, after copying the terminating null character from src, count is not
+ * reached, additional null characters are written to dest until the total of
+ * count characters have been written.
+ * If the strings overlap, the behavior is undefined.
+ *
+ * Parameters
+ *  dest  Pointer to the character array to copy to
+ *  src   Pointer to the byte string to copy from
+ *  n     Maximum number of characters to copy
+ *
+ * Return
+ *  dest
+ */
+INA_API(ina_str_t) ina_str_ncpy(ina_str_t dest, ina_cstr_t src, size_t n);
 ```
 
 String manipulation
 
+
+---
+
 ```C
 INA_INLINE ina_str_t ina_str_cpy(ina_str_t dest, ina_cstr_t src)
+{
+    return ina_str_ncpy(dest, src, ina_str_len(src));
 ```
 
 Copies the byte string pointed to by src to byte string, pointed to by dest.
@@ -375,8 +500,11 @@ If the strings overlap, the behavior is undefined.
 dest
 
 
+
+---
+
 ```C
-INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, ina_cstr_t src, size_t n);/*
+INA_API(ina_str_t) ina_str_ncat(ina_str_t dest, ina_cstr_t src, size_t n);
 ```
 
 Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -395,6 +523,37 @@ null-terminated. If the strings overlap, the behavior is undefined.
 
 dest
 
+
+
+---
+
+```C
+INA_API(ina_str_t) ina_str_ncat_using_pool(ina_str_t dest,
+                                           ina_cstr_t src,
+                                           size_t n,
+                                           ina_mempool_t *pool);
+```
+
+Appends a byte string pointed to by src to a byte string pointed to by dest.
+At most count characters are copied. The resulting byte string is
+null-terminated. If the strings overlap, the behavior is undefined.
+
+
+**Parameters**
+ - `dest`: Pointer to the null-terminated byte string to append to
+ - `src`: Pointer to the null-terminated byte string to copy from
+ - `n`: Maximum number of characters to copy
+ - `pool`: Memory pool
+
+
+
+**Return**
+
+dest
+
+
+
+---
 
 ```C
 INA_API(ina_str_t) ina_str_ncatcstr(ina_str_t dest, const char *src, size_t n);
@@ -417,8 +576,14 @@ null-terminated. If the strings overlap, the behavior is undefined.
 dest
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest,
+                                               const char *src,
+                                               size_t n,
+                                               ina_mempool_t *pool);
 ```
 
 Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -439,8 +604,13 @@ null-terminated. If the strings overlap, the behavior is undefined.
 dest
 
 
+
+---
+
 ```C
 INA_INLINE ina_str_t ina_str_cat(ina_str_t dest, ina_cstr_t src)
+{
+    return ina_str_ncat(dest, src, ina_str_len(src));
 ```
 
 Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -458,9 +628,14 @@ behavior is undefined.
 
 dest
 
+
+
+---
 
 ```C
 INA_INLINE ina_str_t ina_str_cat_using_pool(ina_str_t dest,  ina_cstr_t src, ina_mempool_t *pool)
+{
+    return ina_str_ncat_using_pool(dest, src, ina_str_len(src), pool);
 ```
 
 Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -480,8 +655,13 @@ behavior is undefined.
 dest
 
 
+
+---
+
 ```C
 INA_INLINE ina_str_t ina_str_catcstr(ina_str_t dest, const char *src)
+{
+    return ina_str_ncatcstr(dest, src, strlen(src));
 ```
 
 Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -500,8 +680,13 @@ behavior is undefined.
 dest
 
 
+
+---
+
 ```C
 INA_INLINE ina_str_t ina_str_catcstr_using_pool(ina_str_t dest, const char *src, ina_mempool_t *pool)
+{
+    return ina_str_ncatcstr_using_pool(dest, src, strlen(src), pool);
 ```
 
 Appends a byte string pointed to by src to a byte string pointed to by dest.
@@ -520,6 +705,9 @@ behavior is undefined.
 
 dest
 
+
+
+---
 
 ```C
 INA_API(const char*) ina_str_tok(char* str, const char *sep, char **next);
@@ -541,6 +729,9 @@ muss be freed by the caller.
 token or NULL if no more token founds
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str);
 ```
@@ -558,6 +749,9 @@ Convert a string to uppercase.
 str
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_tolower(ina_str_t str);
 ```
@@ -574,6 +768,9 @@ Convert a string to lowercase
 
 str
 
+
+
+---
 
 ```C
 INA_API(ina_str_t) ina_str_truncate(ina_str_t str, size_t pos);
@@ -594,6 +791,9 @@ be truncated.
 str
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_trim(ina_str_t str, const char* chars);
 ```
@@ -611,6 +811,9 @@ Trim (left and right) a string.
 
 Trimmed string (str)
 
+
+
+---
 
 ```C
 INA_API(ina_str_t) ina_str_substr(ina_cstr_t str, size_t start, size_t end);
@@ -632,8 +835,14 @@ returned and must be freed by the caller.
 Substring or NULL if an error occurred
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_substr_using_pool(ina_cstr_t str,
+                                             size_t start,
+                                             size_t end,
+                                             ina_mempool_t *pool);
 ```
 
 Extract the substring starting at start until end. A new string will be
@@ -653,8 +862,13 @@ returned.
 Substring or NULL if an error occurred
 
 
+
+---
+
 ```C
 INA_API(ina_str_t*) ina_str_split(const char *str,
+                                  const char *sep,
+                                  size_t *count);
 ```
 
 Splits a string into array by a separator char
@@ -673,6 +887,9 @@ String array or NULL if an error occurred. The array must be freed by
 calling ina_str_split_free_tokens()
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t)  ina_str_split_free_tokens(ina_str_t *tokens);
 ```
@@ -690,6 +907,9 @@ Free token array created by ina_str_split().
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_assign_buf(char* buf, size_t len);
 ```
@@ -706,6 +926,9 @@ len  buffer length in bytes
 
 Assigned string or NULL if buf is to small
 
+
+
+---
 
 ```C
 INA_API(char *) ina_str_release_buf(ina_str_t str);
@@ -726,6 +949,9 @@ from a memory pool.
 Release buffer
 
 
+
+---
+
 ```C
 INA_API(ina_str_t) ina_str_adjust_len(ina_str_t str);
 ```
@@ -743,6 +969,9 @@ modified directly.
 
 str
 
+
+
+---
 
 ```C
 INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...);
@@ -773,6 +1002,9 @@ character. Thus, the nul-terminated output has been completely written if
 and only if the return value is nonnegative and less than size. On error,
 returns -1 (i.e. encoding error).
 
+
+
+---
 
 ```C
 INA_API(int) ina_str_snprintf(ina_str_t *str, size_t len, const char* fmt, ...);
@@ -807,15 +1039,23 @@ and only if the return value is nonnegative and less than size. On error,
 returns -1 (i.e. encoding error).
 
 
+
+---
+
 ```C
 INA_API(int) ina_str_vsnprintf(ina_str_t *str, size_t len, const char* fmt,
+                               va_list args);
 ```
 
 Equivalent to ina_str_snprintf(3) with the variable argument list specified
 directly as for vsprintf.
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_str_wildcard_match(ina_cstr_t tame,
+                                         const char *wildcard);
 ```
 
 Tests the tame string if it matches the given wildcard. Supported wildcard
@@ -826,6 +1066,6 @@ Note: This does not support regular expressions
 
 
 **Parameters**
- - `tame`:  Input string
+ - `tame`: Input string
  - `wildcard`: Wildcard character
 

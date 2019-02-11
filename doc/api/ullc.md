@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_ULLC_H_
+#define _LIBINAC_ULLC_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
@@ -10,8 +15,13 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 #define INA_ULLC_MAX_PRODUCERS (64)
+#define INA_ULLC_MAX_CONSUMERS (INA_ULLC_MAX_PRODUCERS)
+
 ```
 
 GOALs:
@@ -97,68 +107,116 @@ TODO:
 - Tuning, cache-lines
 - Batch writing and reading
 
+
+---
+
 ```C
 typedef enum ina_ullc_ctx_type_e {
+    INA_ULLC_CTX_PRODUCER = 0,
+    INA_ULLC_CTX_CONSUMER,
+} ina_ullc_ctx_type_t;
 ```
 Context types
+
+---
+
 ```C
 typedef enum ina_ullc_signal_type_e {
+     INA_ULLC_SIG_WAIT = -1,
+     INA_ULLC_SIG_RELEASE = 1,
+} ina_ullc_signal_type;
 ```
 Signal types for INA_ULLC_SIGNAL_WAIT
+
+---
+
 ```C
 typedef enum ina_ullc_wait_strategy_e {
+	INA_ULLC_WS_NONE = 0,
+    INA_ULLC_WS_BUSY_WAIT,
+    INA_ULLC_WS_SIGNAL_WAIT,
+ } ina_ullc_wait_strategy;
 ```
 ULLC wait strategies
+
+---
+
 ```C
 typedef struct ina_ullc_rb_s ina_ullc_rb_t;
 ```
 ring buffer (shared mem)
+
+---
+
 ```C
 typedef struct ina_ullc_cursor_s ina_ullc_cursor_t;
 ```
 ULLC ring cursor
+
+---
+
 ```C
 typedef struct ina_ullc_ctx_s ina_ullc_ctx_t;
 ```
 ullc context
+
+---
+
 ```C
 typedef struct ina_ullc_rb_info_s {
+    int    ring_version;            /* Ring version */
+    size_t num_write_op;            /* Number of write operation */
+    int64_t last_writer;            /* Last writing producer */
+    size_t num_read_op;             /* Nr. od read operations */
+    int64_t last_reader;            /* Last reading consumer */
+    size_t num_producers;           /* Nr of producers */
+    size_t num_producers_alive;     /* Nr of active producers */
+    size_t num_consumers;           /* Max nr. of consumers */
+    size_t num_consumers_alive;     /* Nr of active consumers */
+    size_t mem_size;                /* Allocated size in bytes */
+    size_t slot_size;               /* Size in bytes for each slot */
+    size_t num_slots;               /* Nr of slots */
+    int64_t current_slot;           /* Last commited slot */
+    ina_ullc_cursor_t *c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
+    ina_ullc_cursor_t *p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */
+} ina_ullc_rb_info_t;
 ```
 ULLC Ring buffer info
+
+---
+
 ```C
 #define INA_ULLC_WRITE(ctx, src) do { ina_mem_cpy(ina_ullc_producer_claim(ctx), (void*)src, ctx->ring->size); ina_ullc_producer_commit(ctx); } while (0)
+
 ```
 Claim and commit
+
+---
+
 ```C
 #define INA_ULLC_CLAIM(type, ctx) (type*)ina_ullc_producer_claim(ctx)
+/* Commit an item */
+#define INA_ULLC_COMMIT(ctx) ina_ullc_producer_commit(ctx)
+/* Waiting for a signal*/
+#define INA_ULLC_SWAIT(ctx) ina_ullc_consumer_swait(ctx)
+/* When waiting externally use to indicate start and end of wait */
+#define INA_ULLC_SWAIT_BEGIN(ctx) ina_ullc_consumer_swait_begin(ctx)
+#define INA_ULLC_SWAIT_END(ctx) ina_ullc_consumer_swait_end(ctx)
+/* Get an item w/o waiting */
+#define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get(ctx)
+/* "Signal" consumers  to wait */
+#define INA_ULLC_SIGNAL_WAIT(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_WAIT)
+/* "Singal" consumers to read */
+#define INA_ULLC_SIGNAL_RELEASE(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_RELEASE)
+
 ```
 Clain an item
-```C
-#define INA_ULLC_COMMIT(ctx) ina_ullc_producer_commit(ctx)
-```
-Commit an item
-```C
-#define INA_ULLC_SWAIT(ctx) ina_ullc_consumer_swait(ctx)
-```
-Waiting for a signal
-```C
-#define INA_ULLC_SWAIT_BEGIN(ctx) ina_ullc_consumer_swait_begin(ctx)
-```
-When waiting externally use to indicate start and end of wait
-```C
-#define INA_ULLC_GET(type, ctx) (type*)ina_ullc_consumer_get(ctx)
-```
-Get an item w/o waiting
-```C
-#define INA_ULLC_SIGNAL_WAIT(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_WAIT)
-```
-"Signal" consumers  to wait
-```C
-#define INA_ULLC_SIGNAL_RELEASE(ctx) ina_ullc_producer_signal(ctx, INA_ULLC_SIG_RELEASE)
-```
-"Singal" consumers to read
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_ullc_get_ring_info(const char *name,
+                                         ina_ullc_rb_info_t *info);
 ```
 
 Get current ULLC ring status information.
@@ -174,6 +232,9 @@ Get current ULLC ring status information.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_ullc_reset_ring(const char *name);
@@ -192,6 +253,9 @@ Reset an ULLC ring.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_ullc_overrun_enable(ina_ullc_ctx_t *ctx);
 ```
@@ -208,6 +272,9 @@ Enable overrun. Producers doesn't wait for slow consumers.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_ullc_overrun_disable(ina_ullc_ctx_t *ctx);
@@ -226,22 +293,28 @@ Disable overrun. Producers wait for slow consumers.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_ullc_producer_new(int version, size_t size,
+                                        size_t slots, int producers, int num_consumers,
+                                        const char *name, ina_ullc_wait_strategy ws,
+                                        ina_ullc_ctx_t **ctx);
 ```
 
 Creates a producer.
 
 
 **Parameters**
- - `version`: 
- - `size`: 
- - `slots`: 
- - `producers`:  Defines max. number of producers
+ - `version`: Defines ring version
+ - `size`: Defines size in bytes of a single ring slot
+ - `slots`: Defines number of slots
+ - `producers`: Defines max. number of producers
  - `num_consumers`: Defines max. number of consumers
- - `name`: 
- - `ws`: 
- - `ctx`: 
+ - `name`: Name of ring
+ - `ws`: Wait strategy
+ - `ctx`: Where to store the producer context
 
 
 
@@ -249,6 +322,9 @@ Creates a producer.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_ullc_producer_reset(ina_ullc_ctx_t *ctx);
@@ -269,6 +345,9 @@ INA_SUCCESS
 
 FIXME: Implementation missing
 
+
+---
+
 ```C
 INA_API(void) ina_ullc_producer_free(ina_ullc_ctx_t **ctx);
 ```
@@ -279,6 +358,9 @@ Destroy a producer.
 **Parameters**
  - `ctx`: ULLC producer context to free
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_ullc_producer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos);
@@ -298,6 +380,9 @@ Get current producer position.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_ullc_consumer_get_pos(ina_ullc_ctx_t *ctx, int64_t *pos);
 ```
@@ -315,6 +400,9 @@ Get current consumer position.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_ullc_consumer_set_pos(ina_ullc_ctx_t *ctx, int64_t pos);
@@ -334,6 +422,9 @@ Set current consumer position
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(void *)  ina_ullc_producer_claim(ina_ullc_ctx_t *ctx);
 ```
@@ -350,6 +441,9 @@ Claim item for a producer.
 
 Pointer to the current item
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_ullc_producer_commit(ina_ullc_ctx_t *ctx);
@@ -368,8 +462,12 @@ Commit item for a producer.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_ullc_producer_signal(ina_ullc_ctx_t *ctx,
+                                           ina_ullc_signal_type st);
 ```
 
 Signal observers.
@@ -386,21 +484,30 @@ Signal observers.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_ullc_consumer_new(int version,
+                                        size_t size,
+                                        size_t slots,
+                                        int producers,
+                                        int num_consumers,
+                                        const char *name,
+                                        ina_ullc_ctx_t **ctx);
 ```
 
 Create a consumer.
 
 
 **Parameters**
- - `version`: 
- - `size`: 
- - `slots`: 
- - `producers`:  Defines max. number of producers
+ - `version`: Defines ring version
+ - `size`: Defines size in bytes of a single ring slot
+ - `slots`: Defines number of slots
+ - `producers`: Defines max. number of producers
  - `num_consumers`: Defines max. number of consumers
- - `name`: 
- - `ctx`: 
+ - `name`: Name of ring
+ - `ctx`: Where to store the context
 
 
 
@@ -408,6 +515,9 @@ Create a consumer.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(void) ina_ullc_consumer_free(ina_ullc_ctx_t **ctx);
@@ -419,6 +529,9 @@ Destroy consumer.
 **Parameters**
  - `ctx`: ULLC context to free
 
+
+
+---
 
 ```C
 INA_API(void *)  ina_ullc_consumer_get(ina_ullc_ctx_t *ctx);
@@ -437,6 +550,9 @@ Read from consumer, no wait
 Pointer to ring item
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_ullc_consumer_swait(ina_ullc_ctx_t *ctx);
 ```
@@ -454,6 +570,9 @@ Signal wait
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_ullc_consumer_swait_begin(ina_ullc_ctx_t *ctx);
 ```
@@ -470,6 +589,9 @@ Start wait block.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_ullc_consumer_swait_end(ina_ullc_ctx_t *ctx);

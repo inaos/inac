@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_HASHTABLE_H_
+#define _LIBINAC_HASHTABLE_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2016-2018. All rights reserved

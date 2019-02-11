@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_MMAP_H_
+#define _LIBINAC_MMAP_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
@@ -10,8 +15,14 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 #ifdef __cplusplus
+extern "C" {
+#endif
+
 ```
 
 
@@ -19,26 +30,64 @@ TODO:
 -> CreateFileMappingNuma? Linux alternative.. or use huge-pages?
 
 
+
+---
+
 ```C
 typedef enum ina_mmap_mem_prot_e {
+    INA_MMAP_MEM_PROT_READ  = 0x01,
+    INA_MMAP_MEM_PROT_WRITE = 0x02,
+    INA_MMAP_MEM_PROT_EXEC  = 0x04,
+} ina_mmap_mem_prot_t;
 ```
 IO protection
+
+---
+
 ```C
 typedef enum ina_mmap_mem_share_e {
+    INA_MMAP_MEM_SHARE_PRIVATE,
+    INA_MMAP_MEM_SHARE_SHARED
+} ina_mmap_mem_share_t;
 ```
 Share mode
+
+---
+
 ```C
 typedef enum ina_mmap_map_type_e {
+    INA_MMAP_MAP_TYPE_FILE,
+    INA_MMAP_MAP_TYPE_MEMORY
+} ina_mmap_map_type_t;
 ```
 MMAP mode
+
+---
+
 ```C
 typedef enum ina_mmap_mem_advice_e {
+    INA_MMAP_MEM_ADVICE_SEQUENTIAL,
+    INA_MMAP_MEM_ADVICE_RANDOM
+} ina_mmap_mem_advice_t;
 ```
 MMAP advice
+
+---
+
 ```C
-typedef struct ina_mmap_ctx_s ina_mmap_ctx_t;/* opaque mmap mapping */
+typedef struct ina_mmap_ctx_s ina_mmap_ctx_t;
 ```
 opaque mmap context
+
+---
+
+```C
+typedef struct ina_mmap_mapping_s ina_mmap_mapping_t;
+```
+opaque mmap mapping
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mmap_ctx_new(ina_mmap_ctx_t **ctx);
 ```
@@ -55,6 +104,9 @@ Creates and initialize a MMAP context.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_mmap_ctx_free(ina_mmap_ctx_t **ctx);
@@ -73,16 +125,26 @@ Destroy a MMAP context.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx,
+                               ina_file_t *fd,
+                               int prot_flags,
+                               ina_mmap_mem_share_t share,
+                               ina_mmap_map_type_t map_type,
+                               uint64_t offset,
+                               uint64_t length,
+                               ina_mmap_mapping_t **mapping);
 ```
 
 Creates a new mapping in the virtual address space of the calling process.
 
 
 **Parameters**
- - `ctx`:  MMAP context
- - `fd`: 
+ - `ctx`: MMAP context
+ - `fd`: Defines protection mode
  - `share`: Defines share mode
  - `type`: Defines mapping type
  - `offset`: Starting address for the new mapping
@@ -95,6 +157,9 @@ Creates a new mapping in the virtual address space of the calling process.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mapping);
@@ -113,6 +178,9 @@ mapping Mapping to free
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping);
@@ -133,6 +201,9 @@ written back before ina_mmap_free is called.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mmap_memory_head(ina_mmap_mapping_t *mapping, void **memory);
 ```
@@ -150,6 +221,9 @@ Get head of mapping.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memory);
@@ -169,8 +243,13 @@ Get tail of mapping.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping,
+                                  size_t length,
+                                  ina_mmap_mem_advice_t advice);
 ```
 
 Advises the kernel about how to handle paging input/output in the address

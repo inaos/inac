@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_DIR_H_
+#define _LIBINAC_DIR_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2016-2018. All rights reserved
@@ -10,30 +15,64 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 typedef struct ina_dir_walker_s ina_dir_walker_t;
 ```
 Opaque directory walker handle
+
+---
+
 ```C
 typedef struct ina_dir_stat_s ina_dir_stat_t;
 ```
 Opaque directory stat handle
+
+---
+
 ```C
 typedef enum ina_dir_sort_order_e {
+    INA_DIR_SORT_ORDER_NONE = 0,
+    INA_DIR_SORT_ORDER_ASCEND,
+    INA_DIR_SORT_ORDER_DESCEND,
+} ina_dir_sort_order_t;
 ```
 Directory sort order
+
+---
+
 ```C
 typedef enum ina_dir_sort_attrib_e {
+    INA_DIR_SORT_ATTRIB_DFT = 0,
+    INA_DIR_SORT_ATTRIB_NAME,
+    INA_DIR_SORT_ATTRIB_TYPE
+} ina_dir_sort_attrib_t;
 ```
 Directory sort attrib
+
+---
+
 ```C
 typedef enum ina_dir_entry_type_e {
+    INA_DIR_ENTRY_TYPE_UNKNOWN = 0,
+    INA_DIR_ENTRY_TYPE_FILE,
+    INA_DIR_ENTRY_TYPE_DIR
+} ina_dir_entry_type_t;
 ```
 Directory entry typ
+
+---
+
 ```C
 typedef struct ina_dir_entry_s {
+    ina_str_t name;
 ```
 Directory entry
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_walker_new(const char *basedir, ina_dir_walker_t **walker);
 ```
@@ -52,6 +91,9 @@ Create a new directory walker.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_walker_enable_recursive(ina_dir_walker_t *walker);
 ```
@@ -68,6 +110,9 @@ Enable recursive directory walking.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_dir_walker_disable_recursive(ina_dir_walker_t *walker);
@@ -86,15 +131,19 @@ Disable recursive directory walking.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_walker_get_sort_order(const ina_dir_walker_t *walker,
+                                                ina_dir_sort_order_t *sort_order);
 ```
 
 Get current sort order for walker.
 
 
 **Parameters**
- - `walker`:  Directory walker
+ - `walker`: Directory walker
  - `sort_order`: Where to store current sort order
 
 
@@ -104,15 +153,19 @@ Get current sort order for walker.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_walker_set_sort_order(ina_dir_walker_t *walker,
+                                                ina_dir_sort_order_t sort_order);
 ```
 
 Set directory sort order for walker.
 
 
 **Parameters**
- - `walker`:  Directory walker
+ - `walker`: Directory walker
  - `sort_order`: Sort order to set
 
 
@@ -122,15 +175,19 @@ Set directory sort order for walker.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_walker_get_sort_attrib(const ina_dir_walker_t *walker,
+                                                 ina_dir_sort_attrib_t *sort_attrib);
 ```
 
 Get current directory sort attribute for walker.
 
 
 **Parameters**
- - `walker`:  Directory walker
+ - `walker`: Directory walker
 sort_attrib Where to store the current sort attribute
 
 
@@ -140,15 +197,19 @@ sort_attrib Where to store the current sort attribute
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_walker_set_sort_attrib(ina_dir_walker_t *walker,
+                                                 ina_dir_sort_attrib_t sort_attrib);
 ```
 
 Set directory sort attribute for walker.
 
 
 **Parameters**
- - `walker`: 
+ - `walker`: Director walker
  - `sort_attrib`: Sort attribute to set
 
 
@@ -158,8 +219,12 @@ Set directory sort attribute for walker.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_walker_get_next_entry(ina_dir_walker_t *walker,
+                                                 const ina_dir_entry_t **entry);
 ```
 
 Get next directory entry of walker.
@@ -175,6 +240,9 @@ Get next directory entry of walker.
 
 INA_SUCCESS if all went well, INA_FAILURE on end of list.
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_dir_walker_reset(ina_dir_walker_t *walker);
@@ -193,6 +261,9 @@ Reset walker. Does not reflect FS changes, sort order and sort attribute
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_walker_reload(ina_dir_walker_t *walker);
 ```
@@ -204,6 +275,9 @@ Reload walker. Reflect FS changes, sort order and sort attrib.
  - `walker`: Directory walker to reload
 
 
+
+---
+
 ```C
 INA_API(void) ina_dir_walker_free(ina_dir_walker_t **walker);
 ```
@@ -212,6 +286,9 @@ Free directory walker.
 
 Parameter
 walker  Directory walker to free
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_dir_stat_new(const char *dir, ina_dir_stat_t **stat);
@@ -225,15 +302,19 @@ Create and initialize directory attributes for a give directory.
  - `dir`: Directory
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat,
+                                              size_t *capacity_bytes);
 ```
 
 Get total capacity in bytes for a directory.
 
 
 **Parameters**
- - `stats`: 
+ - `stats`: Directory attributes
  - `capacity_bytes`: Where to store directory capacity in bytes
 
 
@@ -243,15 +324,19 @@ Get total capacity in bytes for a directory.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_dir_stat_bytes_free(const ina_dir_stat_t *stat,
+                                          size_t *free_bytes);
 ```
 
 Get free capacity in bytes for a directory.
 
 
 **Parameters**
- - `stat`: 
+ - `stat`: Directory attributes
  - `free_bytes`: Where too store the free capacity in bytes
 
 
@@ -260,6 +345,9 @@ Get free capacity in bytes for a directory.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_dir_stat_pct_used(const ina_dir_stat_t *stat, int *pct_used);
@@ -278,6 +366,9 @@ Calculate used capacity of a directory in percent.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(void) ina_dir_stat_free(ina_dir_stat_t **stat);

@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_STOPWATCH_H_
+#define _LIBINAC_STOPWATCH_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
@@ -10,14 +15,24 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 typedef struct ina_stopwatch_ts_s {
+    ina_time_tsc_t stamp;
 ```
 Stopwatch timestamp
+
+---
+
 ```C
 typedef struct ina_stopwatch_s ina_stopwatch_t;
 ```
 Stopwatch
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_stopwatch_new(int id, int max_stamps, ina_stopwatch_t **stopwatch);
 ```
@@ -27,7 +42,7 @@ Creates a new stopwatch.
 
 **Parameters**
  - `stopwatch`: Where to store the created stopwatch
- - `id`: 
+ - `id`: Unique identifier for the stopwatch
  - `max_stamps`: Defines max number of stamps
 
 
@@ -36,6 +51,9 @@ Creates a new stopwatch.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t)  ina_stopwatch_open(int id, ina_stopwatch_t **stopwatch);
@@ -46,7 +64,7 @@ Open an existing stopwatch.
 
 **Parameters**
  - `stopwatch`: Where to store the stopwatch
- - `id`: 
+ - `id`: Identifier of the stopwatch to open
 
 
 
@@ -55,8 +73,13 @@ Open an existing stopwatch.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t *stopwatch,
+                                                int64_t *index,
+                                                ina_stopwatch_ts_t **ts);
 ```
 
 Read a timestamp from a stopwatch
@@ -64,7 +87,7 @@ Read a timestamp from a stopwatch
 
 **Parameters**
  - `stopwatch`: Stopwatch
- - `index`:  Stamp index to read
+ - `index`: Stamp index to read
 
 
 
@@ -72,6 +95,9 @@ Read a timestamp from a stopwatch
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_stopwatch_free(ina_stopwatch_t **stopwatch);
@@ -89,6 +115,9 @@ Destroy a stopwatch.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_stopwatch_started(const ina_stopwatch_t *stopwatch);
@@ -108,6 +137,9 @@ INA_SUCCESS  stopwatch is started
 INA_FAILURE  stopwatch is stoppen
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_stopwatch_valid(const ina_stopwatch_t *stopwatch);
 ```
@@ -126,8 +158,12 @@ INA_SUCCESS  valid
 INA_FAILURE  invalid
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_stopwatch_start(ina_stopwatch_t* stopwatch,
+                                           ina_time_tsc_t *start);
 ```
 
 Start a stopwatch.
@@ -135,7 +171,7 @@ Start a stopwatch.
 
 **Parameters**
  - `stopwatch`: Stopwatch to start
- - `start`:  Start time, NULL for current time.
+ - `start`: Start time, NULL for current time.
 
 
 
@@ -144,8 +180,13 @@ Start a stopwatch.
 INA_SUCCESS if all went well.
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_stopwatch_stamp(ina_stopwatch_t* stopwatch,
+                                           const char* user_data1,
+                                           const char* user_data2);
 ```
 
 Make a stamp.
@@ -162,6 +203,9 @@ Make a stamp.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_stopwatch_stop(ina_stopwatch_t* stopwatch);

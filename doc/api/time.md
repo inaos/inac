@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_TIME_H_
+#define _LIBINAC_TIME_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
@@ -10,26 +15,49 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 typedef struct ina_time_s ina_time_t;
 ```
 Time value - opaque
+
+---
+
 ```C
 typedef union ina_time_tsc_value_u {
+    uint64_t uint64;
 ```
 Time Stamp Counter Value
+
+---
+
 ```C
 typedef struct ina_time_tsc_s {
+#ifdef INA_OS_WIN32
+    LARGE_INTEGER tp;
 ```
 Time Stamp Counter
+
+---
+
 ```C
 typedef struct ina_time_tsc_info_s {
+    uint64_t rdtsc_ref;
 ```
 TSC time backend information
+
+---
+
 ```C
 typedef struct ina_time_sys_info_s {
+    char backend_name[INA_TIME_BACKEND_NAME_MAXLEN];
 ```
 Time backend information
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info);
 ```
@@ -46,6 +74,9 @@ Get system time backend information.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_time_tsc_backend_info(ina_time_tsc_info_t *info);
@@ -64,6 +95,9 @@ Get TSC Time backend information.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_sleep(time_t msec);
 ```
@@ -80,6 +114,9 @@ Sleep for X milliseconds.
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time);
@@ -98,6 +135,9 @@ Allocate TSC time structure.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(void) ina_time_tsc_free(ina_time_tsc_t **time);
 ```
@@ -114,6 +154,9 @@ Free TSC time
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time);
@@ -132,6 +175,9 @@ Allocate system time.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
 ```
@@ -148,6 +194,9 @@ Free system time.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_time_tsc_enable_rdtsc(void);
@@ -172,6 +221,9 @@ Enabling RDTSC is on process scope
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc(void);
 ```
@@ -183,6 +235,9 @@ Disable RDTSC.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time);
@@ -201,6 +256,9 @@ Read the Time Stamp Counter.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time);
 ```
@@ -218,8 +276,13 @@ Read the System-Clock.
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_tsc_seconds_nanos(const ina_time_tsc_t* time,
+                                             time_t *secs,
+                                             long *nanos);
 ```
 
 Read the second and nanosecond part of the TSC.
@@ -237,8 +300,13 @@ Read the second and nanosecond part of the TSC.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time,
+                                              time_t *secs,
+                                              long *micros);
 ```
 
 Convert the ina_time_t to a UNIX timestamp and microseconds.
@@ -256,18 +324,25 @@ Convert the ina_time_t to a UNIX timestamp and microseconds.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_strftime(ina_str_t buf,
+                                    size_t buflen,
+                                    size_t *written,
+                                    const char *fmt,
+                                    ina_time_t* time);
 ```
 
 Basically strftime.
 
 
 **Parameters**
- - `buf`:  Output buffer
+ - `buf`: Output buffer
  - `buflen`: Size of output buffer
  - `written`: Number of bytes written
- - `fmt`:  String format
+ - `fmt`: String format
  - `time`: Time
 
 
@@ -277,18 +352,23 @@ Basically strftime.
 INA_SUCCESS if all wen well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_strptime(ina_str_t input,
+                                    const char *fmt,
+                                    ina_time_t* time);
 ```
 
 Basically POSIX strptime, with a workaround for windows.
 
 
 **Parameters**
- - `buf`:  Output buffer
+ - `buf`: Output buffer
  - `buflen`: Size of output buffer
  - `written`: Number of bytes written
- - `fmt`:  String format
+ - `fmt`: String format
  - `time`: Time
 
 
@@ -298,19 +378,28 @@ Basically POSIX strptime, with a workaround for windows.
 INA_SUCCESS if all wen well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
+                                        const char *fmt, 
+                                        const ina_time_tsc_t* time,
+                                        int show_nanos);
 ```
 
 Basically strftime but using TSC.
 
 
 **Parameters**
- - `buf`: 
- - `fmt`: 
- - `time`: 
+ - `buf`: Output buffer
+ - `fmt`: String format
+ - `time`: Time
  - `show_nanos`: Defines whenever append nanos to the output
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_time_tsc_millis(ina_time_tsc_t *tsc, time_t *now_millis);
@@ -320,7 +409,7 @@ Convert the ina_time_tsc_t to a millisecond timestamp since epoch.
 
 
 **Parameters**
- - `tsc`: 
+ - `tsc`: Input TSC
  - `now_millis`: Where to store milliseconds since epoch.
 
 

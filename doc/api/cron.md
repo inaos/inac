@@ -1,6 +1,11 @@
 
+
+---
+
 ```C
 #ifndef _LIBINAC_CRON_H_
+#define _LIBINAC_CRON_H_
+
 ```
 
 Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
@@ -10,34 +15,71 @@ This software is the confidential and proprietary information of INAOS GmbH
 Information and shall use it only in accordance with the terms of the
 license agreement you entered into with INAOS GmbH.
 
+
+---
+
 ```C
 typedef struct ina_cron_timetable_s {
+    char mins[60];     /* 0-59 */
+    char hours[24];    /* 0-23 */
+    char days[32];     /* 1-31 */
+    char mons[12];     /* 0-11 */
+    char dow[7];       /* 0-6, beginning sunday */
+} ina_cron_timetable_t;
 ```
 
 Crontab time table
+
+
+---
 
 ```C
 typedef struct ina_cron_ctx_s ina_cron_ctx_t;
 ```
 opaque cron context
+
+---
+
 ```C
 typedef struct ina_cron_event_s ina_cron_event_t;
 ```
 opaque cron task
+
+---
+
 ```C
 typedef struct ina_cron_event_iter_s ina_cron_event_iter_t;
 ```
 opaque task list iterator
+
+---
+
 ```C
-typedef ina_rc_t (*ina_cron_load_cb)(ina_cron_ctx_t *ctx);/* cron save callback */
+typedef ina_rc_t (*ina_cron_load_cb)(ina_cron_ctx_t *ctx);
 ```
 cron load callback
+
+---
+
+```C
+typedef ina_rc_t (*ina_cron_save_cb)(const ina_cron_ctx_t *ctx,
+                                     const ina_cron_event_t *event);
+```
+cron save callback
+
+---
+
 ```C
 typedef ina_rc_t (*ina_cron_push_cb_t)(ina_cron_ctx_t *ctx,
+                                       void *user_data);
 ```
 cron execution callback
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_parse_pattern(const char* pattern,
+                                     ina_cron_timetable_t *tt);
 ```
 
 Parse a cron pattern by filling a given time table
@@ -54,8 +96,12 @@ Parse a cron pattern by filling a given time table
 INA_SUCCESS if all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_make_pattern(const ina_cron_timetable_t *tt,
+                                        ina_str_t *pattern);
 ```
 
 Create a cron pattern from a given time table.
@@ -72,15 +118,20 @@ Create a cron pattern from a given time table.
 INA_SUCCESS when all went well
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_ctx_new(ina_cron_load_cb load_cb,
+                                   ina_cron_save_cb save_cb,
+                                   ina_cron_ctx_t **ctx);
 ```
 
 Create and initialize a new cron context
 
 
 **Parameters**
- - `ctx`:  Where to store the newly created context
+ - `ctx`: Where to store the newly created context
  - `load_cb`: If not NULL, tasks will be loaded using this callback
  - `save_cb`: If not NULL, tasks can be saved on ina_cron_task_add()
 
@@ -90,6 +141,9 @@ Create and initialize a new cron context
 
 INA_SUCCESS if all went well
 
+
+
+---
 
 ```C
 INA_API(void) ina_cron_ctx_free(ina_cron_ctx_t **ctx);
@@ -107,6 +161,9 @@ Free a cron context. Destroy all registered cron events
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(const char*) ina_cron_event_pattern(const ina_cron_event_t *event);
@@ -126,8 +183,13 @@ Get the current crontab pattern for an event.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_event_by_id(ina_cron_ctx_t *ctx,
+                                       const char *id,
+                                       ina_cron_event_t **event);
 ```
 
 Retrieve a task by his ID.
@@ -144,6 +206,9 @@ Retrieve a task by his ID.
 
 INA_SUCCESS
 
+
+
+---
 
 ```C
 INA_API(ina_rc_t) ina_cron_event_is_running(const ina_cron_event_t *event);
@@ -163,8 +228,12 @@ INA_SUCCESS  Running
 INA_FAILURE  Not running
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_event_iter_new(ina_cron_ctx_t *ctx,
+                                         ina_cron_event_iter_t **iter);
 ```
 
 Create a new cron task iterator.
@@ -181,6 +250,9 @@ Create a new cron task iterator.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(void) ina_cron_event_iter_free(ina_cron_event_iter_t **iter);
 ```
@@ -192,8 +264,12 @@ Free a task iterator
  - `iter`: Iterator to free
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_event_iter_next(ina_cron_event_iter_t *iter,
+                                           ina_cron_event_t **event);
 ```
 
 Get next task
@@ -210,8 +286,13 @@ Get next task
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_process(ina_cron_ctx_t *ctx,
+                                   time_t now,
+                                   int *suggested_next_time);
 ```
 
 Execute task and call registered cron function at their specified times and
@@ -230,8 +311,13 @@ suggest the next time this function should be called.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_try_pull(ina_cron_ctx_t *ctx,
+                                    uint32_t *key,
+                                    void **user_data);
 ```
 
 Try for next pullable event.
@@ -247,17 +333,23 @@ Try for next pullable event.
 INA_SUCCESS
 
 
+
+---
+
 ```C
 INA_API(ina_rc_t) ina_cron_last_exec_systime(ina_cron_ctx_t *ctx,
+                                             const ina_cron_timetable_t *tt,
+                                             time_t now,
+                                             time_t *last_exec_time);
 ```
 
 Calculate last execution time from a crontab pattern
 
 
 **Parameters**
- - `ctx`: 
- - `pattern`: 
- - `now`: 
+ - `ctx`: Cron context
+ - `pattern`: Crontab pattern
+ - `now`: Current time
  - `last_exec_time`: Where to store the last execution time
 
 
