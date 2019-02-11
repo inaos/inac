@@ -104,7 +104,7 @@ static ina_rc_t ina_file_cursor_fileio_binary_read_chunk(ina_file_cursor_t *curs
                                                          size_t *nread, const unsigned char **chunk)
 {
     if (INA_FAILED(ina_file_read(cursor->file, cursor->ext.f.buffer,
-                                    requested, (int64_t*)nread))) {
+                                    requested, nread))) {
         return ina_err_get_rc();
     }
     *chunk = cursor->ext.f.buffer;
