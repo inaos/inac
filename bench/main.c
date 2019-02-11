@@ -1,5 +1,5 @@
 /*
- * Copyright INAOS GmbH, Thalwil, 2018. All rights reserved
+ * Copyright INAOS GmbH, Thalwil, 2018-2019. All rights reserved
  *
  * This software is the confidential and proprietary information of INAOS GmbH
  * ("Confidential Information"). You shall not disclose such Confidential
