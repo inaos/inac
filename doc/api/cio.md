@@ -3,6 +3,23 @@
 ---
 
 ```C
+#include <libinac/lib.h>
+
+```
+
+# Console Input/Output
+
+INAC CIO provides minimalistic API which allows the programmer to write
+text-based user interfaces. It is based on a very simple abstraction.
+The main idea is viewing terminals as a table of fixed-size cells and input
+being a stream of structured messages. Would be fair to say that the model
+is inspired by windows console API. The abstraction itself is not perfect
+and it may create problems in certain areas.
+
+
+---
+
+```C
 typedef enum ina_cio_colors_e  {
     INA_CIO_COLOR_BLACK, 
     INA_CIO_COLOR_BLUE, 
