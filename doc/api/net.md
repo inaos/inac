@@ -3,22 +3,6 @@
 ---
 
 ```C
-#ifndef _LIBINAC_NET_H__
-#define _LIBINAC_NET_H__
-
-```
-
-Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
-
-This software is the confidential and proprietary information of INAOS GmbH
-("Confidential Information"). You shall not disclose such Confidential
-Information and shall use it only in accordance with the terms of the
-license agreement you entered into with INAOS GmbH.
-
-
----
-
-```C
 #ifdef __cplusplus
 extern "C" {
 #endif

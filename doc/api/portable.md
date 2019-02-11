@@ -3,22 +3,6 @@
 ---
 
 ```C
-#ifndef _LIBINAC_PORTABLE_H_
-#define _LIBINAC_PORTABLE_H_
-
-```
-
-Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
-
-This software is the confidential and proprietary information of INAOS GmbH
-("Confidential Information"). You shall not disclose such Confidential
-Information and shall use it only in accordance with the terms of the
-license agreement you entered into with INAOS GmbH.
-
-
----
-
-```C
 #if defined __ECC || defined __ICC || defined __INTEL_COMPILER
 #  define INA_COMPILER_STRING "Intel C/C++"
 #  define INA_COMPILER_INTEL 1

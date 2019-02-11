@@ -3,22 +3,6 @@
 ---
 
 ```C
-#ifndef _LIBINAC_UTIL_H_
-#define _LIBINAC_UTIL_H_
-
-```
-
-Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
-
-This software is the confidential and proprietary information of INAOS GmbH
-("Confidential Information"). You shall not disclose such Confidential
-Information and shall use it only in accordance with the terms of the
-license agreement you entered into with INAOS GmbH.
-
-
----
-
-```C
 INA_API(ina_rc_t) ina_util_base64_encode_length(size_t in_length,
                                                 unsigned int line_length,
                                                 size_t *out_length);

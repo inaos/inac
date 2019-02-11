@@ -3,22 +3,6 @@
 ---
 
 ```C
-#ifndef _LIBINAC_FSM_H_
-#define _LIBINAC_FSM_H_
-
-```
-
-Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
-
-This software is the confidential and proprietary information of INAOS GmbH
-("Confidential Information"). You shall not disclose such Confidential
-Information and shall use it only in accordance with the terms of the
-license agreement you entered into with INAOS GmbH.
-
-
----
-
-```C
 typedef void (*ina_fsm_action_fn_t)(void *userdata);
 ```
 FSM action function prototype

@@ -3,22 +3,6 @@
 ---
 
 ```C
-#ifndef _LIBINAC_FILE_CURSOR_H_
-#define _LIBINAC_FILE_CURSOR_H_
-
-```
-
-Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
-
-This software is the confidential and proprietary information of INAOS GmbH
-("Confidential Information"). You shall not disclose such Confidential
-Information and shall use it only in accordance with the terms of the
-license agreement you entered into with INAOS GmbH.
-
-
----
-
-```C
 typedef enum ina_file_cursor_type_e {
     INA_FILE_CURSOR_TYPE_MMAP,
     INA_FILE_CURSOR_TYPE_FILEIO
