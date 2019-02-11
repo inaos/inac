@@ -305,8 +305,8 @@ INA_API(FILE*) ina_file_get_stream(ina_file_t *file);
  */
 INA_API(ina_rc_t) ina_file_read(ina_file_t *file,
                                 unsigned char *buf,
-                                int64_t len,
-                                int64_t *read);
+                                size_t len,
+                                size_t *read);
 
 /*
  * Write 'len' bytes to a file.
@@ -322,8 +322,8 @@ INA_API(ina_rc_t) ina_file_read(ina_file_t *file,
  */
 INA_API(ina_rc_t) ina_file_write(ina_file_t *file,
                                  unsigned char *buf,
-                                 int64_t len,
-                                 int64_t *wrote);
+                                 size_t len,
+                                 size_t *wrote);
 
 /*
  * Set file pointer to the beginning.
@@ -349,7 +349,7 @@ INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file);
  *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file,
-                                   uint64_t offset,
+                                   size_t offset,
                                    ina_file_seek_mode_t mode);
 
 /*
@@ -362,7 +362,7 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file,
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset);
+INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, size_t *offset);
 
 /*
  * Set file pointer to the end of file.
