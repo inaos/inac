@@ -123,7 +123,7 @@ end
 
 local wait_for_code_end = function(line, code)
     table.insert(code, line);
-    return string.endsWith(string.trim(line, " "), ";")
+    return string.endsWith(string.trim(line, " "), ";") or is_empty_line(line)
 end
 
 local parse_block = function(block, code)
@@ -132,6 +132,7 @@ local parse_block = function(block, code)
     local returnBlock = 2
     local blockType = 0
 
+    table.insert(doc, "\n\n---")
     table.insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
 
     for k,v in pairs(block) do
@@ -151,7 +152,7 @@ local parse_block = function(block, code)
             end
         elseif blockType == parametersBlock then
             if (not is_empty_line(line)) then
-                local p = string.explode("%s%s%s?%s?%s?", line,  true)
+                local p = string.explode("%s%s%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?", line,  true)
                 if (nil ~= p[2]) then
                     table.insert(doc," - `"..p[1].."`: ".. p[2])
                 else
