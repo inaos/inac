@@ -297,7 +297,7 @@ INA_API(ina_rc_t) ina_dir_stat_new(const char *dir, ina_dir_stat_t **stat)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat, uint64_t *capacity_bytes)
+INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat, size_t *capacity_bytes)
 {
 
     INA_VERIFY_NOT_NULL(stat);
@@ -310,7 +310,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat, uint64
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_dir_stat_bytes_free(const ina_dir_stat_t *stat, uint64_t *free_bytes)
+INA_API(ina_rc_t) ina_dir_stat_bytes_free(const ina_dir_stat_t *stat, size_t *free_bytes)
 {
     INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(free_bytes);
@@ -324,8 +324,8 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_free(const ina_dir_stat_t *stat, uint64_t *
 
 INA_API(ina_rc_t) ina_dir_stat_pct_used(const ina_dir_stat_t *stat, int *pct_used)
 {
-    uint64_t b_total = 0;
-    uint64_t b_free = 0;
+    size_t b_total = 0;
+    size_t b_free = 0;
     double free_pct;
     double used_pct;
     INA_VERIFY_NOT_NULL(stat);

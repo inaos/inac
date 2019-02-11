@@ -197,7 +197,7 @@ INA_API(ina_rc_t) ina_dir_stat_new(const char *dir, ina_dir_stat_t **stat);
  *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat,
-                                              uint64_t *capacity_bytes);
+                                              size_t *capacity_bytes);
 
 /*
  * Get free capacity in bytes for a directory.
@@ -210,7 +210,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat,
  *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_dir_stat_bytes_free(const ina_dir_stat_t *stat,
-                                          uint64_t *free_bytes);
+                                          size_t *free_bytes);
 
 /*
  * Calculate used capacity of a directory in percent.
