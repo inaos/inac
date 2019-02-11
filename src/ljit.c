@@ -205,7 +205,7 @@ INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
 
 INA_API(const char*) ina_ljit_last_error(ina_ljit_ctx_t *ctx)
 {
-    INA_VERIFY_NOT_NULL(ctx);
+    INA_ASSERT_NOT_NULL(ctx);
     return luaL_checkstring(ctx->lstate, 1);
 }
 
