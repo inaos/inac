@@ -201,6 +201,7 @@ idoc.run = function(outputDir, fileFilter)
         end
 
         local k = 1
+        local summary = false;
         while (k < #lines) do
             local line = trim_line(lines[k])
             if wait_for_block_start(line) then
@@ -225,9 +226,10 @@ idoc.run = function(outputDir, fileFilter)
                     end
                 end
 
-                if (#code > 0 and #block > 0) then
+                if (#code > 0 and #block > 0 and summary) then
                     outfile:write(string.implode("\n", parse_block(block, code)))
                 end
+                summary = true
             end
             k = k + 1
         end
