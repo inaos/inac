@@ -1235,27 +1235,45 @@ INA_BENCH_TEARDOWN(sort) {}
 
 #### How to run benchmarks
 
-To run the benchmarks simply call _ina_bench_run()_ by passing arguments count and 
-arguments received from the command line.
+To run the benchmarks simply call _ina_bench_run()_. The application need
+to be initialized as regular INAC application by calling `ina_app_init()`.
+The benchmark runner looks for command line arguments `report-path` and
+`name` in order to override the default report path and restrict the
+benchmarks execution by a name filter. If those arguments are omitted all
+benchmarks are executed and report are generated in the current working
+directory.
 
-    int main(int argc, char** argv) 
-    { 
-        ina_bench_run(argc, argv);
+Therefore a minimal benchmark executable should looks like this.
+
+    #include <libinac/lib.h>
+
+    int main(int argc,  char** argv)
+    {
+        INA_OPTS(opt,
+                 INA_OPT_STRING("r", "report-path", "."INA_PATH_SEPARATOR_STR, "Directory for report output"),
+                 INA_OPT_STRING("n", "name", "", "Benchmark name"));
+
+        if (INA_FAILED(ina_app_init(argc, argv, opt))) {
+            return EXIT_FAILURE;
+        }
+        return ina_bench_run();
+    }
+
 
 From the command line prompt you can run all benchmarks, a single benchmark or
 a group of benchmarks. 
 
     ./bench
-    ./bench my_benchmark
-    ./bench my_
+    ./bench -n io_file
+    ./bench -n io_
 
 The location where reports should be stored can be specified with 
-_-r_ or _--report-path_ as first command line option.
+_-r_ or _--report-path_  command line argument.
 
-    ./bench -r=/home/reports
-    ./bench --report-path=/home/reports my_benchmark
+    ./bench -r /home/reports
+    ./bench --report-path=/home/reports -n
     
-If omitted the reports are generated in the working directory.
+
 
 
 [1]:	https://www.visualstudio.com/downloads/
