@@ -54,7 +54,7 @@ typedef struct ina_mempool_info_s {
  * Initialized memory pool module
  *
  * Return
- *  INA_SUCCES if all went well
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_mempool_init(void);
 
@@ -76,7 +76,11 @@ INA_API(void) ina_mempool_destroy(void);
 INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool,
                                    ina_mempool_info_t *info);
 
-/* 
+INA_API(ina_rc_t) ina_mempool_set_alignment(ina_mempool_t *pool, size_t alignment);
+INA_API(size_t) ina_mempool_get_alignment(ina_mempool_t *pool);
+
+
+/*
  * Creates a memory pool.
  *
  * Parameters
@@ -161,7 +165,12 @@ INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
  *   Pointer to the allocated memory that is suitably aligned for any
  *   kind of variable
  */
-INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
+INA_API(void *)  ina_mempool_dalloc_aligned(ina_mempool_t *pool, size_t size, size_t alignment);
+INA_INLINE void *  ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
+{
+    return ina_mempool_dalloc_aligned(pool, size, ina_mempool_get_alignment(pool));
+}
+
 
 /*
  * Allocate not reallocable memory from a pool.
@@ -175,7 +184,11 @@ INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
  *   Pointer to the allocated memory that is suitably aligned for any
  *   kind of variable
  */
-INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
+INA_API(void *)  ina_mempool_nalloc_aligned(ina_mempool_t *pool, size_t size, size_t alignment);
+INA_INLINE void *  ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
+{
+    return ina_mempool_nalloc_aligned(pool, size, ina_mempool_get_alignment(pool));
+}
 
 /*
  * Reallocate memory from a pool
@@ -190,7 +203,11 @@ INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
  *   Pointer to the allocated memory that is suitably aligned for any
  *   kind of variable
  */
-INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size);
+INA_API(void *) ina_mempool_ralloc_aligned(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size, size_t alignment);
+INA_INLINE void * ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size)
+{
+    return ina_mempool_ralloc_aligned(pool, old, old_size, new_size, ina_mempool_get_alignment(pool));
+}
 
 #ifdef __cplusplus
 }

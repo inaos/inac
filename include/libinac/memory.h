@@ -44,8 +44,10 @@ extern "C" {
 /* Align to 2x word size (as GNU libc does). */
 #define INA_MEM_ALIGN_SIZE (2 * sizeof(void*))
 
-/* Round up 'n' to a multiple of ALIGN_SIZE. */
+/* Round up 'n' to a multiple of INA_MEM_ALIGN_SIZE. */
 #define INA_MEM_ALIGN(n) ((n+(INA_MEM_ALIGN_SIZE-1)) & (~(INA_MEM_ALIGN_SIZE-1)))
+/* Round up 'n' to a multiple of INA_MEM_ALIGN_SIZE. */
+#define INA_MEM_ALIGN_N(n,a) ((n+((a)-1)) & (~((a)-1)))
 
 #define INA_MEM_IS_ALIGNED(ptr, alignment) \
     (((uintptr_t)(const void *)(ptr)) % (alignment) == 0)

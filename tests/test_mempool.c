@@ -25,6 +25,18 @@ INA_TEST(mempool, create_fixed)
     ina_mempool_free(&pool);
 }
 
+INA_TEST(mempool, get_set_alignment)
+{
+    ina_mempool_t *pool;
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(4096, NULL, 0, &pool));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(INA_MEM_ALIGN_SIZE, ina_mempool_get_alignment(pool));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_set_alignment(pool, sizeof(void*)*4));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(sizeof(void*)*4, ina_mempool_get_alignment(pool));
+    ina_mempool_free(&pool);
+}
+
 INA_TEST(mempool, create_fixed_bestfit)
 {
     ina_mempool_t *pool;

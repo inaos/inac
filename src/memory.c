@@ -20,6 +20,7 @@ struct ina_mempool_s {
 	size_t size;
 	size_t pos;
 	size_t end;
+	size_t alignment;
 	unsigned char *m;
 	ina_str_t label;
 	struct ina_mempool_s *current;
@@ -116,6 +117,7 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 	*pool = (ina_mempool_t*)ina_mem_alloc(sizeof(ina_mempool_t));
 	INA_RETURN_IF_NULL(*pool);
 	INA_MEM_SET_ZERO(*pool, ina_mempool_t);
+	(*pool)->alignment = INA_MEM_ALIGN_SIZE;
 	(*pool)->cf = cf;
 	(*pool)->size = size;
 	(*pool)->end = (*pool)->size;
@@ -181,6 +183,22 @@ INA_API(void) ina_mempool_free(ina_mempool_t **pool)
 		}
 		ina_mem_free(pm);
 	}
+}
+
+INA_API(ina_rc_t) ina_mempool_set_alignment(ina_mempool_t *pool, size_t alignment)
+{
+	INA_VERIFY_NOT_NULL(pool);
+	INA_VERIFY(alignment > 0);
+	INA_VERIFY(INA_MEM_ALIGN(alignment));
+	pool->alignment = alignment;
+	return INA_SUCCESS;
+}
+
+INA_API(size_t) ina_mempool_get_alignment(ina_mempool_t *pool)
+{
+	INA_ASSERT_NOT_NULL(pool);
+	return pool->alignment;
+
 }
 
 INA_API(ina_rc_t) ina_mempool_merge(ina_mempool_t *dest, ina_mempool_t *src)
@@ -308,7 +326,7 @@ INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool, ina_mempool_info_t *info
 	return INA_SUCCESS;
 }
 
-INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
+INA_API(void *) ina_mempool_dalloc_aligned(ina_mempool_t *pool, size_t size, size_t alignment)
 {
 	void *ret;
 	size_t nsize;
@@ -318,7 +336,7 @@ INA_API(void *) ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
 
 	ret = NULL;
 	if (pool->cf^INA_MEM_BESTFIT) {
-		size = INA_MEM_ALIGN(size);
+		size = INA_MEM_ALIGN_N(size, alignment);
 	}
 
 retry:
@@ -364,7 +382,7 @@ retry:
 }
 
 
-INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
+INA_API(void *) ina_mempool_nalloc_aligned(ina_mempool_t *pool, size_t size, size_t alignment)
 {
 	void *ret;
 
@@ -373,7 +391,7 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 	ret = NULL;
 
 	if (pool->cf^INA_MEM_BESTFIT) {
-		size = INA_MEM_ALIGN(size);
+		size = INA_MEM_ALIGN_N(size, alignment);
 	}
 
 	/* bogus request */
@@ -411,8 +429,8 @@ INA_API(void *) ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
 	return ret;
 }
 
-INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
-	size_t old_size, size_t new_size)
+INA_API(void *) ina_mempool_ralloc_aligned(ina_mempool_t *pool, void *old,
+	size_t old_size, size_t new_size, size_t alignment)
 {
 	void *ret;
 
@@ -424,8 +442,8 @@ INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old,
 
 
 	if (pool->cf^INA_MEM_BESTFIT) {
-		new_size = INA_MEM_ALIGN(new_size);
-		old_size = INA_MEM_ALIGN(old_size);
+		new_size = INA_MEM_ALIGN_N(new_size, alignment);
+		old_size = INA_MEM_ALIGN_N(old_size, alignment);
 	}
 
 	/* bogus request */
