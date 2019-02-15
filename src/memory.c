@@ -117,7 +117,11 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 	*pool = (ina_mempool_t*)ina_mem_alloc(sizeof(ina_mempool_t));
 	INA_RETURN_IF_NULL(*pool);
 	INA_MEM_SET_ZERO(*pool, ina_mempool_t);
-	(*pool)->alignment = INA_MEM_ALIGN_SIZE;
+	if (cf^INA_MEM_BESTFIT) {
+		(*pool)->alignment = INA_MEM_ALIGN_SIZE;
+	} else {
+		(*pool)->alignment = 1;
+	}
 	(*pool)->cf = cf;
 	(*pool)->size = size;
 	(*pool)->end = (*pool)->size;
@@ -189,7 +193,6 @@ INA_API(ina_rc_t) ina_mempool_set_alignment(ina_mempool_t *pool, size_t alignmen
 {
 	INA_VERIFY_NOT_NULL(pool);
 	INA_VERIFY(alignment > 0);
-	INA_VERIFY(INA_MEM_ALIGN(alignment));
 	pool->alignment = alignment;
 	return INA_SUCCESS;
 }
@@ -335,9 +338,7 @@ INA_API(void *) ina_mempool_dalloc_aligned(ina_mempool_t *pool, size_t size, siz
 	INA_ASSERT_NOT_NULL(pool->current);
 
 	ret = NULL;
-	if (pool->cf^INA_MEM_BESTFIT) {
-		size = INA_MEM_ALIGN_N(size, alignment);
-	}
+	size = INA_MEM_ALIGN_N(size, alignment);
 
 retry:
 
@@ -390,9 +391,7 @@ INA_API(void *) ina_mempool_nalloc_aligned(ina_mempool_t *pool, size_t size, siz
 	INA_ASSERT_NOT_NULL(pool->current);
 	ret = NULL;
 
-	if (pool->cf^INA_MEM_BESTFIT) {
-		size = INA_MEM_ALIGN_N(size, alignment);
-	}
+	size = INA_MEM_ALIGN_N(size, alignment);
 
 	/* bogus request */
 	if (pool->end < size) {
@@ -441,10 +440,8 @@ INA_API(void *) ina_mempool_ralloc_aligned(ina_mempool_t *pool, void *old,
 	INA_ASSERT_NOT_NULL(pool->current);
 
 
-	if (pool->cf^INA_MEM_BESTFIT) {
-		new_size = INA_MEM_ALIGN_N(new_size, alignment);
-		old_size = INA_MEM_ALIGN_N(old_size, alignment);
-	}
+	new_size = INA_MEM_ALIGN_N(new_size, alignment);
+	old_size = INA_MEM_ALIGN_N(old_size, alignment);
 
 	/* bogus request */
 	if (pool->end < old_size) {
