@@ -332,12 +332,11 @@ INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool, ina_mempool_info_t *info
 INA_API(void *) ina_mempool_dalloc_aligned(ina_mempool_t *pool, size_t size, size_t alignment)
 {
 	void *ret;
-	size_t nsize;
 
 	INA_ASSERT_NOT_NULL(pool);
 	INA_ASSERT_NOT_NULL(pool->current);
+	INA_ASSERT_TRUE(alignment > 0);
 
-	ret = NULL;
 	size = INA_MEM_ALIGN_N(size, alignment);
 
 retry:
@@ -345,16 +344,11 @@ retry:
 	if ((pool->current->pos + size > pool->current->end) ||
 		(pool->current->pos + size < pool->current->pos)) {
 		if (pool->cf&INA_MEM_DYNAMIC) {
+			size_t nsize;
 			if (pool->current->child != NULL) {
 				pool->current = pool->current->child;
 				goto retry;
 			}
-			nsize = 0;
-			if (pool->cf&INA_MEM_BESTFIT) {
-				/* TODO: Best Fit strategy */
-			}
-
-			nsize = 0;
 
 			if (pool->cf&INA_MEM_AUTOSIZE || size > pool->size) {
 				nsize = size;
@@ -389,7 +383,7 @@ INA_API(void *) ina_mempool_nalloc_aligned(ina_mempool_t *pool, size_t size, siz
 
 	INA_ASSERT_NOT_NULL(pool);
 	INA_ASSERT_NOT_NULL(pool->current);
-	ret = NULL;
+	INA_ASSERT_TRUE(alignment > 0);
 
 	size = INA_MEM_ALIGN_N(size, alignment);
 
@@ -438,6 +432,8 @@ INA_API(void *) ina_mempool_ralloc_aligned(ina_mempool_t *pool, void *old,
 	INA_ASSERT(old_size > 0);
 	INA_ASSERT(new_size > 0);
 	INA_ASSERT_NOT_NULL(pool->current);
+	INA_ASSERT_TRUE(alignment > 0);
+
 
 
 	new_size = INA_MEM_ALIGN_N(new_size, alignment);
