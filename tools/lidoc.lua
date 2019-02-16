@@ -203,14 +203,14 @@ local search_files = function(filter)
     local dir = string.getPathFromFilename(filter)
     local files = {}
     if is_windows() then
-        p, err = io.popen(string.format("dir /B/S %s", filter))
+        p, err = io.popen(string.format("dir /B %s", filter))
     else
-        p, err = io.popen(string.format("find %s -type f -name '%s'", dir, name))
+        p, err = io.popen(string.format("find %s -maxdepth 1 -type f -name '%s'", dir, name))
     end
     if (p ~= nil) then
         for file in p:lines() do
-            if (file_exists(file)) then
-                table.insert(files, file)
+            if (file_exists(dir..file)) then
+                table.insert(files, dir..file)
             end
         end
     end
@@ -226,21 +226,17 @@ local add_to_list = function(file, files)
         end
     end
     if not found then
-        log("include "..file)
+        log("include '"..file.."'")
         table.insert(files, file)
     end
 end
 local remove_from_list = function(file, files)
-    local found = false
     for i,fx in ipairs(files) do
         if (file == fx) then
-            found = true
+            table.remove(files, i)
+            log("exclude '"..file.."'")
             break
         end
-    end
-    if found then
-        log("exclude "..file)
-        table.remove(files, file)
     end
 end
 
@@ -250,21 +246,19 @@ local include_files = function(filter, files)
         for i,file in ipairs(f) do
             add_to_list(file, files)
         end
-    end
-    if file_exists(filter) then
+    elseif file_exists(filter) then
        add_to_list(filter, files)
     end
 end
 local exclude_files = function(filter, files)
     if (string_find(filter, "*")) then
-        local fs = {}
-        fs = search_files(filter)
-        for k, file in ipairs(fs) do
+        local f = search_files(filter)
+        for k, file in ipairs(f) do
             remove_from_list(file, files)
         end
-        return
+    else
+        remove_from_list(filter, files)
     end
-    remove_from_list(filter, files)
 end
 
 local get_file_list = function(config)
@@ -352,5 +346,4 @@ idoc.run = function(output, config, single, verbose)
         outfile:close()
     end
 end
---idoc.run("../doc/api", "../.idoc", true, true)
 return idoc
