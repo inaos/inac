@@ -29,8 +29,8 @@ int main(int argc,  char** argv)
     ina_file_stat_t *stat;
     unsigned char buf[4096];
     uint64_t buf_size = 4096;
-    int64_t nread = 0;
-    int64_t nwrote = 0;
+    size_t nread = 0;
+    size_t nwrote = 0;
     int mode = 0;
 
     INA_OPTS(opt,

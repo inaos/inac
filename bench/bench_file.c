@@ -72,7 +72,7 @@ INA_BENCH_BEGIN(file, bf_read) { INA_UNUSED(data); }
 INA_BENCH_END(file, bf_read) { INA_UNUSED(data); }
 INA_BENCH(file, bf_read, 4)
 {
-    int64_t nb_read = -1;
+    size_t nb_read = 0;
     data->tot_nb_read = 0;
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, ina_str_cstr(data->filepath),
@@ -100,7 +100,7 @@ INA_BENCH_BEGIN(file, bf_read_seq) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_seq) { INA_UNUSED(data);}
 INA_BENCH(file, bf_read_seq, 4)
 {
-    int64_t nb_read = -1;
+    size_t nb_read = 0;
     data->tot_nb_read = 0;
 
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
@@ -128,7 +128,7 @@ INA_BENCH_BEGIN(file, bf_read_direct) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_direct) { INA_UNUSED(data); }
 INA_BENCH(file, bf_read_direct, 4)
 {
-    int64_t nb_read = -1;
+    size_t nb_read = 0;
     data->tot_nb_read = 0;
     unsigned char* buf;
 #ifndef INA_OS_WIN32
