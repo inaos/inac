@@ -87,7 +87,6 @@ ina_opt_t name[] = {                               \
     __VA_ARGS__,                                   \
     {NULL, NULL, INA_OPT_TYPE_INT, NULL, NULL}     \
 };
-
 ```
 Define options map
 
@@ -101,7 +100,6 @@ typedef struct ina_opt_s {
     const char *dft;        /* default value */
     const char *desc;       /* short description, used in usage */
 } ina_opt_t;
-
 ```
 Command line option builder
 
@@ -112,7 +110,6 @@ typedef enum ina_signal_behavior_e {
     INA_SIGNAL_BEHAVIOR_DFT,      /* Default behavior */
     INA_SIGNAL_BEHAVIOR_IGNORE    /* Ignore default behavior */
 } ina_signal_behavior_t;
-
 ```
 Signal handling behavior
 
@@ -154,7 +151,6 @@ Return path to the running application
 INA_API(ina_rc_t) ina_app_init(int argc,
                                char **argv,
                                ina_opt_t *opt);
-
 ```
 
 Startup application with argc, argv in order to deal with
@@ -181,7 +177,6 @@ INA_SUCCESS  if no error occurred
 INA_API(ina_rc_t) ina_opt_get_key_value(int index,
                                         ina_str_t *key,
                                         ina_str_t *value);
-
 ```
 
 Get the string key and value of an option at index.
@@ -304,7 +299,6 @@ INA_SUCCESS  if no error occurred
 ```C
 INA_API(ina_cleanup_handler_t) ina_set_cleanup_handler(
                                         ina_cleanup_handler_t handler);
-
 ```
 
 Set a custom termination routine to call in case of an
@@ -330,7 +324,6 @@ Previously defined handler
 ```C
 INA_API(ina_signal_handler_t) ina_register_signal_handler(ina_signal_t sig,
                                                 ina_signal_handler_t handler);
-
 ```
 
 Register a custom signal handler for sig.

@@ -74,8 +74,6 @@ INA_SUCCESS if no error occurred.
 INA_INLINE size_t ina_mem_get_aligned_size(size_t query)
 {
 	return ((query+(INA_MEM_ALIGN_SIZE-1)) & (~(INA_MEM_ALIGN_SIZE-1)));
-}
-
 ```
 
 The function calculates the size of a memory segment after
@@ -130,8 +128,6 @@ a null pointer is returned.
 INA_INLINE void * ina_mem_alloc(size_t size)
 {
     return ina_mem_alloc_aligned(sizeof(void*), size);
-}
-
 ```
 
 Allocate memory block. Allocates a block of size bytes of memory, returning
@@ -193,10 +189,6 @@ the request fails.
 INA_INLINE void* ina_mem_move(void *dest,  const void *src, size_t nb)
 {
 	INA_ASSERT_NOT_NULL(dest);
-	INA_ASSERT_NOT_NULL(src);
-	return INA_MEM_MEMMOVE(dest, src, nb);
-}
-
 ```
 
 Move a memory block.
@@ -237,10 +229,6 @@ dest is returned
 INA_INLINE void * ina_mem_cpy(void *dest, const void *src, size_t nb)
 {
 	INA_ASSERT_NOT_NULL(dest);
-	INA_ASSERT_NOT_NULL(src);
-	return INA_MEM_MEMCPY(dest, src, nb);
-}
-
 ```
 
 Copy block of memory
@@ -281,34 +269,6 @@ dest is returned.
 INA_INLINE int ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
 {
 	return INA_MEM_MEMCMP(lhs, rhs, nb);
-}
-/*
- * Locate character in block of memory
- *
- * Searches within the first num bytes of the block of memory pointed by dest 
- * for the first occurrence of value (interpreted as an unsigned char), and 
- * returns a pointer to it.
- * 
- * Both value and each of the bytes checked on the the dest array are 
- * interpreted as unsigned char for the comparison.
- *
- * Parameters
- *  dest   Pointer to the block of memory where the search is performed.
- *  value  Value to be located. The value is passed as an int, but the
- *         function performs a byte per byte search using the unsigned char
- *         conversion of this value.
- *  nb     Number of bytes to be analyzed.
- *
- * Return
- *  A pointer to the first occurrence of value in the block of memory pointed
- *  by des. If the value is not found, the function returns a null pointer.
- */
-INA_INLINE void* ina_mem_chr(const void *dest, int value, size_t nb)
-{
-	INA_ASSERT_NOT_NULL(dest);
-	return INA_MEM_MEMCHR(dest, value, nb);
-}
-
 ```
 
 Compare two blocks of memory
@@ -343,12 +303,43 @@ the opposite.
 ---
 
 ```C
+INA_INLINE void* ina_mem_chr(const void *dest, int value, size_t nb)
+{
+	INA_ASSERT_NOT_NULL(dest);
+```
+
+Locate character in block of memory
+
+Searches within the first num bytes of the block of memory pointed by dest
+for the first occurrence of value (interpreted as an unsigned char), and
+returns a pointer to it.
+
+Both value and each of the bytes checked on the the dest array are
+interpreted as unsigned char for the comparison.
+
+
+**Parameters**
+ - `dest`: Pointer to the block of memory where the search is performed.
+ - `value`: Value to be located. The value is passed as an int, but the
+function performs a byte per byte search using the unsigned char
+conversion of this value.
+ - `nb`: Number of bytes to be analyzed.
+
+
+
+**Return**
+
+A pointer to the first occurrence of value in the block of memory pointed
+by des. If the value is not found, the function returns a null pointer.
+
+
+
+---
+
+```C
 INA_INLINE void* ina_mem_set(void *dest, int value, size_t nb)
 {
     INA_ASSERT_NOT_NULL(dest);
-    return INA_MEM_MEMSET(dest, value, nb);
-}
-
 ```
 
 Fill block of memory
@@ -378,8 +369,6 @@ dest is returned.
 INA_INLINE void ina_mem_free(void *ptr)
 {
 	INA_MEM_FREE(*((void**)((size_t)ptr - sizeof(void*))));
-}
-
 ```
 
 Deallocate space in memory. A block of memory previously allocated using a
