@@ -136,7 +136,7 @@ static ina_str_t ihtm_format_msize(int number)
 static void ihtm_write_stats(int force)
 {
     static char buf[1024];
-    int64_t wrote;
+    size_t wrote;
 
     ina_hashtable_event_t *next;
     if (records == NULL) {
