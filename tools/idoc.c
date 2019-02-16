@@ -15,12 +15,16 @@ INA_LJIT_IMPORT(idoc,lidoc);
 int main(int argc,  char** argv) 
 {
     ina_ljit_ctx_t *ctx = NULL;
-    ina_str_t output_dir = NULL;
-    ina_str_t filter = NULL;
+    ina_str_t output = NULL;
+    ina_str_t config_file = NULL;
+    int single =  INA_NO;
+    int verbose = INA_NO;
 
     INA_OPTS(opt,
-        INA_OPT_STRING("o", "output-dir", NULL, "Output directory"),
-        INA_OPT_STRING("f", "filter", "*.h", "File filter, default is *.h"));
+        INA_OPT_STRING("o", "output", NULL, "Output directory or output file"),
+        INA_OPT_FLAG("s", "single-files", "Generate single files"),
+        INA_OPT_FLAG("v", "verbose", "Verbose mode"),
+        INA_OPT_STRING("c", "config-file", ".idoc", "Configuration file"));
 
     if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
@@ -31,15 +35,21 @@ int main(int argc,  char** argv)
         return EXIT_FAILURE;
     }
 
-    ina_opt_get_string("o", &output_dir);
-    ina_opt_get_string("f", &filter);
-
+    ina_opt_get_string("o", &output);
+    ina_opt_get_string("c", &config_file);
+    if (INA_SUCCEED(ina_opt_isset("s"))) {
+        single = INA_YES;
+    }
+    if (INA_SUCCEED(ina_opt_isset("v"))) {
+        verbose = INA_YES;
+    }
 
     if (INA_FAILED(ina_ljit_dostring(ctx, "idoc = require(\"lidoc\")\n"))) {
         printf("%s", ina_ljit_last_error(ctx));
         return EXIT_FAILURE;
     }
-    if (INA_FAILED(ina_ljit_call(ctx, "idoc.run", "ssd", output_dir, filter, (double)0))) {
+    if (INA_FAILED(ina_ljit_call(ctx, "idoc.run", "ssdd",
+            output, config_file, (double)single, (double)verbose))) {
         printf("%s", ina_ljit_last_error(ctx));
         return EXIT_FAILURE;
     }

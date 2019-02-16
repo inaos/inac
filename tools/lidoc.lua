@@ -68,7 +68,7 @@ function string.patternSafe(str)
     return (str:gsub(".", pattern_escape_replacements ) )
 end
 
-function string.starts(str, start)
+function string.startsWith(str, start)
     return start == "" or string.sub(str,1,string.len(start)) == start
 end
 
@@ -86,9 +86,24 @@ function string.replace( str, tofind, toreplace )
     return str
 end
 
+function is_windows()
+    if package.config:sub(1,1) == "\\" then
+        return true
+    end
+    return false
+end
 
 
 local idoc = {}
+
+local print_log = function(message)
+    print(message)
+end
+
+local print_nothing = function(message)
+end
+
+local log = print_nothing
 
 local trim_line = function(line)
     return string.trim(string.trim(line, "\r"), " ")
@@ -96,6 +111,15 @@ end
 
 local is_empty_line = function(line)
     return "" == trim_line(line)
+end
+
+local file_exists = function(path)
+    local file = io.open(path, "rb")
+    if file ~= nil then
+        file:close()
+        return true
+    end
+    return false
 end
 
 local read_file = function (path)
@@ -114,7 +138,7 @@ end
 
 
 local wait_for_block_start = function(line)
-    return string.starts(string.trim(line, " "), "/*")
+    return string.startsWith(string.trim(line, " "), "/*")
 end
 
 local wait_for_block_end = function(line)
@@ -136,7 +160,7 @@ local parse_block = function(block, code)
     table.insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
 
     for k,v in pairs(block) do
-        line = string.replace(v, "/*", "")
+        local line = string.replace(v, "/*", "")
         line = string.replace(line, "*/", "")
         line = string.replace(line, "*", "")
         line = string.trim(line)
@@ -174,30 +198,116 @@ local parse_block = function(block, code)
     return doc
 end
 
-
-
-idoc.run = function(outputDir, fileFilter)
+local search_files = function(filter)
+    local name = string.getFileFromFilename(filter)
+    local dir = string.getPathFromFilename(filter)
     local files = {}
+    if is_windows() then
+        p, err = io.popen(string.format("dir /B/S %s", filter))
+    else
+        p, err = io.popen(string.format("find %s -type f -name '%s'", dir, name))
+    end
+    if (p ~= nil) then
+        for file in p:lines() do
+            if (file_exists(file)) then
+                table.insert(files, file)
+            end
+        end
+    end
+    return files
+end
 
-    local name = string.getFileFromFilename(fileFilter)
-    local dir = string.getPathFromFilename(fileFilter)
+local add_to_list = function(file, files)
+    local found = false
+    for i,fx in ipairs(files) do
+        if (file == fx) then
+            found = true
+            break
+        end
+    end
+    if not found then
+        log("include "..file)
+        table.insert(files, file)
+    end
+end
+local remove_from_list = function(file, files)
+    local found = false
+    for i,fx in ipairs(files) do
+        if (file == fx) then
+            found = true
+            break
+        end
+    end
+    if found then
+        log("exclude "..file)
+        table.remove(files, file)
+    end
+end
 
-    print("document generation to ".. outputDir);
-
-    p, err = io.popen(string.format("find %s -type f -name '%s'", dir, name))
-    if (p == null) then
-        print(err)
+local include_files = function(filter, files)
+    if string_find(filter, "*") then
+        local f = search_files(filter)
+        for i,file in ipairs(f) do
+            add_to_list(file, files)
+        end
+    end
+    if file_exists(filter) then
+       add_to_list(filter, files)
+    end
+end
+local exclude_files = function(filter, files)
+    if (string_find(filter, "*")) then
+        local fs = {}
+        fs = search_files(filter)
+        for k, file in ipairs(fs) do
+            remove_from_list(file, files)
+        end
         return
     end
-    for file in p:lines() do
-        local lines = read_file(file);
-        local filename = outputDir .. "/".. string.stripExtension(string.getFileFromFilename(file)) .. '.md'
-        print("analyzing  "..file)
+    remove_from_list(filter, files)
+end
 
-        local outfile = io.open(filename,"w")
-        if (nil == outfile) then
-            print("couldn't not open "..filename)
-            return
+local get_file_list = function(config)
+    local files = {}
+    local lines = read_file(config)
+    for k,line in ipairs(lines) do
+        if is_windows then
+            line = string.replace(line, "/", "\\")
+        end
+        if string.startsWith(line, "+") then
+            include_files(string_sub(line, 2), files)
+        elseif string.startsWith(line,"-") then
+            exclude_files(string_sub(line, 2), files)
+        end
+    end
+    return files
+end
+
+idoc.run = function(output, config, single, verbose)
+    print(single)
+    if verbose then log = print_log end
+    if not file_exists(config) then
+        print("can't open configuration file "..config)
+        return
+    end
+
+    local files = get_file_list(config)
+    local outfile
+
+    for f, file in ipairs(files) do
+        log("idoc analyzing '"..file.."'")
+        local lines = read_file(file);
+
+        local filename = output
+        if single == 1 then
+            filename = output .. "/" .. string.stripExtension(string.getFileFromFilename(file)) .. '.md'
+        end
+        if nil == outfile then
+            outfile = io.open(filename,"w")
+            if (nil == outfile) then
+                print("couldn't not open "..filename)
+                return
+            end
         end
 
         local k = 1
@@ -233,7 +343,14 @@ idoc.run = function(outputDir, fileFilter)
             end
             k = k + 1
         end
+        if single == 1 then
+            outfile:close()
+            outfile = nil
+        end
+    end
+    if outfile ~= nil then
         outfile:close()
     end
 end
+--idoc.run("../doc/api", "../.idoc", true, true)
 return idoc
