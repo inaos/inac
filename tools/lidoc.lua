@@ -22,6 +22,7 @@ local totable = string.ToTable
 local string_sub = string.sub
 local string_find = string.find
 local string_len = string.len
+
 function string.explode(separator, str, withpattern)
     if ( separator == "" ) then return totable( str ) end
     if ( withpattern == nil ) then withpattern = false end
@@ -86,6 +87,8 @@ function string.replace( str, tofind, toreplace )
     return str
 end
 
+local string_trim = string.trim
+
 function is_windows()
     if package.config:sub(1,1) == "\\" then
         return true
@@ -94,6 +97,7 @@ function is_windows()
 end
 
 
+local title
 local idoc = {}
 
 local print_log = function(message)
@@ -103,10 +107,10 @@ end
 local print_nothing = function(message)
 end
 
-local log = print_nothing
+local log = print_log
 
 local trim_line = function(line)
-    return string.trim(string.trim(line, "\r"), " ")
+    return string_trim(string_trim(line, "\r"), " ")
 end
 
 local is_empty_line = function(line)
@@ -261,7 +265,7 @@ local exclude_files = function(filter, files)
     end
 end
 
-local get_file_list = function(config)
+local load_config = function(config)
     local files = {}
     local lines = read_file(config)
     for k,line in ipairs(lines) do
@@ -272,21 +276,33 @@ local get_file_list = function(config)
             include_files(string_sub(line, 2), files)
         elseif string.startsWith(line,"-") then
             exclude_files(string_sub(line, 2), files)
+        elseif string.startsWith(string.lower(line), "title:") then
+            title = string_sub(line, 7)
         end
     end
     return files
 end
 
-idoc.run = function(output, config, single, verbose)
-    print(single)
-    if verbose then log = print_log end
+idoc.run = function(output, config, single, quiet)
+    if quiet == 1 then log = print_nothing end
     if not file_exists(config) then
         print("can't open configuration file "..config)
-        return
+        return 1
     end
 
-    local files = get_file_list(config)
+    local files = load_config(config)
     local outfile
+
+    if (single == 1) then
+        log("title is ignored in single files mode")
+    end
+    if single == 0 then
+        local ext = string.lower(string.getExtensionFromFilename(output))
+        if (ext ~= "md") then
+            print("Unsupported format '".. ext.."'")
+            return 1
+        end
+    end
 
     for f, file in ipairs(files) do
         log("idoc analyzing '"..file.."'")
@@ -300,7 +316,10 @@ idoc.run = function(output, config, single, verbose)
             outfile = io.open(filename,"w")
             if (nil == outfile) then
                 print("couldn't not open "..filename)
-                return
+                return 1
+            end
+            if single == 0 then
+                outfile:write("#"..title.."\n\n")
             end
         end
 
@@ -345,5 +364,6 @@ idoc.run = function(output, config, single, verbose)
     if outfile ~= nil then
         outfile:close()
     end
+    return 0
 end
 return idoc
