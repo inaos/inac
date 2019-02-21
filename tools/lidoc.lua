@@ -209,12 +209,13 @@ local search_files = function(filter)
     if is_windows() then
         p, err = io.popen(string.format("dir /B %s", filter))
     else
-        p, err = io.popen(string.format("find %s -maxdepth 1 -type f -name '%s'", dir, name))
+        p, err = io.popen(string.format("find %s -depth 1 -type f -name '%s'", dir, name))
     end
     if (p ~= nil) then
         for file in p:lines() do
-            if (file_exists(dir..file)) then
-                table.insert(files, dir..file)
+            local f = dir..string.getFileFromFilename(file)
+            if (file_exists(f)) then
+                table.insert(files, f)
             end
         end
     end
@@ -269,7 +270,7 @@ local load_config = function(config)
     local files = {}
     local lines = read_file(config)
     for k,line in ipairs(lines) do
-        if is_windows then
+        if is_windows() then
             line = string.replace(line, "/", "\\")
         end
         if string.startsWith(line, "+") then
@@ -294,7 +295,7 @@ idoc.run = function(output, config, single, quiet)
     local outfile
 
     if (single == 1) then
-        log("title is ignored in single files mode")
+        log("warning: title is ignored in single files mode")
     end
     if single == 0 then
         local ext = string.lower(string.getExtensionFromFilename(output))
