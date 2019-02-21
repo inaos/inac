@@ -222,8 +222,8 @@ INA_TEST_FIXTURE(stopwatch_ipc, stopwatch_open) {
             INA_TEST_ASSERT_EQUAL_STR("user_data2", ts->user_data2);
         }
         else if (c == 3) {
-            INA_TEST_ASSERT_EQUAL_STR("", ts->user_data1);
-            INA_TEST_ASSERT_EQUAL_STR("", ts->user_data2);
+            INA_TEST_ASSERT_EQUAL_STR("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", ts->user_data1);
+            INA_TEST_ASSERT_EQUAL_STR("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", ts->user_data2);
         }
         ++c;
     }
