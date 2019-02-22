@@ -29,6 +29,7 @@ static double *__results = NULL;
 static double *__current_result = NULL;
 static int64_t *__current_scale = NULL;
 static int __current_iteration = 0;
+static int __current_repetition = 0;
 static int __current_series = 0;
 static char __header[__INA_MAX_HEADER_LENGTH];
 static int __precision = 5;
@@ -43,7 +44,7 @@ INA_BENCH_TEARDOWN(bench) { INA_UNUSED(data); }
 INA_BENCH_SCALE(bench) { INA_UNUSED(data); }
 INA_BENCH_BEGIN(bench, series) { INA_UNUSED(data); }
 INA_BENCH_END(bench , series) { INA_UNUSED(data); }
-INA_BENCH(bench, series, 0) { INA_UNUSED(data); }
+INA_BENCH(bench, series, 0, 0) { INA_UNUSED(data); }
 
 static int __ina_bench_all(ina_bench_benchmark_t* b) {
     INA_UNUSED(b);
@@ -108,7 +109,7 @@ static ina_rc_t __ina_find_symbols(ina_bench_benchmark_t *bench)
 }
 #endif
 
-static ina_rc_t __ina_write_report(int num_series, const char* report_path)
+static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const char* report_path)
 {
     FILE* f;
     ina_str_t file_path;
@@ -116,6 +117,7 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     int64_t *scale;
     int i;
     int j;
+    int k;
     char fmt[20];
     snprintf(fmt, 19, ",%%.%df", __precision);
 
@@ -134,18 +136,20 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     ina_str_free(file_path);
 
     if (ina_bench_get_scale_label() != NULL) {
-        fprintf(f, "%s,%s\n", ina_bench_get_scale_label(), __header);
+        fprintf(f, "r,%s,%s\n", ina_bench_get_scale_label(), __header);
     } else {
-        fprintf(f, "scale,%s\n", __header);
+        fprintf(f, "r,scale,%s\n", __header);
     }
     result = __results;
     scale = __scales;
-    for (j = 0; j < __current->iterations; ++j) {
-        fprintf(f, "%"INA_INT64_T_FMT, scale[j]);
-        for (i = 0; i < num_series; ++i) {
-            fprintf(f, fmt, result[i*__current->iterations+j]);
+    for (k = 0; k < xrepeat; ++k) {
+        for (j = 0; j < xiter; ++j) {
+            fprintf(f, "%d,%"INA_INT64_T_FMT, (k+1),scale[k]);
+            for (i = 0; i < num_series; ++i) {
+                fprintf(f, fmt, result[k* i * xiter + j]);
+            }
+            fprintf(f, "\n");
         }
-        fprintf(f, "\n");
     }
     fclose(f);
     return INA_SUCCESS;
@@ -159,6 +163,8 @@ INA_API(int) ina_bench_run(void)
     ina_bench_benchmark_t* begin;
     ina_bench_benchmark_t* end;
     ina_str_t report_path = NULL;
+    int xrepeat = 0;
+    int xiter = 0;
 
     INA_MUST_SUCCEED(ina_init());
 
@@ -170,6 +176,8 @@ INA_API(int) ina_bench_run(void)
     if (ina_str_len(__bench_name)) {
         filter = __ina_bench_filter;
     }
+    ina_opt_get_int("x-repeat", &xrepeat);
+    ina_opt_get_int("x-iter", &xiter);
 
     begin = &INA_BENCH_BNAME(bench, series);
     end = &INA_BENCH_BNAME(bench, series);
@@ -204,23 +212,29 @@ INA_API(int) ina_bench_run(void)
             }
             if (filter(bench) && !bench->skip) {
                 int ic;
+                int rc;
 #ifdef INA_OS_OSX
                 INA_MUST_SUCCEED(__ina_find_symbols(bench));
 #endif
+				if (xrepeat == 0) {
+					xrepeat = bench->repetitions;
+				}
+				if (xiter == 0) {
+					xiter = bench->iterations;
+				}
                 if (__current == NULL ||
                     strcmp(__current->bench_name, bench->bench_name) != 0) {
                     if (__current != NULL) {
                         INA_MUST_SUCCEED(
-                                __ina_write_report(__current_series,
+                                __ina_write_report(xrepeat, xiter, __current_series,
                                                    ina_str_cstr(
                                                            report_path)));
                         ina_mem_free(__results);
                         ina_mem_free(__scales);
                     }
-                    __scales = ina_mem_alloc(
-                            sizeof(int64_t) * bench->iterations);
+                    __scales = ina_mem_alloc(sizeof(int64_t) * xrepeat);
                     __results = ina_mem_alloc(
-                            sizeof(int64_t) * bench->iterations *
+                            sizeof(int64_t) * xiter * xrepeat *
                             __INA_MAX_SERIES);
                     __current_result = __results;
                     __header[0] = '\0';
@@ -242,12 +256,16 @@ INA_API(int) ina_bench_run(void)
                 bench->setup(bench->data);
                 printf("%s:%s : begin\n", ina_bench_get_name(),
                        ina_bench_get_series_name());
-                bench->series_setup(bench->data);
-                for (ic = 0; ic < bench->iterations; ++ic) {
-                    __current_iteration = ic;
+
+                for (rc = 0; rc < xrepeat; ++rc) {
+                    __current_repetition = rc;
                     bench->scale(bench->data);
-                    bench->run(bench->data);
-                    __current_result += 1;
+                    bench->series_setup(bench->data);
+                    for (ic = 0; ic < xiter; ++ic) {
+                        __current_iteration = ic;
+                        bench->run(bench->data);
+                        __current_result += 1;
+                    }
                     __current_scale += 1;
                 }
                 printf("%s:%s : end\n", ina_bench_get_name(),
@@ -262,7 +280,7 @@ INA_API(int) ina_bench_run(void)
         }
     }
     if (__current != NULL) {
-        __ina_write_report(__current_series, report_path);
+        __ina_write_report(xrepeat, xiter, __current_series, report_path);
         ina_mem_free(__results);
     }
     ina_time_tsc_free(&__time1);
@@ -332,7 +350,7 @@ INA_API(ina_rc_t) ina_bench_set_int64(int64_t value)
 INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
 {
     printf("%s:%s : set scale %"INA_INT64_T_FMT" for iteration '%d'\n",
-           ina_bench_get_name(),
+            ina_bench_get_name(),
            ina_bench_get_series_name(),
            scale,
            ina_bench_get_iteration());
@@ -355,6 +373,23 @@ INA_API(int64_t) ina_bench_get_scale(void)
 {
     return *__current_scale;
 }
+
+INA_API(int) ina_bench_get_repetitions(void)
+{
+    if (__current != NULL) {
+        return __current->repetitions;
+    }
+    return 0;
+}
+
+INA_API(int) ina_bench_get_repetition(void)
+{
+    if (__current != NULL) {
+        return __current_repetition + 1;
+    }
+    return 0;
+}
+
 
 INA_API(int) ina_bench_get_iterations(void)
 {

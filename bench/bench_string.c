@@ -26,11 +26,11 @@ INA_BENCH_BEGIN(string, series_1) {
     data->strings = NULL;
 }
 INA_BENCH_SCALE(string) {
-    data->c = 1000 * ina_bench_get_iteration();
+    data->c = 1000 * ina_bench_get_repetition();
     ina_bench_set_scale(data->c);
 }
 
-INA_BENCH(string, series_1, 10) {
+INA_BENCH(string, series_1, 10, 1) {
     int i;
     INA_BENCH_MSG("iteration: %d - allocate %d strings ",
            ina_bench_get_iteration(),
@@ -50,7 +50,7 @@ INA_BENCH_END(string, series_1) { INA_UNUSED(data);}
 INA_BENCH_BEGIN(string, series_2) {
     data->mp = NULL;
 }
-INA_BENCH(string, series_2, 10) {
+INA_BENCH(string, series_2, 10, 1) {
     int i;
     INA_BENCH_MSG("iteration: %d allocate %d strings:",
            ina_bench_get_iteration(),
@@ -72,7 +72,7 @@ INA_BENCH_BEGIN(string, series_3) {
     INA_MUST_SUCCEED(ina_mempool_new(data->c * 50, NULL, INA_MEM_FIXED, &data->mp));
 }
 
-INA_BENCH(string, series_3, 10) {
+INA_BENCH(string, series_3, 10, 1) {
     int i;
     INA_BENCH_MSG("iteration: %d allocate %d strings:",
            ina_bench_get_iteration(),

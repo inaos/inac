@@ -39,7 +39,7 @@ INA_BENCH_SCALE(intersect)
 INA_BENCH_BEGIN(intersect, zipper) { INA_UNUSED(data);}
 INA_BENCH_END(intersect, zipper) { INA_UNUSED(data); }
 
-INA_BENCH(intersect, zipper, 1)
+INA_BENCH(intersect, zipper, 1, 1)
 {
     size_t i_a = 0;
     size_t i_b = 0;
@@ -61,7 +61,7 @@ INA_BENCH(intersect, zipper, 1)
 
 INA_BENCH_BEGIN(intersect, logical) { INA_UNUSED(data);}
 INA_BENCH_END(intersect, logical) { INA_UNUSED(data);}
-INA_BENCH(intersect, logical, 1)
+INA_BENCH(intersect, logical, 1, 1)
 {
     size_t i;
     ina_bench_stopwatch_start();

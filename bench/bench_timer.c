@@ -66,7 +66,7 @@ INA_BENCH_SCALE(timer) {
 }
 INA_BENCH_BEGIN(timer, create_rdtsc) { INA_UNUSED(data);}
 INA_BENCH_END(timer, create_rdtsc) { INA_UNUSED(data);}
-INA_BENCH(timer, create_rdtsc, 1) {
+INA_BENCH(timer, create_rdtsc, 1, 1) {
     ina_timer_t *timer;
     INA_UNUSED(data);
     INA_MUST_SUCCEED(ina_timer_new(&timer));
@@ -82,7 +82,7 @@ INA_BENCH(timer, create_rdtsc, 1) {
 
 INA_BENCH_BEGIN(timer, create) { INA_UNUSED(data);}
 INA_BENCH_END(timer, create) { INA_UNUSED(data);}
-INA_BENCH(timer, create, 1) {
+INA_BENCH(timer, create, 1, 1) {
     ina_timer_t *timer;
     INA_UNUSED(data);
     INA_MUST_SUCCEED(ina_timer_new(&timer));
@@ -97,7 +97,7 @@ INA_BENCH(timer, create, 1) {
 
 INA_BENCH_BEGIN(timer, exec) { INA_UNUSED(data);}
 INA_BENCH_END(timer, exec) { INA_UNUSED(data); }
-INA_BENCH(timer, exec, 1) {
+INA_BENCH(timer, exec, 1, 1) {
     ina_timer_t *timer;
     int64_t total = 0;
     uint64_t id;
@@ -124,7 +124,7 @@ INA_BENCH(timer, exec, 1) {
 
 INA_BENCH_BEGIN(timer, exec_rdtsc) { INA_UNUSED(data);}
 INA_BENCH_END(timer, exec_rdtsc) { INA_UNUSED(data);}
-INA_BENCH(timer, exec_rdtsc, 1) {
+INA_BENCH(timer, exec_rdtsc, 1,1) {
     ina_timer_t *timer;
     int64_t total = 0;
     uint64_t id;
