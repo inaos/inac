@@ -1,5 +1,5 @@
 /*
- * Copyright INAOS GmbH, Thalwil, 2018. All rights reserved
+ * Copyright INAOS GmbH, Thalwil, 2018-2019. All rights reserved
  *
  * This software is the confidential and proprietary information of INAOS GmbH
  * ("Confidential Information"). You shall not disclose such Confidential
@@ -11,10 +11,11 @@
 int main(int argc,  char** argv) 
 {
     INA_OPTS(opt,
-             INA_OPT_STRING("r", "report-path", NULL, "Directory for report output"));
+             INA_OPT_STRING("r", "report-path", "."INA_PATH_SEPARATOR_STR, "Directory for report output"),
+             INA_OPT_STRING("n", "name", "", "Benchmark name"));
 
     if (INA_FAILED(ina_app_init(argc, argv, opt))) {
         return EXIT_FAILURE;
     }
-    return ina_bench_run(argc, argv);
+    return ina_bench_run();
 }

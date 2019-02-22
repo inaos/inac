@@ -7,7 +7,7 @@
 # license agreement you entered into with INAOS GmbH.
 #
 cmake_minimum_required(VERSION 3.7)
-project(inac VERSION 1.0.4)
+project(inac VERSION 1.0.5)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
 inac_enable_aes()
@@ -73,6 +73,9 @@ inac_add_tests(inac)
 inac_add_benchmarks(inac)
 inac_add_tools(inac)
 inac_add_examples(inac)
+inac_add_luafiles(idoc_lua "${CMAKE_SOURCE_DIR}/tools/lidoc.lua")
+target_link_libraries(idoc inac ${INAC_DEPENDENCY_LIBS} idoc_lua ${PLATFORM_LIBS})
+
 
 inac_post_copy_file(tests hashtable.conf)
 inac_post_copy_file(tests test_log.conf)

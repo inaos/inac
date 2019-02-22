@@ -25,6 +25,19 @@ INA_TEST(mempool, create_fixed)
     ina_mempool_free(&pool);
 }
 
+INA_TEST(mempool, get_set_alignment)
+{
+    ina_mempool_t *pool;
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(4096, NULL, 0, &pool));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(INA_MEM_ALIGN_SIZE, ina_mempool_get_alignment(pool));
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_set_alignment(pool, sizeof(void*)*4));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(sizeof(void*)*4, ina_mempool_get_alignment(pool));
+    INA_TEST_ASSERT_FAILED(ina_mempool_set_alignment(pool, 0));
+    ina_mempool_free(&pool);
+}
+
 INA_TEST(mempool, create_fixed_bestfit)
 {
     ina_mempool_t *pool;
@@ -60,7 +73,7 @@ INA_TEST(mempool, bestfit)
 }
 
 
-INA_TEST(mempool, aligned)
+INA_TEST(mempool, dalloc_aligned)
 {
     ina_mempool_t *pool;
     ina_mempool_info_t info;
@@ -76,6 +89,55 @@ INA_TEST(mempool, aligned)
     INA_TEST_ASSERT_NOT_NULL(buf);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_info(pool, &info));
     INA_TEST_ASSERT_EQUAL_SIZE_T(64, info.used);
+    ina_mempool_free(&pool);
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(4096, NULL, 0, &pool));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_set_alignment(pool, 64));
+    buf = ina_mempool_dalloc(pool, 1);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_info(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(64, info.used);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_set_alignment(pool, 1));
+    buf = ina_mempool_dalloc(pool, 1);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_info(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(65, info.used);
+    ina_mempool_free(&pool);
+}
+
+INA_TEST(mempool, nalloc_aligned)
+{
+    ina_mempool_t *pool;
+    ina_mempool_info_t info;
+    char *buf;
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(4096, NULL, 0, &pool));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+    buf = ina_mempool_nalloc(pool, 1);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_info(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(16, info.used);
+    buf = ina_mempool_nalloc(pool, 33);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_info(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(64, info.used);
+    ina_mempool_free(&pool);
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(4096, NULL, 0, &pool));
+    INA_TEST_ASSERT_NOT_NULL(pool);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_set_alignment(pool, 64));
+    buf = ina_mempool_nalloc(pool, 1);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_info(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(64, info.used);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_set_alignment(pool, 1));
+    buf = ina_mempool_nalloc(pool, 1);
+    INA_TEST_ASSERT_NOT_NULL(buf);
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_info(pool, &info));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(65, info.used);
     ina_mempool_free(&pool);
 }
 
@@ -154,6 +216,7 @@ INA_TEST(mempool, dalloc)
     ina_mempool_reset(pool);
     INA_TEST_ASSERT_NOT_NULL(buf);
     buf = ina_mempool_dalloc(pool, 1024*1024*2);
+    INA_TEST_ASSERT_NOT_NULL(buf);
     ina_mempool_free(&pool);
 }
 
@@ -472,7 +535,6 @@ INA_TEST(mempool, bad_dalloc)
     void *ptr;
     ina_mempool_t *pool;
 
-    ptr = NULL;
     pool = NULL;
 
     /* clear error state and assure it's clean */

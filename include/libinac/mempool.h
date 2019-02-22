@@ -15,15 +15,13 @@ extern "C" {
 
 #include <libinac/lib.h>
 
-/* TODO: rename all constants to INA_MEMPOOL_.... */
-#define INA_MEM_DFT_POOL_SIZE (8*1024*1204)
 /* Minimal allowed pool size */
 #define INA_MEM_MIN_POOL_SIZE (1024)
 /* Single Pool, fixed size , no chunks */
 #define INA_MEM_FIXED           (0)
 /* Dynamic chunk allocation */
 #define INA_MEM_DYNAMIC         (1)
-/* Autosized chunk */
+/* Auto sized chunk */
 #define INA_MEM_AUTOSIZE        (2)
 /* Fill chunks */
 #define INA_MEM_BESTFIT         (4)
@@ -54,7 +52,7 @@ typedef struct ina_mempool_info_s {
  * Initialized memory pool module
  *
  * Return
- *  INA_SUCCES if all went well
+ *  INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_mempool_init(void);
 
@@ -67,7 +65,7 @@ INA_API(void) ina_mempool_destroy(void);
  * Get runtime information about a memory pool.
  *
  * Parameters
- *  pool  Pointer to a memory pool, pass NULL to query system memory pool.
+ *  pool  Pointer to a memory pool
  *  info   Pointer to pool information structure.
  *
  * Return
@@ -76,7 +74,34 @@ INA_API(void) ina_mempool_destroy(void);
 INA_API(ina_rc_t) ina_mempool_info(ina_mempool_t *pool,
                                    ina_mempool_info_t *info);
 
-/* 
+/*
+ * Set memory alignment for a pool. After initialization an alignment
+ * INA_MEM_ALIGN_SIZE is applied.
+ *
+ * Parameters
+ *  pool       Pointer to a memory pool
+ *  alignment  Alignment to apply in bytes. Alignment must greater than O.
+ *             The be alignment should be a power of 2. Using an alignment
+ *             of 1 byte corresponds to the INA_MEM_BESTFIT strategy where
+ *             memory is allocated w/o any alignment.
+ *
+ * Return
+ *  INA_SUCCESS if all wen well
+ */
+INA_API(ina_rc_t) ina_mempool_set_alignment(ina_mempool_t *pool, size_t alignment);
+
+/*
+ * Get memory alignment for a pool.
+ *
+ * Parameters
+ *  pool  Pointer to a memory pool
+ *
+ * Return
+ *  Current memory alignment in bytes
+ */
+INA_API(size_t) ina_mempool_get_alignment(ina_mempool_t *pool);
+
+/*
  * Creates a memory pool.
  *
  * Parameters
@@ -153,32 +178,82 @@ INA_API(ina_rc_t) ina_mempool_reset(ina_mempool_t *pool);
  * Allocate reallocable memory from a pool.
  *
  * Parameters
- *  pool  Memory pool
- *  size  Number of bytes to allocate. Effective size may vary because memory
- *        will be allocated aligned.
+ *  pool       Memory pool
+ *  size       Number of bytes to allocate. Effective size may vary because memory
+ *             usually wil be allocated aligned.
+ *  alignment  Memory alignment in bytes
  *
  * Return
  *   Pointer to the allocated memory that is suitably aligned for any
  *   kind of variable
  */
-INA_API(void *)  ina_mempool_dalloc(ina_mempool_t *pool, size_t size);
+INA_API(void *)  ina_mempool_dalloc_aligned(ina_mempool_t *pool, size_t size, size_t alignment);
+
+/*
+ * Allocate reallocable memory from a pool.
+ *
+ * Parameters
+ *  pool   Memory pool
+ *  size   Number of bytes to allocate. Effective size may vary because memory
+ *         usually wil be allocated aligned. *
+ * Return
+ *   Pointer to the allocated memory that is suitably aligned for any
+ *   kind of variable
+ */
+INA_INLINE void *  ina_mempool_dalloc(ina_mempool_t *pool, size_t size)
+{
+    return ina_mempool_dalloc_aligned(pool, size, ina_mempool_get_alignment(pool));
+}
 
 /*
  * Allocate not reallocable memory from a pool.
  *
- * Parameters
- *  pool  Memory pool
- *  size  Number of bytes to allocate. Effective size may vary because memory
- *        will be allocated aligned.
+ *  pool       Memory pool
+ *  size       Number of bytes to allocate. Effective size may vary because memory
+ *             usually wil be allocated aligned.
+ *  alignment  Memory alignment in bytes
  *
  * Return
  *   Pointer to the allocated memory that is suitably aligned for any
  *   kind of variable
  */
-INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
+INA_API(void *)  ina_mempool_nalloc_aligned(ina_mempool_t *pool, size_t size, size_t alignment);
 
 /*
- * Reallocate memory from a pool
+ * Allocate not reallocable memory from a pool.
+ *
+ *  pool       Memory pool
+ *  size       Number of bytes to allocate. Effective size may vary because memory
+ *             usually wil be allocated aligned.
+ *
+ * Return
+ *   Pointer to the allocated memory that is suitably aligned for any
+ *   kind of variable
+ */
+INA_INLINE void *  ina_mempool_nalloc(ina_mempool_t *pool, size_t size)
+{
+    return ina_mempool_nalloc_aligned(pool, size, ina_mempool_get_alignment(pool));
+}
+
+/*
+ * Reallocate memory from a pool.
+ *
+ * Parameters
+ *  pool      Memory pool
+ *  old       Old pointer
+ *  old_size  Old size in bytes
+ *  new_size  New size in bytes
+ *  alignment Memory alignment in bytes.
+ *
+ * Return
+ *   Pointer to the allocated memory that is suitably aligned for any
+ *   kind of variable
+ */
+INA_API(void *) ina_mempool_ralloc_aligned(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size, size_t alignment);
+
+
+/*
+ * Reallocate memory from a pool.
  *
  * Parameters
  *  pool      Memory pool
@@ -190,7 +265,10 @@ INA_API(void *)  ina_mempool_nalloc(ina_mempool_t *pool, size_t size);
  *   Pointer to the allocated memory that is suitably aligned for any
  *   kind of variable
  */
-INA_API(void *) ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size);
+INA_INLINE void * ina_mempool_ralloc(ina_mempool_t *pool, void *old, size_t old_size, size_t new_size)
+{
+    return ina_mempool_ralloc_aligned(pool, old, old_size, new_size, ina_mempool_get_alignment(pool));
+}
 
 #ifdef __cplusplus
 }

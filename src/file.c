@@ -504,7 +504,7 @@ INA_API(FILE*) ina_file_get_stream(ina_file_t *file)
 #endif
 }
 
-INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, int64_t len, int64_t *nread)
+INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, size_t len, size_t *nread)
 {
     INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(buf);
@@ -516,15 +516,18 @@ INA_API(ina_rc_t) ina_file_read(ina_file_t *file, unsigned char *buf, int64_t le
         return INA_OS_ERROR(INA_ES_READ|INA_ERR_FAILED);
     }
 #else
-    *nread = read(file->fh, buf, len);
-    if (*nread < 0) {
+    ssize_t n;
+    n = read(file->fh, buf, len);
+    if (n < 0) {
+        *nread = 0;
         return INA_OS_ERROR(INA_ES_READ | INA_ERR_FAILED);
     }
+    *nread = (size_t)n;
 #endif
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, int64_t len, int64_t *wrote)
+INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, size_t len, size_t *wrote)
 {
     INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(buf);
@@ -535,10 +538,12 @@ INA_API(ina_rc_t) ina_file_write(ina_file_t *file, unsigned char *buf, int64_t l
         return INA_OS_ERROR(INA_ES_WRITE|INA_ERR_FAILED);;
     }
 #else
-    *wrote = write(file->fh, buf, len);
-    if (*wrote < 0) {
+    ssize_t n = write(file->fh, buf, len);
+    if (n < 0) {
+        *wrote = 0;
         return INA_OS_ERROR(INA_ES_WRITE | INA_ERR_FAILED);
     }
+    *wrote = (size_t)n;
 #endif
     return INA_SUCCESS;
 }
@@ -561,7 +566,7 @@ INA_API(ina_rc_t) ina_file_set_bof(ina_file_t *file)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_seek_mode_t mode)
+INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, size_t offset, ina_file_seek_mode_t mode)
 {
 #ifdef INA_OS_WIN32
     static DWORD modes[2] = {FILE_BEGIN,FILE_CURRENT};
@@ -581,7 +586,7 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, uint64_t offset, ina_file_s
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, uint64_t *offset)
+INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, size_t *offset)
 {
 #ifdef INA_OS_WIN32
     DWORD dwOffset;

@@ -385,19 +385,6 @@ INA_API(ina_rc_t) ina_net_leave_group(ina_fd_t fd,
                                       const char *source);
 
 /*
- * Get the IP address from interface name
- *
- * Parameters
- *  ifname  Interface name
- *  ip      Where to store the IP address
- *
- * Return
- *  INA_SUCCESS if all went well.
- *  INA_FAILURE if interface ifname could not be found.
- */
-INA_API(ina_rc_t) ina_net_get_ip_from_ifname(const char *ifname, char* ip);
-
-/*
  * Get the MAC address of an network adapter
  *
  * Parameters

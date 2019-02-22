@@ -16,7 +16,7 @@
  * Create a stop watch with an given ID, makes 3 time stamps each 10 ms
  * beetween.
  */
-INA_TEST_HELPER(time_ipc, stopwatch_create) {
+INA_TEST_HELPER(stopwatch_ipc, stopwatch_create) {
     int32_t id;
     ina_stopwatch_t *w = NULL;
     char user_data[INA_STOPWATCH_MAX_STAMPS+10];
@@ -28,7 +28,6 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
         INA_TEST_HELPER_SET_RC(ina_err_get_rc());
         return;
     }
-
     ina_mem_set(&user_data, 'a', INA_STOPWATCH_MAX_STAMPS+8);
     user_data[INA_STOPWATCH_MAX_STAMPS+9] = '\0';
 
@@ -54,7 +53,7 @@ INA_TEST_HELPER(time_ipc, stopwatch_create) {
  * Create a rdtsc stop watch with an given ID, makes 3 time stamps each 10 ms
  * beetween.
  */
-INA_TEST_HELPER(time_ipc_rdtsc, stopwatch_create_rdtsc) {
+INA_TEST_HELPER(stopwatch_ipc_rdtsc, stopwatch_create_rdtsc) {
     int32_t id;
     ina_stopwatch_t *w = NULL;
     ina_time_tsc_t t;
