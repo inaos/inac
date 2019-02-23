@@ -1092,6 +1092,7 @@ To test or start an in-situ helper from the command line juste type
  * Easy adding benchmarks test with minimal effort. Non header files required.
  * CSV output
  * Integrated stopwatch
+ * Supports CPU scheduling
  * Supports skipping series
  * Minimal memory footprint
  * Working the same way on Linux, Windows and OS X 
@@ -1099,11 +1100,11 @@ To test or start an in-situ helper from the command line juste type
 #### Adding benchmarks
 To add a benchmark use the INA_BENCH_* macros. Every benchmark is composed at least 
 of 1 series which is executed at least 1 time. A benchmark has the following phases:
-- __Setup__: called for every series in the benchmark
-- __Begin__: called once for a series
-- __Scale__: called for the current series at every iteration 
+- __Setup__: called once for every series in the benchmark
+- __Scale__: called for the current series at every repetition 
+- __Begin__: called once for a series at each repetition
 - __Benchmark__: called for the current series at every iteration
-- __End__: called once for a series
+- __End__: called once for a series at every repetition
 - __Teardown__: called for every series in the benchmark
 
 Every phase must be declared by the corresponding macro.
@@ -1116,7 +1117,8 @@ common setup code for series.
 `INA_BENCH_SETUP([benchmark name])`
 
 You may call _ina_bench_set_scale_label()_, _ina_bench_get_iterations()_, 
-_ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
+_ina_bench_get_repetitions()_, _ina_bench_get_name()_, 
+_ina_bench_get_series_name()_ during this phase.
 
 ```C
 INA_BENCH_SETUP(sort) {
@@ -1131,13 +1133,31 @@ If the setup phase is not need just declare it with an empty body.
 ```C
 INA_BENCH_SETUP(sort) {}
 ```
+##### The scale phase
+The scale phase is intended to capture the scale value. You need to
+call _ina_bench_set_scale()_ before leaving the phase. This phase is called 
+for each repetition just before running the benchmark code.
+
+`INA_BENCH_SCALE([benchmark name])`
+
+You may also call _ina_bench_get_iterations()_, _ina_bench_get_repetition()_, 
+_ina_bench_get_repetitions()_, _ina_bench_get_name()_, 
+_ina_bench_get_series_name()_, _ina_bench_stopwatch_start()_ 
+during this phase.
+
+```C
+INA_BENCH_SCALE(sort) {
+    ina_bench_set_scale(data->nr_of_elements*ina_bench_get_repetition());
+}
+```
 
 ##### The begin phase
-The begin phase is designated to run setup code for a single series.
+The begin phase is designated to run setup code for a single series for
+a repetition.  
 
 `INA_BENCH_BEGIN([benchmark name], [series name])`
 
-You may call _ina_bench_get_iterations()_, 
+You may call _ina_bench_get_iterations()_, _ina_bench_get_repetitions()_,
 _ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
 
 ```C
@@ -1151,54 +1171,44 @@ If the begin phase is not need just declare it with an empty body.
 INA_BENCH_BEGIN(sort, quick_sort) {}
 ```
 
-##### The scale phase
-The scale phase is intended to capture the scale value. You need to
-call _ina_bench_set_scale()_ before leaving the phase. This phase is called 
-for each iteration just before running the benchmark code.
-
-`INA_BENCH_SCALE([benchmark name])`
-
-You may also call _ina_bench_get_iterations()_, _ina_bench_get_iteration()_, 
-_ina_bench_get_name()_, _ina_bench_get_series_name()_, 
-_ina_bench_stopwatch_start()_ during this phase.
-
-```C
-INA_BENCH_SCALE(sort) {
-    ina_bench_set_scale(data->nr_of_elements*ina_bench_get_iteration());
-}
-```
-
 
 ##### The benchmark phase
 This phase is intended to run the effective benchmark code and capture the
-measurement. The benchmark phase is called for each series and iteration. 
+measurement. The benchmark phase is called for each series, iteration and
+repetition. 
 _ina_bench_set_value()_ must called  before leaving the benchmark phase.
 
-```INA_BENCH(benchmark name], [series name], [nr of iterations])```
+```INA_BENCH(benchmark name], [series name], [nr of iterations] [nr of repetition])```
 
 Most of the time the measurements consists of time measurements 
 . The benchmark framework provide _ina_bench_stopwatch_start()_ and 
 _ina_bench_stopwatch_stop()_ to this end.
 
-You may also call _ina_bench_get_iterations()_, _ina_bench_get_iteration()_, 
+You may also call _ina_bench_get_iterations()_, _ina_bench_get_iteration()_,
+_ina_bench_get_repetitions()_, _ina_bench_get_repetition()_
 _ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
 
 ```C
-INA_BENCH(sort, quick_sort, 100) {
+INA_BENCH(sort, quick_sort, 100, 10) {
     ina_bench_stopwatch_start();
     data->sort_fn(data->elements, data->nr_of_elements);
     ina_bench_set_value(ina_bench_stopwatch_stop());
 }
 ```
 
+The number of iterations can be overridden by `--x-iter` command line 
+argument. The number of repetition can be overridden by command line option
+`--x-repeat`.
+
+
 ##### The end phase
 The begin phase is designated to run cleanup code for a single series.
 
 `INA_BENCH_END([benchmark name], [series name])`
 
-You may also call _ina_bench_get_iterations()_,  _ina_bench_get_name()_, 
-_ina_bench_get_series_name()_, _ina_bench_stopwatch_stop()_ during 
-this phase.
+You may also call _ina_bench_get_iterations()_,  _ina_bench_get_repetitions()_,
+_ina_bench_get_name()_, _ina_bench_get_series_name()_, 
+_ina_bench_stopwatch_stop()_ during this phase.
 
 ```C
 INA_BENCHEND(sort, quick_sort) {
@@ -1237,13 +1247,32 @@ INA_BENCH_TEARDOWN(sort) {}
 
 To run the benchmarks simply call _ina_bench_run()_. The application need
 to be initialized as regular INAC application by calling `ina_app_init()`.
-The benchmark runner looks for command line arguments `report-path` and
-`name` in order to override the default report path and restrict the
-benchmarks execution by a name filter. If those arguments are omitted all
-benchmarks are executed and report are generated in the current working
-directory.
+Therefore a minimal benchmark executable must like looks like this.
 
-Therefore a minimal benchmark executable should looks like this.
+
+    #include <libinac/lib.h>
+
+    int main(int argc,  char** argv)
+    {
+        if (INA_FAILED(ina_app_init(argc, argv, NULL))) {
+            return EXIT_FAILURE;
+        }
+        return ina_bench_run();
+    }
+    
+This will run all benchmarks with the defined repetitions and iterations. The 
+reports will be generated in the current working directory. 
+
+The benchmark runner looks for command line arguments
+ 
+ - `r` specify the report location
+ - `n` to restrict benchmark execution by a name  filter
+ - `x-repeat` to override the number of repetitions
+ - `x-iter` to override the number of iterations
+ - `cache-size` to specify L1/L2/L3 cache size
+
+A more advanced benchmark runner could take in account of these command line
+options.
 
     #include <libinac/lib.h>
 
@@ -1251,27 +1280,33 @@ Therefore a minimal benchmark executable should looks like this.
     {
         INA_OPTS(opt,
                  INA_OPT_STRING("r", "report-path", "."INA_PATH_SEPARATOR_STR, "Directory for report output"),
+                 INA_OPT_INT(NULL, "x-repeat", INA_NUM2STR(0), "Override number of repetitions"),
+                 INA_OPT_INT(NULL, "x-iter", INA_NUM2STR(0), "Override number of iteration"),
+                 INA_OPT_INT(NULL, "cache-size", INA_NUM2STR(0), "L1/L2/L3 cache size"),
                  INA_OPT_STRING("n", "name", "", "Benchmark name"));
-
+    
         if (INA_FAILED(ina_app_init(argc, argv, opt))) {
             return EXIT_FAILURE;
         }
         return ina_bench_run();
     }
 
-
-From the command line prompt you can run all benchmarks, a single benchmark or
-a group of benchmarks. 
+Implemented in this way one can run from the command line prompt
+all benchmarks, a single benchmark or group of benchmarks...
 
     ./bench
     ./bench -n io_file
     ./bench -n io_
 
-The location where reports should be stored can be specified with 
-_-r_ or _--report-path_  command line argument.
+... define the location where reports should be stored...
 
     ./bench -r /home/reports
-    ./bench --report-path=/home/reports -n
+
+... and override iterations and repetitions use `--x-iter` and `--x-repeat`
+command line options.
+
+    ./bench --x-iter=100000 --x-repeat=1000
+    
     
 ## Tools
 INAC provides a set of useful tools supporting software development.

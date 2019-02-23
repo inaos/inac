@@ -155,6 +155,17 @@ static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const
     return INA_SUCCESS;
 }
 
+static void __ina_clear_cache(size_t size)
+{
+    size_t n;
+    unsigned char *p = ina_mem_alloc(size);
+    for (n = 0; n < size; ++n) {
+        /*p[n] = (unsigned char)(rand()%255);*/
+        p[n] = (unsigned char)((n%254)+1);
+    }
+    ina_mem_free(p);
+}
+
 INA_API(int) ina_bench_run(void)
 {
     static int total = 0;
@@ -165,6 +176,30 @@ INA_API(int) ina_bench_run(void)
     ina_str_t report_path = NULL;
     int xrepeat = 0;
     int xiter = 0;
+    int core = 0;
+    size_t cache_size;
+    size_t tot_cache_size;
+    if (INA_FAILED(ina_cpu_get_l1_cache_size(&cache_size))) {
+        INA_BENCH_MSG("%s", "WARNING: failed to get LL cache size");
+    }
+    tot_cache_size = cache_size;
+    if (INA_FAILED(ina_cpu_get_l2_cache_size(&cache_size))) {
+        INA_BENCH_MSG("%s", "WARNING: failed to get L2 cache size");
+    }
+    tot_cache_size += cache_size;
+    if (INA_FAILED(ina_cpu_get_l3_cache_size(&cache_size))) {
+        INA_BENCH_MSG("%s", "WARNING: failed to get L3 cache size");
+    }
+    tot_cache_size += cache_size;
+    if (tot_cache_size == 0) {
+        int size;
+        ina_opt_get_int("cache-size", &size);
+        if (size <= 0) {
+            size = 10;
+        }
+        tot_cache_size = (size_t)size * 1024 * 1024;
+    }
+
 
     INA_MUST_SUCCEED(ina_init());
 
@@ -178,6 +213,14 @@ INA_API(int) ina_bench_run(void)
     }
     ina_opt_get_int("x-repeat", &xrepeat);
     ina_opt_get_int("x-iter", &xiter);
+    ina_opt_get_int("c", &core);
+
+    if (core >= 0) {
+        if (INA_FAILED(ina_cpu_pin_to_core(core))) {
+            printf("couldn't pin on core %d", core);
+            return 1;
+        }
+    }
 
     begin = &INA_BENCH_BNAME(bench, series);
     end = &INA_BENCH_BNAME(bench, series);
@@ -263,6 +306,7 @@ INA_API(int) ina_bench_run(void)
                     bench->series_setup(bench->data);
                     for (ic = 0; ic < xiter; ++ic) {
                         __current_iteration = ic;
+                        __ina_clear_cache(tot_cache_size*2);
                         bench->run(bench->data);
                         __current_result += 1;
                     }
