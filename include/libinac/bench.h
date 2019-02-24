@@ -264,6 +264,10 @@ INA_API(int) ina_bench_get_iterations(void);
 INA_API(int) ina_bench_get_iteration(void);
 
 /*
+ * Checks whenever the current iteration a warm-up iteration.
+ */
+INA_API(ina_rc_t) ina_bench_is_warmup(void);
+/*
  * Starts the stopwatch.
  *
  * Return

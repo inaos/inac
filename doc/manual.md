@@ -1265,11 +1265,14 @@ reports will be generated in the current working directory.
 
 The benchmark runner looks for command line arguments
  
- - `r` specify the report location
- - `n` to restrict benchmark execution by a name  filter
- - `x-repeat` to override the number of repetitions
- - `x-iter` to override the number of iterations
- - `cache-size` to specify L1/L2/L3 cache size
+ - `r`: specify the report location
+ - `n`: to restrict benchmark execution by a name  filter
+ - `x-repeat`: to override the number of repetitions
+ - `x-iter`: to override the number of iterations
+ - `x-warmp-up`: define the number of warm-up iteration (default 0)
+ - `cache-size`: to specify L1/L2/L3 cache size
+ - `disable-aggregation`: 
+
 
 A more advanced benchmark runner could take in account of these command line
 options.
@@ -1302,11 +1305,16 @@ all benchmarks, a single benchmark or group of benchmarks...
 
     ./bench -r /home/reports
 
-... and override iterations and repetitions use `--x-iter` and `--x-repeat`
+... override iterations and repetitions use `--x-iter` and `--x-repeat`
 command line options.
 
     ./bench --x-iter=100000 --x-repeat=1000
+
+... add extra warm-up iterations for instruction cache.
+
+    ./bench --x-warm-up=2
     
+     
     
 ## Tools
 INAC provides a set of useful tools supporting software development.
