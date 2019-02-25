@@ -1095,6 +1095,7 @@ To test or start an in-situ helper from the command line juste type
  * Supports CPU scheduling
  * Supports skipping series
  * Minimal memory footprint
+ * Automatic result aggregation
  * Working the same way on Linux, Windows and OS X 
  
 #### Adding benchmarks
@@ -1263,15 +1264,15 @@ Therefore a minimal benchmark executable must like looks like this.
 This will run all benchmarks with the defined repetitions and iterations. The 
 reports will be generated in the current working directory. 
 
-The benchmark runner looks for command line arguments
+The benchmark runner looks for command line arguments:
  
  - `r`: specify the report location
  - `n`: to restrict benchmark execution by a name  filter
  - `x-repeat`: to override the number of repetitions
  - `x-iter`: to override the number of iterations
- - `x-warmp-up`: define the number of warm-up iteration (default 0)
+ - `x-warmp-up`: define the number of warm-up iterations (default 0)
  - `cache-size`: to specify L1/L2/L3 cache size
- - `disable-aggregation`: 
+ - `disable-aggregation`:  disable result aggregation.
 
 
 A more advanced benchmark runner could take in account of these command line
@@ -1286,6 +1287,8 @@ options.
                  INA_OPT_INT(NULL, "x-repeat", INA_NUM2STR(0), "Override number of repetitions"),
                  INA_OPT_INT(NULL, "x-iter", INA_NUM2STR(0), "Override number of iteration"),
                  INA_OPT_INT(NULL, "cache-size", INA_NUM2STR(0), "L1/L2/L3 cache size"),
+                 INA_OPT_INT(NULL, "x-warm-up", INA_NUM2STR(0), "Warm-up iterations"),     
+                 INA_OPT_FLAG(NULL, "disable-aggregation", "Disable result aggregation"),
                  INA_OPT_STRING("n", "name", "", "Benchmark name"));
     
         if (INA_FAILED(ina_app_init(argc, argv, opt))) {
@@ -1314,7 +1317,10 @@ command line options.
 
     ./bench --x-warm-up=2
     
-     
+... or disable result aggregation to see result for each single iteration.
+
+    ./bench --x-warm-up=2
+
     
 ## Tools
 INAC provides a set of useful tools supporting software development.
