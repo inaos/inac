@@ -201,29 +201,13 @@ INA_API(int) ina_bench_get_precision(void);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_bench_set_double(double value);
-
-/*
- * Set the value for the current series and iteration.
- *
- * Parameters
- *  value   Value
- *
- * Return
- *  INA_SUCCESS
- */
-INA_API(ina_rc_t) ina_bench_set_int64(int64_t value);
-
+INA_API(ina_rc_t) ina_bench_set_value(double value);
 
 /*
  * Returns the current value of current series and iteration.
  */
-INA_API(double) ina_bench_get_double(void);
+INA_API(double) ina_bench_get_value(void);
 
-/*
- * Returns the current value of current series and iteration.
- */
-INA_API(int64_t) ina_bench_get_int64(void);
 
 /*
  * Set the scale value for the current series and repetition.

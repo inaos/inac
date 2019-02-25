@@ -1183,7 +1183,9 @@ _ina_bench_set_value()_ must called  before leaving the benchmark phase.
 
 Most of the time the measurements consists of time measurements 
 . The benchmark framework provide _ina_bench_stopwatch_start()_ and 
-_ina_bench_stopwatch_stop()_ to this end.
+_ina_bench_stopwatch_stop()_ to this end. One have to call
+_ina_bench_set_value()_before leaing the phase in order to store
+the benchmark value for the current iteration and repetition.
 
 You may also call _ina_bench_get_iterations()_, _ina_bench_get_iteration()_,
 _ina_bench_get_repetitions()_, _ina_bench_get_repetition()_
@@ -1193,7 +1195,7 @@ _ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
 INA_BENCH(sort, quick_sort, 100, 10) {
     ina_bench_stopwatch_start();
     data->sort_fn(data->elements, data->nr_of_elements);
-    ina_bench_set_value(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 }
 ```
 

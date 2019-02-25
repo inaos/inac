@@ -88,7 +88,7 @@ INA_BENCH(file, bf_read, 4, 1)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
@@ -116,7 +116,7 @@ INA_BENCH(file, bf_read_seq, 4, 1)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
@@ -154,7 +154,7 @@ INA_BENCH(file, bf_read_direct, 4, 1)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
@@ -190,7 +190,7 @@ INA_BENCH(file, bf_read_cursor, 4, 1)
                             data->buffer_size, &nb_read, &buf)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
@@ -223,7 +223,7 @@ INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4, 1)
                             (size_t)data->buffer_size, &nb_read, &buf)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
     ina_file_free(&data->file);
 }

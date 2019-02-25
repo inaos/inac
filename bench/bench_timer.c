@@ -74,7 +74,7 @@ INA_BENCH(timer, create_rdtsc, 1, 1) {
     ina_time_tsc_enable_rdtsc();
     ina_bench_stopwatch_start();
     __ina_timer_bench_create_events(timer);
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     ina_time_tsc_disable_rdtsc();
 
     ina_timer_free(&timer);
@@ -89,7 +89,7 @@ INA_BENCH(timer, create, 1, 1) {
 
     ina_bench_stopwatch_start();
     __ina_timer_bench_create_events(timer);
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 
     ina_timer_free(&timer);
 }
@@ -117,7 +117,7 @@ INA_BENCH(timer, exec, 1, 1) {
         }
         ina_time_sleep(1);
     }
-    ina_bench_set_int64(total);
+    ina_bench_set_value((double)total);
     ina_timer_free(&timer);
 }
 
@@ -147,7 +147,7 @@ INA_BENCH(timer, exec_rdtsc, 1,1) {
         ina_time_sleep(1);
     }
     ina_time_tsc_disable_rdtsc();
-    ina_bench_set_int64(total);
+    ina_bench_set_value((double)total);
     ina_timer_free(&timer);
 }
 

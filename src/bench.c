@@ -404,7 +404,7 @@ INA_API(const char*) ina_bench_get_scale_label(void)
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_bench_set_double(double value)
+INA_API(ina_rc_t) ina_bench_set_value(double value)
 {
     *__current_result = value;
     printf("%s:%s : set result %f for iteration '%d'\n",
@@ -415,13 +415,6 @@ INA_API(ina_rc_t) ina_bench_set_double(double value)
 
     return INA_SUCCESS;
 }
-
-
-INA_API(ina_rc_t) ina_bench_set_int64(int64_t value)
-{
-    return ina_bench_set_double((double)value);
-}
-
 
 INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
 {
@@ -435,14 +428,9 @@ INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
     return INA_SUCCESS;
 }
 
-INA_API(double) ina_bench_get_double(void)
+INA_API(double) ina_bench_get_value(void)
 {
     return *__current_result;
-}
-
-INA_API(int64_t) ina_bench_get_int64(void)
-{
-    return (int64_t )*__current_result;
 }
 
 INA_API(int64_t) ina_bench_get_scale(void)

@@ -56,7 +56,7 @@ INA_BENCH(intersect, zipper, 1, 1)
             i_a++; i_b++;
         }
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 }
 
 INA_BENCH_BEGIN(intersect, logical) { INA_UNUSED(data);}
@@ -68,6 +68,6 @@ INA_BENCH(intersect, logical, 1, 1)
     for (i = 0; i < data->elements; i++) {
         data->C[i] = data->A[i] & data->B[i];
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 }
 

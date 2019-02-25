@@ -45,7 +45,7 @@ INA_BENCH(string, series_1, 10, 1) {
     for (i = 0; i < data->c; i++) {
         data->strings[i] = ina_str_new_fromcstr("this is just a test string");
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     ina_mem_free(data->strings);
 }
 
@@ -64,7 +64,7 @@ INA_BENCH(string, series_2, 10, 1) {
     for (i = 0; i < data->c; i++) {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 
     ina_mempool_free(&data->mp);
 }
@@ -86,7 +86,7 @@ INA_BENCH(string, series_3, 10, 1) {
     for (i = 0; i < data->c; i++)  {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 }
 
 INA_BENCH_END(string, series_3) {
