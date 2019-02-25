@@ -112,7 +112,7 @@ static ina_rc_t __ina_find_symbols(ina_bench_benchmark_t *bench)
 }
 #endif
 
-static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const char* report_path)
+static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const char* report_path, int aggregate)
 {
     FILE* f;
     ina_str_t file_path;
@@ -139,19 +139,41 @@ static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const
     ina_str_free(file_path);
 
     if (ina_bench_get_scale_label() != NULL) {
-        fprintf(f, "r,%s,%s\n", ina_bench_get_scale_label(), __header);
+        fprintf(f, "%s,%s\n", ina_bench_get_scale_label(), __header);
     } else {
-        fprintf(f, "r,scale,%s\n", __header);
+        fprintf(f, "scale,%s\n", __header);
     }
     result = __results;
     scale = __scales;
     for (k = 0; k < xrepeat; ++k) {
+        if (aggregate) {
+            fprintf(f, "%"INA_INT64_T_FMT, scale[k]);
+        }
         for (j = 0; j < (xiter+__xwarmup_iter); ++j) {
-            fprintf(f, "%d,%"INA_INT64_T_FMT, (k+1),scale[k]);
-            for (i = 0; i < num_series; ++i) {
-                fprintf(f, fmt, result[k* i * xiter + j]);
+            if (j < __xwarmup_iter) {
+                continue;
             }
-            fprintf(f, "\n");
+            if (!aggregate) {
+                fprintf(f, "%"INA_INT64_T_FMT, scale[k]);
+            }
+            for (i = 0; i < num_series; ++i) {
+                int index = (i*xiter)+(xiter*k)+j;
+                if (aggregate) {
+                    if (j > 0 && i > 0) {
+                        result[index] += result[index-1];
+                    }
+                    if (j == (xiter + __xwarmup_iter - 1)) {
+                        result[index] = result[index] / (double)xiter;
+                        fprintf(f, fmt, result[index]);
+                    }
+                }
+                else {
+                    fprintf(f, fmt, result[index]);
+                }
+            }
+            if (!aggregate || (j == (xiter+__xwarmup_iter-1))) {
+                fprintf(f, "\n");
+            }
         }
     }
     fclose(f);
@@ -179,6 +201,7 @@ INA_API(int) ina_bench_run(void)
     int xrepeat = 0;
     int xiter = 0;
     int core = 0;
+    int aggregate = 1;
     size_t cache_size;
     size_t tot_cache_size;
     if (INA_FAILED(ina_cpu_get_l1_cache_size(&cache_size))) {
@@ -221,6 +244,10 @@ INA_API(int) ina_bench_run(void)
             printf("couldn't pin on core %d", core);
             return 1;
         }
+    }
+
+    if (INA_SUCCEED(ina_opt_isset("disable-aggregation"))) {
+        aggregate = 0;
     }
 
     begin = &INA_BENCH_BNAME(bench, series);
@@ -276,7 +303,7 @@ INA_API(int) ina_bench_run(void)
                         INA_MUST_SUCCEED(
                                 __ina_write_report(__xrepeat, __xiter, __current_series,
                                                    ina_str_cstr(
-                                                           report_path)));
+                                                           report_path),aggregate));
                         ina_mem_free(__results);
                         ina_mem_free(__scales);
                     }
@@ -329,7 +356,7 @@ INA_API(int) ina_bench_run(void)
         }
     }
     if (__current != NULL) {
-        __ina_write_report(__xrepeat, __xiter, __current_series, report_path);
+        __ina_write_report(__xrepeat, __xiter, __current_series, report_path, aggregate);
         ina_mem_free(__results);
     }
     ina_time_tsc_free(&__time1);

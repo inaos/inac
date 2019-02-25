@@ -35,6 +35,9 @@ INA_BENCH(string, series_1, 10, 1) {
     INA_BENCH_MSG("iteration: %d - allocate %d strings ",
            ina_bench_get_iteration(),
            data->c);
+    if (INA_SUCCEED(ina_bench_is_warmup())) {
+        INA_BENCH_MSG("warm-up");
+    }
 
     data->strings = ina_mem_alloc(sizeof(ina_str_t) * data->c);
 

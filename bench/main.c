@@ -17,6 +17,7 @@ int main(int argc,  char** argv)
              INA_OPT_INT(NULL, "x-warm-up", INA_NUM2STR(0), "Warm-up iteration"),
              INA_OPT_INT(NULL, "cache-size", INA_NUM2STR(0), "L1/L2/L3 cache size"),
              INA_OPT_INT("c", "core", INA_NUM2STR(-1), "Pin core"),
+             INA_OPT_FLAG(NULL, "disable-aggregation", "Disable result aggregation"),
              INA_OPT_STRING("n", "name", "", "Benchmark name"));
 
     if (INA_FAILED(ina_app_init(argc, argv, opt))) {
