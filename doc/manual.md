@@ -1113,7 +1113,7 @@ Every phase must be declared by the corresponding macro.
 ##### The setup phase
 
 Use _INA_BENCH_SETUP_ to define the setup phase. This phase is destined to run 
-common setup code for series.
+common setup code for series, setting scale label and precision. 
 
 `INA_BENCH_SETUP([benchmark name])`
 
@@ -1124,6 +1124,7 @@ _ina_bench_get_series_name()_ during this phase.
 ```C
 INA_BENCH_SETUP(sort) {
     ina_bench_set_scale_label("ns");
+    ina_bench_set_precision(2);
     data->nr_of_elements = 1000000;
     data->elements = ina_mem_alloc(sizeof(element)*data->nr_of_elements);
 }
@@ -1143,7 +1144,7 @@ for each repetition just before running the benchmark code.
 
 You may also call _ina_bench_get_iterations()_, _ina_bench_get_repetition()_, 
 _ina_bench_get_repetitions()_, _ina_bench_get_name()_, 
-_ina_bench_get_series_name()_, _ina_bench_stopwatch_start()_ 
+_ina_bench_get_series_name()_
 during this phase.
 
 ```C
@@ -1184,7 +1185,7 @@ _ina_bench_set_value()_ must called  before leaving the benchmark phase.
 Most of the time the measurements consists of time measurements 
 . The benchmark framework provide _ina_bench_stopwatch_start()_ and 
 _ina_bench_stopwatch_stop()_ to this end. One have to call
-_ina_bench_set_value()_before leaing the phase in order to store
+_ina_bench_set_value()_before leaving the phase in order to store
 the benchmark value for the current iteration and repetition.
 
 You may also call _ina_bench_get_iterations()_, _ina_bench_get_iteration()_,
@@ -1199,8 +1200,8 @@ INA_BENCH(sort, quick_sort, 100, 10) {
 }
 ```
 
-The number of iterations can be overridden by `--x-iter` command line 
-argument. The number of repetition can be overridden by command line option
+The number of iterations can be overridden with `--x-iter` command line 
+argument. The number of repetition can be overridden with command line option
 `--x-repeat`.
 
 
@@ -1210,8 +1211,7 @@ The begin phase is designated to run cleanup code for a single series.
 `INA_BENCH_END([benchmark name], [series name])`
 
 You may also call _ina_bench_get_iterations()_,  _ina_bench_get_repetitions()_,
-_ina_bench_get_name()_, _ina_bench_get_series_name()_, 
-_ina_bench_stopwatch_stop()_ during this phase.
+_ina_bench_get_name()_, _ina_bench_get_series_name()_,  during this phase.
 
 ```C
 INA_BENCHEND(sort, quick_sort) {
@@ -1263,8 +1263,9 @@ Therefore a minimal benchmark executable must like looks like this.
         return ina_bench_run();
     }
     
-This will run all benchmarks with the defined repetitions and iterations. The 
-reports will be generated in the current working directory. 
+This will run all benchmarks with the defined repetitions and iterations 
+without any warm.up iterations.  The reports will be generated in the 
+current working directory. 
 
 The benchmark runner looks for command line arguments:
  
@@ -1275,7 +1276,6 @@ The benchmark runner looks for command line arguments:
  - `x-warmp-up`: define the number of warm-up iterations (default 0)
  - `cache-size`: to specify L1/L2/L3 cache size
  - `disable-aggregation`:  disable result aggregation.
-
 
 A more advanced benchmark runner could take in account of these command line
 options.
