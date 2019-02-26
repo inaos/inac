@@ -1340,7 +1340,7 @@ On can include existing markdown file into the generated documentation
           
      
 The example above will include `doc/manual.md`, parse all C headers in
-`inlcude` and `examples` and also include all mardown files found in
+`inlcude` and `examples` and also include all markdown files found in
 `doc/examples`.
 
 ##### Project title
