@@ -1332,6 +1332,17 @@ Exclusion and inclusion are processed in the order they are defined. Therefore .
      
 ... will include `test.h`  because of the successive `*.h` inclusion rule.
 
+On can include existing markdown file into the generated documentation
+
+     +doc/manual.md
+     +include/*.h
+     +doc/examples/*.md
+          
+     
+The example above will include `doc/manual.md`, parse all C headers in
+`inlcude` and `examples` and also include all mardown files found in
+`doc/examples`.
+
 ##### Project title
 To set a global project title, define it with the `title` keyword in 
 the project configuration.

@@ -324,38 +324,42 @@ idoc.run = function(output, config, single, quiet)
             end
         end
 
-        local k = 1
-        local summary = false;
-        while (k < #lines) do
-            local line = trim_line(lines[k])
-            if wait_for_block_start(line) then
-                local block = {}
-                local code = {}
-                table.insert(block, line)
-                while (k < #lines and not wait_for_block_end(line)) do
-                    k = k + 1
-                    line = trim_line(lines[k])
+        if (string.getExtensionFromFilename(file) == "md") then
+            outfile:write(string.implode("\n", lines))
+        else
+            local k = 1
+            local summary = false;
+            while (k < #lines) do
+                local line = trim_line(lines[k])
+                if wait_for_block_start(line) then
+                    local block = {}
+                    local code = {}
                     table.insert(block, line)
-                end
-                k = k + 1
-                if (k < #lines) then
-                    line = trim_line(lines[k])
-                    while (k < #lines and is_empty_line(line)) do
+                    while (k < #lines and not wait_for_block_end(line)) do
                         k = k + 1
                         line = trim_line(lines[k])
+                        table.insert(block, line)
                     end
-                    while (k < #lines and not wait_for_code_end(line, code)) do
-                        k = k + 1
-                        line = lines[k];
+                    k = k + 1
+                    if (k < #lines) then
+                        line = trim_line(lines[k])
+                        while (k < #lines and is_empty_line(line)) do
+                            k = k + 1
+                            line = trim_line(lines[k])
+                        end
+                        while (k < #lines and not wait_for_code_end(line, code)) do
+                            k = k + 1
+                            line = lines[k];
+                        end
                     end
-                end
 
-                if (#code > 0 and #block > 0 and summary) then
-                    outfile:write(string.implode("\n", parse_block(block, code)))
+                    if (#code > 0 and #block > 0 and summary) then
+                        outfile:write(string.implode("\n", parse_block(block, code)))
+                    end
+                    summary = true
                 end
-                summary = true
+                k = k + 1
             end
-            k = k + 1
         end
         if single == 1 then
             outfile:close()

@@ -1,2 +1,3 @@
++doc/manual.md
 +include/libinac/*.h
 title: INAOS Common C Library
