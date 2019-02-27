@@ -22,6 +22,7 @@ local totable = string.ToTable
 local string_sub = string.sub
 local string_find = string.find
 local string_len = string.len
+local string_lower = string.lower
 
 function string.explode(separator, str, withpattern)
     if ( separator == "" ) then return totable( str ) end
@@ -88,6 +89,9 @@ function string.replace( str, tofind, toreplace )
 end
 
 local string_trim = string.trim
+local string_starts = string.startsWith
+local string_ends = string.endsWith
+local string_replace = string.replace
 
 function is_windows()
     if package.config:sub(1,1) == "\\" then
@@ -159,15 +163,26 @@ local parse_block = function(block, code)
     local parametersBlock = 1
     local returnBlock = 2
     local blockType = 0
-
-    table.insert(doc, "\n\n---")
-    table.insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
+    local first = true
 
     for k,v in pairs(block) do
         local line = string.replace(v, "/*", "")
         line = string.replace(line, "*/", "")
         line = string.replace(line, "*", "")
         line = string.trim(line)
+
+        if string_starts(string_lower(line), "internal") or
+                string_starts(string_lower(line), "internal:") then
+            log("skipped internal bloc")
+            return doc
+        end
+
+        if (first) then
+            table.insert(doc, "\n\n---")
+            table.insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
+            first = false
+        end
+
         if (blockType == 0) then
             if (string.lower(line) == "parameters") then
                 blockType = parametersBlock
@@ -354,7 +369,10 @@ idoc.run = function(output, config, single, quiet)
                     end
 
                     if (#code > 0 and #block > 0 and summary) then
-                        outfile:write(string.implode("\n", parse_block(block, code)))
+                        local d = parse_block(block, code)
+                        if #d > 0 then
+                            outfile:write(string.implode("\n", d))
+                        end
                     end
                     summary = true
                 end
