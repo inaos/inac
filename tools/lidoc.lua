@@ -217,6 +217,14 @@ local parse_block = function(block, code)
     return doc
 end
 
+local remove_empty_lines_at_end = function(block)
+    local i = #block
+    while (i > 0 and is_empty_line(block[i])) do
+        table.remove(block, i)
+        i = i - 1
+    end
+end
+
 local search_files = function(filter)
     local name = string.getFileFromFilename(filter)
     local dir = string.getPathFromFilename(filter)
@@ -367,6 +375,9 @@ idoc.run = function(output, config, single, quiet)
                             line = lines[k];
                         end
                     end
+
+                    remove_empty_lines_at_end(block)
+                    remove_empty_lines_at_end(code)
 
                     if (#code > 0 and #block > 0 and summary) then
                         local d = parse_block(block, code)
