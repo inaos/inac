@@ -206,6 +206,7 @@ local parse_block = function(block, code)
         if (blockType == 0) then
             if (string_lower(line) == "parameters") then
                 blockType = parametersBlock
+                table_insert(doc, "\n**_Parameters_**")
             elseif (string_lower(line) == "return") then
                 blockType = returnBlock
                 table_insert(doc, "\n**_Return_**\n")
