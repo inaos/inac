@@ -1,5 +1,6 @@
 local table_insert = table.insert
 local table_remove = table.remove
+local table_concat = table.concat
 
 function string.getExtensionFromFilename( path )
     return path:match( "%.([^%.]+)$" )
@@ -25,6 +26,8 @@ local string_sub = string.sub
 local string_find = string.find
 local string_len = string.len
 local string_lower = string.lower
+local string_format = string.format
+local string_match = string.match
 
 function string.explode(separator, str, withpattern)
     if ( separator == "" ) then return totable( str ) end
@@ -44,13 +47,15 @@ function string.explode(separator, str, withpattern)
 
     return ret
 end
+local string_explode = string.explode
 
 function string.split( str, delimiter )
-    return string.explode( delimiter, str )
+    return string_explode( delimiter, str )
 end
+local string_split = string.split
 
 function string.implode( seperator, Table ) return
-    table.concat( Table, seperator )
+    table_concat( Table, seperator )
 end
 
 local pattern_escape_replacements = {
@@ -73,29 +78,31 @@ function string.patternSafe(str)
 end
 
 function string.startsWith(str, start)
-    return start == "" or string.sub(str,1,string.len(start)) == start
+    return start == "" or string_sub(str,1,string_len(start)) == start
 end
 
 function string.endsWith(str, endStr)
-    return endStr == "" or string.sub(str, -string.len(endStr)) == endStr
+    return endStr == "" or string_sub(str, -string_len(endStr)) == endStr
 end
 function string.trim(str, char)
     if (char) then char = char:patternSafe() else char = "%s" end
-    return string.match(str, "^" .. char .. "*(.-)" .. char .. "*$" ) or str
+    return string_match(str, "^" .. char .. "*(.-)" .. char .. "*$" ) or str
 end
 
 function string.replace( str, tofind, toreplace )
-    local tbl = string.explode( tofind, str )
-    if ( tbl[ 1 ] ) then return table.concat( tbl, toreplace ) end
+    local tbl = string_explode( tofind, str )
+    if ( tbl[ 1 ] ) then return table_concat( tbl, toreplace ) end
     return str
 end
+
 
 local string_trim = string.trim
 local string_starts = string.startsWith
 local string_ends = string.endsWith
 local string_replace = string.replace
+local string_implode = string.implode
 
-function is_windows()
+local is_windows = function ()
     if package.config:sub(1,1) == "\\" then
         return true
     end
@@ -116,7 +123,8 @@ end
 local log = print_log
 
 local trim_line = function(line)
-    return string_trim(string_trim(line, "\r"), " ")
+    local l = string_trim(line, "\r");
+    return string_trim(l)
 end
 
 local is_empty_line = function(line)
@@ -139,7 +147,7 @@ local read_file = function (path)
     local lines = {}
 
     for line in io.lines(path) do
-        table.insert(lines, line)
+        table_insert(lines, line)
     end
 
     file:close()
@@ -148,17 +156,17 @@ end
 
 
 local wait_for_block_start = function(line)
-    return string.startsWith(string.trim(line, " "), "/*")
+    return string_starts(string_trim(line), "/*")
 end
 
 local wait_for_block_end = function(line)
-    return string.endsWith(string.trim(line, " "), "*/");
+    return string_ends(string_trim(line), "*/");
 end
 
 local wait_for_code_end = function(line, code)
-    table.insert(code, line);
-    return string.endsWith(string.trim(line, " "), ";") or is_empty_line(line) or
-            string.endsWith(string.trim(line, " "), ")")
+    table_insert(code, line);
+    return string_ends(string_trim(line), ";") or is_empty_line(line) or
+            string_ends(string_trim(line), ")")
 end
 
 local parse_block = function(block, code)
@@ -169,10 +177,10 @@ local parse_block = function(block, code)
     local first = true
 
     for k,v in pairs(block) do
-        local line = string.replace(v, "/*", "")
-        line = string.replace(line, "*/", "")
-        line = string.replace(line, "*", "")
-        line = string.trim(line)
+        local line = string_replace(v, "/*", "")
+        line = string_replace(line, "*/", "")
+        line = string_replace(line, "*", "")
+        line = string_trim(line)
 
         if string_starts(string_lower(line), "internal") or
                 string_starts(string_lower(line), "internal:") then
@@ -187,41 +195,40 @@ local parse_block = function(block, code)
                 if (r ~= nil and r > 0) then
                     table_insert(doc, "\n```C\n".. string_sub(x, 1, r+1) .."\n```")
                 else
-                    table_insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
+                    table_insert(doc, "\n```C\n"..string_implode("\n", code).."\n```")
                 end
             else
-                table_insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
+                table_insert(doc, "\n```C\n"..string_implode("\n", code).."\n```")
             end
             first = false
         end
 
         if (blockType == 0) then
-            if (string.lower(line) == "parameters") then
+            if (string_lower(line) == "parameters") then
                 blockType = parametersBlock
-                table.insert(doc, "\n**Parameters**")
-            elseif (string.lower(line) == "return") then
+            elseif (string_lower(line) == "return") then
                 blockType = returnBlock
-                table.insert(doc, "\n**Return**\n")
+                table_insert(doc, "\n**_Return_**\n")
             else
-                table.insert(doc, line)
+                table_insert(doc, line)
             end
         elseif blockType == parametersBlock then
             if (not is_empty_line(line)) then
-                local p = string.explode("%s%s%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?", line,  true)
+                local p = string_explode("%s%s%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?%s?", line,  true)
                 if (nil ~= p[2]) then
-                    table.insert(doc," - `"..p[1].."`: ".. p[2])
+                    table_insert(doc," - `"..p[1].."`: ".. p[2])
                 else
-                    table.insert(doc, string.trim(line, " "))
+                    table_insert(doc, string_trim(line))
                 end
             else
-                table.insert(doc,"\n")
+                table_insert(doc,"\n")
                 blockType = 0
             end
         elseif blockType == returnBlock then
             if (not is_empty_line(line)) then
-                table.insert(doc, line)
+                table_insert(doc, line)
             else
-                table.insert(doc,"\n")
+                table_insert(doc,"\n")
                 blockType = 0
             end
         end
@@ -232,7 +239,7 @@ end
 local remove_empty_lines_at_end = function(block)
     local i = #block
     while (i > 0 and is_empty_line(block[i])) do
-        table.remove(block, i)
+        table_remove(block, i)
         i = i - 1
     end
 end
@@ -242,15 +249,15 @@ local search_files = function(filter)
     local dir = string.getPathFromFilename(filter)
     local files = {}
     if is_windows() then
-        p, err = io.popen(string.format("dir /B %s", filter))
+        p, err = io.popen(string_format("dir /B %s", filter))
     else
-        p, err = io.popen(string.format("find %s -depth 1 -type f -name '%s'", dir, name))
+        p, err = io.popen(string_format("find %s -depth 1 -type f -name '%s'", dir, name))
     end
     if (p ~= nil) then
         for file in p:lines() do
             local f = dir..string.getFileFromFilename(file)
             if (file_exists(f)) then
-                table.insert(files, f)
+                table_insert(files, f)
             end
         end
     end
@@ -267,13 +274,13 @@ local add_to_list = function(file, files)
     end
     if not found then
         log("include '"..file.."'")
-        table.insert(files, file)
+        table_insert(files, file)
     end
 end
 local remove_from_list = function(file, files)
     for i,fx in ipairs(files) do
         if (file == fx) then
-            table.remove(files, i)
+            table_remove(files, i)
             log("exclude '"..file.."'")
             break
         end
@@ -306,13 +313,13 @@ local load_config = function(config)
     local lines = read_file(config)
     for k,line in ipairs(lines) do
         if is_windows() then
-            line = string.replace(line, "/", "\\")
+            line = string_replace(line, "/", "\\")
         end
-        if string.startsWith(line, "+") then
+        if string_starts(line, "+") then
             include_files(string_sub(line, 2), files)
-        elseif string.startsWith(line,"-") then
+        elseif string_starts(line,"-") then
             exclude_files(string_sub(line, 2), files)
-        elseif string.startsWith(string.lower(line), "title:") then
+        elseif string_starts(string_lower(line), "title:") then
             title = string_sub(line, 7)
         end
     end
@@ -360,7 +367,7 @@ idoc.run = function(output, config, single, quiet)
         end
 
         if (string.getExtensionFromFilename(file) == "md") then
-            outfile:write(string.implode("\n", lines))
+            outfile:write(string_implode("\n", lines))
         else
             local k = 1
             local summary = false;
@@ -369,15 +376,15 @@ idoc.run = function(output, config, single, quiet)
                 if wait_for_block_start(line) then
                     local block = {}
                     local code = {}
-                    table.insert(block, line)
+                    table_insert(block, line)
                     while (k < #lines and not wait_for_block_end(line)) do
                         k = k + 1
                         line = trim_line(lines[k])
-                        table.insert(block, line)
+                        table_insert(block, line)
                     end
                     k = k + 1
                     if (k < #lines) then
-                        line = trim_line(lines[k])
+                        line = trim_line(lines[k], " ")
                         while (k < #lines and is_empty_line(line)) do
                             k = k + 1
                             line = trim_line(lines[k])
@@ -394,7 +401,7 @@ idoc.run = function(output, config, single, quiet)
                     if (#code > 0 and #block > 0 and summary) then
                         local d = parse_block(block, code)
                         if #d > 0 then
-                            outfile:write(string.implode("\n", d))
+                            outfile:write(string_implode("\n", d))
                         end
                     end
                     summary = true
