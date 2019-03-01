@@ -13,16 +13,23 @@
 extern "C" {
 #endif
 
+/*
+ * # Benchmark
+ *
+ *
+ */
 #include <libinac/lib.h>
 
-/* Setup callback */
+/* Internal: Setup callback */
 typedef void (*ina_bench_setup_cb_t)(void*);
-/* Teardown callback */
+
+/* Internal: Teardown callback */
+
 typedef void (*ina_bench_teardown_cb_t)(void*);
-/* Scale callback */
+/* Internal: Scale callback */
 typedef void (*ina_bench_scale_cb_t)(void*);
 
-/* Benchmark, single series */
+/* Internal: Benchmark, single series */
 typedef struct ina_bench_benchmark_s {
     const char* bench_name;
     const char* series_name;
@@ -39,14 +46,16 @@ typedef struct ina_bench_benchmark_s {
     unsigned int magic;
 } ina_bench_benchmark_t;
 
-/* Magic. For internal purpose only. */
+/* Internal: Magic. */
 #define INA_BENCH_MAGIC (0xDEADC0DE)
-/* Benchmark function name. For internal purpose only. */
+
+/* Internal: Benchmark function name. */
 #define INA_BENCH_FNAME(bname, sname) __ina_bench_##bname##_##sname##_run
-/* Benchmark struct name. For internal purpose only */
+
+/* Internal: Benchmark struct name. */
 #define INA_BENCH_BNAME(bname, sname) __ina_bench_##bname##_##sname
 
-/* Section holding benchmarks */
+/* Internal: Section holding benchmarks */
 #ifdef INA_OS_OSX
 #define INA_BENCH_SECTION __attribute__ ((unused,section ("__DATA, .inabench")))
 #define INA_BENCH_SECTION_PUSH
@@ -59,7 +68,7 @@ typedef struct ina_bench_benchmark_s {
 #define INA_BENCH_SECTION_PUSH
 #endif
 
-/* Benchmark data defines. For internal purpose only */
+/* Internal: Benchmark data defines. For internal purpose only */
 #define INA_BENCH_STRUCT(bname, sname, _skip,  __data, __setup,     \
                             __teardown, __series_setup, __series_teardown, __scale,  __iter, __rep)                      \
     INA_BENCH_SECTION_PUSH ina_bench_benchmark_t INA_BENCH_BNAME(bname, sname) INA_BENCH_SECTION = {   \
@@ -77,27 +86,57 @@ typedef struct ina_bench_benchmark_s {
         __rep,                                                               \
         INA_BENCH_MAGIC }
 
-/* Define data for a benchmark  */
+/*
+ * Declare data for a benchmark
+ *
+ * Parameters
+ *  bname  Benchmark name
+ */
 #define INA_BENCH_DATA(bname) struct bname##_data
-/* Define setup code für a benchmark */
+
+/*
+ * Declare setup for a benchmark
+ *
+ * Parameters
+ *  bname  Benchmark name
+ */
 #define INA_BENCH_SETUP(bname)                                               \
     void bname##_setup(struct bname##_data* data)
-/* Define teardown code for a benchmark */
+
+/*
+ * Declare teardown for a benchmark
+ *
+ * Parameters
+ *  bname  Benchmark name
+ */
 #define INA_BENCH_TEARDOWN(bname)                                            \
     void bname##_teardown(struct bname##_data* data)
 
-/* Define scale code for a benchmark */
-#define INA_BENCH_SCALE(bname)                                             \
+/*
+ * Declare scale for a benchmark
+ *
+ * Parameters
+ *  bname  Benchmark name
+ */
+#define INA_BENCH_SCALE(bname)                                               \
     void bname##_scale(struct bname##_data* data)
 
-#define INA_BENCH_BEGIN(bname, sname)                                      \
+/* Declare benchmark series setup */
+#define INA_BENCH_BEGIN(bname, sname)                                        \
     void bname##_##sname##_setup(struct bname##_data* data)
-/* Define teardown code for a benchmark */
-#define INA_BENCH_END(bname, sname)                                       \
+
+/*
+ * Declare benchmark series teardown
+ *
+ * Parameters
+ *  bname  Benchmark name
+ *  sname  Series name
+ */
+#define INA_BENCH_END(bname, sname)                                          \
     void bname##_##sname##_teardown(struct bname##_data* data)
 
 
-/* Declare benchmark. For internal purpose only. */
+/* Internal: Declare benchmark.  */
 #ifdef INA_OS_OSX
 #define INA_BSETUP_FNAME(bname) NULL
 #define INA_BTEARDOWN_FNAME(bname) NULL
@@ -125,13 +164,35 @@ typedef struct ina_bench_benchmark_s {
         INA_BSCALE_FNAME(bname),  iter, rep);   \
     void INA_BENCH_FNAME(bname, sname)(struct bname##_data* data)
 
-/* Declare a series */
+/*
+ * Declare a benchmark series
+ *
+ * Parameters
+ *  bname  Benchmark name
+ *  sname  Series name
+ *  iter   Number of iterations for each repetition
+ *  rep    Number of repetitions
+ */
 #define INA_BENCH(bname, sname, iter, rep) INA_BENCH_DECL(bname, sname, iter, rep, 0)
-/* Skip a series */
+
+/*
+ * Declare a benchmark series
+ *
+ * Parameters
+ *  bname  Benchmark name
+ *  sname  Series name
+ *  iter   Number of iterations for each repetition
+ *  rep    Number of repetitions
+ */
 #define INA_BENCH_SKIP(bname, sname, iter, rep) INA_BENCH_DECL(bname, sname, iter, rep, 1)
 
-#define INA_BENCH_IS_SERIES(name) (ina_str_cmp(name, ina_bench_get_series_name()) == 0)
-
+/*
+ * Print a diagnostic message to th standard output
+ *
+ * Parameters
+ *  fmt  Message format
+ *  ...  Message arguments
+ */
 #define INA_BENCH_MSG(fmt, ...)      \
     fprintf(stdout,                  \
         "%s:%s : " fmt "\n",         \
@@ -143,52 +204,52 @@ typedef struct ina_bench_benchmark_s {
  * Run benchmarks.
  *
  * Return
- *  Exit code
+ *  Return 0 if all went well, otherwise the error code is returned.
  */
 int ina_bench_run(void);
 
 /*
- * Returns the name of the current running benchmark
+ * Returns the name of the current running benchmark.
  */
 INA_API(const char*) ina_bench_get_name(void);
 
 /*
- * Returns the name of the current running series
+ * Returns the name of the current running series.
  */
 INA_API(const char*) ina_bench_get_series_name(void);
 
 /*
- * Set the label for the scale
+ * Set the label for the scale.
  *
  * Parameters
  *  label  Label for scale
  *
  * Return
- *   INA_SUCCESS if all went well
- *   INA_ES_ARGUMENT|INA_ERR_INVALID  if label was NULL
+ *  - INA_SUCCESS if all went well
+ *  - INA_ES_ARGUMENT|INA_ERR_INVALID  if label was NULL
  */
 INA_API(ina_rc_t) ina_bench_set_scale_label(const char* label);
 
 
 /*
- * Returns the current scale label
+ * Returns the current scale label.
  */
 INA_API(const char*) ina_bench_get_scale_label(void);
 
 /*
- * Set precision for results
+ * Set precision for results.
  *
  * Parameters
  *  precision  Precision
  *
  * Return
- *  INA_SUCCESS if all went well
- *  INA_ES_ARGUMENT|INA_ERR_INVALID  if precision was < 0
+ *  - INA_SUCCESS if all went well
+ *  - INA_ES_ARGUMENT|INA_ERR_INVALID  if precision was < 0
  */
 INA_API(ina_rc_t) ina_bench_set_precision(int precision);
 
 /*
- * Return current precision for results
+ * Return current precision for results.
  */
 INA_API(int) ina_bench_get_precision(void);
 
@@ -196,10 +257,10 @@ INA_API(int) ina_bench_get_precision(void);
  * Set the value for the current series and iteration.
  *
  * Parameters
- *  value   Value
+ *  value  Value
  *
  * Return
- *  INA_SUCCESS
+ * Returns always INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_bench_set_value(double value);
 
@@ -216,7 +277,7 @@ INA_API(double) ina_bench_get_value(void);
  *  scale   Scale value
  *
  * Return
- *   INA_SUCCESS
+ *  Return always INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale);
 
@@ -226,24 +287,22 @@ INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale);
 INA_API(int64_t) ina_bench_get_scale(void);
 
 /*
- * Returns the total number of repetition of the current running
- * series.
+ * Returns the total number of repetition of the current running series.
  */
 INA_API(int) ina_bench_get_repetitions(void);
 
 /*
- * Returns the current repetition of the running series
+ * Returns the current repetition of the running series.
  */
 INA_API(int) ina_bench_get_repetition(void);
 
 /*
- * Returns the total number of iterations of the current running
- * series.
+ * Returns the total number of iterations of the current running series.
  */
 INA_API(int) ina_bench_get_iterations(void);
 
 /*
- * Returns the current iteration of the running series
+ * Returns the current iteration of the running series.
  */
 INA_API(int) ina_bench_get_iteration(void);
 
@@ -251,11 +310,12 @@ INA_API(int) ina_bench_get_iteration(void);
  * Checks whenever the current iteration a warm-up iteration.
  */
 INA_API(ina_rc_t) ina_bench_is_warmup(void);
+
 /*
  * Starts the stopwatch.
  *
  * Return
- *  INA_SUCCESS if all went well
+ *  - INA_SUCCESS if all went well
  */
 INA_API(ina_rc_t) ina_bench_stopwatch_start(void);
 
