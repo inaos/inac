@@ -25,7 +25,7 @@ INA_BENCH_SCALE(mem) {
 }
 INA_BENCH_BEGIN(mem, malloc_aligned_r) { INA_UNUSED(data); }
 INA_BENCH_END(mem, malloc_aligned_r) { INA_UNUSED(data);}
-INA_BENCH(mem, malloc_aligned_r, 1) {
+INA_BENCH(mem, malloc_aligned_r, 1, 1) {
     size_t i;
     data_t *pdata;
     INA_UNUSED(data);
@@ -35,12 +35,12 @@ INA_BENCH(mem, malloc_aligned_r, 1) {
         pdata[i].d1 = 1.0;
         pdata[i].d2 = 2.0;
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     free(pdata);
 }
 INA_BENCH_BEGIN(mem, malloc_aligned_rw) { INA_UNUSED(data);}
 INA_BENCH_END(mem, malloc_aligned_rw) { INA_UNUSED(data);}
-INA_BENCH(mem, malloc_aligned_rw, 1) {
+INA_BENCH(mem, malloc_aligned_rw, 1, 1) {
     size_t i;
     data_t *pdata;
     double r=0;
@@ -52,13 +52,13 @@ INA_BENCH(mem, malloc_aligned_rw, 1) {
         r += pdata[i].d1;
         r += pdata[i].d2;
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     free(pdata);
 }
 
 INA_BENCH_BEGIN(mem, malloc_inac_aligned_r) { INA_UNUSED(data);}
 INA_BENCH_END(mem, malloc_inac_aligned_r) { INA_UNUSED(data); }
-INA_BENCH(mem, malloc_inac_aligned_r, 1) {
+INA_BENCH(mem, malloc_inac_aligned_r, 1, 1) {
     size_t i;
     data_t *pdata;
     INA_UNUSED(data);
@@ -69,13 +69,13 @@ INA_BENCH(mem, malloc_inac_aligned_r, 1) {
         pdata[i].d1 = 1.0;
         pdata[i].d2 = 2.0;
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     ina_mem_free(pdata);
 }
 
 INA_BENCH_BEGIN(mem, malloc_inac_aligned_rw) { INA_UNUSED(data);}
 INA_BENCH_END(mem, malloc_inac_aligned_rw) { INA_UNUSED(data); }
-INA_BENCH(mem, malloc_inac_aligned_rw, 1) {
+INA_BENCH(mem, malloc_inac_aligned_rw, 1, 1) {
     size_t i;
     data_t *pdata;
     double r=0;
@@ -87,13 +87,13 @@ INA_BENCH(mem, malloc_inac_aligned_rw, 1) {
         r += pdata[i].d1;
         r += pdata[i].d2;
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     ina_mem_free(pdata);
 }
 
 INA_BENCH_BEGIN(mem, malloc_inac_aligned_type_r) { INA_UNUSED(data); }
 INA_BENCH_END(mem, malloc_inac_aligned_type_r) { INA_UNUSED(data); }
-INA_BENCH(mem, malloc_inac_aligned_type_r, 1) {
+INA_BENCH(mem, malloc_inac_aligned_type_r, 1, 1) {
     size_t i;
     data_t *pdata;
     INA_UNUSED(data);
@@ -104,13 +104,13 @@ INA_BENCH(mem, malloc_inac_aligned_type_r, 1) {
         pdata[i].d1 = 1.0;
         pdata[i].d2 = 2.0;
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     ina_mem_free(pdata);
 }
 
 INA_BENCH_BEGIN(mem, malloc_inac_aligned_type_rw) { INA_UNUSED(data);}
 INA_BENCH_END(mem, malloc_inac_aligned_type_rw) { INA_UNUSED(data); }
-INA_BENCH(mem, malloc_inac_aligned_type_rw, 1) {
+INA_BENCH(mem, malloc_inac_aligned_type_rw, 1, 1) {
     size_t i;
     data_t *pdata;
     double r=0;
@@ -123,7 +123,7 @@ INA_BENCH(mem, malloc_inac_aligned_type_rw, 1) {
         r += pdata[i].d1;
         r += pdata[i].d2;
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     ina_mem_free(pdata);
 }
 
