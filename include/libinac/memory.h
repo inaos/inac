@@ -65,7 +65,7 @@ extern "C" {
  * a fixed-length block, the unit for memory allocation and file mapping.
  *
  * Parameters
- *  size Size in bytes
+ *  size  Size in bytes
  *
  * Return
  *  INA_SUCCESS if no error occurred.
