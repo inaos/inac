@@ -27,11 +27,7 @@ int main(int argc,  char** argv)
         INA_OPT_FLAG("q", "quiet", "Quiet mode"),
         INA_OPT_STRING("c", "config-file", ".idoc", "Configuration file"));
 
-    if (!INA_SUCCEED(ina_app_init(argc, argv, opt))) {
-        return EXIT_FAILURE;
-    }
-
-
+    INA_FAIL_IF_ERROR(ina_app_init(argc, argv, opt));
     INA_FAIL_IF_ERROR(ina_ljit_ctx_new(&ctx));
 
     ina_opt_get_string("o", &output);
