@@ -1,3 +1,5 @@
+local table_insert = table.insert
+local table_remove = table.remove
 
 function string.getExtensionFromFilename( path )
     return path:match( "%.([^%.]+)$" )
@@ -155,7 +157,8 @@ end
 
 local wait_for_code_end = function(line, code)
     table.insert(code, line);
-    return string.endsWith(string.trim(line, " "), ";") or is_empty_line(line)
+    return string.endsWith(string.trim(line, " "), ";") or is_empty_line(line) or
+            string.endsWith(string.trim(line, " "), ")")
 end
 
 local parse_block = function(block, code)
@@ -173,13 +176,22 @@ local parse_block = function(block, code)
 
         if string_starts(string_lower(line), "internal") or
                 string_starts(string_lower(line), "internal:") then
-            log("skipped internal bloc")
             return doc
         end
 
         if (first) then
-            table.insert(doc, "\n\n---")
-            table.insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
+            table_insert(doc, "\n\n---")
+            if string_starts(code[1], "#")  then
+                local x = code[1]
+                local r = string_find(x, ")", 0,1)
+                if (r ~= nil and r > 0) then
+                    table_insert(doc, "\n```C\n".. string_sub(x, 1, r+1) .."\n```")
+                else
+                    table_insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
+                end
+            else
+                table_insert(doc, "\n```C\n"..string.implode("\n", code).."\n```")
+            end
             first = false
         end
 
