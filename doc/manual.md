@@ -1332,6 +1332,17 @@ Exclusion and inclusion are processed in the order they are defined. Therefore .
      
 ... will include `test.h`  because of the successive `*.h` inclusion rule.
 
+On can include existing markdown file into the generated documentation
+
+     +doc/manual.md
+     +include/*.h
+     +doc/examples/*.md
+          
+     
+The example above will include `doc/manual.md`, parse all C headers in
+`inlcude` and `examples` and also include all markdown files found in
+`doc/examples`.
+
 ##### Project title
 To set a global project title, define it with the `title` keyword in 
 the project configuration.
@@ -1342,6 +1353,32 @@ This will add a headline at the beginning of your documentation. Note
 that the title keyword is ignored in single files mode.
         
 #### Comments
+iDoc comes with only a few comment tags. Tags must end with a `:` or a line feed.
+ 
+- `Internal` All documentation afterwards this marker will be not be
+included in the documentation.
+
+
+Inline example:
+     
+    /*
+     * This is a pulic documentation
+     * 
+     * Internal: This is a private documentation and
+     * will not be included in your documentation
+     
+     
+Block style
+ 
+     /* 
+      * This is a public text
+      *
+      * Internal
+      * This is private
+     
+     
+ 
+      
     
 [1]:	https://www.visualstudio.com/downloads/
 [2]:	https://cmake.org/download/
