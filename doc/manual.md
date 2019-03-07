@@ -1405,27 +1405,57 @@ that the title keyword is ignored in single files mode.
         
 #### Comments
 iDoc comes with only a few comment tags. Tags must end with a `:` or a line feed.
- 
-- `Internal` All documentation afterwards this marker will be not be
-included in the documentation.
 
+- `Parameters`: Starts a parameters block. Each parameter must starts
+on a new line and parameter name and description must be
+separated at least by two spaces. A parameters block end at the first
+empty comment line.
 
-Inline example:
-     
-    /*
-     * This is a pulic documentation
-     * 
-     * Internal: This is a private documentation and
-     * will not be included in your documentation
-     
-     
-Block style
- 
-     /* 
-      * This is a public text
       *
-      * Internal
-      * This is private
+      * Parameters
+      *   param1  Parameters 1
+      *   param2  This is parameter 2 and described on
+      *           2 lines 
+      *
+      * This is not part of the parameters block   
+
+- `Return`: Start a "Return" Block. The tag can be used in block or
+inline mode.
+     
+      /*
+       * Inline tag
+       * 
+       * Return: Returns `0` if all went well otherwise an error code
+       * is returned.
+      
+      /* 
+       * Block style tag
+       *
+       * Return
+       * - INA_SUCCESS id all went well
+       * - INA_ERR_OUT_MEMORY if not enougth memory available
+       * - INA_ERR_INVALID_ARGUMENT invalid argument passed
+       *
+     
+
+     
+- `Internal`: All lines afterwards this tag will not be
+included in the documentation. The tag can be used in block or inline
+mode.
+
+      /*
+       * Inline tag
+       * This is a pulic documentation. 
+       * 
+       * Internal: This is a private documentation and
+       * will not be included in your documentation
+      
+      /* 
+       * Block style tage 
+       * This is a public text
+       *
+       * Internal
+       * This is private
      
      
  
