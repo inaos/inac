@@ -287,12 +287,12 @@ INA_API(ina_rc_t) ina_init(void)
     /*INA_RETURN_IF_FAILED(ina_mempool_init());*/
 
 #ifdef _LIBINAC_HASHTABLE_H_
-    /* initailize hashtable */
+    /* initialise hashtable */
     INA_RETURN_IF_FAILED(ina_hashtable_init("hashtable.conf"));
 #endif
 
 #ifdef _LIBINAC_CIO_H_
-    /* initailized console */
+    /* initialise console */
     INA_RETURN_IF_FAILED(ina_cio_init());
 #endif
 
@@ -308,7 +308,7 @@ INA_API(ina_rc_t) ina_init(void)
 #endif
 
 #ifdef _LIBINAC_CPU_H_
-    /* initialize CPU module */
+    /* initialise CPU module */
     INA_RETURN_IF_FAILED(ina_cpu_init());
 #endif
 
