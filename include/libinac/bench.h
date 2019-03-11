@@ -279,12 +279,12 @@ INA_API(double) ina_bench_get_value(void);
  * Return
  *  Return always INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale);
+INA_API(ina_rc_t) ina_bench_set_scale(double scale);
 
 /*
  * Returns the scale value of the current series and repetition.
  */
-INA_API(int64_t) ina_bench_get_scale(void);
+INA_API(double) ina_bench_get_scale(void);
 
 /*
  * Returns the total number of repetition of the current running series.
