@@ -157,12 +157,13 @@ static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const
                 fprintf(f, "%f", scale[k]);
             }
             for (i = 0; i < num_series; ++i) {
-                int index = (i*xiter)+(xiter*k)+j;
+                int index = (i*(xiter+__xwarmup_iter))+((xiter+__xwarmup_iter)*k)+j;
                 if (aggregate) {
                     if (j > __xwarmup_iter) {
                         result[index] += result[index-1];
                     }
                     if (j == (xiter + __xwarmup_iter - 1)) {
+                        printf("k=%d, i=%d j=%d xiter=%d, result[index]=%f\n", k, i, j, xiter, result[index]);
                         result[index] = result[index] / (double)xiter;
                         fprintf(f, fmt, result[index]);
                     }
@@ -291,17 +292,18 @@ INA_API(int) ina_bench_run(void)
                     strcmp(__current->bench_name, bench->bench_name) != 0) {
                     if (__current != NULL) {
                         __current->teardown(__current->data);
-                        INA_MUST_SUCCEED(
-                                __ina_write_report(__xrepeat, __xiter, __current_series,
-                                                   ina_str_cstr(
-                                                           report_path),aggregate));
+                        INA_MUST_SUCCEED(__ina_write_report(__xrepeat,
+                                __xiter,
+                                __current_series,
+                                report_path,
+                                aggregate));
                         ina_mem_free(__results);
                         ina_mem_free(__scales);
                     }
 
                     // reset header
                     __header[0] = '\0';
-                    // rest precision
+                    // restet precision
                     __precision = 5;
 
                     // Setup benchmark
@@ -318,10 +320,9 @@ INA_API(int) ina_bench_run(void)
                     // allocated scales and results
                     __scales = ina_mem_alloc(sizeof(double) * __xrepeat);
                     __results = ina_mem_alloc(
-                            sizeof(double) * __xiter * __xrepeat *
+                            sizeof(double) * (__xiter+__xwarmup_iter) * __xrepeat *
                             __INA_MAX_SERIES);
                     __current_result = __results;
-                    __current_scale = __scales;
                     __current_series = 0;
                     __current_iteration = 0;
                     __current_repetition = 0;
@@ -335,6 +336,7 @@ INA_API(int) ina_bench_run(void)
                 strncat(__header, bench->series_name,
                         sizeof(__header) - strlen(__header) + 1);
 
+                __current_scale = __scales;
                 for (rc = 0; rc < __xrepeat; ++rc) {
                     __current_repetition = rc;
                     if (!scale) {
@@ -343,12 +345,12 @@ INA_API(int) ina_bench_run(void)
                     bench->series_setup(bench->data);
                     for (ic = 0; ic < (__xiter+__xwarmup_iter); ++ic) {
                         __current_iteration = ic;
-                        __ina_clear_cache(tot_cache_size*2);
+                        __ina_clear_cache(tot_cache_size);
                         bench->run(bench->data);
                         __current_result += 1;
                     }
-                    __current_scale += 1;
                     bench->series_teardown(bench->data);
+                    __current_scale += 1;
                 }
                 scale = 1;
                 __current_series += 1;
