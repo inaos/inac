@@ -33,7 +33,7 @@ typedef void (*ina_bench_scale_cb_t)(void*);
 typedef struct ina_bench_benchmark_s {
     const char* bench_name;
     const char* series_name;
-    void (*run)();
+    void (*run)(void*);
     int skip;
     void *data;
     ina_bench_setup_cb_t setup;
@@ -41,7 +41,10 @@ typedef struct ina_bench_benchmark_s {
     ina_bench_setup_cb_t series_setup;
     ina_bench_teardown_cb_t series_teardown;
     ina_bench_scale_cb_t scale;
+    int32_t pad1;
+    int32_t pad2;
     unsigned int magic;
+
 } ina_bench_benchmark_t;
 
 /* Internal: Magic. */
@@ -80,6 +83,7 @@ typedef struct ina_bench_benchmark_s {
         (ina_bench_setup_cb_t)__series_setup,                                \
         (ina_bench_teardown_cb_t)__series_teardown,                          \
         (ina_bench_scale_cb_t)__scale,                                       \
+        0,0,                                                                 \
         INA_BENCH_MAGIC }
 
 /*

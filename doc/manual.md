@@ -1113,23 +1113,31 @@ Every phase must be declared by the corresponding macro.
 ##### The setup phase
 
 Use _INA_BENCH_SETUP_ to define the setup phase. This phase is destined to run 
-common setup code for series, setting scale label and precision. 
+common setup code for series, setting scale label, precision, iterations and
+repetitions.
 
 `INA_BENCH_SETUP([benchmark name])`
 
-You may call _ina_bench_set_scale_label()_, _ina_bench_get_iterations()_, 
-_ina_bench_get_repetitions()_, _ina_bench_get_name()_, 
-_ina_bench_get_series_name()_ during this phase.
+You may call _ina_bench_set_scale_label()_, _ina_bench_set_iterations()_, 
+_ina_bench_set_repetitions()_ or _ina_bench_set_precision()_,
+ during this phase to setup up the benchmark. 
 
 ```C
 INA_BENCH_SETUP(sort) {
     ina_bench_set_scale_label("ns");
     ina_bench_set_precision(2);
-    data->nr_of_elements = 1000000;
-    data->elements = ina_mem_alloc(sizeof(element)*data->nr_of_elements);
+    ina_bench_set_iterations(1000);
+    ina_bench_set_repetitions(1000000);
 }
 ```
 
+On can use the `INA_BENCH_INIT` to setup those parameters.
+
+```C
+INA_BENCH_SETUP(sort) {
+    INA_BENCH_INIT("ns", 2, 1000, 1000000);
+}
+```
 If the setup phase is not need just declare it with an empty body. 
 
 ```C
@@ -1180,7 +1188,7 @@ measurement. The benchmark phase is called for each series, iteration and
 repetition. 
 _ina_bench_set_value()_ must called  before leaving the benchmark phase.
 
-```INA_BENCH(benchmark name], [series name], [nr of iterations] [nr of repetition])```
+```INA_BENCH(benchmark name], [series name])```
 
 Most of the time the measurements consists of time measurements 
 . The benchmark framework provide _ina_bench_stopwatch_start()_ and 
@@ -1193,7 +1201,7 @@ _ina_bench_get_repetitions()_, _ina_bench_get_repetition()_
 _ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
 
 ```C
-INA_BENCH(sort, quick_sort, 100, 10) {
+INA_BENCH(sort, quick_sort) {
     ina_bench_stopwatch_start();
     data->sort_fn(data->elements, data->nr_of_elements);
     ina_bench_set_value((double)ina_bench_stopwatch_stop());
@@ -1206,15 +1214,16 @@ argument. The number of repetition can be overridden with command line option
 
 
 ##### The end phase
-The begin phase is designated to run cleanup code for a single series.
+The begin phase is designated to run cleanup code for a single series at 
+each repetition.
 
 `INA_BENCH_END([benchmark name], [series name])`
 
 You may also call _ina_bench_get_iterations()_,  _ina_bench_get_repetitions()_,
-_ina_bench_get_name()_, _ina_bench_get_series_name()_,  during this phase.
+_ina_bench_get_name()_, _ina_bench_get_series_name()_  during this phase.
 
 ```C
-INA_BENCHEND(sort, quick_sort) {
+INA_BENCH_END(sort, quick_sort) {
    __ina_do_something_after_bench();
 }
 ```
@@ -1234,7 +1243,6 @@ You may call _ina_bench_get_iterations()_, _ina_bench_get_name()_,
 _ina_bench_get_series_name()_ during this phase.
 
 ```C
-
 INA_BENCH_TEARDOWN(sort) {
     ina_mem_free(data->elements);
 }
@@ -1264,7 +1272,7 @@ Therefore a minimal benchmark executable must like looks like this.
     }
     
 This will run all benchmarks with the defined repetitions and iterations 
-without any warm.up iterations.  The reports will be generated in the 
+with 3 warm up iterations.  The reports will be generated in the 
 current working directory. 
 
 The benchmark runner looks for command line arguments:
@@ -1289,7 +1297,7 @@ options.
                  INA_OPT_INT(NULL, "x-repeat", INA_NUM2STR(0), "Override number of repetitions"),
                  INA_OPT_INT(NULL, "x-iter", INA_NUM2STR(0), "Override number of iteration"),
                  INA_OPT_INT(NULL, "cache-size", INA_NUM2STR(0), "L1/L2/L3 cache size"),
-                 INA_OPT_INT(NULL, "x-warm-up", INA_NUM2STR(0), "Warm-up iterations"),     
+                 INA_OPT_INT(NULL, "x-warm-up", INA_NUM2STR(3), "Warm-up iterations"),     
                  INA_OPT_FLAG(NULL, "disable-aggregation", "Disable result aggregation"),
                  INA_OPT_STRING("n", "name", "", "Benchmark name"));
     
