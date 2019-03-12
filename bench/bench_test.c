@@ -14,18 +14,23 @@ INA_BENCH_DATA(test) {
 
 INA_BENCH_SETUP(test)
 {
-
+    INA_BENCH_MSG("%s", "INA_BENCH_SETUP");
+    INA_BENCH_INIT("scale", 0, 10, 10);
 }
-INA_BENCH_BEGIN(test, test1)
-{
 
-}
 INA_BENCH_SCALE(test)
 {
+    INA_BENCH_MSG("%s", "INA_BENCH_SCALE");
     ina_bench_set_scale(ina_bench_get_repetition());
     data->c = 10 * ina_bench_get_repetition();
 }
-INA_BENCH(test, test1, 100, 10)
+
+INA_BENCH_BEGIN(test, test1)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_BEGIN");
+}
+
+INA_BENCH(test, test1)
 {
     int k;
     for (k = 0; k < data->c; k++) {
@@ -34,11 +39,37 @@ INA_BENCH(test, test1, 100, 10)
     ina_bench_set_value(k);
 
 }
+
 INA_BENCH_END(test, test1)
 {
+    INA_BENCH_MSG("%s", "INA_BENCH_END");
 
 }
+
+INA_BENCH_BEGIN(test, test2)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_BEGIN");
+}
+
+INA_BENCH(test, test2)
+{
+    int k;
+    for (k = 0; k < data->c; k++) {
+        ina_bench_get_value();
+    }
+    ina_bench_set_value(k);
+
+}
+
+INA_BENCH_END(test, test2)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_END");
+
+}
+
+
 INA_BENCH_TEARDOWN(test)
 {
+    INA_BENCH_MSG("%s", "INA_BENCH_TEARDOWN");
 
 }

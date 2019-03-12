@@ -51,7 +51,7 @@ INA_BENCH_SCALE(sort) {
 }
 INA_BENCH_BEGIN(sort, quicksort_simple){ INA_UNUSED(data);}
 INA_BENCH_END(sort, quicksort_simple) { INA_UNUSED(data);}
-INA_BENCH(sort, quicksort_simple, 1, 1) {
+INA_BENCH(sort, quicksort_simple) {
     ina_bench_stopwatch_start();
     quicksort(data->input, &data->position, data->k, data->m);
     ina_bench_set_value((double)ina_bench_stopwatch_stop());

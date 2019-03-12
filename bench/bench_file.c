@@ -70,7 +70,7 @@ INA_BENCH_SCALE(file) {
 
 INA_BENCH_BEGIN(file, bf_read) { INA_UNUSED(data); }
 INA_BENCH_END(file, bf_read) { INA_UNUSED(data); }
-INA_BENCH(file, bf_read, 4, 1)
+INA_BENCH(file, bf_read)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
@@ -98,7 +98,7 @@ INA_BENCH(file, bf_read, 4, 1)
 
 INA_BENCH_BEGIN(file, bf_read_seq) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_seq) { INA_UNUSED(data);}
-INA_BENCH(file, bf_read_seq, 4, 1)
+INA_BENCH(file, bf_read_seq)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
@@ -126,7 +126,7 @@ INA_BENCH(file, bf_read_seq, 4, 1)
 
 INA_BENCH_BEGIN(file, bf_read_direct) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_direct) { INA_UNUSED(data); }
-INA_BENCH(file, bf_read_direct, 4, 1)
+INA_BENCH(file, bf_read_direct)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
@@ -164,7 +164,7 @@ INA_BENCH(file, bf_read_direct, 4, 1)
 
 INA_BENCH_BEGIN(file, bf_read_cursor) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_cursor) { INA_UNUSED(data); }
-INA_BENCH(file, bf_read_cursor, 4, 1)
+INA_BENCH(file, bf_read_cursor)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
@@ -198,7 +198,7 @@ INA_BENCH(file, bf_read_cursor, 4, 1)
 
 INA_BENCH_BEGIN(file, bf_read_mmap_cursor) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_mmap_cursor) { INA_UNUSED(data); }
-INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4, 1)
+INA_BENCH_SKIP(file, bf_read_mmap_cursor)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;

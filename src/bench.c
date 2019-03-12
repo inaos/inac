@@ -33,8 +33,8 @@ static int __current_repetition = 0;
 static int __current_series = 0;
 static char __header[__INA_MAX_HEADER_LENGTH];
 static int __precision = 5;
-static int __xiter = 0;
-static int __xrepeat = 0;
+static int __xiter = 1;
+static int __xrepeat = 1;
 static int __xwarmup_iter = 0;
 
 
@@ -47,7 +47,7 @@ INA_BENCH_TEARDOWN(bench) { INA_UNUSED(data); }
 INA_BENCH_SCALE(bench) { INA_UNUSED(data); }
 INA_BENCH_BEGIN(bench, series) { INA_UNUSED(data); }
 INA_BENCH_END(bench , series) { INA_UNUSED(data); }
-INA_BENCH(bench, series, 0, 0) { INA_UNUSED(data); }
+INA_BENCH(bench, series) { INA_UNUSED(data); }
 
 static int __ina_bench_all(ina_bench_benchmark_t* b) {
     INA_UNUSED(b);
@@ -225,7 +225,6 @@ INA_API(int) ina_bench_run(void)
         tot_cache_size = (size_t)size * 1024 * 1024;
     }
 
-    INA_MUST_SUCCEED(ina_init());
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time1));
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time2));
 
@@ -287,16 +286,13 @@ INA_API(int) ina_bench_run(void)
 #ifdef INA_OS_OSX
                 INA_MUST_SUCCEED(__ina_find_symbols(bench));
 #endif
-				if (xrepeat == 0) {
-					__xrepeat = bench->repetitions;
-				} else {
-				    __xrepeat = xrepeat;
-				}
-				if (xiter == 0) {
-					__xiter = bench->iterations;
-				} else {
-				    __xiter = xiter;
-				}
+                if (xrepeat > 0) {
+                    __xrepeat = xrepeat;
+                }
+                if (xiter > 0) {
+                    __xiter = xiter;
+                }
+
                 if (__current == NULL ||
                     strcmp(__current->bench_name, bench->bench_name) != 0) {
                     if (__current != NULL) {
@@ -421,6 +417,13 @@ INA_API(int) ina_bench_get_repetitions(void)
     return 0;
 }
 
+INA_API(void) ina_bench_set_repetitions(int repetitions)
+{
+    if (__current != NULL) {
+        __xrepeat = repetitions;
+    }
+}
+
 INA_API(int) ina_bench_get_repetition(void)
 {
     if (__current != NULL) {
@@ -430,12 +433,20 @@ INA_API(int) ina_bench_get_repetition(void)
 }
 
 
+
 INA_API(int) ina_bench_get_iterations(void)
 {
     if (__current != NULL) {
         return __xiter+__xwarmup_iter;
     }
     return 0;
+}
+
+INA_API(void) ina_bench_set_iterations(int iterations)
+{
+    if (__current != NULL) {
+        __xiter =  iterations;
+    }
 }
 
 INA_API(int) ina_bench_get_iteration(void)
