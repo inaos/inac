@@ -41,8 +41,6 @@ typedef struct ina_bench_benchmark_s {
     ina_bench_setup_cb_t series_setup;
     ina_bench_teardown_cb_t series_teardown;
     ina_bench_scale_cb_t scale;
-    int iterations;
-    int repetitions;
     unsigned int magic;
 } ina_bench_benchmark_t;
 
@@ -70,7 +68,7 @@ typedef struct ina_bench_benchmark_s {
 
 /* Internal: Benchmark data defines. For internal purpose only */
 #define INA_BENCH_STRUCT(bname, sname, _skip,  __data, __setup,     \
-                            __teardown, __series_setup, __series_teardown, __scale,  __iter, __rep)                      \
+                            __teardown, __series_setup, __series_teardown, __scale)           \
     INA_BENCH_SECTION_PUSH ina_bench_benchmark_t INA_BENCH_BNAME(bname, sname) INA_BENCH_SECTION = {   \
         #bname,                                                              \
         #sname,                                                              \
@@ -82,8 +80,6 @@ typedef struct ina_bench_benchmark_s {
         (ina_bench_setup_cb_t)__series_setup,                                \
         (ina_bench_teardown_cb_t)__series_teardown,                          \
         (ina_bench_scale_cb_t)__scale,                                       \
-        __iter,                                                              \
-        __rep,                                                               \
         INA_BENCH_MAGIC }
 
 /*
@@ -150,7 +146,7 @@ typedef struct ina_bench_benchmark_s {
 #define INA_BBEGIN_FNAME(bname, sname) bname##_##sname##_setup
 #define INA_BEND_FNAME(bname, sname) bname##_##sname##_teardown
 #endif
-#define INA_BENCH_DECL(bname, sname, iter, rep, _skip)                         \
+#define INA_BENCH_DECL(bname, sname, _skip)                                    \
     static struct bname##_data  __ina_bench_##bname##_data;                    \
     INA_BENCH_SETUP(bname);                                                    \
     INA_BENCH_TEARDOWN(bname);                                                 \
@@ -161,7 +157,7 @@ typedef struct ina_bench_benchmark_s {
     INA_BENCH_STRUCT(bname, sname, _skip,  &__ina_bench_##bname##_data,        \
         INA_BSETUP_FNAME(bname), INA_BTEARDOWN_FNAME(bname),                   \
         INA_BBEGIN_FNAME(bname, sname), INA_BEND_FNAME(bname, sname) ,         \
-        INA_BSCALE_FNAME(bname),  iter, rep);   \
+        INA_BSCALE_FNAME(bname));   \
     void INA_BENCH_FNAME(bname, sname)(struct bname##_data* data)
 
 /*
@@ -170,10 +166,8 @@ typedef struct ina_bench_benchmark_s {
  * Parameters
  *  bname  Benchmark name
  *  sname  Series name
- *  iter   Number of iterations for each repetition
- *  rep    Number of repetitions
  */
-#define INA_BENCH(bname, sname, iter, rep) INA_BENCH_DECL(bname, sname, iter, rep, 0)
+#define INA_BENCH(bname, sname) INA_BENCH_DECL(bname, sname, 0)
 
 /*
  * Declare a benchmark series
@@ -181,10 +175,8 @@ typedef struct ina_bench_benchmark_s {
  * Parameters
  *  bname  Benchmark name
  *  sname  Series name
- *  iter   Number of iterations for each repetition
- *  rep    Number of repetitions
  */
-#define INA_BENCH_SKIP(bname, sname, iter, rep) INA_BENCH_DECL(bname, sname, iter, rep, 1)
+#define INA_BENCH_SKIP(bname, sname) INA_BENCH_DECL(bname, sname, 1)
 
 /*
  * Print a diagnostic message to th standard output
@@ -200,6 +192,15 @@ typedef struct ina_bench_benchmark_s {
         ina_bench_get_series_name(), \
         ##__VA_ARGS__           \
         )
+
+#define INA_BENCH_INIT(scale_label, precision, iterations, repetitions)       \
+do {                                                                          \
+        ina_bench_set_scale_label((scale_label));                             \
+        ina_bench_set_precision((precision));                                 \
+        ina_bench_set_iterations((iterations));                               \
+        ina_bench_set_repetitions((repetitions));                             \
+    } while(0)
+
 /*
  * Run benchmarks.
  *
@@ -291,6 +292,9 @@ INA_API(double) ina_bench_get_scale(void);
  */
 INA_API(int) ina_bench_get_repetitions(void);
 
+INA_API(void) ina_bench_set_repetitions(int repetitions);
+
+
 /*
  * Returns the current repetition of the running series.
  */
@@ -300,6 +304,8 @@ INA_API(int) ina_bench_get_repetition(void);
  * Returns the total number of iterations of the current running series.
  */
 INA_API(int) ina_bench_get_iterations(void);
+INA_API(void) ina_bench_set_iterations(int iteration);
+
 
 /*
  * Returns the current iteration of the running series.
