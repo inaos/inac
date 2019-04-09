@@ -258,6 +258,21 @@ INA_API(ina_rc_t) ina_bench_set_precision(int precision);
  */
 INA_API(int) ina_bench_get_precision(void);
 
+INA_API(ina_rc_t) ina_bench_set_max_duration(int m_sec);
+INA_API(ina_rc_t) ina_bench_set_min_duration(int m_sec);
+
+INA_API(int) ina_bench_get_max_duration(void);
+INA_API(int) ina_bench_get_min_duration(void);
+
+INA_API(ina_rc_t) ina_bench_set_upper_limit(double limit);
+INA_API(ina_rc_t) ina_bench_set_lower_limit(double limit);
+
+INA_API(double) ina_bench_get_upper_limit(void);
+INA_API(double) ina_bench_get_lower_limit(void);
+
+INA_API(ina_rc_t) ina_bench_invalidate(void);
+
+
 /*
  * Set the value for the current series and iteration.
  *
