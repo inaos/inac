@@ -157,13 +157,13 @@ static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const
                 fprintf(f, "%f", scale[k]);
             }
             for (i = 0; i < num_series; ++i) {
-                int index = (i*(xiter+__xwarmup_iter))+((xiter+__xwarmup_iter)*k)+j;
+                int index = (i*k+j) + k*(xiter+__xwarmup_iter) + (i *(xiter+__xwarmup_iter)*xrepeat-(k*i));
                 if (aggregate) {
                     if (j > __xwarmup_iter) {
                         printf("D: index=%4d, k=%4d, i=%4d j=%4d result[index]=%f result[index-1]=%f\n", index, k, i, j, result[index], result[index-1]);
                         result[index] += result[index-1];
                     }
-                    if (j == (xiter + __xwarmup_iter - 1)) {
+                    if (j == (xiter + __xwarmup_iter-1)) {
                         printf("S: index=%4d, k=%4d, i=%4d j=%4d result[index]=%f xiter=%d\n", index, k, i, j, result[index], xiter);
                         result[index] = result[index] / (double)xiter;
                         fprintf(f, fmt, result[index]);
@@ -405,6 +405,7 @@ INA_API(const char*) ina_bench_get_scale_label(void)
 
 INA_API(ina_rc_t) ina_bench_set_value(double value)
 {
+    printf("value: %d:%d = %f\n", __current_repetition, __current_iteration, value);
     *__current_result = value;
     return INA_SUCCESS;
 }
