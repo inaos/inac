@@ -1173,6 +1173,7 @@ _ina_bench_get_name()_, _ina_bench_get_series_name()_ during this phase.
 ```C
 INA_BENCH_BEGIN(sort, quick_sort) {
     data->sort_fn = __ina_quicksort;
+    data->elements = ina_bench_get_repetition() * 1000;
 }
 
 ```
