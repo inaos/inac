@@ -15,14 +15,14 @@ INA_BENCH_DATA(test1) {
 INA_BENCH_SETUP(test1)
 {
     INA_BENCH_MSG("%s", "INA_BENCH_SETUP");
-    INA_BENCH_INIT("scale", 0, 10, 10);
+    INA_BENCH_INIT("scale", 0, 12, 10);
 }
 
 INA_BENCH_SCALE(test1)
 {
     INA_BENCH_MSG("%s", "INA_BENCH_SCALE");
     ina_bench_set_scale(ina_bench_get_repetition());
-    data->c = 10 * ina_bench_get_repetition();
+    data->c = 10 * ina_bench_get_repetition() ;
 }
 
 INA_BENCH_BEGIN(test1, series1)
@@ -32,11 +32,7 @@ INA_BENCH_BEGIN(test1, series1)
 
 INA_BENCH(test1, series1)
 {
-    int k;
-    for (k = 0; k < data->c; k++) {
-        ina_bench_get_value();
-    }
-    ina_bench_set_value(k);
+    ina_bench_set_value(data->c);
 
 }
 
@@ -53,11 +49,7 @@ INA_BENCH_BEGIN(test1, series2)
 
 INA_BENCH(test1, series2)
 {
-    int k;
-    for (k = 0; k < data->c; k++) {
-        ina_bench_get_value();
-    }
-    ina_bench_set_value(k);
+    ina_bench_set_value(data->c);
 
 }
 
@@ -98,11 +90,7 @@ INA_BENCH_BEGIN(test2, series1)
 
 INA_BENCH(test2, series1)
 {
-    int k;
-    for (k = 0; k < data->c; k++) {
-        ina_bench_get_value();
-    }
-    ina_bench_set_value(k);
+    ina_bench_set_value(data->c);
 
 }
 
@@ -119,11 +107,7 @@ INA_BENCH_BEGIN(test2, series2)
 
 INA_BENCH(test2, series2)
 {
-    int k;
-    for (k = 0; k < data->c; k++) {
-        ina_bench_get_value();
-    }
-    ina_bench_set_value(k);
+    ina_bench_set_value(data->c);
 
 }
 

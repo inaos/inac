@@ -160,10 +160,11 @@ static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const
                 int index = (i*(xiter+__xwarmup_iter))+((xiter+__xwarmup_iter)*k)+j;
                 if (aggregate) {
                     if (j > __xwarmup_iter) {
+                        printf("D: index=%4d, k=%4d, i=%4d j=%4d result[index]=%f result[index-1]=%f\n", index, k, i, j, result[index], result[index-1]);
                         result[index] += result[index-1];
                     }
                     if (j == (xiter + __xwarmup_iter - 1)) {
-                        printf("k=%d, i=%d j=%d xiter=%d, result[index]=%f\n", k, i, j, xiter, result[index]);
+                        printf("S: index=%4d, k=%4d, i=%4d j=%4d result[index]=%f xiter=%d\n", index, k, i, j, result[index], xiter);
                         result[index] = result[index] / (double)xiter;
                         fprintf(f, fmt, result[index]);
                     }
@@ -303,7 +304,7 @@ INA_API(int) ina_bench_run(void)
 
                     // reset header
                     __header[0] = '\0';
-                    // restet precision
+                    // reset precision
                     __precision = 5;
 
                     // Setup benchmark
