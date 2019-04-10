@@ -14,6 +14,10 @@
 #include <dlfcn.h>
 #endif
 
+#define __INA_TO_SLOW 'S'
+#define __INA_TO_FAST 'F'
+#define __INA_TO_HIGH 'H'
+#define __INA_TO_LOW  'L'
 #define __INA_MAX_SERIES 64
 #define __INA_MAX_HEADER_LENGTH 4094
 
@@ -36,7 +40,11 @@ static int __precision = 5;
 static int __xiter = 1;
 static int __xrepeat = 1;
 static int __xwarmup_iter = 0;
-
+static int __min_duration_usec = 0;
+static int __max_duration_usec = 0;
+static double __upper_limit = 0.0;
+static double __lower_limit = 0.0;
+static char __series_state[__INA_MAX_SERIES];
 
 INA_BENCH_DATA(bench) {
     int dummy;
@@ -160,17 +168,23 @@ static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const
                 int index = (i*k+j) + k*(xiter+__xwarmup_iter) + (i *(xiter+__xwarmup_iter)*xrepeat-(k*i));
                 if (aggregate) {
                     if (j > __xwarmup_iter) {
-                        printf("D: index=%4d, k=%4d, i=%4d j=%4d result[index]=%f result[index-1]=%f\n", index, k, i, j, result[index], result[index-1]);
                         result[index] += result[index-1];
                     }
                     if (j == (xiter + __xwarmup_iter-1)) {
-                        printf("S: index=%4d, k=%4d, i=%4d j=%4d result[index]=%f xiter=%d\n", index, k, i, j, result[index], xiter);
                         result[index] = result[index] / (double)xiter;
-                        fprintf(f, fmt, result[index]);
+                        if (__series_state[i] == 0) {
+                            fprintf(f, fmt, result[index]);
+                        } else {
+                            fprintf(f, ",%c", __series_state[i]);
+                        }
                     }
                 }
                 else {
-                    fprintf(f, fmt, result[index]);
+                    if (__series_state[i] == 0) {
+                        fprintf(f, fmt, result[index]);
+                    } else {
+                        fprintf(f, ",%c", __series_state[i]);
+                    }
                 }
             }
             if (!aggregate || (j == (xiter+__xwarmup_iter-1))) {
@@ -304,11 +318,19 @@ INA_API(int) ina_bench_run(void)
 
                     // reset header
                     __header[0] = '\0';
+
+                    // reset series states
+                    ina_mem_set(&__series_state, 0, __INA_MAX_SERIES);
+
                     // reset precision
                     __precision = 5;
 
                     // Setup benchmark
                     __current = bench;
+                    __min_duration_usec = 0;
+                    __max_duration_usec = 0;
+                    __upper_limit = 0.0;
+                    __lower_limit = 0.0;
                     bench->setup(bench->data);
 
                     // override iteration/repetition
@@ -345,9 +367,20 @@ INA_API(int) ina_bench_run(void)
                     }
                     bench->series_setup(bench->data);
                     for (ic = 0; ic < (__xiter+__xwarmup_iter); ++ic) {
+                        int64_t duration = 0;
                         __current_iteration = ic;
                         __ina_clear_cache(tot_cache_size);
+                        ina_bench_stopwatch_start();
                         bench->run(bench->data);
+                        duration = ina_bench_stopwatch_stop();
+                        if (__min_duration_usec > 0 &&
+                            duration < __min_duration_usec) {
+                            ina_bench_invalidate(__INA_TO_FAST);
+                        } else if (__max_duration_usec > 0 &&
+                            duration > __max_duration_usec) {
+                            ina_bench_invalidate(__INA_TO_SLOW);
+                        }
+                        INA_BENCH_MSG("duration %d", (int)duration);
                         __current_result += 1;
                     }
                     bench->series_teardown(bench->data);
@@ -405,8 +438,15 @@ INA_API(const char*) ina_bench_get_scale_label(void)
 
 INA_API(ina_rc_t) ina_bench_set_value(double value)
 {
-    printf("value: %d:%d = %f\n", __current_repetition, __current_iteration, value);
     *__current_result = value;
+    if (__lower_limit > 0 && __lower_limit > value ) {
+        ina_bench_invalidate(__INA_TO_LOW);
+        return INA_ES_LIMIT|INA_ERR_NOT_EXCEEDED;
+    }
+    if (__upper_limit > 0 && __upper_limit < value ) {
+        ina_bench_invalidate(__INA_TO_HIGH);
+        return INA_ES_LIMIT|INA_ERR_NOT_EXCEEDED;
+    }
     return INA_SUCCESS;
 }
 
@@ -511,4 +551,68 @@ INA_API(ina_rc_t) ina_bench_set_precision(int precision)
 INA_API(int) ina_bench_get_precision(void)
 {
     return __precision;
+}
+
+INA_API(ina_rc_t) ina_bench_set_max_duration(double sec_duration)
+{
+    __max_duration_usec = (int)(sec_duration*1000*1000);
+    INA_BENCH_MSG("TO_SLOW(%d)", __max_duration_usec);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_bench_set_min_duration(double sec_duration)
+{
+    __min_duration_usec = (int)(sec_duration*1000*1000);
+    return INA_SUCCESS;
+
+}
+
+INA_API(ina_rc_t) ina_bench_get_max_duration(double *sec)
+{
+    INA_VERIFY_NOT_NULL(sec);
+    *sec = (double)(__max_duration_usec / 1000.0 / 1000.0);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_bench_get_min_duration(double *sec)
+{
+    INA_VERIFY_NOT_NULL(sec);
+    *sec = (double)(__min_duration_usec / 1000.0 / 1000.0);
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_bench_set_upper_limit(double limit)
+{
+    __lower_limit = limit;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_bench_set_lower_limit(double limit)
+{
+    __upper_limit = limit;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_bench_get_upper_limit(double *limit)
+{
+    INA_VERIFY_NOT_NULL(limit);
+    *limit = __upper_limit;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_bench_get_lower_limit(double *limit)
+{
+    INA_VERIFY_NOT_NULL(limit);
+    *limit = __lower_limit;
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_bench_invalidate(char reason)
+{
+    if (__current != NULL)
+    {
+        INA_BENCH_MSG("invalidate(%c)", reason);
+        __series_state[__current_series] = reason;
+    }
+    return INA_SUCCESS;
 }

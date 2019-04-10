@@ -126,3 +126,66 @@ INA_BENCH_TEARDOWN(test2)
     INA_BENCH_MSG("%s", "INA_BENCH_TEARDOWN");
 
 }
+
+
+INA_BENCH_DATA(test_too_slow) {
+    int c;
+};
+
+INA_BENCH_SETUP(test_too_slow)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_SETUP");
+    INA_BENCH_INIT("scale", 0, 10, 10);
+    ina_bench_set_max_duration(1.0);
+}
+
+INA_BENCH_SCALE(test_too_slow)
+{
+    INA_BENCH_MSG("INA_BENCH_SCALE(%d)", ina_bench_get_repetition());
+    ina_bench_set_scale(ina_bench_get_repetition());
+}
+
+INA_BENCH_BEGIN(test_too_slow, series_fast)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_BEGIN");
+    data->c = 10 * ina_bench_get_repetition() ;
+
+}
+
+INA_BENCH(test_too_slow, series_fast)
+{
+    ina_bench_set_value(data->c);
+
+}
+
+INA_BENCH_END(test_too_slow, series_fast)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_END");
+
+}
+
+INA_BENCH_BEGIN(test_too_slow, series_slow)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_BEGIN");
+    data->c = 10 * ina_bench_get_repetition() ;
+}
+
+INA_BENCH(test_too_slow, series_slow)
+{
+    if (ina_bench_get_iteration() == 2) {
+        ina_time_sleep(2000);
+    }
+    ina_bench_set_value(data->c);
+}
+
+INA_BENCH_END(test_too_slow, series_slow)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_END");
+}
+
+
+INA_BENCH_TEARDOWN(test_too_slow)
+{
+    INA_BENCH_MSG("%s", "INA_BENCH_TEARDOWN");
+
+}
