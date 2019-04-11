@@ -19,6 +19,7 @@
 #define __INA_TO_HIGH 'H'
 #define __INA_TO_LOW  'L'
 #define __INA_MAX_SERIES 64
+#define __INA_MAX_INVALID_ITERATIONS 1024
 #define __INA_MAX_HEADER_LENGTH 4094
 
 typedef int (*ina_bench_filter_fn_t)(ina_bench_benchmark_t*);
@@ -45,6 +46,9 @@ static int __max_duration_usec = 0;
 static double __upper_limit = 0.0;
 static double __lower_limit = 0.0;
 static char __series_state[__INA_MAX_SERIES];
+static char __iteration_state[__INA_MAX_SERIES][__INA_MAX_INVALID_ITERATIONS];
+static int __iteration_index[__INA_MAX_SERIES][__INA_MAX_INVALID_ITERATIONS];
+static int __invalid_iterations = 0;
 
 INA_BENCH_DATA(bench) {
     int dummy;
@@ -175,7 +179,11 @@ static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const
                         if (__series_state[i] == 0) {
                             fprintf(f, fmt, result[index]);
                         } else {
-                            fprintf(f, ",%c", __series_state[i]);
+                            if (__invalid_iterations == 1) {
+                                fprintf(f, ",%c", __series_state[i]);
+                            } else {
+                                fprintf(f, ",%s","*");
+                            }
                         }
                     }
                 }
@@ -183,7 +191,17 @@ static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const
                     if (__series_state[i] == 0) {
                         fprintf(f, fmt, result[index]);
                     } else {
-                        fprintf(f, ",%c", __series_state[i]);
+                        int h;
+                        int found = 0;
+                        for (h = 0; h < __invalid_iterations; ++h) {
+                            if (__iteration_index[i][h] == j) {
+                                found = 1;
+                                fprintf(f, ",%c", __iteration_state[i][h]);
+                            }
+                        }
+                        if (!found) {
+                            fprintf(f, fmt, result[index]);
+                        }
                     }
                 }
             }
@@ -331,6 +349,7 @@ INA_API(int) ina_bench_run(void)
                     __max_duration_usec = 0;
                     __upper_limit = 0.0;
                     __lower_limit = 0.0;
+                    __invalid_iterations = 0;
                     bench->setup(bench->data);
 
                     // override iteration/repetition
@@ -531,7 +550,7 @@ INA_API(int64_t) ina_bench_stopwatch_stop(void)
 {
     time_t secs;
     long nanos;
-    int64_t micros;
+    int micros;
 
     INA_MUST_SUCCEED(ina_time_read_tsc_clock(__time2));
     ina_time_tsc_seconds_nanos(__time2, &secs, &nanos);
@@ -613,6 +632,8 @@ INA_API(ina_rc_t) ina_bench_invalidate(char reason)
     {
         INA_BENCH_MSG("invalidate(%c)", reason);
         __series_state[__current_series] = reason;
+        __iteration_index[__current_series][__current_iteration] = __current_iteration;
+        __iteration_state[__current_series][__current_iteration] = reason;
     }
     return INA_SUCCESS;
 }
