@@ -20,15 +20,12 @@ extern "C" {
  */
 #include <libinac/lib.h>
 
-/* Internal: benchmark context */
-typedef struct ina_bench_ctx_s ina_bench_ctx_t;
-
 /* Internal: Setup callback */
 typedef void (*ina_bench_setup_cb_t)(void*);
 
 /* Internal: Teardown callback */
-
 typedef void (*ina_bench_teardown_cb_t)(void*);
+
 /* Internal: Scale callback */
 typedef void (*ina_bench_scale_cb_t)(void*);
 
@@ -47,7 +44,6 @@ typedef struct ina_bench_benchmark_s {
     int32_t pad1;
     int32_t pad2;
     unsigned int magic;
-
 } ina_bench_benchmark_t;
 
 /* Internal: Magic. */
