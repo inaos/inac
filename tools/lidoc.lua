@@ -416,6 +416,8 @@ idoc.run = function(output, config, single, quiet)
         if single == 1 then
             outfile:close()
             outfile = nil
+        else
+            outfile:write("\n\n")
         end
     end
     if outfile ~= nil then
