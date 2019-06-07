@@ -146,3 +146,15 @@ INA_TEST(compression, lz4hc_fast_pool_string)
     ina_mempool_free(&pool);
 }
 
+INA_TEST(compression, invalid_arguments)
+{
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_new(NULL,
+                    INA_COMPRESSION_TYPE_DEFLATE,
+                    INA_COMPRESSION_MODE_TRUSTED_FAST));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_new_using_pool(NULL,
+                    INA_COMPRESSION_TYPE_DEFLATE,
+                    INA_COMPRESSION_MODE_TRUSTED_FAST, NULL));
+
+}
