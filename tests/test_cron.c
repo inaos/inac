@@ -141,3 +141,73 @@ INA_TEST_SKIP(cron, add_task_and_exec)
 
     ina_cron_ctx_free(&ctx);
 }
+
+INA_TEST(cron, invalid_arguments)
+{
+    int fake = 0;
+    ina_cron_ctx_t *ctx = NULL;
+    INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,int-to-pointer-cast)
+    ina_cron_event_t *event = (ina_cron_event_t*)fake;
+    INA_ENABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,int-to-pointer-cast)
+    ina_str_t cmd = NULL;
+    ina_str_t working_dir = NULL;
+    ina_cron_push_cb_t push_cb = NULL;
+    uint32_t  key;
+    ina_cron_event_iter_t *iter = NULL;
+    ina_cron_timetable_t tt;
+    time_t last_exec_time;
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_ctx_new(NULL, NULL, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_new(NULL, "id", "pattern", 0, &event));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_new(ctx, NULL, "pattern", 0, &event));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_new(ctx, "", "pattern", 0, &event));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_new(ctx, "id", "pattern", 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_set_exec_params(NULL, "cmd", "working_dir"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_set_exec_params(event, NULL, "working_dir"));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_get_exec_params(NULL, &cmd, &working_dir));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_get_exec_params(event, NULL, &working_dir));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_get_exec_params(event, &cmd, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_set_push_params(NULL, NULL, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_get_push_params(NULL, &push_cb, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_get_push_params(event, NULL, NULL));
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_get_pull_params(NULL, &key, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_get_pull_params(event, NULL, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_set_pull_params(NULL, key, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_set_pull_params(event, key, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_process(NULL, 0, &fake));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_process(ctx, 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_iter_new(NULL, &iter));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_iter_new(ctx, NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_cron_event_iter_new(ctx, &iter));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_iter_next(NULL, &event));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_iter_next(iter, NULL));
+    ina_cron_event_iter_free(&iter);
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_by_id(NULL, "id", &event));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_by_id(ctx, NULL, &event));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_by_id(ctx, "id", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_event_is_running(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_last_exec_systime(NULL, &tt, 0, &last_exec_time));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_last_exec_systime(ctx, NULL, 0, &last_exec_time));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_last_exec_systime(ctx, &tt, 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_try_pull(NULL, &key, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_try_pull(ctx, NULL, NULL));
+
+
+}
