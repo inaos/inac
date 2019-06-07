@@ -365,7 +365,7 @@ idoc.run = function(output, config, single, quiet)
                 print("couldn't not open "..filename)
                 return 1
             end
-            if single == 0 then
+            if single == 0 and title ~= nil then
                 outfile:write("#"..title.."\n\n")
             end
         end
@@ -416,6 +416,8 @@ idoc.run = function(output, config, single, quiet)
         if single == 1 then
             outfile:close()
             outfile = nil
+        else
+            outfile:write("\n\n")
         end
     end
     if outfile ~= nil then

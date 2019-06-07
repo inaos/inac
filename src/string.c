@@ -300,6 +300,20 @@ INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest, const char *src, 
     return (ina_str_t)d->data;
 }
 
+INA_API(ina_str_t) ina_str_append_chr(ina_str_t dest, char c)
+{
+    ina_str_hdr_t *d;
+
+    INA_ASSERT_NOT_NULL(dest);
+
+    d = __INA_HDR_OFFSET(dest);
+    d = __ina_ensure_size(d, d->len+1);
+    d->data[d->len] = c;
+    d->len += 1;
+    d->data[d->len] = '\0';
+    return (ina_str_t)d->data;
+}
+
 INA_API(int) ina_str_cmp(ina_cstr_t lhs, ina_cstr_t rhs)
 {
     size_t l1, l2, minlen;
