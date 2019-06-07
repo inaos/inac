@@ -29,6 +29,7 @@ extern "C" {
 #include <spawn.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <immintrin.h>
 #endif
 
 #ifdef _WIN32
