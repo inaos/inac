@@ -35,7 +35,7 @@ Building on Windows requires some programs to be present on your system.
 * Navigate to the INAC root folder
 * Create a build directory e.g. 'build'
 * `cd build`
-* `cmake -G"NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug`
+* `cmake -G"NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug ..`
 * `nmake`
 
 ## Building on Linux or OS X
@@ -49,7 +49,7 @@ Building on Windows requires some programs to be present on your system.
 
 * Create a build directory e.g. 'build'
 * `cd build`
-* `cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug`
+* `cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug ..`
 * `make`
 
 ## Versioning and compatibility
