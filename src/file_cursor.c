@@ -535,6 +535,7 @@ INA_API(ina_rc_t) ina_file_cursor_get_pos(const ina_file_cursor_t *cursor, uint6
 
 INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, uint64_t position)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return cursor->set_pos_fp(cursor, position);
 }
 
@@ -545,6 +546,7 @@ INA_API(ina_rc_t) ina_file_cursor_set_bof(ina_file_cursor_t *cursor)
 
 INA_API(ina_rc_t) ina_file_cursor_set_eof(ina_file_cursor_t *cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return cursor->set_eof_fp(cursor);
 }
 
