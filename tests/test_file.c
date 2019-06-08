@@ -177,3 +177,86 @@ ina_file_write
 ina_file_set_pos
 ina_file_get_pos
 ina_file_set_eof*/
+
+INA_TEST(file, invalid_arguments)
+{
+    int fake = 0;
+    unsigned char bc[1];
+    ina_file_ctx_t *ctx = NULL;
+    INA_DISABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,int-to-pointer-cast)
+    ina_file_t *file = (ina_file_t*)fake;
+    INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,int-to-pointer-cast)
+    ina_file_stat_t *stat = NULL;
+    ina_str_t filepath = NULL;
+    mode_t mode;
+    size_t size;
+    time_t time;
+    unsigned char* buf = &bc[0];
+    size_t len = 0;
+    size_t nread = 0;
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_ctx_new(NULL, 0));
+
+    INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_new(NULL, "file", INA_FILE_ACCESS_MODE_READ, INA_FILE_CREATE_MODE_APPEND, INA_FILE_SHARE_MODE_EXCLUSIVE, 0, &file));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_new(ctx, NULL, INA_FILE_ACCESS_MODE_READ, INA_FILE_CREATE_MODE_APPEND, INA_FILE_SHARE_MODE_EXCLUSIVE, 0, &file));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_new(ctx, "file", INA_FILE_ACCESS_MODE_READ, INA_FILE_CREATE_MODE_APPEND, INA_FILE_SHARE_MODE_EXCLUSIVE, 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_new(NULL, &stat));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_new(file, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_synch(NULL, stat));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_synch(file, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_get_filepath(NULL, &filepath));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_get_filepath(file, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_set_mode(NULL, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_get_mode(NULL, &mode));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_is_dir(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_file_size(NULL, &size));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_file_size(stat, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_atime(NULL, &time));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_atime(stat, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_mtime(NULL, &time));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_mtime(stat, NULL));
+
+    ina_err_reset();
+    ina_file_os_handle(NULL);
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
+    ina_err_reset();
+    ina_file_get_stream(NULL);
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
+
+    ina_err_reset();
+    ina_file_get_stream(file);
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_read(NULL, buf, 1, &nread));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_read(file, NULL, 1, &nread));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_read(file, buf, 0, &nread));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_read(NULL, buf, 1, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_write(NULL, buf, 1, &nread));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_write(file, NULL, 1, &nread));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_write(file, buf, 0, &nread));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_write(NULL, buf, 1, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_set_bof(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_set_pos(NULL, 10, INA_FILE_SEEK_MODE_CUR))
+    ;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_get_pos(NULL, &len));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_set_eof(NULL));
+
+    ina_file_ctx_free((&ctx));
+
+}

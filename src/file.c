@@ -307,6 +307,7 @@ INA_API(void) ina_file_free(ina_file_t **file)
 
 INA_API(ina_rc_t) ina_file_stat_new(const ina_file_t *file, ina_file_stat_t **stat)
 {
+    INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(stat);
     *stat = (ina_file_stat_t*)ina_mem_alloc(sizeof(ina_file_stat_t));
     INA_RETURN_IF_NULL(*stat);
@@ -315,8 +316,7 @@ INA_API(ina_rc_t) ina_file_stat_new(const ina_file_t *file, ina_file_stat_t **st
     }
     return INA_SUCCESS;
 }
-
-INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat,  const ina_file_t *file)
+INA_API(ina_rc_t) ina_file_stat_synch(const ina_file_t *file, ina_file_stat_t *stat)
 {
 #ifdef INA_OS_WIN32
     LARGE_INTEGER pin;
@@ -451,7 +451,7 @@ INA_API(ina_rc_t) ina_file_stat_mtime(ina_file_stat_t *stat, time_t *last_modifi
 INA_API(ina_handle_t) ina_file_os_handle(ina_file_t *file)
 {
 	if (file == NULL) {
-        INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
 		return (ina_handle_t)0;
 	}
     return file->fh;
@@ -599,6 +599,7 @@ INA_API(ina_rc_t) ina_file_get_pos(ina_file_t *file, size_t *offset)
 #else
     off_t off;
     INA_VERIFY_NOT_NULL(file);
+    INA_VERIFY_NOT_NULL(offset);
     off = lseek(file->fh, 0, SEEK_CUR);
     if (off == -1) {
         return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);

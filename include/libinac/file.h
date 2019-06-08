@@ -179,7 +179,8 @@ INA_API(void) ina_file_stat_free(ina_file_stat_t **stat);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat, const ina_file_t *file);
+INA_API(ina_rc_t) ina_file_stat_synch(const ina_file_t *file,
+                                      ina_file_stat_t *stat);
 
 /*
  * Get the filepath of a file
