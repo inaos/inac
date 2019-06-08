@@ -16,7 +16,7 @@ High level objectives:
 * Ease of maintenance, testing and debugging
 * Fully documented
 
-# Getting started
+# Building
 
 ## Building on Windows
 
@@ -25,7 +25,7 @@ Building on Windows requires some programs to be present on your system.
 ### Prerequisites
 
 * [Visual Studio 2017 Community Edition][1]
-* [CMake][3.x]
+* [CMake][> 3.7]
   * Use the binary installer you don't need to build from source
   * Make sure you add cmake to your PATH
 
@@ -33,18 +33,24 @@ Building on Windows requires some programs to be present on your system.
 
 * Open a Visual Studio command prompt
 * Navigate to the INAC root folder
-* Type: make.bat all debug
-
-### Using the Intel Compiler
-
-* Open a Visual Studio command prompt for the Intel Compiler
-* Navigate to the INAC root folder
-* Type: make.bat all debug
+* Create a build directory e.g. 'build'
+* `cd build`
+* `cmake -G"NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug`
+* `nmake`
 
 ## Building on Linux or OS X
 
-To build the library, simply type `sudo make`. To select the debug build, 
-type `sudo make debug`.
+### Prerequisites
+
+* [GCC]
+* [CMake][> 3.7]
+
+### Build
+
+* Create a build directory e.g. 'build'
+* `cd build`
+* `cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug`
+* `make`
 
 ## Versioning and compatibility
 
