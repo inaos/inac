@@ -64,7 +64,7 @@ INA_TEST(file, stat)
     ina_file_ctx_t *ctx;
     ina_file_t *f;
     ina_file_stat_t *stat = NULL;
-    uint64_t file_size = 0;
+    size_t file_size = 0;
     time_t t = 0;
 
     const char *test_file = _INA_FILE_TEST_CONF_NAME;
@@ -206,8 +206,8 @@ INA_TEST(file, invalid_arguments)
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_new(NULL, &stat));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_new(file, NULL));
 
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_synch(NULL, stat));
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_synch(file, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_sync(NULL, stat));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_stat_sync(file, NULL));
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_get_filepath(NULL, &filepath));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_get_filepath(file, NULL));
