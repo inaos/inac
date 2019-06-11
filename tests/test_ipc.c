@@ -270,3 +270,17 @@ INA_TEST(ipc_counter, dec_get)
     INA_TEST_ASSERT_NULL(c);
 }
 
+INA_TEST(ipc, invalid_arguments)
+{
+    ina_ipc_flags_t *flags = NULL;
+    char *name = NULL;
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_new(NULL, 0, &flags));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_new("test", 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_open(NULL, &flags));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_open("test", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_get_name(NULL, &flags));
+
+}
