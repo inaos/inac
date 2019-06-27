@@ -1315,6 +1315,7 @@ void  rewinddir(DIR *dir);
 #define INA_SIMD_IVDEP
 #endif
 
+#define INA_MM_PAUSE _mm_pause()
 
 #ifdef __cplusplus
 }

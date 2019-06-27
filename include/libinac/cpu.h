@@ -89,6 +89,14 @@ typedef uint64_t ina_cpu_feature_t;
 typedef struct ina_cpu_ctx_s ina_cpu_ctx_t;
 
 /*
+ * Execute a REP NOP instruction
+ */
+INA_INLINE void ina_cpu_pause(void)
+{
+    INA_MM_PAUSE;
+}
+
+/*
  * PRIVATE: One should never call this function - its only called internally
  * during initialization.
  *
