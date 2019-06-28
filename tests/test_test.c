@@ -123,7 +123,7 @@ INA_TEST_TEARDOWN(test_os_fixture) {
     data->x -= 1;
 }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 INA_TEST_FIXTURE_WIN32(test_os_fixture, win32) {
     INA_UNUSED(data);
     INA_TEST_ASSERT_TRUE(1);

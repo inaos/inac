@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 INA_INLINE int __ina_vsnprintf(char *str, size_t size, const char *format, va_list args)
 {
     int c;

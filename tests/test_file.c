@@ -8,7 +8,7 @@
  */
 #include <libinac/lib.h>
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define _INA_FILE_TEST_CONF_NAME "tests.exe.conf"
 #else
 #define _INA_FILE_TEST_CONF_NAME "tests.conf"
@@ -36,7 +36,7 @@ INA_TEST(file, test_open_close)
     INA_TEST_ASSERT_NOT_NULL(file_path);
     INA_TEST_ASSERT_EQUAL_STR(_INA_FILE_TEST_CONF_NAME, file_path);
     ina_str_free(file_path);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     INA_TEST_ASSERT_NOT_NULL(ina_file_os_handle(f));
 #else
     INA_TEST_ASSERT_NOT_EQUAL_INT(0, ina_file_os_handle(f));
@@ -100,7 +100,7 @@ INA_TEST(file, os_handle)
     const char *test_file = _INA_FILE_TEST_CONF_NAME;
     ina_handle_t h;
     char buf[10];
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     DWORD nread;
 #endif
     INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
@@ -115,7 +115,7 @@ INA_TEST(file, os_handle)
 
     memset(buf, 0, 10);
     h = ina_file_os_handle(f);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     INA_TEST_ASSERT_NOT_NULL(h);
     INA_TEST_ASSERT_NOT_EQUAL_INT(0, ReadFile(h, buf, 7, &nread, NULL));
 #else

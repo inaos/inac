@@ -60,7 +60,7 @@ typedef struct ina_bench_benchmark_s {
 #ifdef INA_OS_OSX
 #define INA_BENCH_SECTION __attribute__ ((unused,section ("__DATA, .inabench")))
 #define INA_BENCH_SECTION_PUSH
-#elif INA_OS_WIN32
+#elif INA_OS_WINDOWS
 #pragma section(".inabench", read)
 #define INA_BENCH_SECTION
 #define INA_BENCH_SECTION_PUSH __declspec(allocate(".inabench"))

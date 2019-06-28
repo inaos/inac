@@ -8,7 +8,7 @@
  */
 #include <libinac/lib.h>
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -109,7 +109,7 @@ INA_TEST_HELPER(net, udp_sender) {
         }
     }
 
-#if INA_OS_WIN32
+#if INA_OS_WINDOWS
     closesocket(s);
 #else
     close(s);

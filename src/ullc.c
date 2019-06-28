@@ -11,7 +11,7 @@
 
 #define __INA_MAGIC_HDR 'Z'
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define __INA_SEMKEY "ULLC_SEM_"
 #else
 #define __INA_SEMKEY 0x300
@@ -432,7 +432,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_swait_begin(ina_ullc_ctx_t *ctx)
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 	INA_ATOMIC_INC(&ctx->ring->swait_count);
 #endif
     return ina_ullc_consumer_swait(ctx);
@@ -443,7 +443,7 @@ INA_API(ina_rc_t) ina_ullc_consumer_swait_end(ina_ullc_ctx_t *ctx)
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY(INA_ULLC_CTX_CONSUMER == ctx->type);
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 	INA_ATOMIC_DEC(&ctx->ring->swait_count);
 #endif
 	return INA_SUCCESS;
@@ -543,7 +543,7 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
 /*
  * Unix implementations
  */
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 
 static ina_rc_t
 __ina_sem_makekey(ina_ullc_rb_t *rb, const char *name)

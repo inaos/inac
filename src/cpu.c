@@ -36,7 +36,7 @@ struct ina_cpu_ctx_s {
 
 static ina_cpu_ctx_t *__ina_cpu_ctx = NULL;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 {
 	HKEY key;
@@ -649,7 +649,7 @@ INA_API(ina_rc_t) ina_cpu_is_supported(int *supported)
 INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 {
 #ifndef INA_OS_OSX
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     HANDLE pid = GetCurrentProcess();
 #ifdef INA_CPU_X86_64
     DWORD_PTR processAffinityMask = 1ULL << cpuid;
@@ -766,7 +766,7 @@ INA_API(ina_rc_t) ina_cpu_get_gflops_sp(double *gflops)
 INA_API(ina_rc_t) ina_cpu_process_promote()
 {
 #ifndef INA_OS_OSX
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     HANDLE pid = GetCurrentProcess();
 
     /* Set Priority */
@@ -801,7 +801,7 @@ INA_API(ina_rc_t) ina_cpu_process_query_core(int *core)
 {
     INA_VERIFY_NOT_NULL(core);
 #ifndef INA_OS_OSX
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     *core = GetCurrentProcessorNumber();
 #else
     *core = sched_getcpu();

@@ -67,7 +67,7 @@ typedef enum ina_log_target_e {
     INA_LOG_STDOUT,
     INA_LOG_STDERR,
     INA_LOG_FILE,
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
     INA_LOG_SYSLOG,
     INA_LOG_PIPELINE
 #endif
