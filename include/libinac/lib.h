@@ -203,7 +203,7 @@ typedef enum ina_signal_e {
     INA_SIGNAL_INT,
     INA_SIGNAL_SEGV,
     INA_SIGNAL_TERM,
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
     INA_SIGNAL_HUP,
     INA_SIGNAL_QUIT,
     INA_SIGNAL_KILL,

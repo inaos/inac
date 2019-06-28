@@ -224,6 +224,7 @@ detected.
 * Unix-like(generic): `INA_OS_UNIX`
 * Win64: `INA_OS_WIN64`
 * Win32: `INA_OS_WIN32`
+* Windows: `INA_OS_WINDOWS`
 
 The name of detected target os is defined by the `INA_OS_STRING` macro.
 

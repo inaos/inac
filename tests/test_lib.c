@@ -81,7 +81,7 @@ INA_TEST(lib, appname)
 {
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_name());
     INA_TEST_MSG("ina_app_get_name() = %s", ina_app_get_name());
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     INA_TEST_ASSERT_EQUAL_INT(0, strcmp("tests.exe", ina_app_get_name()));
 #else
     INA_TEST_ASSERT_EQUAL_INT(0, strcmp("tests", ina_app_get_name()));

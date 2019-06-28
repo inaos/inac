@@ -6,7 +6,7 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
@@ -14,7 +14,7 @@
 
 #include <libinac/lib.h>
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <ifaddrs.h>
@@ -116,7 +116,7 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
         INA_TEST_ASSERT_EQUAL_INT(nb_read, nb_write);
     }
 }
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 INA_TEST(net_local, mac_addr)
 {
     char *mac = (char*)malloc(sizeof(char)*6);

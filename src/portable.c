@@ -13,7 +13,7 @@ void ex(void)
 {
 }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64

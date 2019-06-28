@@ -8,7 +8,7 @@
  */
 #include <libinac/lib.h>
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #define __INA_TEST_EXE "tests"
 #else
 #define __INA_TEST_EXE "tests.exe"
@@ -226,7 +226,7 @@ INA_TEST_SKIP(process, stat)
     num_threads = 0;
     cmd = NULL;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo.exe"));
 #else
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo"));

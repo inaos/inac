@@ -590,7 +590,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 /* Set global RC */
 #define INA_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), 0))
 /* Set global RC and capture errno */
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #define INA_OS_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), errno))
 #else
 #define INA_OS_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), GetLastError()))

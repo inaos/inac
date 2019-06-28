@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #include <tlhelp32.h>
 #include <Psapi.h>
 #endif
@@ -27,7 +27,7 @@ struct ina_process_s {
     ina_fsm_status_t state;
     int exit_code;
     ina_rc_t last_rc;
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     PROCESS_INFORMATION pi;
 #else
      pid_t pid;
@@ -493,7 +493,7 @@ INA_API(void) ina_process_stat_free(ina_process_stat_t **stat)
     INA_MEM_FREE_SAFE(*stat);
 }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static void __ina_process_is_running(ina_process_t *process,
                                      int *still_running)
 {

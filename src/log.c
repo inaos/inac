@@ -96,7 +96,7 @@ static ina_rc_t __ina_write_to_buffer(__ina_target_t *target, ina_log_level_t le
     target->buffer_pos += strlen(msg);
     return INA_SUCCESS;
 }
-#ifndef  INA_OS_WIN32
+#ifndef  INA_OS_WINDOWS
 static ina_rc_t __ina_write_to_syslog(__ina_target_t *target, ina_log_level_t level, const char* msg)
 {
     openlog(target->syslog_ident, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -196,7 +196,7 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
                 t->type = INA_LOG_STDERR;
                 t->fp = stderr;
                 t->write_fn = __ina_write_to_file;
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
             } else if (strcmp(value, ">syslog") == 0) {
                 if (INA_FAILED(ina_conffile_get_string_from_entries(entries, "syslog_ident", &value))) {
                     t->syslog_ident = ina_str_new_fromcstr(ina_app_get_name());
@@ -279,7 +279,7 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
     INA_MEM_SET_ZERO(*log, ina_log_t);
     (*log)->buffer_size = __INA_DFT_BUFFER_SIZE;
     (*log)->category = ina_str_new_fromcstr(category);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     (*log)->pid = (int)GetCurrentProcessId();
 #else
     (*log)->pid = (int)getpid();
