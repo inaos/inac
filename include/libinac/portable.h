@@ -193,10 +193,8 @@ extern "C" {
 #  define INA_OS_WINDOWS 1
 #  if !defined INA_OS_XBOX
 #     if defined _WIN64
-#        define INA_OS_WIN64 1
 #        define INA_OS_STRING "Win64"
 #     else
-#        define INA_OS_WIN32 1
 #        if !defined INA_OS_STRING
 #           define INA_OS_STRING "Win32"
 #        endif
