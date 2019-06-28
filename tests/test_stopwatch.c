@@ -6,11 +6,12 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
+#include <libinac/lib.h>
+
 #ifndef INA_OS_WINDOWS
 #define _GNU_SOURCE  
 #include <sched.h>
 #endif
-#include <libinac/lib.h>
 
 #if !defined(CLOCK_MONOTONIC_RAW)
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC

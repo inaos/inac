@@ -81,7 +81,6 @@ include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include
         "${DEPS_DIR}")
 
 if (WIN32)
-    add_definitions(-DINA_OS_WINDOWS)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
 endif (WIN32)

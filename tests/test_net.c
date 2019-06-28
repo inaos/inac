@@ -6,13 +6,13 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
+#include <libinac/lib.h>
+
 #ifdef INA_OS_WINDOWS
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #endif
-
-#include <libinac/lib.h>
 
 #ifndef INA_OS_WINDOWS
 #include <sys/types.h>
