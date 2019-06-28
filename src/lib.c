@@ -227,14 +227,17 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                         /* value separated by space? */
                         if (vs == 0) {
                             if (argc > n+1) {
+                                ina_str_free(so->value);
                                 so->value = ina_str_new_fromcstr(argv[n+1]);
                                 n++;
                             }
                         } else {
                             strncpy(buf, &argv[n][vs], strlen(&argv[n][vs]));
+                            ina_str_free(so->value);
                             so->value = ina_str_new_fromcstr(buf);
                         }
                     } else {
+                        ina_str_free(so->value);
                         so->value = ina_str_new_fromcstr("on");
                     }
                 }
@@ -337,16 +340,14 @@ INA_API(void) ina_exit(void)
     /* free allocated memory  */
     if (__lopt != NULL) {
         ina_list_foreach(__sopt, __ina_free_sopt);
+        ina_list_free(&__sopt);
     }
     if (__sopt != NULL) {
         ina_list_foreach(__lopt, __ina_free_lopt);
+        ina_list_free(&__lopt);
     }
-    if (__appname != NULL) {
-        ina_str_free(__appname);
-    }
-    if (__apppath != NULL) {
-        ina_str_free(__apppath);
-    }
+    ina_str_free(__appname);
+    ina_str_free(__apppath);
 
 #ifdef _LIBINAC_HASHTABLE_H_
     ina_hashtable_destroy();
@@ -591,15 +592,9 @@ static ina_rc_t
 __ina_free_sopt(void *data)
 {
     __ina_sopt_t *opt = (__ina_sopt_t*)data;
-    if (opt->desc !=  NULL) {
-        ina_str_free(opt->desc);
-    }
-    if (opt->opt != NULL) {
-        ina_str_free(opt->opt);
-    }
-    if (opt->value != NULL) {
-        ina_str_free(opt->value);
-    }
+    ina_str_free(opt->desc);
+    ina_str_free(opt->opt);
+    ina_str_free(opt->value);
     ina_mem_free(opt);
     return INA_SUCCESS;
 }
@@ -608,9 +603,7 @@ static ina_rc_t
 __ina_free_lopt(void *data)
 {
     __ina_lopt_t *opt = (__ina_lopt_t*)data;
-    if (opt->opt != NULL) {
-        ina_str_free(opt->opt);
-    }
+    ina_str_free(opt->opt);
     ina_mem_free(opt);
     return INA_SUCCESS;
 }
