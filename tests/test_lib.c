@@ -150,3 +150,30 @@ INA_TEST(lib, format_specifiers)
     /* FIXME */
     INA_TEST_ASSERT_EQUAL_STR("i64=5a", buf);
 }
+
+INA_TEST(lib, invalid_arguments)
+{
+    ina_str_t key = NULL;
+    ina_str_t value = NULL;
+    float fvalue;
+    int ivalue;
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_isset(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_key_value(-1, &key, &value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_key_value(0, NULL, &value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_key_value(0, &key, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_string(NULL, &value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_string("name", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_float(NULL, &fvalue));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_float("name", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_int(NULL, &ivalue));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_int("name", NULL));
+
+
+
+
+}
