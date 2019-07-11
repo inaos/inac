@@ -170,13 +170,12 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
         } else {
 			ina_str_free(key);
 			ina_str_split_free_tokens(tokens);
-			return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+			return INA_ERROR(INA_ERR_INVALID_ARGUMENT);
 		}
-    }
-	else {
+    } else {
 		ina_str_free(key);
 		ina_str_split_free_tokens(tokens);
-		return INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+		return INA_ERROR(INA_ERR_INVALID_ARGUMENT);
 	}
     ina_str_free(key);
     ina_str_split_free_tokens(tokens);
@@ -243,6 +242,7 @@ INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const cha
 
     INA_VERIFY_NOT_NULL(log);
     INA_VERIFY_NOT_NULL(fmt);
+    INA_VERIFY_NOT_NULL(strlen(fmt));
 
     va_start(ap, fmt);
     rc = ina_log_v(log, level, location, fmt, ap);
