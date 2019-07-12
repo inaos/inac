@@ -107,7 +107,6 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
 INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool)
 {
 	INA_VERIFY_NOT_NULL(pool);
-	INA_VERIFY(size > 0);
 
 	if (size < INA_MEM_MIN_POOL_SIZE) {
 		size = INA_MEM_MIN_POOL_SIZE;
@@ -213,8 +212,11 @@ INA_API(ina_rc_t) ina_mempool_merge(ina_mempool_t *dest, ina_mempool_t *src)
 	if (src == NULL) {
 		return INA_SUCCESS;
 	}
+	if (src == dest) {
+	    return dest;
+	}
 	if (dest->cf&INA_MEM_SHARED || src->cf&INA_MEM_SHARED) {
-		return INA_ERROR(INA_ES_OPERATION | INA_ERR_INVALID);
+		return INA_ERROR(INA_ERR_OPERATION_INVALID);
 	}
 	src->parent = dest;
 	first_child = dest->child;
