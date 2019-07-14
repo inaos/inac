@@ -40,13 +40,11 @@ INA_API(ina_rc_t) ina_mmap_ctx_new(ina_mmap_ctx_t **ctx)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mmap_ctx_free(ina_mmap_ctx_t **ctx)
+INA_API(void) ina_mmap_ctx_free(ina_mmap_ctx_t **ctx)
 {
-	INA_VERIFY_NOT_NULL(ctx);
-	INA_VERIFY_NOT_NULL(*ctx);
-	ina_mem_free(*ctx);
-	*ctx = NULL;
-	return INA_SUCCESS;
+	INA_VERIFY_FREE(ctx);
+	INA_MEM_FREE_SAFE(*ctx);
+	ctx = NULL;
 }
 
 INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd, 
@@ -186,7 +184,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
     	(*mapping)->addr = mmap(0, length, pprot, pflags, -1, offset);
     }
     if ((*mapping)->addr == MAP_FAILED) {
-		ina_mmap_free(ctx, mapping);
+		ina_mmap_free(mapping);
         return INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     }
     data = (unsigned char*)(*mapping)->addr;
@@ -198,11 +196,9 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mapping)
+INA_API(void) ina_mmap_free(ina_mmap_mapping_t **mapping)
 {
-	INA_VERIFY_NOT_NULL(ctx);
-    INA_VERIFY_NOT_NULL(mapping);
-    INA_VERIFY_NOT_NULL(*mapping);
+   INA_VERIFY_FREE(mapping);
 
 #ifdef INA_OS_WIN32
 	UnmapViewOfFile((*mapping)->lpMapAddress);
@@ -212,9 +208,7 @@ INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mappin
 		munmap((*mapping)->addr, (*mapping)->length);
 	}
 #endif
-	ina_mem_free(*mapping);
-	*mapping = NULL;
-	return INA_SUCCESS;
+	INA_MEM_FREE_SAFE(*mapping);
 }
 
 INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
