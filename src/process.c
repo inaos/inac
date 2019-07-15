@@ -191,6 +191,7 @@ INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(full_path);
     INA_VERIFY(strlen(full_path));
+    INA_VERIFY_NOT_NULL(descriptor);
 
     *descriptor = (ina_process_descriptor_t*) ina_mem_alloc(
                                         sizeof(ina_process_descriptor_t));
@@ -231,6 +232,7 @@ INA_API(ina_rc_t) ina_process_exec(ina_process_ctx_t *ctx,
     ina_process_descriptor_t *ds = NULL;
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(full_path);
+    INA_VERIFY(strlen(full_path));
     INA_VERIFY_NOT_NULL(process);
 
     *process = NULL;
@@ -256,6 +258,7 @@ INA_API(ina_rc_t) ina_process_exec_and_wait(ina_process_ctx_t *ctx,
 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(full_path);
+    INA_VERIFY(strlen(full_path));
     INA_VERIFY_NOT_NULL(process);
 
     *process = NULL;
@@ -421,11 +424,11 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
     return INA_ERROR(INA_ES_PROCESS | INA_ERR_NOT_ALLOWED);
 }
 
-INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *binary)
+INA_API(ina_rc_t) ina_process_stat_new(const char *binary, ina_process_stat_t **stat)
 {
-    INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(binary);
     INA_VERIFY(strlen(binary));
+    INA_VERIFY_NOT_NULL(stat);
 
     *stat = (ina_process_stat_t*)ina_mem_alloc(sizeof(ina_process_stat_t));
     INA_RETURN_IF_NULL(*stat);
