@@ -213,7 +213,7 @@ INA_API(ina_rc_t) ina_mempool_merge(ina_mempool_t *dest, ina_mempool_t *src)
 		return INA_SUCCESS;
 	}
 	if (src == dest) {
-	    return dest;
+	    return INA_SUCCESS;
 	}
 	if (dest->cf&INA_MEM_SHARED || src->cf&INA_MEM_SHARED) {
 		return INA_ERROR(INA_ERR_OPERATION_INVALID);
