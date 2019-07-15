@@ -208,7 +208,7 @@ INA_TEST_SKIP(process, stat)
     int num_threads = 0;
     const char *cmd = NULL;
 
-    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, __INA_TEST_EXE));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(__INA_TEST_EXE, &ps));
     INA_TEST_ASSERT_NOT_NULL(ps);
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_query(ps));
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_alive(ps, &alive));
@@ -229,7 +229,7 @@ INA_TEST_SKIP(process, stat)
 #ifdef INA_OS_WIN32
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo.exe"));
 #else
-    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo"));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new("foo", &ps));
 #endif
     INA_TEST_ASSERT_NOT_NULL(ps);
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_query(ps));
@@ -242,4 +242,73 @@ INA_TEST_SKIP(process, stat)
     INA_TEST_ASSERT_TRUE(num_threads == 0);
     ina_process_stat_free(&ps);
     INA_TEST_ASSERT_NULL(ps);
+}
+
+INA_TEST(process, invalid_arguments)
+{
+    ina_process_ctx_t *ctx = NULL;
+    ina_process_descriptor_t *ds = NULL;
+    ina_process_t *process = NULL;
+    ina_fsm_state_t state = 0;
+    ina_process_stat_t *stat;
+    const char* c = NULL;
+    uint64_t u64 = 0;
+    int fake  = 0;
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_ctx_new(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_descriptor_new(NULL, "test.exe", "c:\\temp", "-b", 0, 0, &ds));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_descriptor_new(ctx, NULL, "c:\\temp", "-b", 0, 0, &ds));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_descriptor_new(ctx, "", "c:\\temp", "-b", 0, 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_exec(NULL, "test.exe", "-b", &process));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_exec(ctx, NULL, "-b", &process));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_exec(ctx, "", "-b", &process));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_exec(ctx, "test.exe", "-b", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_exec_and_wait(NULL, "test.exe", "-b", &process));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_exec_and_wait(ctx, NULL, "-b", &process));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_exec_and_wait(ctx, "", "-b", &process));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_exec_and_wait(ctx, "test.exe", "-b", NULL));
+
+    ctx = (ina_process_ctx_t*)&fake;
+    ds = (ina_process_descriptor_t*)&fake;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_new(NULL, ds, &process));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_new(ctx, NULL, &process));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_new(ctx, ds, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_start(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stop(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_query_state(NULL, &state));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_query_state(process, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_get_exit_code(NULL, &fake));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_get_exit_code(process, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_should_be_running(NULL, &fake));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_should_be_running(process, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_new(NULL, &stat));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_new("", &stat));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_new("test.exe", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_query(NULL));
+
+    stat = (ina_process_stat_t*)&fake;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_alive(NULL, &fake));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_alive(stat, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_get_cmd(NULL, &c));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_get_cmd(stat, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_get_memory(NULL, &u64));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_get_memory(stat, NULL));
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_get_num_threads(NULL, &fake));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_get_num_threads(stat, NULL));
+
+
+
 }
