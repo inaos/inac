@@ -119,11 +119,8 @@ INA_API(ina_rc_t) ina_stopwatch_foreach_stamp(ina_stopwatch_t *stopwatch,
  *
  * Parameters
  *  stopwatch  Stopwatch to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_stopwatch_free(ina_stopwatch_t **stopwatch);
+INA_API(void) ina_stopwatch_free(ina_stopwatch_t **stopwatch);
 
 /*
  * Check if stopwatch started.
