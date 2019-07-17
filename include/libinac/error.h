@@ -32,17 +32,17 @@ extern INA_TLS(ina_rc_t) __rc;
 #define INA_RC_BIT_S 00U
 
 /* Accessors */
-#define INA_RC_EFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_E) & 0x1))
-#define INA_RC_VER(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_V) & 0x7))
-#define INA_RC_REV(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_R) & 0xFF))
-#define INA_RC_ERRNO(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_O) & 0xFFFF))
-#define INA_RC_UBITS(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_U) & 0xFF))
-#define INA_RC_NFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_N) & 0x1))
+#define INA_RC_EFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_E) & 0x1UL))
+#define INA_RC_VER(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_V) & 0x7UL))
+#define INA_RC_REV(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_R) & 0xFFUL))
+#define INA_RC_ERRNO(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_O) & 0xFFFFUL))
+#define INA_RC_UBITS(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_U) & 0xFFUL))
+#define INA_RC_NFLAG(rc)   ((uint32_t)(((rc) >> INA_RC_BIT_N) & 0x1UL))
 #define INA_RC_CODE(rc)    ((uint32_t)((rc)&( 0xFFULL << INA_RC_BIT_C)))
-#define INA_RC_ADJ(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFF))
-#define INA_RC_SUBJECT(rc) ((uint32_t)(((rc) >> INA_RC_BIT_S) & 0x7FFF))
-#define INA_RC_ERROR(rc)   ((uint32_t)((INA_MID_BITS((rc), INA_RC_BIT_U-INA_RC_BIT_N, INA_RC_BIT_N)<<(INA_RC_BIT_N-1))))
-#define INA_RC_ERRMSG(rc)  ((uint32_t)((rc) & 0xFFFFFF))
+#define INA_RC_ADJ(rc)     ((uint32_t)(((rc) >> INA_RC_BIT_C) & 0xFFUL))
+#define INA_RC_SUBJECT(rc) ((uint32_t)(((rc) >> INA_RC_BIT_S) & 0x7FFFUL))
+#define INA_RC_ERROR(rc)   ((uint32_t)((INA_MID_BITS((rc), INA_RC_BIT_U-INA_RC_BIT_N, INA_RC_BIT_N)<<(INA_RC_BIT_N-1UL))))
+#define INA_RC_ERRMSG(rc)  ((uint32_t)((rc) & 0xFFFFFFUL))
 
 /* Flags */
 #define INA_ERR_ERROR               (  1ULL << INA_RC_BIT_E) /* Error-bit  */
