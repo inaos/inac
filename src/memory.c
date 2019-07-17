@@ -585,7 +585,6 @@ __ina_shm_close(ina_mempool_t *pool)
 {
 	INA_ASSERT_NOT_NULL(pool);
 	INA_ASSERT(pool->size > 0);
-	INA_ASSERT_NOT_NULL(pool->label);
 	int64_t cn;
 
 	if (pool->m == NULL) {
@@ -611,7 +610,6 @@ __ina_shm_close(ina_mempool_t *pool)
 		shm_unlink(ina_str_cstr(pool->label));
 	}
 	INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
-	ina_str_free(pool->label);
 
 	return INA_SUCCESS;
 }
