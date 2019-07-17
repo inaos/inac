@@ -46,13 +46,10 @@ INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time)
+INA_API(void) ina_time_sys_free(ina_time_t **time)
 {
-    INA_VERIFY_NOT_NULL(time);
-    INA_VERIFY_NOT_NULL(*time);
-    ina_mem_free(*time);
-    *time = NULL;
-    return INA_SUCCESS;
+    INA_VERIFY_FREE(time);
+    INA_MEM_FREE_SAFE(*time);
 }
 
 INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
@@ -74,6 +71,8 @@ INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *se
 #ifdef INA_OS_WIN32
     unsigned __int64 tmpres = 0;
     INA_VERIFY_NOT_NULL(time);
+    INA_VERIFY_NOT_NULL(secs);
+    INA_VERIFY_NOT_NULL(micros);
     tmpres |= time->systime.dwHighDateTime;
     tmpres <<= 32;
     tmpres |= time->systime.dwLowDateTime;
@@ -84,6 +83,8 @@ INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *se
     *micros = (long)(tmpres % 1000000UL);
 #else
     INA_VERIFY_NOT_NULL(time);
+    INA_VERIFY_NOT_NULL(secs);
+    INA_VERIFY_NOT_NULL(micros);
     *secs = time->systime.tv_sec;
     *micros = time->systime.tv_usec;
 #endif

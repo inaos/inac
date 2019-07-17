@@ -72,14 +72,10 @@ INA_API(ina_rc_t) ina_timer_event_new_with_time(ina_timer_t *timer,
  * Delete a time event from a timer.
  *
  * Parameter
- *  timer  Timer
  *  e      Timer event to delete from timer.
- *
- * Return
- *  INA_SUCCESS
+
  */
-INA_API(ina_rc_t) ina_timer_event_free(ina_timer_t *timer,
-                                       ina_timer_event_t *e);
+INA_API(void) ina_timer_event_free(ina_timer_t *timer, ina_timer_event_t **e);
 
 
 /*
@@ -92,7 +88,7 @@ INA_API(ina_rc_t) ina_timer_event_free(ina_timer_t *timer,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_timer_event_get_id(const ina_timer_event_t *event, uint64_t *id);
+INA_API(ina_rc_t) ina_timer_event_get_id(const ina_timer_event_t *event, int *id);
 
 /*
  * Get the next elapsed time event.
