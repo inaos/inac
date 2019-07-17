@@ -49,6 +49,10 @@ INA_TEST(string, alligned)
 
 INA_TEST_FIXTURE(string_mempool, ina_str_new_using_pool)
 {
+    ina_err_reset();
+    INA_TEST_ASSERT_NULL(ina_str_new_using_pool(128, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
     ina_str_t str = ina_str_new_using_pool(0, data->pool);
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
@@ -64,14 +68,22 @@ INA_TEST(string, ina_str_new_using_pool)
     ina_str_t str = ina_str_new_using_pool(4096, mp);
     INA_TEST_ASSERT_NULL(str);
     INA_TEST_ASSERT_ERRMSG(INA_ERR_POOL_FULL, ina_err_get_rc());
+
+    ina_err_reset();
+    INA_TEST_ASSERT_NULL(ina_str_new_using_pool(128, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
+    ina_mempool_free(&mp);
 }
 
 INA_TEST(string, ina_str_new_fromblk)
 {
     ina_str_t str = NULL;
     char blk[] = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
-    INA_TEST_ASSERT_NULL(ina_str_new_fromblk(NULL, 0));
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+    str = ina_str_new_fromblk(NULL, 128);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_STR("", str);
+    ina_str_free(str);
 
     str = ina_str_new_fromblk(&blk[5], 4);
     INA_TEST_ASSERT_NOT_NULL(str);
@@ -899,4 +911,17 @@ INA_TEST(string, assign)
     ina_str_catcstr(str, "hallo");
     INA_TEST_ASSERT_SAME(&buf2, ina_str_release_buf(str));
     INA_TEST_ASSERT_EQUAL_STR("hallo", buf2);
+
+    ina_err_reset();
+    INA_TEST_ASSERT_NULL(ina_str_assign_buf(NULL, 128));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
+    ina_err_reset();
+    INA_TEST_ASSERT_NULL(ina_str_assign_buf(buf2, 1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
+    ina_err_reset();
+    INA_TEST_ASSERT_NULL(ina_str_release_buf(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
+
 }
