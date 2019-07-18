@@ -14,7 +14,7 @@
 #include <dlfcn.h>
 #endif
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define snprintf sprintf_s
 #endif
 
@@ -340,7 +340,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     va_list ap;
     char* args[16];
     size_t n = 0;
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 
     INA_ASSERT_NOT_NULL(hid);
 
@@ -439,7 +439,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
 INA_API(ina_rc_t) ina_test_helper_terminate(ina_test_hid_t *hid)
 {
     INA_ASSERT_NOT_NULL(hid);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     if (hid->hProcess != NULL) {
         TerminateProcess(hid->hProcess, 0);
         CloseHandle(hid->hProcess);
@@ -562,7 +562,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
     }
     end++;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     _set_abort_behavior(0, _WRITE_ABORT_MSG);
 #endif
  

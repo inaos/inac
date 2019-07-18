@@ -1,5 +1,5 @@
 #include "../../include/libinac/lib.h"
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     #pragma warning(push, 0)
     #include <intrin.h>
     #pragma warning(pop)
@@ -20,7 +20,7 @@
 #define _In_reads_bytes_(x)
 #endif
 
-#if defined(INA_OS_WIN32) || defined(__AES__)
+#if defined(INA_OS_WINDOWS) || defined(__AES__)
 /* falkhash()
  *
  * Summary:

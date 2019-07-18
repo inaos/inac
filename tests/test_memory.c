@@ -88,12 +88,12 @@ INA_TEST(memory, memory_alloc_aligned)
 INA_TEST(memory, pagesize)
 {
     size_t size = 0;
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     SYSTEM_INFO si;
 #endif
 
     INA_TEST_ASSERT_SUCCEED(ina_mem_get_pagesize(&size));
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
     INA_TEST_ASSERT_TRUE((size_t)sysconf(_SC_PAGESIZE) == size);
 #else
     GetSystemInfo(&si);

@@ -61,7 +61,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     cmd = ina_str_new_fromcstr("dir.exe .");
     wd = ina_str_new_fromcstr("c:\\windows");
 #else
@@ -72,7 +72,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
     INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd));
     ina_str_free(cmd);
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     cmd = ina_str_new_fromcstr("pwd.exe .");
 #else
     cmd = ina_str_new_fromcstr("pwd");
@@ -81,7 +81,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
     INA_TEST_ASSERT_SUCCEED(ina_cron_event_set_exec_params(e, cmd, wd));
     ina_str_free(cmd);
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     cmd = ina_str_new_fromcstr("mkdir.exe .");
 #else
     cmd = ina_str_new_fromcstr("mkdir");
@@ -121,7 +121,7 @@ INA_TEST_SKIP(cron, add_task_and_exec)
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     cmd = ina_str_new_fromcstr("pwd.exe");
     wd = ina_str_new_fromcstr("c:\\windows");
 #else

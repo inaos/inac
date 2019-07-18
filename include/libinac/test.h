@@ -22,7 +22,7 @@ extern "C" {
 /* Test helper handle */
 typedef struct ina_test_hid_s ina_test_hid_t;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 struct ina_test_hid_s {
     HANDLE hProcess;
     HANDLE hThread;
@@ -556,7 +556,7 @@ typedef struct ina_test_testcase_s {
 #ifdef INA_OS_OSX
 #define INA_TEST_SECTION __attribute__ ((unused,section ("__DATA, .inatest")))
 #define INA_TEST_SECTION_PUSH
-#elif INA_OS_WIN32
+#elif INA_OS_WINDOWS
 #pragma section(".inatest", read)
 #define INA_TEST_SECTION
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
@@ -582,7 +582,7 @@ typedef struct ina_test_testcase_s {
 /* Define data for a test suite */
 #define INA_TEST_DATA(sname) struct sname##_data
 /* Define setup code für a suite */ 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #define INA_TEST_SETUP(sname)                                               \
     void sname##_setup(struct sname##_data* data)
 /* Define teardown code for a suite */
@@ -624,7 +624,7 @@ typedef struct ina_test_testcase_s {
     void INA_TEST_FNAME(sname, hname)(int *retval, int argc, char **argv)
 
 /* Define test case */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_TEST_WIN32(sname, tname) INA_TEST(sname, tname)
 #define INA_TEST_SKIP_WIN32(sname, tname) INA_TEST_SKIP(sname, tname) INA_TEST_DECL(sname, tname, 1)
 #define INA_TEST_FIXTURE_WIN32(sname, tname) INA_TEST_FIXTURE(sname, tname)

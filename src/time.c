@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define __INA_TIME_TSC_BACKEND_NAME "tsc backend: QueryPerformanceCounter()"
 #endif
 #define __INA_TIME_RDTSC_BACKEND_NAME "tsc backend: rdtsc()"
@@ -42,7 +42,7 @@ struct ina_stopwatch_s {
     ina_mempool_t *mp;        /* memory pool */
     ina_stopwatch_tv_t *tv;   /* stopwatch data */
     ina_stopwatch_ts_t *ts;   /* current time stamp */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     double freq_sec;          /* WIN32: tick count per second */
 #endif
 };
@@ -61,7 +61,7 @@ static uint64_t __ina_time_rdtsc_refhpet = 0;
 static uint64_t __ina_time_rdtsc_ref = 0;
 
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 INA_INLINE double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER * L)
 {
     return ((double)L->QuadPart / freq_sec);
@@ -291,7 +291,7 @@ INA_API(ina_rc_t) ina_time_strptime(ina_str_t input,
 	INA_UNUSED(input);
 	INA_UNUSED(fmt);
 	INA_UNUSED(time);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     /* http://stackoverflow.com/questions/321849/strptime-equivalent-on-windows
        sscanf variant .. how to make it generic ?
     */
@@ -342,7 +342,7 @@ INA_API(ina_rc_t) ina_time_tsc_strftime(ina_str_t buf,
 
 INA_API(ina_rc_t) ina_time_sleep(time_t msec)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     Sleep((DWORD)msec);
 #else 
     if (INA_UNLIKELY(usleep(msec*1000) == -1)) {
@@ -356,7 +356,7 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec)
 static ina_rc_t
 __ina_time_tsc_os_read(ina_time_tsc_t *time)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     QueryPerformanceCounter(&time->tp);
 #else
     if (clock_gettime(__INA_CLOCK_TYPE, &time->tp) == -1) {
@@ -368,7 +368,7 @@ __ina_time_tsc_os_read(ina_time_tsc_t *time)
 static ina_rc_t 
 __ina_time_tsc_os_secnan(const ina_time_tsc_t* time, time_t *secs, long *nanos)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     int64_t diff_cnt = time->tp.QuadPart - time->wref.QuadPart;
     double dsecs = diff_cnt / time->freq_sec;
     double ipart = 0;

@@ -10,7 +10,7 @@
 #include "config.h"
 
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #define __INA_LPATH "./?.lua;"
 #else
 #define __INA_LPATH ".\\?.lua;"

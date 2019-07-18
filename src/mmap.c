@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #include <sys/mman.h>
 #endif
 
@@ -18,7 +18,7 @@ struct ina_mmap_ctx_s {
 };
 
 struct ina_mmap_mapping_s {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 	HANDLE fmap;
 	LPVOID lpMapAddress;
 #else
@@ -56,7 +56,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	ina_file_stat_t *fstat = NULL;
 	uint64_t flen = 0;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 	DWORD flProtect = 0;
 	uint64_t llFileMapStart;
 	uint64_t llMapViewSize;
@@ -87,7 +87,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	(*mapping)->length = length;
 	(*mapping)->offset = offset;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 	(*mapping)->fmap = NULL;
 	if (prot_flags & INA_MMAP_MEM_PROT_READ) {
 		if (share & INA_MMAP_MEM_PROT_EXEC) {
@@ -200,7 +200,7 @@ INA_API(void) ina_mmap_free(ina_mmap_mapping_t **mapping)
 {
    INA_VERIFY_FREE(mapping);
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 	UnmapViewOfFile((*mapping)->lpMapAddress);
 	CloseHandle((*mapping)->fmap);
 #else
@@ -214,7 +214,7 @@ INA_API(void) ina_mmap_free(ina_mmap_mapping_t **mapping)
 INA_API(ina_rc_t) ina_mmap_sync(ina_mmap_mapping_t *mapping)
 {
 	INA_VERIFY_NOT_NULL(mapping);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 	if (!FlushViewOfFile(mapping->begin_mmap, 0)) {
 		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
 	}
@@ -247,7 +247,7 @@ INA_API(ina_rc_t) ina_mmap_memory_tail(ina_mmap_mapping_t *mapping, void **memor
 
 INA_API(ina_rc_t) ina_mmap_advice(ina_mmap_mapping_t *mapping, size_t length, ina_mmap_mem_advice_t advice)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 	INA_UNUSED(mapping);
 	INA_UNUSED(length);
 	INA_UNUSED(advice);

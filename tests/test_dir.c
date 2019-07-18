@@ -8,7 +8,7 @@
  */
 #include <libinac/lib.h>
 #include <sys/stat.h>
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #include <unistd.h>
 #else
 #include <direct.h>
@@ -36,7 +36,7 @@ INA_TEST_SETUP(dir) {
 
     data->tmp_dir = ina_str_new(2048);
     ina_str_t dir = ina_str_new(2048);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     ina_str_catcstr(data->tmp_dir, getenv("TEMP"));
     ina_str_catcstr(data->tmp_dir, "/inac_test_dir");
 #else
