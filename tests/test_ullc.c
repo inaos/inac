@@ -9,6 +9,195 @@
 #include <libinac/lib.h>
 #include "test_ullc.h"
 
+INA_TEST(ullc, ina_ullc_producer_new)
+{
+    ina_ullc_ctx_t *ctx = NULL;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(0, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, 0, 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 0, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 0, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, (INA_ULLC_MAX_PRODUCERS+1), 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 0, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, (INA_ULLC_MAX_CONSUMERS+1), "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, NULL, INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    ina_ullc_producer_free(&ctx);
+    INA_TEST_ASSERT_NULL(ctx);
+}
+
+INA_TEST(ullc, ina_ullc_get_ring_info)
+{
+    ina_ullc_rb_info_t info;
+    ina_ullc_ctx_t *ctx = NULL;
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_get_ring_info(NULL, &info));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_get_ring_info("/ina_ullc_xx1", NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_get_ring_info("/ina_ullc_xx1", &info));
+    ina_ullc_producer_free(&ctx);
+}
+
+
+INA_TEST(ullc, ina_ullc_reset_ring)
+{
+    ina_ullc_ctx_t *ctx = NULL;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_reset_ring(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_reset_ring(""));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_reset_ring("/ina_ullc_xx1"));
+    ina_ullc_producer_free(&ctx);
+}
+
+INA_TEST(ullc, ina_ullc_overrun_disable)
+{
+    ina_ullc_ctx_t *ctx = NULL;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_overrun_disable(NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_overrun_disable(ctx));
+    ina_ullc_producer_free(&ctx);
+}
+
+INA_TEST(ullc, ina_ullc_overrun_enable)
+{
+    ina_ullc_ctx_t *ctx = NULL;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_overrun_enable(NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_overrun_disable(ctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_overrun_enable(ctx));
+    ina_ullc_producer_free(&ctx);
+}
+
+INA_TEST(ullc, ina_ullc_producer_commit) {
+    ina_ullc_ctx_t *pctx = NULL;
+    ina_ullc_ctx_t *cctx = NULL;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_commit(NULL));
+    INA_TEST_ASSERT_SUCCEED(
+            ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT,
+                                  &pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_commit(cctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_commit(pctx));
+    ina_ullc_consumer_free(&cctx);
+    ina_ullc_producer_free(&pctx);
+}
+
+INA_TEST(ullc, ina_ullc_producer_get_pos)
+{
+    ina_ullc_ctx_t *pctx = NULL;
+    ina_ullc_ctx_t *cctx = NULL;
+    int64_t pos  = -1;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_get_pos(NULL, &pos));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", &cctx));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_get_pos(NULL, &pos));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_get_pos(pctx, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_producer_get_pos(cctx, &pos));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_get_pos(pctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(0, pos);
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_commit(pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_get_pos(pctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(1, pos);
+    ina_ullc_consumer_free(&cctx);
+    ina_ullc_producer_free(&pctx);
+}
+
+INA_TEST(ullc, ina_ullc_consumer_new)
+{
+    ina_ullc_ctx_t *cctx = NULL;
+    ina_ullc_ctx_t *pctx = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &pctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(0, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, 0, 1024, 1, 1, "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 0, 1, 1, "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 0, 1, "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, (INA_ULLC_MAX_PRODUCERS+1), 1, "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 0, "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, (INA_ULLC_MAX_CONSUMERS+1), "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, NULL, &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "", &cctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", &cctx));
+    INA_TEST_ASSERT_NOT_NULL(cctx);
+    ina_ullc_consumer_free(&cctx);
+    INA_TEST_ASSERT_NULL(cctx);
+    ina_ullc_producer_free(&pctx);
+}
+
+INA_TEST(ullc, ina_ullc_consumer_get_pos)
+{
+    ina_ullc_ctx_t *pctx = NULL;
+    ina_ullc_ctx_t *cctx = NULL;
+    int64_t pos  = -1;
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", &cctx));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_get_pos(NULL, &pos));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_get_pos(cctx, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_get_pos(pctx, &pos));
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_commit(pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_commit(pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(cctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(0, pos);
+    ina_ullc_consumer_get(cctx);
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(cctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(1, pos);
+    ina_ullc_consumer_get(cctx);
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(cctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(2, pos);
+    ina_ullc_consumer_get(cctx);
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(cctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(2, pos);
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_commit(pctx));
+    ina_ullc_consumer_get(cctx);
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(cctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(3, pos);
+
+    ina_ullc_consumer_free(&cctx);
+    ina_ullc_producer_free(&pctx);
+}
+
+INA_TEST(ullc, ina_ullc_consumer_set_pos)
+{
+    ina_ullc_ctx_t *pctx = NULL;
+    ina_ullc_ctx_t *cctx = NULL;
+    int64_t pos = 0;
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", INA_ULLC_WS_BUSY_WAIT, &pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_new(1, sizeof(ina_test_ullc_t), 1024, 1, 1, "/ina_ullc_xx1", &cctx));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_set_pos(NULL, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ullc_consumer_set_pos(pctx, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_commit(pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_commit(pctx));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_producer_commit(pctx));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(cctx, 0));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(cctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(0, pos);
+
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(cctx, 2));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(cctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(2, pos);
+
+    pos = 0;
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_set_pos(cctx, 10));
+    INA_TEST_ASSERT_SUCCEED(ina_ullc_consumer_get_pos(cctx, &pos));
+    INA_TEST_ASSERT_EQUAL_INT64(3, pos);
+
+    ina_ullc_consumer_free(&cctx);
+    ina_ullc_producer_free(&pctx);
+}
+
 INA_TEST(ullc, slow_consumer)
 {
     ina_ullc_ctx_t *ullc;
