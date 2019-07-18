@@ -70,8 +70,10 @@ INA_TEST(stopwatch, two_stopwatches)
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(ts2, &sec2, &nano2));
     INA_TEST_ASSERT_EQUAL_INT(sec1, sec2);
     INA_TEST_ASSERT_TRUE(nano1< nano2);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w1));
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w2));
+    ina_stopwatch_free(&w1);
+    INA_ASSERT_NULL(w1);
+    ina_stopwatch_free(&w2);
+    INA_ASSERT_NULL(w2);
 } 
 #endif
 
