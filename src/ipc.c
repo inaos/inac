@@ -218,7 +218,7 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
             break;
         }
     }
-    ina_timer_event_free(flags->timer, event);
+    ina_timer_event_free(flags->timer, &event);
 
     if (timeout == INA_YES) {
         return INA_ERROR(INA_ERR_TIMED_OUT);

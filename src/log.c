@@ -242,7 +242,7 @@ INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const cha
 
     INA_VERIFY_NOT_NULL(log);
     INA_VERIFY_NOT_NULL(fmt);
-    INA_VERIFY_NOT_NULL(strlen(fmt));
+    INA_VERIFY(strlen(fmt));
 
     va_start(ap, fmt);
     rc = ina_log_v(log, level, location, fmt, ap);

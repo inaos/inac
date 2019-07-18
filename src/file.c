@@ -312,7 +312,7 @@ INA_API(ina_rc_t) ina_file_stat_new(const ina_file_t *file, ina_file_stat_t **st
     *stat = (ina_file_stat_t*)ina_mem_alloc(sizeof(ina_file_stat_t));
     INA_RETURN_IF_NULL(*stat);
     if (file != NULL) {
-        return ina_file_stat_sync(*stat, file);
+        return ina_file_stat_sync(file, *stat);
     }
     return INA_SUCCESS;
 }
