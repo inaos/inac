@@ -190,10 +190,9 @@ extern "C" {
 #endif
 
 #if defined _WIN32 || defined WIN32 || defined __NT__ || defined __WIN32__
-#  define INA_OS_WIN32 1
+#  define INA_OS_WINDOWS 1
 #  if !defined INA_OS_XBOX
 #     if defined _WIN64
-#        define INA_OS_WIN64 1
 #        define INA_OS_STRING "Win64"
 #     else
 #        if !defined INA_OS_STRING
@@ -355,13 +354,13 @@ extern "C" {
    defined to `inline', otherwise empty. In C++, the inline is always
    supported. */
 #ifdef __cplusplus
-#  ifdef INA_OS_WIN32
+#  ifdef INA_OS_WINDOWS
 #    define INA_INLINE __inline
 #  else
 #   define INA_INLINE static inline
 #  endif
 #else
-#  ifdef INA_OS_WIN32
+#  ifdef INA_OS_WINDOWS
 #    define INA_INLINE __forceinline
 #  else
 #    define INA_INLINE static inline
@@ -379,7 +378,7 @@ extern "C" {
 #endif
 
 #if defined INA_DLL
-#   if defined INA_OS_WIN32
+#   if defined INA_OS_WINDOWS
 #      if defined _MSC_VER 
 #         if ( _MSC_VER >= 800 )
 #            if defined INA_LIB
@@ -421,7 +420,7 @@ extern "C" {
 #      if !defined INA_EXPORT
 #         error Building DLLs not supported on this compiler
 #      endif
-#   endif /* defined INA_OS_WIN32 */
+#   endif /* defined INA_OS_WINDOWS */
 #endif
 
 /* On pretty much everything else, we can thankfully just ignore this */
@@ -461,7 +460,7 @@ extern "C" {
  * little endian, such as Windows.  Some processors are bi-endian, such as 
  * the MIPS series, so we have to be careful about those.
 */
-#if defined INA_CPU_X86 || defined INA_CPU_AXP || defined INA_CPU_STRONGARM || defined INA_OS_WIN32 || defined INA_OS_WINCE || defined __MIPSEL__
+#if defined INA_CPU_X86 || defined INA_CPU_AXP || defined INA_CPU_STRONGARM || defined INA_OS_WINDOWS || defined INA_OS_WINCE || defined __MIPSEL__
 #  define INA_ENDIAN_STRING "little"
 #  define INA_LITTLE_ENDIAN 1
 #else
@@ -980,7 +979,7 @@ typedef uint_least32_t uint_fast32_t;
 # define SIG_ATOMIC_MAX ((((sig_atomic_t) 1) << (sizeof (sig_atomic_t)*CHAR_BIT-1)) - 1)
 #endif
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #define INA_MAX(a,b) \
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
@@ -1008,7 +1007,7 @@ typedef uint_least32_t uint_fast32_t;
 #define INA_TOWORD(x,y)  (((x) << 8) | y)
            
            
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 struct timezone {
      int  tz_minuteswest; /* minutes W of Greenwich */
      int  tz_dsttime;     /* type of dst correction */
@@ -1022,7 +1021,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #define INA_UINT64_T_FMT PRIu64
 
 /* Pack */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #  if defined(INA_COMPILER_MSVC) || defined(INA_COMPILER_INTEL)
 #    define INA_ALIGNED(x) __declspec(align(x))
 #    define INA_VSALIGNED128 INA_ALIGNED(128)
@@ -1110,7 +1109,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /* Atomic operations */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_ATOMIC_INC(vv_ptr) InterlockedIncrement64(vv_ptr)
 #define INA_ATOMIC_DEC(vv_ptr) InterlockedDecrement64(vv_ptr)
 #define INA_ATOMIC_SWAP(vv_ptr,old,new) InterlockedCompareExchange64(vv_ptr,new,old)
@@ -1123,7 +1122,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /* Branch prediction hints */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_LIKELY(x)    (x)
 #define INA_UNLIKELY(x)  (x)
 #elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
@@ -1134,7 +1133,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /* C99 restrict a.k.a. pointer aliasing hint */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_RESTRICT    __restrict
 #elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
 #define INA_RESTRICT    __restrict__
@@ -1143,7 +1142,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /* byte swapping */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_BSWAP_16 _byteswap_ushort
 #define INA_BSWAP_32 _byteswap_ulong
 #define INA_BSWAP_64 _byteswap_uint64
@@ -1155,11 +1154,11 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #error Compiler not supported yet for INAC!
 #endif
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 int inet_aton(const char *address, struct in_addr *sock);
 #endif
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 typedef HANDLE ina_handle_t;
 typedef char ina_semkey_t[MAX_PATH];
 #else
@@ -1168,13 +1167,13 @@ typedef int ina_semkey_t;
 #endif
 
 /* FD for net.h */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 typedef SOCKET ina_fd_t;
 #else
 typedef int ina_fd_t;
 #endif
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 typedef int mode_t;
 
 /* If STRICT_UGO_PERMISSIONS is not defined, then setting Read for any
@@ -1242,7 +1241,7 @@ void  rewinddir(DIR *dir);
  * thread-local-safe variable
  */
 #ifndef INA_TLS
-#   ifndef INA_OS_WIN32
+#   ifndef INA_OS_WINDOWS
 #       define INA_TLS(x) __thread x             // MingW, Solaris Studio C/C++, IBM XL C/C++, GNU C, Clang and Intel C++ Compiler (Linux systems)
 #   else
 #       define INA_TLS(x) __declspec(thread) x   // Visual C++, Intel C/C++ (Windows systems), C++Builder and Digital Mars C++
@@ -1315,6 +1314,7 @@ void  rewinddir(DIR *dir);
 #define INA_SIMD_IVDEP
 #endif
 
+#define INA_MM_PAUSE _mm_pause()
 
 #ifdef __cplusplus
 }

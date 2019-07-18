@@ -381,6 +381,19 @@ INA_TEST_FIXTURE(string_mempool, ina_str_ncatcstr)
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
 }
 
+INA_TEST(string, ina_str_append_chr)
+{
+    ina_str_t str = ina_str_new_fromcstr("test");
+
+    str = ina_str_append_chr(str, '1');
+    INA_TEST_ASSERT_EQUAL_STR("test1", str);
+    str = ina_str_append_chr(str, '2');
+    INA_TEST_ASSERT_EQUAL_STR("test12", str);
+    ina_str_free(str);
+
+
+}
+
 INA_TEST(string, ina_str_len)
 {
     ina_str_t str = ina_str_new_fromcstr("an INAC string");

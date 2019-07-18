@@ -6,11 +6,12 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
-#ifndef INA_OS_WIN32
+#include <libinac/lib.h>
+
+#ifndef INA_OS_WINDOWS
 #define _GNU_SOURCE  
 #include <sched.h>
 #endif
-#include <libinac/lib.h>
 
 #if !defined(CLOCK_MONOTONIC_RAW)
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
@@ -44,7 +45,7 @@ INA_TEST(stopwatch ,time_stamp)
     INA_TEST_ASSERT_NULL(w);
 }
 
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
 INA_TEST(stopwatch, two_stopwatches)
 {
     ina_stopwatch_t *w1 = NULL;
@@ -146,7 +147,7 @@ INA_TEST_SKIP(stopwatch, stopwatch_startime_rdtsc)
     ina_stopwatch_ts_t *ts;
     double duration;
 
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
@@ -244,7 +245,7 @@ INA_TEST_DATA(stopwatch_ipc_rdtsc) {
 };
 
 INA_TEST_SETUP(stopwatch_ipc_rdtsc) {
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
@@ -264,7 +265,7 @@ INA_TEST_TEARDOWN(stopwatch_ipc_rdtsc)
     ina_stopwatch_free(&data->w);
 }
 
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
 INA_TEST_FIXTURE(stopwatch_ipc_rdtsc, stopwatch_open_rdtsc) {
     int64_t c = 0;
     ina_time_tsc_t time;

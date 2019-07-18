@@ -16,7 +16,7 @@
 
 static int __ina_get_cursor_pos(ina_cio_pos_t *pos);
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #include <io.h>
 
 static short int __fg_colors[] = {
@@ -104,7 +104,7 @@ INA_API(void) ina_cio_destroy(void)
 
 INA_API(ina_rc_t) ina_cio_clear(void)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     COORD pos = { 0, 0 };
     DWORD cars;
     HANDLE hStdOut = GetStdHandle( STD_OUTPUT_HANDLE );
@@ -152,7 +152,7 @@ INA_API(ina_rc_t) ina_cio_reset(void)
 	
 INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     CONSOLE_SCREEN_BUFFER_INFO info;
 #endif
    __INA_CHECK_TTTY;
@@ -160,7 +160,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
     INA_VERIFY_NOT_NULL(pos);
     pos->row = pos->col = 0;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
     pos->row = info.srWindow.Bottom + 1;
     pos->col = info.srWindow.Right + 1;
@@ -175,7 +175,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 
 INA_API(ina_rc_t) ina_cio_show_cursor(int show) 
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     CONSOLE_CURSOR_INFO info;
 
     info.dwSize = 10;
@@ -205,7 +205,7 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
         __attribs.flags = 0;
     }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     SetConsoleTextAttribute(
         GetStdHandle(STD_OUTPUT_HANDLE),
         __bg_colors[__attribs.bg_color] | __fg_colors[__attribs.fg_color]
@@ -251,7 +251,7 @@ INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos)
 
 INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int row, int col)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     COORD wpos;
 #endif
    __INA_CHECK_TTTY;
@@ -267,7 +267,7 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int row, int col)
         }
         return ina_cio_move_to_row_and_col(row, pos.col);
     }
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 
     wpos.X = (short)col;
     wpos.Y = (short)row;
@@ -290,30 +290,15 @@ INA_API(int) ina_cio_printf(int row, int col,
     va_list args;
     int size;
     int setattribs = INA_NO;
-    int setpos = INA_NO;
 
     if (fmt == NULL) {
-        INA_ERROR(INA_ES_ARGUMENT | INA_ERR_INVALID);
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return -1;
     }
 
-    pos.col = 0;
-    pos.row = 0;
-
     if (_isatty(_fileno(stdout))) {
         
-        if (row >= 0 && row != pos.row)  {
-            pos.row = (uint8_t)row;
-            setpos = INA_YES;
-        }
-        if (col >= 0 && row != pos.row) {
-            pos.col = (uint8_t)col;
-            setpos = INA_YES;
-        }
-        if (setpos == INA_YES) {
-            ina_cio_move_to_pos(&pos);
-        }
-        
+        ina_cio_move_to_row_and_col(row, col);
         ina_cio_get_attribs(&attribs);
     
         if (attribs.fg_color != fg_color) {
@@ -345,7 +330,7 @@ INA_API(int) ina_cio_printf(int row, int col,
     return size;
 }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static int
 __ina_get_cursor_pos(ina_cio_pos_t* pos)
 {
@@ -513,7 +498,7 @@ __ina_get_cursor_pos(ina_cio_pos_t *pos)
 #endif
 
 #define __INA_CIO_READ_BUFFER_CHUNK_SIZE 128
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_buffer, 
                                      size_t *buf_cur, size_t *buf_len, int *finished, int rcv)
 {
@@ -643,19 +628,17 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
                                     size_t *nb_buf_len, size_t *nb_buf_pos, int rcv)
 {
-    ina_rc_t rc = INA_SUCCESS;
     char *buf = NULL;
-
+    ina_rc_t rc = INA_SUCCESS;
     struct termios new_termios;
-    struct termios old_termios;
-    
-    tcgetattr(STDIN_FILENO, &old_termios);
-    memcpy(&new_termios, &old_termios, sizeof(new_termios));
-    cfmakeraw(&new_termios);
+    static struct termios old_termios;
+
     if (rcv) {
+        tcgetattr(STDIN_FILENO, &old_termios);
+        memcpy(&new_termios, &old_termios, sizeof(new_termios));
         new_termios.c_lflag &= ~(ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
     }
-    tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
 
     while (1) {
         struct timeval tv = { 0L, 0L };
@@ -666,17 +649,16 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
         rt = select(1, &fds, NULL, NULL, &tv);
 
         if (!rt && blocking == INA_NO) {
-            rc =  INA_ERR_TRY_AGAIN;
+            rc = INA_ERROR(INA_ERR_TRY_AGAIN);
             break;
         }
 
         if (rt) {
-            int r;
             unsigned char c;
         
-            if ((r = read(0, &c, sizeof(c))) < 0) {
+            if ((read(0, &c, sizeof(c))) < 0) {
                 if (blocking == INA_NO) {
-                    rc =  INA_ERR_TRY_AGAIN;
+                    rc = INA_ERROR(INA_ERR_TRY_AGAIN);
                     break;
                 }
                 ina_time_sleep(50);
@@ -716,10 +698,7 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                 buf = *nb_buf;
                 buf[*nb_buf_pos] = (char)c;
                 *nb_buf_pos += 1;
-                if (!rcv) {
-                    fprintf(stdout, "%c", c);
-                    fflush(stdout);
-                } else {
+                if (rcv) {
                     *line = ina_str_new_fromcstr(*nb_buf);
                     ina_mem_free(*nb_buf);
                     *nb_buf = NULL;
@@ -727,12 +706,14 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                     *nb_buf_len = 0;
                     fprintf(stdout, "\b \b");
                     fflush(stdout);
+                    new_termios.c_lflag |= (ECHO);
+                    tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
                     break;
                 }
             }
 
             if (blocking == INA_NO) {
-                rc = INA_ERR_TRY_AGAIN;
+                rc = INA_ERROR(INA_ERR_TRY_AGAIN);
                 break;
             }
         }
@@ -740,8 +721,6 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
             ina_time_sleep(10);
         }
     }
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &old_termios);
     return rc;
 } 
 #endif

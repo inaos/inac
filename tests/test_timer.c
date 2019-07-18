@@ -6,11 +6,12 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
-#ifndef INA_OS_WIN32
+#include <libinac/lib.h>
+
+#ifndef INA_OS_WINDOWS
 #define _GNU_SOURCE  
 #include <sched.h>
 #endif
-#include <libinac/lib.h>
 
 INA_TEST(timer,new_free)
 {
@@ -70,7 +71,7 @@ INA_TEST(timer, stress_test)
     ina_timer_event_free(t, &e);
 }
 
-#ifndef INA_OS_WIN32 
+#ifndef INA_OS_WINDOWS
 INA_TEST(timer, event_rdtsc)
 {
     ina_timer_t *t;
@@ -85,7 +86,7 @@ INA_TEST(timer, event_rdtsc)
     t = NULL;
     e1 = NULL;
     e2 = NULL;
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);

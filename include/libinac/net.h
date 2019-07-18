@@ -26,12 +26,12 @@ extern "C" {
 #elif INA_OS_OSX
 #include <netinet/in.h>
 #include <poll.h>
-#elif INA_OS_WIN32
+#elif INA_OS_WINDOWS
 #include <winsock.h>
 #endif
 
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 typedef ULONG nfds_t;
 /* POSIX Vectored I/O for Windows */
 struct iovec {
@@ -49,7 +49,7 @@ struct msghdr {
 };
 #endif
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_NET_INVALID_SOCKET INVALID_SOCKET
 #else
 #define INA_NET_INVALID_SOCKET -1

@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 INA_INLINE int __ina_vsnprintf(char *str, size_t size, const char *format, va_list args)
 {
     int c;
@@ -299,6 +299,20 @@ INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest, const char *src, 
     d = __ina_ensure_size_pool(pool, d, d->len+n);
     ina_mem_cpy(&d->data[d->len], src, n);
     d->len += n;
+    d->data[d->len] = '\0';
+    return (ina_str_t)d->data;
+}
+
+INA_API(ina_str_t) ina_str_append_chr(ina_str_t dest, char c)
+{
+    ina_str_hdr_t *d;
+
+    INA_ASSERT_NOT_NULL(dest);
+
+    d = __INA_HDR_OFFSET(dest);
+    d = __ina_ensure_size(d, d->len+1);
+    d->data[d->len] = c;
+    d->len += 1;
     d->data[d->len] = '\0';
     return (ina_str_t)d->data;
 }

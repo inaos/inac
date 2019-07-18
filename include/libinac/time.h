@@ -29,7 +29,7 @@ typedef union ina_time_tsc_value_u {
 
 /* Time Stamp Counter */
 typedef struct ina_time_tsc_s {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     LARGE_INTEGER tp;
     double freq_sec;
     LARGE_INTEGER wref;
@@ -44,7 +44,7 @@ typedef struct ina_time_tsc_s {
 } ina_time_tsc_t;
 
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_TIME_RDTSC(counter)  counter.uint64 = __rdtsc()
 #else
 #if defined(INA_CPU_X86_64)

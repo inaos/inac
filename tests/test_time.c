@@ -6,11 +6,12 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
-#ifndef INA_OS_WIN32
+#include <libinac/lib.h>
+
+#ifndef INA_OS_WINDOWS
 #define _GNU_SOURCE  
 #include <sched.h>
 #endif
-#include <libinac/lib.h>
 
 #if !defined(CLOCK_MONOTONIC_RAW)
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
@@ -38,7 +39,7 @@ INA_TEST(time,backend)
 #ifdef INA_MBTIME_ENABLED
     INA_TEST_ASSERT_TRUE(strncmp("HW backend:", ina_str_cstr(info.backend_name), 12) == 0);
 #else
-#  ifdef INA_OS_WIN32
+#  ifdef INA_OS_WINDOWS
     INA_TEST_ASSERT_EQUAL_STR("OS backend: GetSystemTimeAsFileTime()",
                      ina_str_cstr(info.backend_name));
 #  else
@@ -94,7 +95,7 @@ INA_TEST(time, tsc_millis)
     ina_time_tsc_free(&t);
 }
 
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
 INA_TEST_SKIP(time_tsc,read_tsc)
 {
     struct timespec test;

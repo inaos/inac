@@ -91,7 +91,7 @@ INA_API(void*) ina_mem_realloc(void *ptr, size_t nb)
 
 INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
 {
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 	INA_VERIFY_NOT_NULL(size);
 	*size = (size_t)sysconf(_SC_PAGESIZE);
 #else
@@ -148,9 +148,7 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 
 	if ((*pool)->m == NULL) {
 		ina_mem_free(*pool);
-		if ((*pool)->label != NULL) {
-			ina_str_free((*pool)->label);
-		}
+		ina_str_free((*pool)->label);
 		*pool = NULL;
 		return INA_ERROR(INA_ERR_OUT_OF_MEMORY);
 	}
@@ -184,6 +182,7 @@ INA_API(void) ina_mempool_free(ina_mempool_t **pool)
 		else {
 			ina_mem_free(pm->m);
 		}
+		ina_str_free(pm->label);
 		ina_mem_free(pm);
 	}
 }
@@ -523,7 +522,7 @@ INA_API(void *) ina_mempool_ralloc_aligned(ina_mempool_t *pool, void *old,
 }
 
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 
 static ina_rc_t
 __ina_shm_open(ina_mempool_t *pool)
@@ -588,7 +587,6 @@ __ina_shm_close(ina_mempool_t *pool)
 {
 	INA_ASSERT_NOT_NULL(pool);
 	INA_ASSERT(pool->size > 0);
-	INA_ASSERT_NOT_NULL(pool->label);
 	int64_t cn;
 
 	if (pool->m == NULL) {
@@ -614,7 +612,6 @@ __ina_shm_close(ina_mempool_t *pool)
 		shm_unlink(ina_str_cstr(pool->label));
 	}
 	INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
-	ina_str_free(pool->label);
 
 	return INA_SUCCESS;
 }
