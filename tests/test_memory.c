@@ -100,3 +100,8 @@ INA_TEST(memory, pagesize)
     INA_TEST_ASSERT_EQUAL_SIZE_T((size_t)si.dwPageSize, size);
 #endif
 }
+
+INA_TEST(memory, invalid_arguments)
+{
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mem_get_pagesize(NULL));
+}

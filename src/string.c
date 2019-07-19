@@ -90,6 +90,10 @@ INA_API(ina_str_t) ina_str_new_using_pool(size_t len, ina_mempool_t *pool)
 {
     ina_str_hdr_t *hdr;
 
+    if (pool == NULL) {
+        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
+        return NULL;
+    }
     hdr = (ina_str_hdr_t*)ina_mempool_dalloc(pool,len+1+sizeof(ina_str_hdr_t));
     if (hdr == NULL) {
         return NULL;
@@ -106,8 +110,7 @@ INA_API(ina_str_t) ina_str_new_fromblk(const void* blk, size_t len)
     ina_str_t str;
 
     if (blk == NULL) {
-        INA_ERROR(INA_ERR_INVALID_ARGUMENT);
-        return NULL;
+        return ina_str_new(len);
     }
 
     str = ina_str_new(len);
@@ -129,12 +132,12 @@ INA_API(ina_str_t) ina_str_new_fromblk_using_pool(const void* blk,
 {
     ina_str_t str;
 
-    if (pool == NULL) {
+    if (blk == NULL) {
         INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return NULL;
     }
 
-    if (blk == NULL) {
+    if (pool == NULL) {
         INA_ERROR(INA_ERR_INVALID_ARGUMENT);
         return NULL;
     }
@@ -634,6 +637,7 @@ INA_API(char *) ina_str_release_buf(ina_str_t str)
 {
     if (str == NULL) {
         INA_ERROR(INA_ERR_INVALID_ARGUMENT);
+        return NULL;
     }
     ina_str_hdr_t *hdr = __INA_HDR_OFFSET(str);
     ina_mem_move(hdr, str, hdr->len);

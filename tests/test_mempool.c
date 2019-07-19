@@ -550,6 +550,30 @@ INA_TEST(mempool, bad_dalloc)
     INA_TEST_ASSERT_EQUAL_INT64(INA_ERR_FULL , INA_RC_ERROR(ina_err_get_rc()));
 }
 
+INA_TEST(mempool, invalid_arguments)
+{
+    ina_mempool_t *pool = NULL;
+    ina_mempool_info_t info;
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_new(0, NULL, 0, NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_mempool_new(0, NULL, 0, &pool));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_set_alignment(NULL, 16));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_set_alignment(pool, 0));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_merge(NULL, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_shrink(NULL,0,&info));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_shrink(pool, 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_clear(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_info(NULL, &info));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_info(pool, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mempool_reset(NULL));
+
+}
 
 INA_TEST_DATA(mempool_ipc) {
     ina_test_hid_t hid;
@@ -592,3 +616,4 @@ INA_TEST_FIXTURE(mempool_ipc, mempool_create)
         c++;
     }
 }
+

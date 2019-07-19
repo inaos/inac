@@ -90,6 +90,7 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(ctx->lstate);
     INA_VERIFY_NOT_NULL(fname);
+    INA_VERIFY_NOT_NULL(sig);
 
     /* Global function or object method? */
 	cfname = (char*)strchr(fname, '.');
@@ -192,8 +193,8 @@ INA_API(ina_rc_t) ina_ljit_call(ina_ljit_ctx_t *ctx, const char* fname, const ch
 
 INA_API(ina_rc_t) ina_ljit_dostring(ina_ljit_ctx_t *ctx, const char *code)
 {
-    INA_ASSERT_NOT_NULL(ctx);
-    INA_ASSERT_NOT_NULL(code);
+    INA_VERIFY_NOT_NULL(ctx);
+    INA_VERIFY_NOT_NULL(code);
     if (luaL_dostring(ctx->lstate, code) != 0) {
         INA_ERROR(INA_ES_SCRIPT | INA_ERR_FAILED);
         /*INA_ERRMSG(INA_EEXCALL, lua_tostring(ctx->lstate, -1), NULL);*/

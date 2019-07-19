@@ -78,7 +78,8 @@ INA_TEST(time,read_clock)
     INA_TRACE3("ms=%ld", ms);
     INA_TEST_ASSERT_EQUAL_INT64(tv.tv_usec/1000, ms);
 
-    INA_TEST_ASSERT_SUCCEED(ina_time_sys_free(&t));
+    ina_time_sys_free(&t);
+    INA_TEST_ASSERT_NULL(t);
 }
 
 INA_TEST(time, tsc_millis)
@@ -149,3 +150,48 @@ INA_TEST_SKIP(time_tsc,read_tsc)
     INA_TEST_ASSERT_TRUE(abs(d) <= 1);
 }
 #endif
+
+INA_TEST(time, invalid_arguments)
+{
+    ina_time_t *time = NULL;
+    ina_time_tsc_t *tsc = NULL;
+    time_t t = 0;
+    long nanos = 0;
+    ina_str_t buf = ina_str_new(128);
+    size_t sz = 0;
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_backend_info(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_new(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_sys_new(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_read_tsc_clock(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_read_sys_clock(NULL));
+
+
+    INA_ASSERT_SUCCEED(ina_time_tsc_new(&tsc));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_seconds_nanos(NULL, &t, &nanos));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_seconds_nanos(tsc, NULL, &nanos));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_seconds_nanos(tsc, &t, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_millis(NULL, &t));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_millis(tsc, NULL));
+
+    INA_ASSERT_SUCCEED(ina_time_sys_new(&time));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_sys_seconds_micros(NULL, &t, &nanos));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_sys_seconds_micros(time, NULL, &nanos));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_sys_seconds_micros(time, &t, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_strftime(NULL, 128, &sz, "hh:ss", time));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_strftime(buf, 128, NULL, "hh:ss", time));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_strftime(buf, 128, &sz, NULL, time));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_strftime(buf, 128, &sz, "hh:ss", NULL));
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_strftime(NULL, "hh:ss", tsc, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_strftime(buf,  NULL, tsc, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_strftime(buf,  "hh:ss", NULL, 0));
+
+    ina_time_sys_free(&time);
+    ina_time_tsc_free(&tsc);
+}

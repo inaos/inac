@@ -258,3 +258,136 @@ INA_TEST(net_local, hostname)
     INA_TEST_ASSERT_SUCCEED(ina_net_hostname(&host[0],127 ));
     INA_TEST_MSG("hostname: %s", host);
 }
+
+INA_TEST(net, invalid_arguments)
+{
+    short ac;
+    ina_str_t *strptr = NULL;
+    ina_str_t str = NULL;
+    unsigned char b[1024];
+    unsigned char *buf = &b[0];
+    char chrb[1024];
+    char *chrbuf = &chrb[0];
+    ina_fd_t fd = 0;
+    int port = 0;
+    int nb_read;
+    int nb_write;
+    struct iovec io;
+    struct msghdr msghdr;
+    int nb_send = 0;
+    ina_net_udp_receiver_t *receiver = NULL;
+    int fake = 1;
+    ina_net_pollfd_t pfd;
+    nfds_t nfds = 0;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_system_lookup(NULL, &ac, &strptr));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_system_lookup("localhost", NULL, &strptr));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_system_lookup("localhost", &ac, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_hostname(NULL, 128));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_server(NULL, 100, "127.0.0.1"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_server(&fd, -1, "127.0.0.1"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_server(&fd, INT_MAX, "127.0.0.1"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_server(&fd, 100, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_accept(NULL, fd, str, &port));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_accept(&fd, 0, str, &port));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_connect(NULL, "127.0.0.1", port, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_connect(&fd, NULL, port, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_connect(&fd, "127.0.0.1", -1, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_tcp_connect(&fd, "127.0.0.1", INT_MAX, 0));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_nonblock(0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_block(0));
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_read(0, buf, 1024, &nb_read));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_read(1, NULL, 1024, &nb_read));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_read(1, buf, 0, &nb_read));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_read(1, buf, 1024, NULL));
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_write(0, buf, 1024, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_write(1, NULL, 1024, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_write(1, buf, 0, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_write(1, buf, 1024, NULL));
+
+    str = ina_str_new(31);
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_resolve(NULL, &str));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_resolve("127.0.0.1", NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_resolve("127.0.0.1", &str));
+    ina_str_free(str);
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_readv(0, &io, 1, &nb_read));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_readv(1, NULL, 1, &nb_read));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_readv(1, &io, 0, &nb_read));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_readv(fd, &io, 1, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_writev(0, &io, 1, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_writev(1, NULL, 1, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_writev(1, &io, 0, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_writev(fd, &io, 1, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_sendmsg(0, &msghdr, 0, &nb_send));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_sendmsg(1, NULL, 0, &nb_send));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_sendmsg(1, &msghdr, 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_close(0));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_set_read_timeout(0, 100));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_set_read_timeout(1, 0));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_set_write_timeout(0, 100));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_set_write_timeout(1, 0));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_get_mac_addr("127.0.0.1", NULL, 1024));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_get_mac_addr("127.0.0.1", chrbuf, 3));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_bind(NULL, "127.0.0.1", 25));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_bind(&fd, NULL, 25));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_bind(&fd, "127.0.0.1", 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_bind(&fd, "127.0.0.1", INT_MAX));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,  ina_net_udp_socket(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,  ina_net_udp_socket(&fd));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_receiver_new(NULL, 25, &receiver));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_receiver_new("127.0.0.1", 0, &receiver));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_receiver_new("127.0.0.1", INT_MAX, &receiver));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_receiver_new("127.0.0.1", 25, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_join_group(0, "127.0.0.1", "192.1.1.21"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_join_group(1, NULL, "192.1.1.21"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_join_group(1, "127.0.0.1", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_leave_group(0, "127.0.0.1", "192.1.1.21"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_leave_group(1, NULL, "192.1.1.21"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_leave_group(1, "127.0.0.1", NULL));
+
+    receiver = (ina_net_udp_receiver_t*)&fake;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_send(0, receiver, buf, 1024, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_send(1, NULL, buf, 1024, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_send(fd, receiver, NULL, 1024, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_send(fd, receiver, buf, 0, &nb_write));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_udp_send(fd, receiver, buf, 1024, NULL));
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_poll(NULL, nfds, 0, &fake));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_poll(&pfd, nfds, 0, NULL));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

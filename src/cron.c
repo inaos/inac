@@ -497,7 +497,9 @@ INA_API(ina_rc_t) ina_cron_event_get_push_params(const ina_cron_event_t *event,
     INA_VERIFY_NOT_NULL(event);
     INA_VERIFY_NOT_NULL(push_cb);
     *push_cb = event->push_cb;
-    *user_data = event->push_data;
+    if (user_data != NULL) {
+        *user_data = event->push_data;
+    }
     return INA_SUCCESS;
 }
 
@@ -508,7 +510,9 @@ INA_API(ina_rc_t) ina_cron_event_get_pull_params(const ina_cron_event_t *event,
     INA_VERIFY_NOT_NULL(event);
     INA_VERIFY_NOT_NULL(key);
     *key = event->key;
-    *user_data = event->pull_data;
+    if (user_data != NULL) {
+        *user_data = event->pull_data;
+    }
     return INA_SUCCESS;
 }
 

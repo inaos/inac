@@ -251,3 +251,56 @@ INA_TEST(conffile, new_free)
     INA_TEST_ASSERT_NULL(cf);
 }
 
+INA_TEST(conffile, invalid_arguments)
+{
+    int fake = 0;
+    ina_conffile_t *cf = NULL;
+    ina_conffile_section_t* section = NULL;
+    INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,int-to-pointer-cast)
+    ina_conffile_entries_t *entries = (ina_conffile_entries_t*)fake;
+    INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,int-to-pointer-cast)
+    ina_str_t str_value;
+    double dbl_value = 0.0;
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_new(NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_add_section(NULL, "test", 1, 1, NULL, &section));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_add_section(cf, NULL, 1, 1, NULL, &section));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_add_section(cf, "test", 1, 1, NULL, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_add_key(NULL, "test", INA_CONFFILE_VALUE_TYPE_NUMBER, 1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_add_key(section, NULL, INA_CONFFILE_VALUE_TYPE_NUMBER, 1));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_has_value(NULL, "test", "test", "test"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_has_value(cf, NULL, "test", "test"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_has_value(cf, "test", "test", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_has_value_in_entries(NULL, "test"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_has_value_in_entries(entries, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_string(NULL, "test", "test", "test", &str_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_string(cf, NULL, "test", "test", &str_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_string(cf, "test", "test", NULL, &str_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_string(cf, "test", "test", "test", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_string_from_entries(NULL, "test",  &str_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_string_from_entries(entries, NULL,  &str_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_string_from_entries(entries, "test",  NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_number(NULL, "test", "test", "test", &dbl_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_number(cf, NULL, "test", "test", &dbl_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_number(cf, "test", "test", NULL, &dbl_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_number(cf, "test", "test", "test", NULL));
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_number_from_entries(NULL, "test",  &dbl_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_number_from_entries(entries, NULL,  &dbl_value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_get_number_from_entries(entries, "test",  NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_process(NULL, "test",  NULL));
+
+    ina_conffile_free(&cf);
+}
+

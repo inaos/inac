@@ -547,12 +547,12 @@ INA_API(ina_rc_t) ina_net_join_group(ina_fd_t fd, const char *localif, const cha
 {
     struct ip_mreq imr;
 
-    imr.imr_multiaddr.s_addr=inet_addr(source);
-    imr.imr_interface.s_addr=inet_addr(localif);
-
     INA_VERIFY(fd > 0);
     INA_VERIFY_NOT_NULL(localif);
     INA_VERIFY_NOT_NULL(source);
+
+    imr.imr_multiaddr.s_addr=inet_addr(source);
+    imr.imr_interface.s_addr=inet_addr(localif);
 
 #ifdef INA_OS_WINDOWS
     if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
@@ -570,13 +570,12 @@ INA_API(ina_rc_t) ina_net_leave_group(ina_fd_t fd, const char *localif, const ch
 {
     struct ip_mreq imr;
 
-    imr.imr_multiaddr.s_addr=inet_addr(source);
-    imr.imr_interface.s_addr=inet_addr(localif);
-
     INA_VERIFY(fd > 0);
     INA_VERIFY_NOT_NULL(localif);
     INA_VERIFY_NOT_NULL(source);
 
+    imr.imr_multiaddr.s_addr=inet_addr(source);
+    imr.imr_interface.s_addr=inet_addr(localif);
 #ifdef INA_OS_WINDOWS
     if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char FAR *)&imr, sizeof(imr)) == SOCKET_ERROR) {
        return __INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
@@ -649,16 +648,11 @@ INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address, int port, ina_ne
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_net_udp_receiver_free(const char *address, int port, ina_net_udp_receiver_t **receiver)
+INA_API(void) ina_net_udp_receiver_free(ina_net_udp_receiver_t **receiver)
 {
-    INA_VERIFY_NOT_NULL(address);
-    INA_VERIFY(port > 0);
-    INA_VERIFY_NOT_NULL(receiver);
-    INA_VERIFY_NOT_NULL(*receiver);
+    INA_VERIFY_FREE(receiver);
     ina_str_free((*receiver)->ip);
-    ina_mem_free(*receiver);
-    *receiver = NULL;
-    return INA_SUCCESS;
+    INA_MEM_FREE_SAFE(*receiver);
 }
 
 INA_API(ina_rc_t) ina_net_set_read_timeout(ina_fd_t fd, int msec)

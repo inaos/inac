@@ -111,4 +111,38 @@ INA_TEST(cpu, test_supported)
     }
 }
 
+INA_TEST(cpu, invalid_arguments)
+{
+    uint8_t family = 0;
+    uint8_t  stepping = 0;
+    uint8_t model = 0;
+
+
+    INA_TEST_ASSERT_SUCCEED(ina_cpu_init());
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_package_count(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_core_count(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_thread_count(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_total_logical_count(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_features(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_features(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_brand_string(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_is_supported(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_signature(NULL, &model, &stepping));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_signature(&family, NULL, &stepping));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_signature(&family, &model, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_ipc_sp(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_ipc_dp(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_l1_cache_size(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_l2_cache_size(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_l3_cache_size(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_frequency_os(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_gflops_dp(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_gflops_sp(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_process_query_core(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_hyperthreading_enabled(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cpu_get_cache_line_size(NULL));
+
+}
+
 

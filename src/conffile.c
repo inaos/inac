@@ -198,9 +198,9 @@ INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_t *cf,
 {
     ina_conffile_entry_t *entry = NULL;
 
-    INA_ASSERT_NOT_NULL(cf);
-    INA_ASSERT_NOT_NULL(section_name);
-    INA_ASSERT_NOT_NULL(key);
+    INA_VERIFY_NOT_NULL(cf);
+    INA_VERIFY_NOT_NULL(section_name);
+    INA_VERIFY_NOT_NULL(key);
     return __ina_get_value(cf, section_name, section_key, key, &entry);
 }
 

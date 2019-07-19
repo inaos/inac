@@ -187,3 +187,53 @@ INA_TEST_FIXTURE(dir, test_reload)
     INA_TEST_ASSERT_NULL(w);
 }
 
+INA_TEST(dir, invalid_arguments)
+{
+
+    ina_dir_walker_t *w;
+    ina_dir_sort_attrib_t sa;
+    ina_dir_sort_order_t so;
+    const ina_dir_entry_t *entry = NULL;
+    ina_dir_stat_t *stat = NULL;
+    size_t size = 0;
+    int pct_used = 0;
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_new(NULL, &w));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_new("test", NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_dir_walker_new("./", &w));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_enable_recursive(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_disable_recursive(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_get_sort_order(NULL, &so));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_get_sort_order(w, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_set_sort_order(NULL, so));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_get_sort_attrib(NULL, &sa));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_get_sort_attrib(w, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_set_sort_attrib(NULL, sa));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_get_next_entry(NULL, &entry));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_get_next_entry(w, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_reset(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_reload(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_stat_new(NULL, &stat));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_stat_new("test", NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_dir_stat_new("./", &stat));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_stat_bytes_capacity(NULL, &size));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_stat_bytes_capacity(stat, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_stat_bytes_free(NULL, &size));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_stat_bytes_free(stat,NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_stat_pct_used(NULL, &pct_used));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_stat_pct_used(stat,NULL));
+
+    ina_dir_walker_free(&w);
+    ina_dir_stat_free(&stat);
+
+}
+

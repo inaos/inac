@@ -157,11 +157,8 @@ INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time);
  *
  * Parameters
  *  time  System time to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
+INA_API(void) ina_time_sys_free(ina_time_t **time);
 
 /*
  * RDTSC is required if you do not want the process to 

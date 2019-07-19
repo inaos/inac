@@ -68,11 +68,8 @@ INA_API(ina_rc_t) ina_mmap_ctx_new(ina_mmap_ctx_t **ctx);
  *
  * Parameters
  *  ctx  MMAP context to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mmap_ctx_free(ina_mmap_ctx_t **ctx);
+INA_API(void) ina_mmap_ctx_free(ina_mmap_ctx_t **ctx);
 
 /*
  * Creates a new mapping in the virtual address space of the calling process.
@@ -102,13 +99,12 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx,
  * Destroy mapping
  *
  * Parameters
- *  ctx     MMAP context
  *  mapping Mapping to free
  *
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mapping);
+INA_API(void) ina_mmap_free(ina_mmap_mapping_t **mapping);
 
 /*
  * Flushes changes made to the in-core copy of a file that was mapped into
@@ -116,7 +112,7 @@ INA_API(ina_rc_t) ina_mmap_free(ina_mmap_ctx_t *ctx, ina_mmap_mapping_t **mappin
  * written back before ina_mmap_free is called.
  *
  * Parameters
- *  mapping  Mapping to synch
+ *  mapping  Mapping to sync
  *
  * Return
  *  INA_SUCCESS if all went well

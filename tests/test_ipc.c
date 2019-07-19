@@ -270,3 +270,66 @@ INA_TEST(ipc_counter, dec_get)
     INA_TEST_ASSERT_NULL(c);
 }
 
+INA_TEST(ipc, invalid_arguments)
+{
+    ina_ipc_flags_t *flags1 = NULL;
+    ina_ipc_flags_t *flags2 = NULL;
+    ina_ipc_counter_t *counter1 = NULL;
+
+    const char *name = NULL;
+    uint64_t value;
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_new(NULL, 0, &flags1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_new("test", 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_open(NULL, &flags1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_open("test", NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("t",0,&flags1));
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_open("t", &flags2));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_get_name(NULL, &name));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_get_name(flags1 , NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_get(NULL, &value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_get(flags1, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_set(NULL, value));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_is_set(NULL, value));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_unset(NULL, value));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_clear(NULL, value));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_wait(NULL, 10, 100 ));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_dump(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_dump(NULL));
+
+    ina_ipc_flags_free(&flags1);
+    ina_ipc_flags_free(&flags2);
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_new(NULL, 0, &counter1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_new("", 0,  &counter1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_new("123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678", 0, &counter1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_new("name", 0, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_open(NULL, &counter1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_open("", &counter1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_open("123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678", &counter1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_open("name", NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_new("ipc_test1", 0, &counter1));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_increment(NULL, 1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_decrement(NULL, 1));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_set(NULL, 0));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_get(NULL, &value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_counter_get(counter1, NULL));
+
+
+    ina_ipc_counter_free(&counter1);
+
+}

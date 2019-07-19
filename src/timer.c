@@ -19,14 +19,14 @@
 
 /* Time event */
 typedef struct ina_timer_event_s {
-    uint64_t id;
+    int id;
     struct timeout *t;
 } ina_timer_event_s;
 
 struct ina_timer_s {
     ina_time_tsc_t *stamp;
     struct timeouts *timeouts;
-    uint64_t next_event_id;
+    int next_event_id;
 } ina_timer_s;
 
 static time_t __ina_timer_tsc_to_msec(ina_time_tsc_t *tsc)
@@ -79,9 +79,9 @@ INA_API(ina_rc_t) ina_timer_event_new(ina_timer_t *timer, time_t msec, ina_timer
 INA_API(ina_rc_t) ina_timer_event_new_with_time(ina_timer_t *timer, time_t n_msec, time_t e_msec, ina_timer_event_t **event)
 {
     INA_VERIFY_NOT_NULL(timer);
-    INA_VERIFY_NOT_NULL(event);
     INA_VERIFY(n_msec > 0);
     INA_VERIFY(e_msec > 0);
+    INA_VERIFY_NOT_NULL(event);
 
     *event = (ina_timer_event_t*)ina_mem_alloc(sizeof(ina_timer_event_t));
     INA_RETURN_IF_NULL(*event);
@@ -103,18 +103,17 @@ INA_API(ina_rc_t) ina_timer_event_new_with_time(ina_timer_t *timer, time_t n_mse
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_timer_event_free(ina_timer_t *timer, ina_timer_event_t *e)
+INA_API(void) ina_timer_event_free(ina_timer_t *timer, ina_timer_event_t **e)
 {
-    INA_VERIFY_NOT_NULL(timer);
-    INA_VERIFY_NOT_NULL(e);
+    INA_ASSERT_NOT_NULL(timer);
+    INA_VERIFY_FREE(e);
 
-    timeouts_del(timer->timeouts, e->t);
-    ina_mem_free(e->t);
-    ina_mem_free(e);
-    return INA_SUCCESS;
+    timeouts_del(timer->timeouts, (*e)->t);
+    INA_MEM_FREE_SAFE((*e)->t);
+    INA_MEM_FREE_SAFE(*e);
 }
 
-INA_API(ina_rc_t) ina_timer_event_get_id(const ina_timer_event_t *event, uint64_t *id)
+INA_API(ina_rc_t) ina_timer_event_get_id(const ina_timer_event_t *event, int *id)
 {
     INA_VERIFY_NOT_NULL(event);
     INA_VERIFY_NOT_NULL(id);
@@ -153,6 +152,7 @@ INA_API(ina_rc_t) ina_timer_next_event_with_time(const ina_timer_t *timer, time_
 INA_API(ina_rc_t) ina_timer_time_to_next_event(const ina_timer_t *timer, time_t *how_long_msec)
 {
     INA_VERIFY_NOT_NULL(timer);
+    INA_VERIFY_NOT_NULL(how_long_msec);
     *how_long_msec = timeouts_timeout(timer->timeouts);
     return INA_SUCCESS;
 }
