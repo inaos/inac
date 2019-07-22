@@ -55,7 +55,7 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
 	*/
 	void *p = INA_MEM_MALLOC(size + alignment - 1 + sizeof(void*));
 
-	if (INA_UNLIKELY(p != NULL)) {
+	if (INA_LIKELY(p != NULL)) {
 		void *ptr;
 		/* Address of the aligned memory according to the align parameter*/
 		ptr = (void*)(((size_t)p + sizeof(void*) + alignment - 1) & ~(alignment - 1));
