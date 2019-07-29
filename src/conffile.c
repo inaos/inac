@@ -1,5 +1,5 @@
 /*
- * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
+ * Copyright INAOS GmbH, Thalwil, 2013-2019. All rights reserved
  *
  * This software is the confidential and proprietary information of INAOS GmbH
  * ("Confidential Information"). You shall not disclose such Confidential
@@ -69,7 +69,7 @@ static ina_rc_t __ina_build_section_table(ina_conffile_t*);
 /* Prepare configuration file */
 static ina_rc_t __ina_prepare(ina_conffile_t*);
 /* Processs the LUA section table */
-static ina_rc_t __ina_process_section_table(ina_conffile_t*);
+static ina_rc_t __ina_process_section_table(ina_conffile_t*, void *user_data);
 /* Process configuration file entries */
 static ina_rc_t __ina_process_entries(ina_conffile_t*,
                                       ina_conffile_entries_t*);
@@ -313,16 +313,11 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
                     
 INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath, void *user_data)
 {
-    ina_conffile_section_t *s;
-    ina_hashtable_iter_t *iter;
-
     INA_VERIFY_NOT_NULL(cf);
- 
     /* Almost one section must be there */
     if (cf->sections == NULL) {
         return INA_ERROR(INA_ES_CONFIGURATION | INA_ERR_EMPTY);
     }
-
     if (INA_FAILED(__ina_prepare(cf))) {
         return ina_err_get_rc();
     }
@@ -357,29 +352,52 @@ INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath,
     }
 
     /* process section table */
-    if (INA_FAILED(__ina_process_section_table(cf))) {
+    if (INA_FAILED(__ina_process_section_table(cf, user_data))) {
         return ina_err_get_rc();
     }
 
-    /* invoke callbacks */
-    ina_hashtable_iter_new(cf->sections, &iter);
-    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&s))) {
-        if (s->section_cb != NULL) {
-            ina_hashtable_iter_t *iter2;
-            ina_conffile_entries_t *entries;
-            ina_hashtable_iter_new(s->entries, &iter2);
-            while INA_SUCCEED(ina_hashtable_iter_next(iter2, (void**)&entries)) {
-                const char *key = (s->named?entries->key:NULL);
-                if (INA_FAILED((s->section_cb(s->name, key, entries, user_data)))) {
-                    return ina_err_get_rc();
-                }
-            }
-        }
+    return INA_SUCCESS;
+}
+
+INA_API(ina_rc_t) ina_conffile_process_string(ina_conffile_t *cf, const char *cfg_string, void *user_data)
+{
+    INA_VERIFY_NOT_NULL(cf);
+    INA_VERIFY_NOT_NULL(cfg_string);
+    INA_VERIFY(strlen(cfg_string));
+
+    /* Almost one section must be there */
+    if (cf->sections == NULL) {
+        return INA_ERROR(INA_ES_CONFIGURATION | INA_ERR_EMPTY);
+    }
+
+    if (INA_FAILED(__ina_prepare(cf))) {
+        return ina_err_get_rc();
+    }
+
+    lua_getglobal(cf->lctx->lstate, __INA_ENUM_SECTIONS);
+
+    lua_pushstring(cf->lctx->lstate, cfg_string);
+    lua_setglobal(cf->lctx->lstate, "cfg_string");
+
+    /* invoke lua */
+    if (luaL_dostring(cf->lctx->lstate,
+                      "local cf = require('lconffile')\n cf.process_string(sections, cfg_string)\n")
+        != 0) {
+        /*INA_ERRMSG(INA_EEXCALL, lua_tostring(cf->lctx->lstate, -1), NULL);*/
+        printf("%s\n", lua_tostring(cf->lctx->lstate, -1));
+        INA_ERROR(INA_ES_SCRIPT | INA_ERR_FAILED);
+        lua_pop(cf->lctx->lstate, 1);
+        return ina_err_get_rc();
+    }
+
+    /* process section table */
+    if (INA_FAILED(__ina_process_section_table(cf, user_data))) {
+        return ina_err_get_rc();
     }
     return INA_SUCCESS;
 }
 
-static ina_rc_t 
+static ina_rc_t
 __ina_prepare(ina_conffile_t *cf)
 {
     if (cf->prepared == INA_YES) {
@@ -462,13 +480,16 @@ __ina_build_section_table(ina_conffile_t *cf)
         lua_rawset(lstate, -3);
     }
     ina_hashtable_iter_free(&iter);
+
     return INA_SUCCESS;
 }
 
 static ina_rc_t 
-__ina_process_section_table(ina_conffile_t *cf)
+__ina_process_section_table(ina_conffile_t *cf,  void *user_data)
 {
     lua_State *lstate = cf->lctx->lstate;
+    ina_conffile_section_t *s;
+    ina_hashtable_iter_t *iter;
 
     lua_getglobal(lstate, __INA_ENUM_SECTIONS);
     lua_pushnil(lstate);
@@ -543,6 +564,23 @@ __ina_process_section_table(ina_conffile_t *cf)
         lua_pop(lstate, 1);
     }
     lua_pop(lstate, 1);
+
+    /* invoke callbacks */
+    ina_hashtable_iter_new(cf->sections, &iter);
+    while (INA_SUCCEED(ina_hashtable_iter_next(iter, (void**)&s))) {
+        if (s->section_cb != NULL) {
+            ina_hashtable_iter_t *iter2;
+            ina_conffile_entries_t *entries;
+            ina_hashtable_iter_new(s->entries, &iter2);
+            while INA_SUCCEED(ina_hashtable_iter_next(iter2, (void**)&entries)) {
+                const char *key = (s->named?entries->key:NULL);
+                if (INA_FAILED((s->section_cb(s->name, key, entries, user_data)))) {
+                    return ina_err_get_rc();
+                }
+            }
+        }
+    }
+
     return INA_SUCCESS;
 }
 

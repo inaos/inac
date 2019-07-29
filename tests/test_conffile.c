@@ -1,5 +1,5 @@
 /*
- * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
+ * Copyright INAOS GmbH, Thalwil, 2013-2019. All rights reserved
  *
  * This software is the confidential and proprietary information of INAOS GmbH
  * ("Confidential Information"). You shall not disclose such Confidential
@@ -10,6 +10,21 @@
 
 static int __section_count = 0;
 static int __named_section_count = 0;
+
+static const char* cfg_string = "debug {\n"
+                               "    command_latency=1000,\n"
+                               "\tcommand_name=\"my_cmd\"\n"
+                               "}\n"
+                               "\n"
+                               "iface \"lo1\" { \n"
+                               "    ip=\"127.0.0.2\", \n"
+                               "    mask=\"255.0.0.1\" \n"
+                               "}\n"
+                               "\n"
+                               "iface \"lo0\" { \n"
+                               "    ip=\"127.0.0.1\", \n"
+                               "    mask=\"255.0.0.0\" \n"
+                               "}";
  
 static ina_rc_t __ina_section_handler(const char* section_name, const char* section_key, ina_conffile_entries_t *entries, void* user_data)
 {
@@ -46,7 +61,7 @@ INA_TEST(conffile , using_macros_with_filepath)
     __section_count = 0;
     __named_section_count = 0;       
     
-    INA_CONFFILE(cf, "test_filepath.conf", NULL,
+    INA_CONFFILE(&cf,
         INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
             INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
             INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO),
@@ -54,6 +69,7 @@ INA_TEST(conffile , using_macros_with_filepath)
         INA_CONFFILE_NAMED_SECTION("iface", INA_YES, __ina_named_section_handler,
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_STRING_KEY("mask", INA_YES)));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, "test_filepath.conf", NULL));
 
     INA_TEST_ASSERT_EQUAL_FLOATING(1, __section_count);
     INA_TEST_ASSERT_EQUAL_FLOATING(2, __named_section_count);
@@ -66,7 +82,7 @@ INA_TEST(conffile , using_macros)
     __section_count = 0;
     __named_section_count = 0;   
 
-    INA_CONFFILE(cf, NULL, NULL,
+    INA_CONFFILE(&cf,
         INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
             INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
             INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO),
@@ -75,6 +91,31 @@ INA_TEST(conffile , using_macros)
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_STRING_KEY("mask", INA_YES)));
     INA_TEST_ASSERT_NOT_NULL(cf);
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL, NULL));
+    INA_TEST_ASSERT_EQUAL_INT(1, __section_count);
+    INA_TEST_ASSERT_EQUAL_INT(2, __named_section_count);
+}
+
+INA_TEST(conffile , process_string_using_macros)
+{
+    ina_conffile_t *cf = NULL;
+
+    __section_count = 0;
+    __named_section_count = 0;
+
+    INA_CONFFILE(&cf,
+                 INA_CONFFILE_SECTION("debug", INA_YES, __ina_section_handler,
+                                      INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
+                                      INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO),
+                                      INA_CONFFILE_STRING_KEY("command_name", INA_YES)),
+                 INA_CONFFILE_NAMED_SECTION("iface", INA_YES, __ina_named_section_handler,
+                                            INA_CONFFILE_STRING_KEY("ip", INA_YES),
+                                            INA_CONFFILE_STRING_KEY("mask", INA_YES)));
+    INA_TEST_ASSERT_NOT_NULL(cf);
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_process_string(NULL, cfg_string, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_process_string(cf, NULL, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_process_string(cf, "", NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_process_string(cf, cfg_string, NULL));
     INA_TEST_ASSERT_EQUAL_INT(1, __section_count);
     INA_TEST_ASSERT_EQUAL_INT(2, __named_section_count);
 }
@@ -85,7 +126,7 @@ INA_TEST(conffile , using_macros_without_section_handler)
     ina_str_t value = NULL;
     double dbl_value = 0.0;
 
-    INA_CONFFILE(cf, NULL, NULL,
+    INA_CONFFILE(&cf,
         INA_CONFFILE_SECTION("debug", INA_YES, NULL,
             INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
             INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO),
@@ -94,7 +135,7 @@ INA_TEST(conffile , using_macros_without_section_handler)
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_STRING_KEY("mask", INA_YES)));
     INA_TEST_ASSERT_NOT_NULL(cf);
-
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_process(cf, NULL, NULL));
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_number(cf, "debug", NULL, "command_latency", &dbl_value));
     INA_TEST_ASSERT_EQUAL_FLOATING(1000.0, dbl_value);
 
@@ -110,6 +151,51 @@ INA_TEST(conffile , using_macros_without_section_handler)
     INA_TEST_ASSERT_NOT_NULL(value);
     INA_TEST_ASSERT_EQUAL_STR("255.0.0.0", ina_str_cstr(value));
     value = NULL;    
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "iface", "lo1", "ip", &value));
+    INA_TEST_ASSERT_NOT_NULL(value);
+    INA_TEST_ASSERT_EQUAL_STR("127.0.0.2", ina_str_cstr(value));
+    value = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "iface", "lo1", "mask", &value));
+    INA_TEST_ASSERT_NOT_NULL(value);
+    INA_TEST_ASSERT_EQUAL_STR("255.0.0.1", ina_str_cstr(value));
+    value = NULL;
+    ina_conffile_free(&cf);
+}
+
+INA_TEST(conffile , process_string_using_macros_without_section_handler)
+{
+    ina_conffile_t *cf = NULL;
+    ina_str_t value = NULL;
+    double dbl_value = 0.0;
+
+    INA_CONFFILE(&cf,
+                 INA_CONFFILE_SECTION("debug", INA_YES, NULL,
+                                      INA_CONFFILE_NUMBER_KEY("command_latency", INA_YES),
+                                      INA_CONFFILE_NUMBER_KEY("other_latency", INA_NO),
+                                      INA_CONFFILE_STRING_KEY("command_name", INA_YES)),
+                 INA_CONFFILE_NAMED_SECTION("iface", INA_YES, NULL,
+                                            INA_CONFFILE_STRING_KEY("ip", INA_YES),
+                                            INA_CONFFILE_STRING_KEY("mask", INA_YES)));
+    INA_TEST_ASSERT_NOT_NULL(cf);
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_process_string(NULL, cfg_string, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_process_string(cf, NULL, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_process_string(cf, "", NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_process_string(cf, cfg_string, NULL));
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_get_number(cf, "debug", NULL, "command_latency", &dbl_value));
+    INA_TEST_ASSERT_EQUAL_FLOATING(1000.0, dbl_value);
+
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "debug", NULL, "command_name", &value));
+    INA_TEST_ASSERT_NOT_NULL(value);
+    INA_TEST_ASSERT_EQUAL_STR("my_cmd", ina_str_cstr(value));
+
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "iface", "lo0", "ip", &value));
+    INA_TEST_ASSERT_NOT_NULL(value);
+    INA_TEST_ASSERT_EQUAL_STR("127.0.0.1", ina_str_cstr(value));
+    value = NULL;
+    INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "iface", "lo0", "mask", &value));
+    INA_TEST_ASSERT_NOT_NULL(value);
+    INA_TEST_ASSERT_EQUAL_STR("255.0.0.0", ina_str_cstr(value));
+    value = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "iface", "lo1", "ip", &value));
     INA_TEST_ASSERT_NOT_NULL(value);
     INA_TEST_ASSERT_EQUAL_STR("127.0.0.2", ina_str_cstr(value));

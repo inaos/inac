@@ -68,30 +68,22 @@ hold the instance for the configuration file.
    
     ina_conffile_t *cf = NULL;
     
-Declare 
+1 ) Build a configuration file using INA_CONFFILE helper macro:
 
-    INA_CONFFILE(cf, NULL,
+    INA_CONFFILE(&cf,
         INA_CONFFILE_SECTION("debug", INA_YES, NULL,
             INA_CONFFILE_NUMBER_KEY("command-latency", INA_YES)),
         INA_CONFFILE_NAMED_SECTION("iface", INA_NO, NULL,
             INA_CONFFILE_STRING_KEY("ip", INA_YES),
             INA_CONFFILE_NUMBER_KEY("mask", INA_NO)));
 
-Create a configuration file instance by calling `ina_conffile_new()`.
+.. or create a configuration file instance by calling `ina_conffile_new()` ...
 
     ina_conffile_t *cf = NULL;
    
     if (INA_SUCCEED(ina_conffile_new(&cf, NULL)) {
 
-After calling you will get an new configurations file instance. You can 
-optionally pass a file path as second argument to override the standard pattern of
-configuration file location. By convention the configuration file path is 
-[binary-name].conf in the current working directory if nothing else is 
-specified.
-
-Remember that each instance need to be destroyed with `ina_conffile_free()`. 
-
-Define section and keys
+... and define section and keys.
    	
     ina_conffile_section_t *section = NULL;
     
@@ -104,6 +96,28 @@ Define section and keys
         
     /* Add a unamed section */
     ina_conffile_add_section(cf, &section, "iface", INA_YES);
+
+2) Once an instance is created one can process the configuration by giving a file path
+where to find the configuration file or by passing directly the configuration as string
+
+    /* file path version */
+    ina_conffile_process(cf, NULL, NULL)
+
+   /* string version */
+   ina_conffile_process_string(cf, cfg_string, NULL)
+
+For the file version optionally one can pass a file path as second argument to
+override the standard pattern of configuration file location. By convention the
+configuration file path is [binary-name].conf in the current working directory
+if nothing else is specified.
+
+    ina_conffile_process(cf, '~/.test/test.conf', NULL);
+
+Both version can take a third optional user data  as argument. The user data is
+passed to the section handler when processing the configuration.
+
+Remember that each instance need to be destroyed with `ina_conffile_free()`.
+
 
 Sample processor written in Lua
 
