@@ -271,6 +271,8 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
 
 INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
 {
+    ina_conffile_t *cf = NULL;
+
     INA_VERIFY_NOT_NULL(log);
     INA_VERIFY_NOT_NULL(category);
 
@@ -284,21 +286,25 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
 #else
     (*log)->pid = (int)getpid();
 #endif
-    if (INA_SUCCEED(ina_list_new(INA_LIST_CF_NOMALLOC, &(*log)->targets))) {
-        ina_conffile_t *cf = NULL;
-        INA_CONFFILE(cf, __cfg_filepath, *log,
-                INA_CONFFILE_SECTION("global", INA_YES, __ina_process_global_section,
-                        INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)),
-                INA_CONFFILE_NAMED_SECTION("rule", INA_NO, __ina_process_rule_section,
-                        INA_CONFFILE_STRING_KEY("target", INA_YES),
-                        INA_CONFFILE_STRING_KEY("syslog_ident", INA_NO),
-                        INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)));
-        ina_conffile_free(&cf);
-        return INA_SUCCESS;
-    }
+    INA_FAIL_IF_ERROR(ina_list_new(INA_LIST_CF_NOMALLOC, &(*log)->targets));
+
+    INA_CONFFILE(&cf,
+            INA_CONFFILE_SECTION("global", INA_YES, __ina_process_global_section,
+                    INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)),
+            INA_CONFFILE_NAMED_SECTION("rule", INA_NO, __ina_process_rule_section,
+                    INA_CONFFILE_STRING_KEY("target", INA_YES),
+                    INA_CONFFILE_STRING_KEY("syslog_ident", INA_NO),
+                    INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)));
+
+    INA_FAIL_IF_ERROR(ina_conffile_process(cf, __cfg_filepath, *log));
+
+    ina_conffile_free(&cf);
+    return INA_SUCCESS;
+
+fail:
+    ina_conffile_free(&cf);
     ina_log_free(log);
     return ina_err_get_rc();
-
 }
 
 INA_API(void) ina_log_free(ina_log_t **log)
