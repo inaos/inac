@@ -12,6 +12,21 @@
 #define __INA_MAX_BUFFER_SIZE (2*1024*1024)
 #define __INA_DFT_BUFFER_SIZE (4*1024)
 
+static char* __ina_dft_spec = "global {\n"
+                              "    buffer_size=4096\n"
+                              "}\nrule \"*.DEBUG\" {\n"
+                              "    target=\">stdout\"\n"
+                              "}\n"
+                              "rule \"*.WARNING\" {\n"
+                              "    target=\">stdout\"\n"
+                              "}\n"
+                              "rule \"*.INFO\" {\n"
+                              "    target=\">stdout\"\n"
+                              "}\n"
+                              "rule \"*.ERROR\" {\n"
+                              "    target=\">stderr\"\n"
+                              "}";
+
 typedef struct __ina_target_s __ina_target_t;
 typedef ina_rc_t(*__ina_write_fn_t)(__ina_target_t*, ina_log_level_t,  const char*);
 
@@ -35,7 +50,10 @@ struct ina_log_s {
     size_t buffer_size;
     int pid;
 };
-ina_str_t  __cfg_filepath = NULL;
+int        __init_from_file = INA_NO;
+ina_str_t  __cfg_file_or_string = NULL;
+ina_log_t  *__dft_log = NULL;
+ina_conffile_t *__cf = NULL;
 
 static ina_rc_t __ina_log(const ina_log_t*, ina_log_level_t, const char*, ina_str_t);
 static ina_rc_t __ina_free_target(void *data)
@@ -221,18 +239,29 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_log_init(const char* cfg_filepath)
+INA_API(ina_rc_t) ina_log_init_from_file(const char* cfg_filepath)
+{
+    __init_from_file = INA_YES;
+    return ina_log_init(cfg_filepath);
+}
+
+INA_API(ina_rc_t) ina_log_init(const char* cfg)
 {
     INA_INIT_GUARD();
-    __cfg_filepath = ina_str_new_fromcstr(cfg_filepath);
-    INA_RETURN_IF_NULL(__cfg_filepath);
+    __cfg_file_or_string = ina_str_new_fromcstr(cfg);
+    if (ina_str_len(__cfg_file_or_string) == 0) {
+        __cfg_file_or_string = ina_str_catcstr(__cfg_file_or_string, __ina_dft_spec);
+    }
+    INA_RETURN_IF_FAILED(ina_log_new("*", &__dft_log));
     return INA_SUCCESS;
 }
+
 
 INA_API(void) ina_log_destroy(void)
 {
     INA_DESTROY_GUARD();
-    ina_str_free(__cfg_filepath);
+    ina_log_free(&__dft_log);
+    ina_str_free(__cfg_file_or_string);
 }
 
 INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const char *location, const char* fmt, ...)
@@ -240,9 +269,12 @@ INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const cha
     va_list ap;
     ina_rc_t rc;
 
-    INA_VERIFY_NOT_NULL(log);
     INA_VERIFY_NOT_NULL(fmt);
     INA_VERIFY(strlen(fmt));
+
+    if (log == NULL) {
+        log = __dft_log;
+    }
 
     va_start(ap, fmt);
     rc = ina_log_v(log, level, location, fmt, ap);
@@ -259,7 +291,7 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
     if (!msg) {
         msg = ina_str_new(1024);
     }
- 
+
     INA_VERIFY_NOT_NULL(log);
     INA_VERIFY_NOT_NULL(fmt);
     INA_VERIFY(strlen(fmt));
@@ -295,8 +327,11 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
                     INA_CONFFILE_STRING_KEY("target", INA_YES),
                     INA_CONFFILE_STRING_KEY("syslog_ident", INA_NO),
                     INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)));
-
-    INA_FAIL_IF_ERROR(ina_conffile_process(cf, __cfg_filepath, *log));
+    if (__init_from_file == INA_NO) {
+        INA_FAIL_IF_ERROR(ina_conffile_process_string(cf, __cfg_file_or_string, *log));
+    } else {
+        INA_FAIL_IF_ERROR(ina_conffile_process(cf, __cfg_file_or_string, *log));
+    }
 
     ina_conffile_free(&cf);
     return INA_SUCCESS;
