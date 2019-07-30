@@ -28,9 +28,8 @@ INA_TEST(log, inavalid_arguments)
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_ctx_new(NULL, &ctx));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_ctx_new("cat", NULL));
 
-    INA_TEST_ASSERT_SUCCEED(ina_log_init("test_log.conf"));
+    INA_TEST_ASSERT_SUCCEED(ina_log_init_from_file("test_log.conf"));
     INA_TEST_ASSERT_SUCCEED(ina_log_ctx_new("test.debug", &ctx));
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_write(NULL, INA_LOG_LEVEL_DEBUG, NULL, "test %s", "s"));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_write(ctx, INA_LOG_LEVEL_DEBUG, NULL, NULL, "s"));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_write(ctx, INA_LOG_LEVEL_DEBUG, NULL, "", "s"));
 
