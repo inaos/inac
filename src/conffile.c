@@ -512,9 +512,7 @@ __ina_process_section_table(ina_conffile_t *cf,  void *user_data)
         lua_pop(lstate, 1);
 
         if (configured) {
-            ina_conffile_section_t *s;
             ina_conffile_entries_t *e;
-
             ina_hashtable_get_str(cf->sections, name, (void**)&s);
 
             if (!named) {

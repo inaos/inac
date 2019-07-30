@@ -227,7 +227,7 @@ INA_TEST_SKIP(process, stat)
     cmd = NULL;
 
 #ifdef INA_OS_WINDOWS
-    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(&ps, "foo.exe"));
+    INA_TEST_ASSERT_SUCCEED(ina_process_stat_new("foo.exe", &ps));
 #else
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_new("foo", &ps));
 #endif
