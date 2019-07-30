@@ -66,7 +66,7 @@ extern "C" {
 #define INA_LOG_CTX_DEBUG(ctx,fmt,...)                          \
     INA_LOG(ctx, INA_LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
 #else
-#define INA_LOG_DEBUG(cat,fmt,...)
+#define INA_LOG_DEBUG(fmt,...)
 #define INA_LOG_CTX_DEBUG(ctx,fmt,...)
 #endif
 
