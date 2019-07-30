@@ -44,7 +44,7 @@ typedef struct __ina_target_s {
 } __ina_target_t;
 
 /* Log context/configuration */
-struct ina_log_s {
+struct ina_log_ctx_s {
     ina_list_t *targets;
     ina_str_t category;
     size_t buffer_size;
@@ -52,10 +52,9 @@ struct ina_log_s {
 };
 int        __init_from_file = INA_NO;
 ina_str_t  __cfg_file_or_string = NULL;
-ina_log_t  *__dft_log = NULL;
-ina_conffile_t *__cf = NULL;
+ina_log_ctx_t  *__dft_ctx = NULL;
 
-static ina_rc_t __ina_log(const ina_log_t*, ina_log_level_t, const char*, ina_str_t);
+static ina_rc_t __ina_log(const ina_log_ctx_t*, ina_log_level_t, const char*, ina_str_t);
 static ina_rc_t __ina_free_target(void *data)
 {
     __ina_target_t *target = (__ina_target_t*)data;
@@ -142,16 +141,16 @@ static ina_rc_t __ina_process_global_section(const char *section_name,
                                           ina_conffile_entries_t *entries,
                                           void* user_data)
 {
-    ina_log_t *log;
+    ina_log_ctx_t *ctx;
     double cfg_value;
     INA_UNUSED(section_name);
     INA_UNUSED(section_key);
 
-    log = (ina_log_t*)user_data;
+    ctx = (ina_log_ctx_t*)user_data;
     if (INA_SUCCEED(ina_conffile_get_number_from_entries(entries, "buffer_size", &cfg_value))) {
-        log->buffer_size = (size_t)cfg_value;
-        if (log->buffer_size > __INA_MAX_BUFFER_SIZE) {
-            log->buffer_size = __INA_MAX_BUFFER_SIZE;
+        ctx->buffer_size = (size_t)cfg_value;
+        if (ctx->buffer_size > __INA_MAX_BUFFER_SIZE) {
+            ctx->buffer_size = __INA_MAX_BUFFER_SIZE;
         }
     }
     return INA_SUCCESS;
@@ -166,13 +165,13 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
     size_t count;
     int match_cat = 0;
     uint32_t levels;
-    ina_log_t *log = (ina_log_t*)user_data;
+    ina_log_ctx_t *ctx = (ina_log_ctx_t*)user_data;
     INA_UNUSED(section_name);
     key = ina_str_new_fromcstr(section_key);
     tokens = ina_str_split(key, ".", &count);
     if (count == 2) {
         if (strcmp(tokens[0], "*") == 0 ||
-            strcmp(tokens[0], log->category)== 0) {
+            strcmp(tokens[0], ctx->category)== 0) {
             match_cat = 1;
         }
         if (strcmp(tokens[1], "*") == 0) {
@@ -227,14 +226,14 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
                 t->type = INA_LOG_FILE;
                 t->filepath = ina_str_dup(value);
                 t->write_fn = __ina_write_to_buffer;
-                t->buffer_size = log->buffer_size;
+                t->buffer_size = ctx->buffer_size;
                 if (INA_SUCCEED(ina_conffile_get_number_from_entries(entries, "buffer_size", &cfg_value))) {
                     t->buffer_size = (size_t)cfg_value;
                 }
             }
         }
         t->node.data = t;
-        ina_list_insert_tail(log->targets, &t->node);
+        ina_list_insert_tail(ctx->targets, &t->node);
     }
     return INA_SUCCESS;
 }
@@ -252,7 +251,7 @@ INA_API(ina_rc_t) ina_log_init(const char* cfg)
     if (ina_str_len(__cfg_file_or_string) == 0) {
         __cfg_file_or_string = ina_str_catcstr(__cfg_file_or_string, __ina_dft_spec);
     }
-    INA_RETURN_IF_FAILED(ina_log_new("*", &__dft_log));
+    INA_RETURN_IF_FAILED(ina_log_ctx_new("*", &__dft_ctx));
     return INA_SUCCESS;
 }
 
@@ -260,11 +259,11 @@ INA_API(ina_rc_t) ina_log_init(const char* cfg)
 INA_API(void) ina_log_destroy(void)
 {
     INA_DESTROY_GUARD();
-    ina_log_free(&__dft_log);
+    ina_log_ctx_free(&__dft_ctx);
     ina_str_free(__cfg_file_or_string);
 }
 
-INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const char *location, const char* fmt, ...)
+INA_API(ina_rc_t) ina_log_write(const ina_log_ctx_t *ctx, ina_log_level_t level, const char *location, const char* fmt, ...)
 {
     va_list ap;
     ina_rc_t rc;
@@ -272,18 +271,18 @@ INA_API(ina_rc_t) ina_log(const ina_log_t *log, ina_log_level_t level, const cha
     INA_VERIFY_NOT_NULL(fmt);
     INA_VERIFY(strlen(fmt));
 
-    if (log == NULL) {
-        log = __dft_log;
+    if (ctx == NULL) {
+        ctx = __dft_ctx;
     }
 
     va_start(ap, fmt);
-    rc = ina_log_v(log, level, location, fmt, ap);
+    rc = ina_log_write_v(ctx, level, location, fmt, ap);
     va_end(ap);
 
     return rc;
 }
 
-INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
+INA_API(ina_rc_t) ina_log_write_v(const ina_log_ctx_t *log, ina_log_level_t level,
                             const char* location, const char* fmt, va_list ap)
 {
     static ina_str_t msg = NULL;
@@ -301,24 +300,24 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
     return __ina_log(log, level, location, msg);
 }
 
-INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
+INA_API(ina_rc_t) ina_log_ctx_new(const char* category, ina_log_ctx_t **ctx)
 {
     ina_conffile_t *cf = NULL;
 
-    INA_VERIFY_NOT_NULL(log);
+    INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(category);
 
-    *log = (ina_log_t *) ina_mem_alloc(sizeof(ina_log_t));
-    INA_RETURN_IF_NULL(*log);
-    INA_MEM_SET_ZERO(*log, ina_log_t);
-    (*log)->buffer_size = __INA_DFT_BUFFER_SIZE;
-    (*log)->category = ina_str_new_fromcstr(category);
+    *ctx = (ina_log_ctx_t *) ina_mem_alloc(sizeof(ina_log_ctx_t));
+    INA_RETURN_IF_NULL(*ctx);
+    INA_MEM_SET_ZERO(*ctx, ina_log_ctx_t);
+    (*ctx)->buffer_size = __INA_DFT_BUFFER_SIZE;
+    (*ctx)->category = ina_str_new_fromcstr(category);
 #ifdef INA_OS_WINDOWS
-    (*log)->pid = (int)GetCurrentProcessId();
+    (*ctx)->pid = (int)GetCurrentProcessId();
 #else
-    (*log)->pid = (int)getpid();
+    (*ctx)->pid = (int)getpid();
 #endif
-    INA_FAIL_IF_ERROR(ina_list_new(INA_LIST_CF_NOMALLOC, &(*log)->targets));
+    INA_FAIL_IF_ERROR(ina_list_new(INA_LIST_CF_NOMALLOC, &(*ctx)->targets));
 
     INA_CONFFILE(&cf,
             INA_CONFFILE_SECTION("global", INA_YES, __ina_process_global_section,
@@ -328,9 +327,9 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
                     INA_CONFFILE_STRING_KEY("syslog_ident", INA_NO),
                     INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)));
     if (__init_from_file == INA_NO) {
-        INA_FAIL_IF_ERROR(ina_conffile_process_string(cf, __cfg_file_or_string, *log));
+        INA_FAIL_IF_ERROR(ina_conffile_process_string(cf, __cfg_file_or_string, *ctx));
     } else {
-        INA_FAIL_IF_ERROR(ina_conffile_process(cf, __cfg_file_or_string, *log));
+        INA_FAIL_IF_ERROR(ina_conffile_process(cf, __cfg_file_or_string, *ctx));
     }
 
     ina_conffile_free(&cf);
@@ -338,23 +337,22 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log)
 
 fail:
     ina_conffile_free(&cf);
-    ina_log_free(log);
+    ina_log_ctx_free(ctx);
     return ina_err_get_rc();
 }
 
-INA_API(void) ina_log_free(ina_log_t **log)
+INA_API(void) ina_log_ctx_free(ina_log_ctx_t **ctx)
 {
-    INA_VERIFY_FREE(log);
-    if ((*log)->targets != NULL) {
-        ina_list_foreach((*log)->targets, __ina_free_target);
-        ina_list_free(&(*log)->targets);
+    INA_VERIFY_FREE(ctx);
+    if ((*ctx)->targets != NULL) {
+        ina_list_foreach((*ctx)->targets, __ina_free_target);
+        ina_list_free(&(*ctx)->targets);
     }
-    ina_str_free((*log)->category);
-    INA_MEM_FREE_SAFE(*log);
+    ina_str_free((*ctx)->category);
+    INA_MEM_FREE_SAFE(*ctx);
 }
 
-
-static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, const char *location, ina_str_t msg) {
+static ina_rc_t __ina_log(const ina_log_ctx_t *ctx, ina_log_level_t level, const char *location, ina_str_t msg) {
     static const char *c = " .- *   #";
     static char buf[64];
     static char buf2[2048];
@@ -374,9 +372,9 @@ static ina_rc_t __ina_log(const ina_log_t *log, ina_log_level_t level, const cha
     INA_ASSERT_NOT_NULL(lt);
     
     strftime(buf, sizeof(buf),"%d %b %H:%M:%S", lt);
-    snprintf(buf2, 2047, "[%d] %s %c %s\n", log->pid, buf, c[level], msg);
+    snprintf(buf2, 2047, "[%d] %s %c %s\n", ctx->pid, buf, c[level], msg);
 
-    if (INA_SUCCEED(ina_list_head(log->targets, &next))) {
+    if (INA_SUCCEED(ina_list_head(ctx->targets, &next))) {
         while (next) {
             __ina_target_t *target = next->data;
             if (target->level&level) {

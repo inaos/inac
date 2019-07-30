@@ -17,7 +17,7 @@ extern "C" {
 
 /* Base log macros, user INA_LOG_DEBUG/INFO/WARNING/ERROR instead */
 #ifdef INA_LOG_ENABLED
-#define INA_LOG(log, level, fmt, ...) ina_log((log), level, INA_AT, fmt, ##__VA_ARGS__)
+#define INA_LOG(log, level, fmt, ...) ina_log_write((log), level, INA_AT, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG(log, level, fmt, ...)
 #endif
@@ -29,45 +29,45 @@ extern "C" {
 #if INA_LOG_LEVEL>0
 #define INA_LOG_RC(rc) \
     INA_LOG(NULL, INA_LOG_LEVEL_ERROR, "%s", ina_err_strerror((rc)))
-#define INA_LOG_RC_V(log, rc) \
-    INA_LOG(log, INA_LOG_LEVEL_ERROR, "%s", ina_err_strerror((rc)))
+#define INA_LOG_CTX_RC(ctx, rc) \
+    INA_LOG(ctx, INA_LOG_LEVEL_ERROR, "%s", ina_err_strerror((rc)))
 
 #define INA_LOG_ERROR(fmt, ...)                          \
-    INA_LOG((NULL), INA_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)
-#define INA_LOG_ERROR_V(log, fmt,...)                          \
-    INA_LOG(log, INA_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)
+    INA_LOG(NULL, INA_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)
+#define INA_LOG_CTX_ERROR(cat, fmt,...)                          \
+    INA_LOG(ctx, INA_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG_ERROR(fmt,...)
-#define INA_LOG_ERROR_V(cfg,fmt,...)
+#define INA_LOG_CTX_ERROR(ctx, fmt,...)
 #define INA_LOG_RC(rc)
-#define INA_LOG_RC_V(log, rc)
+#define INA_LOG_CTX_RC(ctx, rc)
 #endif
 #if INA_LOG_LEVEL>1
 #define INA_LOG_WARNING(fmt,...)                         \
     INA_LOG(NULL, INA_LOG_LEVEL_WARNING, fmt, ##__VA_ARGS__)
-#define INA_LOG_WARNING_V(log, fmt,...)                         \
-    INA_LOG(log, INA_LOG_LEVEL_WARNING, fmt, ##__VA_ARGS__)
+#define INA_LOG_CTX_WARNING(cat, fmt,...)                         \
+    INA_LOG(ctx, INA_LOG_LEVEL_WARNING, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG_WARNING(fmt,...)
-#define INA_LOG_WARNING_V(log,fmt,...)
+#define INA_LOG_CTX_WARNING(ctx,fmt,...)
 #endif
 #if INA_LOG_LEVEL>2
 #define INA_LOG_INFO(fmt,...)                            \
-    INA_LOG((NULL), INA_LOG_LEVEL_INFO, fmt, ##__VA_ARGS__)
-#define INA_LOG_INFO_V(log,fmt,...)                            \
-    INA_LOG(log, INA_LOG_LEVEL_INFO, fmt, ##__VA_ARGS__)
+    INA_LOG(NULL, INA_LOG_LEVEL_INFO, fmt, ##__VA_ARGS__)
+#define INA_LOG_CTX_INFO(ctx,fmt,...)                            \
+    INA_LOG(ctx, INA_LOG_LEVEL_INFO, fmt, ##__VA_ARGS__)
 #else
 #define INA_LOG_INFO(fmt,...)
-#define INA_LOG_INFO_V(log,fmt,...)
+#define INA_LOG_CTX_INFO(ctx,fmt,...)
 #endif
 #if INA_LOG_LEVEL>3
 #define INA_LOG_DEBUG(fmt,...)                          \
     INA_LOG(NULL, INA_LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
-#define INA_LOG_DEBUG_V(log,fmt,...)                          \
-    INA_LOG(log, INA_LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
+#define INA_LOG_CTX_DEBUG(ctx,fmt,...)                          \
+    INA_LOG(ctx, INA_LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
 #else
-#define INA_LOG_DEBUG(cfg,fmt,...)
-#define INA_LOG_DEBUG_V(cfg,fmt,...)
+#define INA_LOG_DEBUG(cat,fmt,...)
+#define INA_LOG_CTX_DEBUG(ctx,fmt,...)
 #endif
 
 /* Log level */
@@ -89,16 +89,40 @@ typedef enum ina_log_target_e {
 #endif
 } ina_log_target_t;
 
-/* Log context/configuration */
-typedef struct ina_log_s ina_log_t;
+/* Log category */
+typedef struct ina_log_ctx_s ina_log_ctx_t;
 
+/*
+ * Initialize logging facility.
+ *
+ * Parameters
+ *  cfg  Logging configuration. If NULL default configuration is
+ *       applied which writes DEBUG,INFO,WARNING to stdout and
+ *       ERROR to stderr.
+ *
+ * Return
+ *  INA_SUCCESS if all went well
+ */
 INA_API(ina_rc_t) ina_log_init(const char* cfg);
+
+/*
+ * Initialize logging facility from file.
+ *
+ * Parameters
+ *  cfg_filepath  Path to the configuration file. If NULL
+ *                is passed, an attempt is made to open a
+ *                configuration file with the same name as the
+ *                executable file and the extension .conf.
+ */
 INA_API(ina_rc_t) ina_log_init_from_file(const char* cfg_filepath);
 
 
-INA_API(void)     ina_log_destroy(void);
 /*
- * Open a log context  based on a log configuration.
+ * Destroy the logging facility.
+ */
+INA_API(void) ina_log_destroy(void);
+/*
+ * Open a log context based on a log configuration.
  *
  * Parameters
  *  category  log category
@@ -107,7 +131,7 @@ INA_API(void)     ina_log_destroy(void);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log);
+INA_API(ina_rc_t) ina_log_ctx_new(const char* category, ina_log_ctx_t **ctx);
 /*
  * Log a  message to current targets and level.
  *
@@ -120,7 +144,7 @@ INA_API(ina_rc_t) ina_log_new(const char* category, ina_log_t **log);
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log(const ina_log_t *log,
+INA_API(ina_rc_t) ina_log_write(const ina_log_ctx_t *ctx,
                           ina_log_level_t level,
                           const char *location,
                           const char* fmt,
@@ -138,7 +162,7 @@ INA_API(ina_rc_t) ina_log(const ina_log_t *log,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
+INA_API(ina_rc_t) ina_log_write_v(const ina_log_ctx_t *cxt, ina_log_level_t level,
                             const char* location, const char* fmt, va_list ap);
 
 /*
@@ -147,7 +171,7 @@ INA_API(ina_rc_t) ina_log_v(const ina_log_t *log, ina_log_level_t level,
  * Parameters
  *  log  Log context to close.
  */
-INA_API(void) ina_log_free(ina_log_t **log);
+INA_API(void) ina_log_ctx_free(ina_log_ctx_t **ctx);
 
 #ifdef __cplusplus
 }
