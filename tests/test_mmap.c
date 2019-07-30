@@ -102,9 +102,9 @@ INA_TEST(mmap, invalid_arguments)
                                                                   &mapping
     ));
 
-    INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,int-to-pointer-cast)
+    INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
     fd = (ina_file_t*)fake;
-    INA_ENABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,int-to-pointer-cast)
+    INA_ENABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mmap_new(ctx, fd,
                                                                   INA_MMAP_MEM_PROT_EXEC,
                                                                   INA_MMAP_MEM_SHARE_PRIVATE,
@@ -117,9 +117,9 @@ INA_TEST(mmap, invalid_arguments)
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mmap_sync(NULL));
 
-    INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,int-to-pointer-cast)
+    INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
     mapping = (ina_mmap_mapping_t*)fake;
-    INA_ENABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,int-to-pointer-cast)
+    INA_ENABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mmap_memory_head(NULL, &mem));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mmap_memory_head(mapping, NULL));

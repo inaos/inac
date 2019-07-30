@@ -183,9 +183,9 @@ INA_TEST(file, invalid_arguments)
     int fake = 0;
     unsigned char bc[1];
     ina_file_ctx_t *ctx = NULL;
-    INA_DISABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,int-to-pointer-cast)
+    INA_DISABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,4312)
     ina_file_t *file = (ina_file_t*)fake;
-    INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,int-to-pointer-cast)
+    INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,4312)
     ina_file_stat_t *stat = NULL;
     ina_str_t filepath = NULL;
     mode_t mode;
