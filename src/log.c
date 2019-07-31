@@ -38,6 +38,7 @@ typedef struct __ina_target_s {
     ina_log_target_t type;
     ina_list_node_t node;
     size_t buffer_size;
+    ina_str_t open_mode;
     unsigned char *buffer_pos;
     unsigned char *buffer;
     FILE *fp;
@@ -81,6 +82,7 @@ static ina_rc_t __ina_free_target(void *data)
     }
     ina_str_free(target->syslog_ident);
     ina_str_free(target->filepath);
+    ina_str_free(target->open_mode);
     INA_MEM_FREE_SAFE(target->buffer);
     INA_MEM_FREE_SAFE(target);
     return INA_SUCCESS;
@@ -104,7 +106,7 @@ static ina_rc_t __ina_write_to_buffer(__ina_target_t *target, ina_log_level_t le
     }
     if (target->buffer_pos-target->buffer < (int)strlen(msg)+1) { /* its save to cast here, since buffer not > 2GB */
         if (target->fp == NULL) {
-            target->fp = fopen(target->filepath, "a");
+            target->fp = fopen(target->filepath, target->open_mode);
         }
         fwrite(target->buffer, target->buffer_pos - target->buffer, 1, target->fp);
         target->buffer_pos = target->buffer;
@@ -132,7 +134,7 @@ static ina_rc_t __ina_write_to_syslog(__ina_target_t *target, ina_log_level_t le
             break;
     }
     closelog();
-    return  INA_SUCCESS;
+    return INA_SUCCESS;
 }
 #endif
 
@@ -230,6 +232,13 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
                 if (INA_SUCCEED(ina_conffile_get_number_from_entries(entries, "buffer_size", &cfg_value))) {
                     t->buffer_size = (size_t)cfg_value;
                 }
+                if (INA_SUCCEED(ina_conffile_get_string_from_entries(entries, "truncate", &value))) {
+                    if (stricmp(value, "true") == 0) {
+                        t->open_mode = ina_str_new_fromcstr("w");
+                    } else {
+                        t->open_mode = ina_str_new_fromcstr("a");
+                    }
+                }
             }
         }
         t->node.data = t;
@@ -324,6 +333,7 @@ INA_API(ina_rc_t) ina_log_ctx_new(const char* category, ina_log_ctx_t **ctx)
                     INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)),
             INA_CONFFILE_NAMED_SECTION("rule", INA_NO, __ina_process_rule_section,
                     INA_CONFFILE_STRING_KEY("target", INA_YES),
+                    INA_CONFFILE_STRING_KEY("truncate", INA_NO),
                     INA_CONFFILE_STRING_KEY("syslog_ident", INA_NO),
                     INA_CONFFILE_NUMBER_KEY("buffer_size", INA_NO)));
     if (__init_from_file == INA_NO) {
