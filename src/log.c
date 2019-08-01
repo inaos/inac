@@ -233,7 +233,7 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
                     t->buffer_size = (size_t)cfg_value;
                 }
                 if (INA_SUCCEED(ina_conffile_get_string_from_entries(entries, "truncate", &value))) {
-                    if (stricmp(value, "true") == 0) {
+                    if (INA_CSTR_CASECMP(value, "true") == 0) {
                         t->open_mode = ina_str_new_fromcstr("w");
                     } else {
                         t->open_mode = ina_str_new_fromcstr("a");
