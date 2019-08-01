@@ -25,7 +25,7 @@ The trace functionality is available only for debug builds.
 
 
 ### Asserting
-INAC provide a set of assert macro to simply writting assertion
+INAC offers a number of assert macros to make assertion easier to write.
 
 Assertion for not implemented code
     
