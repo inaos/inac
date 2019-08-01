@@ -10,29 +10,28 @@
 
 INA_TEST_SKIP(log, open_close_console)
 {
-    ina_log_t *log = NULL;
+    ina_log_ctx_t *ctx = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_log_init("test_log.conf"));
-    INA_TEST_ASSERT_SUCCEED(ina_log_new("test", &log));
-    INA_TEST_ASSERT_NOT_NULL(log);
-    INA_TEST_ASSERT_SUCCEED(ina_log(log, INA_LOG_LEVEL_DEBUG, INA_AT, "Test DEBUG log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(log, INA_LOG_LEVEL_INFO, INA_AT, "Test INFO log entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(log, INA_LOG_LEVEL_WARNING, INA_AT, "Test WARNING entry, var=%d", 2));
-    INA_TEST_ASSERT_SUCCEED(ina_log(log, INA_LOG_LEVEL_ERROR, INA_AT,"Test ERROR entry, var=%d", 2));
-    ina_log_free(&log);
-    INA_TEST_ASSERT_NULL(log);
+    INA_TEST_ASSERT_SUCCEED(ina_log_ctx_new("test", &ctx));
+    INA_TEST_ASSERT_NOT_NULL(ctx);
+    INA_TEST_ASSERT_SUCCEED(ina_log_write(ctx, INA_LOG_LEVEL_DEBUG, INA_AT, "Test DEBUG log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log_write(ctx, INA_LOG_LEVEL_INFO, INA_AT, "Test INFO log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log_write(ctx, INA_LOG_LEVEL_WARNING, INA_AT, "Test WARNING entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log_write(ctx, INA_LOG_LEVEL_ERROR, INA_AT,"Test ERROR entry, var=%d", 2));
+    ina_log_ctx_free(&ctx);
+    INA_TEST_ASSERT_NULL(ctx);
 }
 
 INA_TEST(log, inavalid_arguments)
 {
-    ina_log_t *log = NULL;
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_new(NULL, &log));
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_new("cat", NULL));
+    ina_log_ctx_t *ctx = NULL;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_ctx_new(NULL, &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_ctx_new("cat", NULL));
 
-    INA_TEST_ASSERT_SUCCEED(ina_log_init("test_log.conf"));
-    INA_TEST_ASSERT_SUCCEED(ina_log_new("test.debug", &log));
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log(NULL, INA_LOG_LEVEL_DEBUG, NULL, "test %s", "s"));
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log(log, INA_LOG_LEVEL_DEBUG, NULL, NULL, "s"));
-    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log(log, INA_LOG_LEVEL_DEBUG, NULL, "", "s"));
+    INA_TEST_ASSERT_SUCCEED(ina_log_init_from_file("test_log.conf"));
+    INA_TEST_ASSERT_SUCCEED(ina_log_ctx_new("test.debug", &ctx));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_write(ctx, INA_LOG_LEVEL_DEBUG, NULL, NULL, "s"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_write(ctx, INA_LOG_LEVEL_DEBUG, NULL, "", "s"));
 
-    ina_log_free(&log);
+    ina_log_ctx_free(&ctx);
 }
