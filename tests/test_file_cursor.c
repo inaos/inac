@@ -8,9 +8,9 @@
  */
 #include <libinac/lib.h>
 
-
 INA_TEST_SKIP(file_cursor, test_file_cursor)
 {
+    INA_UNUSED(data);
 }
 
 INA_TEST(file_cursor, invalid_arguments)
@@ -22,6 +22,7 @@ INA_TEST(file_cursor, invalid_arguments)
     uint64_t size;
     ina_file_cursor_mode_t mode;
     ina_file_cursor_type_t type;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
             ina_file_cursor_new_using_pool(NULL, INA_FILE_CURSOR_TYPE_FILEIO, INA_FILE_CURSOR_MODE_READ_TEXT_CHUNK, 10, &cursor, mmap_ctx, pool));

@@ -118,6 +118,7 @@ static void __ina_time_rdtsc_calibrate_ticks(void)
 static void __ina_time_init(ina_time_tsc_t *time)
 {
     /* FIXME: implement for osx if required */
+    INA_UNUSED(time);
 }
 static void __ina_time_rdtsc_calibrate_ticks(void)
 {

@@ -16,7 +16,9 @@
 
 INA_TEST(process, init_destroy)
 {   
-    ina_process_ctx_t *ctx;    
+    ina_process_ctx_t *ctx;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     ina_process_ctx_free(&ctx);
@@ -28,7 +30,8 @@ INA_TEST(process, descriptor_new_free)
 {
     ina_process_ctx_t *ctx;
     ina_process_descriptor_t *pd;
-   
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
@@ -54,7 +57,8 @@ INA_TEST(process, new_free)
     ina_process_ctx_t *ctx;
     ina_process_descriptor_t pd;
     ina_process_t *process;
-   
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     
@@ -79,7 +83,8 @@ INA_TEST(process, start_and_wait)
     ina_process_t *process;
     ina_process_descriptor_t pd;
     int  exit_code;
-   
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
@@ -102,6 +107,7 @@ INA_TEST_SKIP(process, stop)
     ina_process_t *process;
     ina_process_descriptor_t pd;
     ina_fsm_state_t state;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -132,7 +138,8 @@ INA_TEST(process, state)
     ina_process_t *process;
     ina_fsm_state_t state;
     ina_process_descriptor_t pd;
-    
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
@@ -159,7 +166,8 @@ INA_TEST(process, should_be_running)
     ina_process_ctx_t *ctx;
     ina_process_t *process;
     ina_process_descriptor_t pd;
-    
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
@@ -183,7 +191,8 @@ INA_TEST(process, get_exit_code)
     ina_process_t *process;
     ina_process_descriptor_t pd;
     int  exit_code;
-   
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_process_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
 
@@ -207,6 +216,7 @@ INA_TEST_SKIP(process, stat)
     uint64_t mem = 0;
     int num_threads = 0;
     const char *cmd = NULL;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_process_stat_new(__INA_TEST_EXE, &ps));
     INA_TEST_ASSERT_NOT_NULL(ps);
@@ -254,6 +264,7 @@ INA_TEST(process, invalid_arguments)
     const char* c = NULL;
     uint64_t u64 = 0;
     int fake  = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_ctx_new(NULL));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_descriptor_new(NULL, "test.exe", "c:\\temp", "-b", 0, 0, &ds));
@@ -308,7 +319,4 @@ INA_TEST(process, invalid_arguments)
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_get_num_threads(NULL, &fake));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_process_stat_get_num_threads(stat, NULL));
-
-
-
 }

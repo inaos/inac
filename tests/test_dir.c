@@ -197,6 +197,7 @@ INA_TEST(dir, invalid_arguments)
     ina_dir_stat_t *stat = NULL;
     size_t size = 0;
     int pct_used = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_new(NULL, &w));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_dir_walker_new("test", NULL));

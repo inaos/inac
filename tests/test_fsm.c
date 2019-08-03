@@ -126,6 +126,7 @@ INA_TEST(fsm, get_set_state)
 {
     signal_light_t sl;
     ina_mem_set(&sl, 0, sizeof(signal_light_t));
+    INA_UNUSED(data);
 
     /* Set initial state */
     INA_FSM_SET_STATE(signal_fsm, sl.fsm_status, ON);
@@ -138,6 +139,7 @@ INA_TEST(fsm, get_set_event)
 {
     signal_light_t sl;
     ina_mem_set(&sl, 0, sizeof(signal_light_t));
+    INA_UNUSED(data);
 
     /* Set initial state */
     INA_FSM_SET_EVENT(signal_fsm, sl.fsm_status, SWITCH);
@@ -149,7 +151,8 @@ INA_TEST(fsm, get_set_event)
 
 INA_TEST(fsm, signal_light)
 {
-    
+    INA_UNUSED(data);
+
     signal_light_t sl;
     ina_mem_set(&sl, 0, sizeof(signal_light_t));
 

@@ -21,6 +21,8 @@ INA_TEST(time, tsc_strftime)
 {
     ina_str_t str = ina_str_new(128);
     ina_time_tsc_t *time = NULL;
+    INA_UNUSED(data);
+
     ina_time_tsc_new(&time);
     INA_TEST_ASSERT_NOT_NULL(time);
     INA_TEST_ASSERT_SUCCEED(ina_time_read_tsc_clock(time));
@@ -34,6 +36,7 @@ INA_TEST(time, tsc_strftime)
 INA_TEST(time,backend) 
 {
     ina_time_sys_info_t info;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_backend_info(&info));
 #ifdef INA_MBTIME_ENABLED
@@ -58,6 +61,7 @@ INA_TEST(time,read_clock)
     time_t secs2;
     long us = 0;
     long us2 = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_time_sys_new(&t));
 
@@ -87,6 +91,7 @@ INA_TEST(time, tsc_millis)
     ina_time_tsc_t *t;
     time_t now_millis = 0;
     time_t now_sec = time(NULL);
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_new(&t));
     INA_TEST_ASSERT_SUCCEED(ina_time_read_tsc_clock(t));
@@ -107,6 +112,7 @@ INA_TEST_SKIP(time_tsc,read_tsc)
     int i;
     const char *msg = "Test may fail, because RDTSC can be different from HPET, "
                       "but should not be more then couple of micro-seconds";
+    INA_UNUSED(data);
 
     INA_TEST_MSG("%s", msg);
 
@@ -159,6 +165,7 @@ INA_TEST(time, invalid_arguments)
     long nanos = 0;
     ina_str_t buf = ina_str_new(128);
     size_t sz = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_backend_info(NULL));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_time_tsc_new(NULL));

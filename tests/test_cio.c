@@ -11,6 +11,7 @@
 INA_TEST_SKIP(cio, get_limits)
 {
     ina_cio_pos_t pos = {0,0};
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cio_get_limits(&pos));
     INA_TEST_ASSERT_TRUE(0 < pos.col);
@@ -19,6 +20,7 @@ INA_TEST_SKIP(cio, get_limits)
 
 INA_TEST(cio, invalid_arguments)
 {
+    INA_UNUSED(data);
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cio_set_attribs(NULL));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cio_get_attribs(NULL));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cio_get_pos(NULL));

@@ -36,10 +36,10 @@ if (POLICY CMP0026)
 endif()
 
 if ( CMAKE_COMPILER_IS_GNUCC )
-    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
+    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes")
 endif()
 if ( CMAKE_C_COMPILER_ID STREQUAL "AppleClang" )
-    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
+    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes")
 endif()
 
 if (MSVC)

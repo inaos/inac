@@ -11,6 +11,8 @@
 INA_TEST_SKIP(log, open_close_console)
 {
     ina_log_ctx_t *ctx = NULL;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_log_init("test_log.conf"));
     INA_TEST_ASSERT_SUCCEED(ina_log_ctx_new("test", &ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -25,6 +27,8 @@ INA_TEST_SKIP(log, open_close_console)
 INA_TEST(log, inavalid_arguments)
 {
     ina_log_ctx_t *ctx = NULL;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_ctx_new(NULL, &ctx));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_log_ctx_new("cat", NULL));
 

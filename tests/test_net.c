@@ -122,6 +122,7 @@ INA_TEST(net_local, mac_addr)
     char *mac = (char*)malloc(sizeof(char)*6);
     char *test_ip = NULL;
     int found = 0;
+    INA_UNUSED(data);
 
     /* first the get first IP-Address of the system */
 #define WORKING_BUFFER_SIZE 15000
@@ -195,6 +196,7 @@ INA_TEST(net_local, mac_addr)
     char *ip = NULL;
     char *mac = (char*)malloc(6);
     int found = INA_NO;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_FALSE(getifaddrs(&ifaddr) == -1);
 
@@ -234,6 +236,7 @@ INA_TEST(net_local, system_lookup)
 {
     ina_str_t *addresses;
     short      address_count;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_net_system_lookup("localhost", &address_count, &addresses));
     INA_TEST_ASSERT_TRUE(address_count > 0);
@@ -247,6 +250,8 @@ INA_TEST(net_local, system_lookup)
 INA_TEST(net_local, resolve_host)
 {
     ina_str_t ip = ina_str_new(128);
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_net_resolve("localhost", &ip));
     INA_TEST_MSG("IP for localhost: %s", ip);
     ina_str_free(ip);
@@ -255,6 +260,8 @@ INA_TEST(net_local, resolve_host)
 INA_TEST(net_local, hostname)
 {
     char host[128];
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_net_hostname(&host[0],127 ));
     INA_TEST_MSG("hostname: %s", host);
 }
@@ -279,6 +286,8 @@ INA_TEST(net, invalid_arguments)
     int fake = 1;
     ina_net_pollfd_t pfd;
     nfds_t nfds = 0;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_system_lookup(NULL, &ac, &strptr));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_system_lookup("localhost", NULL, &strptr));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_system_lookup("localhost", &ac, NULL));
@@ -375,19 +384,4 @@ INA_TEST(net, invalid_arguments)
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_poll(NULL, nfds, 0, &fake));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_net_poll(&pfd, nfds, 0, NULL));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

@@ -535,8 +535,12 @@ typedef void (*ina_test_teardown_cb_t)(void*);
 /* Test case */
 typedef struct ina_test_testcase_s {
     const char* suite_name;
-    const char* test_name; 
+    const char* test_name;
+    INA_DISABLE_WARNING_CLANG(strict-prototypes)
+    INA_DISABLE_WARNING_GCC(strict-prototypes)
     void (*run)();
+    INA_ENABLE_WARNING_CLANG(strict-prototypes)
+    INA_ENABLE_WARNING_GCC(strict-prototypes)
     int skip;
     int is_helper;
     void *data;
@@ -579,9 +583,12 @@ typedef struct ina_test_testcase_s {
         (ina_test_teardown_cb_t)__teardown,                                 \
         INA_TEST_MAGIC }
 
-/* Define data for a test suite */
+/* Define data struct obfor a test suite */
 #define INA_TEST_DATA(sname) struct sname##_data
-/* Define setup code für a suite */ 
+/* Internal. Define empty data struct for a test suite */
+#define INA_TEST_NO_DATA(sname, tname) struct sname##tname##_data { int _x; }
+
+/* Define setup code für a suite */
 #ifndef INA_OS_WINDOWS
 #define INA_TEST_SETUP(sname)                                               \
     void sname##_setup(struct sname##_data* data)
@@ -596,11 +603,11 @@ typedef struct ina_test_testcase_s {
     void sname##_teardown(struct sname##_data* data)
 #endif
 /* Declare test case. For internal purpose only. */
-#define INA_TEST_DECL(sname, tname, _skip)                                  \
-    void INA_TEST_FNAME(sname, tname)();                                    \
+#define INA_TEST_DECL(sname, tname, _skip)                                   \
+    INA_TEST_NO_DATA(sname, tname);                                                  \
+    void INA_TEST_FNAME(sname, tname) (struct sname##tname##_data* data);            \
     INA_TEST_STRUCT(sname, tname, _skip, 0, NULL, NULL, NULL);              \
-    void INA_TEST_FNAME(sname, tname)()
-
+    void INA_TEST_FNAME(sname, tname) (struct sname##tname##_data* data)
 
 /* Declare Test case with fixture. For internal purpose only. */
 #ifdef INA_OS_OSX
@@ -630,7 +637,7 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_FIXTURE_WIN32(sname, tname) INA_TEST_FIXTURE(sname, tname)
 #define INA_TEST_FIXTURE_SKIP_WIN32(sname, tname) INA_TEST_FIXTURE_SKIP(sname, tname)
 #else
-#define INA_TEST_WIN32(sname, tname) void x__ina_test_win32_##sname##_##tname(void)
+#define INA_TEST_WIN32(sname, tname) void x__ina_test_win32_##sname##_##tname(struct sname##_data* data)
 #define INA_TEST_SKIP_WIN32(sname, tname) INA_TEST_WIN32(sname, tname)
 #define INA_TEST_FIXTURE_WIN32(sname, tname) INA_TEST_WIN32(sname, tname)
 #define INA_TEST_FIXTURE_SKIP_WIN32(sname, tname) INA_TEST_WIN32(sname, tname)
@@ -642,7 +649,7 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_FIXTURE_OSX(sname, tname) INA_TEST_FIXTURE(sname, tname)
 #define INA_TEST_FIXTURE_SKIP_OSX(sname, tname) INA_TEST_FIXTURE_SKIP(sname, tname)
 #else
-#define INA_TEST_OSX(sname, tname) void x__ina_test_osx_##sname##_##tname(void)
+#define INA_TEST_OSX(sname, tname) void x__ina_test_osx_##sname##_##tname(struct sname##_data* data)
 #define INA_TEST_SKIP_OSX(sname, tname) INA_TEST_OSX(sname, tname)
 #define INA_TEST_FIXTURE_OSX(sname, tname) INA_TEST_OSX(sname, tname)
 #define INA_TEST_FIXTURE_SKIP_OSX(sname, tname) INA_TEST_OSX(sname, tname)
@@ -654,7 +661,7 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_FIXTURE_LINUX(sname, tname) INA_TEST_FIXTURE(sname, tname)
 #define INA_TEST_FIXTURE_SKIP_LINUX(sname, tname) INA_TEST_FIXTURE_SKIP(sname, tname)
 #else
-#define INA_TEST_LINUX(sname, tname) void x__ina_test_linux_##sname##_##tname(void)
+#define INA_TEST_LINUX(sname, tname) void x__ina_test_linux_##sname##_##tname(struct sname##_data* data)
 #define INA_TEST_SKIP_LINUX(sname, tname) INA_TEST_LINUX(sname, tname)
 #define INA_TEST_FIXTURE_LINUX(sname, tname) INA_TEST_LINUX(sname, tname)
 #define INA_TEST_FIXTURE_SKIP_LINUX(sname, tname) INA_TEST_LINUX(sname, tname)

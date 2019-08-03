@@ -22,6 +22,7 @@ INA_TEST(file, test_open_close)
     const char *test_file2 = "tests2.conf";
     ina_str_t file_path = NULL;
     mode_t mode = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -66,6 +67,7 @@ INA_TEST(file, stat)
     ina_file_stat_t *stat = NULL;
     size_t file_size = 0;
     time_t t = 0;
+    INA_UNUSED(data);
 
     const char *test_file = _INA_FILE_TEST_CONF_NAME;
 
@@ -100,6 +102,8 @@ INA_TEST(file, os_handle)
     const char *test_file = _INA_FILE_TEST_CONF_NAME;
     ina_handle_t h;
     char buf[10];
+    INA_UNUSED(data);
+
 #ifdef INA_OS_WINDOWS
     DWORD nread;
 #endif
@@ -134,6 +138,7 @@ INA_TEST(file, stream)
     const char *test_file = _INA_FILE_TEST_CONF_NAME;
     FILE *fp;
     char buf[10];
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -158,6 +163,7 @@ INA_TEST(file, mode)
     ina_file_ctx_t *ctx = NULL;
     ina_file_t *f = NULL;
     const char *test_file = _INA_FILE_TEST_CONF_NAME;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_file_ctx_new(&ctx, 0));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -194,6 +200,7 @@ INA_TEST(file, invalid_arguments)
     unsigned char* buf = &bc[0];
     size_t len = 0;
     size_t nread = 0;
+    INA_UNUSED(data);
 
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_file_ctx_new(NULL, 0));

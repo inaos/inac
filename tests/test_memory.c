@@ -9,9 +9,9 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-
 INA_TEST(memory, zero_size)
 {
+    INA_UNUSED(data);
     INA_TEST_ASSERT_NULL(ina_mem_alloc(0));
     INA_TEST_ASSERT_SUCCEED(ina_err_get_rc());
     INA_TEST_ASSERT_NULL(ina_mem_alloc_aligned(sizeof(void*), 0));
@@ -23,6 +23,8 @@ INA_TEST(memory, realloc)
     uint8_t i;
     uint8_t *pc;
     uint8_t *p1 = ina_mem_alloc(128);
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(p1);
     ina_mem_set(p1, 0, 128);
     pc = p1;
@@ -48,6 +50,7 @@ INA_TEST(memory, realloc)
 
 INA_TEST(memory, invalid_alignment)
 {
+    INA_UNUSED(data);
     INA_TEST_ASSERT_NULL(ina_mem_alloc_aligned(0, 16));
     INA_TEST_ASSERT_FAILED(ina_err_get_rc());
     INA_TEST_ASSERT_EQUAL_UINT(INA_ERR_INVALID_ARGUMENT, INA_RC_ERRMSG(ina_err_get_rc()));
@@ -55,6 +58,8 @@ INA_TEST(memory, invalid_alignment)
 
 INA_TEST(memory, memory_align)
 {
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_EQUAL_INT(16, INA_MEM_ALIGN(1));
     INA_TEST_ASSERT_EQUAL_INT(16, INA_MEM_ALIGN(10));
     INA_TEST_ASSERT_EQUAL_INT(32, INA_MEM_ALIGN(17));
@@ -66,6 +71,8 @@ INA_TEST(memory, memory_align)
 INA_TEST(memory, memory_alloc_aligned)
 {
     void *p;
+    INA_UNUSED(data);
+
     p = ina_mem_alloc_aligned(2, 128);
     INA_TEST_ASSERT_NOT_NULL(p);
     INA_TEST_ASSERT_TRUE(INA_MEM_IS_ALIGNED(p, 2));
@@ -88,6 +95,8 @@ INA_TEST(memory, memory_alloc_aligned)
 INA_TEST(memory, pagesize)
 {
     size_t size = 0;
+    INA_UNUSED(data);
+
 #ifdef INA_OS_WINDOWS
     SYSTEM_INFO si;
 #endif
@@ -103,5 +112,6 @@ INA_TEST(memory, pagesize)
 
 INA_TEST(memory, invalid_arguments)
 {
+    INA_UNUSED(data);
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mem_get_pagesize(NULL));
 }
