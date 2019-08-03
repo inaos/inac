@@ -8,10 +8,13 @@
  */
 #include <libinac/lib.h>
 
+INA_TEST_DATA(cpu) {};
+
 #ifndef INA_OS_OSX
 INA_TEST(cpu, test_brand_string)
 {
     ina_str_t brand = NULL;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cpu_get_brand_string(&brand));
 
@@ -23,7 +26,8 @@ INA_TEST(cpu, test_brand_string)
 INA_TEST(cpu, test_features)
 {
     ina_cpu_feature_t cpufeatures;
-    
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_cpu_get_features(&cpufeatures));
 
     /* every modern CPU should have these */
@@ -35,6 +39,7 @@ INA_TEST(cpu, test_package_count)
 {
     int package_count = 0;
 	int supported = 0;
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_cpu_is_supported(&supported));
 
@@ -53,6 +58,7 @@ INA_TEST(cpu, test_core_count)
 {
     int core_count = 0;
 	int supported = 0;
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_cpu_is_supported(&supported));
 
@@ -71,6 +77,7 @@ INA_TEST(cpu, test_thread_count)
 {
     int thread_count = 0;
 	int supported = 0;
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_cpu_is_supported(&supported));
 
@@ -88,6 +95,7 @@ INA_TEST(cpu, test_thread_count)
 INA_TEST(cpu, test_logical_count)
 {
     int logical_count = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cpu_get_total_logical_count(&logical_count));
 
@@ -97,7 +105,6 @@ INA_TEST(cpu, test_logical_count)
 }
 #endif
 
-INA_TEST_DATA(cpu) {};
 INA_TEST(cpu, test_supported)
 {
     int supported = 0;
