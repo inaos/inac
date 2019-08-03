@@ -8,9 +8,11 @@
  */
 #include <libinac/lib.h>
 
+INA_TEST_DATA(util){};
 INA_TEST(util, dbl_cmp_abs)
 {
     double v1,v2;
+    INA_UNUSED(data);
 
     v1 = 10000000.0 + DBL_EPSILON;
     v2 = 10000000.0 + DBL_EPSILON + DBL_EPSILON*0.1;
@@ -32,6 +34,7 @@ INA_TEST(util, dbl_cmp_abs)
 INA_TEST(util, dbl_cmp_rel)
 {
     double v1,v2;
+    INA_UNUSED(data);
 
     v1 = 0.01 + DBL_EPSILON;
     v2 = 0.01 + DBL_EPSILON + DBL_EPSILON*0.1;
@@ -55,6 +58,7 @@ INA_TEST(util, dbl_cmp_rel)
 INA_TEST(util, dbl_cmp_save)
 {
    double v1,v2;
+    INA_UNUSED(data);
 
     v1 = 0.01 + DBL_EPSILON;
     v2 = 0.01 + DBL_EPSILON + DBL_EPSILON*0.1;
@@ -98,6 +102,8 @@ INA_TEST(util, base64)
     char *ref_decoded = "Base64 is a generic term for a number of similar encoding schemes that encode binary data by treating it numerically and translating it into a base 64 representation. The Base64 term originates from a specific MIME content transfer encoding.";
     char buf[BUF_LEN];
     size_t outlen;
+    INA_UNUSED(data);
+
     ina_mem_set(&buf, 0, BUF_LEN);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_util_base64_decode_chunk(NULL, strlen(ref_encoded), (unsigned char*)buf, BUF_LEN, &outlen));

@@ -13,11 +13,13 @@
 #define F3 0x04
 #define F4 0x08
 
+INA_TEST_DATA(ipc_flags) {};
 INA_TEST(ipc_flags, new_free)
 {
     ina_ipc_flags_t *f1;
     ina_ipc_flags_t *f2;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test", F1|F2|F3, &f1));
     INA_TEST_ASSERT_NOT_NULL(f1);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_open("test", &f2));
@@ -34,6 +36,8 @@ INA_TEST(ipc_flags, get_name)
     ina_ipc_flags_t *f2;
     const char *name1;
     const char *name2;
+    INA_UNUSED(data);
+
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_get_name", 0, &f1));
     INA_TEST_ASSERT_NOT_NULL(f1);
@@ -51,7 +55,8 @@ INA_TEST(ipc_flags, get)
 {
     ina_ipc_flags_t *f;
     uint64_t v;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_get", F1|F2|F3, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
@@ -63,7 +68,8 @@ INA_TEST(ipc_flags, set)
 {
     ina_ipc_flags_t *f;
     uint64_t v;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_set", F1|F2|F3, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
@@ -74,9 +80,10 @@ INA_TEST(ipc_flags, set)
 
 INA_TEST(ipc_flags, is_set)
 {
- 
     ina_ipc_flags_t *f;
-  
+    INA_UNUSED(data);
+
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_is_set", F1|F2|F3, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_FAILED(ina_ipc_flags_is_set(f, F4));
@@ -93,7 +100,8 @@ INA_TEST(ipc_flags, unset)
 {
     ina_ipc_flags_t *f;
     uint64_t v;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_unset", F1|F2|F3|F4, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
@@ -108,7 +116,8 @@ INA_TEST(ipc_flags, clear)
 {
     ina_ipc_flags_t *f;
     uint64_t v;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_clear", F1|F2|F3|F4, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
@@ -125,7 +134,8 @@ INA_TEST(ipc_flags, ref_count)
 {
     ina_ipc_flags_t *f;
     uint64_t v;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_refcount", F1|F2|F3|F4, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_get(f, &v));
@@ -147,6 +157,7 @@ INA_TEST(ipc_flags, ref_count)
 INA_TEST(ipc_flags, wait)
 {
     ina_ipc_flags_t *f;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_wait", F1|F2|F3, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
@@ -161,7 +172,8 @@ INA_TEST(ipc_flags, wait_ipc)
 {
     ina_test_hid_t hid;
     ina_ipc_flags_t *f;
-    
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test_wait_ipc", 0, &f));
     INA_TEST_ASSERT_FAILED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 500));
     INA_TEST_ASSERT_FAILED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 500));
@@ -174,7 +186,8 @@ INA_TEST(ipc_flags, wait_ipc)
 INA_TEST(ipc_flags, dump)
 {
     ina_ipc_flags_t *f;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_new("test", 0, &f));
     INA_TEST_ASSERT_NOT_NULL(f);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_set(f, F4));
@@ -186,12 +199,14 @@ INA_TEST(ipc_flags, dump)
 
 }
 
+INA_TEST_DATA(ipc_counter){};
 INA_TEST(ipc_counter, new_free)
 {
     ina_ipc_counter_t *c1;
     ina_ipc_counter_t *c2;
     uint64_t cval = 0;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_new("test", 3, &c1));
     INA_TEST_ASSERT_NOT_NULL(c1);
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_open("test", &c2));
@@ -208,6 +223,7 @@ INA_TEST(ipc_counter, set_get)
 {
     ina_ipc_counter_t *c;
     uint64_t cval = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_new("test", 0, &c));
     INA_TEST_ASSERT_NOT_NULL(c);
@@ -226,6 +242,7 @@ INA_TEST(ipc_counter, inc_get)
     ina_ipc_counter_t *c;
     uint64_t cval = 0;
     uint64_t rval = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_new("test", 0, &c));
     INA_TEST_ASSERT_NOT_NULL(c);
@@ -250,6 +267,7 @@ INA_TEST(ipc_counter, dec_get)
     ina_ipc_counter_t *c;
     uint64_t cval = 0;
     uint64_t rval = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_new("test", 0, &c));
     INA_TEST_ASSERT_NOT_NULL(c);
@@ -265,11 +283,13 @@ INA_TEST(ipc_counter, dec_get)
     INA_TEST_ASSERT_SUCCEED(ina_ipc_counter_get(c, &cval));
     INA_TEST_ASSERT_EQUAL_INT64(rval, cval);
     INA_TEST_ASSERT_EQUAL_INT64(4, rval);
+    INA_UNUSED(data);
 
     ina_ipc_counter_free(&c);
     INA_TEST_ASSERT_NULL(c);
 }
 
+INA_TEST_DATA(ipc){};
 INA_TEST(ipc, invalid_arguments)
 {
     ina_ipc_flags_t *flags1 = NULL;
@@ -278,7 +298,7 @@ INA_TEST(ipc, invalid_arguments)
 
     const char *name = NULL;
     uint64_t value;
-
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_new(NULL, 0, &flags1));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ipc_flags_new("test", 0, NULL));

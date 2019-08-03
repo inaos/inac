@@ -13,9 +13,11 @@
 #include <sched.h>
 #endif
 
+INA_TEST_DATA(timer){};
 INA_TEST(timer,new_free)
 {
     ina_timer_t *t;
+    INA_UNUSED(data);
 
     t = NULL;
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
@@ -29,6 +31,7 @@ INA_TEST(timer, event)
     ina_timer_t *t;
     ina_timer_event_t *e1;
     ina_timer_event_t *e2;
+    INA_UNUSED(data);
 
     t = NULL;
     e1 = NULL;
@@ -57,7 +60,8 @@ INA_TEST(timer, stress_test)
     ina_timer_t *t = NULL;
     ina_timer_event_t *e = NULL;
     int c = 0;
-  
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_timer_new(&t));
     INA_TEST_ASSERT_NOT_NULL(t);
 
@@ -81,7 +85,7 @@ INA_TEST(timer, event_rdtsc)
     time_t nowtime;
     struct tm *nowtm;
     char tmbuf[64];
-
+    INA_UNUSED(data);
 
     t = NULL;
     e1 = NULL;
@@ -130,7 +134,7 @@ INA_TEST(timer, invalid_arguments)
     ina_timer_event_t *event = NULL;
     time_t msec = 0;
     int id = 0;
-
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_timer_new(NULL));
 

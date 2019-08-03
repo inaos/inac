@@ -1242,6 +1242,9 @@ INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size
 #ifndef INA_OS_OSX
 	return t1ha0(data, size, hash);
 #else
+	INA_UNUSED(hash);
+	INA_UNUSED(data);
+	INA_UNUSED(size);
     return 0;
 #endif
 }
@@ -1252,6 +1255,9 @@ INA_API(uint64_t) ina_hash_64_t1ha1(uint64_t hash, const void *data, size_t size
 #ifndef INA_OS_OSX
 	return t1ha(data, size, hash);
 #else
+	INA_UNUSED(hash);
+	INA_UNUSED(data);
+	INA_UNUSED(size);
     return 0;
 #endif
 }

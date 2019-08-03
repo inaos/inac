@@ -42,9 +42,12 @@ static int sort_desc(const void *lhs, const void *rhs)
     return (a->index > b->index);
 }
 
+INA_TEST_DATA(list) {};
 INA_TEST(list, new_free)
 {
     ina_list_t *list = NULL;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
     INA_TEST_ASSERT_NOT_NULL(list);
     ina_list_free(&list);
@@ -62,6 +65,8 @@ INA_TEST(list, arbitrary_data)
     ina_list_t *list;
     ina_list_node_t *node;
     ina_data_t *data1, *data2, *data3, *data4, *data5, *data6, *data7= NULL;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
     data1 = ina_mem_alloc(sizeof(ina_data_t));
     data1->index = 1;
@@ -107,9 +112,9 @@ INA_TEST(list, resize)
 {
     int i;
     ina_list_t *list;
-    ina_data_t *data;
+    ina_data_t *d;
     size_t usage;
-
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_list_new(INA_LIST_CF_DEFAULT, &list));
     INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
@@ -117,9 +122,9 @@ INA_TEST(list, resize)
     INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 10000, 1000));
 
     for (i = 0; i < 5000;++i) {
-        data = ina_mem_alloc(sizeof(ina_data_t));
-        data->index = i;
-        INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, data));
+        d = ina_mem_alloc(sizeof(ina_data_t));
+        d->index = i;
+        INA_TEST_ASSERT_SUCCEED(ina_list_insert_tail_data(list, d));
     }
     INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
     INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(10000, 1000), usage);

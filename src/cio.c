@@ -284,7 +284,6 @@ INA_API(int) ina_cio_printf(int row, int col,
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...)
 {
-    ina_cio_pos_t pos;
     ina_cio_attribs_t attribs;
     ina_cio_attribs_t new_attribs;
     va_list args;

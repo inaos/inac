@@ -54,10 +54,11 @@ static ina_rc_t __ina_named_section_handler(const char *section_name, const char
     return INA_SUCCESS;
 }
 
+INA_TEST_DATA(conffile) {};
 INA_TEST(conffile , using_macros_with_filepath)
 {
     ina_conffile_t *cf = NULL;
-
+    INA_UNUSED(data);
     __section_count = 0;
     __named_section_count = 0;       
     
@@ -78,6 +79,7 @@ INA_TEST(conffile , using_macros_with_filepath)
 INA_TEST(conffile , using_macros)
 {
     ina_conffile_t *cf = NULL;
+    INA_UNUSED(data);
 
     __section_count = 0;
     __named_section_count = 0;   
@@ -99,6 +101,7 @@ INA_TEST(conffile , using_macros)
 INA_TEST(conffile , process_string_using_macros)
 {
     ina_conffile_t *cf = NULL;
+    INA_UNUSED(data);
 
     __section_count = 0;
     __named_section_count = 0;
@@ -125,6 +128,7 @@ INA_TEST(conffile , using_macros_without_section_handler)
     ina_conffile_t *cf = NULL;
     ina_str_t value = NULL;
     double dbl_value = 0.0;
+    INA_UNUSED(data);
 
     INA_CONFFILE(&cf,
         INA_CONFFILE_SECTION("debug", INA_YES, NULL,
@@ -167,6 +171,7 @@ INA_TEST(conffile , process_string_using_macros_without_section_handler)
     ina_conffile_t *cf = NULL;
     ina_str_t value = NULL;
     double dbl_value = 0.0;
+    INA_UNUSED(data);
 
     INA_CONFFILE(&cf,
                  INA_CONFFILE_SECTION("debug", INA_YES, NULL,
@@ -212,6 +217,7 @@ INA_TEST(conffile, try_anonymous_section)
 {
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t *cs = NULL;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
  
@@ -247,6 +253,7 @@ INA_TEST(conffile, process_with_filepath)
 {
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t *cs = NULL;
+    INA_UNUSED(data);
 
     __section_count = 0;
     __named_section_count = 0;
@@ -280,6 +287,7 @@ INA_TEST(conffile, duplicate_key)
 {
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t *cs = NULL;
+    INA_UNUSED(data);
 
     __section_count = 0;
     __named_section_count = 0;
@@ -298,6 +306,7 @@ INA_TEST(conffile, process_without_filepath)
 {
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t *cs = NULL;
+    INA_UNUSED(data);
 
     __section_count = 0;
     __named_section_count = 0;
@@ -330,6 +339,7 @@ INA_TEST(conffile, process_without_filepath)
 INA_TEST(conffile, new_free)
 {
     ina_conffile_t *cf = NULL;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_new(&cf));
     INA_TEST_ASSERT_NOT_NULL(cf);
@@ -347,6 +357,7 @@ INA_TEST(conffile, invalid_arguments)
     INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,int-to-pointer-cast)
     ina_str_t str_value;
     double dbl_value = 0.0;
+    INA_UNUSED(data);
 
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_conffile_new(NULL));

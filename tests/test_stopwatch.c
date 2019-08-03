@@ -17,13 +17,14 @@
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
 #endif
 
-
+INA_TEST_DATA(stopwatch){};
 INA_TEST(stopwatch ,time_stamp)
 {
     ina_stopwatch_t *w = NULL;
     int64_t c = 10;
     double msec_duration = 0;
     ina_stopwatch_ts_t *ts;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(3, -1, &w));
     INA_TEST_ASSERT_NOT_NULL(w);
@@ -83,6 +84,7 @@ INA_TEST(stopwatch, stopwatch)
     struct timeval tv_start;
     ina_stopwatch_t *w = NULL;
     double duration = 0;
+    INA_UNUSED(data);
 
     gettimeofday(&tv_start, NULL);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w));
@@ -109,6 +111,7 @@ INA_TEST(stopwatch, stopwatch_startime)
     int64_t i = 0;
     double duration = 0;
     ina_stopwatch_ts_t *ts;
+    INA_UNUSED(data);
 
     gettimeofday(&tv_start, NULL);
     ina_time_read_tsc_clock(&start_ts);
@@ -146,6 +149,7 @@ INA_TEST_SKIP(stopwatch, stopwatch_startime_rdtsc)
     int64_t i = 0;
     ina_stopwatch_ts_t *ts;
     double duration;
+    INA_UNUSED(data);
 
 #if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
     cpu_set_t mask;
@@ -319,6 +323,7 @@ INA_TEST(stopwatch, invalid_arguments)
     int fake = 0;
     double duration = 0;
     int64_t index = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_new(1, -1, NULL));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_open(1, NULL));

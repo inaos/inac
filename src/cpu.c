@@ -143,7 +143,7 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 #endif
 #endif
 
-INA_API(ina_rc_t) ina_cpu_init()
+INA_API(ina_rc_t) ina_cpu_init(void)
 {
 	INA_INIT_GUARD();
 #ifndef INA_OS_OSX
@@ -556,7 +556,7 @@ INA_API(ina_rc_t) ina_cpu_init()
 #endif
 }
 
-INA_API(void) ina_cpu_destroy()
+INA_API(void) ina_cpu_destroy(void)
 {
 	INA_DESTROY_GUARD();
 	INA_VERIFY_FREE(&__ina_cpu_ctx);
@@ -669,6 +669,8 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
         return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #endif
+#else
+    INA_UNUSED(cpuid);
 #endif
     return INA_SUCCESS;
 }
@@ -763,7 +765,7 @@ INA_API(ina_rc_t) ina_cpu_get_gflops_sp(double *gflops)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_cpu_process_promote()
+INA_API(ina_rc_t) ina_cpu_process_promote(void)
 {
 #ifndef INA_OS_OSX
 #ifdef INA_OS_WINDOWS

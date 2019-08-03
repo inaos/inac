@@ -97,9 +97,11 @@ INA_TEST(cpu, test_logical_count)
 }
 #endif
 
+INA_TEST_DATA(cpu) {};
 INA_TEST(cpu, test_supported)
 {
     int supported = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cpu_is_supported(&supported));
 
@@ -116,7 +118,7 @@ INA_TEST(cpu, invalid_arguments)
     uint8_t family = 0;
     uint8_t  stepping = 0;
     uint8_t model = 0;
-
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cpu_init());
 

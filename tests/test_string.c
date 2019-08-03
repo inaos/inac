@@ -27,9 +27,12 @@ INA_TEST_TEARDOWN(string_mempool)
     data->pool = NULL;
 }
 
+INA_TEST_DATA(string){};
 INA_TEST(string, ina_str_new)
 {
     ina_str_t str = ina_str_new(0);
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
     ina_str_free(str);
@@ -42,6 +45,8 @@ INA_TEST(string, ina_str_new)
 INA_TEST(string, alligned)
 {
     ina_str_t str = ina_str_new(0);
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT(INA_MEM_IS_ALIGNED(str, sizeof(void*)));
     ina_str_free(str);
@@ -49,6 +54,8 @@ INA_TEST(string, alligned)
 
 INA_TEST_FIXTURE(string_mempool, ina_str_new_using_pool)
 {
+    INA_UNUSED(data);
+
     ina_err_reset();
     INA_TEST_ASSERT_NULL(ina_str_new_using_pool(128, NULL));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
@@ -64,6 +71,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_new_using_pool)
 INA_TEST(string, ina_str_new_using_pool)
 {
     ina_mempool_t *mp;
+    INA_UNUSED(data);
+
     ina_mempool_new(1024, NULL, INA_MEM_FIXED, &mp);
     ina_str_t str = ina_str_new_using_pool(4096, mp);
     INA_TEST_ASSERT_NULL(str);
@@ -80,6 +89,8 @@ INA_TEST(string, ina_str_new_fromblk)
 {
     ina_str_t str = NULL;
     char blk[] = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
+    INA_UNUSED(data);
+
     str = ina_str_new_fromblk(NULL, 128);
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("", str);
@@ -94,6 +105,8 @@ INA_TEST(string, ina_str_new_fromblk)
 INA_TEST_FIXTURE(string_mempool, ina_str_new_fromblk_using_pool)
 {
     ina_str_t str = NULL;
+    INA_UNUSED(data);
+
     char blk[] = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
     INA_TEST_ASSERT_NULL(ina_str_new_fromblk_using_pool(blk, 10, NULL));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
@@ -105,6 +118,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_new_fromblk_using_pool)
 INA_TEST(string, ina_str_new_fromcstr)
 {
     ina_str_t str = NULL;
+    INA_UNUSED(data);
+
     const char *cstring = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
     str = ina_str_new_fromcstr(cstring);
     INA_TEST_ASSERT_NOT_NULL(str);
@@ -115,6 +130,8 @@ INA_TEST(string, ina_str_new_fromcstr)
 INA_TEST_FIXTURE(string_mempool, ina_str_new_fromcstr_using_pool)
 {
     ina_str_t str = NULL;
+    INA_UNUSED(data);
+
     const char *cstring = "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION";
     str = ina_str_new_fromcstr_using_pool(cstring, data->pool);
     INA_TEST_ASSERT_NOT_NULL(str);
@@ -125,6 +142,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_new_fromcstr_using_pool)
 INA_TEST(string, ina_str_free)
 {
     ina_str_t str = NULL;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_str_free(str));
     str = ina_str_new_fromcstr("test");
     INA_TEST_ASSERT_NOT_NULL(str);
@@ -135,6 +154,8 @@ INA_TEST(string, ina_str_dup)
 {
     ina_str_t s1 = ina_str_new_fromcstr("a simple string");
     ina_str_t s2;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(s1);
     s2 = ina_str_dup(s1);
     INA_TEST_ASSERT_NOT_NULL(s2);
@@ -148,6 +169,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_dup_using_pool)
 {
     ina_str_t s1 = ina_str_new_fromcstr("a simple string");
     ina_str_t s2;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(s1);
     s2 = ina_str_dup_using_pool(s1, data->pool);
     INA_TEST_ASSERT_NOT_NULL(s2);
@@ -159,6 +182,8 @@ INA_TEST(string, ina_str_cstr)
 {
     const char* c_str;
     ina_str_t str = ina_str_new_fromcstr("an INAC string");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     c_str = ina_str_cstr(str);
     INA_TEST_ASSERT_NOT_NULL(c_str);
@@ -170,6 +195,7 @@ INA_TEST(string, ina_str_cpy)
 {
    ina_str_t src =  NULL;
    ina_str_t dest = NULL;
+   INA_UNUSED(data);
 
    src = ina_str_new_fromcstr("a string to copy");
    INA_TEST_ASSERT_NOT_NULL(src);
@@ -186,6 +212,7 @@ INA_TEST(string, issue_355)
 {
    ina_str_t src =  NULL;
    ina_str_t dest = NULL;
+   INA_UNUSED(data);
 
    src = ina_str_new_fromcstr("a string to copy");
    INA_TEST_ASSERT_NOT_NULL(src);
@@ -205,6 +232,8 @@ INA_TEST(string, issue_355)
 INA_TEST(string, issue_356)
 {
    ina_str_t dest =  NULL;
+   INA_UNUSED(data);
+
 #define fmt "POST %s%s HTTP/1.1 Host: %s Connection: keep-alive Content-Length: %d Content-Type: application/json Accept: */*"
 
    dest = ina_str_sprintf(fmt, "1234567890", "1234567890", "host", 123);
@@ -218,6 +247,8 @@ INA_TEST(string, ina_str_ncpy)
 {
     ina_str_t src =  NULL;
     ina_str_t dest = NULL;
+    INA_UNUSED(data);
+
 
     src = ina_str_new_fromcstr("a string to copy");
     INA_TEST_ASSERT_NOT_NULL(src);
@@ -237,6 +268,8 @@ INA_TEST(string, ina_str_cat)
     ina_str_t part1 = ina_str_new_fromcstr("part1");
     ina_str_t part2 = ina_str_new_fromcstr("part2");
     ina_str_t part3 = ina_str_new_fromcstr("part3");
+    INA_UNUSED(data);
+
     str = ina_str_cat(str, part1);
     str = ina_str_cat(str, part2);
     str = ina_str_cat(str, part3);
@@ -295,6 +328,8 @@ INA_TEST(string, ina_str_catcstr)
 {
     ina_str_t ref_str = NULL;
     ina_str_t str = ina_str_new(128);
+    INA_UNUSED(data);
+
     ref_str = str;
     str = ina_str_catcstr(str, "part1");
     INA_TEST_ASSERT_SAME(ref_str, str);
@@ -310,6 +345,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_catcstr)
 {
     ina_str_t ref_str = NULL;
     ina_str_t str = ina_str_new_using_pool(128, data->pool);
+    INA_UNUSED(data);
+
     ref_str = str;
     str = ina_str_catcstr_using_pool(str, "part1", data->pool);
     INA_TEST_ASSERT_SAME(ref_str, str);
@@ -327,6 +364,8 @@ INA_TEST(string, ina_str_ncat)
     ina_str_t part1 = ina_str_new_fromcstr("part1x");
     ina_str_t part2;
     ina_str_t part3;
+    INA_UNUSED(data);
+
     ref_str = str;
     INA_TEST_ASSERT_SAME(ref_str, str);
     part2 = ina_str_new_fromcstr("part2x");
@@ -350,6 +389,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_ncat)
     ina_str_t part1 = ina_str_new_fromcstr_using_pool("part1x", data->pool);
     ina_str_t part2;
     ina_str_t part3;
+    INA_UNUSED(data);
+
     ref_str = str;
     INA_TEST_ASSERT_SAME(ref_str, str);
     part2 = ina_str_new_fromcstr_using_pool("part2x", data->pool);
@@ -365,6 +406,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_ncat)
 INA_TEST(string, ina_str_ncatcstr)
 {
     ina_str_t str = ina_str_new(128);
+    INA_UNUSED(data);
+
     str = ina_str_ncat(str, "part1x", 5);
     str = ina_str_ncat(str, "part2x", 5);
     str = ina_str_ncat(str, "part3x", 5);
@@ -375,6 +418,8 @@ INA_TEST(string, ina_str_ncatcstr)
 INA_TEST_FIXTURE(string_mempool, ina_str_ncatcstr)
 {
     ina_str_t str = ina_str_new_using_pool(128, data->pool);
+    INA_UNUSED(data);
+
     str = ina_str_ncat_using_pool(str, "part1x", 5, data->pool);
     str = ina_str_ncat_using_pool(str, "part2x", 5, data->pool);
     str = ina_str_ncat_using_pool(str, "part3x", 5, data->pool);
@@ -384,6 +429,7 @@ INA_TEST_FIXTURE(string_mempool, ina_str_ncatcstr)
 INA_TEST(string, ina_str_append_chr)
 {
     ina_str_t str = ina_str_new_fromcstr("test");
+    INA_UNUSED(data);
 
     str = ina_str_append_chr(str, '1');
     INA_TEST_ASSERT_EQUAL_STR("test1", str);
@@ -398,6 +444,8 @@ INA_TEST(string, ina_str_len)
 {
     ina_str_t str = ina_str_new_fromcstr("an INAC string");
     ina_str_t empty = ina_str_new_fromcstr("");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_TRUE(strlen("an INAC string") == ina_str_len(str));
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_len(empty));
@@ -418,6 +466,8 @@ INA_TEST(string, ina_str_size)
 {
     ina_str_t str = ina_str_new_fromcstr("an INAC string");
     ina_str_t empty = ina_str_new_fromcstr("");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_TRUE((strlen("an INAC string")+1) == ina_str_size(str));
     INA_TEST_ASSERT_EQUAL_SIZE_T(1, ina_str_size(empty));
@@ -437,6 +487,8 @@ INA_TEST(string, ina_str_size)
 INA_TEST(string, ina_str_available)
 {
     ina_str_t str = ina_str_new_fromcstr("1234567890");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_available(str));
     ina_str_free(str);
     str = ina_str_new(100);
@@ -453,6 +505,7 @@ INA_TEST(string, ina_str_cmp)
     ina_str_t s3 = ina_str_new_fromcstr("abC");
     ina_str_t s4 = ina_str_new_fromcstr("abCD");
     int result = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_NOT_NULL(s1);
     INA_TEST_ASSERT_NOT_NULL(s2);
@@ -475,6 +528,7 @@ INA_TEST(string, ina_str_cmp)
 
 INA_TEST(string, ina_str_ncmp)
 {
+    INA_UNUSED(data);
 
 }
 
@@ -485,6 +539,8 @@ INA_TEST(string, ina_str_casecmp)
     ina_str_t s3 = ina_str_new_fromcstr("abC");
     ina_str_t s4 = ina_str_new_fromcstr("abCD");
     int result = 0;
+    INA_UNUSED(data);
+
 
     INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s1, s2));
     INA_TEST_ASSERT_EQUAL_INT(0, ina_str_casecmp(s2, s1));
@@ -506,6 +562,8 @@ INA_TEST(string, ina_str_str)
     ina_str_t substr = ina_str_new_fromcstr("substring");
     ina_str_t x = ina_str_new_fromcstr("x");
     ina_str_t empty = ina_str_new_fromcstr("");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_EQUAL_STR("substring in a string.",ina_str_str(str,  substr));
     INA_TEST_ASSERT_NULL(ina_str_str(str, x));
     INA_TEST_ASSERT_NULL(ina_str_str(str, empty));
@@ -519,6 +577,8 @@ INA_TEST(string, ina_str_str)
 INA_TEST(string, ina_str_strcstr)
 {
     ina_str_t str =  ina_str_new_fromcstr("search a substring in a string.");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_EQUAL_STR("substring in a string.", ina_str_strcstr(str, "substring"));
     INA_TEST_ASSERT_NULL(ina_str_strcstr(str, "x"));
     INA_TEST_ASSERT_NULL(ina_str_strcstr(str, ""));
@@ -529,6 +589,8 @@ INA_TEST(string, ina_str_strcstr)
 INA_TEST(string, ina_str_rchr)
 {
     ina_str_t str = ina_str_new_fromcstr("search a x in a string with xxx in it.");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("x in it.", ina_str_rchr(str, 'x'));
     INA_TEST_ASSERT_NULL(ina_str_rchr(str, 'y'));
@@ -539,6 +601,8 @@ INA_TEST(string, ina_str_rchr)
 INA_TEST(string, ina_str_toupper)
 {
     ina_str_t str = ina_str_new_fromcstr("ABabcde123zZ+-=)(/&%+)");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NULL(ina_str_toupper(NULL));
     INA_TEST_ASSERT_EQUAL_STR("ABABCDE123ZZ+-=)(/&%+)", ina_str_toupper(str));
     ina_str_free(str);
@@ -547,6 +611,8 @@ INA_TEST(string, ina_str_toupper)
 INA_TEST(string, ina_str_tolower)
 {
     ina_str_t str = ina_str_new_fromcstr("abABCDE123zZ+-=)(/&%+)");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NULL(ina_str_tolower(NULL));
     INA_TEST_ASSERT_EQUAL_STR("ababcde123zz+-=)(/&%+)", ina_str_tolower(str));
     ina_str_free(str);
@@ -555,6 +621,8 @@ INA_TEST(string, ina_str_tolower)
 INA_TEST(string, ina_str_truncte_empty_string)
 {
     ina_str_t str = ina_str_new_fromcstr("");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     ina_str_truncate(str, 0);
     INA_TEST_ASSERT_EQUAL_STR("", ina_str_cstr(str));
@@ -565,6 +633,8 @@ INA_TEST(string, ina_str_truncte_empty_string)
 INA_TEST(string, ina_str_truncate_zero)
 {
     ina_str_t str = ina_str_new_fromcstr("Abc def   ");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
     ina_str_truncate(str, 0);
@@ -577,6 +647,8 @@ INA_TEST(string, ina_str_truncate_zero)
 INA_TEST(string, ina_str_truncate_pos)
 {
     ina_str_t str = ina_str_new_fromcstr("Abc def   ");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_STR("Abc def   ", ina_str_cstr(str));
     ina_str_truncate(str, 3);
@@ -589,6 +661,8 @@ INA_TEST(string, ina_str_truncate_pos)
 INA_TEST(string, ina_str_trim)
 {
     ina_str_t str = ina_str_new_fromcstr(" test ");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_EQUAL_STR(" test ", ina_str_trim(str, NULL));
     INA_TEST_ASSERT_EQUAL_STR("test", ina_str_trim(str, " "));
     INA_TEST_ASSERT_EQUAL_STR("es", ina_str_trim(str, "t"));
@@ -602,6 +676,7 @@ INA_TEST(string, ina_str_split)
     size_t count;
     ina_str_t str = ina_str_new_fromcstr("xx--yy--zz--c-c");
     char *test[] = {"a", "b", "c", "d", "e"};
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_NULL((tokens = ina_str_split(NULL, NULL, &count)));
     INA_TEST_ASSERT_EQUAL_SIZE_T(0, count);
@@ -650,7 +725,8 @@ INA_TEST(string, ina_str_tok)
     int c = (int)'a';
     const char *ret;
     char *next_token = NULL;
-    
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NULL(ina_str_tok(str, NULL, &next_token));
     INA_TEST_ASSERT_NULL(ina_str_tok(str, "", &next_token));
     INA_TEST_ASSERT_NULL(ina_str_tok(NULL, " ", &next_token));
@@ -684,6 +760,8 @@ INA_TEST(string, ina_str_tok)
 INA_TEST(string, ina_str_adjust_len)
 {
     ina_str_t str = ina_str_new(128);
+    INA_UNUSED(data);
+
     str = ina_str_catcstr(str, "12345");
     INA_TEST_ASSERT_EQUAL_SIZE_T(5, ina_str_len(str));
     strncat(str, "67890", 127);
@@ -699,6 +777,8 @@ INA_TEST(string, ina_str_substr)
 {
     ina_str_t substr = NULL;
     ina_str_t str = ina_str_new_fromcstr("extract a substring from a string");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     substr = ina_str_substr(str, 10, 18);
     INA_TEST_ASSERT_NOT_NULL(substr);
@@ -739,6 +819,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_substr)
 {
     ina_str_t substr = NULL;
     ina_str_t str = ina_str_new_fromcstr_using_pool("exctrat a substring from a string", data->pool);
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     substr = ina_str_substr_using_pool(str, 10, 18, data->pool);
     INA_TEST_ASSERT_NOT_NULL(substr);
@@ -748,6 +830,8 @@ INA_TEST_FIXTURE(string_mempool, ina_str_substr)
 INA_TEST(string, ina_str_sprintf)
 {
     ina_str_t str = ina_str_sprintf("format:%s", "string");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str));
     INA_TEST_ASSERT_EQUAL_SIZE_T(13, ina_str_len(str));
     ina_str_free(str);
@@ -758,6 +842,7 @@ INA_TEST(string, ina_str_snprintf)
     int len;
     ina_str_t str1 = ina_str_new(128);
     ina_str_t str2 = str1;
+    INA_UNUSED(data);
 
     len = ina_str_snprintf(&str1, 128, "format:%s", "string");
     INA_TEST_ASSERT_EQUAL_STR("format:string", ina_str_cstr(str1));
@@ -780,6 +865,7 @@ INA_TEST(string, simple_allocation_with_pool)
     ina_str_t str1;
     ina_str_t str2;
     ina_mempool_t *pool;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(1024, NULL, 0, &pool));
 
@@ -794,6 +880,7 @@ INA_TEST(string, simple_allocation_without_pool)
 {
     ina_str_t str1;
     ina_str_t str2;
+    INA_UNUSED(data);
 
     str1 = ina_str_new_fromcstr("hallo");
     INA_TEST_ASSERT_NOT_NULL(str1);
@@ -807,6 +894,7 @@ INA_TEST(string, simple_allocation_without_pool)
 INA_TEST(string, ina_str_wildcard_match)
 {
     ina_str_t ts;
+    INA_UNUSED(data);
 
 #define _INA_TEST_STRING_WILDCARD_TEST_OK(teme, wildcard)                  \
     ts = ina_str_new_fromcstr(teme);                                       \
@@ -917,6 +1005,8 @@ INA_TEST(string, assign)
     char buf2[512];
 
     ina_str_t str = ina_str_assign_buf(buf1, 2);
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NULL(str);
     str = ina_str_assign_buf(buf2, 512);
     INA_TEST_ASSERT_NOT_NULL(str);
@@ -936,5 +1026,4 @@ INA_TEST(string, assign)
     ina_err_reset();
     INA_TEST_ASSERT_NULL(ina_str_release_buf(NULL));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_err_get_rc());
-
 }

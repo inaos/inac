@@ -129,6 +129,7 @@ static void __ina_file_posix_map_flags(ina_file_access_mode_t access,
                                            int flags,
                                            int *posix_flags)
 {
+    INA_UNUSED(flags);
     *posix_flags = 0;
     switch (access) {
         case INA_FILE_ACCESS_MODE_READ:

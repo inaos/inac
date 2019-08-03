@@ -34,7 +34,9 @@ typedef void (*ina_bench_scale_cb_t)(void*);
 typedef struct ina_bench_benchmark_s {
     const char* bench_name;
     const char* series_name;
+    INA_DISABLE_WARNING_CLANG(strict-prototypes)
     void (*run)();
+    INA_ENABLE_WARNING_CLANG(strict-prototypes)
     int skip;
     void *data;
     ina_bench_setup_cb_t setup;

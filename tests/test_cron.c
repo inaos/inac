@@ -8,10 +8,13 @@
  */
 #include <libinac/lib.h>
 
+INA_TEST_DATA(cron) {};
 INA_TEST(cron, id)
 {
     ina_cron_ctx_t *ctx;
     ina_cron_event_t *e;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
     INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t1", "0 * * * *", 0, &e));
     INA_TEST_ASSERT_EQUAL_STR("t1", ina_cron_event_id(e));
@@ -24,6 +27,8 @@ INA_TEST(cron, pattern)
 {
     ina_cron_ctx_t *ctx;
     ina_cron_event_t *e;
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
     INA_TEST_ASSERT_SUCCEED(ina_cron_event_new(ctx, "t1", "0 * * * *", 0, &e));
     INA_TEST_ASSERT_EQUAL_STR("0 * * * *", ina_cron_event_pattern(e));
@@ -40,6 +45,8 @@ INA_TEST(cron, parse_pattern)
     const char* pattern4 = "0 0 0 0 *";
     const char* pattern5 = "0 0 0 0 0";
     ina_cron_timetable_t tt;
+    INA_UNUSED(data);
+
     INA_MEM_SET_ZERO(&tt, ina_cron_timetable_t);
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_parse_pattern(pattern0, &tt));
@@ -58,6 +65,7 @@ INA_TEST_SKIP(cron, add_tasks_non_persistent_and_utils)
     ina_cron_event_iter_t *itr;
     ina_cron_event_t *e;
     int found = 0;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
 
@@ -118,6 +126,7 @@ INA_TEST_SKIP(cron, add_task_and_exec)
     int suggested_sleep_time;
     time_t now;
     ina_cron_event_t *e;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
 
@@ -156,7 +165,7 @@ INA_TEST(cron, invalid_arguments)
     ina_cron_event_iter_t *iter = NULL;
     ina_cron_timetable_t tt;
     time_t last_exec_time;
-
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_cron_ctx_new(NULL, NULL, NULL));
     INA_TEST_ASSERT_SUCCEED(ina_cron_ctx_new(NULL, NULL, &ctx));
