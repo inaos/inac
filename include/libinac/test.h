@@ -537,8 +537,10 @@ typedef struct ina_test_testcase_s {
     const char* suite_name;
     const char* test_name;
     INA_DISABLE_WARNING_CLANG(strict-prototypes)
+    INA_DISABLE_WARNING_GCC(strict-prototypes)
     void (*run)();
     INA_ENABLE_WARNING_CLANG(strict-prototypes)
+    INA_ENABLE_WARNING_GCC(strict-prototypes)
     int skip;
     int is_helper;
     void *data;
