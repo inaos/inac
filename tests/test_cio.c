@@ -8,9 +8,6 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_DATA(cio) {
-};
-
 INA_TEST_SKIP(cio, get_limits)
 {
     ina_cio_pos_t pos = {0,0};

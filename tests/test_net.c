@@ -116,7 +116,6 @@ INA_TEST_FIXTURE_SKIP(net, tcp_write_read_1000_times) {
         INA_TEST_ASSERT_EQUAL_INT(nb_read, nb_write);
     }
 }
-INA_TEST_DATA(net_local){};
 #ifdef INA_OS_WINDOWS
 INA_TEST(net_local, mac_addr)
 {

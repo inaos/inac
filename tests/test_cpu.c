@@ -8,8 +8,6 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_DATA(cpu) {};
-
 #ifndef INA_OS_OSX
 INA_TEST(cpu, test_brand_string)
 {

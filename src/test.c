@@ -33,7 +33,6 @@ static int         __last_signal = 0;
 static int         __tap = INA_NO;
 static int         __junit = INA_NO;
 
-INA_TEST_DATA(suite) {};
 INA_TEST(suite, test) { INA_UNUSED(data); };
 
 static int __ina_suite_all(ina_test_testcase_t* t) {

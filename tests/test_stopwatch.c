@@ -17,7 +17,6 @@
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
 #endif
 
-INA_TEST_DATA(stopwatch){};
 INA_TEST(stopwatch ,time_stamp)
 {
     ina_stopwatch_t *w = NULL;

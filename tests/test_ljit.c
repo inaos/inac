@@ -68,8 +68,6 @@ INA_TEST_FIXTURE_SKIP(ljit_ex, debug)
     INA_TEST_ASSERT_NULL(ctx);
 }
 
-INA_TEST_DATA(ljit){};
-
 INA_TEST(ljit, call)
 {
     ina_ljit_ctx_t *ctx = NULL;

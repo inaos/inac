@@ -66,8 +66,6 @@ static void __ina_test_compression(ina_mempool_t *pool, ina_compression_type_t c
     }
 }
 
-INA_TEST_DATA(compression) {};
-
 INA_TEST(compression, deflate_string)
 {
     INA_UNUSED(data);

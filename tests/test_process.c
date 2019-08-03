@@ -14,7 +14,6 @@
 #define __INA_TEST_EXE "tests.exe"
 #endif
 
-INA_TEST_DATA(process){};
 INA_TEST(process, init_destroy)
 {   
     ina_process_ctx_t *ctx;

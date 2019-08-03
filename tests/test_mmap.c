@@ -8,7 +8,6 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_DATA(mmap){};
 INA_TEST(mmap, test_init_destroy)
 {
 	ina_mmap_ctx_t *ctx = NULL;

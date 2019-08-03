@@ -122,7 +122,6 @@ INA_FSM_TRANSITIONS(signal_fsm,
         INA_FSM_TRANSITION(ORANGE, turn_green_on, GREEN),
         INA_FSM_TRANSITION(GREEN, turn_red_on, RED)));
 
-INA_TEST_DATA(fsm){};
 INA_TEST(fsm, get_set_state)
 {
     signal_light_t sl;

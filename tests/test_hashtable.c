@@ -73,7 +73,6 @@ static ina_htdata_i64_t* new_data_i64(int64_t id, const char* name)
 	return data;
 }
 
-INA_TEST_DATA(hashtable) {};
 INA_TEST(hashtable, int_key)
 {
 	ina_hashtable_t *ht = NULL;
