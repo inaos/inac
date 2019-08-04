@@ -13,6 +13,13 @@ inac_version_header(include/libinac/version.h)
 inac_enable_aes()
 inac_enable_sse4()
 
+inac_enable_trace(Debug 3)
+inac_enable_trace(RelWithDebInfo 1)
+inac_enable_trace(Release 1)
+inac_enable_log(Debug 4)
+inac_enable_log(RelWithDebInfo 3)
+inac_enable_log(Release 3)
+
 inac_add_contrib_lib(miniz)
 inac_add_contrib_lib(lz4)
 inac_add_contrib_lib(timerwheel)

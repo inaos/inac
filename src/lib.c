@@ -215,10 +215,10 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                     char buf[100];
                     strncpy(buf, &argv[n][s], (size_t)(e-s));
                     buf[c-s] = 0;
-                    INA_TRACE3("opt=%s", buf);
+                    INA_TRACE3(inac.lib, "opt=%s", buf);
                     so = __ina_opt_get(buf);
                     if (so == NULL) {
-                        INA_TRACE2("invalid options %s", buf);
+                        INA_TRACE2(inac.lib, "invalid options %s", buf);
                         __ina_opt_usage();
                         return INA_ERROR(INA_ES_OPTION | INA_ERR_INVALID);
                     }
@@ -264,7 +264,7 @@ INA_API(ina_rc_t) ina_init(void)
     ina_err_init();
 
     if (atexit(ina_exit) == -1) {
-        INA_TRACE("Failed to register exit function!");
+        INA_TRACE(inac.lib, "Failed to register exit function!");
         return INA_OS_ERROR(INA_ES_FUNCTION | INA_ERR_NOT_REGISTERED);
     }
 
@@ -663,7 +663,7 @@ __ina_signal_handler(int sig)
             break;
 #endif
         default:
-            INA_TRACE("Unknown signal %d received!", sig);
+            INA_TRACE(inac.lib, "Unknown signal %d received!", sig);
             abort();
     }
     sh = __signal_handler_map[isig];

@@ -1,5 +1,5 @@
 /*
- * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
+ * Copyright INAOS GmbH, Thalwil, 2012-2019. All rights reserved
  *
  * This software is the confidential and proprietary information of INAOS GmbH
  * ("Confidential Information"). You shall not disclose such Confidential
@@ -16,46 +16,84 @@
 extern "C" {
 #endif
 
+#if !defined(INA_TRACE_ENABLE) && defined(INA_DEBUG)
+#define INA_TRACE_ENABLED 1
+#endif
+
 #ifndef INA_TRACE_LEVEL
 #define INA_TRACE_LEVEL 1
+#endif
+
+#ifndef INA_TRACE_TARGET
+#define INA_TRACE_TARGET stdout
 #endif
 
 /*
  * Trace macros
  */
-#ifdef INA_DEBUG
-#define INA_TRACE(fmt, ...)     \
-    fprintf(stderr,             \
-        "%s:%d:%s(): " fmt "\n",\
-        __FILE__,               \
-        __LINE__,               \
-        __FUNCTION__,           \
-        ##__VA_ARGS__           \
-        )
+#ifdef INA_TRACE_ENABLED
+#define INA_TRACE_TO_FILE(fh, cat, fmt, ...)     \
+    do { \
+         const char *e = getenv("INAC_TRACE"); \
+         const char *s = #cat; \
+         size_t i = 0, w = 0, c = 0, match = 0, el = 0; \
+         const int always = (strcmp(s, "*") == 0); \
+         if (!always && (!e || !strlen(e))) break; \
+         match = 1; \
+         el = strlen(e); \
+         while (i < strlen(e) && !always) { \
+             if (e[i] == '*') { w = 1; if (match) { el = i+1; break;} }    \
+             if (e[i] == ',')  {w=0;el=i; if (match) break; c = 0; ++i; match=1;continue; }   \
+             if (c == strlen(#cat)) c = 0; \
+             if (e[i] != s[c]) { match=0; } \
+             ++c; ++i; \
+         } \
+         if (!match || (!always && !w && el < strlen(s))) break; \
+         fprintf(fh,                \
+            "[%s] - " fmt "\n", \
+            #cat, \
+            ##__VA_ARGS__ \
+        );} while(0)
+
+#define INA_TRACE(cat, fmt, ...) INA_TRACE_TO_FILE(INA_TRACE_TARGET, cat, fmt, ##__VA_ARGS__)
+
 #if INA_TRACE_LEVEL>0
-#define INA_TRACE1(fmt, ...)  INA_TRACE(fmt, ##__VA_ARGS__)
+#define INA_TRACE1(cat, fmt, ...)  INA_TRACE(cat, fmt, ##__VA_ARGS__)
+#define INA_TRACE1_TO_FILE(fh, cat, fmt, ...)  INA_TRACE_TO_FILE(fh, cat, fmt, ##__VA_ARGS__)
 #else
-#define INA_TRACE1(fmt, ...)
+#define INA_TRACE1(cat, fmt, ...)
+#define INA_TRACE1_TO_FILE(fh, cat, fmt, ...)
 #endif
 #if INA_TRACE_LEVEL>1
-#define INA_TRACE2(fmt, ...)  INA_TRACE(fmt, ##__VA_ARGS__)
+#define INA_TRACE2(cat, fmt, ...)  INA_TRACE(cat, fmt, ##__VA_ARGS__)
+#define INA_TRACE2_TO_FILE(fh, cat, fmt, ...)  INA_TRACE_TO_FILE(fh, cat, fmt, ##__VA_ARGS__)
 #else 
-#define INA_TRACE2(fmt, ...)
+#define INA_TRACE2(cat, fmt, ...)
+#define INA_TRACE2_TO_FILE(fh, cat, fmt, ...)
 #endif
 #if INA_TRACE_LEVEL>2
-#define INA_TRACE3(fmt, ...)  INA_TRACE(fmt, ##__VA_ARGS__)
+#define INA_TRACE3(cat, fmt, ...)  INA_TRACE(cat, fmt, ##__VA_ARGS__)
+#define INA_TRACE3_TO_FILE(fh, cat, fmt, ...)  INA_TRACE_TO_FILE(fh, cat, fmt, ##__VA_ARGS__)
 #else
-#define INA_TRACE3(fmt, ...)
+#define INA_TRACE3(cat, fmt, ...)
+#define INA_TRACE3_TO_FILE(fh, cat, fmt, ...)
 #endif
 #else
-#define INA_TRACE(fmt, ...)
-#define INA_TRACE1(fmt, ...)
-#define INA_TRACE2(fmt, ...)
-#define INA_TRACE3(fmt, ...)
-#endif 
+#define INA_TRACE(cat, fmt, ...)
+#define INA_TRACE1(cat, fmt, ...)
+#define INA_TRACE2(cat, fmt, ...)
+#define INA_TRACE3(cat, fmt, ...)
+#define INA_TRACE_TO_FILE(fh, cat, fmt, ...)
+#define INA_TRACE1_TO_FILE(fh, cat, fmt, ...)
+#define INA_TRACE2_TO_FILE(fh, cat, fmt, ...)
+#define INA_TRACE3_TO_FILE(fh,cat, fmt, ...)
+#endif
 
+#if !defined(INA_USE_ASSERTS) && defined(INA_DEBUG)
+#define INA_USE_ASSERTS 1
+#endif
 
-#ifdef INA_DEBUG
+#ifdef INA_USE_ASSERTS
 #define INA_NOT_IMPL assert(0)
 #define INA_ASSERT(cond) assert(cond)
 #define INA_ASSERT_FALSE(v) INA_ASSERT(!(v))
