@@ -75,7 +75,7 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
     v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc_ctx);
     v->i3 = -1;
     INA_ULLC_COMMIT(ullc_ctx);
-    INA_TRACE3("ullc producer %d exit", ullc_ctx->id);
+    INA_TRACE3(inac.test.ullc, "ullc producer %d exit", ullc_ctx->id);
  }
 
 /* Create a single */
@@ -108,7 +108,7 @@ INA_TEST_HELPER(ullc, create_consumer) {
             INA_TEST_HELPER_EXIT(ina_err_get_rc());
     }
 
-   INA_TRACE3("created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
+   INA_TRACE3(inac.test.ullc, "created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
         version, slots, producers, consumers, name);
  
     while (1) {
@@ -121,6 +121,6 @@ INA_TEST_HELPER(ullc, create_consumer) {
         }
         ina_time_sleep(1);
     }
-    INA_TRACE3("ullc consumer %d exit", ctx->id);
+    INA_TRACE3(inac.test.ullc, "ullc consumer %d exit", ctx->id);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }
