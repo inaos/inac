@@ -13,7 +13,6 @@
 #include <sched.h>
 #endif
 
-INA_TEST_DATA(timer){};
 INA_TEST(timer,new_free)
 {
     ina_timer_t *t;

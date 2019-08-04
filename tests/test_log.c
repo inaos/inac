@@ -8,7 +8,6 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_DATA(log){};
 INA_TEST_SKIP(log, open_close_console)
 {
     ina_log_ctx_t *ctx = NULL;

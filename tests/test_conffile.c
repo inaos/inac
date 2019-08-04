@@ -54,7 +54,6 @@ static ina_rc_t __ina_named_section_handler(const char *section_name, const char
     return INA_SUCCESS;
 }
 
-INA_TEST_DATA(conffile) {};
 INA_TEST(conffile , using_macros_with_filepath)
 {
     ina_conffile_t *cf = NULL;
@@ -352,9 +351,9 @@ INA_TEST(conffile, invalid_arguments)
     int fake = 0;
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t* section = NULL;
-    INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,int-to-pointer-cast)
+    INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4321)
     ina_conffile_entries_t *entries = (ina_conffile_entries_t*)fake;
-    INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,int-to-pointer-cast)
+    INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast, 4321)
     ina_str_t str_value;
     double dbl_value = 0.0;
     INA_UNUSED(data);

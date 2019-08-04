@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-INA_TEST_DATA(memory){};
 INA_TEST(memory, zero_size)
 {
     INA_UNUSED(data);

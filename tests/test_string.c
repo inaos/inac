@@ -27,7 +27,6 @@ INA_TEST_TEARDOWN(string_mempool)
     data->pool = NULL;
 }
 
-INA_TEST_DATA(string){};
 INA_TEST(string, ina_str_new)
 {
     ina_str_t str = ina_str_new(0);

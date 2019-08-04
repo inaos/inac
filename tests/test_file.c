@@ -14,7 +14,6 @@
 #define _INA_FILE_TEST_CONF_NAME "tests.conf"
 #endif
 
-INA_TEST_DATA(file) {};
 INA_TEST(file, test_open_close)
 {
     ina_file_ctx_t *ctx = NULL;

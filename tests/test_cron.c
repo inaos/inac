@@ -8,7 +8,6 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_DATA(cron) {};
 INA_TEST(cron, id)
 {
     ina_cron_ctx_t *ctx;

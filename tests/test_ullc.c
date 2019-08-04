@@ -9,7 +9,6 @@
 #include <libinac/lib.h>
 #include "test_ullc.h"
 
-INA_TEST_DATA(ullc){};
 INA_TEST(ullc, ina_ullc_producer_new)
 {
     ina_ullc_ctx_t *ctx = NULL;

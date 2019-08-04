@@ -40,7 +40,6 @@ INA_TEST_SKIP(test, handle_sigfault) {
     ina_time_tsc_t *t = NULL;
     t->ref = 0;
 }
-INA_TEST_DATA(test_assert){};
 INA_TEST(test_assert, assert_equal_str) {
     INA_UNUSED(data);
     INA_TEST_ASSERT_EQUAL_STR("test", "test");
@@ -178,7 +177,6 @@ INA_TEST_FIXTURE_LINUX(test_os_fixture, linux) {
     INA_UNUSED(data);
     INA_TEST_ASSERT_TRUE(0);
 }
-INA_TEST_DATA(test_os){};
 INA_TEST_WIN32(test_os, win32) {
     INA_UNUSED(data);
     INA_TEST_ASSERT_TRUE(0);

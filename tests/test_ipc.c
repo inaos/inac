@@ -13,7 +13,6 @@
 #define F3 0x04
 #define F4 0x08
 
-INA_TEST_DATA(ipc_flags) {};
 INA_TEST(ipc_flags, new_free)
 {
     ina_ipc_flags_t *f1;
@@ -199,7 +198,6 @@ INA_TEST(ipc_flags, dump)
 
 }
 
-INA_TEST_DATA(ipc_counter){};
 INA_TEST(ipc_counter, new_free)
 {
     ina_ipc_counter_t *c1;
@@ -289,7 +287,6 @@ INA_TEST(ipc_counter, dec_get)
     INA_TEST_ASSERT_NULL(c);
 }
 
-INA_TEST_DATA(ipc){};
 INA_TEST(ipc, invalid_arguments)
 {
     ina_ipc_flags_t *flags1 = NULL;

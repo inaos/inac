@@ -42,7 +42,6 @@ static int sort_desc(const void *lhs, const void *rhs)
     return (a->index > b->index);
 }
 
-INA_TEST_DATA(list) {};
 INA_TEST(list, new_free)
 {
     ina_list_t *list = NULL;

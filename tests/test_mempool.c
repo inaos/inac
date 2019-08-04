@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <libinac/lib.h>
 
-INA_TEST_DATA(mempool) {};
 INA_TEST(mempool, create_fixed)
 {
     ina_mempool_t *pool;

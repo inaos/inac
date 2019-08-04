@@ -8,8 +8,6 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_DATA(file_cursor){};
-
 INA_TEST_SKIP(file_cursor, test_file_cursor)
 {
     INA_UNUSED(data);

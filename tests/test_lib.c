@@ -25,7 +25,6 @@ static void __sig_handler(ina_signal_t sig, ina_signal_behavior_t *sb, int *exit
     *exitcode = EXIT_SUCCESS;
 }
 
-INA_TEST_DATA(lib){};
 INA_TEST(lib, opt)
 {
     int l_int_value = 1;

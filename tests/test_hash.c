@@ -325,7 +325,6 @@ static void __ina_hash_test_init32(int has_aes_support)
 	__hash32_all[14].test2_expected = 1;
 }
 
-INA_TEST_DATA(hash) {};
 INA_TEST_SKIP(hash, all_32_bit) {
     int i;
     int aes_hw_support = 0;

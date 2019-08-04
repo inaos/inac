@@ -583,9 +583,12 @@ typedef struct ina_test_testcase_s {
         (ina_test_teardown_cb_t)__teardown,                                 \
         INA_TEST_MAGIC }
 
-/* Define data for a test suite */
+/* Define data struct obfor a test suite */
 #define INA_TEST_DATA(sname) struct sname##_data
-/* Define setup code für a suite */ 
+/* Internal. Define empty data struct for a test suite */
+#define INA_TEST_NO_DATA(sname, tname) struct sname##tname##_data { int _x; }
+
+/* Define setup code für a suite */
 #ifndef INA_OS_WINDOWS
 #define INA_TEST_SETUP(sname)                                               \
     void sname##_setup(struct sname##_data* data)
@@ -600,10 +603,11 @@ typedef struct ina_test_testcase_s {
     void sname##_teardown(struct sname##_data* data)
 #endif
 /* Declare test case. For internal purpose only. */
-#define INA_TEST_DECL(sname, tname, _skip)                                  \
-    void INA_TEST_FNAME(sname, tname) (struct sname##_data* data);            \
+#define INA_TEST_DECL(sname, tname, _skip)                                   \
+    INA_TEST_NO_DATA(sname, tname);                                                  \
+    void INA_TEST_FNAME(sname, tname) (struct sname##tname##_data* data);            \
     INA_TEST_STRUCT(sname, tname, _skip, 0, NULL, NULL, NULL);              \
-    void INA_TEST_FNAME(sname, tname) (struct sname##_data* data)
+    void INA_TEST_FNAME(sname, tname) (struct sname##tname##_data* data)
 
 /* Declare Test case with fixture. For internal purpose only. */
 #ifdef INA_OS_OSX

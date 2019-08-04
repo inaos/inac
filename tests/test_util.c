@@ -8,7 +8,6 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_DATA(util){};
 INA_TEST(util, dbl_cmp_abs)
 {
     double v1,v2;
