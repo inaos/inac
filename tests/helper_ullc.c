@@ -60,7 +60,7 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
     }
 
 
-   INA_TRACE3("created ullc producer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
+   INA_TRACE3(inac.test.ullc, "created ullc producer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
         version, slots, producers, consumers, name);
 
     ina_time_sleep(2000);
