@@ -75,7 +75,7 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
     v = INA_ULLC_CLAIM(ina_test_ullc_t, ullc_ctx);
     v->i3 = -1;
     INA_ULLC_COMMIT(ullc_ctx);
-    INA_TRACE3(inac.test.ullc, "ullc producer %d exit", ullc_ctx->id);
+    INA_TRACE3(inac.test.ullc, "ullc producer %p exit", ullc_ctx);
  }
 
 /* Create a single */
@@ -114,13 +114,13 @@ INA_TEST_HELPER(ullc, create_consumer) {
     while (1) {
         v = INA_ULLC_GET(ina_test_ullc_t, ctx);
         if (v) {
-            INA_TRACE3(inac.test.ullc, "consumer %d, v=%d", ctx->id, v->i3);
+            INA_TRACE3(inac.test.ullc, "consumer %p, v=%d", ctx, v->i3);
             if (v->i3 == -1) {
                 break;
             }
         }
         ina_time_sleep(1);
     }
-    INA_TRACE3(inac.test.ullc, "ullc consumer %d exit", ctx->id);
+    INA_TRACE3(inac.test.ullc, "ullc consumer %p exit", ctx);
     INA_TEST_HELPER_SET_RC(INA_SUCCESS);
 }

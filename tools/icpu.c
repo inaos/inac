@@ -26,7 +26,7 @@ static void __ina_interrrupt(ina_signal_t s, ina_signal_behavior_t *b, int *e)
     *e = EXIT_SUCCESS;
 }
 
-static void __show_cpu_flags()
+static void __show_cpu_flags(void)
 {
 	ina_str_t sflags;
 	ina_cpu_feature_t flags;
@@ -147,7 +147,7 @@ static void __show_cpu_flags()
 	ina_str_free(sflags);
 }
 
-static void __ina_measure_freq()
+static void __ina_measure_freq(void)
 {
     ina_time_t *begints, *endts;
     ina_time_tsc_value_t begin, end;

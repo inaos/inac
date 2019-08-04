@@ -244,7 +244,7 @@ INA_TEST(ullc, slow_consumer)
         v = INA_ULLC_GET(ina_test_ullc_t, ullc);
         if (v) {
             ina_time_sleep(5);
-            INA_TRACE3("consumer %d, v=%d", ullc->id, v->i3);
+            INA_TRACE3(inac.test.ullc, "consumer %p, v=%d", ullc, v->i3);
             if (v->i3 == -1) {
                 break;
             }
