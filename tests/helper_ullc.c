@@ -114,7 +114,7 @@ INA_TEST_HELPER(ullc, create_consumer) {
     while (1) {
         v = INA_ULLC_GET(ina_test_ullc_t, ctx);
         if (v) {
-            INA_TRACE3("consumer %d, v=%d", ctx->id, v->i3);
+            INA_TRACE3(inac.test.ullc, "consumer %d, v=%d", ctx->id, v->i3);
             if (v->i3 == -1) {
                 break;
             }
