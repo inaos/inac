@@ -684,7 +684,7 @@ static void __ina_process_start(ina_process_t *process)
         args[n++] = NULL;
         execv(args[0], args);
         INA_OS_ERROR(INA_ES_PROCESS | INA_ERR_NOT_CREATED);
-        INA_TRACE("%s", "FAILED");
+        INA_TRACE(inac.process, "FAILED");
         exit(127);
     } else {
         int status = 0;
@@ -706,9 +706,9 @@ static void __ina_process_stop(ina_process_t *process)
     int still_running = INA_NO;
 
     if (process->pid > 0) {
-        INA_TRACE2("Kill %d", process->pid);
+        INA_TRACE2(inac,process, "Kill %d", process->pid);
         if (kill(process->pid, SIGTERM) == -1) {
-            INA_TRACE2("%s", "FAILED to kill");
+            INA_TRACE2(inac.process, "%s", "FAILED to kill");
             process->last_rc = INA_OS_ERROR(INA_ES_PROCESS | INA_ERR_NOT_STOPPED);
             return;
         }

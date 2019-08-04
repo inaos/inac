@@ -152,7 +152,7 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 		*pool = NULL;
 		return INA_ERROR(INA_ERR_OUT_OF_MEMORY);
 	}
-	INA_TRACE3("New memory pool: %p->%p size = %ld", *pool, (*pool)->m, (*pool)->size);
+	INA_TRACE3(inac.mempool, "New memory pool: %p->%p size = %ld", *pool, (*pool)->m, (*pool)->size);
 	return INA_SUCCESS;
 }
 
@@ -578,7 +578,7 @@ __ina_shm_open(ina_mempool_t *pool)
 	__sync_fetch_and_add((int64_t*)pool->m, 1);
 	/* Inc start pos */
 	pool->pos += sizeof(int64_t);
-	INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, *(int64_t*)pool->m);
+	INA_TRACE2(inac.mempool, "shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, *(int64_t*)pool->m);
 	return INA_SUCCESS;
 }
 
@@ -608,10 +608,10 @@ __ina_shm_close(ina_mempool_t *pool)
 
 	/* Dec ref count, unlink on last relase */
 	if (cn == 0 || pool->cf&INA_MEM_SHARED_EXCL) {
-		INA_TRACE2("unlinking shared mem %s", pool->label);
+		INA_TRACE2(inac.mempool, "unlinking shared mem %s", pool->label);
 		shm_unlink(ina_str_cstr(pool->label));
 	}
-	INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
+	INA_TRACE2(inac.mempool, "shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
 
 	return INA_SUCCESS;
 }
