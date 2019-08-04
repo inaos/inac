@@ -1,5 +1,5 @@
 /*
- * Copyright INAOS GmbH, Thalwil, 2012-2018. All rights reserved
+ * Copyright INAOS GmbH, Thalwil, 2012-2019. All rights reserved
  *
  * This software is the confidential and proprietary information of INAOS GmbH
  * ("Confidential Information"). You shall not disclose such Confidential
@@ -32,7 +32,6 @@ extern "C" {
  * Trace macros
  */
 #ifdef INA_TRACE_ENABLED
-
 #define INA_TRACE_TO_FILE(fh, cat, fmt, ...)     \
     do { \
          const char *e = getenv("INAC_TRACE"); \
@@ -58,11 +57,9 @@ extern "C" {
 
 #define INA_TRACE(cat, fmt, ...) INA_TRACE_TO_FILE(INA_TRACE_TARGET, cat, fmt, ##__VA_ARGS__)
 
-
 #if INA_TRACE_LEVEL>0
 #define INA_TRACE1(cat, fmt, ...)  INA_TRACE(cat, fmt, ##__VA_ARGS__)
 #define INA_TRACE1_TO_FILE(fh, cat, fmt, ...)  INA_TRACE_TO_FILE(fh, cat, fmt, ##__VA_ARGS__)
-
 #else
 #define INA_TRACE1(cat, fmt, ...)
 #define INA_TRACE1_TO_FILE(fh, cat, fmt, ...)
