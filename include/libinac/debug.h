@@ -94,7 +94,7 @@ extern "C" {
 #endif
 
 #ifdef INA_USE_ASSERTS
-#define INA_ASSERT_VAR(type, name) type name
+#define INA_USED_BY_ASSERT(x) 
 #define INA_NOT_IMPL assert(0)
 #define INA_ASSERT(cond) assert(cond)
 #define INA_ASSERT_FALSE(v) INA_ASSERT(!(v))
@@ -108,7 +108,7 @@ extern "C" {
 #define INA_ASSERT_SUCCEED(v) INA_ASSERT_TRUE(INA_SUCCEED(v))
 #define INA_ASSERT_NOTSUCCEED(v) INA_ASSERT_FALSE(INA_SUCCEED(v))
 #else
-#define INA_ASSERT_VAR(type, name)
+#define INA_USED_BY_ASSERT(x) INA_UNUSED(x)
 #define INA_NOT_IMPL INA_CASSERT(Not_implemented,0)
 #define INA_ASSERT(cond)
 #define INA_ASSERT_FALSE(v)
