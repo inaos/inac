@@ -92,6 +92,7 @@ Assertion assuming true
     INA_ASSERT_TRUE(v)
     
 Assertion assuming NULL
+
     INA_ASSERT_NULL(my_var)
     
 Assertion assuming not NULL
@@ -121,3 +122,13 @@ Assuming a return code indicating success
 Assuming a return code indicating failure
     
     INA_ASSERT_NOTSUCCEED(should_not_succeed())        
+
+To mark a variable used only by assertion. This prevents warning about unused 
+variables for release builds.
+
+    void test(int flags, int value)
+    {
+       INA_USED_BY_ASSERT(flags);
+       INA_ASSERT_FALSE(flags == 0);
+       return value != 0;
+    }
