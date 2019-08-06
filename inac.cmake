@@ -460,8 +460,24 @@ function(inac_add_benchmarks)
     if (NOT EXISTS "${CMAKE_SOURCE_DIR}/bench/main.c")
         if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
             file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c
-                    "#include <libinac/lib.h>\nint main(int argc,  char** argv) {  INA_MUST_SUCCEED(ina_app_init(argc, argv, NULL)); return ina_bench_run(argc, argv);}"
-                    )
+"#include <libinac/lib.h>
+int main(int argc,  char** argv)
+{
+    INA_OPTS(opt,
+             INA_OPT_STRING(\"r\", \"report-path\", \".\"INA_PATH_SEPARATOR_STR, \"Directory for report output\"),
+             INA_OPT_INT(NULL, \"x-repeat\", INA_NUM2STR(0), \"Override number of repetitions\"),
+             INA_OPT_INT(NULL, \"x-iter\", INA_NUM2STR(0), \"Override number of iteration\"),
+             INA_OPT_INT(NULL, \"x-warm-up\", INA_NUM2STR(3), \"Warm-up iterations\"),
+             INA_OPT_INT(NULL, \"cache-size\", INA_NUM2STR(0), \"L1/L2/L3 cache size\"),
+             INA_OPT_INT(\"c\", \"core\", INA_NUM2STR(-1), \"Pin core\"),
+             INA_OPT_FLAG(NULL, \"disable-aggregation\", \"Disable result aggregation\"),
+             INA_OPT_STRING(\"n\", \"name\", \"\", \"Benchmark name\"));
+
+    if (INA_FAILED(ina_app_init(argc, argv, opt))) {
+        return EXIT_FAILURE;
+    }
+    return ina_bench_run();"
+})
         endif ()
         list(APPEND src "${CMAKE_CURRENT_BINARY_DIR}/bench.dir/main.c")
     else ()
