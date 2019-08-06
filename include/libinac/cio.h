@@ -216,28 +216,22 @@ INA_API(int) ina_cio_printf(int row, int col,
  */
 INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line);
 
-INA_API(ina_rc_t) ina_cio_read_char(char *ch);
+INA_API(ina_rc_t) ina_cio_read_char(char *c);
 
 /*
  * Non blocking read line terminated by '\n'
- * This function is non-blocking - it will use the buffer to store intermediate
- * line. The buffer is freed once the line is complete - however the line must
- * be freed be the caller.
+ * This function is non-blocking  however the line must be freed be the caller.
  *
  * Parameters
  *  line     String containing the read line
- *  buf      Output buffer
- *  buf_len  Size in chars of the output buffer
- *  buf_cur  Current buffer position
  *
  * Return
- *  INA_SUCCESS if line read is completed
- *  INA_EAGAIN line read is not completed
+ *  - INA_SUCCESS if line read is completed
+ *  - INA_ERR_TRY_AGAIN line read is not completed
  */
-INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
-                                              size_t *buf_len, size_t *buf_cur);
+INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line);
 
-INA_API(ina_rc_t) ina_cio_read_char_non_block(char *ch);
+INA_API(ina_rc_t) ina_cio_read_char_non_block(char *c);
 
 #ifdef __cplusplus
 }

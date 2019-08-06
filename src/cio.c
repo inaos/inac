@@ -627,7 +627,6 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
 static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf, 
                                     size_t *nb_buf_len, size_t *nb_buf_pos, int rcv)
 {
-    char *buf = NULL;
     ina_rc_t rc = INA_SUCCESS;
     struct termios new_termios;
     static struct termios old_termios;
@@ -660,49 +659,26 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
                     rc = INA_ERROR(INA_ERR_TRY_AGAIN);
                     break;
                 }
-                ina_time_sleep(50);
+                ina_cpu_pause();
                 continue;
             }
 
-            if (*nb_buf == NULL) {
-                *nb_buf_len = __INA_CIO_READ_BUFFER_CHUNK_SIZE;
-                *nb_buf_pos = 0;
-                *nb_buf = (char*)ina_mem_alloc(sizeof(char)* *nb_buf_len);
-            } else if ((*nb_buf_pos)-1 == *nb_buf_pos) {
-                buf = (char*)ina_mem_realloc(*nb_buf, (*nb_buf_len) + 
-                                            __INA_CIO_READ_BUFFER_CHUNK_SIZE);
-                if (buf == NULL) {
-                    ina_mem_free(*nb_buf);
-                    *nb_buf = NULL;
-                    return ina_err_get_rc();
-                }
-                *nb_buf = buf;
+            if (*line == NULL) {
+                *line = ina_str_new(__INA_CIO_READ_BUFFER_CHUNK_SIZE);
             }
             
             if (c == '\n' || c == '\r') {
-                *line = ina_str_new_fromcstr(*nb_buf);
-                ina_mem_free(*nb_buf);
-                *nb_buf = NULL;
-                *nb_buf_pos = 0;
-                *nb_buf_len = 0;
                 break;
             } else if (c == '\b' || (int)c == 127) {
-                if ((*nb_buf_pos) > 0 && buf != NULL) {
-                    buf[(*nb_buf_pos)--] = 0;
+                if (ina_str_len(*line) > 0) {
+                    *line = ina_str_substr(*line, 0, ina_str_len(*line)-1);
                     fprintf(stdout, "\b \b");
                     fflush(stdout);
                 }
             } else if (c >=32 && c <= 126) {
                 INA_ASSERT_NOT_NULL(nb_buf);
-                buf = *nb_buf;
-                buf[*nb_buf_pos] = (char)c;
-                *nb_buf_pos += 1;
+                *line = ina_str_append_chr(*line, (char)c);
                 if (rcv) {
-                    *line = ina_str_new_fromcstr(*nb_buf);
-                    ina_mem_free(*nb_buf);
-                    *nb_buf = NULL;
-                    *nb_buf_pos = 0;
-                    *nb_buf_len = 0;
                     fprintf(stdout, "\b \b");
                     fflush(stdout);
                     new_termios.c_lflag |= (ECHO);
@@ -732,14 +708,13 @@ INA_API(ina_rc_t) ina_cio_read_line(ina_str_t *line)
     return __ina_cio_read_line(line, INA_YES, &buf, &buf_len, &buf_pos, INA_NO);
 }
 
-INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line, char **buf, 
-                                              size_t *buf_len, size_t *buf_pos)
+INA_API(ina_rc_t) ina_cio_read_line_non_block(ina_str_t *line)
 {
     INA_VERIFY_NOT_NULL(line);
-    INA_VERIFY_NOT_NULL(buf);
-    INA_VERIFY_NOT_NULL(buf_len);
-    INA_VERIFY_NOT_NULL(buf_pos);
-    return __ina_cio_read_line(line, INA_NO, buf, buf_len, buf_pos, INA_NO);
+    char *buf = NULL;
+    size_t buf_len = 0;
+    size_t buf_pos = 0;
+    return __ina_cio_read_line(line, INA_NO, &buf, &buf_len, &buf_pos, INA_NO);
 }
 
 INA_API(ina_rc_t) ina_cio_read_char_non_block(char *ch)
