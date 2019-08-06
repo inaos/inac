@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
@@ -32,7 +32,7 @@ struct ina_dir_walker_s {
 
 struct ina_dir_stat_s {
     ina_str_t dir;
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     ULARGE_INTEGER free_bytes_available;
     ULARGE_INTEGER total_number_of_bytes;
     ULARGE_INTEGER total_numof_free_bytes;
@@ -278,7 +278,7 @@ INA_API(ina_rc_t) ina_dir_stat_new(const char *dir, ina_dir_stat_t **stat)
     *stat = (ina_dir_stat_t*)ina_mem_alloc(sizeof(ina_dir_stat_t));
     INA_RETURN_IF_NULL(*stat);
     (*stat)->dir = ina_str_new_fromcstr(dir);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     if (GetDiskFreeSpaceEx(dir, &(*stat)->free_bytes_available, 
         &(*stat)->total_number_of_bytes, 
         &(*stat)->total_numof_free_bytes) == 0) {
@@ -302,7 +302,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat, size_t
 
     INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(capacity_bytes);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     *capacity_bytes = stat->total_number_of_bytes.QuadPart;
 #else
     *capacity_bytes = stat->total_bytes;
@@ -314,7 +314,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_free(const ina_dir_stat_t *stat, size_t *fr
 {
     INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(free_bytes);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     *free_bytes = stat->free_bytes_available.QuadPart;
 #else
     *free_bytes = stat->free_bytes;

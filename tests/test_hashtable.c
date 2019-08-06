@@ -73,13 +73,13 @@ static ina_htdata_i64_t* new_data_i64(int64_t id, const char* name)
 	return data;
 }
 
-
 INA_TEST(hashtable, int_key)
 {
 	ina_hashtable_t *ht = NULL;
-	ina_htdata_t *data;
+	ina_htdata_t *d;
 	size_t count;
 	size_t usage;
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
 		INA_HASH_DEFAULT,
@@ -91,32 +91,32 @@ INA_TEST(hashtable, int_key)
 
 	INA_TEST_ASSERT_NOT_NULL(ht);
 
-	data = new_data(1, "Name 1");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
-	data = new_data(2, "Name 2");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
+	d = new_data(1, "Name 1");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, d->id, d));
+	d = new_data(2, "Name 2");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, d->id, d));
 
 
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 1, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 2, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 3, (void**)&data));
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_i32(ht, 1, (void**)&data));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 1, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 2, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 2", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 3, (void**)&d));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_i32(ht, 1, (void**)&d));
 	INA_TEST_ASSERT_NOT_NULL(data);
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 1, (void**)&data));
-	data = new_data(10, "Name 10");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
-	data = new_data(20, "Name 20");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
-	data = new_data(30, "Name 30");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 10, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 1, (void**)&d));
+	d = new_data(10, "Name 10");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, d->id, d));
+	d = new_data(20, "Name 20");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, d->id, d));
+	d = new_data(30, "Name 30");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, d->id, d));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i32(ht, 10, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 10", d->name);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
@@ -130,9 +130,10 @@ INA_TEST(hashtable, int_key)
 INA_TEST(hashtable, uint32_key)
 {
 	ina_hashtable_t *ht = NULL;
-	ina_htdata_u32_t *data;
+	ina_htdata_u32_t *d;
 	size_t count;
 	size_t usage;
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT32_KEY,
 		INA_HASH_DEFAULT,
@@ -144,32 +145,32 @@ INA_TEST(hashtable, uint32_key)
 
 	INA_TEST_ASSERT_NOT_NULL(ht);
 
-	data = new_data_u32(1, "Name 1");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, data->id, data));
-	data = new_data_u32(2, "Name 2");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, data->id, data));
+	d = new_data_u32(1, "Name 1");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, d->id, d));
+	d = new_data_u32(2, "Name 2");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, d->id, d));
 
 
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u32(ht, 1, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u32(ht, 2, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_u32(ht, 3, (void**)&data));
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_u32(ht, 1, (void**)&data));
-	INA_TEST_ASSERT_NOT_NULL(data);
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_u32(ht, 1, (void**)&data));
-	data = new_data_u32(10, "Name 10");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, data->id, data));
-	data = new_data_u32(20, "Name 20");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, data->id, data));
-	data = new_data_u32(30, "Name 30");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, data->id, data));
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u32(ht, 10, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u32(ht, 1, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u32(ht, 2, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 2", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_u32(ht, 3, (void**)&d));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_u32(ht, 1, (void**)&d));
+	INA_TEST_ASSERT_NOT_NULL(d);
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_u32(ht, 1, (void**)&d));
+	d = new_data_u32(10, "Name 10");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, d->id, d));
+	d = new_data_u32(20, "Name 20");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, d->id, d));
+	d = new_data_u32(30, "Name 30");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u32(ht, d->id, d));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u32(ht, 10, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 10", d->name);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
@@ -182,9 +183,10 @@ INA_TEST(hashtable, uint32_key)
 INA_TEST(hashtable, uint64_key)
 {
 	ina_hashtable_t *ht = NULL;
-	ina_htdata_u64_t *data;
+	ina_htdata_u64_t *d;
 	size_t count;
 	size_t usage;
+	INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_UINT64_KEY,
 		INA_HASH_DEFAULT,
@@ -197,32 +199,32 @@ INA_TEST(hashtable, uint64_key)
 
 	INA_TEST_ASSERT_NOT_NULL(ht);
 
-	data = new_data_u64(1, "Name 1");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, data->id, data));
-	data = new_data_u64(2, "Name 2");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, data->id, data));
+	d = new_data_u64(1, "Name 1");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, d->id, d));
+	d = new_data_u64(2, "Name 2");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, d->id, d));
 
 
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u64(ht, 1, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u64(ht, 2, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_u64(ht, 3, (void**)&data));
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_u64(ht, 1, (void**)&data));
-	INA_TEST_ASSERT_NOT_NULL(data);
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_u64(ht, 1, (void**)&data));
-	data = new_data_u64(10, "Name 10");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, data->id, data));
-	data = new_data_u64(20, "Name 20");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, data->id, data));
-	data = new_data_u64(30, "Name 30");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, data->id, data));
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u64(ht, 10, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u64(ht, 1, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u64(ht, 2, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 2", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_u64(ht, 3, (void**)&d));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_u64(ht, 1, (void**)&d));
+	INA_TEST_ASSERT_NOT_NULL(d);
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_u64(ht, 1, (void**)&d));
+	d = new_data_u64(10, "Name 10");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, d->id, d));
+	d = new_data_u64(20, "Name 20");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, d->id, d));
+	d = new_data_u64(30, "Name 30");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, d->id, d));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_u64(ht, 10, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 10", d->name);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
@@ -235,9 +237,10 @@ INA_TEST(hashtable, uint64_key)
 INA_TEST(hashtable, int64_key)
 {
 	ina_hashtable_t *ht = NULL;
-	ina_htdata_i64_t *data;
+	ina_htdata_i64_t *d;
 	size_t count;
 	size_t usage;
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT64_KEY,
 		INA_HASH_DEFAULT,
@@ -249,32 +252,32 @@ INA_TEST(hashtable, int64_key)
 
 	INA_TEST_ASSERT_NOT_NULL(ht);
 
-	data = new_data_i64(1, "Name 1");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i64(ht, data->id, data));
-	data = new_data_i64(2, "Name 2");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i64(ht, data->id, data));
+	d = new_data_i64(1, "Name 1");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i64(ht, d->id, d));
+	d = new_data_i64(2, "Name 2");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i64(ht, d->id, d));
 
 
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i64(ht, 1, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i64(ht, 2, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i64(ht, 3, (void**)&data));
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_i64(ht, 1, (void**)&data));
-	INA_TEST_ASSERT_NOT_NULL(data);
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i64(ht, 1, (void**)&data));
-	data = new_data_i64(10, "Name 10");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i64(ht, data->id, data));
-	data = new_data_i64(20, "Name 20");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, data->id, data));
-	data = new_data_i64(30, "Name 30");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, data->id, data));
-	data = NULL;
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i64(ht, 10, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 10", data->name);
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i64(ht, 1, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i64(ht, 2, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 2", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i64(ht, 3, (void**)&d));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_i64(ht, 1, (void**)&d));
+	INA_TEST_ASSERT_NOT_NULL(d);
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i64(ht, 1, (void**)&d));
+	d = new_data_i64(10, "Name 10");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i64(ht, d->id, d));
+	d = new_data_i64(20, "Name 20");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, d->id, d));
+	d = new_data_i64(30, "Name 30");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_u64(ht, d->id, d));
+	d = NULL;
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_i64(ht, 10, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 10", d->name);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(4, count);
@@ -288,9 +291,9 @@ INA_TEST(hashtable, int64_key)
 INA_TEST(hashtable, ptr_key)
 {
 	ina_hashtable_t *ht = NULL;
-	ina_htdata_t *data1, *data2, *data3, *data;
+	ina_htdata_t *data1, *data2, *data3, *d;
 	size_t count;
-
+    INA_UNUSED(data);
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_PTR_KEY,
 		INA_HASH_DEFAULT,
 		INA_HASHTABLE_TYPE_DEFAULT,
@@ -307,16 +310,16 @@ INA_TEST(hashtable, ptr_key)
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_ptr(ht, data2, data1));
 
 
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_ptr(ht, data1, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_ptr(ht, data2, (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_ptr(ht, data3, (void**)&data));
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_ptr(ht, data1, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 2", d->name);
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_ptr(ht, data2, (void**)&d));
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_ptr(ht, data3, (void**)&d));
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(2, count);
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_ptr(ht, data1, (void**)&data));
-	INA_TEST_ASSERT_NOT_NULL(data);
-	INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_ptr(ht, data1, (void**)&d));
+	INA_TEST_ASSERT_NOT_NULL(d);
+	INA_TEST_ASSERT_EQUAL_STR("Name 2", d->name);
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(1, count);
 
@@ -326,9 +329,9 @@ INA_TEST(hashtable, ptr_key)
 INA_TEST(hashtable, str_key)
 {
 	ina_hashtable_t *ht = NULL;
-	ina_htdata_t *data1, *data2, *data;
+	ina_htdata_t *data1, *data2, *data3;
 	size_t count;
-
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
 		INA_HASH32_SPOOKY,
@@ -345,16 +348,16 @@ INA_TEST(hashtable, str_key)
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_str(ht, "n2", data2));
 
 
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_str(ht, "n2", (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_str(ht, "n1", (void**)&data));
-	INA_TEST_ASSERT_EQUAL_STR("Name 1", data->name);
-	INA_TEST_ASSERT_FAILED(ina_hashtable_get_str(ht, "n3", (void**)&data));
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_str(ht, "n2", (void**)&data3));
+	INA_TEST_ASSERT_EQUAL_STR("Name 2", data3->name);
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_get_str(ht, "n1", (void**)&data3));
+	INA_TEST_ASSERT_EQUAL_STR("Name 1", data3->name);
+	INA_TEST_ASSERT_FAILED(ina_hashtable_get_str(ht, "n3", (void**)&data3));
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(2, count);
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_str(ht, "n2", (void**)&data));
-	INA_TEST_ASSERT_NOT_NULL(data);
-	INA_TEST_ASSERT_EQUAL_STR("Name 2", data->name);
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_str(ht, "n2", (void**)&data3));
+	INA_TEST_ASSERT_NOT_NULL(data3);
+	INA_TEST_ASSERT_EQUAL_STR("Name 2", data3->name);
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(1, count);
 
@@ -369,6 +372,7 @@ INA_TEST(hashtable, iter)
 	void *d = NULL;
 	ina_hashtable_iter_t *iter = NULL;
 	size_t count;
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_STR_KEY,
 		INA_HASH_DEFAULT,
@@ -460,8 +464,9 @@ INA_TEST(hashtable, iter)
 INA_TEST(hashtable, clear)
 {
 	ina_hashtable_t *ht = NULL;
-	ina_htdata_t *data;
+	ina_htdata_t *data3;
 	size_t count;
+    INA_UNUSED(data);
 
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_new(INA_HASHTABLE_INT32_KEY,
 		INA_HASH_DEFAULT,
@@ -473,10 +478,10 @@ INA_TEST(hashtable, clear)
 
 
 	INA_TEST_ASSERT_NOT_NULL(ht);
-	data = new_data(1, "Name 1");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
-	data = new_data(2, "Name 2");
-	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data->id, data));
+	data3 = new_data(1, "Name 1");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data3->id, data3));
+	data3 = new_data(2, "Name 2");
+	INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, data3->id, data3));
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_count(ht, &count));
 	INA_TEST_ASSERT_EQUAL_SIZE_T(2, count);
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_clear(ht));
@@ -489,12 +494,13 @@ INA_TEST(hashtable, clear)
 INA_TEST(hashtable, stats)
 {
 	ina_hashtable_t *ht1, *ht2, *ht3, *ht4;
-	int *data;
+	int *data3;
 	int j = 0;
 	time_t t;
+	INA_UNUSED(data);
 
-	data = ina_mem_alloc(sizeof(int));
-	*data = 1;
+	data3 = ina_mem_alloc(sizeof(int));
+	*data3 = 1;
 	srand((unsigned)time(&t));
 
 
@@ -536,10 +542,10 @@ INA_TEST(hashtable, stats)
 	INA_TEST_ASSERT_NOT_NULL(ht3);
 	INA_TEST_ASSERT_NOT_NULL(ht4);
 	for (j = 1; j<100 * 3; j++) {
-		INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht1, j, data));
-		INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht2, j, data));
-		INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht3, j, data));
-		INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht4, j, data));
+		INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht1, j, data3));
+		INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht2, j, data3));
+		INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht3, j, data3));
+		INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht4, j, data3));
 	}
 
 
@@ -586,14 +592,15 @@ INA_TEST_SKIP(hashtable, new_from_cfg)
 	const char* names[] = { "h1", "h2", "h3", NULL };
 	int i = -1;
 	size_t count = 0;
-	const int data = 1;
+	const int d = 1;
+	INA_UNUSED(data);
 
 	while (names[++i] != NULL) {
 		int j;
 		INA_TEST_ASSERT_SUCCEED(ina_hashtable_new_from_cfg(INA_HASHTABLE_INT32_KEY, names[i], &ht));
 		INA_TEST_ASSERT_NOT_NULL(ht);
 		for (j = 0; j<100 * i; j++) {
-			INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, j, &data));
+			INA_TEST_ASSERT_SUCCEED(ina_hashtable_set_i32(ht, j, &d));
 		}
 		ina_hashtable_count(ht, &count);
 		INA_TEST_ASSERT_EQUAL_INT(100 * i, count);

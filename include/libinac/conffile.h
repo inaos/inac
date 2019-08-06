@@ -1,5 +1,5 @@
 /*
- * Copyright INAOS GmbH, Thalwil, 2013-2018. All rights reserved
+ * Copyright INAOS GmbH, Thalwil, 2013-2019. All rights reserved
  *
  * This software is the confidential and proprietary information of INAOS GmbH
  * ("Confidential Information"). You shall not disclose such Confidential
@@ -222,6 +222,20 @@ INA_API(ina_rc_t) ina_conffile_get_number_from_entries(
 INA_API(ina_rc_t) ina_conffile_process(ina_conffile_t *cf, const char *filepath, void *user_data);
 
 /*
+ * Process a configuration string.
+ *
+ * Parameters
+ *  cf         Configuration file
+ *  cfg_string String containing configuration code
+ *  user_data  Pointer to user defined data. this pointer is passed as third
+ *             argument in the section callback.
+ * Return
+ *  INA_SUCCESS if no error occurred.
+ */
+INA_API(ina_rc_t) ina_conffile_process_string(ina_conffile_t *cf,
+                                                const char *cfg_string,
+                                                void *user_data);
+/*
  * Destroy a confiuration file.
  *
  * Parameters
@@ -281,32 +295,22 @@ __VA_ARGS__
  * Define configuration file using the standard pattern.
  *
  * Parameters
- *  cf  Pointer to a configuration file. NULL if it's not intended to use
- *      the configuration values after processing the configuration file
- *      Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add
- *      named or unnamed section to the configuration file.
- *  fp  Path to the configfile or NULL
- *  ud  Pointer to user data or NULL
+ *  cf_ptrptr  Pointer to a configuration file. NULL if it's not intended to use
+ *             the configuration values after processing the configuration file
+ *             Nested INA_CONFFILE_SECTION or INA_CONFFILE_NAMED_SECTION to add
+ *             named or unnamed section to the configuration file.
  */
-#define INA_CONFFILE(cf, fp, ud, ...)                     \
-do                                                        \
-{                                                         \
-    ina_conffile_t *__cf = NULL;                          \
-    ina_conffile_section_t *__cs = NULL;                  \
-    if (cf != NULL) __cf = cf;                            \
-    if (!INA_SUCCEED(ina_conffile_new(&__cf)))        {   \
-        exit(EXIT_FAILURE);                               \
-    }                                                     \
-    __VA_ARGS__;                                          \
-    if (!INA_SUCCEED(ina_conffile_process(__cf, fp,(ud))))   { \
-        exit(EXIT_FAILURE);                               \
-    }                                                     \
-    if (cf == NULL) {                                     \
-        cf = __cf;                                        \
-    } else {                                              \
-        ina_conffile_free(&__cf);                         \
-    }                                                     \
+#define INA_CONFFILE(cf_ptrptr, ...) \
+do                                                         \
+{                                                          \
+    ina_conffile_t *__cf = NULL;                     \
+    ina_conffile_section_t *__cs = NULL;                   \
+    if (INA_SUCCEED(ina_conffile_new(&__cf)))        {  \
+      *cf_ptrptr = __cf; \
+      __VA_ARGS__;                                           \
+    }                                                      \
 } while(0)
+
 
 #ifdef __cplusplus
 }

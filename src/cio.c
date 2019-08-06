@@ -16,7 +16,7 @@
 
 static int __ina_get_cursor_pos(ina_cio_pos_t *pos);
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #include <io.h>
 
 static short int __fg_colors[] = {
@@ -104,7 +104,7 @@ INA_API(void) ina_cio_destroy(void)
 
 INA_API(ina_rc_t) ina_cio_clear(void)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     COORD pos = { 0, 0 };
     DWORD cars;
     HANDLE hStdOut = GetStdHandle( STD_OUTPUT_HANDLE );
@@ -152,7 +152,7 @@ INA_API(ina_rc_t) ina_cio_reset(void)
 	
 INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     CONSOLE_SCREEN_BUFFER_INFO info;
 #endif
    __INA_CHECK_TTTY;
@@ -160,7 +160,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
     INA_VERIFY_NOT_NULL(pos);
     pos->row = pos->col = 0;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
     pos->row = info.srWindow.Bottom + 1;
     pos->col = info.srWindow.Right + 1;
@@ -175,7 +175,7 @@ INA_API(ina_rc_t) ina_cio_get_limits(ina_cio_pos_t *pos)
 
 INA_API(ina_rc_t) ina_cio_show_cursor(int show) 
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     CONSOLE_CURSOR_INFO info;
 
     info.dwSize = 10;
@@ -205,7 +205,7 @@ INA_API(ina_rc_t) ina_cio_set_attribs(const ina_cio_attribs_t *attribs)
         __attribs.flags = 0;
     }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     SetConsoleTextAttribute(
         GetStdHandle(STD_OUTPUT_HANDLE),
         __bg_colors[__attribs.bg_color] | __fg_colors[__attribs.fg_color]
@@ -251,7 +251,7 @@ INA_API(ina_rc_t) ina_cio_move_to_pos(const ina_cio_pos_t *pos)
 
 INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int row, int col)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     COORD wpos;
 #endif
    __INA_CHECK_TTTY;
@@ -267,7 +267,7 @@ INA_API(ina_rc_t) ina_cio_move_to_row_and_col(int row, int col)
         }
         return ina_cio_move_to_row_and_col(row, pos.col);
     }
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 
     wpos.X = (short)col;
     wpos.Y = (short)row;
@@ -284,7 +284,6 @@ INA_API(int) ina_cio_printf(int row, int col,
                                     ina_cio_color_t bg_color, 
                                     const char* fmt, ...)
 {
-    ina_cio_pos_t pos;
     ina_cio_attribs_t attribs;
     ina_cio_attribs_t new_attribs;
     va_list args;
@@ -330,7 +329,7 @@ INA_API(int) ina_cio_printf(int row, int col,
     return size;
 }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static int
 __ina_get_cursor_pos(ina_cio_pos_t* pos)
 {
@@ -498,7 +497,7 @@ __ina_get_cursor_pos(ina_cio_pos_t *pos)
 #endif
 
 #define __INA_CIO_READ_BUFFER_CHUNK_SIZE 128
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static void __ina_cio_w32_read_input(ina_str_t *line, HANDLE hStdin, char **ptr_buffer, 
                                      size_t *buf_cur, size_t *buf_len, int *finished, int rcv)
 {

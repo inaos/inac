@@ -1,5 +1,5 @@
 /*
- * Copyright INAOS GmbH, Thalwil, 2014-2018. All rights reserved
+ * Copyright INAOS GmbH, Thalwil, 2014-2019. All rights reserved
  *
  * This software is the confidential and proprietary information of INAOS GmbH
  * ("Confidential Information"). You shall not disclose such Confidential
@@ -49,7 +49,7 @@ INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_f
     ina_str_t mname;
 
     INA_VERIFY_NOT_NULL(flags);
-    INA_ASSERT_NOT_NULL(name);
+    INA_VERIFY_NOT_NULL(name);
     INA_VERIFY(strlen(name) < INA_IPC_FLAGS_NAME_MAXLEN);
 
     *flags = (ina_ipc_flags_t*)ina_mem_alloc(sizeof(ina_ipc_flags_t));
@@ -159,7 +159,7 @@ INA_API(ina_rc_t) ina_ipc_flags_is_set(const ina_ipc_flags_t* flags, uint64_t va
     if ((value&flags->data->v) == (value)) {
         return INA_SUCCESS;
     }
-    return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
+    return INA_ERROR(INA_ERR_OPERATION_FAILED);
 }
 
 INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
@@ -174,7 +174,7 @@ INA_API(ina_rc_t) ina_ipc_flags_unset(ina_ipc_flags_t *flags, uint64_t value)
         if ((value & ( 1ULL << j)) >> j) {
             if (flags->data->c_ref[j] > 0 && --flags->data->c_ref[j] == 0) {
                 uint64_t mask = 0;
-                mask = 1ULL << (uint64_t)(j)|0;
+                mask = (1ULL) << (uint64_t)(j)|0ULL;
                 INA_ATOMIC_SWAP((int64_t*)&flags->data->v, flags->data->v, flags->data->v & ~(mask));
             }
         }
@@ -194,7 +194,7 @@ INA_API(ina_rc_t) ina_ipc_flags_clear(ina_ipc_flags_t *flags, uint64_t value)
     for (j = 0; j < INA_IPC_FLAGS_MAX; ++j) {
         if ((value & ( 1ULL << j)) >> j) {
             uint64_t mask = 0;
-            mask = 1ULL << (uint64_t)(j)|0;
+            mask = (1ULL) << (uint64_t)(j)|0ULL;
             INA_ATOMIC_SWAP((int64_t*)&flags->data->v, flags->data->v, flags->data->v & ~(mask));
             flags->data->c_ref[j] = 0;
         }
@@ -218,10 +218,10 @@ INA_API(ina_rc_t) ina_ipc_flags_wait(const ina_ipc_flags_t* flags, uint64_t wait
             break;
         }
     }
-    ina_timer_event_free(flags->timer, event);
+    ina_timer_event_free(flags->timer, &event);
 
     if (timeout == INA_YES) {
-        return INA_ERROR(INA_ES_OPERATION | INA_ERR_TIMED_OUT);
+        return INA_ERROR(INA_ERR_TIMED_OUT);
     }
     return INA_SUCCESS;
 }
@@ -254,6 +254,7 @@ INA_API(ina_rc_t) ina_ipc_counter_new(const char* name, uint64_t initial, ina_ip
 	INA_UNUSED(initial);
     INA_VERIFY_NOT_NULL(counter);
     INA_VERIFY_NOT_NULL(name);
+    INA_VERIFY(strlen(name));
     INA_VERIFY(strlen(name) < INA_IPC_COUNTER_NAME_MAXLEN);
 
     *counter = (ina_ipc_counter_t*)ina_mem_alloc(sizeof(ina_ipc_counter_t));
@@ -283,6 +284,7 @@ INA_API(ina_rc_t) ina_ipc_counter_open(const char* name, ina_ipc_counter_t **cou
 
     INA_VERIFY_NOT_NULL(counter);
     INA_VERIFY_NOT_NULL(name);
+    INA_VERIFY(strlen(name));
     INA_VERIFY(strlen(name) < INA_IPC_COUNTER_NAME_MAXLEN);
 
     *counter = (ina_ipc_counter_t*)ina_mem_alloc(sizeof(ina_ipc_counter_t));
@@ -346,7 +348,7 @@ INA_API(ina_rc_t) ina_ipc_counter_set(ina_ipc_counter_t *counter, uint64_t value
 
     INA_ATOMIC_SWAP((int64_t*)&counter->data->c, v, value);
     if (v == counter->data->c) {
-        return INA_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
+        return INA_ERROR(INA_ERR_OPERATION_FAILED);
     }
     return INA_SUCCESS;
 }

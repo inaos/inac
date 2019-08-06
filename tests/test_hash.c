@@ -330,6 +330,7 @@ INA_TEST_SKIP(hash, all_32_bit) {
     int aes_hw_support = 0;
     ina_cpu_feature_t cpu_features;
     __ina_hash_test_call_wrapper_t w;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cpu_get_features(&cpu_features));
     if (cpu_features & INA_CPU_FEATURE_AES) {
@@ -393,6 +394,7 @@ INA_TEST_SKIP(hash, all_64_bit)
     int aes_hw_support = 0;
     ina_cpu_feature_t cpu_features;
     __ina_hash_test_call_wrapper_t w;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_cpu_get_features(&cpu_features));
     if (cpu_features & INA_CPU_FEATURE_AES) {
@@ -421,6 +423,8 @@ INA_TEST_SKIP(hash, sdbm_macro)
 {
     ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_FLOATING(1195757874, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_SDBM(ina_str_cstr(str)));
@@ -430,6 +434,8 @@ INA_TEST_SKIP(hash, sdbm)
 {
     ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_FLOATING(1195757874, ina_hash_sdbm(0, str, ina_str_len(str)));
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_hash_sdbm(0, str, ina_str_len(str)));
@@ -440,6 +446,8 @@ INA_TEST_SKIP(hash, crc32_macro)
 {
     ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_FLOATING(3632233996, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, INA_HASH_CSTR_TO_CRC32(ina_str_cstr(str)));
@@ -449,6 +457,8 @@ INA_TEST_SKIP(hash, crc32)
 {
     ina_str_t str = NULL;
     str = ina_str_new_fromcstr("test");
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_FLOATING(3632233996, ina_hash_crc32(0, str, ina_str_len(str)));
     INA_TEST_ASSERT_NOT_EQUAL_FLOATING(3632233, ina_hash_crc32(0, str, ina_str_len(str)));

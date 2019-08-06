@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #include <tlhelp32.h>
 #include <Psapi.h>
 #endif
@@ -27,7 +27,7 @@ struct ina_process_s {
     ina_fsm_status_t state;
     int exit_code;
     ina_rc_t last_rc;
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     PROCESS_INFORMATION pi;
 #else
      pid_t pid;
@@ -191,6 +191,7 @@ INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(full_path);
     INA_VERIFY(strlen(full_path));
+    INA_VERIFY_NOT_NULL(descriptor);
 
     *descriptor = (ina_process_descriptor_t*) ina_mem_alloc(
                                         sizeof(ina_process_descriptor_t));
@@ -231,6 +232,7 @@ INA_API(ina_rc_t) ina_process_exec(ina_process_ctx_t *ctx,
     ina_process_descriptor_t *ds = NULL;
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(full_path);
+    INA_VERIFY(strlen(full_path));
     INA_VERIFY_NOT_NULL(process);
 
     *process = NULL;
@@ -256,6 +258,7 @@ INA_API(ina_rc_t) ina_process_exec_and_wait(ina_process_ctx_t *ctx,
 
     INA_VERIFY_NOT_NULL(ctx);
     INA_VERIFY_NOT_NULL(full_path);
+    INA_VERIFY(strlen(full_path));
     INA_VERIFY_NOT_NULL(process);
 
     *process = NULL;
@@ -421,11 +424,11 @@ INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
     return INA_ERROR(INA_ES_PROCESS | INA_ERR_NOT_ALLOWED);
 }
 
-INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat, const char *binary)
+INA_API(ina_rc_t) ina_process_stat_new(const char *binary, ina_process_stat_t **stat)
 {
-    INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(binary);
     INA_VERIFY(strlen(binary));
+    INA_VERIFY_NOT_NULL(stat);
 
     *stat = (ina_process_stat_t*)ina_mem_alloc(sizeof(ina_process_stat_t));
     INA_RETURN_IF_NULL(*stat);
@@ -493,7 +496,7 @@ INA_API(void) ina_process_stat_free(ina_process_stat_t **stat)
     INA_MEM_FREE_SAFE(*stat);
 }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static void __ina_process_is_running(ina_process_t *process,
                                      int *still_running)
 {
@@ -681,7 +684,7 @@ static void __ina_process_start(ina_process_t *process)
         args[n++] = NULL;
         execv(args[0], args);
         INA_OS_ERROR(INA_ES_PROCESS | INA_ERR_NOT_CREATED);
-        INA_TRACE("%s", "FAILED");
+        INA_TRACE(inac.process, "FAILED");
         exit(127);
     } else {
         int status = 0;
@@ -703,9 +706,9 @@ static void __ina_process_stop(ina_process_t *process)
     int still_running = INA_NO;
 
     if (process->pid > 0) {
-        INA_TRACE2("Kill %d", process->pid);
+        INA_TRACE2(inac.process, "Kill %d", process->pid);
         if (kill(process->pid, SIGTERM) == -1) {
-            INA_TRACE2("%s", "FAILED to kill");
+            INA_TRACE2(inac.process, "%s", "FAILED to kill");
             process->last_rc = INA_OS_ERROR(INA_ES_PROCESS | INA_ERR_NOT_STOPPED);
             return;
         }

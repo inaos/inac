@@ -81,7 +81,7 @@
   *
   */
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 typedef SSIZE_T ssize_t;
 #endif
 

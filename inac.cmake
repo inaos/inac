@@ -36,10 +36,10 @@ if (POLICY CMP0026)
 endif()
 
 if ( CMAKE_COMPILER_IS_GNUCC )
-    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
+    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes")
 endif()
 if ( CMAKE_C_COMPILER_ID STREQUAL "AppleClang" )
-    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra")
+    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes")
 endif()
 
 if (MSVC)
@@ -81,7 +81,6 @@ include_directories("${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include
         "${DEPS_DIR}")
 
 if (WIN32)
-    add_definitions(-DINA_OS_WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
 endif (WIN32)
@@ -226,7 +225,17 @@ endfunction(inac_enable_aes)
 function(inac_enable_trace BUILD_TYPE LEVEL)
     if (${BUILD_TYPE} STREQUAL CMAKE_BUILD_TYPE)
         message(STATUS "Tracing enabled. Level: ${LEVEL}")
-        add_definitions(-DTRACE_ENABLED -DINA_TRACE_LEVEL=${LEVEL})
+        add_definitions(-DINA_TRACE_ENABLED -DINA_TRACE_LEVEL=${LEVEL})
+    endif()
+endfunction()
+
+#
+#
+#
+function(inac_use_asserts BUILD_TYPE)
+    if (${BUILD_TYPE} STREQUAL CMAKE_BUILD_TYPE)
+        message(STATUS "Asserts enabled.")
+        add_definitions(-DINA_USE_ASSERTS)
     endif()
 endfunction()
 
@@ -1050,10 +1059,6 @@ endif()
 file(WRITE "${CMAKE_BINARY_DIR}/c2s.xsl" "${INAC_C2S}")
 
 inac_load_config_file("${INAC_REPOSITORY_PATH}/${INAC_REPOSITORY}.txt" FALSE)
-inac_enable_trace(Debug 1)
-inac_enable_log(Debug 4)
-inac_enable_log(RelWithDebInfo 3)
-inac_enable_log(Release 3)
 inac_platform_libs_for_win("Ws2_32.lib;Psapi.lib;Iphlpapi.lib;winmm.lib;DbgHelp.lib")
 inac_platform_libs_for_linux("-lrt -ldl -lm")
 inac_platform_libs_for_osx("-ldl -lm")

@@ -15,13 +15,13 @@
 #include <contribs/t1ha/t1ha.h>
 
 /* intrinsics */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #include <nmmintrin.h>
 #else
 #include <x86intrin.h>
 #endif
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define __INA_HASH_ROTL32(x,y)    _rotl(x,y)
 #else
 INA_INLINE uint32_t __ina_hash_rotl32(uint32_t x, int8_t r)
@@ -738,7 +738,7 @@ struct __ina_hash_spooky_state
  */
 #define __INA_HASH_SPOOKY_SC_CONST 0xdeadbeefdeadbeefULL
 
-#if defined(INA_OS_WIN32) && defined(__rotl64)
+#if defined(INA_OS_WINDOWS) && defined(__rotl64)
 #define __INA_HASH_SPOOKY_ROT64(x,y) __rotl64(x,y)
 #else
 INA_INLINE uint64_t __ina_hash_spooky_rot64(uint64_t x, int k)
@@ -1176,7 +1176,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
 #ifdef INA_CPU_X86_64
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u64, crc, uint64_t, uint64_t, buf, size);
 #endif
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u32, crc, uint32_t, uint32_t, buf, size);
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u16, crc, uint16_t, uint16_t, buf, size);
     __INA_HASH_CRC_CALC_CRC(_mm_crc32_u8, crc, uint8_t, uint8_t, buf, size);
@@ -1242,6 +1242,9 @@ INA_API(uint64_t) ina_hash_64_t1ha0(uint64_t hash, const void *data, size_t size
 #ifndef INA_OS_OSX
 	return t1ha0(data, size, hash);
 #else
+	INA_UNUSED(hash);
+	INA_UNUSED(data);
+	INA_UNUSED(size);
     return 0;
 #endif
 }
@@ -1252,6 +1255,9 @@ INA_API(uint64_t) ina_hash_64_t1ha1(uint64_t hash, const void *data, size_t size
 #ifndef INA_OS_OSX
 	return t1ha(data, size, hash);
 #else
+	INA_UNUSED(hash);
+	INA_UNUSED(data);
+	INA_UNUSED(size);
     return 0;
 #endif
 }

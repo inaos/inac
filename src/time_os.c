@@ -19,7 +19,7 @@ struct ina_time_s {
 #endif
 } ina_time_s;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
   #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
@@ -30,7 +30,7 @@ struct ina_time_s {
 INA_API(ina_rc_t) ina_time_sys_backend_info(ina_time_sys_info_t *info)
 {
     INA_VERIFY_NOT_NULL(info);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     strncpy(info->backend_name, "OS backend: GetSystemTimeAsFileTime()", INA_TIME_BACKEND_NAME_MAXLEN);
 #else
     strncpy(info->backend_name, "OS backend: gettimeofday()", INA_TIME_BACKEND_NAME_MAXLEN);
@@ -46,19 +46,16 @@ INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time)
     return INA_SUCCESS;
 }
 
-INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time)
+INA_API(void) ina_time_sys_free(ina_time_t **time)
 {
-    INA_VERIFY_NOT_NULL(time);
-    INA_VERIFY_NOT_NULL(*time);
-    ina_mem_free(*time);
-    *time = NULL;
-    return INA_SUCCESS;
+    INA_VERIFY_FREE(time);
+    INA_MEM_FREE_SAFE(*time);
 }
 
 INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
 {
     INA_VERIFY_NOT_NULL(time);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     GetSystemTimeAsFileTime(&time->systime);
 #else
     if (gettimeofday(&time->systime, NULL) == -1) {
@@ -71,9 +68,11 @@ INA_API(ina_rc_t) ina_time_read_sys_clock(ina_time_t* time)
 INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *secs, 
 						long *micros)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     unsigned __int64 tmpres = 0;
     INA_VERIFY_NOT_NULL(time);
+    INA_VERIFY_NOT_NULL(secs);
+    INA_VERIFY_NOT_NULL(micros);
     tmpres |= time->systime.dwHighDateTime;
     tmpres <<= 32;
     tmpres |= time->systime.dwLowDateTime;
@@ -84,6 +83,8 @@ INA_API(ina_rc_t) ina_time_sys_seconds_micros(const ina_time_t* time, time_t *se
     *micros = (long)(tmpres % 1000000UL);
 #else
     INA_VERIFY_NOT_NULL(time);
+    INA_VERIFY_NOT_NULL(secs);
+    INA_VERIFY_NOT_NULL(micros);
     *secs = time->systime.tv_sec;
     *micros = time->systime.tv_usec;
 #endif

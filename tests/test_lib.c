@@ -33,7 +33,8 @@ INA_TEST(lib, opt)
     ina_str_t s_str_value = NULL;
     float l_float_value = 0.0;
     float s_float_value = 0;
-    
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("run"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("r"));
     INA_TEST_ASSERT_SUCCEED(ina_opt_isset("repeat"));
@@ -65,6 +66,7 @@ INA_TEST(lib, opt_get_key_value)
 {
     ina_str_t key = NULL;
     ina_str_t value = NULL;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_opt_get_key_value(1, &key, &value));
     INA_TEST_MSG("ina_opt_get_key_value() at index 0: key=%s, value=%s",
@@ -79,9 +81,11 @@ INA_TEST(lib, opt_get_key_value)
 
 INA_TEST(lib, appname)
 {
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_name());
     INA_TEST_MSG("ina_app_get_name() = %s", ina_app_get_name());
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     INA_TEST_ASSERT_EQUAL_INT(0, strcmp("tests.exe", ina_app_get_name()));
 #else
     INA_TEST_ASSERT_EQUAL_INT(0, strcmp("tests", ina_app_get_name()));
@@ -90,12 +94,16 @@ INA_TEST(lib, appname)
 
 INA_TEST(lib, apppath)
 {
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NOT_NULL(ina_app_get_path());
     INA_TEST_MSG("ina_app_get_path(): %s", ina_app_get_path());
 }
 
 INA_TEST(lib, set_cleanup_handler)
 {
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NULL(ina_set_cleanup_handler(NULL));
     INA_TEST_ASSERT_NULL(ina_set_cleanup_handler(__cleanup_handler));
     INA_TEST_ASSERT_SAME(__cleanup_handler, ina_set_cleanup_handler(__cleanup_handler));
@@ -105,6 +113,8 @@ INA_TEST(lib, set_cleanup_handler)
 
 INA_TEST(lib, set_signal_handler)
 {
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_NULL(ina_register_signal_handler(INA_SIGNAL_INT, NULL));    
     INA_TEST_ASSERT_NULL(ina_register_signal_handler(INA_SIGNAL_INT, __sig_handler));
     INA_TEST_ASSERT_SAME(__sig_handler, ina_register_signal_handler(INA_SIGNAL_INT, __sig_handler));
@@ -114,12 +124,16 @@ INA_TEST(lib, set_signal_handler)
 
 INA_TEST(lib, min)
 {
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_EQUAL_INT(3, INA_MAX(2,3));
     INA_TEST_ASSERT_EQUAL_INT(3, INA_MAX(3,2));
 }
 
 INA_TEST(lib, max)
 {
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_EQUAL_INT(2, INA_MIN(2,3));
     INA_TEST_ASSERT_EQUAL_INT(2, INA_MIN(3,2));
 }
@@ -131,7 +145,8 @@ INA_TEST(lib, high_low_toword)
     uint8_t low2 = 0;
     uint8_t high2 = 0;
     uint16_t word = 0;
-    
+    INA_UNUSED(data);
+
     word = INA_TOWORD(high, low);
     high2 = INA_HIGH(word);
     INA_TEST_ASSERT_TRUE(high == high2);
@@ -144,9 +159,35 @@ INA_TEST(lib, format_specifiers)
     char buf[100];
     uint64_t ui64 = 90;
     int64_t i64 = 90;
+    INA_UNUSED(data);
+
     snprintf(buf, 99, "ui64=%" INA_UINT64_T_FMT, ui64);
     INA_TEST_ASSERT_EQUAL_STR("ui64=90", buf);
     snprintf(buf, 99, "i64=%" INA_INT64_T_FMT, i64);
     /* FIXME */
     INA_TEST_ASSERT_EQUAL_STR("i64=5a", buf);
+}
+
+INA_TEST(lib, invalid_arguments)
+{
+    ina_str_t key = NULL;
+    ina_str_t value = NULL;
+    float fvalue;
+    int ivalue;
+    INA_UNUSED(data);
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_isset(NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_key_value(-1, &key, &value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_key_value(0, NULL, &value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_key_value(0, &key, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_string(NULL, &value));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_string("name", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_float(NULL, &fvalue));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_float("name", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_int(NULL, &ivalue));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_opt_get_int("name", NULL));
 }

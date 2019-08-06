@@ -29,7 +29,7 @@ typedef union ina_time_tsc_value_u {
 
 /* Time Stamp Counter */
 typedef struct ina_time_tsc_s {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     LARGE_INTEGER tp;
     double freq_sec;
     LARGE_INTEGER wref;
@@ -44,7 +44,7 @@ typedef struct ina_time_tsc_s {
 } ina_time_tsc_t;
 
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_TIME_RDTSC(counter)  counter.uint64 = __rdtsc()
 #else
 #if defined(INA_CPU_X86_64)
@@ -157,11 +157,8 @@ INA_API(ina_rc_t) ina_time_sys_new(ina_time_t **time);
  *
  * Parameters
  *  time  System time to free
- *
- * Return
- *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_time_sys_free(ina_time_t **time);
+INA_API(void) ina_time_sys_free(ina_time_t **time);
 
 /*
  * RDTSC is required if you do not want the process to 

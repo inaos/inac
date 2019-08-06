@@ -14,11 +14,11 @@ INA_BENCH_DATA(test) {
 
 INA_BENCH_SETUP(test)
 {
-
+    INA_UNUSED(data);
 }
 INA_BENCH_BEGIN(test, test1)
 {
-
+    INA_UNUSED(data);
 }
 INA_BENCH_SCALE(test)
 {
@@ -36,9 +36,9 @@ INA_BENCH(test, test1, 100, 10)
 }
 INA_BENCH_END(test, test1)
 {
-
+    INA_UNUSED(data);
 }
 INA_BENCH_TEARDOWN(test)
 {
-
+    INA_UNUSED(data);
 }

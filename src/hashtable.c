@@ -154,7 +154,7 @@ INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, 
 	htc.capacity = INA_HASHTABLE_DEFAULT_CAPACITY;
 	htc.hash_type = INA_HASH_DEFAULT + 1;
 	htc.cf = INA_HASHTABLE_CF_DEFAULT;
-	INA_CONFFILE(cf, __cfg_filepath, NULL,
+	INA_CONFFILE(&cf,
 		INA_CONFFILE_NAMED_SECTION("hashtable", INA_YES, NULL,
 			INA_CONFFILE_STRING_KEY("key_type", INA_NO),
 			INA_CONFFILE_STRING_KEY("type", INA_NO),
@@ -164,6 +164,7 @@ INA_API(ina_rc_t) ina_hashtable_new_from_cfg(ina_hashtable_key_type_t key_type, 
 			INA_CONFFILE_NUMBER_KEY("capacity", INA_NO),
 			INA_CONFFILE_NUMBER_KEY("preallocated", INA_NO),
 			INA_CONFFILE_NUMBER_KEY("stats_enabled", INA_NO)));
+	INA_RETURN_IF_FAILED(ina_conffile_process(cf, __cfg_filepath, NULL));
 
 	if (INA_SUCCEED(ina_conffile_get_string(cf, "hashtable", name, "hash_func", &value))) {
 		ina_hash_type(value, &htc.hash_type);
@@ -257,7 +258,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 
 	(*ht)->hash_type = hash_type;
 
-	INA_DISABLE_WARNING_GCC(implicit - fallthrough)
+	INA_DISABLE_WARNING_GCC(implicit-fallthrough)
 
 		switch ((*ht)->hash_type) {
 		case INA_HASH_DEFAULT:

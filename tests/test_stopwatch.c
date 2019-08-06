@@ -6,16 +6,16 @@
  * Information and shall use it only in accordance with the terms of the
  * license agreement you entered into with INAOS GmbH.
  */
-#ifndef INA_OS_WIN32
+#include <libinac/lib.h>
+
+#ifndef INA_OS_WINDOWS
 #define _GNU_SOURCE  
 #include <sched.h>
 #endif
-#include <libinac/lib.h>
 
 #if !defined(CLOCK_MONOTONIC_RAW)
 #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
 #endif
-
 
 INA_TEST(stopwatch ,time_stamp)
 {
@@ -23,6 +23,7 @@ INA_TEST(stopwatch ,time_stamp)
     int64_t c = 10;
     double msec_duration = 0;
     ina_stopwatch_ts_t *ts;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(3, -1, &w));
     INA_TEST_ASSERT_NOT_NULL(w);
@@ -40,10 +41,11 @@ INA_TEST(stopwatch ,time_stamp)
         ++c;
     }
     INA_TEST_ASSERT_EQUAL_TIME_T(10, c);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w));
+    ina_stopwatch_free(&w);
+    INA_TEST_ASSERT_NULL(w);
 }
 
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
 INA_TEST(stopwatch, two_stopwatches)
 {
     ina_stopwatch_t *w1 = NULL;
@@ -69,8 +71,10 @@ INA_TEST(stopwatch, two_stopwatches)
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_seconds_nanos(ts2, &sec2, &nano2));
     INA_TEST_ASSERT_EQUAL_INT(sec1, sec2);
     INA_TEST_ASSERT_TRUE(nano1< nano2);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w1));
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w2));
+    ina_stopwatch_free(&w1);
+    INA_ASSERT_NULL(w1);
+    ina_stopwatch_free(&w2);
+    INA_ASSERT_NULL(w2);
 } 
 #endif
 
@@ -79,6 +83,7 @@ INA_TEST(stopwatch, stopwatch)
     struct timeval tv_start;
     ina_stopwatch_t *w = NULL;
     double duration = 0;
+    INA_UNUSED(data);
 
     gettimeofday(&tv_start, NULL);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w));
@@ -93,7 +98,7 @@ INA_TEST(stopwatch, stopwatch)
     ina_time_sleep(1);
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_stop(w));
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_valid(w));
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w));
+    ina_stopwatch_free(&w);
     INA_TEST_ASSERT_NULL(w);
 }
 
@@ -105,6 +110,7 @@ INA_TEST(stopwatch, stopwatch_startime)
     int64_t i = 0;
     double duration = 0;
     ina_stopwatch_ts_t *ts;
+    INA_UNUSED(data);
 
     gettimeofday(&tv_start, NULL);
     ina_time_read_tsc_clock(&start_ts);
@@ -129,7 +135,7 @@ INA_TEST(stopwatch, stopwatch_startime)
     }
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_duration(w, &duration));
     INA_TEST_MSG("Duration in secs %.10f", ts->duration);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w));
+    ina_stopwatch_free(&w);
     INA_TEST_ASSERT_NULL(w);
 }
 
@@ -142,8 +148,9 @@ INA_TEST_SKIP(stopwatch, stopwatch_startime_rdtsc)
     int64_t i = 0;
     ina_stopwatch_ts_t *ts;
     double duration;
+    INA_UNUSED(data);
 
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
@@ -172,7 +179,7 @@ INA_TEST_SKIP(stopwatch, stopwatch_startime_rdtsc)
     }
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_duration(w, &duration));
     INA_TEST_MSG("Duration in secs %.10f", duration);
-    INA_TEST_ASSERT_SUCCEED(ina_stopwatch_free(&w));
+    ina_stopwatch_free(&w);
     INA_TEST_ASSERT_NULL(w);
     ina_time_tsc_disable_rdtsc();
 }
@@ -241,7 +248,7 @@ INA_TEST_DATA(stopwatch_ipc_rdtsc) {
 };
 
 INA_TEST_SETUP(stopwatch_ipc_rdtsc) {
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(0, &mask);
@@ -261,7 +268,7 @@ INA_TEST_TEARDOWN(stopwatch_ipc_rdtsc)
     ina_stopwatch_free(&data->w);
 }
 
-#if !defined (INA_OS_WIN32) && !defined(INA_OS_OSX)
+#if !defined (INA_OS_WINDOWS) && !defined(INA_OS_OSX)
 INA_TEST_FIXTURE(stopwatch_ipc_rdtsc, stopwatch_open_rdtsc) {
     int64_t c = 0;
     ina_time_tsc_t time;
@@ -301,3 +308,45 @@ INA_TEST_FIXTURE(stopwatch_ipc_rdtsc, stopwatch_open_rdtsc) {
     INA_TEST_ASSERT_FAILED(ina_stopwatch_started(data->w));
 }
 #endif
+
+static ina_rc_t foreach(void *data) {
+    INA_UNUSED(data);
+    return INA_SUCCESS;
+}
+
+INA_TEST(stopwatch, invalid_arguments)
+{
+    ina_stopwatch_t *w = NULL;
+    ina_time_tsc_t *t = NULL;
+    ina_stopwatch_ts_t *ts = NULL;
+    int fake = 0;
+    double duration = 0;
+    int64_t index = 0;
+    INA_UNUSED(data);
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_new(1, -1, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_open(1, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_started(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_valid(NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_start(NULL, NULL));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_stop(NULL));
+
+    w = (ina_stopwatch_t*)&fake;
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_start_time(NULL, &t));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_start_time(w, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_stop_time(NULL, &t));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_stop_time(w, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_duration(NULL, &duration));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_duration(w, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_read_stamp(NULL, &index, &ts));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_read_stamp(w, NULL, &ts));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_read_stamp(w, &index, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_foreach_stamp(NULL, foreach));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_foreach_stamp(w, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_stopwatch_stamp(NULL, "u1", "u2"));
+}
