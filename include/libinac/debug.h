@@ -34,21 +34,21 @@ extern "C" {
 #ifdef INA_TRACE_ENABLED
 #define INA_TRACE_TO_FILE(fh, cat, fmt, ...)     \
     do { \
-         const char *e = getenv("INAC_TRACE"); \
-         const char *s = #cat; \
-         size_t i = 0, w = 0, c = 0, match = 0, el = 0; \
-         const int always = (strcmp(s, "*") == 0); \
-         if (!always && (!e || !strlen(e))) break; \
-         match = 1; \
-         el = strlen(e); \
-         while (i < strlen(e) && !always) { \
-             if (e[i] == '*') { w = 1; if (match) { el = i+1; break;} }    \
-             if (e[i] == ',')  {w=0;el=i; if (match) break; c = 0; ++i; match=1;continue; }   \
-             if (c == strlen(#cat)) c = 0; \
-             if (e[i] != s[c]) { match=0; } \
-             ++c; ++i; \
+         const char *__e = getenv("INAC_TRACE"); \
+         const char *__s = #cat; \
+         size_t __i = 0, __w = 0, __c = 0, __match = 0, __el = 0; \
+         const int __always = (strcmp(__s, "*") == 0); \
+         if (!__always && (!__e || !strlen(__e))) break; \
+         __match = 1; \
+         __el = strlen(__e); \
+         while (__i < strlen(__e) && !__always) { \
+             if (__e[__i] == '*') { __w = 1; if (__match) { __el = __i+1; break;} }    \
+             if (__e[__i] == ',')  {__w=0;__el=__i; if (__match) break; __c = 0; ++__i; __match=1;continue; }   \
+             if (__c == strlen(#cat)) __c = 0; \
+             if (__e[__i] != __s[__c]) { __match=0; } \
+             ++__c; ++__i; \
          } \
-         if (!match || (!always && !w && el < strlen(s))) break; \
+         if (!__match || (!__always && !__w && __el < strlen(__s))) break; \
          fprintf(fh,                \
             "[%s] - " fmt "\n", \
             #cat, \
