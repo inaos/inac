@@ -93,7 +93,44 @@ To skip existing test use the _SKIP version of `INA_TEST` or `INA_TEST_FIXTURE`.
 
     INA_TEST_FIXTURE(iscp_tcp, send_negative_double) {
 
+#### Conditional Platform test
 
+To declare tests only run on windows platform
+
+    INA_TEST_WIN32(my_suite, my_test) {
+        ...
+    }
+    
+To declare tests fixtures run only on windows platform
+   
+    INA_TEST_FIXTURE_WIN32(my_suite, my_test) {
+       ...
+    }
+    
+To declare tests only run on linux platform
+
+    INA_TEST_LINUX(my_suite, my_test) {
+        ...
+    }
+    
+To declare tests fixtures only run on linux platform
+
+    INA_TEST_FIXTURE_LINUX(my_suite, my_test) {
+       ...
+    }
+
+To declare tests only run on OSX platform
+
+    INA_TEST_OSX(my_suite, my_test) {
+        ...
+    }
+    
+To declare tests fixtures only run on OSX platform
+
+    INA_TEST_FIXTURE_OSX(my_suite, my_test) {
+       ...
+    }
+    
 #### How to run the test suites
 
 To run the tests simply call `ina_test_run()` by passing arguments count and 
