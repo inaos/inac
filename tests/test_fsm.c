@@ -157,7 +157,7 @@ INA_TEST(fsm, get_fire_event)
 
     /* Set initial state */
     INA_FSM_FIRE_EVENT(signal_fsm, sl.fsm_status, TURN_ON_OFF, &sl);
-    INA_TEST_ASSERT_TRUE(INA_FSM_GET_EVENT(signal_fsm, sl.fsm_status) == ON);
+    INA_TEST_ASSERT_TRUE(INA_FSM_GET_EVENT(signal_fsm, sl.fsm_status) == TURN_ON_OFF);
 }
 
 INA_TEST(fsm, signal_light)
