@@ -56,6 +56,7 @@ INA_TEST(stopwatch, two_stopwatches)
     long nano2 = 0;
     ina_time_tsc_t *ts1;
     ina_time_tsc_t *ts2;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_stopwatch_new(1, -1, &w1));
     INA_TEST_ASSERT_NOT_NULL(w1);
