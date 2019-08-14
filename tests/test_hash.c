@@ -39,7 +39,7 @@ static __ina_hash_rand_t __ina_hash_test_rand;
 static __ina_test_hash32_info_t __hash32_all[15];
 static __ina_test_hash64_info_t __hash64_all[9];
 
-static void __ina_hash_test_mix()
+static void __ina_hash_test_mix(void)
 {
     uint32_t t = __ina_hash_test_rand.x ^ (__ina_hash_test_rand.x << 11);
     __ina_hash_test_rand.x = __ina_hash_test_rand.y;
@@ -62,7 +62,7 @@ static void __ina_hash_test_reseed(uint32_t seed)
     }
 }
 
-static uint32_t __ina_hash_test_rand_u32()
+static uint32_t __ina_hash_test_rand_u32(void)
 {
     __ina_hash_test_mix();
     return __ina_hash_test_rand.x;
