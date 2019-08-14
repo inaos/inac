@@ -150,7 +150,7 @@ struct timespec *__ina_time_rdtsc_timespec_diff(struct timespec *ts1, struct tim
     }
     return &ts;
 }
-static void __ina_time_rdtsc_calibrate_ticks()
+static void __ina_time_rdtsc_calibrate_ticks(void)
 {
     struct timespec begints, endts, refhpet;
     ina_time_tsc_value_t begin, end, ts;

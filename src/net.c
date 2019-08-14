@@ -51,7 +51,7 @@ struct ina_net_udp_receiver_s {
     struct sockaddr_in addr;
 };
 
-INA_INLINE int __ina_eagain()
+INA_INLINE int __ina_eagain(void)
 {
 #ifdef INA_OS_WINDOWS
     int e = WSAGetLastError();

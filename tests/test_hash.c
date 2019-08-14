@@ -326,7 +326,7 @@ static void __ina_hash_test_init32(int has_aes_support)
 }
 
 INA_TEST_SKIP(hash, all_32_bit) {
-    int i;
+    size_t i;
     int aes_hw_support = 0;
     ina_cpu_feature_t cpu_features;
     __ina_hash_test_call_wrapper_t w;

@@ -630,6 +630,8 @@ static ina_rc_t __ina_cio_read_line(ina_str_t *line, int blocking, char **nb_buf
     ina_rc_t rc = INA_SUCCESS;
     struct termios new_termios;
     static struct termios old_termios;
+    INA_UNUSED(nb_buf_len);
+    INA_UNUSED(nb_buf_pos);
 
     if (rcv) {
         tcgetattr(STDIN_FILENO, &old_termios);
