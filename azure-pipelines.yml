@@ -77,7 +77,7 @@ steps:
       then
         echo "Tests for Darwin in Debug mode currently not executed"
     else
-        ./tests
+        ./tests --format=junit > junit.xml || true
     fi
   displayName: Execute tests
 
