@@ -65,7 +65,7 @@ extern "C" {
  * a fixed-length block, the unit for memory allocation and file mapping.
  *
  * Parameters
- *  size Size in bytes
+ *  size  Size in bytes
  *
  * Return
  *  INA_SUCCESS if no error occurred.
@@ -271,7 +271,7 @@ INA_INLINE int ina_mem_cmp(const void *lhs, const void *rhs, size_t nb)
  *  A pointer to the first occurrence of value in the block of memory pointed
  *  by des. If the value is not found, the function returns a null pointer.
  */
-INA_INLINE void* ina_mem_chr(const void *dest, int value, size_t nb)
+INA_INLINE const void* ina_mem_chr(const void *dest, int value, size_t nb)
 {
 	INA_ASSERT_NOT_NULL(dest);
 	return INA_MEM_MEMCHR(dest, value, nb);

@@ -14,7 +14,7 @@
 #include <dlfcn.h>
 #endif
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define snprintf sprintf_s
 #endif
 
@@ -33,7 +33,7 @@ static int         __last_signal = 0;
 static int         __tap = INA_NO;
 static int         __junit = INA_NO;
 
-INA_TEST(suite, test) { }
+INA_TEST(suite, test) { INA_UNUSED(data); };
 
 static int __ina_suite_all(ina_test_testcase_t* t) {
     return t->is_helper == 0;
@@ -340,7 +340,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
     va_list ap;
     char* args[16];
     size_t n = 0;
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 
     INA_ASSERT_NOT_NULL(hid);
 
@@ -439,7 +439,7 @@ INA_API(ina_rc_t) ina_test_helper_spawn(ina_test_hid_t *hid,
 INA_API(ina_rc_t) ina_test_helper_terminate(ina_test_hid_t *hid)
 {
     INA_ASSERT_NOT_NULL(hid);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     if (hid->hProcess != NULL) {
         TerminateProcess(hid->hProcess, 0);
         CloseHandle(hid->hProcess);
@@ -562,7 +562,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
     }
     end++;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     _set_abort_behavior(0, _WRITE_ABORT_MSG);
 #endif
  
@@ -633,11 +633,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     INA_ENABLE_WARNING_MSVC(4152);
 
                     if (setjmp(__err) == 0) {
-                        if (test->data) {
-                            test->run(test->data);
-                        } else {
-                            test->run();
-                        }
+                        test->run(test->data);
                         if (!__tap && !__junit) {
                             ina_cio_printf(-1, -1, INA_CIO_COLOR_GREEN,
                                            INA_CIO_COLOR_UNDEFINED,

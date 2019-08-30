@@ -435,6 +435,20 @@ INA_INLINE ina_str_t ina_str_cat(ina_str_t dest, ina_cstr_t src)
 {
     return ina_str_ncat(dest, src, ina_str_len(src));
 }
+
+/*
+ * Appends a char to a byte string pointed to by dest.
+ * The resulting byte string is null-terminated.
+ *
+ * Parameters
+ *  dest  Pointer to the null-terminated byte string to append to
+ *  c     char to append
+ *
+ * Return
+ *  dest
+ */
+INA_API(ina_str_t) ina_str_append_chr(ina_str_t dest, char c);
+
 /*
  * Appends a byte string pointed to by src to a byte string pointed to by dest.
  * The resulting byte string is null-terminated. If the strings overlap, the

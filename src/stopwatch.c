@@ -9,7 +9,7 @@
 #include <libinac/lib.h>
 #include "config.h"
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define __INA_TIME_INC(vv_ptr) InterlockedExchangeAdd64(vv_ptr, 1)
 INA_INLINE double __ina_lit_to_secs(const double freq_sec, const LARGE_INTEGER * L)
 {
@@ -50,7 +50,7 @@ struct ina_stopwatch_s {
     ina_mempool_t *mp;        /* memory pool */
     ina_stopwatch_tv_t *tv;   /* stopwatch data */
     ina_stopwatch_ts_t *ts;   /* current time stamp */
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     double freq_sec;          /* WIN32: tick count per second */
 #endif
 };
@@ -77,6 +77,7 @@ INA_API(ina_rc_t) ina_stopwatch_new(int id, int max_stamps, ina_stopwatch_t **st
 
 INA_API(ina_rc_t) ina_stopwatch_open(int id, ina_stopwatch_t **stopwatch)
 {
+    INA_VERIFY_NOT_NULL(stopwatch);
     return __ina_stopwatch_init(id, stopwatch, 0, INA_STOPWATCH_MAX_STAMPS);
 }
 
@@ -92,7 +93,7 @@ INA_API(ina_rc_t) ina_stopwatch_started(const ina_stopwatch_t *stopwatch)
 INA_API(ina_rc_t) ina_stopwatch_valid(const ina_stopwatch_t *stopwatch)
 {
     INA_VERIFY_NOT_NULL(stopwatch);
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     if (INA_UNLIKELY(stopwatch->tv->stop.tp.QuadPart < stopwatch->tv->start.tp.QuadPart)) {
         return INA_ERROR(INA_ERR_INVALID);
     }
@@ -110,17 +111,11 @@ INA_API(ina_rc_t) ina_stopwatch_valid(const ina_stopwatch_t *stopwatch)
 }
 
 
-INA_API(ina_rc_t) ina_stopwatch_free(ina_stopwatch_t **stopwatch)
+INA_API(void) ina_stopwatch_free(ina_stopwatch_t **stopwatch)
 {
-    INA_VERIFY_NOT_NULL(stopwatch);
-    INA_VERIFY_NOT_NULL(*stopwatch);
-
-    if ((*stopwatch)->mp != NULL) {
-        ina_mempool_free(&(*stopwatch)->mp);
-    }
-    ina_mem_free(*stopwatch);
-    *stopwatch = NULL;
-    return INA_SUCCESS;
+    INA_VERIFY_FREE(stopwatch);
+    ina_mempool_free(&(*stopwatch)->mp);
+    INA_MEM_FREE_SAFE(*stopwatch);
 }
 
 INA_API(ina_rc_t) ina_stopwatch_start(ina_stopwatch_t* stopwatch,
@@ -176,6 +171,7 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
 {
     INA_VERIFY_NOT_NULL(stopwatch);
     INA_VERIFY_NOT_NULL(stamp_index);
+    INA_VERIFY_NOT_NULL(ts);
 
     /* reset current timestamp */
     stopwatch->ts = NULL;
@@ -197,7 +193,7 @@ INA_API(ina_rc_t) ina_stopwatch_read_stamp(ina_stopwatch_t* stopwatch,
  
     /* Calculate duration if not yet done */
     if (stopwatch->ts->duration == 0) {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
         LARGE_INTEGER elapsed;
         if (*stamp_index == 0) {
             elapsed.QuadPart = stopwatch->ts->stamp.tp.QuadPart - 
@@ -299,7 +295,7 @@ INA_API(ina_rc_t) ina_stopwatch_stamp(ina_stopwatch_t* stopwatch,
 
 INA_API(ina_rc_t) ina_stopwatch_stop(ina_stopwatch_t* stopwatch)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     LARGE_INTEGER elapsed;
     INA_VERIFY_NOT_NULL(stopwatch);
     ina_time_read_tsc_clock(&stopwatch->tv->stop);
@@ -385,7 +381,7 @@ __ina_stopwatch_init(int id, ina_stopwatch_t **stopwatch, int create,
         (*stopwatch)->tv->duration = -1.0;
     }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     (*stopwatch)->freq_sec = __ina_freq_sec();
 #endif
 

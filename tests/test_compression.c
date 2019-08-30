@@ -68,13 +68,15 @@ static void __ina_test_compression(ina_mempool_t *pool, ina_compression_type_t c
 
 INA_TEST(compression, deflate_string)
 {
+    INA_UNUSED(data);
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_DEFLATE, INA_COMPRESSION_MODE_TRUSTED_FAST);
 }
 
 INA_TEST(compression, deflate_pool_string)
 {
     ina_mempool_t *pool;
-    
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(1024 * 1024, NULL, INA_MEM_DYNAMIC, &pool));
 
     __ina_test_compression(pool, INA_COMPRESSION_TYPE_DEFLATE, INA_COMPRESSION_MODE_TRUSTED_FAST);
@@ -84,13 +86,14 @@ INA_TEST(compression, deflate_pool_string)
 
 INA_TEST(compression, lz4_safe_string)
 {
+    INA_UNUSED(data);
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4, INA_COMPRESSION_MODE_TRUSTED_SAFE);
 }
 
 INA_TEST(compression, lz4_safe_pool_string)
 {
     ina_mempool_t *pool;
-
+    INA_UNUSED(data);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(1024 * 1024, NULL, INA_MEM_DYNAMIC, &pool));
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4, INA_COMPRESSION_MODE_TRUSTED_SAFE);
@@ -100,13 +103,14 @@ INA_TEST(compression, lz4_safe_pool_string)
 
 INA_TEST(compression, lz4_fast_string)
 {
+    INA_UNUSED(data);
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4, INA_COMPRESSION_MODE_TRUSTED_FAST);
 }
 
 INA_TEST(compression, lz4_fast_pool_string)
 {
     ina_mempool_t *pool;
-
+    INA_UNUSED(data);
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(1024 * 1024, NULL, INA_MEM_DYNAMIC, &pool));
 
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4, INA_COMPRESSION_MODE_TRUSTED_FAST);
@@ -116,12 +120,14 @@ INA_TEST(compression, lz4_fast_pool_string)
 
 INA_TEST(compression, lz4hc_safe_string)
 {
+    INA_UNUSED(data);
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4HC, INA_COMPRESSION_MODE_TRUSTED_SAFE);
 }
 
 INA_TEST(compression, lz4hc_safe_pool_string)
 {
     ina_mempool_t *pool;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(1024 * 1024, NULL, INA_MEM_DYNAMIC, &pool));
 
@@ -132,12 +138,14 @@ INA_TEST(compression, lz4hc_safe_pool_string)
 
 INA_TEST(compression, lz4hc_fast_string)
 {
+    INA_UNUSED(data);
     __ina_test_compression(NULL, INA_COMPRESSION_TYPE_LZ4HC, INA_COMPRESSION_MODE_TRUSTED_FAST);
 }
 
 INA_TEST(compression, lz4hc_fast_pool_string)
 {
     ina_mempool_t *pool;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_mempool_new(1024 * 1024, NULL, INA_MEM_DYNAMIC, &pool));
 
@@ -146,3 +154,57 @@ INA_TEST(compression, lz4hc_fast_pool_string)
     ina_mempool_free(&pool);
 }
 
+INA_TEST(compression, invalid_arguments)
+{
+    ina_compression_state_t *state = NULL;
+    unsigned char buf[1000];
+    unsigned  char* src = &buf[0];
+    int src_len = 0;
+    unsigned  char* dst = &buf[0];
+    int dst_len = 0;
+    int wrote_len = 0;
+    int read_len = 0;
+    int more = 0;
+    int len = 0;
+    INA_UNUSED(data);
+
+    INA_TEST_ASSERT_SUCCEED(ina_compression_new(&state, INA_COMPRESSION_TYPE_DEFLATE, INA_COMPRESSION_MODE_TRUSTED_FAST));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_new(NULL,
+                    INA_COMPRESSION_TYPE_DEFLATE,
+                    INA_COMPRESSION_MODE_TRUSTED_FAST));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_new_using_pool(NULL,
+                    INA_COMPRESSION_TYPE_DEFLATE,
+                    INA_COMPRESSION_MODE_TRUSTED_FAST, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_compress_chunk(NULL, src, src_len, dst, dst_len, &wrote_len, &read_len, more));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_compress_chunk(state, NULL, src_len, dst, dst_len, &wrote_len, &read_len, more));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_compress_chunk(state, src, src_len, NULL, dst_len, &wrote_len, &read_len, more));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_compress_chunk(state, src, src_len, dst, dst_len, NULL, &read_len, more));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_compress_chunk(state, src, src_len, dst, 1024, &wrote_len, NULL, more));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_decompress_chunk(NULL, src, src_len, dst, dst_len, &wrote_len, &read_len, more));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_decompress_chunk(state, NULL, src_len, dst, dst_len, &wrote_len, &read_len, more));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_decompress_chunk(state, src, src_len, NULL, dst_len, &wrote_len, &read_len, more));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_decompress_chunk(state, src, src_len, dst, dst_len, NULL, &read_len, more));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
+            ina_compression_decompress_chunk(state, src, src_len, dst, 1024, &wrote_len, NULL, more));
+
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_compression_get_destination_len(NULL, src_len, &len));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_compression_get_destination_len(state, src_len, NULL));
+
+    ina_compression_free(&state);
+}

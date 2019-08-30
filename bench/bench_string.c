@@ -26,15 +26,18 @@ INA_BENCH_BEGIN(string, series_1) {
     data->strings = NULL;
 }
 INA_BENCH_SCALE(string) {
-    data->c = 1000 * ina_bench_get_iteration();
+    data->c = 1000 * ina_bench_get_repetition();
     ina_bench_set_scale(data->c);
 }
 
-INA_BENCH(string, series_1, 10) {
+INA_BENCH(string, series_1, 10, 1) {
     int i;
     INA_BENCH_MSG("iteration: %d - allocate %d strings ",
            ina_bench_get_iteration(),
            data->c);
+    if (INA_SUCCEED(ina_bench_is_warmup())) {
+        INA_BENCH_MSG("warm-up");
+    }
 
     data->strings = ina_mem_alloc(sizeof(ina_str_t) * data->c);
 
@@ -42,7 +45,7 @@ INA_BENCH(string, series_1, 10) {
     for (i = 0; i < data->c; i++) {
         data->strings[i] = ina_str_new_fromcstr("this is just a test string");
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     ina_mem_free(data->strings);
 }
 
@@ -50,7 +53,7 @@ INA_BENCH_END(string, series_1) { INA_UNUSED(data);}
 INA_BENCH_BEGIN(string, series_2) {
     data->mp = NULL;
 }
-INA_BENCH(string, series_2, 10) {
+INA_BENCH(string, series_2, 10, 1) {
     int i;
     INA_BENCH_MSG("iteration: %d allocate %d strings:",
            ina_bench_get_iteration(),
@@ -61,7 +64,7 @@ INA_BENCH(string, series_2, 10) {
     for (i = 0; i < data->c; i++) {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 
     ina_mempool_free(&data->mp);
 }
@@ -72,7 +75,7 @@ INA_BENCH_BEGIN(string, series_3) {
     INA_MUST_SUCCEED(ina_mempool_new(data->c * 50, NULL, INA_MEM_FIXED, &data->mp));
 }
 
-INA_BENCH(string, series_3, 10) {
+INA_BENCH(string, series_3, 10, 1) {
     int i;
     INA_BENCH_MSG("iteration: %d allocate %d strings:",
            ina_bench_get_iteration(),
@@ -83,7 +86,7 @@ INA_BENCH(string, series_3, 10) {
     for (i = 0; i < data->c; i++)  {
         ina_str_new_fromcstr_using_pool("this is just a test string", data->mp);
     }
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 }
 
 INA_BENCH_END(string, series_3) {

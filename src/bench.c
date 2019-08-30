@@ -24,14 +24,18 @@ static ina_bench_benchmark_t *__current = NULL;
 static ina_str_t __scale_label = NULL;
 static ina_time_tsc_t *__time1 = NULL;
 static ina_time_tsc_t *__time2 = NULL;
-static int64_t *__scales = NULL;
+static double *__scales = NULL;
 static double *__results = NULL;
 static double *__current_result = NULL;
-static int64_t *__current_scale = NULL;
+static double *__current_scale = NULL;
 static int __current_iteration = 0;
+static int __current_repetition = 0;
 static int __current_series = 0;
 static char __header[__INA_MAX_HEADER_LENGTH];
 static int __precision = 5;
+static int __xiter = 0;
+static int __xrepeat = 0;
+static int __xwarmup_iter = 0;
 
 
 INA_BENCH_DATA(bench) {
@@ -43,7 +47,7 @@ INA_BENCH_TEARDOWN(bench) { INA_UNUSED(data); }
 INA_BENCH_SCALE(bench) { INA_UNUSED(data); }
 INA_BENCH_BEGIN(bench, series) { INA_UNUSED(data); }
 INA_BENCH_END(bench , series) { INA_UNUSED(data); }
-INA_BENCH(bench, series, 0) { INA_UNUSED(data); }
+INA_BENCH(bench, series, 0, 0) { INA_UNUSED(data); }
 
 static int __ina_bench_all(ina_bench_benchmark_t* b) {
     INA_UNUSED(b);
@@ -108,14 +112,15 @@ static ina_rc_t __ina_find_symbols(ina_bench_benchmark_t *bench)
 }
 #endif
 
-static ina_rc_t __ina_write_report(int num_series, const char* report_path)
+static ina_rc_t __ina_write_report(int xrepeat, int xiter, int num_series, const char* report_path, int aggregate)
 {
     FILE* f;
     ina_str_t file_path;
     double *result;
-    int64_t *scale;
+    double *scale;
     int i;
     int j;
+    int k;
     char fmt[20];
     snprintf(fmt, 19, ",%%.%df", __precision);
 
@@ -140,15 +145,49 @@ static ina_rc_t __ina_write_report(int num_series, const char* report_path)
     }
     result = __results;
     scale = __scales;
-    for (j = 0; j < __current->iterations; ++j) {
-        fprintf(f, "%"INA_INT64_T_FMT, scale[j]);
-        for (i = 0; i < num_series; ++i) {
-            fprintf(f, fmt, result[i*__current->iterations+j]);
+    for (k = 0; k < xrepeat; ++k) {
+        if (aggregate) {
+            fprintf(f, "%f", scale[k]);
         }
-        fprintf(f, "\n");
+        for (j = 0; j < (xiter+__xwarmup_iter); ++j) {
+            if (j < __xwarmup_iter) {
+                continue;
+            }
+            if (!aggregate) {
+                fprintf(f, "%f", scale[k]);
+            }
+            for (i = 0; i < num_series; ++i) {
+                int index = (i*xiter)+(xiter*k)+j;
+                if (aggregate) {
+                    if (j > __xwarmup_iter) {
+                        result[index] += result[index-1];
+                    }
+                    if (j == (xiter + __xwarmup_iter - 1)) {
+                        result[index] = result[index] / (double)xiter;
+                        fprintf(f, fmt, result[index]);
+                    }
+                }
+                else {
+                    fprintf(f, fmt, result[index]);
+                }
+            }
+            if (!aggregate || (j == (xiter+__xwarmup_iter-1))) {
+                fprintf(f, "\n");
+            }
+        }
     }
     fclose(f);
     return INA_SUCCESS;
+}
+
+static void __ina_clear_cache(size_t size)
+{
+    size_t n;
+    unsigned char *p = ina_mem_alloc(size);
+    for (n = 0; n < size; ++n) {
+        p[n] = (unsigned char)((n%254)+1);
+    }
+    ina_mem_free(p);
 }
 
 INA_API(int) ina_bench_run(void)
@@ -159,9 +198,34 @@ INA_API(int) ina_bench_run(void)
     ina_bench_benchmark_t* begin;
     ina_bench_benchmark_t* end;
     ina_str_t report_path = NULL;
+    int xrepeat = 0;
+    int xiter = 0;
+    int core = 0;
+    int aggregate = 1;
+    size_t cache_size;
+    size_t tot_cache_size;
+    if (INA_FAILED(ina_cpu_get_l1_cache_size(&cache_size))) {
+        INA_BENCH_MSG("%s", "WARNING: failed to get LL cache size");
+    }
+    tot_cache_size = cache_size;
+    if (INA_FAILED(ina_cpu_get_l2_cache_size(&cache_size))) {
+        INA_BENCH_MSG("%s", "WARNING: failed to get L2 cache size");
+    }
+    tot_cache_size += cache_size;
+    if (INA_FAILED(ina_cpu_get_l3_cache_size(&cache_size))) {
+        INA_BENCH_MSG("%s", "WARNING: failed to get L3 cache size");
+    }
+    tot_cache_size += cache_size;
+    if (tot_cache_size == 0) {
+        int size;
+        ina_opt_get_int("cache-size", &size);
+        if (size <= 0) {
+            size = 10;
+        }
+        tot_cache_size = (size_t)size * 1024 * 1024;
+    }
 
     INA_MUST_SUCCEED(ina_init());
-
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time1));
     INA_MUST_SUCCEED(ina_time_tsc_new(&__time2));
 
@@ -169,6 +233,21 @@ INA_API(int) ina_bench_run(void)
     ina_opt_get_string("n", &__bench_name);
     if (ina_str_len(__bench_name)) {
         filter = __ina_bench_filter;
+    }
+    ina_opt_get_int("x-repeat", &xrepeat);
+    ina_opt_get_int("x-iter", &xiter);
+    ina_opt_get_int("x-warm-up", &__xwarmup_iter);
+    ina_opt_get_int("c", &core);
+
+    if (core >= 0) {
+        if (INA_FAILED(ina_cpu_pin_to_core(core))) {
+            printf("couldn't pin on core %d", core);
+            return 1;
+        }
+    }
+
+    if (INA_SUCCEED(ina_opt_isset("disable-aggregation"))) {
+        aggregate = 0;
     }
 
     begin = &INA_BENCH_BNAME(bench, series);
@@ -204,23 +283,33 @@ INA_API(int) ina_bench_run(void)
             }
             if (filter(bench) && !bench->skip) {
                 int ic;
+                int rc;
 #ifdef INA_OS_OSX
                 INA_MUST_SUCCEED(__ina_find_symbols(bench));
 #endif
+				if (xrepeat == 0) {
+					__xrepeat = bench->repetitions;
+				} else {
+				    __xrepeat = xrepeat;
+				}
+				if (xiter == 0) {
+					__xiter = bench->iterations;
+				} else {
+				    __xiter = xiter;
+				}
                 if (__current == NULL ||
                     strcmp(__current->bench_name, bench->bench_name) != 0) {
                     if (__current != NULL) {
                         INA_MUST_SUCCEED(
-                                __ina_write_report(__current_series,
+                                __ina_write_report(__xrepeat, __xiter, __current_series,
                                                    ina_str_cstr(
-                                                           report_path)));
+                                                           report_path),aggregate));
                         ina_mem_free(__results);
                         ina_mem_free(__scales);
                     }
-                    __scales = ina_mem_alloc(
-                            sizeof(int64_t) * bench->iterations);
+                    __scales = ina_mem_alloc(sizeof(double) * __xrepeat);
                     __results = ina_mem_alloc(
-                            sizeof(int64_t) * bench->iterations *
+                            sizeof(double) * __xiter * __xrepeat *
                             __INA_MAX_SERIES);
                     __current_result = __results;
                     __header[0] = '\0';
@@ -237,24 +326,21 @@ INA_API(int) ina_bench_run(void)
                 strncat(__header, bench->series_name,
                         sizeof(__header) - strlen(__header) + 1);
 
-                printf("%s:%s : setup\n", ina_bench_get_name(),
-                       ina_bench_get_series_name());
                 bench->setup(bench->data);
-                printf("%s:%s : begin\n", ina_bench_get_name(),
-                       ina_bench_get_series_name());
-                bench->series_setup(bench->data);
-                for (ic = 0; ic < bench->iterations; ++ic) {
-                    __current_iteration = ic;
+
+                for (rc = 0; rc < __xrepeat; ++rc) {
+                    __current_repetition = rc;
                     bench->scale(bench->data);
-                    bench->run(bench->data);
-                    __current_result += 1;
+                    bench->series_setup(bench->data);
+                    for (ic = 0; ic < (__xiter+__xwarmup_iter); ++ic) {
+                        __current_iteration = ic;
+                        __ina_clear_cache(tot_cache_size*2);
+                        bench->run(bench->data);
+                        __current_result += 1;
+                    }
                     __current_scale += 1;
+                    bench->series_teardown(bench->data);
                 }
-                printf("%s:%s : end\n", ina_bench_get_name(),
-                       ina_bench_get_series_name());
-                bench->series_teardown(bench->data);
-                printf("%s:%s : teardown\n", ina_bench_get_name(),
-                       ina_bench_get_series_name());
                 bench->teardown(bench->data);
 
                 __current_series += 1;
@@ -262,7 +348,7 @@ INA_API(int) ina_bench_run(void)
         }
     }
     if (__current != NULL) {
-        __ina_write_report(__current_series, report_path);
+        __ina_write_report(__xrepeat, __xiter, __current_series, report_path, aggregate);
         ina_mem_free(__results);
     }
     ina_time_tsc_free(&__time1);
@@ -294,11 +380,6 @@ INA_API(ina_rc_t) ina_bench_set_scale_label(const char* label)
         ina_str_free(__scale_label);
     }
     __scale_label = ina_str_new_fromcstr(label);
-    printf("%s:%s : set scale label '%s'\n",
-           ina_bench_get_name(),
-           ina_bench_get_series_name(),
-           ina_str_cstr(__scale_label));
-
     return INA_SUCCESS;
 }
 
@@ -310,56 +391,49 @@ INA_API(const char*) ina_bench_get_scale_label(void)
     return NULL;
 }
 
-INA_API(ina_rc_t) ina_bench_set_double(double value)
+INA_API(ina_rc_t) ina_bench_set_value(double value)
 {
     *__current_result = value;
-    printf("%s:%s : set result %f for iteration '%d'\n",
-           ina_bench_get_name(),
-           ina_bench_get_series_name(),
-           value,
-           ina_bench_get_iteration());
-
     return INA_SUCCESS;
 }
 
-
-INA_API(ina_rc_t) ina_bench_set_int64(int64_t value)
+INA_API(ina_rc_t) ina_bench_set_scale(double scale)
 {
-    return ina_bench_set_double((double)value);
-}
-
-
-INA_API(ina_rc_t) ina_bench_set_scale(int64_t scale)
-{
-    printf("%s:%s : set scale %"INA_INT64_T_FMT" for iteration '%d'\n",
-           ina_bench_get_name(),
-           ina_bench_get_series_name(),
-           scale,
-           ina_bench_get_iteration());
-
     *__current_scale = scale;
     return INA_SUCCESS;
 }
 
-INA_API(double) ina_bench_get_double(void)
+INA_API(double) ina_bench_get_value(void)
 {
     return *__current_result;
 }
 
-INA_API(int64_t) ina_bench_get_int64(void)
-{
-    return (int64_t )*__current_result;
-}
-
-INA_API(int64_t) ina_bench_get_scale(void)
+INA_API(double) ina_bench_get_scale(void)
 {
     return *__current_scale;
 }
 
+INA_API(int) ina_bench_get_repetitions(void)
+{
+    if (__current != NULL) {
+        return __xrepeat;
+    }
+    return 0;
+}
+
+INA_API(int) ina_bench_get_repetition(void)
+{
+    if (__current != NULL) {
+        return __current_repetition + 1;
+    }
+    return 0;
+}
+
+
 INA_API(int) ina_bench_get_iterations(void)
 {
     if (__current != NULL) {
-        return __current->iterations;
+        return __xiter+__xwarmup_iter;
     }
     return 0;
 }
@@ -370,6 +444,16 @@ INA_API(int) ina_bench_get_iteration(void)
         return __current_iteration + 1;
     }
     return 0;
+}
+
+INA_API(ina_rc_t) ina_bench_is_warmup(void)
+{
+    if (__current != NULL) {
+        if (__current_iteration < __xwarmup_iter) {
+            return INA_SUCCESS;
+        }
+    }
+    return INA_ERROR(INA_ERR_FALSE);
 }
 
 INA_API(ina_rc_t) ina_bench_stopwatch_start(void)

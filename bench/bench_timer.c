@@ -66,7 +66,7 @@ INA_BENCH_SCALE(timer) {
 }
 INA_BENCH_BEGIN(timer, create_rdtsc) { INA_UNUSED(data);}
 INA_BENCH_END(timer, create_rdtsc) { INA_UNUSED(data);}
-INA_BENCH(timer, create_rdtsc, 1) {
+INA_BENCH(timer, create_rdtsc, 1, 1) {
     ina_timer_t *timer;
     INA_UNUSED(data);
     INA_MUST_SUCCEED(ina_timer_new(&timer));
@@ -74,7 +74,7 @@ INA_BENCH(timer, create_rdtsc, 1) {
     ina_time_tsc_enable_rdtsc();
     ina_bench_stopwatch_start();
     __ina_timer_bench_create_events(timer);
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
     ina_time_tsc_disable_rdtsc();
 
     ina_timer_free(&timer);
@@ -82,14 +82,14 @@ INA_BENCH(timer, create_rdtsc, 1) {
 
 INA_BENCH_BEGIN(timer, create) { INA_UNUSED(data);}
 INA_BENCH_END(timer, create) { INA_UNUSED(data);}
-INA_BENCH(timer, create, 1) {
+INA_BENCH(timer, create, 1, 1) {
     ina_timer_t *timer;
     INA_UNUSED(data);
     INA_MUST_SUCCEED(ina_timer_new(&timer));
 
     ina_bench_stopwatch_start();
     __ina_timer_bench_create_events(timer);
-    ina_bench_set_int64(ina_bench_stopwatch_stop());
+    ina_bench_set_value((double)ina_bench_stopwatch_stop());
 
     ina_timer_free(&timer);
 }
@@ -97,11 +97,11 @@ INA_BENCH(timer, create, 1) {
 
 INA_BENCH_BEGIN(timer, exec) { INA_UNUSED(data);}
 INA_BENCH_END(timer, exec) { INA_UNUSED(data); }
-INA_BENCH(timer, exec, 1) {
+INA_BENCH(timer, exec, 1, 1) {
     ina_timer_t *timer;
     int64_t total = 0;
-    uint64_t id;
-    uint64_t stop_id;
+    int id;
+    int stop_id;
     INA_UNUSED(data);
     INA_MUST_SUCCEED(ina_timer_new(&timer));
 
@@ -117,18 +117,18 @@ INA_BENCH(timer, exec, 1) {
         }
         ina_time_sleep(1);
     }
-    ina_bench_set_int64(total);
+    ina_bench_set_value((double)total);
     ina_timer_free(&timer);
 }
 
 
 INA_BENCH_BEGIN(timer, exec_rdtsc) { INA_UNUSED(data);}
 INA_BENCH_END(timer, exec_rdtsc) { INA_UNUSED(data);}
-INA_BENCH(timer, exec_rdtsc, 1) {
+INA_BENCH(timer, exec_rdtsc, 1,1) {
     ina_timer_t *timer;
     int64_t total = 0;
-    uint64_t id;
-    uint64_t stop_id;
+    int id;
+    int stop_id;
     INA_UNUSED(data);
     ina_time_tsc_enable_rdtsc();
 
@@ -147,7 +147,7 @@ INA_BENCH(timer, exec_rdtsc, 1) {
         ina_time_sleep(1);
     }
     ina_time_tsc_disable_rdtsc();
-    ina_bench_set_int64(total);
+    ina_bench_set_value((double)total);
     ina_timer_free(&timer);
 }
 

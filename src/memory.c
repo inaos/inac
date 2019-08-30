@@ -55,7 +55,7 @@ INA_API(void *) ina_mem_alloc_aligned(size_t alignment, size_t size)
 	*/
 	void *p = INA_MEM_MALLOC(size + alignment - 1 + sizeof(void*));
 
-	if (INA_UNLIKELY(p != NULL)) {
+	if (INA_LIKELY(p != NULL)) {
 		void *ptr;
 		/* Address of the aligned memory according to the align parameter*/
 		ptr = (void*)(((size_t)p + sizeof(void*) + alignment - 1) & ~(alignment - 1));
@@ -91,7 +91,7 @@ INA_API(void*) ina_mem_realloc(void *ptr, size_t nb)
 
 INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
 {
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 	INA_VERIFY_NOT_NULL(size);
 	*size = (size_t)sysconf(_SC_PAGESIZE);
 #else
@@ -107,7 +107,6 @@ INA_API(ina_rc_t) ina_mem_get_pagesize(size_t *size)
 INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, ina_mempool_t **pool)
 {
 	INA_VERIFY_NOT_NULL(pool);
-	INA_VERIFY(size > 0);
 
 	if (size < INA_MEM_MIN_POOL_SIZE) {
 		size = INA_MEM_MIN_POOL_SIZE;
@@ -149,13 +148,11 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 
 	if ((*pool)->m == NULL) {
 		ina_mem_free(*pool);
-		if ((*pool)->label != NULL) {
-			ina_str_free((*pool)->label);
-		}
+		ina_str_free((*pool)->label);
 		*pool = NULL;
 		return INA_ERROR(INA_ERR_OUT_OF_MEMORY);
 	}
-	INA_TRACE3("New memory pool: %p->%p size = %ld", *pool, (*pool)->m, (*pool)->size);
+	INA_TRACE3(inac.mempool, "New memory pool: %p->%p size = %ld", *pool, (*pool)->m, (*pool)->size);
 	return INA_SUCCESS;
 }
 
@@ -185,6 +182,7 @@ INA_API(void) ina_mempool_free(ina_mempool_t **pool)
 		else {
 			ina_mem_free(pm->m);
 		}
+		ina_str_free(pm->label);
 		ina_mem_free(pm);
 	}
 }
@@ -213,8 +211,11 @@ INA_API(ina_rc_t) ina_mempool_merge(ina_mempool_t *dest, ina_mempool_t *src)
 	if (src == NULL) {
 		return INA_SUCCESS;
 	}
+	if (src == dest) {
+	    return INA_SUCCESS;
+	}
 	if (dest->cf&INA_MEM_SHARED || src->cf&INA_MEM_SHARED) {
-		return INA_ERROR(INA_ES_OPERATION | INA_ERR_INVALID);
+		return INA_ERROR(INA_ERR_OPERATION_INVALID);
 	}
 	src->parent = dest;
 	first_child = dest->child;
@@ -521,7 +522,7 @@ INA_API(void *) ina_mempool_ralloc_aligned(ina_mempool_t *pool, void *old,
 }
 
 
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 
 static ina_rc_t
 __ina_shm_open(ina_mempool_t *pool)
@@ -577,7 +578,7 @@ __ina_shm_open(ina_mempool_t *pool)
 	__sync_fetch_and_add((int64_t*)pool->m, 1);
 	/* Inc start pos */
 	pool->pos += sizeof(int64_t);
-	INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, *(int64_t*)pool->m);
+	INA_TRACE2(inac.mempool, "shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, *(int64_t*)pool->m);
 	return INA_SUCCESS;
 }
 
@@ -586,7 +587,6 @@ __ina_shm_close(ina_mempool_t *pool)
 {
 	INA_ASSERT_NOT_NULL(pool);
 	INA_ASSERT(pool->size > 0);
-	INA_ASSERT_NOT_NULL(pool->label);
 	int64_t cn;
 
 	if (pool->m == NULL) {
@@ -608,11 +608,10 @@ __ina_shm_close(ina_mempool_t *pool)
 
 	/* Dec ref count, unlink on last relase */
 	if (cn == 0 || pool->cf&INA_MEM_SHARED_EXCL) {
-		INA_TRACE2("unlinking shared mem %s", pool->label);
+		INA_TRACE2(inac.mempool, "unlinking shared mem %s", pool->label);
 		shm_unlink(ina_str_cstr(pool->label));
 	}
-	INA_TRACE2("shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
-	ina_str_free(pool->label);
+	INA_TRACE2(inac.mempool, "shared mem %s ref count =  %" INA_INT64_T_FMT, pool->label, cn);
 
 	return INA_SUCCESS;
 }

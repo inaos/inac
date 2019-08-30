@@ -219,7 +219,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *curs
 
 static ina_rc_t ina_file_cursor_mmap_free(ina_file_cursor_t **cursor)
 {
-	ina_mmap_free((*cursor)->ext.m.mmap_ctx, &(*cursor)->ext.m.fm);
+	ina_mmap_free(&(*cursor)->ext.m.fm);
 	ina_mem_free(*cursor);
 	*cursor = NULL;
 	return INA_SUCCESS;
@@ -256,7 +256,7 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t
 		if (offset + len > cursor->ext.m.len) {
 			len = cursor->ext.m.len - offset;
 		}
-		ina_mmap_free(cursor->ext.m.mmap_ctx, &cursor->ext.m.fm);
+		ina_mmap_free(&cursor->ext.m.fm);
 		ina_mmap_new(cursor->ext.m.mmap_ctx, cursor->file, cursor->ext.m.mmap_flags, 
 			INA_MMAP_MEM_SHARE_SHARED,INA_MMAP_MAP_TYPE_FILE, offset, len, &cursor->ext.m.fm);
 		cursor->ext.m.buffer_idx = buffer_idx;
@@ -535,6 +535,7 @@ INA_API(ina_rc_t) ina_file_cursor_get_pos(const ina_file_cursor_t *cursor, uint6
 
 INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, uint64_t position)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return cursor->set_pos_fp(cursor, position);
 }
 
@@ -545,6 +546,7 @@ INA_API(ina_rc_t) ina_file_cursor_set_bof(ina_file_cursor_t *cursor)
 
 INA_API(ina_rc_t) ina_file_cursor_set_eof(ina_file_cursor_t *cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return cursor->set_eof_fp(cursor);
 }
 

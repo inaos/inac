@@ -1,0 +1,136 @@
+trigger:
+- develop
+
+variables:
+- group: jfrog-artifactory
+
+strategy:
+  matrix:
+    linux-debug:
+      imageName: 'ubuntu-16.04'
+      BUILD_CONFIGURATION: Debug
+    linux-release:
+      imageName: 'ubuntu-16.04'
+      BUILD_CONFIGURATION: RelWithDebInfo
+    mac-debug:
+      imageName: 'macos-10.13'
+      BUILD_CONFIGURATION: Debug
+    mac-release:
+      imageName: 'macos-10.13'
+      BUILD_CONFIGURATION: RelWithDebInfo
+    windows-debug:
+      imageName: 'vs2017-win2016'
+      BUILD_CONFIGURATION: Debug
+      BUILD_ARCH: x86_64
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Enterprise\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+    windows-release:
+      imageName: 'vs2017-win2016'
+      BUILD_CONFIGURATION: RelWithDebInfo
+      BUILD_ARCH: x86_64
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Enterprise\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+
+pool:
+  vmImage: $(imageName)
+
+
+steps:
+- powershell: gci env:* | sort-object name
+
+- bash: |
+    mkdir -p $HOME/.inaos/cmake
+    mkdir -p $HOME/INAOS
+    echo "INAC_REPOSITORY_LOCAL=$HOME/INAOS" > $HOME/.inaos/cmake/repository.txt 
+    echo "INAC_REPOSITORY_REMOTE=https://inaos.jfrog.io/inaos/libs-release-local/inaos" >> $HOME/.inaos/cmake/repository.txt
+    echo "INAC_REPOSITORY_USRPWD=licensed:AKCp5bBraH7CasbsYCURsjzkbjXwVwdYcT7u39EiuL6GjnK1VKfKQWCd1E2E64mHokU5YUHku" >> $HOME/.inaos/cmake/repository.txt
+  displayName: Setup
+    
+- bash: |
+    if [ "$AGENT_OS" != "Windows_NT" ]
+      then
+        mkdir cmake-build-$BUILD_CONFIGURATION
+        cd cmake-build-$BUILD_CONFIGURATION
+        cmake ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION
+        make -j
+    fi
+  displayName: Compile
+  env:
+    BUILD_CONFIGURATION: $(BUILD_CONFIGURATION)
+    
+- script: |
+    call "C:\Program Files (x86)\%VSINSTALL%\vcvarsall.bat" %MSVC_PLATFORM%
+    mkdir cmake-build-%BUILD_CONFIGURATION%
+    cd cmake-build-%BUILD_CONFIGURATION%
+    cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH%
+    nmake
+  displayName: Compile
+  env:
+    BUILD_CONFIGURATION: $(BUILD_CONFIGURATION)
+    BUILD_ARCH: $(BUILD_ARCH)
+  condition:
+    eq( variables['Agent.OS'], 'Windows_NT' )
+
+- bash: |
+    cd cmake-build-$BUILD_CONFIGURATION
+    if [ "$AGENT_OS" == "Darwin" ] && [ "$BUILD_CONFIGURATION" == "Debug" ]
+      then
+        echo "Tests for Darwin in Debug mode currently not executed"
+    else
+        ./tests --format=junit > junit.xml || true
+    fi
+  displayName: Execute tests
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/junit.xml'
+
+- bash: |
+   cd cmake-build-$BUILD_CONFIGURATION
+   if [ "$AGENT_OS" != "Windows_NT" ]
+     then
+       cpack
+       cp inac*.zip $INAC_ARTIFACT_TARGET
+   fi
+  displayName: Create package
+  env:
+    INAC_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
+
+- script: |
+    call "C:\Program Files (x86)\%VSINSTALL%\vcvarsall.bat" %MSVC_PLATFORM%
+    cd cmake-build-%BUILD_CONFIGURATION%
+    call "C:\Program Files\CMake\bin\cpack.exe"
+    copy inac*.zip %INAC_ARTIFACT_TARGET%
+  displayName: Create package
+  env:
+    INAC_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
+  condition:
+    eq( variables['Agent.OS'], 'Windows_NT' )  
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: inac-$(imageName)
+    
+- bash: |
+    cd cmake-build-$BUILD_CONFIGURATION
+    src=`ls inac*.zip`
+    artifact_name=`basename $src`
+    if [ "$AGENT_OS" == "Darwin" ]
+      then
+        artifact_version=`echo $artifact_name | grep -Eo '\d+\.\d+\.\d+'`
+    else
+        artifact_version=`echo $artifact_name | grep -Po '\d+\.\d+\.\d+'`
+    fi
+    target=inaos/inac/$artifact_version/$artifact_name
+    url=$jfrog_repository_url/$target
+    curl "-u$jfrog_artifactory_uid:$jfrog_artifactory_pwd" "-T" $src $url
+  displayName: Upload to artifactory
+  env:
+    jfrog_artifactory_uid: $(jfrog_artifactory_uid)
+    jfrog_artifactory_pwd: $(jfrog_artifactory_pwd)
+    jfrog_repository_url: $(jfrog_repository_url)
+  condition:
+    eq( variables['upload_artifactory'], 'yes' )
+  

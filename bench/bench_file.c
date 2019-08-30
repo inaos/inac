@@ -70,7 +70,7 @@ INA_BENCH_SCALE(file) {
 
 INA_BENCH_BEGIN(file, bf_read) { INA_UNUSED(data); }
 INA_BENCH_END(file, bf_read) { INA_UNUSED(data); }
-INA_BENCH(file, bf_read, 4)
+INA_BENCH(file, bf_read, 4, 1)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
@@ -88,7 +88,7 @@ INA_BENCH(file, bf_read, 4)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
@@ -98,7 +98,7 @@ INA_BENCH(file, bf_read, 4)
 
 INA_BENCH_BEGIN(file, bf_read_seq) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_seq) { INA_UNUSED(data);}
-INA_BENCH(file, bf_read_seq, 4)
+INA_BENCH(file, bf_read_seq, 4, 1)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
@@ -116,7 +116,7 @@ INA_BENCH(file, bf_read_seq, 4)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
@@ -126,12 +126,12 @@ INA_BENCH(file, bf_read_seq, 4)
 
 INA_BENCH_BEGIN(file, bf_read_direct) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_direct) { INA_UNUSED(data); }
-INA_BENCH(file, bf_read_direct, 4)
+INA_BENCH(file, bf_read_direct, 4, 1)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
     unsigned char* buf;
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,
@@ -154,7 +154,7 @@ INA_BENCH(file, bf_read_direct, 4)
     while (INA_SUCCEED(ina_file_read(data->file, data->read_buf, data->buffer_size, &nb_read)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
@@ -164,7 +164,7 @@ INA_BENCH(file, bf_read_direct, 4)
 
 INA_BENCH_BEGIN(file, bf_read_cursor) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_cursor) { INA_UNUSED(data); }
-INA_BENCH(file, bf_read_cursor, 4)
+INA_BENCH(file, bf_read_cursor, 4, 1)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
@@ -190,7 +190,7 @@ INA_BENCH(file, bf_read_cursor, 4)
                             data->buffer_size, &nb_read, &buf)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
 
     ina_file_free(&data->file);
@@ -198,7 +198,7 @@ INA_BENCH(file, bf_read_cursor, 4)
 
 INA_BENCH_BEGIN(file, bf_read_mmap_cursor) { INA_UNUSED(data);}
 INA_BENCH_END(file, bf_read_mmap_cursor) { INA_UNUSED(data); }
-INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4)
+INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4, 1)
 {
     size_t nb_read = 0;
     data->tot_nb_read = 0;
@@ -223,7 +223,7 @@ INA_BENCH_SKIP(file, bf_read_mmap_cursor, 4)
                             (size_t)data->buffer_size, &nb_read, &buf)) && nb_read) {
         data->tot_nb_read += nb_read;
     }
-    ina_bench_set_double(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
+    ina_bench_set_value(__INA_MBS(data->tot_nb_read, ina_bench_stopwatch_stop()));
     INA_BENCH_MSG("bytes read : %"INA_INT64_T_FMT, data->tot_nb_read);
     ina_file_free(&data->file);
 }

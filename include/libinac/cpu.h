@@ -89,6 +89,14 @@ typedef uint64_t ina_cpu_feature_t;
 typedef struct ina_cpu_ctx_s ina_cpu_ctx_t;
 
 /*
+ * Execute a REP NOP instruction
+ */
+INA_INLINE void ina_cpu_pause(void)
+{
+    INA_MM_PAUSE;
+}
+
+/*
  * PRIVATE: One should never call this function - its only called internally
  * during initialization.
  *
@@ -205,7 +213,7 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int core);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_cpu_process_promote();
+INA_API(ina_rc_t) ina_cpu_process_promote(void);
 
 /*
  * Get the current executing core of the process.
