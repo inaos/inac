@@ -81,6 +81,11 @@ steps:
     fi
   displayName: Execute tests
 
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'cmake-build-$BUILD_CONFIGURATION/junit.xml'
+
 - bash: |
    cd cmake-build-$BUILD_CONFIGURATION
    if [ "$AGENT_OS" != "Windows_NT" ]
