@@ -84,7 +84,7 @@ steps:
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
-    testResultsFiles: 'cmake-build-$BUILD_CONFIGURATION/junit.xml'
+    testResultsFiles: '**/junit.xml'
 
 - bash: |
    cd cmake-build-$BUILD_CONFIGURATION
