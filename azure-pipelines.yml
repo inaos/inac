@@ -86,18 +86,20 @@ steps:
    if [ "$AGENT_OS" != "Windows_NT" ]
      then
        cpack
+       cp inac*.zip $INAC_ARTIFACT_TARGET
    fi
   displayName: Create package
   env:
-    IA_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
+    INAC_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
 
 - script: |
     call "C:\Program Files (x86)\%VSINSTALL%\vcvarsall.bat" %MSVC_PLATFORM%
     cd cmake-build-%BUILD_CONFIGURATION%
     call "C:\Program Files\CMake\bin\cpack.exe"
+    copy inac*.zip %INAC_ARTIFACT_TARGET%
   displayName: Create package
   env:
-    IA_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
+    INAC_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
   condition:
     eq( variables['Agent.OS'], 'Windows_NT' )  
 
