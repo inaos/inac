@@ -29,6 +29,7 @@ extern "C" {
 #include <spawn.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <immintrin.h>
 #endif
 
 #ifdef _WIN32
@@ -109,14 +110,14 @@ extern "C" {
 
 /* Version as a 3-byte hex number, e.g. 0x010201 == 1.2.1. Use this
  * for numeric comparisons, e.g. #if INA_VERSION_HEX >= ... */
-#define INA_VERSION_HEX  ((INA_MAJOR_VERSION << 16) |   \
-                          (INA_MINOR_VERSION << 8)  |   \
-                          (INA_PATCH_VERSION << 0))
+#define INA_VERSION_HEX  ((INA_MAJOR_VERSION << 16UL) |   \
+                          (INA_MINOR_VERSION << 8UL)  |   \
+                          (INA_PATCH_VERSION << 0UL))
 
 /* Revsion number as 2-byte hex number e.g 0x900 == 0.9. Use this
  * for numeric comparisons, e.g. #if INA_REVISION_HEX >= ... */
-#define INA_REVISION_HEX ((INA_MINOR_VERSION << 8)  |   \
-                          (INA_PATCH_VERSION << 0))
+#define INA_REVISION_HEX ((INA_MINOR_VERSION << 8UL)  |   \
+                          (INA_PATCH_VERSION << 0UL))
 
 
 /* Return with last rc if condition x fails */
@@ -202,7 +203,7 @@ typedef enum ina_signal_e {
     INA_SIGNAL_INT,
     INA_SIGNAL_SEGV,
     INA_SIGNAL_TERM,
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
     INA_SIGNAL_HUP,
     INA_SIGNAL_QUIT,
     INA_SIGNAL_KILL,

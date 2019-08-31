@@ -26,12 +26,12 @@ extern "C" {
 #elif INA_OS_OSX
 #include <netinet/in.h>
 #include <poll.h>
-#elif INA_OS_WIN32
+#elif INA_OS_WINDOWS
 #include <winsock.h>
 #endif
 
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 typedef ULONG nfds_t;
 /* POSIX Vectored I/O for Windows */
 struct iovec {
@@ -49,7 +49,7 @@ struct msghdr {
 };
 #endif
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_NET_INVALID_SOCKET INVALID_SOCKET
 #else
 #define INA_NET_INVALID_SOCKET -1
@@ -321,18 +321,10 @@ INA_API(ina_rc_t) ina_net_udp_receiver_new(const char *address,
  * Destroy a UPD receiver.
  *
  * Parameters
- *  address  Remove IP address of receiver
- *  port     Remote port of receiver
  *  receiver Receiver to free
  *
- * Return
- *  INA_SUCCESS
- *
- * FIXME: address and port seems to be useless. Remove them.
  */
-INA_API(ina_rc_t) ina_net_udp_receiver_free(const char *address,
-                                            int port,
-                                            ina_net_udp_receiver_t **receiver);
+INA_API(void) ina_net_udp_receiver_free(ina_net_udp_receiver_t **receiver);
 
 /*
  * Send UDP diagram.

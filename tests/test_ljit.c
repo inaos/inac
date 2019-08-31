@@ -73,6 +73,7 @@ INA_TEST(ljit, call)
     ina_ljit_ctx_t *ctx = NULL;
     double r = 0;
     char *rs = NULL;
+    INA_UNUSED(data);
 
     ina_err_reset();
 
@@ -94,12 +95,15 @@ INA_TEST(ljit, call)
     INA_TEST_ASSERT_SAME(ina_app_get_name(), rs);
 
     ina_ljit_ctx_free(&ctx);
+    ina_ljit_ctx_free(&ctx);
+    INA_TEST_ASSERT_NULL(ctx);
     INA_TEST_ASSERT_NULL(ctx);
 }
 
 INA_TEST(ljit, luaL_dostring)
 {
     ina_ljit_ctx_t *ctx = NULL;
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
@@ -136,7 +140,8 @@ INA_TEST(ljit, luaL_dostring)
 INA_TEST(ljit, init_destroy)
 {
     ina_ljit_ctx_t *ctx = NULL;
-    
+    INA_UNUSED(data);
+
     INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_NOT_NULL(ctx->lstate);
@@ -147,9 +152,31 @@ INA_TEST(ljit, init_destroy)
 INA_TEST(ljit, open_close_state_native)
 {
     lua_State *lstate = luaL_newstate();
+    INA_UNUSED(data);
 
     INA_TEST_ASSERT_NOT_NULL(lstate);
     luaL_openlibs(lstate);
     lua_close(lstate);
+}
+
+INA_TEST(ljit, invalid_arguments)
+{
+    ina_ljit_ctx_t *ctx = NULL;
+    INA_UNUSED(data);
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ljit_ctx_new(NULL));
+
+    INA_TEST_ASSERT_SUCCEED(ina_ljit_ctx_new(&ctx));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ljit_call(NULL, "test", ">"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ljit_call(ctx, NULL, ">"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ljit_call(ctx, "test", NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ljit_dostring(NULL, "print()"));
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ljit_dostring(ctx, NULL));
+
+    INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_ljit_dump_stack(NULL));
+
+    ina_ljit_ctx_free(&ctx);
 }
 

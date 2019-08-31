@@ -47,10 +47,10 @@ extern "C" {
 #define INA_FILE_FLAG_ATTR_HIDDEN          0x00000002
 #define INA_FILE_FLAG_RANDOM_ACCESS        0x00000004
 #define INA_FILE_FLAG_SEQUENTIAL_ACCESS    0x00000008
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 #define INA_FILE_FLAG_WIN32_OVERLAPPED     0x00000016
 #endif
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
 #define INA_FILE_FLAG_POSIX_DIRECT         0x00000016
 #endif
 
@@ -179,7 +179,8 @@ INA_API(void) ina_file_stat_free(ina_file_stat_t **stat);
  * Return
  *  INA_SUCCESS if all went well
  */
-INA_API(ina_rc_t) ina_file_stat_synch(ina_file_stat_t *stat, const ina_file_t *file);
+INA_API(ina_rc_t) ina_file_stat_sync(const ina_file_t *file,
+                                      ina_file_stat_t *stat);
 
 /*
  * Get the filepath of a file
@@ -241,7 +242,7 @@ INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat);
  *  INA_SUCCESS
  */
 INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat,
-                                          uint64_t *file_size);
+                                          size_t *file_size);
 
 /*
  * Get last access time of a file.

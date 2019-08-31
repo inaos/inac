@@ -131,7 +131,7 @@ INA_BENCH(file, bf_read_direct)
     size_t nb_read = 0;
     data->tot_nb_read = 0;
     unsigned char* buf;
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
     INA_MUST_SUCCEED(ina_file_new(data->file_ctx, data->filepath,
             INA_FILE_ACCESS_MODE_READ,
             INA_FILE_CREATE_MODE_OPEN,

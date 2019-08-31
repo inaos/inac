@@ -81,7 +81,7 @@
   *
   */
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 typedef SSIZE_T ssize_t;
 #endif
 
@@ -233,9 +233,9 @@ static ssize_t __stream_array_size = 0;
 
 static ina_time_t *__ina_time_ref = NULL;
 
-extern double mysecond();
-extern int checktick();
-extern void checkSTREAMresults();
+extern double mysecond(void);
+extern int checktick(void);
+extern void checkSTREAMresults(void);
 #ifdef TUNED
 extern void tuned_STREAM_Copy();
 extern void tuned_STREAM_Scale(STREAM_TYPE scalar);
@@ -450,7 +450,7 @@ main(int argc, char **argv)
 # define	M	20
 
 int
-checktick()
+checktick(void)
     {
     int		i, minDelta, Delta;
     double	t1, t2, timesfound[M];
@@ -484,7 +484,7 @@ checktick()
 /* A gettimeofday routine to give access to the wall
    clock timer on most UNIX-like systems.  */
 
-double mysecond()
+double mysecond(void)
 {
     time_t secs;
     long micros;
@@ -496,7 +496,7 @@ double mysecond()
 #ifndef abs
 #define abs(a) ((a) >= 0 ? (a) : -(a))
 #endif
-void checkSTREAMresults ()
+void checkSTREAMresults (void)
 {
 	STREAM_TYPE aj,bj,cj,scalar;
 	STREAM_TYPE aSumErr,bSumErr,cSumErr;

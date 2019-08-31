@@ -7,11 +7,18 @@
 # license agreement you entered into with INAOS GmbH.
 #
 cmake_minimum_required(VERSION 3.7)
-project(inac VERSION 1.0.6)
+project(inac VERSION 1.0.7)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
 inac_enable_aes()
 inac_enable_sse4()
+
+inac_enable_trace(Debug 3)
+inac_enable_trace(RelWithDebInfo 1)
+inac_enable_trace(Release 1)
+inac_enable_log(Debug 4)
+inac_enable_log(RelWithDebInfo 3)
+inac_enable_log(Release 3)
 
 inac_add_contrib_lib(miniz)
 inac_add_contrib_lib(lz4)

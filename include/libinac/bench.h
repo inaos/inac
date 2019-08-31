@@ -33,7 +33,11 @@ typedef void (*ina_bench_scale_cb_t)(void*);
 typedef struct ina_bench_benchmark_s {
     const char* bench_name;
     const char* series_name;
+    INA_DISABLE_WARNING_CLANG(strict-prototypes)
+    INA_DISABLE_WARNING_GCC(strict-prototypes)
     void (*run)();
+    INA_ENABLE_WARNING_CLANG(strict-prototypes)
+    INA_ENABLE_WARNING_GCC(strict-prototypes)
     int skip;
     void *data;
     ina_bench_setup_cb_t setup;
@@ -46,7 +50,7 @@ typedef struct ina_bench_benchmark_s {
     unsigned int magic;
 } ina_bench_benchmark_t;
 
-/* Internal: Magic. */
+/* Internal: Magic header to separate benchmarks date records. */
 #define INA_BENCH_MAGIC (0xDEADC0DE)
 
 /* Internal: Benchmark function name. */
@@ -59,7 +63,7 @@ typedef struct ina_bench_benchmark_s {
 #ifdef INA_OS_OSX
 #define INA_BENCH_SECTION __attribute__ ((unused,section ("__DATA, .inabench")))
 #define INA_BENCH_SECTION_PUSH
-#elif INA_OS_WIN32
+#elif INA_OS_WINDOWS
 #pragma section(".inabench", read)
 #define INA_BENCH_SECTION
 #define INA_BENCH_SECTION_PUSH __declspec(allocate(".inabench"))
@@ -68,7 +72,7 @@ typedef struct ina_bench_benchmark_s {
 #define INA_BENCH_SECTION_PUSH
 #endif
 
-/* Internal: Benchmark data defines. For internal purpose only */
+/* Internal: Benchmark data defines.  */
 #define INA_BENCH_STRUCT(bname, sname, _skip,  __data, __setup,     \
                             __teardown, __series_setup, __series_teardown, __scale)           \
     INA_BENCH_SECTION_PUSH ina_bench_benchmark_t INA_BENCH_BNAME(bname, sname) INA_BENCH_SECTION = {   \

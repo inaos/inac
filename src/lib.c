@@ -8,7 +8,7 @@
  */
 #include <libinac/lib.h>
 #include "config.h"
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static HANDLE __main_thread = NULL;
 #endif
 
@@ -55,7 +55,7 @@ static ina_str_t __appname = NULL;
 /* That's our app path */
 static ina_str_t __apppath = NULL;
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 /* internal exception handler for windows */
 static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *);
 #endif
@@ -113,7 +113,7 @@ INA_API(const char*) ina_app_get_path(void)
 INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
 {
     
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     _set_abort_behavior(INA_DGBMSG_ASSERT, _WRITE_ABORT_MSG);
     __main_thread = GetCurrentThread();
 #endif
@@ -215,10 +215,10 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                     char buf[100];
                     strncpy(buf, &argv[n][s], (size_t)(e-s));
                     buf[c-s] = 0;
-                    INA_TRACE3("opt=%s", buf);
+                    INA_TRACE3(inac.lib, "opt=%s", buf);
                     so = __ina_opt_get(buf);
                     if (so == NULL) {
-                        INA_TRACE2("invalid options %s", buf);
+                        INA_TRACE2(inac.lib, "invalid options %s", buf);
                         __ina_opt_usage();
                         return INA_ERROR(INA_ES_OPTION | INA_ERR_INVALID);
                     }
@@ -227,14 +227,17 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                         /* value separated by space? */
                         if (vs == 0) {
                             if (argc > n+1) {
+                                ina_str_free(so->value);
                                 so->value = ina_str_new_fromcstr(argv[n+1]);
                                 n++;
                             }
                         } else {
                             strncpy(buf, &argv[n][vs], strlen(&argv[n][vs]));
+                            ina_str_free(so->value);
                             so->value = ina_str_new_fromcstr(buf);
                         }
                     } else {
+                        ina_str_free(so->value);
                         so->value = ina_str_new_fromcstr("on");
                     }
                 }
@@ -252,7 +255,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
 
 INA_API(ina_rc_t) ina_init(void)
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     WSADATA wsaData;
 #endif
 
@@ -261,7 +264,7 @@ INA_API(ina_rc_t) ina_init(void)
     ina_err_init();
 
     if (atexit(ina_exit) == -1) {
-        INA_TRACE("Failed to register exit function!");
+        INA_TRACE(inac.lib, "Failed to register exit function!");
         return INA_OS_ERROR(INA_ES_FUNCTION | INA_ERR_NOT_REGISTERED);
     }
 
@@ -270,7 +273,7 @@ INA_API(ina_rc_t) ina_init(void)
     __ina_signal(SIGILL,  __ina_signal_handler);
     __ina_signal(SIGINT,  __ina_signal_handler);
     __ina_signal(SIGTERM, __ina_signal_handler);
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
     __ina_signal(SIGFPE, __ina_signal_handler);
     __ina_signal(SIGSEGV, __ina_signal_handler);
     __ina_signal(SIGBUS,  __ina_signal_handler);
@@ -297,7 +300,7 @@ INA_API(ina_rc_t) ina_init(void)
 #endif
 
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     /* Make sure to use high-accuracy multimedia-timers for windows */
     timeBeginPeriod(1);
     /* Initialize winsock */
@@ -337,16 +340,14 @@ INA_API(void) ina_exit(void)
     /* free allocated memory  */
     if (__lopt != NULL) {
         ina_list_foreach(__sopt, __ina_free_sopt);
+        ina_list_free(&__sopt);
     }
     if (__sopt != NULL) {
         ina_list_foreach(__lopt, __ina_free_lopt);
+        ina_list_free(&__lopt);
     }
-    if (__appname != NULL) {
-        ina_str_free(__appname);
-    }
-    if (__apppath != NULL) {
-        ina_str_free(__apppath);
-    }
+    ina_str_free(__appname);
+    ina_str_free(__apppath);
 
 #ifdef _LIBINAC_HASHTABLE_H_
     ina_hashtable_destroy();
@@ -357,7 +358,7 @@ INA_API(void) ina_exit(void)
     /*ina_mempool_destroy();*/
     ina_err_destroy();
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     timeEndPeriod(1);
     WSACleanup();
 #endif
@@ -537,7 +538,7 @@ __ina_opt_usage(void) {
 static ina_rc_t 
 __ina_get_binpath(ina_str_t path)
 {
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
     char linkname[64]; /* /proc/<pid>/exe */
     pid_t pid;
     ssize_t ret;
@@ -565,7 +566,7 @@ __ina_get_binpath(ina_str_t path)
 
     /* Ensure proper NUL termination */
     buf[ret] = 0;
-#elif INA_OS_WIN32
+#elif INA_OS_WINDOWS
     HMODULE hMod;
     DWORD ret;
     DWORD buf_size = (DWORD)ina_str_size(path); /* Lenght of a path has to fix in a DWORD */
@@ -591,15 +592,9 @@ static ina_rc_t
 __ina_free_sopt(void *data)
 {
     __ina_sopt_t *opt = (__ina_sopt_t*)data;
-    if (opt->desc !=  NULL) {
-        ina_str_free(opt->desc);
-    }
-    if (opt->opt != NULL) {
-        ina_str_free(opt->opt);
-    }
-    if (opt->value != NULL) {
-        ina_str_free(opt->value);
-    }
+    ina_str_free(opt->desc);
+    ina_str_free(opt->opt);
+    ina_str_free(opt->value);
     ina_mem_free(opt);
     return INA_SUCCESS;
 }
@@ -608,9 +603,7 @@ static ina_rc_t
 __ina_free_lopt(void *data)
 {
     __ina_lopt_t *opt = (__ina_lopt_t*)data;
-    if (opt->opt != NULL) {
-        ina_str_free(opt->opt);
-    }
+    ina_str_free(opt->opt);
     ina_mem_free(opt);
     return INA_SUCCESS;
 }
@@ -649,7 +642,7 @@ __ina_signal_handler(int sig)
         case SIGINT:
             isig = INA_SIGNAL_INT;
             break;
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
         case SIGHUP:
             isig = INA_SIGNAL_HUP;
             break;
@@ -670,7 +663,7 @@ __ina_signal_handler(int sig)
             break;
 #endif
         default:
-            INA_TRACE("Unknown signal %d received!", sig);
+            INA_TRACE(inac.lib, "Unknown signal %d received!", sig);
             abort();
     }
     sh = __signal_handler_map[isig];
@@ -678,7 +671,7 @@ __ina_signal_handler(int sig)
     if (sh) {
         sh(isig, &sb, &exitcode);
     }
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     WaitForSingleObject(__main_thread, INFINITE);
 #endif
 
@@ -697,7 +690,7 @@ __ina_signal_handler(int sig)
             break;
         case SIGTERM:
         case SIGINT:
-#ifndef INA_OS_WIN32
+#ifndef INA_OS_WINDOWS
         case SIGTTOU:
         case SIGTTIN:
         case SIGHUP:
@@ -715,7 +708,7 @@ __ina_signal_handler(int sig)
 
 void __ina_signal(int sig, void (*handler)(int))
 {
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
     signal(sig, handler);
 #else
     struct sigaction sa;
@@ -726,7 +719,7 @@ void __ina_signal(int sig, void (*handler)(int))
 #endif
 }
 
-#ifdef INA_OS_WIN32
+#ifdef INA_OS_WINDOWS
 static LONG WINAPI __ina_windows_exception_handler(EXCEPTION_POINTERS *exception_ptr)
 {
     switch (exception_ptr->ExceptionRecord->ExceptionCode) {

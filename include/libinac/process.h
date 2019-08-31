@@ -237,8 +237,8 @@ INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process,
  * Return
  *  INA_SUCCESS
  */
-INA_API(ina_rc_t) ina_process_stat_new(ina_process_stat_t **stat,
-                                       const char *binary);
+INA_API(ina_rc_t) ina_process_stat_new(const char *binary,
+                                       ina_process_stat_t **stat);
 
 /*
  * Query process status. Query alive state, command line , memory usage and
