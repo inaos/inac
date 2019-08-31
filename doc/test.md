@@ -2,7 +2,7 @@
 
 ### Tracing
 
-Tracing feature can be enabled an disabled by combiler time settings 
+Tracing feature can be enabled an disabled by compile time settings 
 `INA_TRACE_ENABLED`.  Also the tracing level can be define at compile time. 
 The library know about 3 tracing levels. Trace messages are ended by a 
 newline "\n" 
