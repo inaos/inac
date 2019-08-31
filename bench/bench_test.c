@@ -14,12 +14,14 @@ INA_BENCH_DATA(test1) {
 
 INA_BENCH_SETUP(test1)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_SETUP");
     INA_BENCH_INIT("scale", 0, 10, 10);
 }
 
 INA_BENCH_SCALE(test1)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("INA_BENCH_SCALE(%d)", ina_bench_get_repetition());
     ina_bench_set_scale(ina_bench_get_repetition());
 }
@@ -38,6 +40,7 @@ INA_BENCH(test1, series1)
 
 INA_BENCH_END(test1, series1)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_END");
 
 }
@@ -56,6 +59,7 @@ INA_BENCH(test1, series2)
 
 INA_BENCH_END(test1, series2)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_END");
 
 }
@@ -63,6 +67,7 @@ INA_BENCH_END(test1, series2)
 
 INA_BENCH_TEARDOWN(test1)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_TEARDOWN");
 
 }
@@ -73,12 +78,14 @@ INA_BENCH_DATA(test2) {
 
 INA_BENCH_SETUP(test2)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_SETUP");
     INA_BENCH_INIT("scale", 0, 10, 10);
 }
 
 INA_BENCH_SCALE(test2)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("INA_BENCH_SCALE(%d)", ina_bench_get_repetition());
     ina_bench_set_scale(ina_bench_get_repetition());
 }
@@ -98,6 +105,7 @@ INA_BENCH(test2, series1)
 
 INA_BENCH_END(test2, series1)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_END");
 
 }
@@ -116,6 +124,7 @@ INA_BENCH(test2, series2)
 
 INA_BENCH_END(test2, series2)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_END");
 
 }
@@ -123,6 +132,7 @@ INA_BENCH_END(test2, series2)
 
 INA_BENCH_TEARDOWN(test2)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_TEARDOWN");
 
 }
@@ -134,6 +144,7 @@ INA_BENCH_DATA(test_too_slow) {
 
 INA_BENCH_SETUP(test_too_slow)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_SETUP");
     INA_BENCH_INIT("scale", 0, 10, 10);
     ina_bench_set_max_duration(1.0);
@@ -141,6 +152,7 @@ INA_BENCH_SETUP(test_too_slow)
 
 INA_BENCH_SCALE(test_too_slow)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("INA_BENCH_SCALE(%d)", ina_bench_get_repetition());
     ina_bench_set_scale(ina_bench_get_repetition());
 }
@@ -160,6 +172,7 @@ INA_BENCH(test_too_slow, series_fast)
 
 INA_BENCH_END(test_too_slow, series_fast)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_END");
 
 }
@@ -180,12 +193,13 @@ INA_BENCH(test_too_slow, series_slow)
 
 INA_BENCH_END(test_too_slow, series_slow)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_END");
 }
 
 
 INA_BENCH_TEARDOWN(test_too_slow)
 {
+    INA_UNUSED(data);
     INA_BENCH_MSG("%s", "INA_BENCH_TEARDOWN");
-
 }
