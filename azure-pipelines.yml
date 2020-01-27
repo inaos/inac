@@ -13,10 +13,10 @@ strategy:
       imageName: 'ubuntu-16.04'
       BUILD_CONFIGURATION: RelWithDebInfo
     mac-debug:
-      imageName: 'macos-10.13'
+      imageName: 'macos-10.14'
       BUILD_CONFIGURATION: Debug
     mac-release:
-      imageName: 'macos-10.13'
+      imageName: 'macos-10.14'
       BUILD_CONFIGURATION: RelWithDebInfo
     windows-debug:
       imageName: 'vs2017-win2016'
