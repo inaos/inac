@@ -127,28 +127,40 @@ INA_TEST(test_assert, assert_false) {
 
 INA_TEST_WINDOWS(test_os, open_file) {
     INA_UNUSED(data);
+#ifdef INA_OS_WINDOWS
     INA_TEST_ASSERT_TRUE(1);
+#else 
+    INA_TEST_ASSERT_TRUE(0);
+#endif
 }
 INA_TEST_OSX(test_os, open_file) {
     INA_UNUSED(data);
+#ifdef INA_OS_OSX
     INA_TEST_ASSERT_TRUE(1);
+#else 
+    INA_TEST_ASSERT_TRUE(0);
+#endif
 }
 INA_TEST_LINUX(test_os, open_file) {
     INA_UNUSED(data);
+#ifdef INA_OS_LINUX
     INA_TEST_ASSERT_TRUE(1);
+#else 
+    INA_TEST_ASSERT_TRUE(0);
+#endif
 }
 
 INA_TEST_SKIP_WINDOWS(test_os, open_file_skip) {
     INA_UNUSED(data);
-    INA_TEST_ASSERT_TRUE(1);
+    INA_TEST_ASSERT_TRUE(0);
 }
 INA_TEST_SKIP_OSX(test_os, open_file_skip) {
     INA_UNUSED(data);
-    INA_TEST_ASSERT_TRUE(1);
+    INA_TEST_ASSERT_TRUE(0);
 }
 INA_TEST_SKIP_LINUX(test_os,  open_file_skip) {
     INA_UNUSED(data);
-    INA_TEST_ASSERT_TRUE(1);
+    INA_TEST_ASSERT_TRUE(0);
 }
 
 INA_TEST_DATA_WINDOWS(test_os_fixture) {
@@ -166,7 +178,11 @@ INA_TEST_TEARDOWN_WINDOWS(test_os_fixture) {
 
 INA_TEST_FIXTURE_WINDOWS(test_os_fixture, open_file) {
     INA_UNUSED(data);
+#ifdef INA_OS_WINDOWS
     INA_TEST_ASSERT_TRUE(1);
+#else 
+    INA_TEST_ASSERT_TRUE(0);
+#endif
 }
 
 INA_TEST_DATA_OSX(test_os_fixture) {
@@ -184,7 +200,11 @@ INA_TEST_TEARDOWN_OSX(test_os_fixture) {
 
 INA_TEST_FIXTURE_OSX(test_os_fixture, open_file) {
     INA_UNUSED(data);
+#ifdef INA_OS_OSX
     INA_TEST_ASSERT_TRUE(1);
+#else 
+    INA_TEST_ASSERT_TRUE(0);
+#endif
 }
 
 INA_TEST_DATA_LINUX(test_os_fixture) {
@@ -202,7 +222,11 @@ INA_TEST_TEARDOWN_LINUX(test_os_fixture) {
 
 INA_TEST_FIXTURE_LINUX(test_os_fixture, open_file) {
     INA_UNUSED(data);
+#ifdef INA_OS_LINUX
     INA_TEST_ASSERT_TRUE(1);
+#else 
+    INA_TEST_ASSERT_TRUE(0);
+#endif
 }
 
 INA_TEST_DATA_WINDOWS(test_os_fixture_skip) {
@@ -220,7 +244,7 @@ INA_TEST_TEARDOWN_WINDOWS(test_os_fixture_skip) {
 
 INA_TEST_FIXTURE_SKIP_WINDOWS(test_os_fixture_skip, open_file_skip) {
     INA_UNUSED(data);
-    INA_TEST_ASSERT_TRUE(1);
+    INA_TEST_ASSERT_TRUE(0);
 }
 
 INA_TEST_DATA_OSX(test_os_fixture_skip) {
@@ -238,7 +262,7 @@ INA_TEST_TEARDOWN_OSX(test_os_fixture_skip) {
 
 INA_TEST_FIXTURE_SKIP_OSX(test_os_fixture_skip, open_file_skip) {
     INA_UNUSED(data);
-    INA_TEST_ASSERT_TRUE(1);
+    INA_TEST_ASSERT_TRUE(0);
 }
 
 INA_TEST_DATA_LINUX(test_os_fixture_skip) {
@@ -247,7 +271,7 @@ INA_TEST_DATA_LINUX(test_os_fixture_skip) {
 };
 
 INA_TEST_SETUP_LINUX(test_os_fixture_skip) {
-    data->x += 1;
+    data->x = 2;
 }
 
 INA_TEST_TEARDOWN_LINUX(test_os_fixture_skip) {
@@ -256,7 +280,7 @@ INA_TEST_TEARDOWN_LINUX(test_os_fixture_skip) {
 
 INA_TEST_FIXTURE_SKIP_LINUX(test_os_fixture_skip, open_file_skip) {
     INA_UNUSED(data);
-    INA_TEST_ASSERT_TRUE(1);
+    INA_TEST_ASSERT_TRUE(0);
 }
 
 
