@@ -97,13 +97,22 @@ To skip existing test use the _SKIP version of `INA_TEST` or `INA_TEST_FIXTURE`.
 
 To declare tests only run on windows platform
 
-    INA_TEST_WIN32(my_suite, my_test) {
+    INA_TEST_WINDOWS(my_suite, my_test) {
         ...
     }
     
 To declare tests fixtures run only on windows platform
-   
-    INA_TEST_FIXTURE_WIN32(my_suite, my_test) {
+    
+    INA_TEST_DATA_WINDOWS(my_suite) {
+        int counter;
+    };
+    INA_TEST_SETUP_WINDOWS(my_suite) {
+        data->counter = 0;
+    }
+    INA_TEST_TEARDOWN_WINDOWS(my_suite) {
+        data->counter = 0;
+    }
+    INA_TEST_FIXTURE_WINDOWS(my_suite, my_test) {
        ...
     }
     
@@ -115,6 +124,15 @@ To declare tests only run on linux platform
     
 To declare tests fixtures only run on linux platform
 
+    INA_TEST_DATA_LINUX(my_suite) {
+        int counter;
+    };
+    INA_TEST_SETUP_LINUX(my_suite) {
+        data->counter = 0;
+    }
+    INA_TEST_TEARDOWN_LINUX(my_suite) {
+        data->counter = 0;
+    }
     INA_TEST_FIXTURE_LINUX(my_suite, my_test) {
        ...
     }
@@ -127,6 +145,15 @@ To declare tests only run on OSX platform
     
 To declare tests fixtures only run on OSX platform
 
+    INA_TEST_DATA_OSX(my_suite) {
+        int counter;
+    };
+    INA_TEST_SETUP_OSX(my_suite) {
+        data->counter = 0;
+    }
+    INA_TEST_TEARDOWN_OSX(my_suite) {
+        data->counter = 0;
+    }
     INA_TEST_FIXTURE_OSX(my_suite, my_test) {
        ...
     }
