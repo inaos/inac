@@ -1006,8 +1006,7 @@ typedef uint_least32_t uint_fast32_t;
 #define INA_HIGH(x)      ((uint8_t)(((uint16_t)(x)) >> 8))
 #define INA_TOWORD(x,y)  (((x) << 8) | y)
            
-           
-#ifdef INA_OS_WINDOWS
+#if defined(INA_OS_WINDOWS) && !defined(INA_OS_WINDOWS_SKIP_POSIX_TIME_DEFS)
 struct timezone {
      int  tz_minuteswest; /* minutes W of Greenwich */
      int  tz_dsttime;     /* type of dst correction */

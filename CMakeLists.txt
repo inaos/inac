@@ -7,7 +7,7 @@
 # license agreement you entered into with INAOS GmbH.
 #
 cmake_minimum_required(VERSION 3.7)
-project(inac VERSION 1.0.6)
+project(inac VERSION 1.0.7)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
 inac_enable_aes()
@@ -63,7 +63,11 @@ set_target_properties(
 
 inac_add_contrib_lib_ex_win32(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND src/msvcbuild.bat COMMAND_ARGS static LIBNAME lua51 BUILD_TYPES MinSizeRel Release RelWithDebInfo)
 inac_add_contrib_lib_ex_win32(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND src/msvcbuild_debug.bat COMMAND_ARGS static LIBNAME lua51d BUILD_TYPES  Debug)
+if (APPLE)
+inac_add_contrib_lib_ex_unix(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND_ARGS MACOSX_DEPLOYMENT_TARGET=10.14 amalg)
+else(APPLE)
 inac_add_contrib_lib_ex_unix(luajit DEPENDS inac_c SOURCE_ROOT /src COMMAND_ARGS amalg)
+endif(APPLE)
 inac_add_contrib_lib_ex_unix(memhash DEPENDS inac_c OMIT_PREFIX)
 inac_add_contrib_lib_ex_win32(memhash DEPENDS inac_c COMMAND memhash_64.bat ARCH x86_64)
 inac_add_contrib_lib_ex_win32(memhash DEPENDS inac_c COMMAND memhash_32.bat ARCH x86)
