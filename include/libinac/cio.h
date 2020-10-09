@@ -15,6 +15,7 @@ extern "C" {
 /*
  * # Console Input/Output
  *
+ * ## Section1
  * INAC CIO provides minimalistic API which allows the programmer to write
  * text-based user interfaces. It is based on a very simple abstraction.
  * The main idea is viewing terminals as a table of fixed-size cells and input
