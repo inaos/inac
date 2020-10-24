@@ -1,3 +1,19 @@
+#
+# Copyright 2018-2020 INAOS GmbH, Thalwil
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 trigger:
 - develop
 
@@ -13,22 +29,34 @@ strategy:
       imageName: 'ubuntu-16.04'
       BUILD_CONFIGURATION: RelWithDebInfo
     mac-debug:
-      imageName: 'macos-10.13'
+      imageName: 'macos-10.14'
       BUILD_CONFIGURATION: Debug
     mac-release:
-      imageName: 'macos-10.13'
+      imageName: 'macos-10.14'
       BUILD_CONFIGURATION: RelWithDebInfo
-    windows-debug:
+    windows-vs17-debug:
       imageName: 'vs2017-win2016'
       BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86_64
       VSINSTALL: "Microsoft Visual Studio\\2017\\Enterprise\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
-    windows-release:
+    windows-vs17-release:
       imageName: 'vs2017-win2016'
       BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86_64
       VSINSTALL: "Microsoft Visual Studio\\2017\\Enterprise\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+    windows-vs19-debug:
+      imageName: 'windows-2019'
+      BUILD_CONFIGURATION: Debug
+      BUILD_ARCH: x86_64
+      VSINSTALL: "Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+    windows-vs19-release:
+      imageName: 'windows-2019'
+      BUILD_CONFIGURATION: RelWithDebInfo
+      BUILD_ARCH: x86_64
+      VSINSTALL: "Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
 
 pool:
