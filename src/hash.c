@@ -18,7 +18,9 @@
 
 #include <contribs/xxhash/xxhash.h>
 #include <contribs/falkhash/falkhash.h>
+#ifndef INA_OS_OSX
 #include <contribs/memhash/memhash.h>
+#endif
 #include <contribs/t1ha/t1ha.h>
 
 /* intrinsics */
@@ -1197,6 +1199,7 @@ INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t siz
     return crc;
 }
 
+#ifndef INA_OS_OSX
 INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t size)
 {
     uint64_t h;
@@ -1211,6 +1214,7 @@ INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t si
     INA_ASSERT_NOT_NULL(data);
     return memhash(data, size, hash);
 }
+#endif
 
 INA_API(uint32_t) ina_hash_32_falkhash(uint32_t hash, const void *data, size_t size)
 {

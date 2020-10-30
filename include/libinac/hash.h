@@ -41,7 +41,9 @@ typedef enum ina_hash_type_e {
     INA_HASH32_SPOOKY,
     INA_HASH32_XXHASH,
     INA_HASH32_CRC_HW,
+#ifndef INA_OS_OSX
     INA_HASH32_MEMMASH,
+#endif
     INA_HASH32_FALKHASH,
     INA_HASH32_T1HA0,
     INA_HASH32_T1HA1,
@@ -51,7 +53,9 @@ typedef enum ina_hash_type_e {
     INA_HASH64_SPOOKY,
     INA_HASH64_XXHASH,
     INA_HASH64_CRC_HW,
+#ifndef INA_OS_OSX
     INA_HASH64_MEMMASH,
+#endif
     INA_HASH64_FALKHASH,
     INA_HASH64_T1HA0,
     INA_HASH64_T1HA1
@@ -455,6 +459,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t size);
+#ifndef INA_OS_OSX
 /*
  * Calculate 32bit Jesse W. Towner's memhash, adopted from 64bit version
  *
@@ -483,6 +488,7 @@ INA_API(uint32_t) ina_hash_32_memhash(uint32_t hash, const void *data, size_t si
  *  Hash
  */
 INA_API(uint64_t) ina_hash_64_memhash(uint64_t hash, const void *data, size_t size);
+#endif
 /*
  * Calculate 32bit falkhash
  *
