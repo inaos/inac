@@ -302,10 +302,12 @@ static void __ina_hash_test_init32(int has_aes_support)
     __hash32_all[10].test1_expected = 1;
     __hash32_all[10].test2_expected = 1;
 
+#ifndef INA_OS_OSX
     __hash32_all[11].hash = ina_hash_32_memhash;
     __hash32_all[11].name = ina_str_new_fromcstr("memhash");
     __hash32_all[11].test1_expected = 1;
     __hash32_all[11].test2_expected = 1;
+#endif
 
     if (has_aes_support) {
         __hash32_all[12].hash = ina_hash_32_falkhash;
@@ -373,8 +375,10 @@ static void __ina_hash_test_init64(int has_aes_support)
     __hash64_all[4].hash = ina_hash_64_crc_hw;
     __hash64_all[4].name = ina_str_new_fromcstr("crc_hw");
 
+#ifndef INA_OS_OSX
     __hash64_all[5].hash = ina_hash_64_memhash;
     __hash64_all[5].name = ina_str_new_fromcstr("memhash");
+#endif
 
     if (has_aes_support) {
         __hash64_all[6].hash = ina_hash_64_falkhash;
