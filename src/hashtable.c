@@ -295,7 +295,7 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 			(*ht)->hash32_fn = ina_hash_32_fnv_yoshimitsu;
 			break;
 		case INA_HASH32_MURMUR3:
-			(*ht)->hash32_fn = ina_hash_32_memhash;
+			(*ht)->hash32_fn = ina_hash_32_murmur3;
 			break;
 		case INA_HASH32_SPOOKY:
 			(*ht)->hash32_fn = ina_hash_32_spooky;
@@ -306,9 +306,11 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 		case INA_HASH32_CRC_HW:
 			(*ht)->hash32_fn = ina_hash_32_crc_hw;
 			break;
+#ifndef INA_OS_OSX
 		case INA_HASH32_MEMMASH:
 			(*ht)->hash32_fn = ina_hash_32_memhash;
 			break;
+#endif
 		case INA_HASH32_FALKHASH:
 			(*ht)->hash32_fn = ina_hash_32_falkhash;
 			break;
@@ -334,9 +336,11 @@ INA_API(ina_rc_t) ina_hashtable_new(ina_hashtable_key_type_t key_type,
 		case INA_HASH64_CRC_HW:
 			(*ht)->hash64_fn = ina_hash_64_crc_hw;
 			break;
+#ifndef INA_OS_OSX
 		case INA_HASH64_MEMMASH:
 			(*ht)->hash64_fn = ina_hash_64_memhash;
 			break;
+#endif
 		case INA_HASH64_FALKHASH:
 			(*ht)->hash64_fn = ina_hash_64_falkhash;
 			break;
