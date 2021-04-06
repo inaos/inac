@@ -109,5 +109,19 @@ inac_post_copy_file_win32(tests tests.conf DEST tests.exe.conf)
 install(TARGETS inac
 		DESTINATION lib
 		COMPONENT libraries)
+		
+# Also package luajit		
+if(WIN32)
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(LUAJIT_EXE "luajitd.exe")
+	else()
+		set(LUAJIT_EXE "luajit.exe")
+	endif()
+else()
+	set(LUAJIT_EXE "luajit")
+endif()		
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/${LUAJIT_EXE}
+        DESTINATION bin)
+
 
 inac_package()
