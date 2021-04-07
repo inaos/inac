@@ -340,7 +340,7 @@ function(inac_add_contrib_lib_ex TARGET)
         set(LIB_URL ${CMAKE_SOURCE_DIR}/contribs/${TARGET})
     endif()
 
-    if(NOT "${LIB_COMMAND_ARGS}")
+    if(NOT LIB_COMMAND_ARGS)
         ExternalProject_Add(${TARGET}-external
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
             CONFIGURE_COMMAND "${LIB_CONFIGURE}"
