@@ -344,7 +344,7 @@ function(inac_add_contrib_lib_ex TARGET)
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
             CONFIGURE_COMMAND "${LIB_CONFIGURE}"
             URL ${LIB_URL}
-            BUILD_COMMAND "${LIB_COMMAND}" "${LIB_COMMAND_ARGS}"
+            BUILD_COMMAND "${LIB_COMMAND}"
             BUILD_IN_SOURCE 1
             INSTALL_COMMAND ""
             )
@@ -377,7 +377,7 @@ function(inac_add_contrib_lib_ex TARGET)
     list(APPEND INAC_LIBS_LIST  ${TARGET})
     set(INAC_LIBS "${INAC_LIBS_LIST}" PARENT_SCOPE)
     include_directories(${LIB_DIR})
-    message(STATUS "Added external contrib lib ${TARGET} ${LIB_COMMAND} ${LIB_COMMAND_ARGS}")
+    message(STATUS "Added external contrib lib ${TARGET} ${LIB_COMMAND}")
 endfunction()
 
 macro(inac_add_contrib_lib_ex_win32 TARGET)
