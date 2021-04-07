@@ -120,7 +120,7 @@ if(WIN32)
 else()
 	set(LUAJIT_EXE "luajit")
 endif()		
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/${LUAJIT_EXE}
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/${LUAJIT_EXE}
         DESTINATION bin)
 
 
