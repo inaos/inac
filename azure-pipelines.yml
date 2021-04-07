@@ -80,7 +80,7 @@ steps:
         mkdir cmake-build-$BUILD_CONFIGURATION
         cd cmake-build-$BUILD_CONFIGURATION
         cmake ../ -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION
-        make -j VERBOSE=1
+        make VERBOSE=1
     fi
   displayName: Compile
   env:
