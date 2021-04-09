@@ -122,6 +122,8 @@ else()
 endif()		
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/${LUAJIT_EXE}
         DESTINATION bin)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/jit
+        DESTINATION bin)
 
 
 inac_package()
