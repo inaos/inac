@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 cmake_minimum_required(VERSION 3.7)
-project(inac VERSION 1.0.11)
+project(inac VERSION 1.0.12)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
 inac_enable_aes()
@@ -121,6 +121,8 @@ else()
 	set(LUAJIT_EXE "luajit")
 endif()		
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/${LUAJIT_EXE}
+        DESTINATION bin)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/jit
         DESTINATION bin)
 
 
