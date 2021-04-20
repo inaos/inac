@@ -59,7 +59,8 @@ inac_add_contribs_headers(
 		luajit/src/luaconf.h
 		luajit/src/luajit.h
 		luajit/src/lauxlib.h
-		luajit/src/lualib.h)
+		luajit/src/lualib.h
+		miniz/miniz.h)
 
 file(GLOB src ${SRC_DIR}/*.c)
 add_library(inac_c ${src})
