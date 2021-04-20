@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 cmake_minimum_required(VERSION 3.7)
-project(inac VERSION 1.0.12)
+project(inac VERSION 1.0.13)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
 inac_enable_aes()
@@ -59,7 +59,8 @@ inac_add_contribs_headers(
 		luajit/src/luaconf.h
 		luajit/src/luajit.h
 		luajit/src/lauxlib.h
-		luajit/src/lualib.h)
+		luajit/src/lualib.h
+		miniz/miniz.h)
 
 file(GLOB src ${SRC_DIR}/*.c)
 add_library(inac_c ${src})
