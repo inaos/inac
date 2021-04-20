@@ -600,6 +600,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #define INA_FAIL_IF(cond) do { if ((cond)) goto fail; } while(0)
 #define INA_FAIL_IF_ERROR(rc) INA_FAIL_IF(INA_FAILED((rc)))
 
+#define INA_ERR_LAST_ERROR ina_err_get_rc()
+
 /* Set global RC */
 #define INA_ERROR(x) ina_err_set_rc(INA_RC_PACK((x), 0))
 /* Set global RC and capture errno */
