@@ -33,7 +33,7 @@ static size_t      __errorsize;
 static char*       __errormsg;
 static char        __errorbuffer[__INA_MSG_SIZE];
 static jmp_buf     __err;
-static const char* __suite_name;
+static const char* __filter;
 static const char* __helper_name;
 static const char* __binpath;
 static int         __last_signal = 0;
@@ -46,13 +46,38 @@ static int __ina_suite_all(ina_test_testcase_t* t) {
     return t->is_helper == 0;
 }
 
-static int __ina_suite_filter(ina_test_testcase_t* t) { 
-    return (strncmp(__suite_name, t->suite_name, strlen(__suite_name)) == 0) &&
-        t->is_helper == 0;
+static int __ina_suite_filter(ina_test_testcase_t* t) {
+    /* skip helpers*/
+    if (t->is_helper != 0) {
+        return 0;
+    }
+
+    /* check if we have any separator/terminator */
+    const char* sep = strchr(__filter, ':');
+
+    /* if no separator(s), just match the suite name */
+    if (sep == NULL) {
+        return (strncmp(__filter, t->suite_name, strlen(__filter)) == 0);
+    }
+    size_t len = sep - __filter;
+
+    /* if only one separator match suite exact */
+    if (strncmp(__filter, t->suite_name, len) == 0) {
+        const char* sep2 = strchr(++sep, ':');
+        if (strlen(__filter) > len+1) {
+            if (sep2 == NULL) {
+                return strncmp(t->test_name, sep, strlen(sep)) == 0;
+            } else {
+                return strncmp(t->test_name, sep, strlen(t->test_name)) == 0;
+            }
+        }
+        return 1;
+    }
+    return 0;
 }
 
 static int __ina_helper_filter(ina_test_testcase_t* t) { 
-    return (strncmp(__suite_name, t->suite_name, strlen(__suite_name)) == 0) &&
+    return (strncmp(__filter, t->suite_name, strlen(__filter)) == 0) &&
         (strncmp(__helper_name, t->test_name, strlen(__helper_name)) == 0) &&
         t->is_helper == 1;
 }
@@ -476,7 +501,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
     if (argc < 3) {
         return retval;
     }
-    __suite_name = argv[2];
+    __filter = argv[2];
     __helper_name = argv[3];
     filter = __ina_helper_filter;
  
@@ -535,17 +560,17 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
         if (strcmp(argv[1], "--format=tap")==0) {
             __tap = INA_YES;
             if (argc > 2) {
-                __suite_name = argv[2];
+                __filter = argv[2];
                 filter = __ina_suite_filter;
             }
         }else if (strcmp(argv[1], "--format=junit")==0) {
             __junit = INA_YES;
             if (argc > 2) {
-                __suite_name = argv[2];
+                __filter = argv[2];
                 filter = __ina_suite_filter;
             }
         } else {
-            __suite_name = argv[1];
+            __filter = argv[1];
             filter = __ina_suite_filter;
         }
     }

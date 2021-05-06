@@ -2,8 +2,8 @@
 
 ### Tracing
 
-Tracing feature can be enabled an disabled by compile time settings 
-`INA_TRACE_ENABLED`.  Also the tracing level can be define at compile time. 
+Tracing feature can be enabled and disabled by compile time settings 
+`INA_TRACE_ENABLED`.  Also the tracing level can be defined at compile time. 
 The library know about 3 tracing levels. Trace messages are ended by a 
 newline "\n" 
 
@@ -24,8 +24,8 @@ messages having var args.
 
 ### Unit testing
 
-INAC provides a built-in test framework. This framework is almost independent 
-from the library itself. 
+INAC provides a built-in test framework. This framework is almost independent of 
+the library itself. 
 
 #### Features  
 
@@ -95,13 +95,13 @@ To skip existing test use the _SKIP version of `INA_TEST` or `INA_TEST_FIXTURE`.
 
 #### Conditional Platform test
 
-To declare tests only run on windows platform
+To declare tests only run on Windows platform
 
     INA_TEST_WINDOWS(my_suite, my_test) {
         ...
     }
     
-To declare tests fixtures run only on windows platform
+To declare tests fixtures run only on Windows platform
     
     INA_TEST_DATA_WINDOWS(my_suite) {
         int counter;
@@ -167,11 +167,32 @@ arguments received from the command line.
     { 
         ina_test_run(argc, argv);
 
-From the command line prompt you can start all tests or a single suite
+From the command line prompt you can start all tests, a single suite, multiple
+suites, a single test or multiple tests of a test suite
+
+Run everything.
 
     ./test
+
+Run all tests of test suites starting with `test_suite`.
+
     ./test test_suite
-    
+
+Run all tests of `test_suite`. Use `:` terminator for suite name
+
+    ./test test_suite:
+
+Run all tests matching `my_test_` of a test suite. Use `:` separator for suite
+name
+
+    ./test test_suite:my_tests_
+
+Run a specific test of a test suite, use `:` separator for suite name and
+`:` terminator for test name.
+
+    ./test test_suite:my_tests:
+
+
 You can choose alternative result formats like `tap` or `JUnit` with the 
 `format` options.
 
