@@ -157,7 +157,14 @@ To declare tests fixtures only run on OSX platform
     INA_TEST_FIXTURE_OSX(my_suite, my_test) {
        ...
     }
-    
+
+#### How to print messages
+Use `INA_TEST_MSG` to printout formatted messages. Messages are printed after 
+the test result. If the size of messages for a test exceed the 16K limit 
+, the message will be replaced by `...` .
+
+    INA_TEST_MSG("Buffer size is %d", data->buffer_size);
+
 #### How to run the test suites
 
 To run the tests simply call `ina_test_run()` by passing arguments count and 

@@ -25,7 +25,9 @@
 #define snprintf sprintf_s
 #endif
 
-#define __INA_MSG_SIZE 4096
+#define __INA_MSG_SIZE (4096*4)
+
+#define __INA_CHECK_MSGBUF(required) ((__INA_MSG_SIZE)-__errorsize-required > 8))
 
 typedef int (*ina_test_filter_fn_t)(ina_test_testcase_t*);
 
@@ -105,11 +107,15 @@ static void __ina_signal_handler(int sig) {
     longjmp(__err, 1);
 }
 
-INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
- {
-     int size = 0;
-     va_list argp;
-     
+INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...) {
+    int size = 0;
+    va_list argp;
+
+
+    /* at least 48 chars for junit output  + ... */
+    if (__errorsize < 48) {
+        return INA_ERROR(INA_ES_BUFFER | INA_ERR_TOO_SMALL);
+    }
 
     if (!__tap && !__junit) {
         if (is_error != INA_YES) {
@@ -121,20 +127,33 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
         size = snprintf(__errormsg, __errorsize, "%s", "# ");
     } else if (__junit) {
         if (is_error) {
-            size = snprintf(__errormsg, __errorsize, "%s", "\t\t\t<failure message=\"");
+            size = snprintf(__errormsg, __errorsize, "%s",
+                            "\t\t\t<failure message=\"");
         } else {
-            size = snprintf(__errormsg, __errorsize, "%s", "\t\t\t<system-out>");
+            size = snprintf(__errormsg, __errorsize, "%s",
+                            "\t\t\t<system-out>");
         }
     }
- 
+    if (size < 0) {
+        return INA_ERR_OPERATION_FAILED;
+    }
+
     __errorsize -= size;
     __errormsg += size;
-    
-     va_start(argp, fmt);
-     size = vsnprintf(__errormsg, __errorsize, fmt, argp);
-     va_end(argp); 
-     __errorsize -= size;
-     __errormsg += size;
+
+    va_start(argp, fmt);
+    size = vsnprintf(__errormsg, __errorsize, fmt, argp);
+    va_end(argp);
+
+    /* output ... if output was not truncated or error occurred */
+    if (size < 0 || (size_t)size >= __errorsize) {
+        size = snprintf(__errormsg, __errorsize, "%s", "...");
+        if (size < 0) {
+            return INA_ERR_OPERATION_FAILED;
+        }
+    }
+    __errorsize -= size;
+    __errormsg += size;
 
      if (!__junit) {
          size = snprintf(__errormsg, __errorsize, "%s", "\n");
@@ -144,6 +163,10 @@ INA_API(ina_rc_t) ina_test_msg(int is_error, const char *fmt, ...)
          } else {
              size = snprintf(__errormsg, __errorsize, "%s", "</system-out>\n");
          }
+     }
+
+     if (size < 0 || (size_t)size >= __errorsize) {
+        return INA_ERR_OPERATION_FAILED;
      }
      __errorsize -= size;
      __errormsg += size;
