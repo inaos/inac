@@ -27,8 +27,6 @@
 
 #define __INA_MSG_SIZE (4096*4)
 
-#define __INA_CHECK_MSGBUF(required) ((__INA_MSG_SIZE)-__errorsize-required > 8))
-
 typedef int (*ina_test_filter_fn_t)(ina_test_testcase_t*);
 
 static size_t      __errorsize;
