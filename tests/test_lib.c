@@ -125,17 +125,32 @@ INA_TEST(lib, set_signal_handler)
 INA_TEST(lib, min)
 {
     INA_UNUSED(data);
-
+    int a=2,b=3;
+    double c=2,d=3;
     INA_TEST_ASSERT_EQUAL_INT(3, INA_MAX(2,3));
     INA_TEST_ASSERT_EQUAL_INT(3, INA_MAX(3,2));
+    INA_TEST_ASSERT_EQUAL_INT(3, INA_MAX(a, b));
+    INA_TEST_ASSERT_EQUAL_INT(3, INA_MAX(c, d));
+
+    a=1;
+    b=1;
+    INA_TEST_ASSERT_EQUAL_INT(2, INA_MAX(1,++b));
 }
 
 INA_TEST(lib, max)
 {
     INA_UNUSED(data);
 
+    int a=2,b=3;
+    double c=2,d=3;
     INA_TEST_ASSERT_EQUAL_INT(2, INA_MIN(2,3));
     INA_TEST_ASSERT_EQUAL_INT(2, INA_MIN(3,2));
+    INA_TEST_ASSERT_EQUAL_INT(2, INA_MIN(a, b));
+    INA_TEST_ASSERT_EQUAL_INT(2, INA_MIN(c, d));
+
+    a=1;
+    b=1;
+    INA_TEST_ASSERT_EQUAL_INT(1, INA_MIN(1,++b));
 }
 
 INA_TEST(lib, high_low_toword) 
