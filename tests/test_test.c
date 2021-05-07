@@ -40,6 +40,15 @@ INA_TEST_SKIP(test, handle_sigfault) {
     ina_time_tsc_t *t = NULL;
     t->ref = 0;
 }
+
+INA_TEST_FIXTURE(test, errmsg_too_big) {
+    char buf[17*1024];
+    ina_mem_set(&buf[0], 'A', 17*1024);
+    buf[17*1024-1] = 0;
+    INA_TEST_ASSERT_SUCCEED(INA_TEST_MSG("%s", buf));
+    INA_TEST_ASSERT_SUCCEED(INA_TEST_MSG("%s", "OK"));
+}
+
 INA_TEST(test_assert, assert_equal_str) {
     INA_UNUSED(data);
     INA_TEST_ASSERT_EQUAL_STR("test", "test");
