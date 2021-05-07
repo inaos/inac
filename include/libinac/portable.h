@@ -992,9 +992,6 @@ typedef uint_least32_t uint_fast32_t;
 
 #ifndef INA_OS_WINDOWS
 #define INA_UNIQUE_VAR(v, prefix) __typeof(v) INA_CAT(u##prefix, __LINE__)
-#else
-#define INA_UNIQUE_VAR(v, prefix) decltype(v) INA_CAT(u##prefix, __LINE__)
-#endif
 #define INA_MAX(a,b) \
    ({ INA_UNIQUE_VAR(a, _a) = (a); \
        INA_UNIQUE_VAR(b, _b) = (b); \
@@ -1004,6 +1001,10 @@ typedef uint_least32_t uint_fast32_t;
    ({ INA_UNIQUE_VAR(a, _a) = (a); \
        INA_UNIQUE_VAR(b, _b) = (b); \
        INA_CAT(u##_a, __LINE__) < INA_CAT(u##_b, __LINE__) ? INA_CAT(u##_a, __LINE__) : INA_CAT(u##_b, __LINE__); })
+#else
+#define INA_MAX(a,b) max(a,b)
+#define INA_MIN(a,b) min(a,b)
+#endif
 
 #ifdef INA_CPU_X86_64
 #define INA_LOW32(x)       ((uint32_t)(x))
