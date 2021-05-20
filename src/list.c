@@ -101,7 +101,6 @@ INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list)
     return INA_SUCCESS;
 }
 
-#ifdef _LIBINAC_HASHTABLE_H_
 INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list)
 {
     size_t count;
@@ -113,7 +112,6 @@ INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **
     }
     return ina_err_get_rc();
 }
-#endif
 
 INA_API(void) ina_list_free(ina_list_t **list)
 {

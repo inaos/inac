@@ -294,18 +294,12 @@ INA_API(ina_rc_t) ina_init(void)
     /* Set unhandled exception handler for windows */
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
-    /*INA_RETURN_IF_FAILED(ina_mempool_init());*/
 
-#ifdef _LIBINAC_HASHTABLE_H_
     /* initialise hashtable */
     INA_RETURN_IF_FAILED(ina_hashtable_init("hashtable.conf"));
-#endif
 
-#ifdef _LIBINAC_CIO_H_
     /* initialise console */
     INA_RETURN_IF_FAILED(ina_cio_init());
-#endif
-
 
 #ifdef INA_OS_WINDOWS
     /* Make sure to use high-accuracy multimedia-timers for windows */
@@ -317,10 +311,8 @@ INA_API(ina_rc_t) ina_init(void)
     }
 #endif
 
-#ifdef _LIBINAC_CPU_H_
     /* initialise CPU module */
     INA_RETURN_IF_FAILED(ina_cpu_init());
-#endif
 
     return INA_SUCCESS;
 }
@@ -356,12 +348,10 @@ INA_API(void) ina_exit(void)
     ina_str_free(__appname);
     ina_str_free(__apppath);
 
-#ifdef _LIBINAC_HASHTABLE_H_
     ina_hashtable_destroy();
-#endif
-#ifdef _LIBINAC_LOG_H_
+
     ina_log_destroy();
-#endif
+
     /*ina_mempool_destroy();*/
     ina_err_destroy();
 
