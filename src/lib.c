@@ -327,14 +327,10 @@ INA_API(void) ina_exit(void)
     }
 
     /* Reset CIO attributes */
-#ifdef _LIBINAC_CIO_H_
     ina_cio_reset();
-#endif
 
-#ifdef _LIBINAC_CPU_H_
     /* destroy cpu module */
     ina_cpu_destroy();
-#endif
 
     /* free allocated memory  */
     if (__lopt != NULL) {
@@ -349,10 +345,7 @@ INA_API(void) ina_exit(void)
     ina_str_free(__apppath);
 
     ina_hashtable_destroy();
-
     ina_log_destroy();
-
-    /*ina_mempool_destroy();*/
     ina_err_destroy();
 
 #ifdef INA_OS_WINDOWS
