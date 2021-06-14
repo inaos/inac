@@ -198,6 +198,17 @@ INA_API(ina_rc_t) ina_process_start(ina_process_t *process);
 INA_API(ina_rc_t) ina_process_stop(ina_process_t *process);
 
 /*
+ * Reset a process
+ *
+ * Parameters
+ *  process  Reset to process
+ *
+ * Return
+ *  INA_SUCCESS
+ */
+INA_API(ina_rc_t) ina_process_reset(ina_process_t *process);
+
+/*
  * Query current process state
  *
  * Parameters
