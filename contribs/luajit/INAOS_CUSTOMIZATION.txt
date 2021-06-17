@@ -27,8 +27,6 @@ change it back to link against the runtime as library
 
 3) For linux build, we made the following changes to the src/Makefile
 - For CCOPTIONS we replaced CFLAGS with LCFLAGS
-- For CCOPT_x86 we use -march=native 
-- For CCOPT_x64 we use -march=native
 
 
 4) For the SonarQube Scanner we added a workaround for the msvcbuild_debug.bat

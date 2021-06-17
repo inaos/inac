@@ -39,9 +39,7 @@ struct ina_list_node_s {
 
 INA_API(ina_rc_t) ina_list_new(uint32_t cf, ina_list_t **list);
 
-#ifdef _LIBINAC_HASHTABLE_H_
 INA_API(ina_rc_t) ina_list_new_from_hashtable(ina_hashtable_t *ht, ina_list_t **list);
-#endif
 
 INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max_recyclable_nodes);
 
