@@ -427,6 +427,16 @@ INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
         *value = NULL;
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
+    if (strncmp("$ENV:", so->value, strlen("$ENV:")) == 0) {
+        ina_str_t name = ina_str_substr(so->value, 5, ina_str_len(so->value)-1);
+        if (getenv(name) == NULL) {
+            ina_str_free(name);
+            return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
+        }
+        *value = ina_str_new_fromcstr(getenv(name));
+        ina_str_free(name);
+        return INA_SUCCESS;
+    }
     *value = ina_str_dup(so->value);
     return INA_SUCCESS;
 }
@@ -441,6 +451,18 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
     if (so == NULL) {
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
+    if (strncmp("$ENV:", so->value, strlen("$ENV:")) == 0) {
+        ina_str_t name = ina_str_substr(so->value, 5, ina_str_len(so->value)-1);
+        if (getenv(name) == NULL) {
+            ina_str_free(name);
+            return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
+        }
+        ina_str_free(name);
+        ina_str_t str_value = ina_str_new_fromcstr(getenv(name));
+        *value = atof(str_value);
+        ina_str_free(str_value);
+        return INA_SUCCESS;
+    }
     *value = (float)atof(so->value);
     return INA_SUCCESS;
 }
@@ -454,6 +476,18 @@ INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value)
     so = __ina_opt_get(opt);
     if (so == NULL) {
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
+    }
+    if (strncmp("$ENV:", so->value, strlen("$ENV:")) == 0) {
+        ina_str_t name = ina_str_substr(so->value, 5, ina_str_len(so->value)-1);
+        if (getenv(name) == NULL) {
+            ina_str_free(name);
+            return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
+        }
+        ina_str_free(name);
+        ina_str_t str_value = ina_str_new_fromcstr(getenv(name));
+        *value = atoi(str_value);
+        ina_str_free(str_value);
+        return INA_SUCCESS;
     }
     *value = atoi(so->value);
     return INA_SUCCESS;
