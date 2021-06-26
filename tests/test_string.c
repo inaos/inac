@@ -384,7 +384,7 @@ INA_TEST(string, ina_str_ncat)
 INA_TEST_FIXTURE(string_mempool, ina_str_ncat)
 {
     ina_str_t ref_str = NULL;
-    ina_str_t str = ina_str_new_using_pool(128, data->pool);
+    ina_str_t str = ina_str_new_using_pool(4, data->pool);
     ina_str_t part1 = ina_str_new_fromcstr_using_pool("part1x", data->pool);
     ina_str_t part2;
     ina_str_t part3;
@@ -419,11 +419,23 @@ INA_TEST_FIXTURE(string_mempool, ina_str_ncatcstr)
     ina_str_t str = ina_str_new_using_pool(128, data->pool);
     INA_UNUSED(data);
 
-    str = ina_str_ncat_using_pool(str, "part1x", 5, data->pool);
-    str = ina_str_ncat_using_pool(str, "part2x", 5, data->pool);
-    str = ina_str_ncat_using_pool(str, "part3x", 5, data->pool);
+    str = ina_str_ncatcstr_using_pool(str, "part1x", 5, data->pool);
+    str = ina_str_ncatcstr_using_pool(str, "part2x", 5, data->pool);
+    str = ina_str_ncatcstr_using_pool(str, "part3x", 5, data->pool);
     INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
 }
+
+INA_TEST_FIXTURE(string_mempool, ina_str_ncatcstr_realloc)
+{
+    ina_str_t str = ina_str_new_using_pool(10, data->pool);
+    INA_UNUSED(data);
+
+    str = ina_str_ncatcstr_using_pool(str, "part1x", 5, data->pool);
+    str = ina_str_ncatcstr_using_pool(str, "part2x", 5, data->pool);
+    str = ina_str_ncatcstr_using_pool(str, "part3x", 5, data->pool);
+    INA_TEST_ASSERT_TRUE(strcmp("part1part2part3", ina_str_cstr(str)) == 0);
+}
+
 
 INA_TEST(string, ina_str_append_chr)
 {
