@@ -117,6 +117,8 @@ static ina_rc_t __ina_write_to_buffer(__ina_target_t *target, ina_log_level_t le
         }
         fwrite(target->buffer, target->buffer_pos - target->buffer, 1, target->fp);
         target->buffer_pos = target->buffer;
+        fclose(target->fp);
+        target->fp = NULL;
     }
     ina_mem_cpy(target->buffer_pos, msg, strlen(msg));
     target->buffer_pos += strlen(msg);
