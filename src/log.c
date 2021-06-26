@@ -72,13 +72,11 @@ static ina_rc_t __ina_free_target(void *data)
             fflush(target->fp);
             break;
         case INA_LOG_FILE: {
-            if (target->fp) {
-                if (target->buffer != NULL && target->buffer != target->buffer_pos) {
-                    if (target->fp == NULL) {
-                        target->fp = fopen(target->filepath, "a");
-                    }
-                    fwrite(target->buffer, target->buffer_pos - target->buffer, 1, target->fp);
+            if (target->buffer != NULL && target->buffer != target->buffer_pos) {
+                if (target->fp == NULL) {
+                    target->fp = fopen(target->filepath, "a");
                 }
+                fwrite(target->buffer, target->buffer_pos - target->buffer, 1, target->fp);
                 fflush(target->fp);
                 fclose(target->fp);
             }
@@ -247,6 +245,8 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
                     } else {
                         t->open_mode = ina_str_new_fromcstr("a");
                     }
+                } else {
+                    t->open_mode = ina_str_new_fromcstr("a");
                 }
             }
         }
