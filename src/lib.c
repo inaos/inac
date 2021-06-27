@@ -152,14 +152,25 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
         while (opt->long_opt) {
             __ina_lopt_t *lo;
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
+            INA_RETURN_IF_NULL(so);
             INA_MEM_SET_ZERO(so, __ina_sopt_t);
             so->node.data = so;
-            if (so == NULL) {
-                return ina_err_get_rc();
-            }
             so->opt = ina_str_new_fromcstr(opt->short_opt);
             if (opt->dft != NULL) {
-                so->value = ina_str_new_fromcstr(opt->dft);
+                if (opt->type == INA_OPT_TYPE_STRING && strncmp("$ENV:", opt->dft, strlen("$ENV:")) == 0) {
+                    const char *name = &opt->dft[5];
+                    if (getenv(name) != NULL) {
+                        so->value = ina_str_new_fromcstr(getenv(name));
+                    }
+                } else if (opt->type != INA_OPT_TYPE_STRING && strncmp("\"$ENV:", opt->dft, strlen("\"$ENV:")) == 0) {
+                    ina_str_t name = ina_str_new_fromblk(&opt->dft[6], strlen(opt->dft)-7);
+                    if (getenv(name) != NULL) {
+                        so->value = ina_str_new_fromcstr(getenv(name));
+                    }
+                    ina_str_free(name);
+                } else {
+                    so->value = ina_str_new_fromcstr(opt->dft);
+                }
             }
             so->desc = ina_str_new_fromcstr(opt->desc);
             so->type = opt->type;
@@ -169,10 +180,8 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
             }
 
             lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
+            INA_RETURN_IF_NULL(lo);
             INA_MEM_SET_ZERO(lo, __ina_lopt_t);
-            if (lo == NULL) {
-                return ina_err_get_rc();
-            }
             lo->opt = ina_str_new_fromcstr(opt->long_opt);
             lo->short_opt = so;
             lo->node.data = lo;
@@ -240,6 +249,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                             }
                         } else {
                             strncpy(buf, &argv[n][vs], strlen(&argv[n][vs]));
+                            buf[strlen(&argv[n][vs])] = '\0';
                             ina_str_free(so->value);
                             so->value = ina_str_new_fromcstr(buf);
                         }
@@ -427,16 +437,6 @@ INA_API(ina_rc_t) ina_opt_get_string(const char *opt, ina_str_t *value)
         *value = NULL;
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
-    if (strncmp("$ENV:", so->value, strlen("$ENV:")) == 0) {
-        ina_str_t name = ina_str_substr(so->value, 5, ina_str_len(so->value)-1);
-        if (getenv(name) == NULL) {
-            ina_str_free(name);
-            return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
-        }
-        *value = ina_str_new_fromcstr(getenv(name));
-        ina_str_free(name);
-        return INA_SUCCESS;
-    }
     *value = ina_str_dup(so->value);
     return INA_SUCCESS;
 }
@@ -448,20 +448,8 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
     INA_VERIFY_NOT_NULL(value);
     *value = 0.0;
     so = __ina_opt_get(opt);
-    if (so == NULL) {
+    if (so == NULL || so->value == NULL) {
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
-    }
-    if (strncmp("$ENV:", so->value, strlen("$ENV:")) == 0) {
-        ina_str_t name = ina_str_substr(so->value, 5, ina_str_len(so->value)-1);
-        if (getenv(name) == NULL) {
-            ina_str_free(name);
-            return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
-        }
-        ina_str_free(name);
-        ina_str_t str_value = ina_str_new_fromcstr(getenv(name));
-        *value = atof(str_value);
-        ina_str_free(str_value);
-        return INA_SUCCESS;
     }
     *value = (float)atof(so->value);
     return INA_SUCCESS;
@@ -474,20 +462,8 @@ INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value)
     INA_VERIFY_NOT_NULL(value);
     *value = 0;
     so = __ina_opt_get(opt);
-    if (so == NULL) {
+    if (so == NULL || so->value == NULL) {
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
-    }
-    if (strncmp("$ENV:", so->value, strlen("$ENV:")) == 0) {
-        ina_str_t name = ina_str_substr(so->value, 5, ina_str_len(so->value)-1);
-        if (getenv(name) == NULL) {
-            ina_str_free(name);
-            return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
-        }
-        ina_str_free(name);
-        ina_str_t str_value = ina_str_new_fromcstr(getenv(name));
-        *value = atoi(str_value);
-        ina_str_free(str_value);
-        return INA_SUCCESS;
     }
     *value = atoi(so->value);
     return INA_SUCCESS;
