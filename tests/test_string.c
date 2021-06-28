@@ -478,7 +478,7 @@ INA_TEST(string, ina_str_size)
     INA_TEST_ASSERT_NOT_NULL(str);
     INA_TEST_ASSERT_EQUAL_SIZE_T(4, ina_str_size(str));
     str = ina_str_catcstr(str, "1234567890");
-    INA_TEST_ASSERT_EQUAL_SIZE_T(14, ina_str_size(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(27, ina_str_size(str));
     INA_TEST_ASSERT_EQUAL_STR("an 1234567890", ina_str_cstr(str));
     ina_str_free(str);
 }
