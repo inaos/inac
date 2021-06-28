@@ -340,7 +340,17 @@ function(inac_add_contrib_lib_ex TARGET)
         set(LIB_URL ${CMAKE_SOURCE_DIR}/contribs/${TARGET})
     endif()
 
-    ExternalProject_Add(${TARGET}-external
+    if(NOT LIB_COMMAND_ARGS)
+        ExternalProject_Add(${TARGET}-external
+            PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
+            CONFIGURE_COMMAND "${LIB_CONFIGURE}"
+            URL ${LIB_URL}
+            BUILD_COMMAND "${LIB_COMMAND}"
+            BUILD_IN_SOURCE 1
+            INSTALL_COMMAND ""
+            )
+    else()
+        ExternalProject_Add(${TARGET}-external
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
             CONFIGURE_COMMAND "${LIB_CONFIGURE}"
             URL ${LIB_URL}
@@ -348,6 +358,7 @@ function(inac_add_contrib_lib_ex TARGET)
             BUILD_IN_SOURCE 1
             INSTALL_COMMAND ""
             )
+    endif()
 
     if (NOT LIB_LIBNAME)
         set(LIBNAME ${TARGET})

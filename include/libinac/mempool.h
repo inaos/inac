@@ -55,18 +55,6 @@ typedef struct ina_mempool_info_s {
     size_t chunk_size; /* default chunks size */
 } ina_mempool_info_t;
 
-/*
- * Initialized memory pool module
- *
- * Return
- *  INA_SUCCESS if all went well
- */
-INA_API(ina_rc_t) ina_mempool_init(void);
-
-/*
- * Destroy memory pool module.
- */
-INA_API(void) ina_mempool_destroy(void);
 
 /*
  * Get runtime information about a memory pool.

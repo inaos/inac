@@ -99,7 +99,7 @@ INA_TEST(error, error_same_as_errmsg)
     INA_ERROR(INA_ERR_EMPTY);
     INA_TEST_ASSERT_EQUAL_INT(
             INA_RC_ERRMSG(ina_err_get_rc()),
-            INA_RC_ERROR(ina_err_get_rc()));
+            INA_RC_ERROR(INA_ERR_LAST_ERROR));
 
 }
 

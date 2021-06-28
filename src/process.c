@@ -215,6 +215,7 @@ INA_API(ina_rc_t) ina_process_descriptor_new(ina_process_ctx_t *ctx, const char 
 
     (*descriptor)->stop_wait_time_ms = stop_wait_time_ms;
     (*descriptor)->cf = cf;
+    (*descriptor)->c_ref = 0;
     return INA_SUCCESS;
 }
 
@@ -645,16 +646,24 @@ static void __ina_process_is_running(ina_process_t *process,
 
     *still_running = INA_NO;
 
+    if (-1 == kill(process->pid, 0)) {
+        if (errno == ESRCH) {
+            *still_running = INA_NO;
+        } else {
+            process->last_rc = INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
+            return;
+        }
+    }
+
     w = waitpid(process->pid, &status, WNOHANG);
     if (w == -1) {
-        if (errno != ECHILD) {
-            process->last_rc = INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
-        }
-    } else if (w > 0) {
+        process->last_rc = INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
+    } else if (w == 0) {
         *still_running = INA_YES;
     } else if (process->exit_code < 0) {
         if (WIFEXITED(status)) {
             process->exit_code = WEXITSTATUS(status);
+            process->last_rc = INA_SUCCESS;
         }
     }
 }

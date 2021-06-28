@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 cmake_minimum_required(VERSION 3.7)
-project(inac VERSION 1.0.11)
+project(inac VERSION 1.0.16)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
 inac_enable_aes()
@@ -59,7 +59,8 @@ inac_add_contribs_headers(
 		luajit/src/luaconf.h
 		luajit/src/luajit.h
 		luajit/src/lauxlib.h
-		luajit/src/lualib.h)
+		luajit/src/lualib.h
+		miniz/miniz.h)
 
 file(GLOB src ${SRC_DIR}/*.c)
 add_library(inac_c ${src})
@@ -109,5 +110,22 @@ inac_post_copy_file_win32(tests tests.conf DEST tests.exe.conf)
 install(TARGETS inac
 		DESTINATION lib
 		COMPONENT libraries)
+		
+# Also package luajit		
+if(WIN32)
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(LUAJIT_EXE "luajitd.exe")
+	else()
+		set(LUAJIT_EXE "luajit.exe")
+	endif()
+else()
+	set(LUAJIT_EXE "luajit")
+endif()		
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/${LUAJIT_EXE}
+        DESTINATION bin)
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/luajit/src/luajit-external/src/jit/
+        DESTINATION bin/jit)
+
 
 inac_package()

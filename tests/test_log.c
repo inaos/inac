@@ -8,12 +8,22 @@
  */
 #include <libinac/lib.h>
 
-INA_TEST_SKIP(log, open_close_console)
+INA_TEST(log, default_context)
+{
+    INA_UNUSED(data);
+
+    INA_TEST_ASSERT_SUCCEED(ina_log_init_from_file("test_log.conf"));
+    INA_TEST_ASSERT_SUCCEED(ina_log_write(NULL, INA_LOG_LEVEL_DEBUG, INA_AT, "Test DEBUG log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log_write(NULL, INA_LOG_LEVEL_INFO, INA_AT, "Test INFO log entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log_write(NULL, INA_LOG_LEVEL_WARNING, INA_AT, "Test WARNING entry, var=%d", 2));
+    INA_TEST_ASSERT_SUCCEED(ina_log_write(NULL, INA_LOG_LEVEL_ERROR, INA_AT,"Test ERROR entry, var=%d", 2));
+}
+
+INA_TEST(log, open_close_console)
 {
     ina_log_ctx_t *ctx = NULL;
     INA_UNUSED(data);
 
-    INA_TEST_ASSERT_SUCCEED(ina_log_init("test_log.conf"));
     INA_TEST_ASSERT_SUCCEED(ina_log_ctx_new("test", &ctx));
     INA_TEST_ASSERT_NOT_NULL(ctx);
     INA_TEST_ASSERT_SUCCEED(ina_log_write(ctx, INA_LOG_LEVEL_DEBUG, INA_AT, "Test DEBUG log entry, var=%d", 2));

@@ -152,14 +152,25 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
         while (opt->long_opt) {
             __ina_lopt_t *lo;
             __ina_sopt_t *so = (__ina_sopt_t*)ina_mem_alloc(sizeof(__ina_sopt_t));
+            INA_RETURN_IF_NULL(so);
             INA_MEM_SET_ZERO(so, __ina_sopt_t);
             so->node.data = so;
-            if (so == NULL) {
-                return ina_err_get_rc();
-            }
             so->opt = ina_str_new_fromcstr(opt->short_opt);
             if (opt->dft != NULL) {
-                so->value = ina_str_new_fromcstr(opt->dft);
+                if (opt->type == INA_OPT_TYPE_STRING && strncmp("$ENV:", opt->dft, strlen("$ENV:")) == 0) {
+                    const char *name = &opt->dft[5];
+                    if (getenv(name) != NULL) {
+                        so->value = ina_str_new_fromcstr(getenv(name));
+                    }
+                } else if (opt->type != INA_OPT_TYPE_STRING && strncmp("\"$ENV:", opt->dft, strlen("\"$ENV:")) == 0) {
+                    ina_str_t name = ina_str_new_fromblk(&opt->dft[6], strlen(opt->dft)-7);
+                    if (getenv(name) != NULL) {
+                        so->value = ina_str_new_fromcstr(getenv(name));
+                    }
+                    ina_str_free(name);
+                } else {
+                    so->value = ina_str_new_fromcstr(opt->dft);
+                }
             }
             so->desc = ina_str_new_fromcstr(opt->desc);
             so->type = opt->type;
@@ -169,10 +180,8 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
             }
 
             lo = (__ina_lopt_t*)ina_mem_alloc(sizeof(__ina_lopt_t));
+            INA_RETURN_IF_NULL(lo);
             INA_MEM_SET_ZERO(lo, __ina_lopt_t);
-            if (lo == NULL) {
-                return ina_err_get_rc();
-            }
             lo->opt = ina_str_new_fromcstr(opt->long_opt);
             lo->short_opt = so;
             lo->node.data = lo;
@@ -240,6 +249,7 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                             }
                         } else {
                             strncpy(buf, &argv[n][vs], strlen(&argv[n][vs]));
+                            buf[strlen(&argv[n][vs])] = '\0';
                             ina_str_free(so->value);
                             so->value = ina_str_new_fromcstr(buf);
                         }
@@ -294,18 +304,12 @@ INA_API(ina_rc_t) ina_init(void)
     /* Set unhandled exception handler for windows */
     SetUnhandledExceptionFilter(__ina_windows_exception_handler);
 #endif
-    /*INA_RETURN_IF_FAILED(ina_mempool_init());*/
 
-#ifdef _LIBINAC_HASHTABLE_H_
     /* initialise hashtable */
     INA_RETURN_IF_FAILED(ina_hashtable_init("hashtable.conf"));
-#endif
 
-#ifdef _LIBINAC_CIO_H_
     /* initialise console */
     INA_RETURN_IF_FAILED(ina_cio_init());
-#endif
-
 
 #ifdef INA_OS_WINDOWS
     /* Make sure to use high-accuracy multimedia-timers for windows */
@@ -317,10 +321,8 @@ INA_API(ina_rc_t) ina_init(void)
     }
 #endif
 
-#ifdef _LIBINAC_CPU_H_
     /* initialise CPU module */
     INA_RETURN_IF_FAILED(ina_cpu_init());
-#endif
 
     return INA_SUCCESS;
 }
@@ -335,14 +337,10 @@ INA_API(void) ina_exit(void)
     }
 
     /* Reset CIO attributes */
-#ifdef _LIBINAC_CIO_H_
     ina_cio_reset();
-#endif
 
-#ifdef _LIBINAC_CPU_H_
     /* destroy cpu module */
     ina_cpu_destroy();
-#endif
 
     /* free allocated memory  */
     if (__lopt != NULL) {
@@ -356,13 +354,8 @@ INA_API(void) ina_exit(void)
     ina_str_free(__appname);
     ina_str_free(__apppath);
 
-#ifdef _LIBINAC_HASHTABLE_H_
     ina_hashtable_destroy();
-#endif
-#ifdef _LIBINAC_LOG_H_
     ina_log_destroy();
-#endif
-    /*ina_mempool_destroy();*/
     ina_err_destroy();
 
 #ifdef INA_OS_WINDOWS
@@ -455,7 +448,7 @@ INA_API(ina_rc_t) ina_opt_get_float(const char *opt, float *value)
     INA_VERIFY_NOT_NULL(value);
     *value = 0.0;
     so = __ina_opt_get(opt);
-    if (so == NULL) {
+    if (so == NULL || so->value == NULL) {
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *value = (float)atof(so->value);
@@ -469,7 +462,7 @@ INA_API(ina_rc_t) ina_opt_get_int(const char *opt, int *value)
     INA_VERIFY_NOT_NULL(value);
     *value = 0;
     so = __ina_opt_get(opt);
-    if (so == NULL) {
+    if (so == NULL || so->value == NULL) {
         return INA_ERROR(INA_ES_OPTION | INA_ERR_NOT_EXISTS);
     }
     *value = atoi(so->value);

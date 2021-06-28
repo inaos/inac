@@ -986,16 +986,21 @@ typedef uint_least32_t uint_fast32_t;
 # define SIG_ATOMIC_MAX ((((sig_atomic_t) 1) << (sizeof (sig_atomic_t)*CHAR_BIT-1)) - 1)
 #endif
 
+
+#define INA_TOKEN_PASTE(x, y) x##y
+#define INA_CAT(x,y) INA_TOKEN_PASTE(x,y)
+
 #ifndef INA_OS_WINDOWS
+#define INA_UNIQUE_VAR(v, prefix) __typeof(v) INA_CAT(u##prefix, __LINE__)
 #define INA_MAX(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-     _a > _b ? _a : _b; })
+   ({ INA_UNIQUE_VAR(a, _a) = (a); \
+       INA_UNIQUE_VAR(b, _b) = (b); \
+       INA_CAT(u##_a, __LINE__) > INA_CAT(u##_b, __LINE__) ? INA_CAT(u##_a, __LINE__) : INA_CAT(u##_b, __LINE__); })
 
 #define INA_MIN(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-     _a < _b ? _a : _b; })
+   ({ INA_UNIQUE_VAR(a, _a) = (a); \
+       INA_UNIQUE_VAR(b, _b) = (b); \
+       INA_CAT(u##_a, __LINE__) < INA_CAT(u##_b, __LINE__) ? INA_CAT(u##_a, __LINE__) : INA_CAT(u##_b, __LINE__); })
 #else
 #define INA_MAX(a,b) max(a,b)
 #define INA_MIN(a,b) min(a,b)

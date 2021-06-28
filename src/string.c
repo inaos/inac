@@ -34,7 +34,7 @@ INA_INLINE int __ina_vsnprintf(char *str, size_t size, const char *format, va_li
 
 #define __INA_MAX_PREALLOC (512*1024)
 #define __INA_HDR_OFFSET(s) (ina_str_hdr_t*)((s)-(sizeof(ina_str_hdr_t)))
-#define __INA_POOLED   80000000UL
+#define __INA_POOLED   (0x80000000U)
 
 INA_VS_BEGIN_PACK
 typedef struct ina_str_hdr_s {
@@ -48,9 +48,9 @@ INA_INLINE ina_str_hdr_t* __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
 {
     size_t size;
     INA_ASSERT_NOT_NULL(hdr);
-    size = (hdr->size & ~(1UL << (31 - 1)));
+    size = (hdr->size & ~(1U << (32U - 1U)));
 
-    if ((hdr->size-hdr->len-1) > len) {
+    if ((size-hdr->len-1) > len) {
         return hdr;
     }
     size_t newlen = hdr->len+len;
@@ -68,8 +68,7 @@ INA_INLINE ina_str_hdr_t* __ina_ensure_size(ina_str_hdr_t *hdr, size_t len)
 
 INA_INLINE ina_str_hdr_t* __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hdr_t *hdr, size_t len)
 {
-    size_t old_size = hdr->size;
-    size_t size;
+    size_t old_size = 0;
 
     INA_ASSERT_NOT_NULL(hdr);
     INA_ASSERT_TRUE(hdr->size&__INA_POOLED);
@@ -309,7 +308,7 @@ INA_API(ina_str_t) ina_str_ncatcstr_using_pool(ina_str_t dest, const char *src, 
     ina_str_hdr_t *d;
 
     INA_ASSERT_NOT_NULL(dest);
-    INA_ASSERT_TRUE(strlen(src) <= n);
+    INA_ASSERT_TRUE(strlen(src) >= n);
 
     if (src == NULL) {
         return dest;

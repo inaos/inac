@@ -2,8 +2,8 @@
 
 ### Tracing
 
-Tracing feature can be enabled an disabled by compile time settings 
-`INA_TRACE_ENABLED`.  Also the tracing level can be define at compile time. 
+Tracing feature can be enabled and disabled by compile time settings 
+`INA_TRACE_ENABLED`.  Also the tracing level can be defined at compile time. 
 The library know about 3 tracing levels. Trace messages are ended by a 
 newline "\n" 
 
@@ -24,8 +24,8 @@ messages having var args.
 
 ### Unit testing
 
-INAC provides a built-in test framework. This framework is almost independent 
-from the library itself. 
+INAC provides a built-in test framework. This framework is almost independent of 
+the library itself. 
 
 #### Features  
 
@@ -95,15 +95,24 @@ To skip existing test use the _SKIP version of `INA_TEST` or `INA_TEST_FIXTURE`.
 
 #### Conditional Platform test
 
-To declare tests only run on windows platform
+To declare tests only run on Windows platform
 
-    INA_TEST_WIN32(my_suite, my_test) {
+    INA_TEST_WINDOWS(my_suite, my_test) {
         ...
     }
     
-To declare tests fixtures run only on windows platform
-   
-    INA_TEST_FIXTURE_WIN32(my_suite, my_test) {
+To declare tests fixtures run only on Windows platform
+    
+    INA_TEST_DATA_WINDOWS(my_suite) {
+        int counter;
+    };
+    INA_TEST_SETUP_WINDOWS(my_suite) {
+        data->counter = 0;
+    }
+    INA_TEST_TEARDOWN_WINDOWS(my_suite) {
+        data->counter = 0;
+    }
+    INA_TEST_FIXTURE_WINDOWS(my_suite, my_test) {
        ...
     }
     
@@ -115,6 +124,15 @@ To declare tests only run on linux platform
     
 To declare tests fixtures only run on linux platform
 
+    INA_TEST_DATA_LINUX(my_suite) {
+        int counter;
+    };
+    INA_TEST_SETUP_LINUX(my_suite) {
+        data->counter = 0;
+    }
+    INA_TEST_TEARDOWN_LINUX(my_suite) {
+        data->counter = 0;
+    }
     INA_TEST_FIXTURE_LINUX(my_suite, my_test) {
        ...
     }
@@ -127,10 +145,26 @@ To declare tests only run on OSX platform
     
 To declare tests fixtures only run on OSX platform
 
+    INA_TEST_DATA_OSX(my_suite) {
+        int counter;
+    };
+    INA_TEST_SETUP_OSX(my_suite) {
+        data->counter = 0;
+    }
+    INA_TEST_TEARDOWN_OSX(my_suite) {
+        data->counter = 0;
+    }
     INA_TEST_FIXTURE_OSX(my_suite, my_test) {
        ...
     }
-    
+
+#### How to print messages
+Use `INA_TEST_MSG` to printout formatted messages. Messages are printed after 
+the test result. If the size of messages for a test exceed the 16K limit 
+, the message will be replaced by `...` .
+
+    INA_TEST_MSG("Buffer size is %d", data->buffer_size);
+
 #### How to run the test suites
 
 To run the tests simply call `ina_test_run()` by passing arguments count and 
@@ -140,11 +174,32 @@ arguments received from the command line.
     { 
         ina_test_run(argc, argv);
 
-From the command line prompt you can start all tests or a single suite
+From the command line prompt you can start all tests, a single suite, multiple
+suites, a single test or multiple tests of a test suite
+
+Run everything.
 
     ./test
+
+Run all tests of test suites starting with `test_suite`.
+
     ./test test_suite
-    
+
+Run all tests of `test_suite`. Use `:` terminator for suite name
+
+    ./test test_suite:
+
+Run all tests matching `my_test_` of a test suite. Use `:` separator for suite
+name
+
+    ./test test_suite:my_tests_
+
+Run a specific test of a test suite, use `:` separator for suite name and
+`:` terminator for test name.
+
+    ./test test_suite:my_tests:
+
+
 You can choose alternative result formats like `tap` or `JUnit` with the 
 `format` options.
 
