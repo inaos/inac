@@ -416,7 +416,7 @@ INA_TEST(string, ina_str_ncatcstr)
 
 INA_TEST_FIXTURE(string_mempool, ina_str_ncatcstr)
 {
-    ina_str_t str = ina_str_new_using_pool(128, data->pool);
+    ina_str_t str = ina_str_new_using_pool(4, data->pool);
     INA_UNUSED(data);
 
     str = ina_str_ncatcstr_using_pool(str, "part1x", 5, data->pool);

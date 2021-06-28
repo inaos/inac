@@ -73,8 +73,8 @@ INA_INLINE ina_str_hdr_t* __ina_ensure_size_pool(ina_mempool_t *pool, ina_str_hd
     INA_ASSERT_NOT_NULL(hdr);
     INA_ASSERT_TRUE(hdr->size&__INA_POOLED);
 
-    size = (hdr->size & ~(1UL << (31 - 1)));
-    if ((hdr->size-hdr->len-1) > len) {
+    old_size = (hdr->size & ~(1U << (32U - 1U)));
+    if ((old_size-hdr->len-1) > len) {
         return hdr;
     }
     size_t newlen = hdr->len+len;
