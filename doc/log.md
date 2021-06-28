@@ -10,6 +10,7 @@ impact.
 
 Initialize default configuration. Print levels INFO, WARNING, DEBUG to the 
 standard output stream and ERROR level to the standard error output stream.
+Initialization can only be invoked once par process.
 
     ina_log_init(NULL);
 
@@ -39,15 +40,15 @@ Log to the context using the INA_LOG_CTX_XXX macros.
 
     INA_LOG_CTX_DEBUG(ctx, "buffer size %d", bufsiz);
 
-Destroy the context before 
+Destroy the context before your exit
     
     ina_log_destroy(&ctx);
     
 ### Configuration
 
 The configuration consists of a global section and rule-based configuration.
-The global section is required, setting are all optional. 
-Currently "buffer_size" is the only supported setting. 
+The global section is required, settings are all optional. 
+Currently, "buffer_size" is the only supported setting. 
 
     global {
         -- Buffer used to write, when full the content will be flushed to the disk
@@ -55,7 +56,7 @@ Currently "buffer_size" is the only supported setting.
     }
  
 A rule consists of a category name and logging level separated by a period.
-A rule define a target and option to apply.
+A rule defines a target and option to apply.
 Name and level can be defined with wildcard *.  
    
     -- all categories and levels to "all.log"
