@@ -5,7 +5,7 @@ INAC provides a configuration file parser which works for C and Lua as well.
 ### Overview
 
 The configuration file is a pure Lua script and consists of sections. Those 
-section can be named or unnamed and they contains one more key/value pairs.
+section can be named or unnamed, and they contain one more key/value pairs.
 Sections and keys can be marked as required. Values for key can be string or
 number type.  
 
@@ -97,14 +97,15 @@ hold the instance for the configuration file.
     /* Add a unamed section */
     ina_conffile_add_section(cf, &section, "iface", INA_YES);
 
-2) Once an instance is created one can process the configuration by giving a file path
+2) Once an instance created, one can process the configuration by giving a file path
 where to find the configuration file or by passing directly the configuration as string
+   
 
-    /* file path version */
+    /* file path version */ 
     ina_conffile_process(cf, NULL, NULL)
-
-   /* string version */
-   ina_conffile_process_string(cf, cfg_string, NULL)
+   
+    /* string version */ 
+    ina_conffile_process_string(cf, cfg_string, NULL)
 
 For the file version optionally one can pass a file path as second argument to
 override the standard pattern of configuration file location. By convention the
@@ -113,7 +114,7 @@ if nothing else is specified.
 
     ina_conffile_process(cf, '~/.test/test.conf', NULL);
 
-Both version can take a third optional user data  as argument. The user data is
+Both version can take a third optional user data  as argument. The user data
 passed to the section handler when processing the configuration.
 
 Remember that each instance need to be destroyed with `ina_conffile_free()`.

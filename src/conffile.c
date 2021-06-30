@@ -620,6 +620,16 @@ __ina_process_entries(ina_conffile_t *cf, ina_conffile_entries_t *entries)
                 entry->value.s = ina_str_new_fromcstr_using_pool(
                                                 lua_tostring(lstate, -1),
                                                 cf->mempool);
+                if (strncmp(entry->value.s, "$ENV:", 5) == 0) {
+                    ina_str_t name = ina_str_substr(entry->value.s, 5, ina_str_len(entry->value.s)-1);
+                    ina_str_free(entry->value.s);
+                    if (getenv(name) != NULL) {
+                        entry->value.s = ina_str_new_fromcstr_using_pool(getenv(name), cf->mempool);
+                    } else {
+                        entry->value.s = ina_str_new_using_pool(0, cf->mempool);
+                    }
+                    ina_str_free(name);
+                }
             } else {
                 entry->value_type = INA_CONFFILE_VALUE_TYPE_NUMBER;
                 entry->value.n = lua_tonumber(lstate, -1);
