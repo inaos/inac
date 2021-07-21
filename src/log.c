@@ -96,7 +96,7 @@ static ina_rc_t __ina_write_to_file(__ina_target_t *target, ina_log_level_t leve
 {
     INA_UNUSED(level);
     if (target->fp == NULL) {
-        target->fp = fopen(target->filepath, "a");
+        target->fp = fopen(target->filepath, target->open_mode);
     }
     fputs(msg, target->fp);
     return INA_SUCCESS;
@@ -234,10 +234,14 @@ static ina_rc_t __ina_process_rule_section(const char *section_name,
             } else {
                 t->type = INA_LOG_FILE;
                 t->filepath = ina_str_dup(value);
-                t->write_fn = __ina_write_to_buffer;
                 t->buffer_size = ctx->buffer_size;
                 if (INA_SUCCEED(ina_conffile_get_number_from_entries(entries, "buffer_size", &cfg_value))) {
                     t->buffer_size = (size_t)cfg_value;
+                }
+                if (t->buffer_size == 0) {
+                    t->write_fn = __ina_write_to_file;
+                } else {
+                    t->write_fn = __ina_write_to_buffer;
                 }
                 if (INA_SUCCEED(ina_conffile_get_string_from_entries(entries, "truncate", &value))) {
                     if (INA_CSTR_CASECMP(value, "true") == 0) {
