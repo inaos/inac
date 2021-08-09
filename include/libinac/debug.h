@@ -42,7 +42,8 @@ extern "C" {
 #define INA_TRACE_TO_FILE(fh, cat, fmt, ...)     \
     do { \
          const char *__e = getenv("INAC_TRACE"); \
-         const char *__s = #cat; \
+         const char *__s = #cat;                 \
+         if (__e == NULL) __e = "*"; \
          size_t __i = 0, __w = 0, __c = 0, __match = 0, __el = 0; \
          const int __always = (strcmp(__s, "*") == 0); \
          if (!__always && (!__e || !strlen(__e))) break; \
@@ -106,10 +107,10 @@ extern "C" {
 #define INA_ASSERT(cond) assert(cond)
 #define INA_ASSERT_FALSE(v) INA_ASSERT(!(v))
 #define INA_ASSERT_TRUE(v) INA_ASSERT(v)
-#define INA_ASSERT_NULL(v) INA_ASSERT(v == NULL)
-#define INA_ASSERT_NOT_NULL(v) INA_ASSERT(v != NULL)
-#define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT(expected == actual)
-#define INA_ASSERT_NOTEQUAL(nexpected, actual) INA_ASSERT(nexpected != actual)
+#define INA_ASSERT_NULL(v) INA_ASSERT((v) == NULL)
+#define INA_ASSERT_NOT_NULL(v) INA_ASSERT((v) != NULL)
+#define INA_ASSERT_EQUAL(expected, actual) INA_ASSERT((expected) == (actual))
+#define INA_ASSERT_NOTEQUAL(nexpected, actual) INA_ASSERT((nexpected) != (actual))
 #define INA_ASSERT_SUCCESS(v) INA_ASSERT_EQUAL(INA_SUCCESS, v)
 #define INA_ASSERT_FAILURE(v) INA_ASSERT_EQUAL(INA_FAILURE, v)
 #define INA_ASSERT_SUCCEED(v) INA_ASSERT_TRUE(INA_SUCCEED(v))
@@ -122,7 +123,7 @@ extern "C" {
 #define INA_ASSERT_TRUE(v)
 #define INA_ASSERT_NULL(v)
 #ifdef INA_ASSERT_NOT_NULL_ENABLED
-#define INA_ASSERT_NOT_NULL(v) assert(v != NULL)
+#define INA_ASSERT_NOT_NULL(v) assert((v) != NULL)
 #else
 #define INA_ASSERT_NOT_NULL(v)
 #endif    
