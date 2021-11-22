@@ -227,8 +227,8 @@ INA_API(ina_rc_t) ina_app_init(int argc, char** argv, ina_opt_t *opt)
                     e = c;
                 }
 
-                if (s > 0) {
-                    char buf[100];
+                if (s > 0 && e-s < 1024) {
+                    char buf[1024];
                     strncpy(buf, &argv[n][s], (size_t)(e-s));
                     buf[c-s] = 0;
                     INA_TRACE3(inac.lib, "opt=%s", buf);
