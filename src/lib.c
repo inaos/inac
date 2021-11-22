@@ -287,17 +287,17 @@ INA_API(ina_rc_t) ina_init(void)
 
     /* Setup signals */
     __ina_signal(SIGABRT, __ina_signal_handler);
-    __ina_signal(SIGILL,  __ina_signal_handler);
+    //__ina_signal(SIGILL,  __ina_signal_handler);
     __ina_signal(SIGINT,  __ina_signal_handler);
     __ina_signal(SIGTERM, __ina_signal_handler);
 #ifndef INA_OS_WINDOWS
-    __ina_signal(SIGFPE, __ina_signal_handler);
-    __ina_signal(SIGSEGV, __ina_signal_handler);
-    __ina_signal(SIGBUS,  __ina_signal_handler);
+    //__ina_signal(SIGFPE, __ina_signal_handler);
+    //__ina_signal(SIGSEGV, __ina_signal_handler);
+    //__ina_signal(SIGBUS,  __ina_signal_handler);
     __ina_signal(SIGHUP,  __ina_signal_handler);
-    __ina_signal(SIGQUIT, __ina_signal_handler);
+    //__ina_signal(SIGQUIT, __ina_signal_handler);
     __ina_signal(SIGKILL, __ina_signal_handler);
-    __ina_signal(SIGSTOP, __ina_signal_handler);
+    //__ina_signal(SIGSTOP, __ina_signal_handler);
     __ina_signal(SIGTTIN, __ina_signal_handler);
     __ina_signal(SIGTTOU, __ina_signal_handler);
 #else

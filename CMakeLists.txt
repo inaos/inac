@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 INAOS GmbH, Thalwil
+# Copyright 2018-2021 INAOS GmbH, Thalwil
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 cmake_minimum_required(VERSION 3.7)
-project(inac VERSION 1.0.17)
+project(inac VERSION 1.0.18)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
 inac_enable_aes()

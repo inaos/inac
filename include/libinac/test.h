@@ -572,7 +572,14 @@ typedef struct ina_test_testcase_s {
 #define INA_TEST_SECTION
 #define INA_TEST_SECTION_PUSH __declspec(allocate(".inatest"))
 #else
+#ifdef __has_feature
+#if __has_feature(address_sanitizer)
+#define INA_TEST_SECTION __attribute__ ((unused,section (".inatest"),no_sanitize("address")))
+#endif
+#endif
+#ifndef INA_TEST_SECTION
 #define INA_TEST_SECTION __attribute__ ((unused,section (".inatest")))
+#endif
 #define INA_TEST_SECTION_PUSH
 #endif
 
