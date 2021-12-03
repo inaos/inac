@@ -46,10 +46,10 @@ struct ina_ipc_counter_data_s {
 
 #define __INA_ENTER_LOCK(d)                     \
 do {                                            \
-    while (0 == INA_ATOMIC_SWAP(&d->l, 0, 1));  \
+    while (0 == INA_ATOMIC_SWAP(&(d)->l, 0, 1));  \
 } while (0);
 
-#define __INA_EXIT_LOCK(d) INA_ATOMIC_SWAP(&d->l, 1, 0);
+#define __INA_EXIT_LOCK(d) INA_ATOMIC_SWAP(&(d)->l, 1, 0);
 
 INA_API(ina_rc_t) ina_ipc_flags_new(const char* name, int64_t initial, ina_ipc_flags_t **flags)
 {
