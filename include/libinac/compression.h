@@ -56,7 +56,7 @@ typedef enum ina_compression_mode_e {
 typedef struct ina_compression_state_s ina_compression_state_t;
 
 /*
- * Create and initialize a new compression state for furhter use.
+ * Create and initialize a new compression state for further use.
  *
  * Parameters
  *  state   Where to store pointer to state
@@ -71,7 +71,7 @@ INA_API(ina_rc_t) ina_compression_new(ina_compression_state_t **state,
                                       ina_compression_mode_t mode);
 
 /*
- * Create and initialize, a new compression state for furhter use, using
+ * Create and initialize, a new compression state for further use, using
  * a memory pool.
  *
  * Parameters
@@ -116,7 +116,7 @@ INA_API(void) ina_compression_free(ina_compression_state_t **state);
  * Parameters
  *  state    Compression state
  *  src_len  Source size in bytes
- *  dst_len  Where to store desitination size in bytes
+ *  dst_len  Where to store destination size in bytes
  *
  * Return
  *  INA_SUCCESS if all went well
@@ -135,7 +135,7 @@ INA_API(ina_rc_t) ina_compression_get_destination_len(
  *  src        Source data (uncompressed)
  *  src_len    Source data length in bytes
  *  dst        Output buffer
- *  dst_len    Outout buffer size in bytes
+ *  dst_len    Output buffer size in bytes
  *  wrote_len  Where to store number of bytes written to dst
  *  read_len   Where to store number of bytes read from src
  *  more       Flag to indicates if more data must be compressed. Use eighter
@@ -163,7 +163,7 @@ INA_API(ina_rc_t) ina_compression_compress_chunk(ina_compression_state_t *state,
  *  dst_len    Output buffer size in bytes
  *  wrote_len  Where to store number of bytes written to dst
  *  read_len   Where to store number od bytes read from src
- *  more       Flag to indicates if more data must be compressed. Use eighter
+ *  more       Flag to indicates if more data must be compressed. Use either
  *             NA_YES or INA_NO.
  *
  * Return

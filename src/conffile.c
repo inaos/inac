@@ -75,7 +75,7 @@ struct ina_conffile_section_s {
 static ina_rc_t __ina_build_section_table(ina_conffile_t*);
 /* Prepare configuration file */
 static ina_rc_t __ina_prepare(ina_conffile_t*);
-/* Processs the LUA section table */
+/* Processes the LUA section table */
 static ina_rc_t __ina_process_section_table(ina_conffile_t*, void *user_data);
 /* Process configuration file entries */
 static ina_rc_t __ina_process_entries(ina_conffile_t*,
