@@ -461,7 +461,7 @@ extern "C" {
 
 
 /*
- * Try to infer endianess.  Basically we just go through the CPUs we know are
+ * Try to infer endianness.  Basically we just go through the CPUs we know are
  * little endian, and assume anything that isn't one of those is big endian.
  * As a sanity check, we also do this with operating systems we know are
  * little endian, such as Windows.  Some processors are bi-endian, such as 

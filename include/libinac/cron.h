@@ -127,7 +127,7 @@ INA_API(const char*) ina_cron_event_id(const ina_cron_event_t *event);
  *
  * Parameters
  *  task     Task
- *  pattern  Where to store events's pattern
+ *  pattern  Where to store event's pattern
  *
  * Return
  *  INA_SUCCESS

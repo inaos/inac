@@ -311,7 +311,7 @@ INA_API(ina_rc_t) ina_file_cursor_binary_read_chunk(ina_file_cursor_t *cursor,
  * Parameters
  *  cursor     Cursor
  *  requested  Number of bytes minimum requested
- *  actual     Where to store actual byted read or written
+ *  actual     Where to store actual bytes read or written
  *  chunk      Read/write buffer
  *
  * Return

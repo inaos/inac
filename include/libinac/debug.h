@@ -43,7 +43,7 @@ extern "C" {
     do { \
          const char *__e = getenv("INAC_TRACE"); \
          const char *__s = #cat;                 \
-         if (__e == NULL) __e = "*"; \
+         if (__e == NULL) __e = ""; \
          size_t __i = 0, __w = 0, __c = 0, __match = 0, __el = 0; \
          const int __always = (strcmp(__s, "*") == 0); \
          if (!__always && (!__e || !strlen(__e))) break; \

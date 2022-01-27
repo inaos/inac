@@ -715,7 +715,7 @@ INA_API(ina_str_t) ina_str_sprintf(const char *fmt, ...);
  *  On success, returns the number of characters that would have been written
  *   had size been sufficiently large, not counting the terminating nul
  *  character. Thus, the nul-terminated output has been completely written if
- *  and only if the return value is nonnegative and less than size. On error,
+ *  and only if the return value is non negative and less than size. On error,
  *  returns -1 (i.e. encoding error).
  */
 INA_API(int) ina_str_snprintf(ina_str_t *str, size_t len, const char* fmt, ...);

@@ -101,7 +101,7 @@ INA_API(void) ina_ljit_ctx_free(ina_ljit_ctx_t **ctx);
  * Parameter
  * ctx        LuaJIT state
  * fname      Function name. For methods use the object.method() syntax.
- * signature  Function signature. Each parameter is represente by a char
+ * signature  Function signature. Each parameter is represented by a char
  *            indicating the type.
  *            s = string
  *            d = double

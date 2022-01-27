@@ -155,7 +155,7 @@ typedef struct ina_ullc_rb_info_s {
     size_t mem_size;                /* Allocated size in bytes */
     size_t slot_size;               /* Size in bytes for each slot */
     size_t num_slots;               /* Nr of slots */
-    int64_t current_slot;           /* Last commited slot */
+    int64_t current_slot;           /* Last committed slot */
     ina_ullc_cursor_t *c_cursors[INA_ULLC_MAX_PRODUCERS];    /* Consumer cursor states */
     ina_ullc_cursor_t *p_cursors[INA_ULLC_MAX_CONSUMERS];    /* Producers cursor states */
 } ina_ullc_rb_info_t;

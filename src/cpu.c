@@ -670,7 +670,9 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 #else
     cpu_set_t mask;
     CPU_ZERO(&mask);
-    CPU_SET(cpuid, &mask);
+    if (cpuid >= 0) {
+        CPU_SET(cpuid, &mask);
+    }
     int ret = sched_setaffinity(0, sizeof(mask), &mask);
     if (ret != 0) {
         return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);

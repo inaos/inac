@@ -603,8 +603,8 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc);
 #define INA_FAIL_IF_ERROR(rc) INA_FAIL_IF(INA_FAILED((rc)))
 /* NULL Checkpoint, jump to fail if ptr is NULL */
 #define INA_FAIL_IF_NULL(ptr) INA_FAIL_IF((ptr) == NULL)
-/* Force junp to fail label */
-#define INA_FAIL() INA_FAIL_(1)
+/* Force jump to fail label */
+#define INA_FAIL INA_FAIL_IF(1)
 
 /* Return the last return code */
 #define INA_ERR_LAST_ERROR ina_err_get_rc()

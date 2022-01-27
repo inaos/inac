@@ -212,7 +212,7 @@ INA_API(const char*) ina_err_strerror(ina_rc_t rc)
         case INA_ERR_SPECIFIED: adj = "SPECIFIED"; break;
         case INA_ERR_STALLED: adj = "STALLED"; break;
         case INA_ERR_STOPPED: adj = "STOPPED"; break;
-        case INA_ERR_SUCEEDED: adj = "SUCEEDED"; break;
+        case INA_ERR_SUCEEDED: adj = "SUCCEEDED"; break;
         case INA_ERR_SUITABLE: adj = "SUITABLE"; break;
         case INA_ERR_SUPPORTED: adj = "SUPPORTED"; break;
         case INA_ERR_SYNCHRONIZED: adj = "SYNCHRONIZED"; break;

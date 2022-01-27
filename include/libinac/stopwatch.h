@@ -137,7 +137,7 @@ INA_API(void) ina_stopwatch_free(ina_stopwatch_t **stopwatch);
  *
  * Return
  *  INA_SUCCESS  stopwatch is started
- *  INA_FAILURE  stopwatch is stoppen
+ *  INA_FAILURE  stopwatch is stopped
  */
 INA_API(ina_rc_t) ina_stopwatch_started(const ina_stopwatch_t *stopwatch);
 

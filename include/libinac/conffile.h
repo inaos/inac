@@ -40,7 +40,7 @@ typedef struct ina_conffile_s ina_conffile_t;
  *
  * Parameters
  *  section_name  Name of the current processing section.
- *  section_key   Key of current named section, NULL for unamed sections.
+ *  section_key   Key of current named section, NULL for unnamed sections.
  *  entries       Section entries, see ina_conffile_has_value_in_entries(),
  *                ina_conffile_get_string_from_section() or
  *                ina_conffile_get_number_from_section() for retrieve values
@@ -63,12 +63,12 @@ typedef ina_rc_t (*ina_conffile_section_cb_t)(const char *section_name,
  * cf  Pointer to configuration file pointer
  *
  * Return
- * INA_SUCCESS if no error occured.
+ * INA_SUCCESS if no error occurred.
  */
 INA_API(ina_rc_t) ina_conffile_new(ina_conffile_t **cf);
 
 /*
- * Add a section to the configuration file. A section can be named or unnamned.
+ * Add a section to the configuration file. A section can be named or unnamed.
  *
  * Parameters
  *  cf        Configuration file
@@ -113,7 +113,7 @@ INA_API(ina_rc_t) ina_conffile_add_key(ina_conffile_section_t *section,
  * Parameters
  *  cf            Pointer to a configuration file.
  *  section_name  Section name
- *  section_key   Section key for named section, NULL for unamed section
+ *  section_key   Section key for named section, NULL for unnamed section
  *  key           Name of value key
  *
  * Return
@@ -130,7 +130,7 @@ INA_API(ina_rc_t) ina_conffile_has_value(ina_conffile_t *cf,
  * Parameters
  *  cf            Configuration file
  *  section_name  Section name
- *  section_key   Section key for named section, NULL for unamed section
+ *  section_key   Section key for named section, NULL for unnamed section
  *  key           Name of value key
  *  value         Output string containing the value
  *
@@ -243,7 +243,7 @@ INA_API(ina_rc_t) ina_conffile_process_string(ina_conffile_t *cf,
                                                 const char *cfg_string,
                                                 void *user_data);
 /*
- * Destroy a confiuration file.
+ * Destroy a configuration file.
  *
  * Parameters
  *  cf  Pointer of a configuration file pointer.

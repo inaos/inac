@@ -59,7 +59,7 @@ typedef struct ina_cio_pos_s {
 #define INA_CIO_BLINK  (2)
 #define INA_CIO_RESET  (4)
 
-/* Cursor attributs */
+/* Cursor attributes */
 typedef struct ina_cio_attribs_s {
     ina_cio_color_t bg_color; /* background color */
     ina_cio_color_t fg_color; /* foreground color */
