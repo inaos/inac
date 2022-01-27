@@ -23,16 +23,16 @@ variables:
 strategy:
   matrix:
     linux-debug:
-      imageName: 'ubuntu-18.04'
+      imageName: 'ubuntu-latest'
       BUILD_CONFIGURATION: Debug
     linux-release:
-      imageName: 'ubuntu-18.04'
+      imageName: 'ubuntu-latest'
       BUILD_CONFIGURATION: RelWithDebInfo
     mac-debug:
-      imageName: 'macos-10.14'
+      imageName: 'macOS-latest'
       BUILD_CONFIGURATION: Debug
     mac-release:
-      imageName: 'macos-10.14'
+      imageName: 'macOs-latest'
       BUILD_CONFIGURATION: RelWithDebInfo
     windows-vs17-debug:
       imageName: 'vs2017-win2016'
