@@ -657,14 +657,14 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 {
 #ifndef INA_OS_OSX
 #ifdef INA_OS_WINDOWS
-    HANDLE pid = GetCurrentProcess();
+    // HANDLE pid = GetCurrentProcess();
 #ifdef INA_CPU_X86_64
-    DWORD_PTR processAffinityMask = 1ULL << cpuid;
+    DWORD_PTR threadAffinityMask = 1ULL << cpuid;
 #else
-	DWORD_PTR processAffinityMask = 1UL << cpuid;
+	DWORD_PTR threadAffinityMask = 1UL << cpuid;
 #endif
     /* Set Affinity */
-    if (!SetProcessAffinityMask(pid, processAffinityMask)) {
+    if (!SetThreadAffinityMask(GetCurrentThread(), threadAffinityMask)) {
         return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
     }
 #else
