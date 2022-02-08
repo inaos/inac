@@ -495,6 +495,24 @@ INA_TEST(string, ina_str_size)
     ina_str_free(str);
 }
 
+INA_TEST_FIXTURE(string_mempool, ina_str_size)
+{
+    ina_str_t str = ina_str_new_fromcstr_using_pool("an INAC string", data->pool);
+    ina_str_t empty = ina_str_new_fromcstr_using_pool("", data->pool);
+
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_TRUE((strlen("an INAC string")+1) == ina_str_size(str));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(1, ina_str_size(empty));
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_size(NULL));
+
+    str = ina_str_new_fromcstr_using_pool("an ", data->pool);
+    INA_TEST_ASSERT_NOT_NULL(str);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(4, ina_str_size(str));
+    str = ina_str_catcstr_using_pool(str, "1234567890", data->pool);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(27, ina_str_size(str));
+    INA_TEST_ASSERT_EQUAL_STR("an 1234567890", ina_str_cstr(str));
+}
+
 INA_TEST(string, ina_str_available)
 {
     ina_str_t str = ina_str_new_fromcstr("1234567890");
@@ -507,6 +525,17 @@ INA_TEST(string, ina_str_available)
     ina_str_catcstr(str, "1234567890");
     INA_TEST_ASSERT_EQUAL_SIZE_T(90, ina_str_available(str));
     ina_str_free(str);
+}
+
+INA_TEST_FIXTURE(string_mempool, ina_str_available)
+{
+    ina_str_t str = ina_str_new_fromcstr_using_pool("1234567890", data->pool);
+
+    INA_TEST_ASSERT_EQUAL_SIZE_T(0, ina_str_available(str));
+    str = ina_str_new_using_pool(100, data->pool);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(100, ina_str_available(str));
+    ina_str_catcstr_using_pool(str, "1234567890", data->pool);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(90, ina_str_available(str));
 }
 
 INA_TEST(string, ina_str_cmp)
