@@ -38,25 +38,25 @@ strategy:
       imageName: 'windows-2019'
       BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86_64
-      VSINSTALL: "Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build"
+      VSINSTALL: "Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
     windows-vs19-release:
       imageName: 'windows-2019'
       BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86_64
-      VSINSTALL: "Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build"
+      VSINSTALL: "Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
     windows-vs22-debug:
       imageName: 'windows-2022'
       BUILD_CONFIGURATION: Debug
       BUILD_ARCH: x86_64
-      VSINSTALL: "Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build"
+      VSINSTALL: "Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
     windows-vs22-release:
       imageName: 'windows-2022'
       BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86_64
-      VSINSTALL: "Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build"
+      VSINSTALL: "Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
 
 pool:
@@ -87,7 +87,7 @@ steps:
     BUILD_CONFIGURATION: $(BUILD_CONFIGURATION)
     
 - script: |
-    call "C:\Program Files (x86)\%VSINSTALL%\vcvarsall.bat" %MSVC_PLATFORM%
+    call "C:\%VSINSTALL%\vcvarsall.bat" %MSVC_PLATFORM%
     mkdir cmake-build-%BUILD_CONFIGURATION%
     cd cmake-build-%BUILD_CONFIGURATION%
     cmake -G "NMake Makefiles" ../ -DCMAKE_BUILD_TYPE=%BUILD_CONFIGURATION% -DINAC_TARGET_ARCH=%BUILD_ARCH%
