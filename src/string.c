@@ -367,7 +367,7 @@ INA_API(size_t) ina_str_size(ina_cstr_t str)
     if (str == NULL) {
         return 0;
     }
-    return (__INA_HDR_OFFSET(str))->size;
+    return (__INA_HDR_OFFSET(str))->size & ~(1U << (32U - 1U));
 }
 
 INA_API(size_t) ina_str_available(ina_cstr_t str)
@@ -375,7 +375,7 @@ INA_API(size_t) ina_str_available(ina_cstr_t str)
     if (str == NULL) {
         return 0;
     }
-    return (__INA_HDR_OFFSET(str))->size -(__INA_HDR_OFFSET(str))->len-1;
+    return ((__INA_HDR_OFFSET(str))->size & ~(1U << (32U - 1U))) -(__INA_HDR_OFFSET(str))->len-1;
 }
 
 INA_API(ina_str_t) ina_str_toupper(ina_str_t str)

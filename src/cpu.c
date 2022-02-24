@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 #include <libinac/lib.h>
-#include "config.h"
 
 #ifndef INA_OS_OSX
 #include <contribs/cpu-topology/cputopology.h>
@@ -51,11 +50,11 @@ static ina_rc_t __ina_cpu_clock_by_os(int *result_mhz)
 	DWORD size = 4;
 	
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), 0, KEY_READ, &key) != ERROR_SUCCESS)
-        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_ERROR(INA_ERR_OPERATION_FAILED);
 	
 	if (RegQueryValueEx(key, TEXT("~MHz"), NULL, NULL, (LPBYTE) &result, (LPDWORD) &size) != ERROR_SUCCESS) {
 		RegCloseKey(key);
-        return INA_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);;
+        return INA_ERROR(INA_ERR_OPERATION_FAILED);
 	}
 	RegCloseKey(key);
 	
@@ -657,15 +656,18 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 {
 #ifndef INA_OS_OSX
 #ifdef INA_OS_WINDOWS
-    // HANDLE pid = GetCurrentProcess();
+    DWORD_PTR threadAffinityMask = 0;
+    if (cpuid >= 0) {
 #ifdef INA_CPU_X86_64
-    DWORD_PTR threadAffinityMask = 1ULL << cpuid;
+        threadAffinityMask = 1ULL << cpuid;
 #else
-	DWORD_PTR threadAffinityMask = 1UL << cpuid;
+        DWORD_PTR threadAffinityMask = 1UL << cpuid;
 #endif
+    }
+
     /* Set Affinity */
     if (!SetThreadAffinityMask(GetCurrentThread(), threadAffinityMask)) {
-        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ERR_OPERATION_FAILED);
     }
 #else
     cpu_set_t mask;
@@ -675,7 +677,7 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
     }
     int ret = sched_setaffinity(0, sizeof(mask), &mask);
     if (ret != 0) {
-        return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+        return INA_OS_ERROR(INA_ERR_OPERATION_FAILED);
     }
 #endif
 #else
@@ -782,10 +784,10 @@ INA_API(ina_rc_t) ina_cpu_process_promote(void)
 
     /* Set Priority */
 	if(!SetPriorityClass(pid, HIGH_PRIORITY_CLASS)) {
-		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ERR_OPERATION_FAILED);
 	}
 	if(!SetThreadPriority(GetCurrentThread(), HIGH_PRIORITY_CLASS)) {
-		return INA_OS_ERROR(INA_ES_OPERATION|INA_ERR_FAILED);
+		return INA_OS_ERROR(INA_ERR_OPERATION_FAILED);
 	}
 #else
     pid_t pid = getpid();
