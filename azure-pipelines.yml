@@ -34,18 +34,6 @@ strategy:
     mac-release:
       imageName: 'macOs-latest'
       BUILD_CONFIGURATION: RelWithDebInfo
-    windows-vs17-debug:
-      imageName: 'vs2017-win2016'
-      BUILD_CONFIGURATION: Debug
-      BUILD_ARCH: x86_64
-      VSINSTALL: "Microsoft Visual Studio\\2017\\Enterprise\\VC\\Auxiliary\\Build"
-      MSVC_PLATFORM: amd64
-    windows-vs17-release:
-      imageName: 'vs2017-win2016'
-      BUILD_CONFIGURATION: RelWithDebInfo
-      BUILD_ARCH: x86_64
-      VSINSTALL: "Microsoft Visual Studio\\2017\\Enterprise\\VC\\Auxiliary\\Build"
-      MSVC_PLATFORM: amd64
     windows-vs19-debug:
       imageName: 'windows-2019'
       BUILD_CONFIGURATION: Debug
@@ -57,6 +45,18 @@ strategy:
       BUILD_CONFIGURATION: RelWithDebInfo
       BUILD_ARCH: x86_64
       VSINSTALL: "Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+    windows-vs22-debug:
+      imageName: 'windows-2022'
+      BUILD_CONFIGURATION: Debug
+      BUILD_ARCH: x86_64
+      VSINSTALL: "Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build"
+      MSVC_PLATFORM: amd64
+    windows-vs22-release:
+      imageName: 'windows-2022'
+      BUILD_CONFIGURATION: RelWithDebInfo
+      BUILD_ARCH: x86_64
+      VSINSTALL: "Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build"
       MSVC_PLATFORM: amd64
 
 pool:
