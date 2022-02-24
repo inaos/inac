@@ -126,7 +126,7 @@ steps:
     INAC_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
 
 - script: |
-    call "%VSINSTALL%\vcvarsall.bat" %MSVC_PLATFORM%
+    call "C:\%VSINSTALL%\vcvarsall.bat" %MSVC_PLATFORM%
     cd cmake-build-%BUILD_CONFIGURATION%
     call "C:\Program Files\CMake\bin\cpack.exe"
     copy inac*.zip %INAC_ARTIFACT_TARGET%
