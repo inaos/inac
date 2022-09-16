@@ -106,7 +106,7 @@ struct ina_test_hid_s {
 
 /* Set the return code inside a main function */
 #define INA_TEST_HELPER_SET_RC(rc)                                          \
-    *retval = INA_RC_ERROR(rc)
+    *retval = (int)rc
 
 /* Check if min argument passed, if not exit with EXIT_FAILURE */
 #define INA_TEST_HELPER_CHECK_ARGC(c)                                       \

@@ -134,6 +134,11 @@ INA_API(ina_rc_t) ina_time_sleep(time_t msec);
  *
  * Return
  *  INA_SUCCESS
+ *
+ * Remark
+ *  The tsc is misleading here. The current implementation uses
+ *  QueryPerformanceCounter API on Windows and vdso with clock_time()
+ *  on Linux.
  */
 INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time);
 
@@ -202,6 +207,11 @@ INA_API(ina_rc_t) ina_time_tsc_disable_rdtsc(void);
  *
  * Return
  *  INA_SUCCESS if all went well
+ *
+ * Remarks
+ *  The tsc is misleading here. The current implementation uses
+ *  QueryPerformanceCounter API on Windows and vdso with clock_time()
+ *  on Linux.
  */
 INA_API(ina_rc_t) ina_time_read_tsc_clock(ina_time_tsc_t* time);
 
