@@ -132,20 +132,6 @@ static void __ina_time_rdtsc_calibrate_ticks(void)
     /* FIXME calibrate time for osx */
 }
 #else
-static void __ina_time_init(ina_time_tsc_t *time)
-{
-    ina_time_t *ts;
-    time_t sec;
-    long usec;
-    struct timespec rtp;
-    ina_time_sys_new(&ts);
-    clock_gettime(__INA_CLOCK_TYPE, &rtp);
-    ina_time_read_sys_clock(ts);
-    ina_time_sys_seconds_micros(ts, &sec, &usec);
-    ina_time_sys_free(&ts);
-    time->refhpet = sec * 1000000000 + (usec*1000);
-    time->ref = (rtp.tv_sec * 1000000000) + rtp.tv_nsec;
-}
 struct timespec *__ina_time_rdtsc_timespec_diff(struct timespec *ts1, struct timespec *ts2)
 {
     static struct timespec ts;
@@ -220,7 +206,6 @@ INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
     INA_VERIFY_NOT_NULL(time);
     *time = (ina_time_tsc_t*)ina_mem_alloc(sizeof(ina_time_tsc_t));
     INA_RETURN_IF_NULL(*time);
-    __ina_time_init(*time);
     return INA_SUCCESS;
 }
 

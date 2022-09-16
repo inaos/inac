@@ -86,7 +86,8 @@ INA_TEST(time,read_clock)
     INA_TEST_ASSERT_NULL(t);
 }
 
-INA_TEST(time, tsc_millis)
+// Skip. Since tsc variant no longer reflect wall clock tim
+INA_TEST_SKIP(time, tsc_millis)
 {
     ina_time_tsc_t *t;
     time_t now_millis = 0;
