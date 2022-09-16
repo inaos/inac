@@ -655,7 +655,13 @@ static void __ina_process_is_running(ina_process_t *process,
         }
     }
 
-    w = waitpid(process->pid, &status, WNOHANG);
+    // If terminated, and we were waiting for end waitpid will return an error if
+    // called again.
+    if (process->descriptor->cf&INA_PROCESS_CF_WAIT && *still_running == INA_NO) {
+        return;
+    }
+
+    w = waitpid(process->pid, &status, WNOHANG|WEXITED);
     if (w == -1) {
         process->last_rc = INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     } else if (w == 0) {
