@@ -179,6 +179,4 @@ steps:
     github_packages_username: $(github_packages_username)
     github_packages_pat: $(github_packages_pat)
     github_packages_url: $(github_packages_url)
-  condition:
-    eq( variables['upload_github_packages'], 'yes' )
 
