@@ -1,9 +1,9 @@
 <settings>
     <servers>
         <server>
-            <id>${repo.id}</id>
-            <username>${repo.login}</username>
-            <password>${repo.pwd}</password>
+            <id>${github_packages_repository_id}</id>
+            <username>${github_packages_username}</username>
+            <password>$(github_packages_pat}</password>
         </server>
     </servers>
 </settings>
