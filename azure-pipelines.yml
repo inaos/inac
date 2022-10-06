@@ -152,27 +152,13 @@ steps:
     else
         artifact_version=`echo $artifact_name | grep -Po '\d+\.\d+\.\d+'`
     fi
-    target=inaos/inac/$artifact_version/$artifact_name
-    url=$jfrog_repository_url/$target
-    curl "-u$jfrog_artifactory_uid:$jfrog_artifactory_pwd" "-T" $src $url
-  displayName: Upload to artifactory
-  env:
-    jfrog_artifactory_uid: $(jfrog_artifactory_uid)
-    jfrog_artifactory_pwd: $(jfrog_artifactory_pwd)
-    jfrog_repository_url: $(jfrog_repository_url)
-  condition:
-    eq( variables['upload_artifactory'], 'yes' )
-- bash: |
-    cd cmake-build-$BUILD_CONFIGURATION
-    src=`ls inac*.zip`
-    artifact_name=`basename $src`
     if [ "$AGENT_OS" == "Darwin" ]
       then
-        artifact_version=`echo $artifact_name | grep -Eo '\d+\.\d+\.\d+'`
+        artifact_name=`echo $artifact_name | grep -Eo '[a-z]+-[a-z]+-[a-z,0-9,_]+-[a-z]+'`
     else
-        artifact_version=`echo $artifact_name | grep -Po '\d+\.\d+\.\d+'`
+        artifact_name=`echo $artifact_name | grep -Po '[a-z]+-[a-z]+-[a-z,0-9,_]+-[a-z]+'`
     fi
-    mvn -B deploy:deploy-file --settings=../maven-settings.xml -DrepositoryId=$github_packages_repository_id -Durl=$github_packages_url -DgroupId=inaos  -DartifactId=$artifact_name -Dversion=$artifact_version -Dpackaging=zip -Dfile=$src
+    mvn -B deploy:deploy-file --debug --settings=../maven-settings.xml -DrepositoryId=$github_packages_repository_id -Durl=$github_packages_url -DgroupId=inaos  -DartifactId=$artifact_name -Dversion=$artifact_version -Dpackaging=zip -Dfile=$src
   displayName: Upload to Github packages
   env:
     github_packages_repository_id: github
