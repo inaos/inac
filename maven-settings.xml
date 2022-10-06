@@ -1,7 +1,7 @@
 <settings>
     <servers>
         <server>
-            <id>${github_packages_repository_id}</id>
+            <id>github</id>
             <username>${github_packages_username}</username>
             <password>$(github_packages_pat}</password>
         </server>
