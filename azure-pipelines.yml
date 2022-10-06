@@ -158,7 +158,8 @@ steps:
     else
         artifact_name=`echo $artifact_name | grep -Po '[a-z]+-[a-z]+-[a-z,0-9,_]+-[a-z]+'`
     fi
-    mvn -B deploy:deploy-file --settings=../maven-settings.xml -DrepositoryId=$github_packages_repository_id -Durl=$github_packages_url -DgroupId=inaos  -DartifactId=$artifact_name -Dversion=$artifact_version -Dpackaging=zip -Dfile=$src
+    echo $github_packages_username
+    mvn -B deploy:deploy-file --debug --settings=../maven-settings.xml -DrepositoryId=$github_packages_repository_id -Durl=$github_packages_url -DgroupId=inaos  -DartifactId=$artifact_name -Dversion=$artifact_version -Dpackaging=zip -Dfile=$src
   displayName: Upload to Github packages
   env:
     github_packages_repository_id: github
