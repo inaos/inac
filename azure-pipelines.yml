@@ -175,7 +175,7 @@ steps:
     mvn -B deploy:deploy-file --settings=../maven-settings.xml -DrepositoryId=$github_packages_repository_id -Durl=$github_packages_url -DgroupId=inaos  -DartifactId=$artifact_name -Dversion=$artifact_version -Dpackaging=zip -Dfile=$src
   displayName: Upload to Github packages
   env:
-    github_packages_repository_id: $(github_packages_repository_id)
+    github_packages_repository_id: github
     github_packages_username: $(github_packages_username)
     github_packages_pat: $(github_packages_pat)
     github_packages_url: $(github_packages_url)
