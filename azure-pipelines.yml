@@ -154,9 +154,9 @@ steps:
     fi
     if [ "$AGENT_OS" == "Darwin" ]
       then
-        artifact_name=`echo $artifact_name | grep -Eo '[a-z]+-[a-z]+-[a-z,0-9,_]+-[a-z]+'`
+        artifact_name=`echo $artifact_name | grep -Eo '[a-z,0-9,_]+-[a-z,0-9,_]+-[a-z,0-9,_]+-[a-z,0-9,_]+'`
     else
-        artifact_name=`echo $artifact_name | grep -Po '[a-z]+-[a-z]+-[a-z,0-9,_]+-[a-z]+'`
+        artifact_name=`echo $artifact_name | grep -Po '[a-z,0-9,_]+-[a-z,0-9,_]+-[a-z,0-9,_]+-[a-z,0-9,_]+'`
     fi
     mvn --settings=../maven-settings.xml help:effective-settings
     mvn -B deploy:deploy-file --debug --settings=../maven-settings.xml -DrepositoryId=$github_packages_repository_id -Durl=$github_packages_url -DgroupId=inaos  -DartifactId=$artifact_name -Dversion=$artifact_version -Dpackaging=zip -Dfile=$src
