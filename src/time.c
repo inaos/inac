@@ -205,6 +205,7 @@ INA_API(ina_rc_t) ina_time_tsc_new(ina_time_tsc_t **time)
 {
     INA_VERIFY_NOT_NULL(time);
     *time = (ina_time_tsc_t*)ina_mem_alloc(sizeof(ina_time_tsc_t));
+    ina_mem_set(*time, 0, sizeof(ina_time_tsc_t));
     INA_RETURN_IF_NULL(*time);
     return INA_SUCCESS;
 }
