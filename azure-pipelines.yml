@@ -18,7 +18,6 @@ trigger:
 - develop
 
 variables:
-- group: jfrog-artifactory
 - group: github-packages
 
 strategy:
@@ -167,4 +166,4 @@ steps:
     github_packages_username: $(github_packages_username)
     github_packages_pat: $(github_packages_pat)
     github_packages_url: $(github_packages_url)
-
+  condition: and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.Reason'], 'IndividualCI'))
