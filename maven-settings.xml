@@ -6,7 +6,7 @@
                 <httpHeaders>
                     <property>
                         <name>Authorization</name>
-                        <value>Bearer $(github_packages_pat}</value>
+                        <value>Bearer ${github_packages_pat}</value>
                     </property>
                 </httpHeaders>
             </configuration>
