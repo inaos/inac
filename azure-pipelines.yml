@@ -16,6 +16,7 @@
 
 trigger:
 - develop
+- master
 
 variables:
 - group: github-packages
@@ -70,9 +71,13 @@ steps:
     mkdir -p $HOME/.inaos/cmake
     mkdir -p $HOME/INAOS
     echo "INAC_REPOSITORY_LOCAL=$HOME/INAOS" > $HOME/.inaos/cmake/repository.txt 
-    echo "INAC_REPOSITORY_REMOTE=https://inaos.jfrog.io/inaos/libs-release-local/inaos" >> $HOME/.inaos/cmake/repository.txt
-    echo "INAC_REPOSITORY_USRPWD=licensed:AKCp5bBraH7CasbsYCURsjzkbjXwVwdYcT7u39EiuL6GjnK1VKfKQWCd1E2E64mHokU5YUHku" >> $HOME/.inaos/cmake/repository.txt
+    echo "INAC_REPOSITORY_REMOTE=$github_packages_url" >> $HOME/.inaos/cmake/repository.txt
+    echo "INAC_REPOSITORY_USRPWD=$github_packages_username:$github_packages_pat" >> $HOME/.inaos/cmake/repository.txt
   displayName: Setup
+  env:
+    github_packages_username: $(github_packages_username)
+    github_packages_pat: $(github_packages_pat)
+    github_packages_url: $(github_packages_url)
     
 - bash: |
     if [ "$AGENT_OS" != "Windows_NT" ]
