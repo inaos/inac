@@ -2,8 +2,16 @@
     <servers>
         <server>
             <id>github</id>
-            <username>${github_packages_username}</username>
-            <password>$(github_packages_pat}</password>
+            <configuration>
+                <httpHeaders>
+                    <property>
+                        <name>Authorization</name>
+                        <value>Bearer $(github_packages_pat}</value>
+                    </property>
+                </httpHeaders>
+            </configuration>
+            <!--<username>${github_packages_username}</username>
+            <password>$(github_packages_pat}</password>-->
         </server>
     </servers>
 </settings>
