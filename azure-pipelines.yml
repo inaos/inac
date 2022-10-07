@@ -131,7 +131,7 @@ steps:
     cd cmake-build-%BUILD_CONFIGURATION%
     call "C:\Program Files\CMake\bin\cpack.exe"
     copy inac*.zip %INAC_ARTIFACT_TARGET%
-  displayName: Create package
+  displayName: Create package Windows
   env:
     INAC_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
   condition:
@@ -158,7 +158,7 @@ steps:
     else
         artifact_name=`echo $artifact_name | grep -Po '[a-z]+-[a-z]+-[a-z,0-9,_]+-[a-z]+'`
     fi
-    mvn help:effective-settings
+    mvn --settings=../maven-settings.xml help:effective-settings
     mvn -B deploy:deploy-file --debug --settings=../maven-settings.xml -DrepositoryId=$github_packages_repository_id -Durl=$github_packages_url -DgroupId=inaos  -DartifactId=$artifact_name -Dversion=$artifact_version -Dpackaging=zip -Dfile=$src
   displayName: Upload to Github packages
   env:
