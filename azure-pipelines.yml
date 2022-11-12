@@ -16,9 +16,10 @@
 
 trigger:
 - develop
+- master
 
 variables:
-- group: jfrog-artifactory
+- group: github-packages
 
 strategy:
   matrix:
@@ -70,9 +71,13 @@ steps:
     mkdir -p $HOME/.inaos/cmake
     mkdir -p $HOME/INAOS
     echo "INAC_REPOSITORY_LOCAL=$HOME/INAOS" > $HOME/.inaos/cmake/repository.txt 
-    echo "INAC_REPOSITORY_REMOTE=https://inaos.jfrog.io/inaos/libs-release-local/inaos" >> $HOME/.inaos/cmake/repository.txt
-    echo "INAC_REPOSITORY_USRPWD=licensed:AKCp5bBraH7CasbsYCURsjzkbjXwVwdYcT7u39EiuL6GjnK1VKfKQWCd1E2E64mHokU5YUHku" >> $HOME/.inaos/cmake/repository.txt
+    echo "INAC_REPOSITORY_REMOTE=$github_packages_url" >> $HOME/.inaos/cmake/repository.txt
+    echo "INAC_REPOSITORY_USRPWD=$github_packages_username:$github_packages_pat" >> $HOME/.inaos/cmake/repository.txt
   displayName: Setup
+  env:
+    github_packages_username: $(github_packages_username)
+    github_packages_pat: $(github_packages_pat)
+    github_packages_url: $(github_packages_url)
     
 - bash: |
     if [ "$AGENT_OS" != "Windows_NT" ]
@@ -130,7 +135,7 @@ steps:
     cd cmake-build-%BUILD_CONFIGURATION%
     call "C:\Program Files\CMake\bin\cpack.exe"
     copy inac*.zip %INAC_ARTIFACT_TARGET%
-  displayName: Create package
+  displayName: Create package Windows
   env:
     INAC_ARTIFACT_TARGET: $(Build.ArtifactStagingDirectory)
   condition:
@@ -142,23 +147,28 @@ steps:
     artifactName: inac-$(imageName)
     
 - bash: |
+    export LANG=C.UTF-8
     cd cmake-build-$BUILD_CONFIGURATION
     src=`ls inac*.zip`
     artifact_name=`basename $src`
+    echo $artifact_name
     if [ "$AGENT_OS" == "Darwin" ]
       then
         artifact_version=`echo $artifact_name | grep -Eo '\d+\.\d+\.\d+'`
     else
         artifact_version=`echo $artifact_name | grep -Po '\d+\.\d+\.\d+'`
     fi
-    target=inaos/inac/$artifact_version/$artifact_name
-    url=$jfrog_repository_url/$target
-    curl "-u$jfrog_artifactory_uid:$jfrog_artifactory_pwd" "-T" $src $url
-  displayName: Upload to artifactory
+    if [ "$AGENT_OS" == "Darwin" ]
+      then
+        artifact_name2=`echo $artifact_name | grep -Eo '[a-z,0-9,_]+-[a-z,0-9,_]+-[a-z,0-9,_]+-[a-z,0-9,_]+'`
+    else
+        artifact_name2=`echo $artifact_name | grep -Po '[a-z,0-9,_]+-[a-z,0-9,_]+-[a-z,0-9,_]+-[a-z,0-9,_]+'`
+    fi
+    mvn -B deploy:deploy-file --debug --settings=../maven-settings.xml -DrepositoryId=$github_packages_repository_id -Durl=$github_packages_url -DgroupId=inaos  -DartifactId=$artifact_name2 -Dversion=$artifact_version -Dpackaging=zip -Dfile=$src
+  displayName: Upload to Github packages
   env:
-    jfrog_artifactory_uid: $(jfrog_artifactory_uid)
-    jfrog_artifactory_pwd: $(jfrog_artifactory_pwd)
-    jfrog_repository_url: $(jfrog_repository_url)
-  condition:
-    eq( variables['upload_artifactory'], 'yes' )
-  
+    github_packages_repository_id: 'github'
+    github_packages_username: $(github_packages_username)
+    github_packages_pat: $(github_packages_pat)
+    github_packages_url: $(github_packages_url)
+  condition: and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.Reason'], 'IndividualCI'))
