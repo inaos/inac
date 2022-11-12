@@ -101,7 +101,7 @@ INA_TEST(process, start_and_wait)
     ina_process_ctx_free(&ctx);
 }
 
-INA_TEST_SKIP(process, stop)
+INA_TEST(process, stop)
 {
     ina_process_ctx_t *ctx;
     ina_process_t *process;
@@ -209,7 +209,7 @@ INA_TEST(process, get_exit_code)
     ina_process_free(&process);
 }
 
-INA_TEST_SKIP(process, stat)
+INA_TEST(process, stat)
 {
     ina_process_stat_t *ps = NULL;
     int alive = 0;
