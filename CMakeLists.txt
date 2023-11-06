@@ -27,6 +27,9 @@ inac_enable_log(Debug 4)
 inac_enable_log(RelWithDebInfo 3)
 inac_enable_log(Release 3)
 
+add_compile_options("-Werror") # warnings should be errors
+add_compile_options("-Wno-unknown-pragmas") 
+
 inac_add_contrib_lib(miniz)
 inac_add_contrib_lib(lz4)
 inac_add_contrib_lib(timerwheel)

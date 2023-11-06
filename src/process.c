@@ -749,6 +749,7 @@ static void __ina_process_start(ina_process_t *process)
 static void __ina_process_stop(ina_process_t *process)
 {
     int still_running = INA_NO;
+	INA_UNUSED(still_running);
 
     if (process->pid > 0) {
         if (kill(process->pid, 0) != ESRCH) {

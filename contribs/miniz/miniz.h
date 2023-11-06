@@ -790,9 +790,9 @@ mz_uint tdefl_create_comp_flags_from_zip_params(int level, int window_bits, int 
 // Allocate the tdefl_compressor and tinfl_decompressor structures in C so that
 // non-C language bindings to tdefl_ and tinfl_ API don't need to worry about
 // structure size and allocation mechanism.
-tdefl_compressor *tdefl_compressor_alloc();
+tdefl_compressor *tdefl_compressor_alloc(void);
 void tdefl_compressor_free(tdefl_compressor *pComp);
-tinfl_decompressor *tinfl_decompressor_alloc();
+tinfl_decompressor *tinfl_decompressor_alloc(void);
 void tinfl_decompressor_free(tinfl_decompressor *pDecomp);
 
 #ifdef __cplusplus

@@ -42,6 +42,7 @@ INA_TEST_SKIP(test, handle_sigfault) {
 }
 
 INA_TEST_FIXTURE(test, errmsg_too_big) {
+    INA_UNUSED(data);
     char buf[17*1024];
     ina_mem_set(&buf[0], 'A', 17*1024);
     buf[17*1024-1] = 0;
