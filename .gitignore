@@ -21,3 +21,14 @@ include/libinac/contribs
 bw-output/
 cmake-build-*
 build*/
+CMakeFiles/
+CMakeCache.txt
+*.cmake
+Makefile
+arch.c
+inac_dummy.c
+inac_dummy.c.base
+c2s.xsl
+cpu-topology/
+luajit/
+memhash/
