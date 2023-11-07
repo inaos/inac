@@ -394,7 +394,6 @@ static void __ina_hash_test_init64(int has_aes_support)
                             
 INA_TEST_SKIP(hash, all_64_bit)
 {
-    int i;
     int aes_hw_support = 0;
     ina_cpu_feature_t cpu_features;
     __ina_hash_test_call_wrapper_t w;
@@ -411,7 +410,7 @@ INA_TEST_SKIP(hash, all_64_bit)
     w.which = 1;
     __ina_hash_test_init64(aes_hw_support);
 
-    for (i = 0; i < sizeof(__hash64_all)/sizeof(__ina_test_hash64_info_t); i++) {
+    for (size_t i = 0; i < sizeof(__hash64_all)/sizeof(__ina_test_hash64_info_t); i++) {
         __ina_test_hash64_info_t *hi = &__hash64_all[i];
         if (hi->hash != NULL) {
             INA_TEST_MSG("Testing 64bit hash function: %s", ina_str_cstr(hi->name));

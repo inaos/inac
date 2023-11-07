@@ -98,7 +98,7 @@ typedef uint64_t timeout_t;
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 struct timeout_cb {
-	void (*fn)();
+	void (*fn)(void);
 	void *arg;
 }; /* struct timeout_cb */
 
