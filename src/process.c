@@ -370,14 +370,25 @@ INA_API(ina_rc_t) ina_process_start(ina_process_t *process)
 {
     INA_VERIFY_NOT_NULL(process);
     INA_FSM_FIRE_EVENT(process_fsm, process->state, INA_PROCESS_START, process);
-    return process->last_rc;
+
+    /* if we were waiting, the process is stopped at this point */
+    if (process->descriptor->cf&INA_PROCESS_CF_WAIT) {
+        INA_FSM_SET_STATE(process_fsm, process->state, INA_PROCESS_STOPPED);
+    }
+    if (INA_FAILED(process->last_rc)) {
+        return INA_ERROR(process->last_rc);
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_stop(ina_process_t *process)
 {
     INA_VERIFY_NOT_NULL(process);
     INA_FSM_FIRE_EVENT(process_fsm, process->state, INA_PROCESS_STOP, process);
-    return process->last_rc;
+    if (INA_FAILED(process->last_rc)) {
+        return INA_ERROR(process->last_rc);
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_query_state(ina_process_t *process,
@@ -386,14 +397,20 @@ INA_API(ina_rc_t) ina_process_query_state(ina_process_t *process,
     INA_VERIFY_NOT_NULL(process);
     INA_VERIFY_NOT_NULL(state);
     *state = INA_FSM_GET_STATE(process_fsm, process->state);
-    return process->last_rc;
+    if (INA_FAILED(process->last_rc)) {
+        return INA_ERROR(process->last_rc);
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_reset(ina_process_t *process)
 {
     INA_VERIFY_NOT_NULL(process);
     INA_FSM_FIRE_EVENT(process_fsm, process->state, INA_PROCESS_RESET, process);
-    return process->last_rc;
+    if (INA_FAILED(process->last_rc)) {
+        return INA_ERROR(process->last_rc);
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process,
@@ -407,7 +424,10 @@ INA_API(ina_rc_t) ina_process_get_exit_code(ina_process_t *process,
         return INA_ERROR(INA_ES_PROCESS | INA_ERR_RUNNING);
     }
     *exit_code = process->exit_code;
-    return process->last_rc;
+    if (INA_FAILED(process->last_rc)) {
+        return INA_ERROR(process->last_rc);
+    }
+    return INA_SUCCESS;
 }
 
 INA_API(ina_rc_t) ina_process_should_be_running(ina_process_t *process,
@@ -644,28 +664,30 @@ static void __ina_process_is_running(ina_process_t *process,
     int status = 0;
     pid_t w;
 
+    /* Be pessimistic */
     *still_running = INA_NO;
 
     if (-1 == kill(process->pid, 0)) {
-        if (errno == ESRCH) {
-            *still_running = INA_NO;
-        } else {
+        if (errno != ESRCH) {
             process->last_rc = INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
+            return;
+        }
+        /* If terminated, and we were waiting for end waitpid will return an error if
+            called again. Exit code was already read before, we can leave here */
+        if (process->descriptor->cf&INA_PROCESS_CF_WAIT) {
+            process->last_rc = INA_SUCCESS;
             return;
         }
     }
 
-    // If terminated, and we were waiting for end waitpid will return an error if
-    // called again.
-    if (process->descriptor->cf&INA_PROCESS_CF_WAIT && *still_running == INA_NO) {
-        return;
-    }
-
+    /* Check last status */
     w = waitpid(process->pid, &status, WNOHANG|WEXITED);
+
     if (w == -1) {
         process->last_rc = INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
     } else if (w == 0) {
         *still_running = INA_YES;
+        process->last_rc = INA_SUCCESS;
     } else if (process->exit_code < 0) {
         if (WIFEXITED(status)) {
             process->exit_code = WEXITSTATUS(status);
@@ -717,6 +739,7 @@ static void __ina_process_start(ina_process_t *process)
         if (process->descriptor->cf&INA_PROCESS_CF_WAIT) {
             waitpid(process->pid, &status, 0);
             if (WIFEXITED(status)) {
+                INA_FSM_SET_STATE(process_fsm, process->state, INA_PROCESS_STOPPED);
                 process->exit_code = WEXITSTATUS(status);
             }
         }
@@ -726,16 +749,20 @@ static void __ina_process_start(ina_process_t *process)
 static void __ina_process_stop(ina_process_t *process)
 {
     int still_running = INA_NO;
+    INA_UNUSED(still_running);
 
     if (process->pid > 0) {
-        INA_TRACE2(inac.process, "Kill %d", process->pid);
-        if (kill(process->pid, SIGTERM) == -1) {
-            INA_TRACE2(inac.process, "%s", "FAILED to kill");
-            process->last_rc = INA_OS_ERROR(INA_ES_PROCESS | INA_ERR_NOT_STOPPED);
-            return;
+        if (kill(process->pid, 0) != ESRCH) {
+            if (kill(process->pid, SIGTERM) == -1) {
+                process->last_rc = INA_OS_ERROR(INA_ES_PROCESS | INA_ERR_NOT_STOPPED);
+                return;
+            } else {
+                process->last_rc = INA_SUCCESS;
+            }
+        } else {
+            process->last_rc = INA_OS_ERROR(INA_ERR_OPERATION_FAILED);
         }
     }
-    __ina_process_is_running(process, &still_running);
 }
 
 static void __ina_process_reset(ina_process_t *process)

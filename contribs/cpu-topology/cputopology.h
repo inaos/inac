@@ -282,23 +282,23 @@ unsigned long getBitsFromDWORD(const unsigned int val, const char from, const ch
 /*static unsigned  createMask(unsigned  numEntries, unsigned  *maskLength);*/
 unsigned SlectOrdfromPkg(unsigned  package,unsigned  core, unsigned  logical);
 
-unsigned  GetOSLogicalProcessorCount();
-unsigned  GetSysProcessorPackageCount();
-unsigned  GetProcessorCoreCount();
-unsigned  GetLogicalProcessorCount();
-unsigned  GetCoresPerPackageProcessorCount();
-unsigned  GetProcessorPackageCount();
-unsigned  GetLogicalPerCoreProcessorCount();
-unsigned  getAPICID(unsigned  processor);
+unsigned  GetOSLogicalProcessorCount(void);
+unsigned  GetSysProcessorPackageCount(void);
+unsigned  GetProcessorCoreCount(void);
+unsigned  GetLogicalProcessorCount(void);
+unsigned  GetCoresPerPackageProcessorCount(void);
+unsigned  GetProcessorPackageCount(void);
+unsigned  GetLogicalPerCoreProcessorCount(void);
+unsigned  getAPICID(unsigned processor);
 
 unsigned  GetCoreCount(unsigned long package_ordinal);
 unsigned  GetThreadCount(unsigned long package_ordinal, unsigned long core_ordinal);
-int InitCpuTopology();
+int InitCpuTopology(void);
 
 int   BindContext(unsigned cpu);
 void  SetChkProcessAffinityConsistency(unsigned  lcl_OSProcessorCount);
 int  SetGenericAffinityBit(GenericAffinityMask *pAffinityMap, unsigned  cpu);
-unsigned  GetMaxCPUSupportedByOS();
+unsigned  GetMaxCPUSupportedByOS(void);
 
 int get_cpu_hw_info(int *packages, int *cores, int *threads, int *logical);
 
