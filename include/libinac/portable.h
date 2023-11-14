@@ -537,6 +537,15 @@ extern "C" {
 #  define PRINTF_INTMAX_DEC_WIDTH PRINTF_INT64_DEC_WIDTH
 # endif
 
+// Bit-level helpers
+#if (CHAR_BIT != 8) 
+    // These awkward platforms *do* exist (peculiar super-legacy mainframes
+    // or some DSPs not compatible with Posix), but should not ever be targetted.
+    #error UNSUPPORTED PLATFORM 
+#endif
+
+#define INA_BITS_PER_TYPE(T) (CHAR_BIT * sizeof(T))
+
 /*
  *  Something really weird is going on with Open Watcom.  Just pull some of
  *  these duplicated definitions from Open Watcom's stdint.h file for now.
