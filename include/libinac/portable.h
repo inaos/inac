@@ -465,6 +465,19 @@ extern "C" {
 #endif
 #define INA_API_DEPRECATED(rtype) INA_DEPRECATED INA_API(rtype)
 
+#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
+    #define INA_ALWAYS_INLINE __attribute__((__always_inline__)) inline
+#elif defined(INA_COMPILER_MSVC)
+    #define INA_ALWAYS_INLINE __forceinline inline
+#else
+    #define INA_ALWAYS_INLINE INA_INLINE
+#endif
+
+#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
+    #define INA_API_INLINE(rtype) INA_ALWAYS_INLINE static rtype
+#else
+    #define INA_API_INLINE(rtype) INA_ALWAYS_INLINE rtype
+#endif
 
 /*
  * Try to infer endianness.  Basically we just go through the CPUs we know are
