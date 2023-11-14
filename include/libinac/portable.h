@@ -28,8 +28,14 @@ extern "C" {
  * Determine compilation environment
  */
 #if defined __ECC || defined __ICC || defined __INTEL_COMPILER
-#  define INA_COMPILER_STRING "Intel C/C++"
-#  define INA_COMPILER_INTEL 1
+#  define INA_COMPILER_STRING "Intel C/C++ Compiler Classic"
+#  define INA_COMPILER_ICC 1
+#  define INA_COMPILER_INTEL 1 // Retained for compatibility
+#endif
+
+#if defined __INTEL_LLVM_COMPILER
+#  define INA_COMPILER_STRING "Intel oneAPI DPC++/C++ Compiler"
+#  define INA_COMPILER_ICX 1
 #endif
 
 #if ( defined __host_mips || defined __sgi ) && !defined __GNUC__
@@ -42,7 +48,7 @@ extern "C" {
 #  define INA_COMPILER_HPCC 1 
 #endif
 
-#if defined __GNUC__ && !defined(INA_COMPILER_INTEL)
+#if defined __GNUC__ && !defined(INA_COMPILER_ICC) && !defined(INA_COMPILER_ICX)
 #  define INA_COMPILER_STRING "Gnu GCC"
 #  define INA_COMPILER_GCC 1
 #endif
@@ -57,7 +63,7 @@ extern "C" {
 #  define INA_COMPILER_IBM 1
 #endif
 
-#if defined _MSC_VER && !defined(INA_COMPILER_INTEL)
+#if defined _MSC_VER && !defined(INA_COMPILER_ICC)
 #  define INA_COMPILER_STRING "Microsoft Visual C++"
 #  define INA_COMPILER_MSVC 1
 #endif
@@ -1033,7 +1039,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 
 /* Pack */
 #ifdef INA_OS_WINDOWS
-#  if defined(INA_COMPILER_MSVC) || defined(INA_COMPILER_INTEL)
+#  if defined(INA_COMPILER_MSVC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
 #    define INA_ALIGNED(x) __declspec(align(x))
 #    define INA_VSALIGNED128 INA_ALIGNED(128)
 #    define INA_VSALIGNED64 INA_ALIGNED(64)
@@ -1056,7 +1062,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #    error UNSUPPORTED COMPILER
 #  endif
 #else
-#  if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
+#  if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
 #    define INA_ALIGNED(x) __attribute__((aligned(x)))
 #    define INA_ALIGNED128 INA_ALIGNED(128)
 #    define INA_ALIGNED64 INA_ALIGNED(64)
@@ -1315,7 +1321,7 @@ void  rewinddir(DIR *dir);
 #endif
 #endif
 
-#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
+#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
 #define INA_SIMD_IVDEP _Pragma(ivdep)
 #elif INA_COMPILER_MSVC
 #define INA_SIMD_IVDEP __pragma(loop(ivdep))
