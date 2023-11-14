@@ -38,8 +38,6 @@ extern "C" {
 #  define INA_COMPILER_ICX 1
 #endif
 
-//
-
 #if ( defined __host_mips || defined __sgi ) && !defined __GNUC__
 #  define INA_COMPILER_STRING    "MIPSpro C/C++"
 #  define INCA_COMPILER_MIPSPRO 1 
