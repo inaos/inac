@@ -204,7 +204,8 @@ are  currently detected.
 * Gnu GCC (Apple): `INA_COMPILER_APPLECC`
 * HP-UX CC: `INA_COMPILER_HPCC`
 * IBM C/C++: `INA_COMPILER_IBM`
-* Intel C/C++: `INA_COMPILER_INTEL`
+* Intel C/C++ Compiler Classic: `INA_COMPILER_ICC`
+* Intel oneAPI DPC++/C++ Compiler: `INA_COMPILER_ICX`
 * MetroWerks CodeWarrior: `INA_COMPILER_METROWERKS`
 * Microsoft Visual C++: `INA_COMPILER_MSVC`
 * MIPSpro C/C++: `INA_COMPILER_MIPSPRO`
