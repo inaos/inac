@@ -28,8 +28,14 @@ extern "C" {
  * Determine compilation environment
  */
 #if defined __ECC || defined __ICC || defined __INTEL_COMPILER
-#  define INA_COMPILER_STRING "Intel C/C++"
-#  define INA_COMPILER_INTEL 1
+#  define INA_COMPILER_STRING "Intel C/C++ Compiler Classic"
+#  define INA_COMPILER_ICC 1
+#  define INA_COMPILER_INTEL 1 // Retained for compatibility
+#endif
+
+#if defined __INTEL_LLVM_COMPILER
+#  define INA_COMPILER_STRING "Intel oneAPI DPC++/C++ Compiler"
+#  define INA_COMPILER_ICX 1
 #endif
 
 #if ( defined __host_mips || defined __sgi ) && !defined __GNUC__
@@ -42,7 +48,7 @@ extern "C" {
 #  define INA_COMPILER_HPCC 1 
 #endif
 
-#if defined __GNUC__ && !defined(INA_COMPILER_INTEL)
+#if defined __GNUC__ && !defined(INA_COMPILER_ICC) && !defined(INA_COMPILER_ICX)
 #  define INA_COMPILER_STRING "Gnu GCC"
 #  define INA_COMPILER_GCC 1
 #endif
@@ -57,7 +63,7 @@ extern "C" {
 #  define INA_COMPILER_IBM 1
 #endif
 
-#if defined _MSC_VER && !defined(INA_COMPILER_INTEL)
+#if defined _MSC_VER && !defined(INA_COMPILER_ICC)
 #  define INA_COMPILER_STRING "Microsoft Visual C++"
 #  define INA_COMPILER_MSVC 1
 #endif
@@ -459,6 +465,19 @@ extern "C" {
 #endif
 #define INA_API_DEPRECATED(rtype) INA_DEPRECATED INA_API(rtype)
 
+#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
+    #define INA_ALWAYS_INLINE __attribute__((__always_inline__)) inline
+#elif defined(INA_COMPILER_MSVC)
+    #define INA_ALWAYS_INLINE __forceinline inline
+#else
+    #define INA_ALWAYS_INLINE INA_INLINE
+#endif
+
+#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
+    #define INA_API_INLINE(rtype) INA_ALWAYS_INLINE static rtype
+#else
+    #define INA_API_INLINE(rtype) INA_ALWAYS_INLINE rtype
+#endif
 
 /*
  * Try to infer endianness.  Basically we just go through the CPUs we know are
@@ -530,6 +549,15 @@ extern "C" {
 # ifndef PRINTF_INTMAX_DEC_WIDTH
 #  define PRINTF_INTMAX_DEC_WIDTH PRINTF_INT64_DEC_WIDTH
 # endif
+
+// Bit-level helpers
+#if (CHAR_BIT != 8) 
+    // These awkward platforms *do* exist (peculiar super-legacy mainframes
+    // or some DSPs not compatible with Posix), but should not ever be targetted.
+    #error UNSUPPORTED PLATFORM 
+#endif
+
+#define INA_BITS_PER_TYPE(T) (CHAR_BIT * sizeof(T))
 
 /*
  *  Something really weird is going on with Open Watcom.  Just pull some of
@@ -1033,7 +1061,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 
 /* Pack */
 #ifdef INA_OS_WINDOWS
-#  if defined(INA_COMPILER_MSVC) || defined(INA_COMPILER_INTEL)
+#  if defined(INA_COMPILER_MSVC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
 #    define INA_ALIGNED(x) __declspec(align(x))
 #    define INA_VSALIGNED128 INA_ALIGNED(128)
 #    define INA_VSALIGNED64 INA_ALIGNED(64)
@@ -1056,7 +1084,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #    error UNSUPPORTED COMPILER
 #  endif
 #else
-#  if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
+#  if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
 #    define INA_ALIGNED(x) __attribute__((aligned(x)))
 #    define INA_ALIGNED128 INA_ALIGNED(128)
 #    define INA_ALIGNED64 INA_ALIGNED(64)
@@ -1315,7 +1343,7 @@ void  rewinddir(DIR *dir);
 #endif
 #endif
 
-#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_INTEL)
+#if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
 #define INA_SIMD_IVDEP _Pragma(ivdep)
 #elif INA_COMPILER_MSVC
 #define INA_SIMD_IVDEP __pragma(loop(ivdep))
