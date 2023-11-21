@@ -1161,15 +1161,18 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 /* Branch prediction hints */
-#ifdef INA_OS_WINDOWS
-#define INA_LIKELY(x)    (x)
-#define INA_UNLIKELY(x)  (x)
-#elif defined(__GNUC__) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )
-#define INA_LIKELY(x)    __builtin_expect(!!(x), 1)
-#define INA_UNLIKELY(x)  __builtin_expect(!!(x), 0)
+#if defined(INA_COMPILER_MSVC)
+#define INA_EXPECT(x, v)        (x)
+#define INA_UNPREDICTABLE(x)    (x)
+#if (defined(INA_COMPILER_GCC) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
+#define INA_EXPECT(x, v)        __builtin_expect((x), (v))
+#define INA_UNPREDICTABLE(x)    __builtin_unpredictable((x))
 #else
 #error Compiler not supported yet for INAC!
 #endif
+
+#define INA_LIKELY(x)   INA_EXPECT(!!(x), 1)
+#define INA_UNLIKELY(x) INA_EXPECT(!!(x), 0)
 
 /* C99 restrict a.k.a. pointer aliasing hint */
 #ifdef INA_OS_WINDOWS
