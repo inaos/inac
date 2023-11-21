@@ -98,6 +98,7 @@ extern "C" {
 #include <libinac/list.h>
 #include <libinac/test.h>
 #include <libinac/bench.h>
+#include <libinac/ptrutils.h>
 
 
 #define INA_UNUSED(x) (void)(x)
