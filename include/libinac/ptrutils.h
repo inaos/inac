@@ -26,14 +26,14 @@ extern "C" {
 #define INA_PTR_OFFSET(T, p, offs) ((T*)(((char*) (p)) + (offs)))
 #define INA_CONST_PTR_OFFSET(T, p, offs) ((const T*)(((const char*) (p)) + (offs)))
 
-INA_ALWAYS_INLINE static size_t align_down(size_t x, size_t alignment) {
+INA_ALWAYS_INLINE static size_t ina_align_down(size_t x, size_t alignment) {
     assert(alignment > 0);
     return (x / alignment) * alignment;
 }
 
-INA_ALWAYS_INLINE static size_t align_up(size_t x, size_t alignment) {
+INA_ALWAYS_INLINE static size_t ina_align_up(size_t x, size_t alignment) {
     assert(alignment > 0);
-    return align_down(x+alignment-1, alignment);
+    return ina_align_down(x+alignment-1, alignment);
 }
 
 #ifdef __cplusplus
