@@ -1164,7 +1164,7 @@ INA_API(int) gettimeofday(struct timeval *tv, struct timezone *tz);
 #if defined(INA_COMPILER_MSVC)
 #define INA_EXPECT(x, v)        (x)
 #define INA_UNPREDICTABLE(x)    (x)
-#if (defined(INA_COMPILER_GCC) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
+#elif (defined(INA_COMPILER_GCC) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 401 )) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
 #define INA_EXPECT(x, v)        __builtin_expect((x), (v))
 #define INA_UNPREDICTABLE(x)    __builtin_unpredictable((x))
 #else
@@ -1347,13 +1347,13 @@ void  rewinddir(DIR *dir);
 #endif
 
 #if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
-#define INA_SIMD_IVDEP _Pragma(ivdep)
+#   define INA_SIMD_IVDEP _Pragma(ivdep)
 #elif INA_COMPILER_MSVC
-#define INA_SIMD_IVDEP __pragma(loop(ivdep))
+#   define INA_SIMD_IVDEP __pragma(loop(ivdep))
 #elif INA_COMPILER_CLANG
-#define INA_SIMD_IVDEP _Pragma clang loop vectorize(enable)
+#   define INA_SIMD_IVDEP _Pragma clang loop vectorize(enable)
 #else
-#define INA_SIMD_IVDEP
+#   define INA_SIMD_IVDEP
 #endif
 
 #define INA_MM_PAUSE _mm_pause()
