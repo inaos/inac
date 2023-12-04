@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 cmake_minimum_required(VERSION 3.7)
-project(inac VERSION 1.0.23)
+project(inac VERSION 1.0.24)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
 inac_enable_aes()
