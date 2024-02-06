@@ -50,7 +50,7 @@ local function _query_process(needle)
       local fname = tonumber(ffi.string(dp.d_name))
       if fname then
         local cmdline = "/proc/"..fname.."/cmdline"
-        local fcmdline = iopen(cmdline)
+        local fcmdline = iopen(cmdline, "rb")
         if fcmdline then
           local cmd = fcmdline:read("*a")
           if cmd:find(needle, 1, true) then
