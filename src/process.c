@@ -681,7 +681,7 @@ static void __ina_process_is_running(ina_process_t *process,
     }
 
     /* Check last status */
-    w = waitpid(process->pid, &status, WNOHANG|WEXITED);
+    w = waitpid(process->pid, &status, WNOHANG);
 
     if (w == -1) {
         process->last_rc = INA_OS_ERROR(INA_ES_OPERATION | INA_ERR_FAILED);
