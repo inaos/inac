@@ -63,7 +63,7 @@ extern "C" {
 #  define INA_COMPILER_IBM 1
 #endif
 
-#if defined _MSC_VER && !defined(INA_COMPILER_ICC)
+#if defined _MSC_VER && !defined(INA_COMPILER_ICC) && !defined(INA_COMPILER_ICX)
 #  define INA_COMPILER_STRING "Microsoft Visual C++"
 #  define INA_COMPILER_MSVC 1
 #endif
@@ -1303,10 +1303,15 @@ void  rewinddir(DIR *dir);
 #define INA_DIAG_DO_PRAGMA(x) _Pragma (#x)
 #define INA_DIAG_PRAGMA(compiler,x) INA_DIAG_DO_PRAGMA(compiler diagnostic x)
 #endif
-#if defined(__clang__)
+#if defined(__clang__) || defined(INA_COMPILER_ICX)
+#if !defined(INA_COMPILER_ICX)
 # define INA_DISABLE_WARNING_CLANG(clang_option) INA_DIAG_PRAGMA(clang,push) INA_DIAG_PRAGMA(clang,ignored INA_DIAG_JOINSTR(-W,clang_option))
-# define INA_ENABLE_WARNING_CLANG(clang_option) INA_DIAG_PRAGMA(clang,pop)
 # define INA_DISABLE_WARNING(gcc_unused,clang_option,msvc_unused) INA_DIAG_PRAGMA(clang,push) INA_DIAG_PRAGMA(clang,ignored INA_DIAG_JOINSTR(-W,clang_option))
+#else
+# define INA_DISABLE_WARNING_CLANG(clang_option) INA_DIAG_PRAGMA(clang,push) // INA_DIAG_PRAGMA(clang,suppress INA_DIAG_JOINSTR(-W,clang_option))
+# define INA_DISABLE_WARNING(gcc_unused,clang_option,msvc_unused) INA_DIAG_PRAGMA(clang,push) // INA_DIAG_PRAGMA(clang,suppress INA_DIAG_JOINSTR(-W,clang_option))
+#endif
+# define INA_ENABLE_WARNING_CLANG(clang_option) INA_DIAG_PRAGMA(clang,pop)
 # define INA_ENABLE_WARNING(gcc_unused,clang_option,msvc_unused) INA_DIAG_PRAGMA(clang,pop)
 # define INA_DISABLE_WARNING_MSVC(msvc_errorcode)
 # define INA_ENABLE_WARNING_MSVC(msvc_errorcode)
