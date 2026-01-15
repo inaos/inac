@@ -543,7 +543,7 @@ typedef void (*ina_test_teardown_cb_t)(void*);
 typedef struct ina_test_testcase_s {
     const char* suite_name;
     const char* test_name;
-    void (*run)(void*);
+    void (*run)(void);
     int skip;
     int is_helper;
     void *data;
@@ -585,7 +585,7 @@ typedef struct ina_test_testcase_s {
     INA_TEST_SECTION_PUSH ina_test_testcase_t INA_TEST_TNAME(sname, tname) INA_TEST_SECTION = {   \
         #sname,                                                             \
         #tname,                                                             \
-        (void (*)(void*)) INA_TEST_FNAME(sname, tname),                     \
+        (void (*)(void)) INA_TEST_FNAME(sname, tname),                       \
         _skip,                                                              \
         __helper,                                                           \
         __data,                                                             \
