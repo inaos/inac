@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.28)
 project(inac VERSION 1.0.28)
 include("inac.cmake")
 inac_version_header(include/libinac/version.h)
@@ -33,6 +33,20 @@ inac_add_contrib_lib(timerwheel)
 inac_add_contrib_lib(xxhash)
 inac_add_contrib_lib(falkhash)
 inac_add_contrib_lib(t1ha SOURCE_ROOT src)
+
+if (MSVC)
+else()
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Werror
+        -Werror=misleading-indentation
+        -Wno-unknown-pragmas
+        -Wno-unused-function
+    )
+
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -z noexecstack")
+endif()
 
 inac_add_luafiles(inac_lua
 		"${DEPS_DIR}/luajit/src/jit/bc.lua"
