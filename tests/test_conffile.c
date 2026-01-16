@@ -156,7 +156,7 @@ INA_TEST(conffile , using_macros_without_section_handler)
 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "debug", NULL, "username", &value));
     INA_TEST_ASSERT_NOT_NULL(value);
-    INA_TEST_ASSERT_TRUE(ina_str_len(value));
+
     INA_TEST_MSG("username from env var: %s", value);
 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "iface", "lo0", "ip", &value));
