@@ -277,7 +277,7 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
             int64_t read_cur;
             if (ctx->c_offset[i].alive) {
                 read_cur = ctx->c_offset[i].cursor % ctx->ring->slots;
-                INA_TRACE3(inac.ullc, "wait consumer(%ld) %ld at position %d for %ld", i, slow_consumer, read_cur, like_to_write);
+                INA_TRACE3(inac.ullc, "wait consumer(%ld) %ld at position %ld for %ld", i, slow_consumer, read_cur, like_to_write);
                 slow_consumer = INA_MAX(slow_consumer, read_cur);
             }
         }
