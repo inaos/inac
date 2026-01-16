@@ -361,8 +361,9 @@ INA_API(ina_rc_t) ina_file_stat_sync(const ina_file_t *file, ina_file_stat_t *st
         return INA_OS_ERROR(INA_ERR_OPERATION_FAILED);
     }
     stat->file_size = (size_t)fst.st_size;
+
     if (fst.st_mode & S_IFDIR) {
-        stat->is_dir = 1;
+       stat->is_dir = 1;
     } else {
         stat->is_dir = 0;
     }
@@ -425,7 +426,7 @@ INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat)
     INA_VERIFY_NOT_NULL(stat);
 
     if (!stat->is_dir) {
-        INA_ERROR(INA_ERR_NOT_A_DIRECTORY);
+        return INA_ERROR(INA_ERR_NOT_A_DIRECTORY);
     }
     return INA_SUCCESS;
 }

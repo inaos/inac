@@ -81,7 +81,7 @@ INA_TEST(file, stat)
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_new(f, &stat));
     INA_TEST_ASSERT_NOT_NULL(stat);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_file_size(stat, &file_size));
-    INA_TEST_ASSERT_EQUAL_INT64(180LL, file_size);
+    INA_TEST_ASSERT_EQUAL_INT64(210LL, file_size);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_atime(stat, &t));
     INA_TEST_ASSERT_NOT_EQUAL_TIME_T(0, t);
     t = 0;
