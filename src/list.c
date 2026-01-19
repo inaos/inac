@@ -172,21 +172,30 @@ INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max
     }
 
     if (list->mp != NULL) {
-        ina_list_node_t* next;
-        ina_list_node_t* new_mode;
         ina_list_node_t* new_head = NULL;
+        ina_list_node_t* new_tail = NULL;
+        ina_list_node_t* next;
+
         if (INA_SUCCEED(ina_list_head(list, &next))) {
             while (next) {
-                new_mode = ina_mempool_dalloc(mp, sizeof(ina_list_node_t));
-                if (new_head == NULL) {
-                    new_head = new_mode;
+                ina_list_node_t* const new_node = ina_mempool_dalloc(mp, sizeof(ina_list_node_t));
+                new_node->next = NULL;
+                new_node->prev = new_tail;
+                new_node->data = next->data;
+
+                if (new_tail != NULL) {
+                    new_tail->next = new_node;
+                } else {
+                    new_head = new_node;
                 }
-                ina_mem_cpy(new_mode, next, sizeof(ina_list_node_t));
-                next = next->next;
-            }
+                
+                new_tail = new_node;
+                next = next->next;          
+           }
+
+            list->head = new_head;
+            ina_mempool_free(&list->mp);
         }
-        list->head = new_head;
-        ina_mempool_free(&list->mp);
     }
 
     list->mp = mp;
@@ -194,10 +203,11 @@ INA_API(ina_rc_t) ina_list_resize(ina_list_t *list, size_t min_nodes, size_t max
     INA_MEM_FREE_SAFE(list->first_free);
     list->last_free = 0;
     if (max_recyclable_nodes) {
-        list->max_recyclable = max_recyclable_nodes;
         list->first_free = ina_mem_alloc(sizeof(void*)*max_recyclable_nodes);
         ina_mem_set(list->first_free, 0, sizeof(void*)*max_recyclable_nodes);
     }
+
+    list->max_recyclable = max_recyclable_nodes;
     return INA_SUCCESS;
 }
 
