@@ -76,7 +76,7 @@ static ina_htdata_i64_t* new_data_i64(int64_t id, const char* name)
 INA_TEST(hashtable, int_key)
 {
 	ina_hashtable_t *ht = NULL;
-	ina_htdata_t *d;
+	ina_htdata_t *d = NULL;
 	size_t count;
 	size_t usage;
     INA_UNUSED(data);
@@ -105,7 +105,7 @@ INA_TEST(hashtable, int_key)
 	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 3, (void**)&d));
 	d = NULL;
 	INA_TEST_ASSERT_SUCCEED(ina_hashtable_remove_i32(ht, 1, (void**)&d));
-	INA_TEST_ASSERT_NOT_NULL(data);
+	INA_TEST_ASSERT_NOT_NULL(d);
 	INA_TEST_ASSERT_EQUAL_STR("Name 1", d->name);
 	INA_TEST_ASSERT_FAILED(ina_hashtable_get_i32(ht, 1, (void**)&d));
 	d = new_data(10, "Name 10");
