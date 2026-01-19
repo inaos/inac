@@ -180,6 +180,7 @@ INA_TEST(ipc_flags, wait_ipc)
         "test_wait_ipc", NULL);    
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, INA_IPC_FLAGS_13, 1000));
     INA_TEST_ASSERT_SUCCEED(ina_ipc_flags_wait(f, 0, 2500));
+    ina_ipc_flags_free(&f);
 }
 
 INA_TEST(ipc_flags, dump)
