@@ -437,7 +437,7 @@ INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, size_t *file_si
     INA_VERIFY_NOT_NULL(file_size);
 
     /* we know the the file-size can not be negative */
-    *file_size = stat->file_size;
+    *file_size = (size_t) stat->file_size;
     return INA_SUCCESS;
 }
 
@@ -579,8 +579,8 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, size_t offset, ina_file_see
 {
 #ifdef INA_OS_WINDOWS
     static DWORD modes[2] = {FILE_BEGIN,FILE_CURRENT};
-    LONG high = offset >> 32;
-    LONG low = offset & 0xffffffff;
+    LONG high = (LONG) (((unsigned long long) offset) >> 32);
+    LONG low = (LONG) (offset & 0xffffffff);
     INA_VERIFY_NOT_NULL(file);
     if (SetFilePointer(file->fh, low, &high, modes[mode]) == INVALID_SET_FILE_POINTER) {
         return INA_OS_ERROR(INA_ERR_OPERATION_FAILED);;

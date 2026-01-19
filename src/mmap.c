@@ -81,7 +81,9 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 	*mapping = NULL;
 	if (NULL != fd) {
 		INA_RETURN_IF_FAILED(ina_file_stat_new(fd, &fstat));
-		INA_MUST_SUCCEED(ina_file_stat_file_size(fstat, &flen));
+        size_t slen;
+		INA_MUST_SUCCEED(ina_file_stat_file_size(fstat, &slen));
+        flen = slen;
 		ina_file_stat_free(&fstat);
 
 		if (offset > flen) {

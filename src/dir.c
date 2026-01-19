@@ -310,7 +310,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_capacity(const ina_dir_stat_t *stat, size_t
     INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(capacity_bytes);
 #ifdef INA_OS_WINDOWS
-    *capacity_bytes = stat->total_number_of_bytes.QuadPart;
+    *capacity_bytes = (size_t) stat->total_number_of_bytes.QuadPart;
 #else
     *capacity_bytes = stat->total_bytes;
 #endif
@@ -322,7 +322,7 @@ INA_API(ina_rc_t) ina_dir_stat_bytes_free(const ina_dir_stat_t *stat, size_t *fr
     INA_VERIFY_NOT_NULL(stat);
     INA_VERIFY_NOT_NULL(free_bytes);
 #ifdef INA_OS_WINDOWS
-    *free_bytes = stat->free_bytes_available.QuadPart;
+    *free_bytes = (size_t) stat->free_bytes_available.QuadPart;
 #else
     *free_bytes = stat->free_bytes;
 #endif

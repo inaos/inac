@@ -661,7 +661,7 @@ INA_API(ina_rc_t) ina_cpu_pin_to_core(int cpuid)
 #ifdef INA_CPU_X86_64
         threadAffinityMask = 1ULL << cpuid;
 #else
-        DWORD_PTR threadAffinityMask = 1UL << cpuid;
+        threadAffinityMask = 1UL << cpuid;
 #endif
     }
 

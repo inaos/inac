@@ -96,7 +96,7 @@ static ina_rc_t ina_file_cursor_fileio_set_pos(ina_file_cursor_t *cursor, uint64
 {
     INA_VERIFY_NOT_NULL(cursor);
 
-	if (INA_SUCCEED(ina_file_set_pos(cursor->file, position, INA_FILE_SEEK_MODE_SET))) {
+	if (INA_SUCCEED(ina_file_set_pos(cursor->file, (size_t) position, INA_FILE_SEEK_MODE_SET))) {
 		cursor->ext.f.position = position;
 		return INA_SUCCESS;
 	}
@@ -430,7 +430,12 @@ static ina_rc_t ina_file_cursor_init_internal(ina_file_t *file,
 	if (INA_FAILED(ina_file_stat_new(file, &fstat))) {
 		return ina_err_get_rc();
 	}
-	ina_file_stat_file_size(fstat, &flen);
+
+    {   size_t slen;
+	    ina_file_stat_file_size(fstat, &slen);
+        flen = slen;
+    }
+
 	ina_file_stat_free(&fstat);
 
 	cursor->file = file;
