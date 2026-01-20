@@ -342,7 +342,7 @@ INA_API(int) ina_bench_run(void)
                     for (ic = 0; ic < (__xiter+__xwarmup_iter); ++ic) {
                         __current_iteration = ic;
                         __ina_clear_cache(tot_cache_size*2);
-                        bench->run(bench->data);
+                        ((void (*)(void*)) bench->run)(bench->data);
                         __current_result += 1;
                     }
                     __current_scale += 1;

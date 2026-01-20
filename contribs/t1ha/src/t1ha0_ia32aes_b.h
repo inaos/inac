@@ -52,7 +52,8 @@
     defined(__i386__) || (defined(_M_IX86) && _MSC_VER > 1800) ||              \
     defined(i386) || defined(_X86_)
 
-uint64_t T1HA_IA32AES_NAME(const void *data, size_t len, uint64_t seed) {
+[[gnu::target("aes")]] uint64_t T1HA_IA32AES_NAME(const void *data, size_t len,
+                                                  uint64_t seed) {
   uint64_t a = seed;
   uint64_t b = len;
 

@@ -155,7 +155,7 @@ void rewinddir(DIR *dir)
 
 int inet_aton(const char *address, struct in_addr *sock)
 {
-    int s;
+    unsigned long s;
     s = inet_addr(address);
     if (s == INADDR_NONE) {
         return(0);

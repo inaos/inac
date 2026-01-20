@@ -43,7 +43,7 @@ typedef struct ina_bench_benchmark_s {
     const char* series_name;
     INA_DISABLE_WARNING_CLANG(strict-prototypes)
     INA_DISABLE_WARNING_GCC(strict-prototypes)
-    void (*run)();
+    void (*run)(void);
     INA_ENABLE_WARNING_CLANG(strict-prototypes)
     INA_ENABLE_WARNING_GCC(strict-prototypes)
     int skip;
@@ -86,7 +86,7 @@ typedef struct ina_bench_benchmark_s {
     INA_BENCH_SECTION_PUSH ina_bench_benchmark_t INA_BENCH_BNAME(bname, sname) INA_BENCH_SECTION = {   \
         #bname,                                                              \
         #sname,                                                              \
-        INA_BENCH_FNAME(bname, sname),                                       \
+        (void (*)(void)) INA_BENCH_FNAME(bname, sname),                      \
         _skip,                                                               \
         __data,                                                              \
         (ina_bench_setup_cb_t)__setup,                                       \

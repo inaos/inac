@@ -1148,7 +1148,7 @@ INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t siz
     }                                                                                  \
 } while(0)
 
-INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t size)
+[[gnu::target("crc32")]] INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t size)
 {
     uint32_t crc = hash;
     const unsigned char* buf = (const unsigned char*)data;
@@ -1171,7 +1171,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
     return (crc ^ 0xFFFFFFFF);
 }
 
-INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t size)
+[[gnu::target("crc32")]] INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t size)
 {
     const char* buf = (const char*)data;
     uint64_t crc = (uint64_t)hash;

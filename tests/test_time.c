@@ -79,7 +79,7 @@ INA_TEST(time,read_clock)
     ms = us/1000;
     INA_TEST_ASSERT(ms > 0);
     INA_TRACE3(inac.test.time, "tv.tv_usec=%ld", (long) tv.tv_usec);
-    INA_TRACE3(inac.test.time, "ms=%ld", ms);
+    INA_TRACE3(inac.test.time, "ms=%lld", (long long) ms);
     INA_TEST_ASSERT_EQUAL_INT64(tv.tv_usec/1000, ms);
 
     ina_time_sys_free(&t);

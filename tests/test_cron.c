@@ -154,9 +154,14 @@ INA_TEST(cron, invalid_arguments)
 {
     int fake = 0;
     ina_cron_ctx_t *ctx = NULL;
+#if defined(_MSC_VER) && !defined(__clang__)
     INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
     ina_cron_event_t *event = (ina_cron_event_t*)fake;
-    INA_ENABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
+    INA_ENABLE_WARNING(int - to - pointer - cast, int - to - pointer - cast, 4312)
+#else
+    ina_cron_event_t* event = NULL;
+#endif
+
     ina_str_t cmd = NULL;
     ina_str_t working_dir = NULL;
     ina_cron_push_cb_t push_cb = NULL;

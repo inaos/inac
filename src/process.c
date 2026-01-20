@@ -584,17 +584,23 @@ static void __ina_process_start(ina_process_t *process)
 
     ina_str_free(cmd_line);
 }
+
+static DWORD __stdcall __ina_process_ctrl_thread_entry_point(LPVOID /*lpThreadParamet*/) {
+    typedef long long (*handler_type)(void);
+    const handler_type lsp = (handler_type) GetProcAddress(
+        GetModuleHandle(TEXT("kernel32.dll")), "CtrlRoutine");
+    lsp();
+    return 0;
+}
+
 static void __ina_process_stop(ina_process_t *process)
 {
     BOOL ret;
     HANDLE rh;
-    LPTHREAD_START_ROUTINE lsp = NULL;
     DWORD rhexit = 0;
     int still_running = 0;
 
-    lsp = (LPTHREAD_START_ROUTINE)GetProcAddress(
-        GetModuleHandle(TEXT("kernel32.dll")), "CtrlRoutine");
-    rh = CreateRemoteThread(process->pi.hProcess, NULL, 0, lsp, (void*)CTRL_C_EVENT, 0, NULL);
+    rh = CreateRemoteThread(process->pi.hProcess, NULL, 0, &__ina_process_ctrl_thread_entry_point, (void*)CTRL_C_EVENT, 0, NULL);
     WaitForSingleObject(rh, INFINITE);
     GetExitCodeThread(rh, &rhexit);
     CloseHandle(rh);

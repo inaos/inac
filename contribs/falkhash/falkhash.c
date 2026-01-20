@@ -27,6 +27,7 @@
  *
  * Performs a falkhash and returns the result.
  */
+[[gnu::target("aes")]]
 __m128i
 falkhash(
 		_In_reads_bytes_(len) void     *pbuf,

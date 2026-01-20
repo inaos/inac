@@ -78,6 +78,9 @@ static void __ina_file_win_map_flags(ina_file_access_mode_t access,
 				*dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
 			}
 			break;
+        case INA_FILE_ACCESS_MODE_WRITE:
+            *dwDesiredAccess = GENERIC_WRITE;
+            break;
 	}
 	switch (create) {
 		case INA_FILE_CREATE_MODE_OPEN:
