@@ -551,7 +551,7 @@ INA_API(int) ina_test_helper_run(int argc, char *argv[])
                 continue;
             }
             if (filter(test)) {
-                test->run(&retval, argc, argv);
+                ((void (*)(int* retval, int argc, char *argv[])) test->run)(&retval, argc, argv);
             }
         }
     }
@@ -686,7 +686,7 @@ INA_API(int) ina_test_run(int argc, char *argv[], ina_ljit_ctx_t *ctx)
                     INA_ENABLE_WARNING_MSVC(4152);
 
                     if (setjmp(__err) == 0) {
-                        test->run(test->data);
+                        ((void (*)(void*)) test->run)(test->data);
                         if (!__tap && !__junit) {
                             ina_cio_printf(-1, -1, INA_CIO_COLOR_GREEN,
                                            INA_CIO_COLOR_UNDEFINED,

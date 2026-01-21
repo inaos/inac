@@ -60,7 +60,7 @@ INA_TEST_HELPER(ullc, create_fast_producer) {
     }
 
 
-   INA_TRACE3(inac.test.ullc, "created ullc producer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
+   INA_TRACE3(inac.test.ullc, "created ullc producer: version %d, slots:%zu, producers %d, consumers %d, name %s",
         version, slots, producers, consumers, name);
 
     ina_time_sleep(2000);
@@ -108,7 +108,7 @@ INA_TEST_HELPER(ullc, create_consumer) {
             INA_TEST_HELPER_EXIT(ina_err_get_rc());
     }
 
-   INA_TRACE3(inac.test.ullc, "created ullc consumer: version %d, slots:%ld, producers %ld, consumers %ld, name %s",
+   INA_TRACE3(inac.test.ullc, "created ullc consumer: version %d, slots:%zu, producers %d, consumers %d, name %s",
         version, slots, producers, consumers, name);
  
     while (1) {

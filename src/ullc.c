@@ -277,7 +277,7 @@ INA_API(void *)ina_ullc_producer_claim(ina_ullc_ctx_t *ctx)
             int64_t read_cur;
             if (ctx->c_offset[i].alive) {
                 read_cur = ctx->c_offset[i].cursor % ctx->ring->slots;
-                INA_TRACE3(inac.ullc, "wait consumer(%ld) %ld at position %d for %ld", i, slow_consumer, read_cur, like_to_write);
+                INA_TRACE3(inac.ullc, "wait consumer(%lld) %lld at position %lld for %lld", (long long) i, (long long) slow_consumer, (long long) read_cur, (long long) like_to_write);
                 slow_consumer = INA_MAX(slow_consumer, read_cur);
             }
         }
@@ -495,9 +495,9 @@ __ina_ullc_ring_create(ina_ullc_rb_t **rb, ina_ullc_ctx_t *ctx, int version,
         return INA_ERROR(INA_ES_MEMORY | INA_ERR_NOT_ALIGNED);
     }
 
-    mem_size = (sizeof(ina_ullc_rb_t)+rsize*rslots)+
+    mem_size = (size_t) ((sizeof(ina_ullc_rb_t)+rsize*rslots)+
                  (sizeof(ina_ullc_cursor_t)*num_consumers) +
-                 (sizeof(ina_ullc_cursor_t)*num_producers);
+                 (sizeof(ina_ullc_cursor_t)*num_producers));
 
 	ctx->pool = NULL;
 

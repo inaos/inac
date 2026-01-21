@@ -129,9 +129,10 @@ INA_TEST(list, resize)
     INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(10000, 1000), usage);
     INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 9000, 0));
     INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
+
     INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(9000, 0), usage);
     INA_TEST_ASSERT_SUCCEED(ina_list_resize(list, 3000, 256));
     INA_TEST_ASSERT_SUCCEED(ina_list_usage(list, &usage));
-    INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(8000, 256), usage);
+    INA_TEST_ASSERT_EQUAL_SIZE_T(__INA_CALC_SIZE(10000, 256), usage);
 }
 

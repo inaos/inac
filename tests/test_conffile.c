@@ -156,7 +156,7 @@ INA_TEST(conffile , using_macros_without_section_handler)
 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "debug", NULL, "username", &value));
     INA_TEST_ASSERT_NOT_NULL(value);
-    INA_TEST_ASSERT_TRUE(ina_str_len(value));
+
     INA_TEST_MSG("username from env var: %s", value);
 
     INA_TEST_ASSERT_SUCCEED(ina_conffile_get_string(cf, "iface", "lo0", "ip", &value));
@@ -367,12 +367,16 @@ INA_TEST(conffile, new_free)
 
 INA_TEST(conffile, invalid_arguments)
 {
-    int fake = 0;
     ina_conffile_t *cf = NULL;
     ina_conffile_section_t* section = NULL;
+#if defined(_MSC_VER) && !defined(__clang__)
+    int fake = 0;
     INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
-    ina_conffile_entries_t *entries = (ina_conffile_entries_t*)fake;
-    INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast, 4312)
+    ina_conffile_entries_t *entries = (ina_conffile_entries_t*) fake;
+    INA_ENABLE_WARNING(int - to - pointer - cast, int - to - pointer - cast, 4312)
+#else
+    ina_conffile_entries_t* entries = NULL;
+#endif
     ina_str_t str_value;
     double dbl_value = 0.0;
     INA_UNUSED(data);

@@ -78,8 +78,8 @@ INA_TEST(time,read_clock)
     INA_TEST_ASSERT_EQUAL_INT64(tv.tv_sec, secs);
     ms = us/1000;
     INA_TEST_ASSERT(ms > 0);
-    INA_TRACE3(inac.test.time, "tv.tv_usec=%d", tv.tv_usec);
-    INA_TRACE3(inac.test.time, "ms=%ld", ms);
+    INA_TRACE3(inac.test.time, "tv.tv_usec=%ld", (long) tv.tv_usec);
+    INA_TRACE3(inac.test.time, "ms=%lld", (long long) ms);
     INA_TEST_ASSERT_EQUAL_INT64(tv.tv_usec/1000, ms);
 
     ina_time_sys_free(&t);
@@ -132,12 +132,12 @@ INA_TEST_SKIP(time_tsc,read_tsc)
  
     INA_TEST_ASSERT_EQUAL_INT(test.tv_sec, sec);
     d = u1 - u2;
-    if (abs(d) > 1) {
+    if (fabs(d) > 1.0) {
         INA_TEST_ASSERT_SUCCEED(ina_time_tsc_disable_rdtsc());
         INA_TEST_MSG("Difference was %f ms (> +- 1ms)", d); 
     }
 
-    INA_TEST_ASSERT_TRUE(abs(d) <= 1);
+    INA_TEST_ASSERT_TRUE(fabs(d) <= 1.0);
     
     for (i = 0; i < 1000; i++) {
         clock_gettime(CLOCK_REALTIME, &test);
@@ -146,15 +146,15 @@ INA_TEST_SKIP(time_tsc,read_tsc)
         u1 = test.tv_nsec / 1000;
         u2 = nanos / 1000;
         d = u1 - u2;
-        if (abs(d) > 1) {
+        if (fabs(d) > 1.0) {
             break;
         }
     }
     INA_TEST_ASSERT_SUCCEED(ina_time_tsc_disable_rdtsc());
-    if (abs(d) > 1) {
+    if (fabs(d) > 1.0) {
         INA_TEST_MSG("Difference was %f ms (> +- 1ms) at %d cycle", d, i);
     }
-    INA_TEST_ASSERT_TRUE(abs(d) <= 1);
+    INA_TEST_ASSERT_TRUE(fabs(d) <= 1.0);
 }
 #endif
 

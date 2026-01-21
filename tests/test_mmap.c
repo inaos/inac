@@ -86,7 +86,6 @@ INA_TEST(mmap, invalid_arguments)
     ina_mmap_ctx_t *ctx = NULL;
     ina_mmap_mapping_t *mapping = NULL;
     ina_file_t *fd = NULL;
-    int fake = 0;
     void *mem = NULL;
     INA_UNUSED(data);
 
@@ -112,9 +111,12 @@ INA_TEST(mmap, invalid_arguments)
                                                                   &mapping
     ));
 
+#if defined(_MSC_VER) && !defined(__clang__)
+    int fake = 0;
     INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
     fd = (ina_file_t*)fake;
-    INA_ENABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
+    INA_ENABLE_WARNING(int - to - pointer - cast, int - to - pointer - cast, 4312)
+#endif
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mmap_new(ctx, fd,
                                                                   INA_MMAP_MEM_PROT_EXEC,
                                                                   INA_MMAP_MEM_SHARE_PRIVATE,
@@ -127,9 +129,11 @@ INA_TEST(mmap, invalid_arguments)
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mmap_sync(NULL));
 
+#if defined(_MSC_VER) && !defined(__clang__)
     INA_DISABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
     mapping = (ina_mmap_mapping_t*)fake;
     INA_ENABLE_WARNING(int-to-pointer-cast, int-to-pointer-cast,4312)
+#endif
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mmap_memory_head(NULL, &mem));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT, ina_mmap_memory_head(mapping, NULL));

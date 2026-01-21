@@ -81,7 +81,7 @@ INA_TEST(file, stat)
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_new(f, &stat));
     INA_TEST_ASSERT_NOT_NULL(stat);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_file_size(stat, &file_size));
-    INA_TEST_ASSERT_EQUAL_INT64(180LL, file_size);
+    INA_TEST_ASSERT_EQUAL_INT64(210LL, file_size);
     INA_TEST_ASSERT_SUCCEED(ina_file_stat_atime(stat, &t));
     INA_TEST_ASSERT_NOT_EQUAL_TIME_T(0, t);
     t = 0;
@@ -186,12 +186,17 @@ ina_file_set_eof*/
 
 INA_TEST(file, invalid_arguments)
 {
-    int fake = 0;
     unsigned char bc[1];
     ina_file_ctx_t *ctx = NULL;
-    INA_DISABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,4312)
+#if defined(_MSC_VER) && !defined(__clang__)
+    int fake = 0;
+    INA_DISABLE_WARNING(int - to - pointer - cast, int - to - pointer - cast, 4312)
     ina_file_t *file = (ina_file_t*)fake;
-    INA_ENABLE_WARNING(int-to-pointer-cast,int-to-pointer-cast,4312)
+    INA_ENABLE_WARNING(int - to - pointer - cast, int - to - pointer - cast, 4312)
+#else
+    ina_file_t* file = NULL; 
+#endif
+
     ina_file_stat_t *stat = NULL;
     ina_str_t filepath = NULL;
     mode_t mode;

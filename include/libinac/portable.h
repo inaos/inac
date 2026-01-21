@@ -468,7 +468,7 @@ extern "C" {
 #if defined(INA_COMPILER_GCC) || defined(INA_COMPILER_ICC) || defined(INA_COMPILER_ICX)
     #define INA_ALWAYS_INLINE __attribute__((__always_inline__)) inline
 #elif defined(INA_COMPILER_MSVC)
-    #define INA_ALWAYS_INLINE __forceinline inline
+    #define INA_ALWAYS_INLINE __forceinline
 #else
     #define INA_ALWAYS_INLINE INA_INLINE
 #endif
@@ -1018,8 +1018,12 @@ typedef uint_least32_t uint_fast32_t;
 #define INA_TOKEN_PASTE(x, y) x##y
 #define INA_CAT(x,y) INA_TOKEN_PASTE(x,y)
 
-#ifndef INA_OS_WINDOWS
 #define INA_UNIQUE_VAR(v, prefix) __typeof(v) INA_CAT(u##prefix, __LINE__)
+
+#ifdef INA_COMPILER_MSVC
+    #define INA_MAX(a,b)    (((a) > (b)) ? (a) : (b)) 
+    #define INA_MIN(a,b)    (((a) < (b)) ? (a) : (b)) 
+#else
 #define INA_MAX(a,b) \
    ({ INA_UNIQUE_VAR(a, _a) = (a); \
        INA_UNIQUE_VAR(b, _b) = (b); \
@@ -1029,9 +1033,6 @@ typedef uint_least32_t uint_fast32_t;
    ({ INA_UNIQUE_VAR(a, _a) = (a); \
        INA_UNIQUE_VAR(b, _b) = (b); \
        INA_CAT(u##_a, __LINE__) < INA_CAT(u##_b, __LINE__) ? INA_CAT(u##_a, __LINE__) : INA_CAT(u##_b, __LINE__); })
-#else
-#define INA_MAX(a,b) max(a,b)
-#define INA_MIN(a,b) min(a,b)
 #endif
 
 #ifdef INA_CPU_X86_64

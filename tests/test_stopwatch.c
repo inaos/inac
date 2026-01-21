@@ -257,7 +257,7 @@ INA_TEST_SETUP(stopwatch_ipc_rdtsc) {
 #endif
     ina_time_tsc_enable_rdtsc();
     ina_time_sleep(3000);
-    INA_TEST_HELPER_INVOKE(&data->hid, time_ipc_rdtsc, stopwatch_create_rdtsc, 
+    INA_TEST_HELPER_INVOKE(&data->hid, stopwatch_ipc_rdtsc, stopwatch_create_rdtsc, 
         INA_NUM2STR(889),
     NULL);
 }

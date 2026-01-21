@@ -78,6 +78,9 @@ static void __ina_file_win_map_flags(ina_file_access_mode_t access,
 				*dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
 			}
 			break;
+        case INA_FILE_ACCESS_MODE_WRITE:
+            *dwDesiredAccess = GENERIC_WRITE;
+            break;
 	}
 	switch (create) {
 		case INA_FILE_CREATE_MODE_OPEN:
@@ -361,8 +364,9 @@ INA_API(ina_rc_t) ina_file_stat_sync(const ina_file_t *file, ina_file_stat_t *st
         return INA_OS_ERROR(INA_ERR_OPERATION_FAILED);
     }
     stat->file_size = (size_t)fst.st_size;
+
     if (fst.st_mode & S_IFDIR) {
-        stat->is_dir = 1;
+       stat->is_dir = 1;
     } else {
         stat->is_dir = 0;
     }
@@ -425,7 +429,7 @@ INA_API(ina_rc_t) ina_file_stat_is_dir(ina_file_stat_t *stat)
     INA_VERIFY_NOT_NULL(stat);
 
     if (!stat->is_dir) {
-        INA_ERROR(INA_ERR_NOT_A_DIRECTORY);
+        return INA_ERROR(INA_ERR_NOT_A_DIRECTORY);
     }
     return INA_SUCCESS;
 }
@@ -436,7 +440,7 @@ INA_API(ina_rc_t) ina_file_stat_file_size(ina_file_stat_t *stat, size_t *file_si
     INA_VERIFY_NOT_NULL(file_size);
 
     /* we know the the file-size can not be negative */
-    *file_size = stat->file_size;
+    *file_size = (size_t) stat->file_size;
     return INA_SUCCESS;
 }
 
@@ -578,8 +582,8 @@ INA_API(ina_rc_t) ina_file_set_pos(ina_file_t *file, size_t offset, ina_file_see
 {
 #ifdef INA_OS_WINDOWS
     static DWORD modes[2] = {FILE_BEGIN,FILE_CURRENT};
-    LONG high = offset >> 32;
-    LONG low = offset & 0xffffffff;
+    LONG high = (LONG) (((unsigned long long) offset) >> 32);
+    LONG low = (LONG) (offset & 0xffffffff);
     INA_VERIFY_NOT_NULL(file);
     if (SetFilePointer(file->fh, low, &high, modes[mode]) == INVALID_SET_FILE_POINTER) {
         return INA_OS_ERROR(INA_ERR_OPERATION_FAILED);;

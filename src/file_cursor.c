@@ -78,19 +78,25 @@ static ina_rc_t ina_file_cursor_fileio_free(ina_file_cursor_t **cursor)
 
 static ina_rc_t ina_file_cursor_fileio_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(buffer_size);
 	*buffer_size = cursor->ext.f.buffer_size;
 	return INA_SUCCESS;
 }
 
 static ina_rc_t ina_file_cursor_fileio_get_pos(const ina_file_cursor_t *cursor, uint64_t *position)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(position);
 	*position = cursor->ext.f.position;
 	return INA_SUCCESS;
 }
 
 static ina_rc_t ina_file_cursor_fileio_set_pos(ina_file_cursor_t *cursor, uint64_t position)
 {
-	if (INA_SUCCEED(ina_file_set_pos(cursor->file, position, INA_FILE_SEEK_MODE_SET))) {
+    INA_VERIFY_NOT_NULL(cursor);
+
+	if (INA_SUCCEED(ina_file_set_pos(cursor->file, (size_t) position, INA_FILE_SEEK_MODE_SET))) {
 		cursor->ext.f.position = position;
 		return INA_SUCCESS;
 	}
@@ -99,17 +105,23 @@ static ina_rc_t ina_file_cursor_fileio_set_pos(ina_file_cursor_t *cursor, uint64
 
 static ina_rc_t ina_file_cursor_fileio_set_eof(ina_file_cursor_t *cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return ina_file_set_eof(cursor->file);
 }
 
 static ina_rc_t ina_file_cursor_fileio_set_bof(ina_file_cursor_t *cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return ina_file_set_bof(cursor->file);
 }
 
 static ina_rc_t ina_file_cursor_fileio_binary_read_chunk(ina_file_cursor_t *cursor, size_t requested,
                                                          size_t *nread, const unsigned char **chunk)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(nread);
+    INA_VERIFY_NOT_NULL(chunk);
+
     if (INA_FAILED(ina_file_read(cursor->file, cursor->ext.f.buffer,
                                     requested, nread))) {
         return ina_err_get_rc();
@@ -125,6 +137,10 @@ static ina_rc_t ina_file_cursor_fileio_binary_read_chunk(ina_file_cursor_t *curs
 static ina_rc_t ina_file_cursor_fileio_text_read_chunk(ina_file_cursor_t *cursor, size_t requested,
                                                        size_t *nread, const char **chunk)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(nread);
+    INA_VERIFY_NOT_NULL(chunk);
+
     if (INA_FAILED(ina_file_cursor_fileio_binary_read_chunk(cursor, requested,
             nread, (const unsigned char **)chunk))) {
         return ina_err_get_rc();
@@ -146,6 +162,10 @@ static ina_rc_t ina_file_cursor_fileio_binary_readwrite_chunk(ina_file_cursor_t 
 
 static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor, const char **begin_line, size_t *len)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(begin_line);
+    INA_VERIFY_NOT_NULL(len);
+
     size_t nread = 0;
     const char *chunk;
     if (cursor->ext.f.line != NULL) {
@@ -183,6 +203,10 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line(ina_file_cursor_t *cursor,
 
 static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *cursor, const char **begin_line, size_t *len)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(begin_line);
+    INA_VERIFY_NOT_NULL(len);
+
     size_t nread = 0;
     const char *chunk;
     if (cursor->ext.f.lmp == NULL) {
@@ -226,6 +250,7 @@ static ina_rc_t ina_file_cursor_fileio_text_read_line_mp(ina_file_cursor_t *curs
 
 static ina_rc_t ina_file_cursor_mmap_free(ina_file_cursor_t **cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	ina_mmap_free(&(*cursor)->ext.m.fm);
 	ina_mem_free(*cursor);
 	*cursor = NULL;
@@ -234,18 +259,24 @@ static ina_rc_t ina_file_cursor_mmap_free(ina_file_cursor_t **cursor)
 
 static ina_rc_t ina_file_cursor_mmap_get_buffer_size(const ina_file_cursor_t *cursor, uint64_t *buffer_size)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(buffer_size);
 	*buffer_size = cursor->ext.m.buffer_size;
 	return INA_SUCCESS;
 }
 
 static ina_rc_t ina_file_cursor_mmap_get_pos(const ina_file_cursor_t *cursor, uint64_t *position)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(position);
 	*position = cursor->ext.m.position;
 	return INA_SUCCESS;
 }
 
 static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t position)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+
 	void *head;
 	int buffer_idx = (int)floor((double)(position/cursor->ext.m.buffer_size));
     uint64_t tmp = (uint64_t)buffer_idx * (uint64_t)cursor->ext.m.buffer_size;
@@ -278,16 +309,22 @@ static ina_rc_t ina_file_cursor_mmap_set_pos(ina_file_cursor_t *cursor, uint64_t
 
 static ina_rc_t ina_file_cursor_mmap_set_eof(ina_file_cursor_t *cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return ina_file_cursor_set_pos(cursor, cursor->ext.m.len);
 }
 
 static ina_rc_t ina_file_cursor_mmap_set_bof(ina_file_cursor_t *cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return ina_file_cursor_set_pos(cursor, 0);
 }
 
 static ina_rc_t ina_file_cursor_mmap_text_read_line(ina_file_cursor_t *cursor, const char **begin_line, size_t *len)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(begin_line);
+    INA_VERIFY_NOT_NULL(len);
+
 	size_t l = 0;
 	unsigned char *d = (unsigned char*)cursor->ext.m.mem_pos;
 	void *tail;
@@ -338,6 +375,10 @@ static ina_rc_t ina_file_cursor_mmap_text_read_line(ina_file_cursor_t *cursor, c
 static ina_rc_t ina_file_cursor_mmap_binary_read_chunk(ina_file_cursor_t *cursor, size_t requested,
 							  size_t *read, const unsigned char **chunk)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(read);
+    INA_VERIFY_NOT_NULL(chunk);
+
 	if (INA_SUCCEED(ina_file_cursor_set_pos(cursor, cursor->ext.m.position + requested))) {
 		*read = requested;
         *chunk = (unsigned char*)cursor->ext.m.mem_pos - *read;
@@ -353,6 +394,10 @@ static ina_rc_t ina_file_cursor_mmap_binary_read_chunk(ina_file_cursor_t *cursor
 static ina_rc_t ina_file_cursor_mmap_text_read_chunk(ina_file_cursor_t *cursor, size_t requested,
 							size_t *read, const char **chunk)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(read);
+    INA_VERIFY_NOT_NULL(chunk);
+
 	const unsigned char *bin_chunk;
 	ina_file_cursor_binary_read_chunk(cursor, requested, read, &bin_chunk);
 	*chunk = (const char*)bin_chunk;
@@ -375,13 +420,22 @@ static ina_rc_t ina_file_cursor_init_internal(ina_file_t *file,
                                               ina_file_cursor_t *cursor,
                                               ina_mmap_ctx_t *mmap_ctx)
 {
+    INA_VERIFY_NOT_NULL(file);
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(mmap_ctx);
+
     ina_file_stat_t *fstat = NULL;
 	uint64_t flen = 0;
 
 	if (INA_FAILED(ina_file_stat_new(file, &fstat))) {
 		return ina_err_get_rc();
 	}
-	ina_file_stat_file_size(fstat, &flen);
+
+    {   size_t slen;
+	    ina_file_stat_file_size(fstat, &slen);
+        flen = slen;
+    }
+
 	ina_file_stat_free(&fstat);
 
 	cursor->file = file;
@@ -475,6 +529,7 @@ INA_API(ina_rc_t) ina_file_cursor_new_using_pool(ina_file_t *file,
     INA_VERIFY_NOT_NULL(cursor);
 	INA_VERIFY_NOT_NULL(mmap_ctx);
 	INA_VERIFY_NOT_NULL(pool);
+
     *cursor = (ina_file_cursor_t*)ina_mempool_dalloc(pool, sizeof(ina_file_cursor_t));
     INA_RETURN_IF_NULL(*cursor);
     (*cursor)->mpref = pool;
@@ -491,6 +546,7 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
     INA_VERIFY_NOT_NULL(file);
     INA_VERIFY_NOT_NULL(cursor);
     INA_VERIFY_NOT_NULL(mmap_ctx);
+
     *cursor = (ina_file_cursor_t*)ina_mem_alloc(sizeof(ina_file_cursor_t));
     (*cursor)->mpref = NULL;
 	return ina_file_cursor_init_internal(file, cursor_type, mode, buffer_size, *cursor, mmap_ctx);
@@ -498,6 +554,7 @@ INA_API(ina_rc_t) ina_file_cursor_new(ina_file_t *file,
 
 INA_API(ina_rc_t) ina_file_cursor_free(ina_file_cursor_t **cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	ina_file_cursor_t *c = *cursor;
 	return c->free_fp(cursor);
 }
@@ -548,6 +605,7 @@ INA_API(ina_rc_t) ina_file_cursor_set_pos(ina_file_cursor_t *cursor, uint64_t po
 
 INA_API(ina_rc_t) ina_file_cursor_set_bof(ina_file_cursor_t *cursor)
 {
+    INA_VERIFY_NOT_NULL(cursor);
 	return cursor->set_bof_fp(cursor);
 }
 
@@ -559,24 +617,40 @@ INA_API(ina_rc_t) ina_file_cursor_set_eof(ina_file_cursor_t *cursor)
 
 INA_API(ina_rc_t) ina_file_cursor_text_read_line(ina_file_cursor_t *cursor, const char **begin_line, size_t *len)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(begin_line);
+    INA_VERIFY_NOT_NULL(len);
+
 	return cursor->text_read_line_fp(cursor, begin_line, len);
 }
 
 INA_API(ina_rc_t) ina_file_cursor_binary_read_chunk(ina_file_cursor_t *cursor, size_t requested,
 												  size_t *read, const unsigned char **chunk)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(read);
+    INA_VERIFY_NOT_NULL(chunk);
+
 	return cursor->bin_read_chunk_fp(cursor, requested, read, chunk);
 }
 
 INA_API(ina_rc_t) ina_file_cursor_binary_readwrite_chunk(ina_file_cursor_t *cursor, size_t requested,
 												       size_t *actual, unsigned char **chunk)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(actual);
+    INA_VERIFY_NOT_NULL(chunk);
+
 	return cursor->bin_readwrite_fp(cursor, requested, actual, chunk);
 }
 
 INA_API(ina_rc_t) ina_file_cursor_text_read_chunk(ina_file_cursor_t *cursor, size_t requested,
 												size_t *read, const char **chunk)
 {
+    INA_VERIFY_NOT_NULL(cursor);
+    INA_VERIFY_NOT_NULL(read);
+    INA_VERIFY_NOT_NULL(chunk);
+
 	return cursor->text_read_chunk_fp(cursor, requested, read, chunk);
 }
 

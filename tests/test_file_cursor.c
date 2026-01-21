@@ -56,7 +56,6 @@ INA_TEST(file_cursor, invalid_arguments)
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
                            ina_file_cursor_get_buffer_size(cursor, NULL));
 
-
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
                            ina_file_cursor_get_mode(NULL, &mode));
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
@@ -81,7 +80,4 @@ INA_TEST(file_cursor, invalid_arguments)
 
     INA_TEST_ASSERT_ERRMSG(INA_ERR_INVALID_ARGUMENT,
                            ina_file_cursor_set_eof(NULL));
-
-
-
 }

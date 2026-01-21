@@ -164,7 +164,7 @@ static ina_rc_t __ina_listen(ina_fd_t s, struct sockaddr *sa, socklen_t len) {
 static ina_rc_t __ina_generic_accept(ina_fd_t s, ina_fd_t *fd, struct sockaddr *sa, socklen_t *len) {
     while(1) {
         *fd = accept(s,sa,len);
-        if (*fd == -1) {
+        if (*fd == (ina_fd_t) - 1) {
             if (errno == EINTR)
                 continue;
             else {
@@ -271,7 +271,7 @@ INA_API(ina_rc_t) ina_net_tcp_accept(ina_fd_t *fd, ina_fd_t sfd, ina_str_t ip, i
     }
     if (port) *port = ntohs(sa.sin_port);
 
-    if (*fd == -1 && !__ina_eagain()) {
+    if ((*fd == (ina_fd_t) -1) && !__ina_eagain()) {
         return ina_err_get_rc();
     }
     return INA_SUCCESS;
@@ -285,7 +285,7 @@ INA_API(ina_rc_t) ina_net_tcp_connect(ina_fd_t* fd, const char *addr, int port, 
 
     if (timeout_sec > 0) {
         if (INA_SUCCEED(__ina_tcp_generic_connect(fd, (char *) addr, (uint16_t)port, __INA_CONNECT_NONBLOCK))) {
-            if (*fd != -1) {
+            if (*fd != (ina_fd_t) -1) {
                 fd_set fdset;
                 struct timeval timeout;
 

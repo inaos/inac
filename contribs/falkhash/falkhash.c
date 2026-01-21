@@ -27,6 +27,9 @@
  *
  * Performs a falkhash and returns the result.
  */
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((target("aes")))
+#endif
 __m128i
 falkhash(
 		_In_reads_bytes_(len) void     *pbuf,

@@ -82,6 +82,7 @@ typedef struct ina_fsm_transition_s {
             [e][id##_get_fsm_state(*s)];                                                \
         id##_fsm_state_t new_state = (id##_fsm_state_t)__fsmt->next_state;              \
         if (__fsmt->action) __fsmt->action(u);                                          \
+        id##_set_fsm_event(s, e);                                                       \
         id##_set_fsm_state(s, new_state);                                               \
         return new_state;                                                               \
     }

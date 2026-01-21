@@ -159,7 +159,7 @@ INA_API(ina_rc_t) ina_mempool_new(size_t size, const char *label, uint32_t cf, i
 		*pool = NULL;
 		return INA_ERROR(INA_ERR_OUT_OF_MEMORY);
 	}
-	INA_TRACE3(inac.mempool, "New memory pool: %p->%p size = %ld", *pool, (*pool)->m, (*pool)->size);
+	INA_TRACE3(inac.mempool, "New memory pool: %p->%p size = %zu", *pool, (*pool)->m, (*pool)->size);
 	return INA_SUCCESS;
 }
 
