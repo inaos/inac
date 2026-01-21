@@ -99,7 +99,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 #ifdef INA_OS_WINDOWS
 	(*mapping)->fmap = NULL;
 	if (prot_flags & INA_MMAP_MEM_PROT_READ) {
-		if (share & INA_MMAP_MEM_PROT_EXEC) {
+		if (prot_flags & INA_MMAP_MEM_PROT_EXEC) {
 			flProtect = PAGE_EXECUTE_READ;
 		}
 		else {
@@ -111,7 +111,7 @@ INA_API(ina_rc_t) ina_mmap_new(ina_mmap_ctx_t *ctx, ina_file_t *fd,
 		flProtect = PAGE_EXECUTE_READ;
 	}
 	if (prot_flags & INA_MMAP_MEM_PROT_WRITE) {
-		if (share & INA_MMAP_MEM_PROT_EXEC) {
+		if (prot_flags & INA_MMAP_MEM_PROT_EXEC) {
 			flProtect = PAGE_EXECUTE_READWRITE;
 		}
 		else {
