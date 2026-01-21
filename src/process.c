@@ -585,7 +585,8 @@ static void __ina_process_start(ina_process_t *process)
     ina_str_free(cmd_line);
 }
 
-static DWORD __stdcall __ina_process_ctrl_thread_entry_point(LPVOID /*lpThreadParamet*/) {
+static DWORD __stdcall __ina_process_ctrl_thread_entry_point(LPVOID lpThreadParameter) {
+    (void) lpThreadParameter;
     typedef long long (*handler_type)(void);
     const handler_type lsp = (handler_type) GetProcAddress(
         GetModuleHandle(TEXT("kernel32.dll")), "CtrlRoutine");
