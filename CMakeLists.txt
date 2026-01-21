@@ -46,6 +46,7 @@ if ((CMAKE_C_COMPILER_ID STREQUAL "Clang") OR (CMAKE_C_COMPILER_ID STREQUAL "GNU
   	    -Wno-unused-but-set-variable
         -Wno-unused-result
         -Wno-clobbered
+        -Wno-stringop-truncation
     )
 
     if (NOT WIN32)
