@@ -28,7 +28,7 @@
  * Performs a falkhash and returns the result.
  */
 #if defined(__GNUC__) || defined(__clang__)
-[[gnu::target("aes")]]
+__attribute__((target("aes")))
 #endif
 __m128i
 falkhash(

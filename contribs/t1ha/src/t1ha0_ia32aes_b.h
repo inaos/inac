@@ -53,7 +53,7 @@
     defined(i386) || defined(_X86_)
 
 #if defined(__GNUC__) || defined(__clang__)
-[[gnu::target("aes")]]
+__attribute__((target("aes")))
 #endif
 uint64_t T1HA_IA32AES_NAME(const void *data, size_t len,
                                                   uint64_t seed) {
