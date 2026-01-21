@@ -43,7 +43,9 @@ if ((CMAKE_C_COMPILER_ID STREQUAL "Clang") OR (CMAKE_C_COMPILER_ID STREQUAL "GNU
         -Werror=misleading-indentation
         -Wno-unknown-pragmas
         -Wno-unused-function
-	-Wno-unused-but-set-variable
+  	    -Wno-unused-but-set-variable
+        -Wno-unused-result
+        -Wno-clobbered
     )
 
     if (NOT WIN32)
