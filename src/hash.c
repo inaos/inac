@@ -1148,7 +1148,7 @@ INA_API(uint64_t) ina_hash_64_xxhash(uint64_t hash, const void *data, size_t siz
     }                                                                                  \
 } while(0)
 
-#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
 [[gnu::target("crc32")]] 
 #endif
 INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t size)
@@ -1174,7 +1174,7 @@ INA_API(uint32_t) ina_hash_32_crc_hw(uint32_t hash, const void *data, size_t siz
     return (crc ^ 0xFFFFFFFF);
 }
 
-#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
 [[gnu::target("crc32")]] 
 #endif
 INA_API(uint64_t) ina_hash_64_crc_hw(uint64_t hash, const void *data, size_t size)

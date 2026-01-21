@@ -27,7 +27,7 @@
  *
  * Performs a falkhash and returns the result.
  */
-#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
 [[gnu::target("aes")]]
 #endif
 __m128i

@@ -52,7 +52,7 @@
     defined(__i386__) || (defined(_M_IX86) && _MSC_VER > 1800) ||              \
     defined(i386) || defined(_X86_)
 
-#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
 [[gnu::target("aes")]]
 #endif
 uint64_t T1HA_IA32AES_NAME(const void *data, size_t len,
