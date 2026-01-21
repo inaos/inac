@@ -27,7 +27,9 @@
  *
  * Performs a falkhash and returns the result.
  */
+#if defined(_MSC_VER) && !defined(__clang__)
 [[gnu::target("aes")]]
+#endif
 __m128i
 falkhash(
 		_In_reads_bytes_(len) void     *pbuf,
